@@ -46,7 +46,7 @@ export default function Index() {
                 <Button size="lg" className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark px-8" asChild>
                   <Link to="/cadastro">{t.hero.cta[lang]}</Link>
                 </Button>
-                <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" asChild>
+                <Button size="lg" variant="outline" className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10" asChild>
                   <Link to="/servicos">{t.hero.ctaSecondary[lang]}</Link>
                 </Button>
               </motion.div>
