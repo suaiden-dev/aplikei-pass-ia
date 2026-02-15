@@ -65,6 +65,7 @@ export default function Index() {
         <div className="container">
           <h2 className="text-center font-display text-3xl font-bold text-foreground md:text-4xl">{t.servicesSection.title[lang]}</h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">{t.servicesSection.subtitle[lang]}</p>
+          <p className="mx-auto mt-4 text-center font-display text-lg font-bold text-accent animate-pulse">{t.servicesSection.promo[lang]}</p>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {t.servicesData.map((s, i) => (
               <motion.div key={s.slug} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
@@ -74,7 +75,11 @@ export default function Index() {
                   </div>
                   <h3 className="font-display text-base font-semibold text-foreground">{s.shortTitle[lang]}</h3>
                   <p className="mt-1 text-xs text-muted-foreground">{s.subtitle[lang]}</p>
-                  <p className="mt-4 font-display text-lg font-bold text-accent">{s.price[lang]}</p>
+                  <div className="mt-4">
+                    <span className="text-sm text-muted-foreground line-through">{s.originalPrice[lang]}</span>
+                    <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-xs font-bold text-accent">{t.servicesSection.discount[lang]}</span>
+                  </div>
+                  <p className="mt-1 font-display text-2xl font-extrabold text-accent">{s.price[lang]}</p>
                   <span className="mt-auto flex items-center gap-1 pt-4 text-sm font-medium text-accent group-hover:underline">
                     {t.servicesSection.viewDetails[lang]} <ChevronRight className="h-4 w-4" />
                   </span>
