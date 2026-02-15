@@ -31,7 +31,11 @@ export default function ServiceDetail() {
           </div>
           <h1 className="font-display text-3xl font-bold text-foreground md:text-4xl">{service.title[lang]}</h1>
           <p className="mt-2 text-muted-foreground">{service.subtitle[lang]}</p>
-          <p className="mt-4 font-display text-3xl font-bold text-accent">{service.price[lang]}</p>
+          <div className="mt-4">
+            <span className="text-lg text-muted-foreground line-through">{service.originalPrice[lang]}</span>
+            <span className="ml-2 rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-bold text-accent">{t.servicesSection.discount[lang]}</span>
+          </div>
+          <p className="mt-1 font-display text-3xl font-extrabold text-accent">{service.price[lang]}</p>
         </motion.div>
 
         <div className="mt-12 rounded-xl border border-border bg-card p-6 shadow-card">
@@ -122,7 +126,11 @@ export default function ServiceDetail() {
             <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
               <div>
                 <p className="font-display font-bold text-foreground">{service.shortTitle[lang]}</p>
-                <p className="text-lg font-bold text-accent">{service.price[lang]}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground line-through">{service.originalPrice[lang]}</span>
+                  <span className="rounded-full bg-accent/10 px-2 py-0.5 text-xs font-bold text-accent">{t.servicesSection.discount[lang]}</span>
+                </div>
+                <p className="text-lg font-extrabold text-accent">{service.price[lang]}</p>
               </div>
               <Button size="lg" className="w-full bg-accent text-accent-foreground shadow-button hover:bg-green-dark sm:w-auto" asChild>
                 <Link to="/cadastro">{p.createAccount[lang]} <ArrowRight className="ml-2 h-4 w-4" /></Link>
