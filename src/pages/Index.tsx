@@ -63,9 +63,6 @@ export default function Index() {
       {/* Services */}
       <section className="py-20">
         <div className="container">
-          <div className="mb-12 overflow-hidden rounded-2xl">
-            <img src={servicesBanner} alt="Travel and immigration" className="h-48 w-full object-cover md:h-64" />
-          </div>
           <h2 className="text-center font-display text-3xl font-bold text-foreground md:text-4xl">{t.servicesSection.title[lang]}</h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">{t.servicesSection.subtitle[lang]}</p>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -84,6 +81,15 @@ export default function Index() {
                 </Link>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Banner */}
+      <section className="py-0">
+        <div className="container">
+          <div className="overflow-hidden rounded-2xl">
+            <img src={servicesBanner} alt="Travel and immigration" className="h-48 w-full object-cover md:h-64" />
           </div>
         </div>
       </section>
