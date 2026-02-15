@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { LanguageProvider } from "@/i18n/LanguageContext";
 
 import Layout from "./components/Layout";
 import DashboardLayout from "./components/DashboardLayout";
@@ -32,39 +33,41 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Public pages */}
-          <Route element={<Layout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/como-funciona" element={<HowItWorks />} />
-            <Route path="/servicos" element={<Services />} />
-            <Route path="/servicos/:slug" element={<ServiceDetail />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/cadastro" element={<Signup />} />
-            <Route path="/termos" element={<Terms />} />
-            <Route path="/privacidade" element={<Privacy />} />
-            <Route path="/reembolso" element={<Refund />} />
-            <Route path="/disclaimers" element={<Disclaimers />} />
-          </Route>
+    <LanguageProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Public pages */}
+            <Route element={<Layout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/como-funciona" element={<HowItWorks />} />
+              <Route path="/servicos" element={<Services />} />
+              <Route path="/servicos/:slug" element={<ServiceDetail />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/cadastro" element={<Signup />} />
+              <Route path="/termos" element={<Terms />} />
+              <Route path="/privacidade" element={<Privacy />} />
+              <Route path="/reembolso" element={<Refund />} />
+              <Route path="/disclaimers" element={<Disclaimers />} />
+            </Route>
 
-          {/* Dashboard (logged area) */}
-          <Route element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<DashboardHome />} />
-            <Route path="/dashboard/onboarding" element={<Onboarding />} />
-            <Route path="/dashboard/chat" element={<Chat />} />
-            <Route path="/dashboard/uploads" element={<Uploads />} />
-            <Route path="/dashboard/pacote" element={<PackagePDF />} />
-            <Route path="/dashboard/ajuda" element={<HelpCenter />} />
-          </Route>
+            {/* Dashboard (logged area) */}
+            <Route element={<DashboardLayout />}>
+              <Route path="/dashboard" element={<DashboardHome />} />
+              <Route path="/dashboard/onboarding" element={<Onboarding />} />
+              <Route path="/dashboard/chat" element={<Chat />} />
+              <Route path="/dashboard/uploads" element={<Uploads />} />
+              <Route path="/dashboard/pacote" element={<PackagePDF />} />
+              <Route path="/dashboard/ajuda" element={<HelpCenter />} />
+            </Route>
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </LanguageProvider>
   </QueryClientProvider>
 );
 

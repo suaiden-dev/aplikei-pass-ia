@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Plane, GraduationCap, Clock, Repeat, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
-import { services } from "@/data/services";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const iconMap: Record<string, React.ReactNode> = {
   plane: <Plane className="h-7 w-7" />,
@@ -11,44 +11,35 @@ const iconMap: Record<string, React.ReactNode> = {
   repeat: <Repeat className="h-7 w-7" />,
 };
 
+const iconKeys = ["plane", "graduation-cap", "clock", "repeat"];
+
 export default function Services() {
+  const { lang, t } = useLanguage();
+  const p = t.servicesPage;
+
   return (
     <div className="py-16">
       <div className="container">
-        <motion.h1
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center font-display text-4xl font-bold text-foreground"
-        >
-          Nossos Serviços
+        <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-center font-display text-4xl font-bold text-foreground">
+          {p.title[lang]}
         </motion.h1>
-        <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">
-          Escolha o guia passo a passo ideal para o seu processo imigratório. Leia tudo antes de comprar.
-        </p>
+        <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">{p.subtitle[lang]}</p>
 
         <div className="mt-12 space-y-8">
-          {services.map((s, i) => (
-            <motion.div
-              key={s.slug}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
-              className="overflow-hidden rounded-xl border border-border bg-card shadow-card"
-            >
+          {t.servicesData.map((s, i) => (
+            <motion.div key={s.slug} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }} className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
               <div className="flex flex-col md:flex-row">
-                {/* Left column */}
                 <div className="border-b border-border p-6 md:w-1/3 md:border-b-0 md:border-r">
                   <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    {iconMap[s.icon]}
+                    {iconMap[iconKeys[i]]}
                   </div>
-                  <h2 className="font-display text-xl font-bold text-foreground">{s.shortTitle}</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{s.subtitle}</p>
-                  <p className="mt-4 font-display text-2xl font-bold text-accent">{s.price}</p>
+                  <h2 className="font-display text-xl font-bold text-foreground">{s.shortTitle[lang]}</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">{s.subtitle[lang]}</p>
+                  <p className="mt-4 font-display text-2xl font-bold text-accent">{s.price[lang]}</p>
                   <div className="mt-4">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Para quem é</h4>
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{p.forWhom[lang]}</h4>
                     <ul className="mt-2 space-y-1">
-                      {s.forWhom.map((item, j) => (
+                      {s.forWhom[lang].map((item, j) => (
                         <li key={j} className="flex items-start gap-2 text-sm text-foreground">
                           <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
                           {item}
@@ -58,15 +49,12 @@ export default function Services() {
                   </div>
                 </div>
 
-                {/* Right column */}
                 <div className="flex-1 p-6">
                   <div className="grid gap-6 md:grid-cols-2">
                     <div>
-                      <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-accent">
-                        ✅ Inclui
-                      </h4>
+                      <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-accent">{p.includes[lang]}</h4>
                       <ul className="space-y-1.5">
-                        {s.included.slice(0, 5).map((item, j) => (
+                        {s.included[lang].slice(0, 5).map((item, j) => (
                           <li key={j} className="flex items-start gap-2 text-sm text-muted-foreground">
                             <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
                             {item}
@@ -75,11 +63,9 @@ export default function Services() {
                       </ul>
                     </div>
                     <div>
-                      <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-destructive">
-                        ❌ Não inclui
-                      </h4>
+                      <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-destructive">{p.notIncluded[lang]}</h4>
                       <ul className="space-y-1.5">
-                        {s.notIncluded.slice(0, 4).map((item, j) => (
+                        {s.notIncluded[lang].slice(0, 4).map((item, j) => (
                           <li key={j} className="flex items-start gap-2 text-sm text-muted-foreground">
                             <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive/60" />
                             {item}
@@ -91,7 +77,7 @@ export default function Services() {
                   <div className="mt-6">
                     <Button className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark" asChild>
                       <Link to={`/servicos/${s.slug}`}>
-                        Ver detalhes completos <ChevronRight className="ml-1 h-4 w-4" />
+                        {p.viewFull[lang]} <ChevronRight className="ml-1 h-4 w-4" />
                       </Link>
                     </Button>
                   </div>

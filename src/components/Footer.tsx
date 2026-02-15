@@ -1,55 +1,59 @@
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export default function Footer() {
+  const { lang, t } = useLanguage();
+
   return (
     <footer className="border-t border-border bg-primary text-primary-foreground">
       <div className="container py-12">
         <div className="grid gap-8 md:grid-cols-4">
           <div>
             <span className="font-display text-lg font-bold">Aplikei</span>
-            <p className="mt-2 text-sm text-primary-foreground/70">
-              Guia passo a passo + IA para processos imigratórios simples.
-            </p>
+            <p className="mt-2 text-sm text-primary-foreground/70">{t.footer.tagline[lang]}</p>
           </div>
 
           <div>
             <h4 className="mb-3 text-sm font-semibold uppercase tracking-wider text-primary-foreground/50">
-              Serviços
+              {t.footer.servicesHeader[lang]}
             </h4>
             <ul className="space-y-2 text-sm text-primary-foreground/70">
-              <li><Link to="/servicos/visto-b1-b2" className="hover:text-accent transition-colors">Visto B1/B2</Link></li>
-              <li><Link to="/servicos/visto-f1" className="hover:text-accent transition-colors">Visto F-1</Link></li>
-              <li><Link to="/servicos/extensao-status" className="hover:text-accent transition-colors">Extensão de Status</Link></li>
-              <li><Link to="/servicos/troca-status" className="hover:text-accent transition-colors">Troca de Status</Link></li>
+              {t.servicesData.map((s) => (
+                <li key={s.slug}>
+                  <Link to={`/servicos/${s.slug}`} className="hover:text-accent transition-colors">
+                    {s.shortTitle[lang]}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           <div>
             <h4 className="mb-3 text-sm font-semibold uppercase tracking-wider text-primary-foreground/50">
-              Plataforma
+              {t.footer.platformHeader[lang]}
             </h4>
             <ul className="space-y-2 text-sm text-primary-foreground/70">
-              <li><Link to="/como-funciona" className="hover:text-accent transition-colors">Como funciona</Link></li>
-              <li><Link to="/disclaimers" className="hover:text-accent transition-colors">Disclaimers</Link></li>
-              <li><Link to="/ajuda" className="hover:text-accent transition-colors">Central de Ajuda (N1)</Link></li>
+              <li><Link to="/como-funciona" className="hover:text-accent transition-colors">{t.footer.howItWorks[lang]}</Link></li>
+              <li><Link to="/disclaimers" className="hover:text-accent transition-colors">{t.footer.disclaimers[lang]}</Link></li>
+              <li><Link to="/ajuda" className="hover:text-accent transition-colors">{t.footer.helpCenter[lang]}</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="mb-3 text-sm font-semibold uppercase tracking-wider text-primary-foreground/50">
-              Legal
+              {t.footer.legalHeader[lang]}
             </h4>
             <ul className="space-y-2 text-sm text-primary-foreground/70">
-              <li><Link to="/termos" className="hover:text-accent transition-colors">Termos de Uso</Link></li>
-              <li><Link to="/privacidade" className="hover:text-accent transition-colors">Política de Privacidade</Link></li>
-              <li><Link to="/reembolso" className="hover:text-accent transition-colors">Política de Reembolso</Link></li>
+              <li><Link to="/termos" className="hover:text-accent transition-colors">{t.footer.terms[lang]}</Link></li>
+              <li><Link to="/privacidade" className="hover:text-accent transition-colors">{t.footer.privacy[lang]}</Link></li>
+              <li><Link to="/reembolso" className="hover:text-accent transition-colors">{t.footer.refund[lang]}</Link></li>
             </ul>
           </div>
         </div>
 
         <div className="mt-10 border-t border-primary-foreground/10 pt-6">
           <p className="text-center text-xs text-primary-foreground/40">
-            © {new Date().getFullYear()} Aplikei. Todos os direitos reservados. Aplikei não é escritório de advocacia, não oferece aconselhamento jurídico e não garante aprovação de vistos ou petições.
+            © {new Date().getFullYear()} Aplikei. {t.footer.copyright[lang]}
           </p>
         </div>
       </div>
