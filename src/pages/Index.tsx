@@ -22,6 +22,13 @@ import {
 } from "@/components/ui/accordion";
 import { services } from "@/data/services";
 
+import heroIllustration from "@/assets/hero-illustration.png";
+import checklistIllustration from "@/assets/checklist-illustration.png";
+import aiIllustration from "@/assets/ai-illustration.png";
+import supportIllustration from "@/assets/support-illustration.png";
+import pdfIllustration from "@/assets/pdf-illustration.png";
+import servicesBanner from "@/assets/services-banner.png";
+
 const iconMap: Record<string, React.ReactNode> = {
   plane: <Plane className="h-6 w-6" />,
   "graduation-cap": <GraduationCap className="h-6 w-6" />,
@@ -65,48 +72,64 @@ export default function Index() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-hero relative overflow-hidden py-24 md:py-32">
-        <div className="container relative z-10 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mx-auto max-w-3xl font-display text-4xl font-extrabold leading-tight text-primary-foreground md:text-5xl lg:text-6xl"
-          >
-            Aplikei: seu processo com{" "}
-            <span className="text-gradient-accent">clareza</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.6 }}
-            className="mx-auto mt-6 max-w-2xl text-lg text-primary-foreground/75"
-          >
-            Você compra um guia passo a passo e ganha acesso à IA durante o
-            processo para organizar dados, documentos e gerar seu pacote final.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
-          >
-            <Button
-              size="lg"
-              className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark px-8"
-              asChild
+      <section className="bg-hero relative overflow-hidden py-20 md:py-28">
+        <div className="container relative z-10">
+          <div className="grid items-center gap-10 md:grid-cols-2">
+            <div>
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="font-display text-4xl font-extrabold leading-tight text-primary-foreground md:text-5xl lg:text-6xl"
+              >
+                Aplikei: seu processo com{" "}
+                <span className="text-gradient-accent">clareza</span>
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.6 }}
+                className="mt-6 max-w-lg text-lg text-primary-foreground/75"
+              >
+                Você compra um guia passo a passo e ganha acesso à IA durante o
+                processo para organizar dados, documentos e gerar seu pacote final.
+              </motion.p>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+                className="mt-10 flex flex-col gap-4 sm:flex-row"
+              >
+                <Button
+                  size="lg"
+                  className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark px-8"
+                  asChild
+                >
+                  <Link to="/cadastro">Começar agora</Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+                  asChild
+                >
+                  <Link to="/servicos">Ver serviços</Link>
+                </Button>
+              </motion.div>
+            </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.7 }}
+              className="hidden md:block"
             >
-              <Link to="/cadastro">Começar agora</Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
-              asChild
-            >
-              <Link to="/servicos">Ver serviços</Link>
-            </Button>
-          </motion.div>
+              <img
+                src={heroIllustration}
+                alt="Pessoa com passaporte e checklist"
+                className="mx-auto max-w-md rounded-2xl"
+              />
+            </motion.div>
+          </div>
         </div>
         {/* Decorative gradient orb */}
         <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-accent/10 blur-3xl" />
@@ -176,24 +199,24 @@ export default function Index() {
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                icon: <BookOpen className="h-6 w-6" />,
+                image: checklistIllustration,
                 title: "Guia digital + checklist",
                 desc: "Passo a passo completo com checklist de documentos.",
               },
               {
-                icon: <Bot className="h-6 w-6" />,
+                image: aiIllustration,
                 title: "IA durante o processo",
                 desc: "Bônus: organize dados e documentos com ajuda da IA.",
                 badge: "Bônus",
               },
               {
-                icon: <Headphones className="h-6 w-6" />,
+                image: supportIllustration,
                 title: "Suporte N1 Operacional",
                 desc: "Bônus: ajuda para usar a plataforma e passos básicos.",
                 badge: "Bônus",
               },
               {
-                icon: <FileText className="h-6 w-6" />,
+                image: pdfIllustration,
                 title: "Pacote final em PDF",
                 desc: "Checklist final, resumo do caso e instruções de próximos passos.",
               },
@@ -212,9 +235,11 @@ export default function Index() {
                     {item.badge}
                   </span>
                 )}
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  {item.icon}
-                </div>
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="mb-4 h-20 w-20 object-contain"
+                />
                 <h3 className="font-display text-base font-semibold text-foreground">
                   {item.title}
                 </h3>
@@ -230,6 +255,13 @@ export default function Index() {
       {/* Serviços */}
       <section className="py-20">
         <div className="container">
+          <div className="mb-12 overflow-hidden rounded-2xl">
+            <img
+              src={servicesBanner}
+              alt="Viagem e imigração"
+              className="h-48 w-full object-cover md:h-64"
+            />
+          </div>
           <h2 className="text-center font-display text-3xl font-bold text-foreground md:text-4xl">
             Nossos serviços
           </h2>
