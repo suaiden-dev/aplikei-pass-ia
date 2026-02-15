@@ -154,12 +154,17 @@ export default function FloatingChat() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-24 right-6 z-50 flex h-[28rem] w-[22rem] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xl"
+            className="fixed inset-4 z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xl sm:inset-auto sm:bottom-24 sm:right-6 sm:h-[28rem] sm:w-[22rem]"
           >
             {/* Header */}
-            <div className="flex items-center gap-2 border-b border-border bg-accent/10 px-4 py-3">
-              <MessageCircle className="h-5 w-5 text-accent" />
-              <span className="font-display text-sm font-semibold text-foreground">Assistente IA</span>
+            <div className="flex items-center justify-between border-b border-border bg-accent/10 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="h-5 w-5 text-accent" />
+                <span className="font-display text-sm font-semibold text-foreground">Assistente IA</span>
+              </div>
+              <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
             {/* Messages */}
