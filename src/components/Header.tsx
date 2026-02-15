@@ -3,17 +3,20 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-
-const navLinks = [
-  { to: "/", label: "Home" },
-  { to: "/como-funciona", label: "Como funciona" },
-  { to: "/servicos", label: "Serviços" },
-];
+import LanguageToggle from "./LanguageToggle";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const { lang, t } = useLanguage();
+
+  const navLinks = [
+    { to: "/", label: t.nav.home[lang] },
+    { to: "/como-funciona", label: t.nav.howItWorks[lang] },
+    { to: "/servicos", label: t.nav.services[lang] },
+  ];
+
   const location = useLocation();
-  const isHero = location.pathname === "/";
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-card/80 backdrop-blur-lg">
@@ -38,18 +41,22 @@ export default function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
+          <LanguageToggle />
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/login">Entrar</Link>
+            <Link to="/login">{t.nav.login[lang]}</Link>
           </Button>
           <Button size="sm" className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark" asChild>
-            <Link to="/cadastro">Começar agora</Link>
+            <Link to="/cadastro">{t.nav.getStarted[lang]}</Link>
           </Button>
         </div>
 
         {/* Mobile toggle */}
-        <button className="md:hidden" onClick={() => setOpen(!open)}>
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <LanguageToggle />
+          <button onClick={() => setOpen(!open)}>
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       <AnimatePresence>
@@ -73,10 +80,10 @@ export default function Header() {
               ))}
               <div className="flex gap-3 pt-2">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link to="/login" onClick={() => setOpen(false)}>Entrar</Link>
+                  <Link to="/login" onClick={() => setOpen(false)}>{t.nav.login[lang]}</Link>
                 </Button>
                 <Button size="sm" className="bg-accent text-accent-foreground shadow-button" asChild>
-                  <Link to="/cadastro" onClick={() => setOpen(false)}>Começar agora</Link>
+                  <Link to="/cadastro" onClick={() => setOpen(false)}>{t.nav.getStarted[lang]}</Link>
                 </Button>
               </div>
             </nav>
