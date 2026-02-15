@@ -13,9 +13,9 @@ export const translations = {
   // ──── Hero ────
   hero: {
     title: {
-      en: "Aplikei: your process with",
-      pt: "Aplikei: seu processo com",
-      es: "Aplikei: tu proceso con",
+      en: "Aplikei: your American Visa with",
+      pt: "Aplikei: seu visto americano com",
+      es: "Aplikei: tu Visa Americana con",
     },
     titleHighlight: { en: "clarity", pt: "clareza", es: "claridad" },
     subtitle: {
