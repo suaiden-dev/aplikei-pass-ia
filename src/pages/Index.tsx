@@ -60,6 +60,34 @@ export default function Index() {
         <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-accent/5 blur-3xl" />
       </section>
 
+      {/* Services */}
+      <section className="py-20">
+        <div className="container">
+          <div className="mb-12 overflow-hidden rounded-2xl">
+            <img src={servicesBanner} alt="Travel and immigration" className="h-48 w-full object-cover md:h-64" />
+          </div>
+          <h2 className="text-center font-display text-3xl font-bold text-foreground md:text-4xl">{t.servicesSection.title[lang]}</h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">{t.servicesSection.subtitle[lang]}</p>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {t.servicesData.map((s, i) => (
+              <motion.div key={s.slug} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+                <Link to={`/servicos/${s.slug}`} className="group flex h-full flex-col rounded-xl border border-border bg-card p-6 shadow-card transition-all hover:shadow-card-hover hover:border-accent/40">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                    {iconMap[["plane", "graduation-cap", "clock", "repeat"][i]]}
+                  </div>
+                  <h3 className="font-display text-base font-semibold text-foreground">{s.shortTitle[lang]}</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">{s.subtitle[lang]}</p>
+                  <p className="mt-4 font-display text-lg font-bold text-accent">{s.price[lang]}</p>
+                  <span className="mt-auto flex items-center gap-1 pt-4 text-sm font-medium text-accent group-hover:underline">
+                    {t.servicesSection.viewDetails[lang]} <ChevronRight className="h-4 w-4" />
+                  </span>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* How it works */}
       <section className="py-20">
         <div className="container">
@@ -97,34 +125,6 @@ export default function Index() {
                 <img src={item.image} alt={item.title} className="mb-4 h-20 w-20 object-contain" />
                 <h3 className="font-display text-base font-semibold text-foreground">{item.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Services */}
-      <section className="py-20">
-        <div className="container">
-          <div className="mb-12 overflow-hidden rounded-2xl">
-            <img src={servicesBanner} alt="Travel and immigration" className="h-48 w-full object-cover md:h-64" />
-          </div>
-          <h2 className="text-center font-display text-3xl font-bold text-foreground md:text-4xl">{t.servicesSection.title[lang]}</h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">{t.servicesSection.subtitle[lang]}</p>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {t.servicesData.map((s, i) => (
-              <motion.div key={s.slug} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-                <Link to={`/servicos/${s.slug}`} className="group flex h-full flex-col rounded-xl border border-border bg-card p-6 shadow-card transition-all hover:shadow-card-hover hover:border-accent/40">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                    {iconMap[["plane", "graduation-cap", "clock", "repeat"][i]]}
-                  </div>
-                  <h3 className="font-display text-base font-semibold text-foreground">{s.shortTitle[lang]}</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">{s.subtitle[lang]}</p>
-                  <p className="mt-4 font-display text-lg font-bold text-accent">{s.price[lang]}</p>
-                  <span className="mt-auto flex items-center gap-1 pt-4 text-sm font-medium text-accent group-hover:underline">
-                    {t.servicesSection.viewDetails[lang]} <ChevronRight className="h-4 w-4" />
-                  </span>
-                </Link>
               </motion.div>
             ))}
           </div>
