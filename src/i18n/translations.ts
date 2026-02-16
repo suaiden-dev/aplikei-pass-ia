@@ -19,12 +19,12 @@ export const translations = {
     },
     titleHighlight: { en: "clarity", pt: "clareza", es: "claridad" },
     subtitle: {
-      en: "You buy a step-by-step guide and get AI access during the process to organize data, documents, and generate your final package.",
-      pt: "Você compra um guia passo a passo e ganha acesso à IA durante o processo para organizar dados, documentos e gerar seu pacote final.",
-      es: "Compras una guía paso a paso y obtienes acceso a la IA durante el proceso para organizar datos, documentos y generar tu paquete final.",
+      en: "Get a step-by-step digital guide for US Tourist (B1/B2), Student (F-1), and Exchange Visitor (J-1) visas, plus AI-powered tools to organize your documents and generate a ready-to-print application package.",
+      pt: "Obtenha um guia digital passo a passo para vistos americanos de Turismo (B1/B2), Estudante (F-1) e Visitante de Intercâmbio (J-1), além de ferramentas com IA para organizar seus documentos e gerar um pacote de aplicação pronto para imprimir.",
+      es: "Obtén una guía digital paso a paso para visas de Turismo (B1/B2), Estudiante (F-1) y Visitante de Intercambio (J-1) de EE.UU., además de herramientas con IA para organizar tus documentos y generar un paquete de aplicación listo para imprimir.",
     },
-    cta: { en: "Get started", pt: "Começar agora", es: "Empezar ahora" },
-    ctaSecondary: { en: "View services", pt: "Ver serviços", es: "Ver servicios" },
+    cta: { en: "See Plans & Pricing →", pt: "Ver Planos e Preços →", es: "Ver Planes y Precios →" },
+    ctaSecondary: { en: "How it works", pt: "Como funciona", es: "Cómo funciona" },
   },
 
   // ──── How it works (landing) ────
@@ -37,50 +37,50 @@ export const translations = {
     },
     step1Title: { en: "Choose your service", pt: "Escolha seu serviço", es: "Elige tu servicio" },
     step1Desc: {
-      en: "See everything included and not included before paying.",
-      pt: "Veja tudo que está incluso e não incluso antes de pagar.",
-      es: "Ve todo lo incluido y no incluido antes de pagar.",
+      en: "Select the guide for your specific visa type. We clearly list what's included (like the AI tool) and what's not (like legal advice).",
+      pt: "Selecione o guia para seu tipo de visto específico. Listamos claramente o que está incluso (como a ferramenta de IA) e o que não está (como assessoria jurídica).",
+      es: "Selecciona la guía para tu tipo de visa específico. Listamos claramente qué está incluido (como la herramienta de IA) y qué no (como asesoría legal).",
     },
     step2Title: { en: "Read before you buy", pt: "Leia antes de comprar", es: "Lee antes de comprar" },
     step2Desc: {
-      en: "Full transparency about what you're purchasing.",
-      pt: "Transparência total sobre o que você está comprando.",
-      es: "Transparencia total sobre lo que estás comprando.",
+      en: "Preview the guide's table of contents and checklist. Full transparency so you know exactly what you're getting.",
+      pt: "Veja o índice e o checklist do guia antes de comprar. Transparência total para você saber exatamente o que está adquirindo.",
+      es: "Ve el índice y el checklist de la guía antes de comprar. Transparencia total para que sepas exactamente lo que obtienes.",
     },
     step3Title: { en: "Build your final package", pt: "Monte seu pacote final", es: "Arma tu paquete final" },
     step3Desc: {
-      en: "Use AI to organize data, documents, and generate your PDF.",
-      pt: "Use a IA para organizar dados, documentos e gerar seu PDF.",
-      es: "Usa la IA para organizar datos, documentos y generar tu PDF.",
+      en: "Use our AI assistant to organize your uploaded documents, auto-fill forms, and compile everything into a final, organized PDF.",
+      pt: "Use nosso assistente de IA para organizar seus documentos enviados, preencher formulários automaticamente e compilar tudo em um PDF final e organizado.",
+      es: "Usa nuestro asistente de IA para organizar tus documentos subidos, auto-completar formularios y compilar todo en un PDF final y organizado.",
     },
   },
 
   // ──── What you get ────
   whatYouGet: {
     title: { en: "What you get", pt: "O que você recebe", es: "Qué recibes" },
-    guide: { en: "Digital guide + checklist", pt: "Guia digital + checklist", es: "Guía digital + checklist" },
+    guide: { en: "Comprehensive Visa Guide & Checklist", pt: "Guia Completo de Visto & Checklist", es: "Guía Completa de Visa & Checklist" },
     guideDesc: {
-      en: "Complete step-by-step guide with document checklist.",
-      pt: "Passo a passo completo com checklist de documentos.",
-      es: "Paso a paso completo con checklist de documentos.",
+      en: "A 50+ page guide written in plain English. Covers forms, fees, required documents, and step-by-step instructions for your specific visa type.",
+      pt: "Um guia de mais de 50 páginas escrito em linguagem clara. Cobre formulários, taxas, documentos necessários e instruções passo a passo para seu tipo de visto específico.",
+      es: "Una guía de más de 50 páginas escrita en lenguaje claro. Cubre formularios, tarifas, documentos necesarios e instrucciones paso a paso para tu tipo de visa específico.",
     },
-    ai: { en: "AI during the process", pt: "IA durante o processo", es: "IA durante el proceso" },
+    ai: { en: "AI Document Organizer", pt: "Organizador de Documentos com IA", es: "Organizador de Documentos con IA" },
     aiDesc: {
-      en: "Bonus: organize data and documents with AI help.",
-      pt: "Bônus: organize dados e documentos com ajuda da IA.",
-      es: "Bonus: organiza datos y documentos con ayuda de la IA.",
+      en: "Our AI helps you sort your bank statements, IDs, and letters. It extracts key information, checks for missing documents against the checklist, and helps format your application.",
+      pt: "Nossa IA ajuda você a organizar extratos bancários, documentos de identidade e cartas. Ela extrai informações-chave, verifica documentos faltantes no checklist e ajuda a formatar sua aplicação.",
+      es: "Nuestra IA te ayuda a organizar extractos bancarios, documentos de identidad y cartas. Extrae información clave, verifica documentos faltantes en el checklist y ayuda a formatear tu aplicación.",
     },
-    support: { en: "N1 Operational Support", pt: "Suporte N1 Operacional", es: "Soporte N1 Operacional" },
+    support: { en: "Friendly Platform Support", pt: "Suporte Amigável da Plataforma", es: "Soporte Amigable de la Plataforma" },
     supportDesc: {
-      en: "Bonus: help using the platform and basic steps.",
-      pt: "Bônus: ajuda para usar a plataforma e passos básicos.",
-      es: "Bonus: ayuda para usar la plataforma y pasos básicos.",
+      en: "Stuck on how to upload a file or download your PDF? Our support team can help you use the platform, so you can focus on your application.",
+      pt: "Dificuldade para enviar um arquivo ou baixar seu PDF? Nossa equipe de suporte ajuda você a usar a plataforma, para que você possa focar na sua aplicação.",
+      es: "¿Tienes problemas para subir un archivo o descargar tu PDF? Nuestro equipo de soporte te ayuda a usar la plataforma, para que puedas enfocarte en tu aplicación.",
     },
-    pdf: { en: "Final package in PDF", pt: "Pacote final em PDF", es: "Paquete final en PDF" },
+    pdf: { en: "Your Ready-to-Print Package", pt: "Seu Pacote Pronto para Imprimir", es: "Tu Paquete Listo para Imprimir" },
     pdfDesc: {
-      en: "Final checklist, case summary, and next step instructions.",
-      pt: "Checklist final, resumo do caso e instruções de próximos passos.",
-      es: "Checklist final, resumen del caso e instrucciones de próximos pasos.",
+      en: "A single, organized PDF containing your completed forms, document index, case summary, and clear instructions on what to do next.",
+      pt: "Um único PDF organizado contendo seus formulários preenchidos, índice de documentos, resumo do caso e instruções claras sobre os próximos passos.",
+      es: "Un único PDF organizado que contiene tus formularios completados, índice de documentos, resumen del caso e instrucciones claras sobre qué hacer después.",
     },
     bonus: { en: "Bonus", pt: "Bônus", es: "Bonus" },
   },
@@ -99,9 +99,88 @@ export const translations = {
   },
 
   // ──── FAQ ────
+  // ──── Testimonials ────
+  testimonials: {
+    title: { en: "Trusted by Applicants Like You", pt: "Confiado por Aplicantes Como Você", es: "Confiado por Solicitantes Como Tú" },
+    items: [
+      {
+        quote: {
+          en: "The guide was super detailed and the AI saved me hours of sorting through paperwork. Finally, a tool that just organizes everything for you.",
+          pt: "O guia foi super detalhado e a IA me economizou horas organizando papelada. Finalmente, uma ferramenta que organiza tudo para você.",
+          es: "La guía fue super detallada y la IA me ahorró horas organizando papeleo. Finalmente, una herramienta que organiza todo por ti.",
+        },
+        author: "Maria S.",
+      },
+      {
+        quote: {
+          en: "I was so confused about the F-1 visa documents. Aplikei's checklist made sure I didn't forget anything. The final PDF package was so professional.",
+          pt: "Eu estava tão confusa sobre os documentos do visto F-1. O checklist da Aplikei garantiu que eu não esquecesse nada. O pacote final em PDF ficou muito profissional.",
+          es: "Estaba muy confundida sobre los documentos de la visa F-1. El checklist de Aplikei se aseguró de que no olvidara nada. El paquete final en PDF fue muy profesional.",
+        },
+        author: "Carlos R.",
+      },
+      {
+        quote: {
+          en: "Great value. It's not a lawyer, but it gave me the clarity I needed to prepare my own B1/B2 application with confidence.",
+          pt: "Ótimo custo-benefício. Não é um advogado, mas me deu a clareza que eu precisava para preparar minha própria aplicação B1/B2 com confiança.",
+          es: "Gran valor. No es un abogado, pero me dio la claridad que necesitaba para preparar mi propia solicitud B1/B2 con confianza.",
+        },
+        author: "David K.",
+      },
+    ],
+  },
+
   faq: {
     title: { en: "Frequently asked questions", pt: "Perguntas frequentes", es: "Preguntas frecuentes" },
     items: [
+      {
+        q: {
+          en: "How long do I have access to the AI tool?",
+          pt: "Por quanto tempo tenho acesso à ferramenta de IA?",
+          es: "¿Por cuánto tiempo tengo acceso a la herramienta de IA?",
+        },
+        a: {
+          en: "You get access for 90 days from purchase—plenty of time to gather your documents and build your package.",
+          pt: "Você tem acesso por 90 dias a partir da compra — tempo suficiente para reunir seus documentos e montar seu pacote.",
+          es: "Tienes acceso por 90 días desde la compra — tiempo suficiente para reunir tus documentos y armar tu paquete.",
+        },
+      },
+      {
+        q: {
+          en: "Which visa types do you cover right now?",
+          pt: "Quais tipos de visto vocês cobrem atualmente?",
+          es: "¿Qué tipos de visa cubren actualmente?",
+        },
+        a: {
+          en: "We currently have guides for US Tourist (B1/B2), Student (F-1), and Exchange Visitor (J-1) visas. We are working on adding more!",
+          pt: "Atualmente temos guias para vistos americanos de Turismo (B1/B2), Estudante (F-1) e Visitante de Intercâmbio (J-1). Estamos trabalhando para adicionar mais!",
+          es: "Actualmente tenemos guías para visas de Turismo (B1/B2), Estudiante (F-1) y Visitante de Intercambio (J-1) de EE.UU. ¡Estamos trabajando para agregar más!",
+        },
+      },
+      {
+        q: {
+          en: "What if I'm not satisfied with the guide?",
+          pt: "E se eu não ficar satisfeito com o guia?",
+          es: "¿Qué pasa si no estoy satisfecho con la guía?",
+        },
+        a: {
+          en: "We offer a 14-day money-back guarantee if you haven't started using the AI tool. Just email us.",
+          pt: "Oferecemos garantia de devolução em 14 dias se você não começou a usar a ferramenta de IA. Basta nos enviar um e-mail.",
+          es: "Ofrecemos garantía de devolución de 14 días si no has comenzado a usar la herramienta de IA. Solo envíanos un correo.",
+        },
+      },
+      {
+        q: {
+          en: "Do I still need a lawyer?",
+          pt: "Eu ainda preciso de um advogado?",
+          es: "¿Aún necesito un abogado?",
+        },
+        a: {
+          en: "We are not a law firm and cannot provide legal advice. Our service is for organization and guidance. If your case is complex (e.g., prior denials, legal issues), we always recommend consulting with a qualified immigration attorney.",
+          pt: "Nós não somos um escritório de advocacia e não podemos oferecer assessoria jurídica. Nosso serviço é de organização e orientação. Se seu caso é complexo (ex: negativas anteriores, questões legais), sempre recomendamos consultar um advogado de imigração qualificado.",
+          es: "No somos un despacho de abogados y no podemos brindar asesoría legal. Nuestro servicio es de organización y orientación. Si tu caso es complejo (ej: negativas previas, asuntos legales), siempre recomendamos consultar con un abogado de inmigración calificado.",
+        },
+      },
       {
         q: {
           en: "Is Aplikei a law firm?",
@@ -112,30 +191,6 @@ export const translations = {
           en: "No. Aplikei is a digital guide platform with AI. We do not offer legal advice, legal representation, nor guarantee visa or petition approvals.",
           pt: "Não. A Aplikei é uma plataforma de guias digitais com IA. Não oferecemos aconselhamento jurídico, representação legal, nem garantimos aprovação de vistos ou petições.",
           es: "No. Aplikei es una plataforma de guías digitales con IA. No ofrecemos asesoría legal, representación legal, ni garantizamos la aprobación de visas o peticiones.",
-        },
-      },
-      {
-        q: {
-          en: "What is N1 human support?",
-          pt: "O que é o suporte humano N1?",
-          es: "¿Qué es el soporte humano N1?",
-        },
-        a: {
-          en: "Human support is strictly operational (platform usage and basic steps): how to use the system, where to upload documents, how to pay fees, how to schedule, and how to track status. It does not include case analysis, strategy, or advice.",
-          pt: "Suporte humano é apenas operacional (uso da plataforma e passos básicos): como usar o sistema, onde subir documentos, como pagar taxas, como agendar e como acompanhar status. Não inclui análise de caso, estratégia ou aconselhamento.",
-          es: "El soporte humano es solo operacional (uso de la plataforma y pasos básicos): cómo usar el sistema, dónde subir documentos, cómo pagar tarifas, cómo agendar y cómo dar seguimiento. No incluye análisis de caso, estrategia o asesoría.",
-        },
-      },
-      {
-        q: {
-          en: "Can I get a refund?",
-          pt: "Posso obter reembolso?",
-          es: "¿Puedo obtener un reembolso?",
-        },
-        a: {
-          en: "Yes, according to our Refund Policy. Check the details on the dedicated page before purchasing.",
-          pt: "Sim, conforme nossa Política de Reembolso. Consulte os detalhes na página dedicada antes de comprar.",
-          es: "Sí, de acuerdo con nuestra Política de Reembolso. Consulta los detalles en la página dedicada antes de comprar.",
         },
       },
       {
