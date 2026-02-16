@@ -303,7 +303,7 @@ export const translations = {
       pt: "Acesso à IA durante o processo para organizar dados, documentos e gerar o pacote final.",
       es: "Acceso a la IA durante el proceso para organizar datos, documentos y generar el paquete final.",
     },
-    bonusN1: { en: "Bonus: N1 Support", pt: "Bônus: Suporte N1", es: "Bonus: Soporte N1" },
+    bonusN1: { en: "Bonus: Friendly Platform Support", pt: "Bônus: Suporte Amigável da Plataforma", es: "Bonus: Soporte Amigable de la Plataforma" },
     bonusN1Desc: {
       en: "Strictly operational human support: platform usage, document uploads, fee payments.",
       pt: "Suporte humano apenas operacional: uso da plataforma, upload de documentos, pagamento de taxas.",
@@ -458,7 +458,7 @@ export const translations = {
       uploadsDesc: { en: "Upload and manage your documents", pt: "Envie e gerencie seus documentos", es: "Sube y administra tus documentos" },
       generatePDF: { en: "Generate final package (PDF)", pt: "Gerar pacote final (PDF)", es: "Generar paquete final (PDF)" },
       generatePDFDesc: { en: "Available when onboarding is complete", pt: "Disponível quando o onboarding estiver completo", es: "Disponible cuando el onboarding esté completo" },
-      help: { en: "Operational help (N1)", pt: "Ajuda operacional (N1)", es: "Ayuda operacional (N1)" },
+      help: { en: "Friendly Platform Support", pt: "Suporte Amigável da Plataforma", es: "Soporte Amigable de la Plataforma" },
       helpDesc: { en: "Questions about platform usage", pt: "Dúvidas sobre uso da plataforma", es: "Preguntas sobre uso de la plataforma" },
     },
     access: { en: "Access", pt: "Acessar", es: "Acceder" },
