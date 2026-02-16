@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
+import logoAplikei from "@/assets/logo-aplikei.png";
 
 export default function Footer() {
   const { lang, t } = useLanguage();
@@ -9,7 +10,7 @@ export default function Footer() {
       <div className="container py-12">
         <div className="grid gap-8 md:grid-cols-4">
           <div>
-            <span className="font-display text-lg font-bold">Aplikei</span>
+            <img src={logoAplikei} alt="Aplikei" className="h-8" />
             <p className="mt-2 text-sm text-primary-foreground/70">{t.footer.tagline[lang]}</p>
           </div>
 
