@@ -745,9 +745,9 @@ export const translations = {
       title: { en: "B1/B2 Consular Visa Guide", pt: "Guia Visto Consular B1/B2", es: "Guía Visa Consular B1/B2" },
       shortTitle: { en: "B1/B2 Visa", pt: "Visto B1/B2", es: "Visa B1/B2" },
       subtitle: {
-        en: "Tourism & Business — for Brazilians applying from Brazil",
-        pt: "Turismo e Negócios — para brasileiros aplicando do Brasil",
-        es: "Turismo y Negocios — para brasileños aplicando desde Brasil",
+        en: "Tourism & Business — for foreigners applying from overseas",
+        pt: "Turismo e Negócios — para estrangeiros aplicando de fora dos EUA",
+        es: "Turismo y Negocios — para extranjeros aplicando desde el exterior",
       },
       dependentPrice: { en: "US$ 50.00", pt: "US$ 50,00", es: "US$ 50,00" },
       price: { en: "US$ 200.00", pt: "US$ 200,00", es: "US$ 200,00" },
@@ -758,9 +758,9 @@ export const translations = {
         es: "Guía completa paso a paso para solicitar la visa de turismo/negocios (B1/B2) en el consulado americano. Incluye checklist de documentos, orientación para el DS-160 y preparación para la entrevista.",
       },
       forWhom: {
-        en: ["Brazilians living in Brazil", "First-time or B1/B2 visa renewal", "Tourism, family visit, or short business trips"],
-        pt: ["Brasileiros que moram no Brasil", "Primeira vez ou renovação de visto B1/B2", "Viagens a turismo, visita familiar ou negócios curtos"],
-        es: ["Brasileños que viven en Brasil", "Primera vez o renovación de visa B1/B2", "Viajes de turismo, visita familiar o negocios cortos"],
+        en: ["Foreigners living outside the US", "First-time or B1/B2 visa renewal", "Tourism, family visit, or short business trips"],
+        pt: ["Estrangeiros que moram fora dos EUA", "Primeira vez ou renovação de visto B1/B2", "Viagens a turismo, visita familiar ou negócios curtos"],
+        es: ["Extranjeros que viven fuera de EE.UU.", "Primera vez o renovación de visa B1/B2", "Viajes de turismo, visita familiar o negocios cortos"],
       },
       notForWhom: {
         en: ["Those already in the US wanting to extend their stay", "Those needing a work or student visa", "Those needing legal representation before the consulate"],
@@ -778,9 +778,9 @@ export const translations = {
         es: ["Asesoría legal o análisis de elegibilidad", "Garantía de aprobación de visa", "Representación ante el consulado", "Llenado del DS-160 por usted", "Análisis de probabilidades o estrategia", "Acompañamiento presencial en la entrevista"],
       },
       requirements: {
-        en: ["Valid passport", "Recent digital photo (5x5cm, white background)", "Financial proof (last 3 months)", "Proof of ties to Brazil (employment, property, family)", "Consular fee (MRV) paid"],
-        pt: ["Passaporte válido", "Foto digital recente (5x5cm, fundo branco)", "Comprovantes financeiros (últimos 3 meses)", "Comprovante de vínculo com o Brasil (emprego, imóvel, família)", "Taxa consular (MRV) paga"],
-        es: ["Pasaporte válido", "Foto digital reciente (5x5cm, fondo blanco)", "Comprobantes financieros (últimos 3 meses)", "Comprobante de vínculo con Brasil (empleo, inmueble, familia)", "Tarifa consular (MRV) pagada"],
+        en: ["Valid passport", "Recent digital photo (5x5cm, white background)", "Financial proof (last 3 months)", "Proof of ties to home country (employment, property, family)", "Consular fee (MRV) paid"],
+        pt: ["Passaporte válido", "Foto digital recente (5x5cm, fundo branco)", "Comprovantes financeiros (últimos 3 meses)", "Comprovante de vínculo com o país de origem (emprego, imóvel, família)", "Taxa consular (MRV) paga"],
+        es: ["Pasaporte válido", "Foto digital reciente (5x5cm, fondo blanco)", "Comprobantes financieros (últimos 3 meses)", "Comprobante de vínculo con el país de origen (empleo, inmueble, familia)", "Tarifa consular (MRV) pagada"],
       },
       steps: {
         en: ["Create your account and accept the terms", "Choose the service and make payment", "Start the AI-guided onboarding", "Fill in your data and upload documents", "Review everything and generate your Final Package (PDF)", "Follow the instructions to schedule and attend the interview"],
@@ -798,7 +798,7 @@ export const translations = {
         },
         {
           q: { en: "Can I use it if I've been denied before?", pt: "Posso usar se já tive visto negado?", es: "¿Puedo usarlo si me negaron la visa antes?" },
-          a: { en: "Yes, the guide is for anyone applying from Brazil. However, we do not offer chance analysis or strategy for prior denial cases.", pt: "Sim, o guia serve para qualquer pessoa aplicando do Brasil. Porém, não oferecemos análise de chances ou estratégia para casos de negativa anterior.", es: "Sí, la guía es para cualquier persona que aplique desde Brasil. Sin embargo, no ofrecemos análisis de probabilidades o estrategia para casos de negativa previa." },
+          a: { en: "Yes, the guide is for anyone applying from overseas. However, we do not offer chance analysis or strategy for prior denial cases.", pt: "Sim, o guia serve para qualquer pessoa aplicando de fora dos EUA. Porém, não oferecemos análise de chances ou estratégia para casos de negativa anterior.", es: "Sí, la guía es para cualquier persona que aplique desde el exterior. Sin embargo, no ofrecemos análisis de probabilidades o estrategia para casos de negativa previa." },
         },
       ],
     },
@@ -807,9 +807,9 @@ export const translations = {
       title: { en: "F-1 Consular Visa Guide", pt: "Guia Visto Consular F-1", es: "Guía Visa Consular F-1" },
       shortTitle: { en: "F-1 Visa", pt: "Visto F-1", es: "Visa F-1" },
       subtitle: {
-        en: "Student — for Brazilians applying from Brazil",
-        pt: "Estudante — para brasileiros aplicando do Brasil",
-        es: "Estudiante — para brasileños aplicando desde Brasil",
+        en: "Student — for foreigners applying from overseas",
+        pt: "Estudante — para estrangeiros aplicando de fora dos EUA",
+        es: "Estudiante — para extranjeros aplicando desde el exterior",
       },
       dependentPrice: { en: "US$ 100.00", pt: "US$ 100,00", es: "US$ 100,00" },
       price: { en: "US$ 350.00", pt: "US$ 350,00", es: "US$ 350,00" },
@@ -820,9 +820,9 @@ export const translations = {
         es: "Guía paso a paso para solicitar la visa de estudiante F-1. Orientación sobre I-20, DS-160, SEVIS, documentación financiera y preparación para la entrevista consular.",
       },
       forWhom: {
-        en: ["Brazilians accepted at a US educational institution", "Those who already have the I-20 from the school/university", "Undergraduate, graduate, or language course students"],
-        pt: ["Brasileiros aceitos em instituição de ensino nos EUA", "Quem já possui I-20 da escola/universidade", "Estudantes de graduação, pós-graduação ou cursos de idioma"],
-        es: ["Brasileños aceptados en una institución educativa en EE.UU.", "Quienes ya tienen el I-20 de la escuela/universidad", "Estudiantes de grado, posgrado o cursos de idiomas"],
+        en: ["Foreigners accepted at a US educational institution", "Those who already have the I-20 from the school/university", "Undergraduate, graduate, or language course students"],
+        pt: ["Estrangeiros aceitos em instituição de ensino nos EUA", "Quem já possui I-20 da escola/universidade", "Estudantes de graduação, pós-graduação ou cursos de idioma"],
+        es: ["Extranjeros aceptados en una institución educativa en EE.UU.", "Quienes ya tienen el I-20 de la escuela/universidad", "Estudiantes de grado, posgrado o cursos de idiomas"],
       },
       notForWhom: {
         en: ["Those not yet accepted at any institution", "Those needing advice on choosing a school/university", "Those already in the US needing to change status"],
@@ -882,9 +882,9 @@ export const translations = {
         es: "Guía para solicitar extensión de estatus ante USCIS usando el formulario I-539. Ideal para quienes están en EE.UU. con visa válida y necesitan más tiempo antes de regresar.",
       },
       forWhom: {
-        en: ["Brazilians already in the US with valid status", "Those needing to extend their stay (tourism, visitor, etc.)", "Applications within the I-94 validity period"],
-        pt: ["Brasileiros que já estão nos EUA com status válido", "Quem precisa estender permanência (turismo, visitante, etc.)", "Aplicações dentro do prazo de validade do I-94"],
-        es: ["Brasileños que ya están en EE.UU. con estatus válido", "Quienes necesitan extender su estadía (turismo, visitante, etc.)", "Solicitudes dentro del plazo de validez del I-94"],
+        en: ["Foreigners already in the US with valid status", "Those needing to extend their stay (tourism, visitor, etc.)", "Applications within the I-94 validity period"],
+        pt: ["Estrangeiros que já estão nos EUA com status válido", "Quem precisa estender permanência (turismo, visitante, etc.)", "Aplicações dentro do prazo de validade do I-94"],
+        es: ["Extranjeros que ya están en EE.UU. con estatus válido", "Quienes necesitan extender su estadía (turismo, visitante, etc.)", "Solicitudes dentro del plazo de validez del I-94"],
       },
       notForWhom: {
         en: ["Those with expired status (overstay)", "Those needing to change visa category", "Those needing legal advice on eligibility"],
@@ -940,9 +940,9 @@ export const translations = {
         es: "Guía paso a paso para solicitar cambio de estatus (Change of Status) dentro de EE.UU. vía formulario I-539 o equivalente. Para quienes necesitan cambiar de una categoría de visa a otra sin salir del país.",
       },
       forWhom: {
-        en: ["Brazilians in the US with valid status needing to change category", "Example: B1/B2 to F-1 (when applicable via I-539)", "Applications within the I-94 validity period"],
-        pt: ["Brasileiros nos EUA com status válido que precisam mudar de categoria", "Exemplo: de B1/B2 para F-1 (quando aplicável via I-539)", "Aplicações dentro do prazo de validade do I-94"],
-        es: ["Brasileños en EE.UU. con estatus válido que necesitan cambiar de categoría", "Ejemplo: de B1/B2 a F-1 (cuando aplique vía I-539)", "Solicitudes dentro del plazo de validez del I-94"],
+        en: ["Foreigners in the US with valid status needing to change category", "Example: B1/B2 to F-1 (when applicable via I-539)", "Applications within the I-94 validity period"],
+        pt: ["Estrangeiros nos EUA com status válido que precisam mudar de categoria", "Exemplo: de B1/B2 para F-1 (quando aplicável via I-539)", "Aplicações dentro do prazo de validade do I-94"],
+        es: ["Extranjeros en EE.UU. con estatus válido que necesitan cambiar de categoría", "Ejemplo: de B1/B2 a F-1 (cuando aplique vía I-539)", "Solicitudes dentro del plazo de validez del I-94"],
       },
       notForWhom: {
         en: ["Those with expired status", "Those needing a work visa (H-1B, L-1, etc.)", "Those needing specialized legal advice"],
