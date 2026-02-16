@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import LanguageToggle from "./LanguageToggle";
 import { useLanguage } from "@/i18n/LanguageContext";
-
+import logoAplikei from "@/assets/logo-aplikei-cropped.jpeg";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -25,10 +25,10 @@ export default function Header() {
   const location = useLocation();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-card/80 backdrop-blur-lg">
-      <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="font-display text-xl font-bold text-primary">
-          Aplikei
+    <header className="sticky top-0 z-50 border-b border-border/60 backdrop-blur-lg" style={{ background: 'linear-gradient(to right, hsl(220 55% 14%), hsl(220 55% 14% / 0.6), transparent)' }}>
+      <div className="container flex h-20 items-center justify-between">
+        <Link to="/" className="flex items-center">
+          <img src={logoAplikei} alt="Aplikei" className="h-28 w-auto -my-4 object-contain" />
         </Link>
 
         {/* Desktop nav */}
