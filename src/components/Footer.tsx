@@ -10,7 +10,7 @@ export default function Footer() {
       <div className="container py-12">
         <div className="grid gap-8 md:grid-cols-4">
           <div>
-            <img src={logoAplikei} alt="Aplikei" className="h-12" />
+            <img src={logoAplikei} alt="Aplikei" className="h-16" />
             <p className="mt-2 text-sm text-primary-foreground/70">{t.footer.tagline[lang]}</p>
           </div>
 
