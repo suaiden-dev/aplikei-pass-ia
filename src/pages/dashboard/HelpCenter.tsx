@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Shield, Send } from "lucide-react";
+import { Shield, Send, CheckCircle2, XCircle } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useLanguage } from "@/i18n/LanguageContext";
 
@@ -21,6 +21,32 @@ export default function HelpCenter() {
         <div className="flex items-start gap-2">
           <Shield className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
           <p className="text-xs text-foreground/70"><strong>{lang === "en" ? "Important:" : lang === "pt" ? "Importante:" : "Importante:"}</strong> {h.warning[lang]}</p>
+        </div>
+      </div>
+
+      {/* What support does / does not do */}
+      <div className="mt-8 grid gap-6 md:grid-cols-2">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <h2 className="font-display text-lg font-semibold text-foreground">{h.weHelpWith[lang]}</h2>
+          <ul className="mt-3 space-y-2">
+            {h.weHelpItems[lang].map((item, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <h2 className="font-display text-lg font-semibold text-foreground">{h.weDoNotLabel[lang]}</h2>
+          <ul className="mt-3 space-y-2">
+            {h.weDoNotItems[lang].map((item, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 

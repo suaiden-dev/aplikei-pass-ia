@@ -587,12 +587,24 @@ export const translations = {
 
   // ──── Help Center ────
   helpCenter: {
-    title: { en: "Help Center (N1)", pt: "Central de Ajuda (N1)", es: "Centro de Ayuda (N1)" },
-    subtitle: { en: "Strictly operational human support: platform usage and basic steps.", pt: "Suporte humano apenas operacional: uso da plataforma e passos básicos.", es: "Soporte humano solo operacional: uso de la plataforma y pasos básicos." },
+    title: { en: "Friendly Platform Support", pt: "Suporte Amigável da Plataforma", es: "Soporte Amigable de la Plataforma" },
+    subtitle: { en: "Our human support team helps you navigate the platform so you can focus on your application.", pt: "Nossa equipe de suporte humano ajuda você a navegar pela plataforma para que você possa focar na sua aplicação.", es: "Nuestro equipo de soporte humano te ayuda a navegar la plataforma para que puedas enfocarte en tu aplicación." },
     warning: {
       en: "Important: We do not answer questions about strategy, eligibility, chances, or legal advice. Only operational questions about platform usage.",
       pt: "Importante: Não respondemos dúvidas de estratégia, elegibilidade, chances ou aconselhamento jurídico. Apenas questões operacionais sobre uso da plataforma.",
       es: "Importante: No respondemos preguntas sobre estrategia, elegibilidad, probabilidades o asesoría legal. Solo preguntas operacionales sobre uso de la plataforma.",
+    },
+    weHelpWith: { en: "✅ What our support team helps with:", pt: "✅ Com o que nosso suporte ajuda:", es: "✅ En qué ayuda nuestro equipo de soporte:" },
+    weHelpItems: {
+      en: ["How to use the system and navigate the platform", "Where and how to upload your documents", "How to pay consular/USCIS fees", "How to schedule appointments", "How to track your process status", "How to download your final PDF package"],
+      pt: ["Como usar o sistema e navegar pela plataforma", "Onde e como fazer upload dos seus documentos", "Como pagar taxas consulares/USCIS", "Como agendar compromissos", "Como acompanhar o status do seu processo", "Como baixar seu pacote final em PDF"],
+      es: ["Cómo usar el sistema y navegar la plataforma", "Dónde y cómo subir tus documentos", "Cómo pagar tarifas consulares/USCIS", "Cómo agendar citas", "Cómo dar seguimiento al estado de tu proceso", "Cómo descargar tu paquete final en PDF"],
+    },
+    weDoNotLabel: { en: "❌ What our support does NOT do:", pt: "❌ O que nosso suporte NÃO faz:", es: "❌ Lo que nuestro soporte NO hace:" },
+    weDoNotItems: {
+      en: ["Provide legal advice or immigration strategy", "Analyze eligibility or approval chances", "Fill out official government forms for you", "Represent you before consulates or USCIS", "Guarantee visa or petition approval"],
+      pt: ["Dar aconselhamento jurídico ou estratégia imigratória", "Analisar elegibilidade ou chances de aprovação", "Preencher formulários oficiais do governo por você", "Representá-lo perante consulados ou USCIS", "Garantir aprovação de visto ou petição"],
+      es: ["Dar asesoría legal o estrategia migratoria", "Analizar elegibilidad o probabilidades de aprobación", "Llenar formularios oficiales del gobierno por ti", "Representarte ante consulados o USCIS", "Garantizar la aprobación de visa o petición"],
     },
     faqTitle: { en: "Frequently asked questions", pt: "Perguntas frequentes", es: "Preguntas frecuentes" },
     faqItems: [
