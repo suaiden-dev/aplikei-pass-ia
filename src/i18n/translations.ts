@@ -264,7 +264,7 @@ export const translations = {
     legalHeader: { en: "Legal", pt: "Legal", es: "Legal" },
     howItWorks: { en: "How it works", pt: "Como funciona", es: "Cómo funciona" },
     disclaimers: { en: "Disclaimers", pt: "Disclaimers", es: "Avisos" },
-    helpCenter: { en: "Help Center (N1)", pt: "Central de Ajuda (N1)", es: "Centro de Ayuda (N1)" },
+    helpCenter: { en: "Friendly Platform Support", pt: "Suporte Amigável da Plataforma", es: "Soporte Amigable de la Plataforma" },
     terms: { en: "Terms of Use", pt: "Termos de Uso", es: "Términos de Uso" },
     privacy: { en: "Privacy Policy", pt: "Política de Privacidade", es: "Política de Privacidad" },
     refund: { en: "Refund Policy", pt: "Política de Reembolso", es: "Política de Reembolso" },
