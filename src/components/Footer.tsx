@@ -35,7 +35,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-primary-foreground/70">
               <li><Link to="/como-funciona" className="hover:text-accent transition-colors">{t.footer.howItWorks[lang]}</Link></li>
               <li><Link to="/disclaimers" className="hover:text-accent transition-colors">{t.footer.disclaimers[lang]}</Link></li>
-              <li><Link to="/ajuda" className="hover:text-accent transition-colors">{t.footer.helpCenter[lang]}</Link></li>
+              <li><Link to="/dashboard/ajuda" className="hover:text-accent transition-colors">{t.footer.helpCenter[lang]}</Link></li>
             </ul>
           </div>
 
