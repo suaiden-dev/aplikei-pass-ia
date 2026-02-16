@@ -471,7 +471,7 @@ export const translations = {
     chatAI: { en: "AI Chat", pt: "Chat IA", es: "Chat IA" },
     documents: { en: "Documents", pt: "Documentos", es: "Documentos" },
     finalPackage: { en: "Final Package", pt: "Pacote Final", es: "Paquete Final" },
-    help: { en: "Help (N1)", pt: "Ajuda (N1)", es: "Ayuda (N1)" },
+    help: { en: "Friendly Platform Support", pt: "Suporte Amigável", es: "Soporte Amigable" },
     logout: { en: "Log out", pt: "Sair", es: "Salir" },
   },
 
