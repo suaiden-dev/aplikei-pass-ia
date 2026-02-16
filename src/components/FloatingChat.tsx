@@ -140,10 +140,10 @@ export default function FloatingChat() {
       {/* Toggle Button */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg transition-transform hover:scale-105"
+        className="fixed bottom-6 right-6 z-50 flex h-28 w-28 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg transition-transform hover:scale-105"
         aria-label="Chat AI"
       >
-        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+        {open ? <X className="h-10 w-10" /> : <MessageCircle className="h-10 w-10" />}
       </button>
 
       {/* Chat Panel */}
