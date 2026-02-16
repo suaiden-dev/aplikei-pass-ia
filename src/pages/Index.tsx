@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import {
-  Plane, GraduationCap, Clock, Repeat, BookOpen, Bot, Headphones, FileText, Shield, ChevronRight, CheckCircle2,
+  Plane, GraduationCap, Clock, Repeat, BookOpen, Bot, Headphones, FileText, Shield, ChevronRight, CheckCircle2, Quote, Star,
 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -43,11 +43,11 @@ export default function Index() {
                 {t.hero.subtitle[lang]}
               </motion.p>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }} className="mt-10 flex flex-col gap-4 sm:flex-row">
-                <Button size="lg" className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark px-8" asChild>
-                  <Link to="/cadastro">{t.hero.cta[lang]}</Link>
+                <Button size="lg" className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark px-8 text-base font-bold" asChild>
+                  <Link to="/servicos">{t.hero.cta[lang]}</Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10" asChild>
-                  <Link to="/servicos">{t.hero.ctaSecondary[lang]}</Link>
+                  <Link to="/como-funciona">{t.hero.ctaSecondary[lang]}</Link>
                 </Button>
               </motion.div>
             </div>
@@ -136,6 +136,27 @@ export default function Index() {
                 <img src={item.image} alt={item.title} className="mb-4 h-20 w-20 object-contain" />
                 <h3 className="font-display text-base font-semibold text-foreground">{item.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-20">
+        <div className="container">
+          <h2 className="text-center font-display text-3xl font-bold text-foreground md:text-4xl">{t.testimonials.title[lang]}</h2>
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {t.testimonials.items.map((item, i) => (
+              <motion.div key={i} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="flex flex-col rounded-xl border border-border bg-card p-6 shadow-card">
+                <Quote className="mb-3 h-8 w-8 text-accent/30" />
+                <div className="mb-4 flex gap-1">
+                  {[...Array(5)].map((_, j) => (
+                    <Star key={j} className="h-4 w-4 fill-accent text-accent" />
+                  ))}
+                </div>
+                <p className="flex-1 text-sm italic text-foreground/80">"{item.quote[lang]}"</p>
+                <p className="mt-4 text-sm font-semibold text-foreground">— {item.author}</p>
               </motion.div>
             ))}
           </div>
