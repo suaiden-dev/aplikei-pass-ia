@@ -10,10 +10,15 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const { lang, t } = useLanguage();
 
+  const serviceLinks = t.servicesData.map((s) => ({
+    to: `/servicos/${s.slug}`,
+    label: s.shortTitle[lang],
+  }));
+
   const navLinks = [
     { to: "/", label: t.nav.home[lang] },
     { to: "/como-funciona", label: t.nav.howItWorks[lang] },
-    { to: "/servicos", label: t.nav.services[lang] },
+    ...serviceLinks,
   ];
 
   const location = useLocation();
@@ -26,7 +31,7 @@ export default function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-5 lg:flex">
           {navLinks.map((l) => (
             <Link
               key={l.to}
@@ -40,7 +45,7 @@ export default function Header() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           <LanguageToggle />
           <Button variant="ghost" size="sm" asChild>
             <Link to="/login">{t.nav.login[lang]}</Link>
@@ -51,7 +56,7 @@ export default function Header() {
         </div>
 
         {/* Mobile toggle */}
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 lg:hidden">
           <LanguageToggle />
           <button onClick={() => setOpen(!open)}>
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -65,7 +70,7 @@ export default function Header() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-border md:hidden"
+            className="overflow-hidden border-t border-border lg:hidden"
           >
             <nav className="container flex flex-col gap-4 py-4">
               {navLinks.map((l) => (
