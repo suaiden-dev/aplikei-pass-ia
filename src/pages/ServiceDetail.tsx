@@ -2,7 +2,7 @@ import { useParams, Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle2, XCircle, Plane, GraduationCap, Clock, Repeat, ArrowRight, Shield, FileText } from "lucide-react";
+import { CheckCircle2, XCircle, Plane, GraduationCap, Clock, Repeat, ArrowRight, Shield, FileText, Users } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -37,6 +37,20 @@ export default function ServiceDetail() {
           </div>
           <p className="mt-1 font-display text-3xl font-extrabold text-accent">{service.price[lang]}</p>
         </motion.div>
+
+        {/* Dependents */}
+        <div className="mt-8 rounded-xl border border-accent/30 bg-accent/5 p-5">
+          <div className="flex items-start gap-3">
+            <Users className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+            <div>
+              <h3 className="font-display font-semibold text-foreground">{p.dependents[lang]}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{p.dependentsDesc[lang]}</p>
+              <p className="mt-2 font-display text-lg font-bold text-accent">
+                +{service.dependentPrice[lang]} <span className="text-sm font-normal text-muted-foreground">{p.perDependent[lang]}</span>
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div className="mt-12 rounded-xl border border-border bg-card p-6 shadow-card">
           <h2 className="font-display text-xl font-bold text-foreground">{p.overview[lang]}</h2>
