@@ -742,8 +742,8 @@ export const translations = {
         pt: "Turismo e Negócios — para brasileiros aplicando do Brasil",
         es: "Turismo y Negocios — para brasileños aplicando desde Brasil",
       },
-      price: { en: "US$ 100.00", pt: "US$ 100,00", es: "US$ 100,00" },
-      originalPrice: { en: "US$ 200.00", pt: "US$ 200,00", es: "US$ 200,00" },
+      price: { en: "US$ 200.00", pt: "US$ 200,00", es: "US$ 200,00" },
+      originalPrice: { en: "US$ 400.00", pt: "US$ 400,00", es: "US$ 400,00" },
       description: {
         en: "Complete step-by-step guide to apply for the tourism/business visa (B1/B2) at the American consulate. Includes document checklist, DS-160 guidance, and interview preparation.",
         pt: "Guia completo passo a passo para aplicar ao visto de turismo/negócios (B1/B2) no consulado americano. Inclui checklist de documentos, orientação para preenchimento do DS-160 e preparação para a entrevista.",
@@ -803,8 +803,8 @@ export const translations = {
         pt: "Estudante — para brasileiros aplicando do Brasil",
         es: "Estudiante — para brasileños aplicando desde Brasil",
       },
-      price: { en: "US$ 175.00", pt: "US$ 175,00", es: "US$ 175,00" },
-      originalPrice: { en: "US$ 350.00", pt: "US$ 350,00", es: "US$ 350,00" },
+      price: { en: "US$ 350.00", pt: "US$ 350,00", es: "US$ 350,00" },
+      originalPrice: { en: "US$ 700.00", pt: "US$ 700,00", es: "US$ 700,00" },
       description: {
         en: "Step-by-step guide to apply for the F-1 student visa. Guidance on I-20, DS-160, SEVIS, financial documentation, and consulate interview preparation.",
         pt: "Guia passo a passo para aplicar ao visto de estudante F-1. Orientação sobre I-20, DS-160, SEVIS, documentação financeira e preparação para entrevista no consulado.",
@@ -864,8 +864,8 @@ export const translations = {
         pt: "Para quem já está nos EUA e precisa estender a permanência",
         es: "Para quienes ya están en EE.UU. y necesitan extender su estadía",
       },
-      price: { en: "US$ 100.00", pt: "US$ 100,00", es: "US$ 100,00" },
-      originalPrice: { en: "US$ 200.00", pt: "US$ 200,00", es: "US$ 200,00" },
+      price: { en: "US$ 200.00", pt: "US$ 200,00", es: "US$ 200,00" },
+      originalPrice: { en: "US$ 400.00", pt: "US$ 400,00", es: "US$ 400,00" },
       description: {
         en: "Guide to request status extension with USCIS using Form I-539. Ideal for those in the US with a valid visa needing more time before returning.",
         pt: "Guia para solicitar extensão de status junto ao USCIS usando o formulário I-539. Ideal para quem está nos EUA com visto válido e precisa de mais tempo antes de retornar.",
@@ -921,8 +921,8 @@ export const translations = {
         pt: "Para quem está nos EUA e precisa mudar a categoria do visto",
         es: "Para quienes están en EE.UU. y necesitan cambiar la categoría de visa",
       },
-      price: { en: "US$ 175.00", pt: "US$ 175,00", es: "US$ 175,00" },
-      originalPrice: { en: "US$ 350.00", pt: "US$ 350,00", es: "US$ 350,00" },
+      price: { en: "US$ 350.00", pt: "US$ 350,00", es: "US$ 350,00" },
+      originalPrice: { en: "US$ 700.00", pt: "US$ 700,00", es: "US$ 700,00" },
       description: {
         en: "Step-by-step guide to request Change of Status within the US via Form I-539 or equivalent. For those needing to change from one visa category to another without leaving the country.",
         pt: "Guia passo a passo para solicitar troca de status (Change of Status) dentro dos EUA via formulário I-539 ou equivalente. Para quem precisa mudar de uma categoria de visto para outra sem sair do país.",
