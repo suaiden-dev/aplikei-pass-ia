@@ -336,6 +336,13 @@ export const translations = {
       es: "Aviso: Aplikei no es un despacho de abogados, no ofrece asesoría legal, no garantiza aprobación y no representa al cliente ante consulados o USCIS. El soporte humano es solo operacional.",
     },
     createAccount: { en: "Create account and continue", pt: "Criar conta e continuar", es: "Crear cuenta y continuar" },
+    dependents: { en: "Dependents", pt: "Dependentes", es: "Dependientes" },
+    dependentsDesc: {
+      en: "Spouses and children under 21 years old are considered dependents.",
+      pt: "Cônjuges e filhos menores de 21 anos são considerados dependentes.",
+      es: "Cónyuges e hijos menores de 21 años se consideran dependientes.",
+    },
+    perDependent: { en: "per dependent", pt: "por dependente", es: "por dependiente" },
   },
 
   // ──── Login ────
@@ -742,6 +749,7 @@ export const translations = {
         pt: "Turismo e Negócios — para brasileiros aplicando do Brasil",
         es: "Turismo y Negocios — para brasileños aplicando desde Brasil",
       },
+      dependentPrice: { en: "US$ 50.00", pt: "US$ 50,00", es: "US$ 50,00" },
       price: { en: "US$ 200.00", pt: "US$ 200,00", es: "US$ 200,00" },
       originalPrice: { en: "US$ 400.00", pt: "US$ 400,00", es: "US$ 400,00" },
       description: {
@@ -803,6 +811,7 @@ export const translations = {
         pt: "Estudante — para brasileiros aplicando do Brasil",
         es: "Estudiante — para brasileños aplicando desde Brasil",
       },
+      dependentPrice: { en: "US$ 100.00", pt: "US$ 100,00", es: "US$ 100,00" },
       price: { en: "US$ 350.00", pt: "US$ 350,00", es: "US$ 350,00" },
       originalPrice: { en: "US$ 700.00", pt: "US$ 700,00", es: "US$ 700,00" },
       description: {
@@ -864,6 +873,7 @@ export const translations = {
         pt: "Para quem já está nos EUA e precisa estender a permanência",
         es: "Para quienes ya están en EE.UU. y necesitan extender su estadía",
       },
+      dependentPrice: { en: "US$ 100.00", pt: "US$ 100,00", es: "US$ 100,00" },
       price: { en: "US$ 200.00", pt: "US$ 200,00", es: "US$ 200,00" },
       originalPrice: { en: "US$ 400.00", pt: "US$ 400,00", es: "US$ 400,00" },
       description: {
@@ -921,6 +931,7 @@ export const translations = {
         pt: "Para quem está nos EUA e precisa mudar a categoria do visto",
         es: "Para quienes están en EE.UU. y necesitan cambiar la categoría de visa",
       },
+      dependentPrice: { en: "US$ 100.00", pt: "US$ 100,00", es: "US$ 100,00" },
       price: { en: "US$ 350.00", pt: "US$ 350,00", es: "US$ 350,00" },
       originalPrice: { en: "US$ 700.00", pt: "US$ 700,00", es: "US$ 700,00" },
       description: {
