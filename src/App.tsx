@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 
 import Layout from "./components/Layout";
-import DashboardLayout from "./components/DashboardLayout";
+import UserDashboardLayout from "./components/UserDashboardLayout";
 
 import Index from "./pages/Index";
 import HowItWorks from "./pages/HowItWorks";
@@ -20,7 +20,7 @@ import Privacy from "./pages/legal/Privacy";
 import Refund from "./pages/legal/Refund";
 import Disclaimers from "./pages/legal/Disclaimers";
 
-import DashboardHome from "./pages/dashboard/DashboardHome";
+import UserDashboard from "./pages/dashboard/UserDashboard";
 import Onboarding from "./pages/dashboard/Onboarding";
 import Chat from "./pages/dashboard/Chat";
 import Uploads from "./pages/dashboard/Uploads";
@@ -28,6 +28,28 @@ import PackagePDF from "./pages/dashboard/PackagePDF";
 import HelpCenter from "./pages/dashboard/HelpCenter";
 
 import NotFound from "./pages/NotFound";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Navigate, Outlet } from "react-router-dom";
+
+const ProtectedRoute = () => {
+  const [session, setSession] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(!!session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (session === null) return null;
+  return session ? <Outlet /> : <Navigate to="/login" replace />;
+};
 
 const queryClient = new QueryClient();
 
@@ -54,13 +76,15 @@ const App = () => (
             </Route>
 
             {/* Dashboard (logged area) */}
-            <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<DashboardHome />} />
-              <Route path="/dashboard/onboarding" element={<Onboarding />} />
-              <Route path="/dashboard/chat" element={<Chat />} />
-              <Route path="/dashboard/uploads" element={<Uploads />} />
-              <Route path="/dashboard/pacote" element={<PackagePDF />} />
-              <Route path="/dashboard/ajuda" element={<HelpCenter />} />
+            <Route element={<ProtectedRoute />}>
+              <Route element={<UserDashboardLayout />}>
+                <Route path="/dashboard" element={<UserDashboard />} />
+                <Route path="/dashboard/onboarding" element={<Onboarding />} />
+                <Route path="/dashboard/chat" element={<Chat />} />
+                <Route path="/dashboard/uploads" element={<Uploads />} />
+                <Route path="/dashboard/pacote" element={<PackagePDF />} />
+                <Route path="/dashboard/ajuda" element={<HelpCenter />} />
+              </Route>
             </Route>
 
             <Route path="*" element={<NotFound />} />
