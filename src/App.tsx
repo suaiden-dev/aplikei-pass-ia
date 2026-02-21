@@ -27,6 +27,11 @@ import Uploads from "./pages/dashboard/Uploads";
 import PackagePDF from "./pages/dashboard/PackagePDF";
 import HelpCenter from "./pages/dashboard/HelpCenter";
 
+import AdminRoute from "./components/AdminRoute";
+import AdminLayout from "./components/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminPlaceholder from "./pages/admin/AdminPlaceholder";
+
 import NotFound from "./pages/NotFound";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,6 +89,24 @@ const App = () => (
                 <Route path="/dashboard/uploads" element={<Uploads />} />
                 <Route path="/dashboard/pacote" element={<PackagePDF />} />
                 <Route path="/dashboard/ajuda" element={<HelpCenter />} />
+              </Route>
+            </Route>
+
+            {/* Admin area */}
+            <Route element={<AdminRoute />}>
+              <Route element={<AdminLayout />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/pedidos" element={<AdminPlaceholder title="Pedidos" />} />
+                <Route path="/admin/pagamentos" element={<AdminPlaceholder title="Pagamentos" />} />
+                <Route path="/admin/clientes" element={<AdminPlaceholder title="Clientes" />} />
+                <Route path="/admin/documentos" element={<AdminPlaceholder title="Documentos" />} />
+                <Route path="/admin/sellers" element={<AdminPlaceholder title="Sellers" />} />
+                <Route path="/admin/parceiros" element={<AdminPlaceholder title="Parceiros Globais" />} />
+                <Route path="/admin/contratos" element={<AdminPlaceholder title="Contratos" />} />
+                <Route path="/admin/recorrencias" element={<AdminPlaceholder title="Recorrências" />} />
+                <Route path="/admin/produtos" element={<AdminPlaceholder title="Produtos & Cupons" />} />
+                <Route path="/admin/suporte" element={<AdminPlaceholder title="Suporte" />} />
+                <Route path="/admin/analytics" element={<AdminPlaceholder title="Analytics" />} />
               </Route>
             </Route>
 
