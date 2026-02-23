@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 
 import Layout from "./components/Layout";
-import DashboardLayout from "./components/DashboardLayout";
+import UserDashboardLayout from "./components/UserDashboardLayout";
 
 import Index from "./pages/Index";
 import HowItWorks from "./pages/HowItWorks";
@@ -20,14 +20,41 @@ import Privacy from "./pages/legal/Privacy";
 import Refund from "./pages/legal/Refund";
 import Disclaimers from "./pages/legal/Disclaimers";
 
-import DashboardHome from "./pages/dashboard/DashboardHome";
+import UserDashboard from "./pages/dashboard/UserDashboard";
 import Onboarding from "./pages/dashboard/Onboarding";
 import Chat from "./pages/dashboard/Chat";
 import Uploads from "./pages/dashboard/Uploads";
 import PackagePDF from "./pages/dashboard/PackagePDF";
 import HelpCenter from "./pages/dashboard/HelpCenter";
 
+import AdminRoute from "./components/AdminRoute";
+import AdminLayout from "./components/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminPlaceholder from "./pages/admin/AdminPlaceholder";
+
 import NotFound from "./pages/NotFound";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Navigate, Outlet } from "react-router-dom";
+
+const ProtectedRoute = () => {
+  const [session, setSession] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(!!session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (session === null) return null;
+  return session ? <Outlet /> : <Navigate to="/login" replace />;
+};
 
 const queryClient = new QueryClient();
 
@@ -54,13 +81,33 @@ const App = () => (
             </Route>
 
             {/* Dashboard (logged area) */}
-            <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<DashboardHome />} />
-              <Route path="/dashboard/onboarding" element={<Onboarding />} />
-              <Route path="/dashboard/chat" element={<Chat />} />
-              <Route path="/dashboard/uploads" element={<Uploads />} />
-              <Route path="/dashboard/pacote" element={<PackagePDF />} />
-              <Route path="/dashboard/ajuda" element={<HelpCenter />} />
+            <Route element={<ProtectedRoute />}>
+              <Route element={<UserDashboardLayout />}>
+                <Route path="/dashboard" element={<UserDashboard />} />
+                <Route path="/dashboard/onboarding" element={<Onboarding />} />
+                <Route path="/dashboard/chat" element={<Chat />} />
+                <Route path="/dashboard/uploads" element={<Uploads />} />
+                <Route path="/dashboard/pacote" element={<PackagePDF />} />
+                <Route path="/dashboard/ajuda" element={<HelpCenter />} />
+              </Route>
+            </Route>
+
+            {/* Admin area */}
+            <Route element={<AdminRoute />}>
+              <Route element={<AdminLayout />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/pedidos" element={<AdminPlaceholder title="Pedidos" />} />
+                <Route path="/admin/pagamentos" element={<AdminPlaceholder title="Pagamentos" />} />
+                <Route path="/admin/clientes" element={<AdminPlaceholder title="Clientes" />} />
+                <Route path="/admin/documentos" element={<AdminPlaceholder title="Documentos" />} />
+                <Route path="/admin/sellers" element={<AdminPlaceholder title="Sellers" />} />
+                <Route path="/admin/parceiros" element={<AdminPlaceholder title="Parceiros Globais" />} />
+                <Route path="/admin/contratos" element={<AdminPlaceholder title="Contratos" />} />
+                <Route path="/admin/recorrencias" element={<AdminPlaceholder title="Recorrências" />} />
+                <Route path="/admin/produtos" element={<AdminPlaceholder title="Produtos & Cupons" />} />
+                <Route path="/admin/suporte" element={<AdminPlaceholder title="Suporte" />} />
+                <Route path="/admin/analytics" element={<AdminPlaceholder title="Analytics" />} />
+              </Route>
             </Route>
 
             <Route path="*" element={<NotFound />} />

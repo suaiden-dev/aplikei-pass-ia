@@ -5,16 +5,50 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "framer-motion";
-import { Shield } from "lucide-react";
+import { Shield, Loader2 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
   const [accepted, setAccepted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { lang, t } = useLanguage();
+  const navigate = useNavigate();
   const p = t.signup;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accepted) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            phone: phone,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success(lang === "pt" ? "Cadastro realizado! Verifique seu e-mail." : "Signup successful! Please check your email.");
+      navigate("/login");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center py-12">
@@ -24,7 +58,7 @@ export default function Signup() {
           <h1 className="mt-4 font-display text-2xl font-bold text-foreground">{p.title[lang]}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{p.subtitle[lang]}</p>
         </div>
-        <form className="mt-8 space-y-4" onSubmit={(e) => e.preventDefault()}>
+        <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="name">{p.fullName[lang]}</Label>
             <Input id="name" placeholder={p.namePlaceholder[lang]} value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
@@ -36,6 +70,18 @@ export default function Signup() {
           <div>
             <Label htmlFor="password">{p.password[lang]}</Label>
             <Input id="password" type="password" placeholder={p.passwordPlaceholder[lang]} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1" />
+          </div>
+          <div>
+            <Label htmlFor="phone">{p.phone[lang]}</Label>
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="+55 11 99999-9999"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+              className="mt-1"
+              required
+            />
           </div>
           <div className="rounded-lg border-2 border-amber-300/50 bg-amber-50/60 p-4">
             <div className="flex items-start gap-2">
@@ -52,7 +98,10 @@ export default function Signup() {
               <Link to="/disclaimers" className="text-accent hover:underline">{p.disclaimersLink[lang]}</Link>.
             </label>
           </div>
-          <Button type="submit" disabled={!accepted} className="w-full bg-accent text-accent-foreground shadow-button hover:bg-green-dark disabled:opacity-50">{p.submit[lang]}</Button>
+          <Button type="submit" disabled={!accepted || loading} className="w-full bg-accent text-accent-foreground shadow-button hover:bg-green-dark disabled:opacity-50">
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {p.submit[lang]}
+          </Button>
         </form>
         <p className="mt-6 text-center text-sm text-muted-foreground">
           {p.hasAccount[lang]}{" "}

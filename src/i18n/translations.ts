@@ -434,6 +434,7 @@ export const translations = {
     privacyLink: { en: "Privacy Policy", pt: "Política de Privacidade", es: "Política de Privacidad" },
     disclaimersLink: { en: "Disclaimers", pt: "Disclaimers", es: "Avisos" },
     and: { en: "and", pt: "e", es: "y" },
+    phone: { en: "Phone", pt: "Telefone", es: "Teléfono" },
     submit: { en: "Create account", pt: "Criar conta", es: "Crear cuenta" },
     hasAccount: { en: "Already have an account?", pt: "Já tem conta?", es: "¿Ya tienes cuenta?" },
     loginLink: { en: "Log in", pt: "Entrar", es: "Iniciar sesión" },
@@ -556,9 +557,9 @@ export const translations = {
     resubmit: { en: "Resubmit", pt: "Reenviar", es: "Reenviar" },
     upload: { en: "Upload", pt: "Upload", es: "Subir" },
     docs: {
-      en: ["Passport (main page)", "5x5cm photo", "Financial proof (3 months)", "Proof of ties"],
-      pt: ["Passaporte (página principal)", "Foto 5x5cm", "Comprovante financeiro (3 meses)", "Comprovante de vínculo"],
-      es: ["Pasaporte (página principal)", "Foto 5x5cm", "Comprobante financiero (3 meses)", "Comprobante de vínculo"],
+      en: ["Passport (main page)", "5x5cm photo", "Financial proof", "Proof of ties"],
+      pt: ["Passaporte (página principal)", "Foto 5x5cm", "Comprovante financeiro", "Comprovante de vínculo"],
+      es: ["Pasaporte (página principal)", "Foto 5x5cm", "Comprobante financiero", "Comprobante de vínculo"],
     },
   },
 

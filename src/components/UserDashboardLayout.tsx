@@ -3,7 +3,7 @@ import { LayoutDashboard, MessageSquare, Upload, FileText, HelpCircle, LogOut, C
 import LanguageToggle from "./LanguageToggle";
 import { useLanguage } from "@/i18n/LanguageContext";
 
-export default function DashboardLayout() {
+export default function UserDashboardLayout() {
   const location = useLocation();
   const { lang, t } = useLanguage();
   const s = t.sidebar;
@@ -43,22 +43,26 @@ export default function DashboardLayout() {
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
         <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden">
           <Link to="/" className="font-display text-lg font-bold text-primary">Aplikei</Link>
-          <div className="flex items-center gap-2">
-            <LanguageToggle />
-            <div className="flex gap-2">
-              {sidebarLinks.slice(0, 4).map((l) => (
-                <Link key={l.to} to={l.to} className={`rounded-lg p-2 ${location.pathname === l.to ? "bg-accent/10 text-accent" : "text-muted-foreground"}`}>
-                  <l.icon className="h-4 w-4" />
-                </Link>
-              ))}
-            </div>
-          </div>
+          <LanguageToggle />
         </header>
-        <div className="flex-1 overflow-y-auto bg-background p-4 md:p-8">
+
+        <div className="flex-1 overflow-y-auto bg-background p-4 md:p-8 w-full max-w-full">
           <Outlet />
+        </div>
+
+        {/* Mobile Bottom Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card px-4 py-2 md:hidden">
+          <div className="flex justify-around">
+            {sidebarLinks.slice(0, 5).map((l) => (
+              <Link key={l.to} to={l.to} className={`flex flex-col items-center gap-1 rounded-lg p-2 ${location.pathname === l.to ? "text-accent" : "text-muted-foreground"}`}>
+                <l.icon className="h-5 w-5" />
+                <span className="text-[10px] font-medium">{l.label.split(" ")[0]}</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </div>
