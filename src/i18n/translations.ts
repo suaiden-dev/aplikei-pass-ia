@@ -390,7 +390,7 @@ export const translations = {
       pt: "Aviso: Aplikei não é escritório de advocacia, não oferece aconselhamento jurídico, não garante aprovação e não representa o cliente perante consulado ou USCIS. Suporte humano é apenas operacional.",
       es: "Aviso: Aplikei no es un despacho de abogados, no ofrece asesoría legal, no garantiza aprobación y no representa al cliente ante consulados o USCIS. El soporte humano es solo operacional.",
     },
-    createAccount: { en: "Create account and continue", pt: "Criar conta e continuar", es: "Crear cuenta y continuar" },
+    createAccount: { en: "Contract", pt: "Contratar", es: "Contratar" },
     dependents: { en: "Dependents", pt: "Dependentes", es: "Dependientes" },
     dependentsDesc: {
       en: "Spouses and children under 21 years old are considered dependents.",
@@ -819,6 +819,8 @@ export const translations = {
       },
       dependentPrice: { en: "US$ 50.00", pt: "US$ 50,00", es: "US$ 50,00" },
       price: { en: "US$ 200.00", pt: "US$ 200,00", es: "US$ 200,00" },
+      basePrice: 200,
+      depPrice: 50,
       originalPrice: { en: "US$ 400.00", pt: "US$ 400,00", es: "US$ 400,00" },
       description: {
         en: "Complete step-by-step guide to apply for the tourism/business visa (B1/B2) at the American consulate. Includes document checklist, DS-160 guidance, and interview preparation.",
@@ -881,6 +883,8 @@ export const translations = {
       },
       dependentPrice: { en: "US$ 100.00", pt: "US$ 100,00", es: "US$ 100,00" },
       price: { en: "US$ 350.00", pt: "US$ 350,00", es: "US$ 350,00" },
+      basePrice: 350,
+      depPrice: 100,
       originalPrice: { en: "US$ 700.00", pt: "US$ 700,00", es: "US$ 700,00" },
       description: {
         en: "Step-by-step guide to apply for the F-1 student visa. Guidance on I-20, DS-160, SEVIS, financial documentation, and consulate interview preparation.",
@@ -943,6 +947,8 @@ export const translations = {
       },
       dependentPrice: { en: "US$ 100.00", pt: "US$ 100,00", es: "US$ 100,00" },
       price: { en: "US$ 200.00", pt: "US$ 200,00", es: "US$ 200,00" },
+      basePrice: 200,
+      depPrice: 100,
       originalPrice: { en: "US$ 400.00", pt: "US$ 400,00", es: "US$ 400,00" },
       description: {
         en: "Guide to request status extension with USCIS using Form I-539. Ideal for those in the US with a valid visa needing more time before returning.",
@@ -1001,6 +1007,8 @@ export const translations = {
       },
       dependentPrice: { en: "US$ 100.00", pt: "US$ 100,00", es: "US$ 100,00" },
       price: { en: "US$ 350.00", pt: "US$ 350,00", es: "US$ 350,00" },
+      basePrice: 350,
+      depPrice: 100,
       originalPrice: { en: "US$ 700.00", pt: "US$ 700,00", es: "US$ 700,00" },
       description: {
         en: "Step-by-step guide to request Change of Status within the US via Form I-539 or equivalent. For those needing to change from one visa category to another without leaving the country.",

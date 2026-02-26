@@ -7,11 +7,14 @@ import LanguageToggle from "./LanguageToggle";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 
+import { checkIsAdmin } from "@/lib/admin";
+
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const { lang, t } = useLanguage();
   const location = useLocation();
+  const isAdmin = checkIsAdmin(user?.email);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -67,9 +70,11 @@ export default function Header() {
           {user ? (
             <>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/dashboard" className="flex items-center gap-2">
+                <Link to={isAdmin ? "/admin" : "/dashboard"} className="flex items-center gap-2">
                   <LayoutDashboard className="h-4 w-4" />
-                  {lang === 'pt' ? 'Painel' : 'Dashboard'}
+                  {isAdmin
+                    ? (lang === 'pt' ? 'Painel Admin' : 'Admin Panel')
+                    : (lang === 'pt' ? 'Painel' : 'Dashboard')}
                 </Link>
               </Button>
               <Button variant="outline" size="sm" onClick={handleLogout} className="flex items-center gap-2">
@@ -121,9 +126,11 @@ export default function Header() {
                 {user ? (
                   <>
                     <Button variant="ghost" size="sm" asChild className="justify-start">
-                      <Link to="/dashboard" onClick={() => setOpen(false)}>
+                      <Link to={isAdmin ? "/admin" : "/dashboard"} onClick={() => setOpen(false)}>
                         <LayoutDashboard className="mr-2 h-4 w-4" />
-                        {lang === 'pt' ? 'Ir para o Painel' : 'Go to Dashboard'}
+                        {isAdmin
+                          ? (lang === 'pt' ? 'Ir para o Admin' : 'Go to Admin')
+                          : (lang === 'pt' ? 'Ir para o Painel' : 'Go to Dashboard')}
                       </Link>
                     </Button>
                     <Button variant="outline" size="sm" onClick={handleLogout} className="justify-start">

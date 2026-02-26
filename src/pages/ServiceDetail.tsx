@@ -147,7 +147,7 @@ export default function ServiceDetail() {
                 <p className="text-lg font-extrabold text-accent">{service.price[lang]}</p>
               </div>
               <Button size="lg" className="w-full bg-accent text-accent-foreground shadow-button hover:bg-green-dark sm:w-auto" asChild>
-                <Link to="/cadastro">{p.createAccount[lang]} <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link to={`/checkout/${slug}`}>{p.createAccount[lang]} <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
           </div>
