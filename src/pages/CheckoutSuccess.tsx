@@ -190,7 +190,7 @@ const CheckoutSuccess = () => {
                 <p className="text-slate-600 dark:text-slate-400 text-lg mb-8">
                     {isUploading || isPending
                         ? (lang === 'pt'
-                            ? 'Por favor, aguarde alguns instantes. Estamos validando sua transação.'
+                            ? 'Por favor, aguarde. Estamos validando sua transação.'
                             : 'Please wait a moment. We are validating your transaction.')
                         : (lang === 'pt'
                             ? 'Agora falta apenas um pequeno passo para acessar seu guia.'

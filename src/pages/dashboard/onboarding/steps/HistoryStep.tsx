@@ -10,8 +10,8 @@ export const HistoryStep = ({ register, o, lang }: StepProps) => {
                 <div>
                     <Label>{o.travelledBefore[lang]}</Label>
                     <select {...register("travelledBefore")} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                        <option value="no">{o.no[lang]}</option>
                         <option value="yes">{o.yes[lang]}</option>
+                        <option value="no">{o.no[lang]}</option>
                     </select>
                 </div>
                 <div>

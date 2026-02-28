@@ -6,6 +6,9 @@ export interface ZelleSubmitParams {
     serviceSlug: string;
     guestEmail: string;
     guestName: string;
+    visaOrderId?: string;
+    contractSelfieUrl?: string;
+    termsAcceptedAt?: string;
 }
 
 export interface ZelleSubmitResult {
@@ -13,58 +16,66 @@ export interface ZelleSubmitResult {
 }
 
 /**
- * ZelleService simplificado (Padrão MIGMA):
- * 1. Faz upload do comprovante.
- * 2. Envia payload completo para o n8n.
- * 3. n8n é o único responsável por dar o INSERT no banco.
+ * ZelleService:
+ * 1. Faz upload do comprovante no storage.
+ * 2. Chama a Edge Function `create-zelle-payment` que salva no banco e retorna o ID real.
+ * 3. Retorna o ID real do banco para o Realtime conseguir escutar corretamente.
  */
 export async function submitZellePayment(params: ZelleSubmitParams): Promise<ZelleSubmitResult> {
-    const { file, amount, serviceSlug, guestEmail, guestName } = params;
+    const { file, amount, serviceSlug, guestEmail } = params;
 
     const timestamp = Date.now();
     const fileExt = file.name.split(".").pop();
     const safeEmail = guestEmail.replace(/[^a-zA-Z0-9]/g, "_");
     const filePath = `guest/${safeEmail}/${timestamp}_${serviceSlug}.${fileExt}`;
 
-    // 1. Upload
+    // 1. Upload do comprovante no storage
     const { error: uploadError } = await supabase.storage
         .from("zelle_comprovantes")
         .upload(filePath, file);
 
     if (uploadError) throw new Error(`Falha no upload: ${uploadError.message}`);
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const imageUrl = `${supabaseUrl}/storage/v1/object/public/zelle_comprovantes/${filePath}`;
-    const paymentId = crypto.randomUUID();
+    // 2. Sessão do usuário (pode ser guest/anon)
+    const { data: sessionData } = await supabase.auth.getSession();
+    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? "";
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? "";
 
-    // 2. Webhook n8n (Payload idêntico ao modelo de sucesso)
-    const n8nWebhookUrl = import.meta.env.VITE_N8N_ZELLE_WEBHOOK_URL;
-    if (!n8nWebhookUrl) {
-        throw new Error("Configuração do n8n ausente.");
-    }
-
-    const response = await fetch(n8nWebhookUrl, {
+    // 3. Chama a Edge Function create-zelle-payment que salva no banco e retorna o ID real
+    const token = sessionData?.session?.access_token ?? anonKey;
+    const response = await fetch(`${supabaseUrl}/functions/v1/create-zelle-payment`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
-            event: "zelle_payment_created",
-            payment_id: paymentId,
-            user_id: null, // Guest checkout
-            email: guestEmail,
-            full_name: guestName,
-            amount: amount,
+            amount,
+            confirmation_code: null,
+            payment_date: new Date().toISOString().split("T")[0],
+            recipient_name: "SU AI DEN INC",
+            recipient_email: "admin@suaiden.com",
             proof_path: filePath,
-            image_url: imageUrl,
             service_slug: serviceSlug,
-            timestamp: new Date().toISOString()
+            guest_email: guestEmail,
+            guest_name: params.guestName,
+            visa_order_id: params.visaOrderId || null,
+            contract_selfie_url: params.contractSelfieUrl || null,
+            terms_accepted_at: params.termsAcceptedAt || null,
         }),
     });
 
     if (!response.ok) {
         const errorText = await response.text();
-        console.error("Erro no n8n:", errorText);
-        throw new Error(`O servidor de processamento (n8n) falhou: ${response.status}`);
+        console.error("[ZelleService] Erro na Edge Function:", errorText);
+        throw new Error(`Falha ao registrar pagamento: ${response.status}`);
     }
 
+    const result = await response.json();
+    const paymentId = result.payment_id;
+
+    if (!paymentId) throw new Error("Edge Function não retornou payment_id.");
+
+    console.log("[ZelleService] Pagamento registrado no banco com ID:", paymentId);
     return { paymentId };
 }

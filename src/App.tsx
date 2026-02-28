@@ -15,6 +15,8 @@ import ServiceDetail from "./pages/ServiceDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ConfirmPassword from "./pages/ConfirmPassword";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 
 
@@ -22,6 +24,7 @@ import Terms from "./pages/legal/Terms";
 import Privacy from "./pages/legal/Privacy";
 import Refund from "./pages/legal/Refund";
 import Disclaimers from "./pages/legal/Disclaimers";
+import ContractTerms from "./pages/legal/ContractTerms";
 
 import UserDashboard from "./pages/dashboard/UserDashboard";
 import Onboarding from "./pages/dashboard/Onboarding";
@@ -36,6 +39,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminOrderDetail from "./pages/admin/AdminOrderDetail";
 import AdminPayments from "./pages/admin/AdminPayments";
+import AdminContracts from "./pages/admin/AdminContracts";
 import AdminClients from "./pages/admin/AdminClients";
 import AdminClientDetail from "./pages/admin/AdminClientDetail";
 import AdminDocuments from "./pages/admin/AdminDocuments";
@@ -85,11 +89,14 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/cadastro" element={<Signup />} />
               <Route path="/auth/confirm-password" element={<ConfirmPassword />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
               <Route path="/termos" element={<Terms />} />
               <Route path="/privacidade" element={<Privacy />} />
               <Route path="/reembolso" element={<Refund />} />
               <Route path="/disclaimers" element={<Disclaimers />} />
+              <Route path="/termos-contrato" element={<ContractTerms />} />
               <Route path="/checkout/:slug" element={<Checkout />} />
               <Route path="/checkout-success" element={<CheckoutSuccess />} />
             </Route>
@@ -118,7 +125,7 @@ const App = () => (
                 <Route path="/admin/documentos" element={<AdminDocuments />} />
                 <Route path="/admin/sellers" element={<AdminPlaceholder title="Sellers" />} />
                 <Route path="/admin/parceiros" element={<AdminPlaceholder title="Parceiros Globais" />} />
-                <Route path="/admin/contratos" element={<AdminPlaceholder title="Contratos" />} />
+                <Route path="/admin/contratos" element={<AdminContracts />} />
                 <Route path="/admin/recorrencias" element={<AdminPlaceholder title="Recorrências" />} />
                 <Route path="/admin/produtos" element={<AdminPlaceholder title="Produtos & Cupons" />} />
                 <Route path="/admin/suporte" element={<AdminPlaceholder title="Suporte" />} />

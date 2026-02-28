@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Upload, CheckCircle2, AlertCircle, Copy, Check } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { submitZellePayment } from "@/lib/zelle/ZelleService";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +16,19 @@ interface ZellePaymentModalProps {
     serviceSlug: string;
     guestName: string;
     guestEmail: string;
-    onSuccess: (data: { file: File; amount: number; serviceSlug: string; guestEmail: string; guestName: string }) => void;
+    contractSelfieUrl?: string;
+    termsAcceptedAt?: string;
+    visaOrderId?: string;
+    onSuccess: (data: {
+        file: File;
+        amount: number;
+        serviceSlug: string;
+        guestEmail: string;
+        guestName: string;
+        contractSelfieUrl?: string;
+        termsAcceptedAt?: string;
+        visaOrderId?: string;
+    }) => void;
 }
 
 export const ZellePaymentModal = ({
@@ -26,11 +38,21 @@ export const ZellePaymentModal = ({
     serviceSlug,
     guestName,
     guestEmail,
+    contractSelfieUrl,
+    termsAcceptedAt,
+    visaOrderId,
     onSuccess
 }: ZellePaymentModalProps) => {
     const { lang } = useLanguage();
     const [file, setFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
+
+    const handleCopyEmail = () => {
+        navigator.clipboard.writeText("admin@suaiden.com");
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -47,13 +69,15 @@ export const ZellePaymentModal = ({
 
         setError(null);
 
-        // Envia os dados para a página de sucesso processar em background
         onSuccess({
             file,
             amount,
             serviceSlug,
             guestEmail,
             guestName,
+            contractSelfieUrl,
+            termsAcceptedAt,
+            visaOrderId,
         });
     };
 
@@ -73,11 +97,23 @@ export const ZellePaymentModal = ({
                         <div className="space-y-3 text-sm">
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground text-xs uppercase font-bold">E-mail Zelle:</span>
-                                <p className="font-medium text-base">admin@suaiden.com</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="font-medium text-base">admin@suaiden.com</p>
+                                    <button
+                                        type="button"
+                                        onClick={handleCopyEmail}
+                                        className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
+                                        title="Copiar e-mail"
+                                    >
+                                        {copied
+                                            ? <Check className="h-4 w-4 text-green-500" />
+                                            : <Copy className="h-4 w-4" />}
+                                    </button>
+                                </div>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground text-xs uppercase font-bold">Nome do Beneficiário:</span>
-                                <p className="font-medium">Suaiden LLC</p>
+                                <p className="font-medium">SU AI DEN INC</p>
                             </div>
                         </div>
                     </div>

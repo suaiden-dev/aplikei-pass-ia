@@ -79,6 +79,9 @@ serve(async (req) => {
             const slug = metadata.slug || "unknown";
             const exchange_rate = metadata.exchange_rate;
             const netAmountUSD = metadata.netAmountUSD;
+            const contract_selfie_url = metadata.contract_selfie_url || null;
+            const terms_accepted_at = metadata.terms_accepted_at || null;
+            const client_ip = req.headers.get("x-forwarded-for") || req.headers.get("cf-connecting-ip") || null;
 
             if (!email) {
                 console.error("No email found in metadata or customer_details");
@@ -140,7 +143,10 @@ serve(async (req) => {
                         ...metadata,
                         stripe_id: session.id,
                         event_type: event.type
-                    }
+                    },
+                    contract_selfie_url,
+                    terms_accepted_at,
+                    client_ip
                 }, { onConflict: 'stripe_session_id' })
                 .select()
                 .single();
@@ -158,6 +164,17 @@ serve(async (req) => {
                     });
 
                 if (serviceError) console.error("Error creating user service:", serviceError.message);
+            }
+
+            // 4. Gera o PDF do contrato em background
+            try {
+                console.log(`[stripe-webhook] Invocando generate-contract-pdf para ordem ${order.id}`);
+                const { error: pdfError } = await supabaseAdmin.functions.invoke("generate-contract-pdf", {
+                    body: { order_id: order.id }
+                });
+                if (pdfError) console.error("[stripe-webhook] Erro ao gerar PDF:", pdfError);
+            } catch (pdfErr: any) {
+                console.error("[stripe-webhook] Erro inesperado ao gerar PDF:", pdfErr.message);
             }
 
             console.log(`Successfully processed order ${order.order_number} for ${email}`);

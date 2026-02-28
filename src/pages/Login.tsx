@@ -57,7 +57,12 @@ export default function Login() {
             <Input id="email" type="email" placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" />
           </div>
           <div>
-            <Label htmlFor="password">{p.password[lang]}</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">{p.password[lang]}</Label>
+              <Link to="/forgot-password" className="text-xs text-accent hover:underline">
+                {p.forgotPassword[lang]}
+              </Link>
+            </div>
             <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1" />
           </div>
           <Button type="submit" disabled={loading} className="w-full bg-accent text-accent-foreground shadow-button hover:bg-green-dark">

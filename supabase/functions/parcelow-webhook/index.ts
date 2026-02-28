@@ -153,6 +153,17 @@ serve(async (req) => {
                         });
                         console.log(`[parcelow-webhook] Serviço ${orderData.product_slug} ativado.`);
                     }
+
+                    // Gera o PDF do contrato após pagamento confirmado
+                    try {
+                        const { error: pdfError } = await supabase.functions.invoke("generate-contract-pdf", {
+                            body: { order_id: orderData.id }
+                        });
+                        if (pdfError) console.error(`[parcelow-webhook] Erro ao gerar PDF:`, pdfError);
+                        else console.log(`[parcelow-webhook] PDF enfileirado para ordem ${orderData.id}`);
+                    } catch (pdfErr: any) {
+                        console.error(`[parcelow-webhook] Erro inesperado ao gerar PDF:`, pdfErr.message);
+                    }
                 }
             }
         }

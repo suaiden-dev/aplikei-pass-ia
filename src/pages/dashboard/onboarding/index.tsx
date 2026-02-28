@@ -9,13 +9,27 @@ import { ProcessStep } from "./steps/ProcessStep";
 import { DocumentsStep } from "./steps/DocumentsStep";
 import { ReviewStep } from "./steps/ReviewStep";
 
+// DS-160 Steps
+import { PersonalInfo1Step } from "./steps/visto-b1-b2/PersonalInfo1Step";
+import { PersonalInfo2Step } from "./steps/visto-b1-b2/PersonalInfo2Step";
+import { TravelInfoStep } from "./steps/visto-b1-b2/TravelInfoStep";
+import { CompanionsStep } from "./steps/visto-b1-b2/CompanionsStep";
+import { PreviousTravelStep } from "./steps/visto-b1-b2/PreviousTravelStep";
+import { AddressPhoneStep } from "./steps/visto-b1-b2/AddressPhoneStep";
+import { SocialMediaStep } from "./steps/visto-b1-b2/SocialMediaStep";
+import { PassportStep } from "./steps/visto-b1-b2/PassportStep";
+import { USContactStep } from "./steps/visto-b1-b2/USContactStep";
+import { FamilyInfoStep } from "./steps/visto-b1-b2/FamilyInfoStep";
+import { WorkEducationStep } from "./steps/visto-b1-b2/WorkEducationStep";
+import { AdditionalInfoStep } from "./steps/visto-b1-b2/AdditionalInfoStep";
+
 export default function Onboarding() {
     const {
-        lang, t, o, steps,
+        lang, t, o, steps, serviceSlug,
         currentStep, setCurrentStep,
         loading,
-        register, formData,
-        handleNext, handleFinish,
+        register, formData, setValue, watch, errors,
+        handleNext, handleFinish, handleSkip,
         uploading, uploadedDocs, fileInputRef,
         handleUpload, handleRemoveDoc, selectedDoc, setSelectedDoc
     } = useOnboardingLogic();
@@ -23,7 +37,42 @@ export default function Onboarding() {
     const progress = ((currentStep + 1) / steps.length) * 100;
 
     const renderStep = () => {
-        const commonProps = { register, o, lang, formData, t };
+        const commonProps = { register, o, lang, formData, t, setValue, watch, errors, serviceSlug };
+
+        if (serviceSlug === "visto-b1-b2") {
+            switch (currentStep) {
+                case 0: return <PersonalInfo1Step {...commonProps} />;
+                case 1: return <PersonalInfo2Step {...commonProps} />;
+                case 2: return <TravelInfoStep {...commonProps} />;
+                case 3: return <CompanionsStep {...commonProps} />;
+                case 4: return <PreviousTravelStep {...commonProps} />;
+                case 5: return <AddressPhoneStep {...commonProps} />;
+                case 6: return <SocialMediaStep {...commonProps} />;
+                case 7: return <PassportStep {...commonProps} />;
+                case 8: return <USContactStep {...commonProps} />;
+                case 9: return <FamilyInfoStep {...commonProps} />;
+                case 10: return <WorkEducationStep {...commonProps} />;
+                case 11: return <AdditionalInfoStep {...commonProps} />;
+                case 12:
+                    return (
+                        <DocumentsStep
+                            {...commonProps}
+                            uploadedDocs={uploadedDocs}
+                            handleUpload={handleUpload}
+                            handleRemove={handleRemoveDoc}
+                            uploading={uploading}
+                            fileInputRef={fileInputRef}
+                            setSelectedDoc={setSelectedDoc}
+                            handleSkip={handleSkip}
+                            serviceSlug={serviceSlug}
+                        />
+                    );
+                case 13:
+                    return <ReviewStep {...commonProps} />;
+                default:
+                    return null;
+            }
+        }
 
         switch (currentStep) {
             case 0:
@@ -42,6 +91,8 @@ export default function Onboarding() {
                         uploading={uploading}
                         fileInputRef={fileInputRef}
                         setSelectedDoc={setSelectedDoc}
+                        handleSkip={handleSkip}
+                        serviceSlug={serviceSlug}
                     />
                 );
             case 4:
@@ -125,6 +176,7 @@ export default function Onboarding() {
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
+                accept=".jpg,.jpeg,.png"
                 onChange={(e) => selectedDoc && handleUpload(e, selectedDoc)}
             />
 

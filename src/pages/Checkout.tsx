@@ -1,11 +1,12 @@
-import { useParams, Navigate } from "react-router-dom";
+import { useParams, Navigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, ShieldCheck, ArrowRight, CreditCard, Landmark, Wallet } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CheckCircle2, ShieldCheck, ArrowRight, CreditCard, Landmark, Wallet, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import {
     Select,
@@ -49,6 +50,14 @@ export default function Checkout() {
 
     const [exchangeRate, setExchangeRate] = useState<number | null>(null);
     const [isZelleModalOpen, setIsZelleModalOpen] = useState(false);
+    const [zelleOrderId, setZelleOrderId] = useState<string | null>(null);
+
+    // Novas variáveis para Contrato e Upload
+    const [contractAccepted, setContractAccepted] = useState(false);
+    const [contractSelfie, setContractSelfie] = useState<File | null>(null);
+    const [isUploadingDocs, setIsUploadingDocs] = useState(false);
+    const [uploadedDocsUrls, setUploadedDocsUrls] = useState({ selfie: "", termsAcceptedAt: "" });
+
     const navigate = useNavigate();
 
 
@@ -112,9 +121,44 @@ export default function Checkout() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validação do Contrato e Documentos Obrigatórios
+        if (!contractAccepted || !contractSelfie) {
+            alert("Por favor, aceite os termos do contrato e anexe a Selfie segurando o seu passaporte antes de prosseguir com o pagamento.");
+            return;
+        }
+
         setIsProcessing(true);
+        setIsUploadingDocs(true);
 
         try {
+            // Lógica de Upload primeiro
+            let selfieUrl = uploadedDocsUrls.selfie;
+            let acceptedAt = uploadedDocsUrls.termsAcceptedAt || new Date().toISOString();
+
+            const uploadFileToSupabase = async (file: File, prefix: string) => {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${prefix}_${Date.now()}.${fileExt}`;
+                const filePath = `contracts/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('visa-documents')
+                    .upload(filePath, file);
+
+                if (uploadError) {
+                    console.error("Erro no upload do documento:", uploadError);
+                    throw uploadError;
+                }
+
+                const { data } = supabase.storage.from('visa-documents').getPublicUrl(filePath);
+                return data.publicUrl;
+            };
+
+            if (!selfieUrl && contractSelfie) selfieUrl = await uploadFileToSupabase(contractSelfie, 'selfie');
+
+            setUploadedDocsUrls({ selfie: selfieUrl, termsAcceptedAt: acceptedAt });
+            setIsUploadingDocs(false);
+
             if (formData.paymentMethod === "stripe" || formData.paymentMethod === "stripe_pix") {
                 console.log("Iniciando checkout Stripe para:", service.title[lang], formData);
 
@@ -128,7 +172,9 @@ export default function Checkout() {
                         phone: formData.phone,
                         dependents: parseInt(formData.dependents) || 0,
                         origin_url: window.location.origin,
-                        paymentMethod: formData.paymentMethod === 'stripe_pix' ? 'pix' : 'card'
+                        paymentMethod: formData.paymentMethod === 'stripe_pix' ? 'pix' : 'card',
+                        contract_selfie_url: selfieUrl,
+                        terms_accepted_at: acceptedAt
                     },
                     headers: {
                         Authorization: `Bearer ${currentSession?.access_token}`
@@ -142,6 +188,27 @@ export default function Checkout() {
                     throw new Error("Não foi possível gerar a sessão de pagamento.");
                 }
             } else if (formData.paymentMethod === "zelle") {
+                // Cria a visa_order antes de abrir o modal para garantir o vínculo
+                const { data: zelleOrderData, error: zelleOrderErr } = await supabase
+                    .from("visa_orders")
+                    .insert({
+                        client_name: formData.name,
+                        client_email: formData.email,
+                        product_slug: slug,
+                        total_price_usd: totalPrice,
+                        payment_method: "zelle",
+                        payment_status: "pending",
+                        contract_selfie_url: selfieUrl || null,
+                        terms_accepted_at: acceptedAt || null,
+                    })
+                    .select("id")
+                    .single();
+
+                if (zelleOrderErr) {
+                    console.error("[Checkout] Erro ao criar visa_order para Zelle:", zelleOrderErr);
+                } else {
+                    setZelleOrderId(zelleOrderData?.id ?? null);
+                }
                 setIsZelleModalOpen(true);
             } else if (formData.paymentMethod === "parcelow") {
                 console.log("Iniciando checkout Parcelow para:", service.title[lang], formData);
@@ -163,7 +230,9 @@ export default function Checkout() {
                         cpf: formData.cpf,
                         paymentMethod: formData.parcelowSubMethod,
                         payerInfo,
-                        origin_url: window.location.origin
+                        origin_url: window.location.origin,
+                        contract_selfie_url: selfieUrl,
+                        terms_accepted_at: acceptedAt
                     }
                 });
 
@@ -300,6 +369,44 @@ export default function Checkout() {
                                         </div>
                                     </div>
                                 </form>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border-border shadow-md overflow-hidden">
+                            <CardHeader className="bg-muted/30">
+                                <CardTitle className="text-xl flex items-center gap-2">
+                                    <FileText className="h-5 w-5 text-accent" />
+                                    Assinatura e Termos de Contrato
+                                </CardTitle>
+                                <CardDescription>Para prosseguir, anexe sua selfie com o passaporte e aceite os termos.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="pt-6 space-y-6">
+                                <div className="space-y-4">
+                                    <div className="space-y-2 max-w-sm">
+                                        <Label>Selfie com Passaporte (Rosto Delineado)</Label>
+                                        <Input type="file" accept="image/*" onChange={(e) => setContractSelfie(e.target.files?.[0] || null)} />
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            Anexe uma foto sua segurando a página principal do seu passaporte aberta próximo ao seu rosto.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-2 bg-muted/20 p-4 rounded-lg border border-border/50">
+                                    <Checkbox id="terms" checked={contractAccepted} onCheckedChange={(checked) => setContractAccepted(checked === true)} />
+                                    <div className="flex flex-col gap-1 leading-none">
+                                        <div className="text-sm font-medium">
+                                            <Label htmlFor="terms" className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
+                                                Li e concordo com a comprovação de identidade e com os{" "}
+                                            </Label>
+                                            <Link to="/termos-contrato" target="_blank" className="text-accent underline hover:opacity-80">
+                                                Termos e Condições do serviço
+                                            </Link>.
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-1 text-pretty">
+                                            Ao confirmar, declaro que as imagens enviadas são autênticas e atestam a veracidade desta assinatura eletrônica. O envio compõe o aceite dos termos legais do contrato de prestação de serviços.
+                                        </p>
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
 
@@ -477,9 +584,11 @@ export default function Checkout() {
                                     type="submit"
                                     size="lg"
                                     className="w-full bg-accent text-accent-foreground shadow-button hover:bg-green-dark"
-                                    disabled={isProcessing}
+                                    disabled={isProcessing || !contractAccepted || !contractSelfie}
                                 >
-                                    {isProcessing ? "Processando..." : `Finalizar com ${formData.paymentMethod === 'stripe' ? 'Stripe' : formData.paymentMethod === 'stripe_pix' ? 'Stripe PIX' : formData.paymentMethod === 'zelle' ? 'Zelle' : 'Parcelow'}`} <ArrowRight className="ml-2 h-4 w-4" />
+                                    {isProcessing
+                                        ? (isUploadingDocs ? "Enviando Documentos..." : "Processando...")
+                                        : `Finalizar com ${formData.paymentMethod === 'stripe' ? 'Stripe' : formData.paymentMethod === 'stripe_pix' ? 'Stripe PIX' : formData.paymentMethod === 'zelle' ? 'Zelle' : 'Parcelow'}`} <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-wider">
                                     <ShieldCheck className="h-3 w-3" />
@@ -571,9 +680,11 @@ export default function Checkout() {
                 serviceSlug={slug || "service"}
                 guestName={formData.name}
                 guestEmail={formData.email}
+                contractSelfieUrl={uploadedDocsUrls.selfie}
+                termsAcceptedAt={uploadedDocsUrls.termsAcceptedAt}
+                visaOrderId={zelleOrderId ?? undefined}
                 onSuccess={(zelleData) => {
                     setIsZelleModalOpen(false);
-                    // Navega instantaneamente passando o arquivo no estado da rota
                     navigate("/checkout-success?status=pending", {
                         state: { zelleData }
                     });

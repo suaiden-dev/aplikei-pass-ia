@@ -163,6 +163,31 @@ serve(async (req) => {
             }
         }
 
+        // Vincula o pagamento Zelle à visa_order e dispara geração de PDF
+        // Prioridade: usa visa_order_id direto do registro (campo adicionado no create-zelle-payment)
+        try {
+            const orderIdForPdf = payment.visa_order_id || null;
+
+            if (orderIdForPdf) {
+                // Garante que o payment_status da visa_order está como paid
+                await supabase
+                    .from("visa_orders")
+                    .update({ payment_status: "paid" })
+                    .eq("id", orderIdForPdf);
+
+                const { error: pdfError } = await supabase.functions.invoke("generate-contract-pdf", {
+                    body: { order_id: orderIdForPdf }
+                });
+                if (pdfError) console.error(`[zelle-webhook] Erro ao gerar PDF:`, pdfError);
+                else console.log(`[zelle-webhook] PDF gerado para visa_order ${orderIdForPdf}`);
+            } else {
+                console.log(`[zelle-webhook] visa_order_id nao vinculado ao pagamento ${payload.payment_id}. PDF nao gerado automaticamente.`);
+            }
+        } catch (pdfErr: any) {
+            console.error(`[zelle-webhook] Erro inesperado ao gerar PDF:`, pdfErr.message);
+        }
+
+
         return new Response(
             JSON.stringify({ message: "Pagamento processado e serviço ativado com sucesso.", status: "approved" }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
