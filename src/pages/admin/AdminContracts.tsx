@@ -4,11 +4,13 @@ import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { FileText, ExternalLink, RefreshCw, Download } from "lucide-react";
+import { FileText, ExternalLink, RefreshCw, Download, ClipboardList } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ContractOrder {
     id: string;
     order_number: string;
+    user_id: string | null;
     client_name: string;
     client_email: string;
     product_slug: string;
@@ -24,6 +26,7 @@ interface ContractOrder {
 
 export default function AdminContracts() {
     const { toast } = useToast();
+    const navigate = useNavigate();
     const [orders, setOrders] = useState<ContractOrder[]>([]);
     const [loading, setLoading] = useState(true);
     const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
@@ -38,7 +41,7 @@ export default function AdminContracts() {
             const { data, error } = await supabase
                 .from("visa_orders")
                 .select(
-                    "id, order_number, client_name, client_email, product_slug, total_price_usd, payment_method, payment_status, contract_pdf_url, contract_selfie_url, terms_accepted_at, client_ip, created_at"
+                    "id, order_number, user_id, client_name, client_email, product_slug, total_price_usd, payment_method, payment_status, contract_pdf_url, contract_selfie_url, terms_accepted_at, client_ip, created_at"
                 )
                 .eq("payment_status", "paid")
                 .order("created_at", { ascending: false });
@@ -165,6 +168,28 @@ export default function AdminContracts() {
                             render: (item) => (
                                 <span className="text-xs">{formatDate(item.terms_accepted_at)}</span>
                             ),
+                        },
+                        {
+                            key: "ds160",
+                            header: "Formulário",
+                            render: (item) =>
+                                item.product_slug === "visto-b1-b2" && item.user_id ? (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="gap-1.5 text-xs h-7 border-accent/30 text-accent hover:bg-accent/10"
+                                        onClick={() => {
+                                            navigate(`/admin/ds160/${item.user_id}`, {
+                                                state: { clientName: item.client_name }
+                                            });
+                                        }}
+                                    >
+                                        <ClipboardList className="h-3 w-3" />
+                                        Ver DS-160
+                                    </Button>
+                                ) : (
+                                    <span className="text-xs text-muted-foreground">—</span>
+                                ),
                         },
                         {
                             key: "contract_selfie_url",

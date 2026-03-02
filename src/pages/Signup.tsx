@@ -61,22 +61,21 @@ export default function Signup() {
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="name">{p.fullName[lang]}</Label>
-            <Input id="name" placeholder={p.namePlaceholder[lang]} value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
+            <Input id="name" onChange={(e) => setName(e.target.value)} className="mt-1" />
           </div>
           <div>
             <Label htmlFor="email">{p.email[lang]}</Label>
-            <Input id="email" type="email" placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" />
+            <Input id="email" type="email" onChange={(e) => setEmail(e.target.value)} className="mt-1" />
           </div>
           <div>
             <Label htmlFor="password">{p.password[lang]}</Label>
-            <Input id="password" type="password" placeholder={p.passwordPlaceholder[lang]} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1" />
+            <Input id="password" type="password" onChange={(e) => setPassword(e.target.value)} className="mt-1" />
           </div>
           <div>
             <Label htmlFor="phone">{p.phone[lang]}</Label>
             <Input
               id="phone"
               type="tel"
-              placeholder="+55 11 99999-9999"
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
               className="mt-1"

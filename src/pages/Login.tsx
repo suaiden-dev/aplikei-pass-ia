@@ -54,7 +54,7 @@ export default function Login() {
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="email">{p.email[lang]}</Label>
-            <Input id="email" type="email" placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" />
+            <Input id="email" type="email" onChange={(e) => setEmail(e.target.value)} className="mt-1" />
           </div>
           <div>
             <div className="flex items-center justify-between">
@@ -63,7 +63,7 @@ export default function Login() {
                 {p.forgotPassword[lang]}
               </Link>
             </div>
-            <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1" />
+            <Input id="password" type="password" onChange={(e) => setPassword(e.target.value)} className="mt-1" />
           </div>
           <Button type="submit" disabled={loading} className="w-full bg-accent text-accent-foreground shadow-button hover:bg-green-dark">
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

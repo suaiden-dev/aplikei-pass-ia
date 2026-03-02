@@ -18,9 +18,7 @@ interface Client {
     full_name: string;
     email: string;
     phone: string;
-    country: string | null;
-    nationality: string | null;
-    created_at: string;
+    updated_at: string;
 }
 
 export default function AdminClients() {
@@ -28,8 +26,6 @@ export default function AdminClients() {
     const [clients, setClients] = useState<Client[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
-    const [countryFilter, setCountryFilter] = useState("all");
-    const [countries, setCountries] = useState<string[]>([]);
 
     useEffect(() => {
         fetchClients();
@@ -39,17 +35,13 @@ export default function AdminClients() {
         setLoading(true);
         try {
             const { data, error } = await supabase
-                .from("clients")
-                .select("id, full_name, email, phone, country, nationality, created_at")
-                .order("created_at", { ascending: false });
+                .from("profiles")
+                .select("id, full_name, email, phone, updated_at")
+                .order("updated_at", { ascending: false });
 
             if (error) throw error;
 
             setClients(data as Client[]);
-
-            // Extract unique countries for filter
-            const uniqueCountries = Array.from(new Set(data.map(c => c.country).filter(Boolean))) as string[];
-            setCountries(uniqueCountries.sort());
         } catch (error) {
             console.error("Erro ao buscar clientes:", error);
         } finally {
@@ -59,13 +51,11 @@ export default function AdminClients() {
 
     const filteredClients = clients.filter(client => {
         const matchesSearch =
-            client.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            client.phone.includes(searchTerm);
+            (client.full_name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (client.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (client.phone || "").includes(searchTerm);
 
-        const matchesCountry = countryFilter === "all" || client.country === countryFilter;
-
-        return matchesSearch && matchesCountry;
+        return matchesSearch;
     });
 
     const formatDate = (date: string) =>
@@ -90,26 +80,11 @@ export default function AdminClients() {
                     />
                 </div>
 
-                <div className="flex items-center gap-2 min-w-[200px]">
-                    <Filter className="h-4 w-4 text-muted-foreground" />
-                    <Select value={countryFilter} onValueChange={setCountryFilter}>
-                        <SelectTrigger className="h-9">
-                            <SelectValue placeholder="Filtrar por País" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Todos os Países</SelectItem>
-                            {countries.map(c => (
-                                <SelectItem key={c} value={c}>{c}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {(searchTerm || countryFilter !== "all") && (
+                {searchTerm && (
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => { setSearchTerm(""); setCountryFilter("all"); }}
+                        onClick={() => { setSearchTerm(""); }}
                         className="text-muted-foreground"
                     >
                         <X className="h-4 w-4 mr-2" /> Limpar
@@ -124,9 +99,8 @@ export default function AdminClients() {
                     columns={[
                         { key: "full_name", header: "Nome", className: "font-medium" },
                         { key: "email", header: "E-mail" },
-                        { key: "phone", header: "WhatsApp/Telefone" },
-                        { key: "country", header: "País", render: (item) => item.country || "—" },
-                        { key: "created_at", header: "Cadastro", render: (item) => formatDate(item.created_at) },
+                        { key: "phone", header: "Telefone" },
+                        { key: "updated_at", header: "Cadastro/Atualização", render: (item) => formatDate(item.updated_at) },
                         {
                             key: "actions",
                             header: "",

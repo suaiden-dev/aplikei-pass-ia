@@ -14,7 +14,6 @@ import { Filter, X } from "lucide-react";
 export interface OrderFilters {
     status?: string;
     product?: string;
-    sellerId?: string;
     minPrice?: string;
     maxPrice?: string;
     startDate?: string;
@@ -29,27 +28,20 @@ export function AdminOrdersFilters({ onFilterChange }: AdminOrdersFiltersProps) 
     const [filters, setFilters] = useState<OrderFilters>({
         status: "all",
         product: "all",
-        sellerId: "all",
         minPrice: "",
         maxPrice: "",
         startDate: "",
         endDate: "",
     });
 
-    const [sellers, setSellers] = useState<{ id: string; full_name: string }[]>([]);
     const [products, setProducts] = useState<{ id: string; name: string; slug: string }[]>([]);
 
     useEffect(() => {
-        const loadOptions = async () => {
-            const [sellersRes, productsRes] = await Promise.all([
-                supabase.from("sellers").select("id, full_name").eq("status", "active"),
-                supabase.from("visa_products").select("id, name, slug"),
-            ]);
-
-            if (sellersRes.data) setSellers(sellersRes.data);
-            if (productsRes.data) setProducts(productsRes.data);
-        };
-        loadOptions();
+        setProducts([
+            { id: "1", name: "Visto Turismo (B1/B2)", slug: "visto-b1-b2" },
+            { id: "2", name: "Visto Estudante (F1)", slug: "visto-f1" },
+            { id: "3", name: "Extensão/Troca de Status", slug: "extensao-status" }
+        ]);
     }, []);
 
     const handleChange = (key: keyof OrderFilters, value: string) => {
@@ -62,7 +54,6 @@ export function AdminOrdersFilters({ onFilterChange }: AdminOrdersFiltersProps) 
         const resetFilters = {
             status: "all",
             product: "all",
-            sellerId: "all",
             minPrice: "",
             maxPrice: "",
             startDate: "",
@@ -114,27 +105,6 @@ export function AdminOrdersFilters({ onFilterChange }: AdminOrdersFiltersProps) 
                             {products.map((p) => (
                                 <SelectItem key={p.id} value={p.slug}>
                                     {p.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Seller */}
-                <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase">Seller</label>
-                    <Select
-                        value={filters.sellerId}
-                        onValueChange={(v) => handleChange("sellerId", v)}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Todos os Sellers" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Todos os Sellers</SelectItem>
-                            {sellers.map((s) => (
-                                <SelectItem key={s.id} value={s.id}>
-                                    {s.full_name}
                                 </SelectItem>
                             ))}
                         </SelectContent>

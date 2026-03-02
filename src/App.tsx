@@ -44,6 +44,7 @@ import AdminClients from "./pages/admin/AdminClients";
 import AdminClientDetail from "./pages/admin/AdminClientDetail";
 import AdminDocuments from "./pages/admin/AdminDocuments";
 import AdminPlaceholder from "./pages/admin/AdminPlaceholder";
+import AdminDS160ViewerPage from "./pages/admin/AdminDS160ViewerPage";
 import Checkout from "./pages/Checkout";
 
 import NotFound from "./pages/NotFound";
@@ -130,6 +131,7 @@ const App = () => (
                 <Route path="/admin/produtos" element={<AdminPlaceholder title="Produtos & Cupons" />} />
                 <Route path="/admin/suporte" element={<AdminPlaceholder title="Suporte" />} />
                 <Route path="/admin/analytics" element={<AdminPlaceholder title="Analytics" />} />
+                <Route path="/admin/ds160/:userId" element={<AdminDS160ViewerPage />} />
               </Route>
             </Route>
 

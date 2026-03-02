@@ -21,10 +21,9 @@ interface DocumentItem {
     file_path: string;
     file_type: string;
     created_at: string;
-    service_request_id: string | null;
     client_name?: string;
     client_id?: string;
-    service_status?: string;
+    status?: string;
 }
 
 export default function AdminDocuments() {
@@ -40,48 +39,28 @@ export default function AdminDocuments() {
     const fetchDocuments = async () => {
         setLoading(true);
         try {
-            // Fetch identity files joined with service requests and clients
-            // Note: Since we can't always do triple joins easily with types, we might fetch files and then enrich
             const { data: files, error: filesError } = await supabase
-                .from("identity_files")
-                .select(`
-                    id, 
-                    file_name, 
-                    file_path, 
-                    file_type, 
-                    created_at, 
-                    service_request_id
-                `)
+                .from("documents")
+                .select("id, name, storage_path, status, created_at, user_service_id, user_id, profiles (full_name)")
                 .order("created_at", { ascending: false });
 
             if (filesError) throw filesError;
 
-            // Enrich with service request and client data
-            const srIds = Array.from(new Set(files.map(f => f.service_request_id).filter(Boolean))) as string[];
+            const enrichedDocs = (files || []).map((f: any) => {
+                return {
+                    id: f.id,
+                    file_name: f.name,
+                    file_path: f.storage_path,
+                    file_type: "documento",
+                    created_at: f.created_at,
+                    service_request_id: f.user_service_id,
+                    client_name: f.profiles?.full_name || "Desconhecido",
+                    client_id: f.user_id,
+                    status: f.status || "pending",
+                };
+            }) as DocumentItem[];
 
-            if (srIds.length > 0) {
-                const { data: srs } = await supabase
-                    .from("service_requests")
-                    .select("id, status, client_id, clients(id, full_name)")
-                    .in("id", srIds);
-
-                const srMap = new Map();
-                srs?.forEach(sr => srMap.set(sr.id, sr));
-
-                const enrichedDocs = files.map(f => {
-                    const sr = srMap.get(f.service_request_id);
-                    return {
-                        ...f,
-                        client_name: sr?.clients?.full_name || "Desconhecido",
-                        client_id: sr?.clients?.id,
-                        service_status: sr?.status || "unknown"
-                    };
-                }) as DocumentItem[];
-
-                setDocuments(enrichedDocs);
-            } else {
-                setDocuments(files as DocumentItem[]);
-            }
+            setDocuments(enrichedDocs);
 
         } catch (error) {
             console.error("Erro ao carregar documentos:", error);
@@ -91,7 +70,7 @@ export default function AdminDocuments() {
     };
 
     const filteredDocuments = documents.filter(doc =>
-        statusFilter === "all" || doc.service_status === statusFilter
+        statusFilter === "all" || doc.status === statusFilter
     );
 
     const formatDate = (date: string) =>
@@ -169,13 +148,14 @@ export default function AdminDocuments() {
                             )
                         },
                         {
-                            key: "service_status",
-                            header: "Status Serviço",
+                            key: "status",
+                            header: "Status Documento",
                             render: (item) => {
-                                const status = item.service_status || "pending";
+                                const status = item.status || "pending";
                                 let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-                                if (status === "completed") variant = "default";
-                                if (status === "failed") variant = "destructive";
+                                if (status === "approved") variant = "default";
+                                if (status === "received") variant = "secondary";
+                                if (status === "resubmit") variant = "destructive";
                                 if (status === "pending") variant = "outline";
 
                                 return <Badge variant={variant} className="capitalize text-[10px]">{status}</Badge>;

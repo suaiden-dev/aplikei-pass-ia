@@ -22,7 +22,6 @@ interface Order {
     product_slug: string;
     total_price_usd: number;
     payment_status: string;
-    seller_id: string | null;
     created_at: string;
 }
 
@@ -30,26 +29,19 @@ export default function AdminOrders() {
     const navigate = useNavigate();
     const { toast } = useToast();
     const [orders, setOrders] = useState<Order[]>([]);
-    const [sellers, setSellers] = useState<{ id: string; full_name: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState<OrderFilters>({});
 
     useEffect(() => {
         fetchOrders();
-        fetchSellers();
     }, []);
-
-    const fetchSellers = async () => {
-        const { data } = await supabase.from("sellers").select("id, full_name").eq("status", "active");
-        if (data) setSellers(data);
-    };
 
     const fetchOrders = async (currentFilters: OrderFilters = filters) => {
         setLoading(true);
         try {
             let query = supabase
                 .from("visa_orders")
-                .select("id, order_number, client_name, product_slug, total_price_usd, payment_status, seller_id, created_at")
+                .select("id, order_number, client_name, product_slug, total_price_usd, payment_status, created_at")
                 .eq("is_test", false)
                 .order("created_at", { ascending: false });
 
@@ -59,9 +51,6 @@ export default function AdminOrders() {
             }
             if (currentFilters.product && currentFilters.product !== "all") {
                 query = query.eq("product_slug", currentFilters.product);
-            }
-            if (currentFilters.sellerId && currentFilters.sellerId !== "all") {
-                query = query.eq("seller_id", currentFilters.sellerId);
             }
             if (currentFilters.minPrice) {
                 query = query.gte("total_price_usd", currentFilters.minPrice);
@@ -105,21 +94,6 @@ export default function AdminOrders() {
         } else {
             toast({ title: "Status atualizado!" });
             setOrders(orders.map(o => o.id === orderId ? { ...o, payment_status: status } : o));
-        }
-    };
-
-    const handleUpdateSeller = async (orderId: string, sellerId: string) => {
-        const value = sellerId === "none" ? null : sellerId;
-        const { error } = await supabase
-            .from("visa_orders")
-            .update({ seller_id: value })
-            .eq("id", orderId);
-
-        if (error) {
-            toast({ title: "Erro ao atribuir seller", variant: "destructive" });
-        } else {
-            toast({ title: "Seller atribuído!" });
-            setOrders(orders.map(o => o.id === orderId ? { ...o, seller_id: value } : o));
         }
     };
 
@@ -177,28 +151,6 @@ export default function AdminOrders() {
                                         <SelectItem value="paid">Pago</SelectItem>
                                         <SelectItem value="failed">Falha</SelectItem>
                                         <SelectItem value="refunded">Reembolsado</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            ),
-                        },
-                        {
-                            key: "seller_id",
-                            header: "Seller",
-                            render: (item) => (
-                                <Select
-                                    value={item.seller_id || "none"}
-                                    onValueChange={(v) => handleUpdateSeller(item.id, v)}
-                                >
-                                    <SelectTrigger className="h-8 w-[140px] text-xs">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">Sem Seller</SelectItem>
-                                        {sellers.map((s) => (
-                                            <SelectItem key={s.id} value={s.id}>
-                                                {s.full_name}
-                                            </SelectItem>
-                                        ))}
                                     </SelectContent>
                                 </Select>
                             ),
