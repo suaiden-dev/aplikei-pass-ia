@@ -1,12 +1,24 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, MessageSquare, Upload, FileText, HelpCircle, LogOut, CheckSquare } from "lucide-react";
 import LanguageToggle from "./LanguageToggle";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { useAdmin } from "@/hooks/useAdmin";
+import { useEffect } from "react";
 
 export default function UserDashboardLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { lang, t } = useLanguage();
+  const { isAdmin, loading } = useAdmin();
   const s = t.sidebar;
+
+  useEffect(() => {
+    if (!loading && isAdmin) {
+      navigate("/admin", { replace: true });
+    }
+  }, [isAdmin, loading, navigate]);
+
+  if (loading) return null;
 
   const sidebarLinks = [
     { to: "/dashboard", label: s.dashboard[lang], icon: LayoutDashboard },

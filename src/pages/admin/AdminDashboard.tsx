@@ -49,8 +49,6 @@ export default function AdminDashboard() {
                 clientsRes,
                 paidOrdersRes,
                 pendingZelleRes,
-                sellersRes,
-                partnersRes,
                 recentRes,
             ] = await Promise.all([
                 supabase
@@ -58,7 +56,7 @@ export default function AdminDashboard() {
                     .select("id", { count: "exact", head: true })
                     .eq("is_test", false),
                 supabase
-                    .from("clients")
+                    .from("profiles") // Corrigido de "clients" para "profiles"
                     .select("id", { count: "exact", head: true }),
                 supabase
                     .from("visa_orders")
@@ -69,14 +67,6 @@ export default function AdminDashboard() {
                     .from("zelle_payments")
                     .select("id", { count: "exact", head: true })
                     .eq("status", "pending_verification"),
-                supabase
-                    .from("sellers")
-                    .select("id", { count: "exact", head: true })
-                    .eq("status", "active"),
-                supabase
-                    .from("global_partner_applications")
-                    .select("id", { count: "exact", head: true })
-                    .eq("status", "pending"),
                 supabase
                     .from("visa_orders")
                     .select(
@@ -98,8 +88,8 @@ export default function AdminDashboard() {
                 totalClients: clientsRes.count ?? 0,
                 totalRevenue,
                 pendingPayments: pendingZelleRes.count ?? 0,
-                activeSellers: sellersRes.count ?? 0,
-                pendingPartners: partnersRes.count ?? 0,
+                activeSellers: 0, // Funcionalidade ainda não implementada
+                pendingPartners: 0, // Funcionalidade ainda não implementada
             });
 
             setRecentOrders((recentRes.data as RecentOrder[]) ?? []);

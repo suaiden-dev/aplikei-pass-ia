@@ -1,13 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-// Emails autorizados como admin. 
-// Futuramente migrar para user_metadata ou tabela admin_users.
-const ADMIN_EMAILS = [
-    "info@thefutureofenglish.com",
-    "admin@suaiden.com",
-    "fernanda@suaiden.com",
-];
+import { checkIsAdmin } from "@/lib/admin";
 
 interface AdminState {
     isAdmin: boolean;
@@ -29,7 +23,7 @@ export function useAdmin(): AdminState {
             } = await supabase.auth.getUser();
 
             if (user && user.email) {
-                const isAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
+                const isAdmin = checkIsAdmin(user.email);
                 setState({
                     isAdmin,
                     loading: false,
@@ -46,9 +40,7 @@ export function useAdmin(): AdminState {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session?.user?.email) {
-                const isAdmin = ADMIN_EMAILS.includes(
-                    session.user.email.toLowerCase()
-                );
+                const isAdmin = checkIsAdmin(session.user.email);
                 setState({
                     isAdmin,
                     loading: false,

@@ -390,7 +390,7 @@ export const translations = {
       pt: "Aviso: Aplikei não é escritório de advocacia, não oferece aconselhamento jurídico, não garante aprovação e não representa o cliente perante consulado ou USCIS. Suporte humano é apenas operacional.",
       es: "Aviso: Aplikei no es un despacho de abogados, no ofrece asesoría legal, no garantiza aprobación y no representa al cliente ante consulados o USCIS. El soporte humano es solo operacional.",
     },
-    createAccount: { en: "Create account and continue", pt: "Criar conta e continuar", es: "Crear cuenta y continuar" },
+    createAccount: { en: "Contract", pt: "Contratar", es: "Contratar" },
     dependents: { en: "Dependents", pt: "Dependentes", es: "Dependientes" },
     dependentsDesc: {
       en: "Spouses and children under 21 years old are considered dependents.",
@@ -409,7 +409,49 @@ export const translations = {
     submit: { en: "Log in", pt: "Entrar", es: "Iniciar sesión" },
     noAccount: { en: "Don't have an account?", pt: "Não tem conta?", es: "¿No tienes cuenta?" },
     createAccount: { en: "Create account", pt: "Criar conta", es: "Crear cuenta" },
+    forgotPassword: { en: "Forgot your password?", pt: "Esqueceu sua senha?", es: "¿Olvidaste tu contraseña?" },
   },
+
+  // ──── Forgot Password ────
+  forgotPassword: {
+    title: { en: "Recover Password", pt: "Recuperar Senha", es: "Recuperar Contraseña" },
+    subtitle: { en: "Enter your e-mail to receive a verification code.", pt: "Digite seu e-mail para receber um código de verificação.", es: "Ingresa tu correo para recibir un código de verificación." },
+    email: { en: "E-mail", pt: "E-mail", es: "Correo electrónico" },
+    send: { en: "Send Code", pt: "Enviar Código", es: "Enviar Código" },
+    sending: { en: "Sending...", pt: "Enviando...", es: "Enviando..." },
+    otpTitle: { en: "Enter the code", pt: "Digite o código", es: "Ingresa el código" },
+    otpSubtitle: { en: "We sent a 6-digit code to", pt: "Enviamos um código de 6 dígitos para", es: "Enviamos un código de 6 dígitos a" },
+    otpLabel: { en: "Verification Code", pt: "Código de Verificação", es: "Código de Verificación" },
+    verify: { en: "Verify & Continue", pt: "Verificar e Continuar", es: "Verificar y Continuar" },
+    verifying: { en: "Verifying...", pt: "Verificando...", es: "Verificando..." },
+    notReceived: { en: "Didn't receive it?", pt: "Não recebeu?", es: "¿No lo recibiste?" },
+    resend: { en: "Resend code", pt: "Reenviar código", es: "Reenviar código" },
+    resendIn: { en: "Resend in {s}s", pt: "Reenviar em {s}s", es: "Reenviar en {s}s" },
+    backToLogin: { en: "Back to login", pt: "Voltar ao login", es: "Volver al inicio de sesión" },
+    back: { en: "Back", pt: "Voltar", es: "Volver" },
+    errorGeneric: { en: "An error occurred. Please try again.", pt: "Ocorreu um erro. Tente novamente.", es: "Ocurrió un error. Inténtalo de nuevo." },
+  },
+
+  // ──── Reset Password ────
+  resetPassword: {
+    title: { en: "New Password", pt: "Nova Senha", es: "Nueva Contraseña" },
+    subtitle: { en: "Enter your new password below.", pt: "Digite sua nova senha abaixo.", es: "Ingresa tu nueva contraseña abajo." },
+    newPassword: { en: "New Password", pt: "Nova Senha", es: "Nueva Contraseña" },
+    confirmPassword: { en: "Confirm Password", pt: "Confirmar Senha", es: "Confirmar Contraseña" },
+    submit: { en: "Reset Password", pt: "Redefinir Senha", es: "Restablecer Contraseña" },
+    submitting: { en: "Saving...", pt: "Salvando...", es: "Guardando..." },
+    mismatch: { en: "Passwords don't match", pt: "As senhas não coincidem", es: "Las contraseñas no coinciden" },
+    successTitle: { en: "Password updated!", pt: "Senha atualizada!", es: "¡Contraseña actualizada!" },
+    successDesc: { en: "Your password has been reset. Redirecting to login...", pt: "Sua senha foi redefinida. Redirecionando para o login...", es: "Tu contraseña fue restablecida. Redirigiendo al inicio de sesión..." },
+    goToLogin: { en: "Go to Login", pt: "Ir para o Login", es: "Ir al inicio de sesión" },
+    noSession: { en: "Session not found. Please request a new code.", pt: "Sessão não encontrada. Solicite um novo código.", es: "Sesión no encontrada. Solicita un nuevo código." },
+    redirecting: { en: "You will be redirected shortly.", pt: "Você será redirecionado em instantes.", es: "Serás redirigido en breve." },
+    backToLogin: { en: "Back", pt: "Voltar", es: "Volver" },
+    errorSamePassword: { en: "New password must be different from current password.", pt: "A nova senha deve ser diferente da senha atual.", es: "La nueva contraseña debe ser diferente de la actual." },
+    errorWeakPassword: { en: "Password is too weak. Use a stronger password.", pt: "Senha muito fraca. Use uma senha mais forte.", es: "La contraseña es muy débil. Usa una más segura." },
+    errorGeneric: { en: "An error occurred. Please try again.", pt: "Ocorreu um erro. Tente novamente.", es: "Ocurrió un error. Inténtalo de nuevo." },
+  },
+
 
   // ──── Signup ────
   signup: {
@@ -518,16 +560,260 @@ export const translations = {
     consulateCity: { en: "Consulate city", pt: "Cidade do consulado", es: "Ciudad del consulado" },
     // Step 3
     documentsTitle: { en: "Documents", pt: "Documentos", es: "Documentos" },
-    documentsDesc: { en: "Upload the required documents. Accepted: PDF, JPG, PNG (max. 10MB).", pt: "Faça upload dos documentos necessários. Aceitos: PDF, JPG, PNG (máx. 10MB).", es: "Sube los documentos necesarios. Aceptados: PDF, JPG, PNG (máx. 10MB)." },
+    documentsDesc: { en: "Upload the required documents. Accepted: JPG, PNG (max. 10MB).", pt: "Faça upload dos documentos necessários. Aceitos: JPG, PNG (máx. 10MB).", es: "Sube los documentos necesarios. Aceptados: JPG, PNG (máx. 10MB)." },
     docPassport: { en: "Passport (main page)", pt: "Passaporte (página principal)", es: "Pasaporte (página principal)" },
-    docPhoto: { en: "5x5cm photo", pt: "Foto 5x5cm", es: "Foto 5x5cm" },
+    docPhoto: { en: "Photo (Selfie)", pt: "Foto (Selfie)", es: "Foto (Selfie)" },
     docFinancial: { en: "Financial proof", pt: "Comprovante financeiro", es: "Comprobante financiero" },
     docBond: { en: "Proof of ties", pt: "Comprovante de vínculo", es: "Comprobante de vínculo" },
     upload: { en: "Upload", pt: "Upload", es: "Subir" },
     // Step 4
-    finalReview: { en: "Final review", pt: "Revisão final", es: "Revisión final" },
-    finalReviewDesc: { en: "Review all information before confirming. After confirmation, you can generate the Final Package.", pt: "Revise todas as informações antes de confirmar. Após a confirmação, você poderá gerar o Pacote Final.", es: "Revisa toda la información antes de confirmar. Después de la confirmación, podrás generar el Paquete Final." },
+    finalReview: { en: "Final Review", pt: "Revisão Final", es: "Revisión Final" },
+    finalReviewDesc: { en: "Review your information before confirming the package generation.", pt: "Revise suas informações antes de confirmar a geração do pacote.", es: "Revisa tu información antes de confirmar la generación del paquete." },
     fillPrevious: { en: "Complete previous steps to see the summary here.", pt: "Preencha as etapas anteriores para ver o resumo aqui.", es: "Completa los pasos anteriores para ver el resumen aquí." },
+  },
+
+  ds160: {
+    steps: {
+      en: [
+        "Personal Info 1", "Personal Info 2", "Travel Info",
+        "Companions", "Previous US Travel", "Address & Phone", "Social Media", "Passport Info",
+        "US Contact", "Family Info", "Work & Education", "Additional Info", "Documents", "Final Review"
+      ],
+      pt: [
+        "Info Pessoal 1", "Info Pessoal 2", "Info de Viagem",
+        "Acompanhantes", "Viagens Anteriores", "Endereço e Telefone", "Mídias Sociais", "Passaporte",
+        "Contato nos EUA", "Informações de Família", "Trabalho e Educação", "Informações Adicionais", "Documentos", "Revisão Final"
+      ],
+      es: [
+        "Info Personal 1", "Info Personal 2", "Info de Viaje",
+        "Acompañantes", "Viajes Anteriores", "Dirección y Teléfono", "Redes Sociales", "Pasaporte",
+        "Contacto en EE.UU.", "Información Familiar", "Trabajo y Educación", "Información Adicional", "Documentos", "Revisión Final"
+      ],
+    },
+    interview: {
+      title: { en: "Interview Location", pt: "Local da Entrevista", es: "Lugar de la Entrevista" },
+      location: { en: "Location where you plan to have your interview", pt: "Localidade onde pretende realizar sua entrevista", es: "Localidad donde planea realizar su entrevista" },
+      options: [
+        { en: "Brasília", pt: "Brasília", es: "Brasilia" },
+        { en: "Porto Alegre", pt: "Porto Alegre", es: "Porto Alegre" },
+        { en: "Recife", pt: "Recife", es: "Recife" },
+        { en: "Rio de Janeiro", pt: "Rio de Janeiro", es: "Río de Janeiro" },
+        { en: "São Paulo", pt: "São Paulo", es: "São Paulo" },
+      ]
+    },
+    personal1: {
+      title: { en: "Personal Information 1", pt: "Informações Pessoais 1", es: "Información Personal 1" },
+      email: { en: "Email", pt: "E-mail", es: "Correo electrónico" },
+      firstName: { en: "Given Names", pt: "Nome", es: "Nombres" },
+      lastName: { en: "Surname", pt: "Sobrenome", es: "Apellidos" },
+      fullNameHelper: {
+        en: "Put your first name and middle name(s) here. Example: Your name; Silvio Santos Pereira. Given Names = Silvio Santos. NOTE: Put exactly as it appears in your passport!",
+        pt: "Coloque aqui seu primeiro nome e nome(s) do meio Exemplo: Seu nome; Silvio Santos Pereira. Given Names = Silvio Santos. OBS: Coloque exatamente como consta em seu passaporte!",
+        es: "Ponga aquí su primer nombre y nombre(s) intermedio(s). Ejemplo: Su nombre; Silvio Santos Pereira. Given Names = Silvio Santos. NOTA: ¡Ponga exactamente como aparece en su pasaporte!"
+      },
+      fullNamePassport: { en: "Full name as it appears in the passport:", pt: "Nome completo como consta no passaporte:", es: "Nombre completo como aparece en el pasaporte:" },
+      hasOtherNames: { en: "Have you ever used other names? (Maiden, religious, professional, or alias)", pt: "Você já teve outro nome? (Nome de solteiro(a), religioso, profissional ou pseudónimo)", es: "¿Alguna vez ha usado otros nombres? (Soltero/a, religioso, profesional o seudónimo)" },
+      hasTelecode: { en: "Do you have a telecode that represents your name?", pt: "Tem um telecódigo que representa o seu nome?", es: "¿Tiene un telecódigo que represente su nombre?" },
+      gender: { en: "Sex", pt: "Sexo", es: "Sexo" },
+      genderOptions: {
+        male: { en: "Male", pt: "Masculino", es: "Masculino" },
+        female: { en: "Female", pt: "Feminino", es: "Femenino" }
+      },
+      maritalStatus: { en: "Marital Status", pt: "Estado Civil", es: "Estado Civil" },
+      maritalOptions: {
+        married: { en: "Married", pt: "Casado (a)", es: "Casado (a)" },
+        single: { en: "Single", pt: "Solteiro (a)", es: "Soltero (a)" },
+        widowed: { en: "Widowed", pt: "Viúvo (a)", es: "Viudo (a)" },
+        divorced: { en: "Divorced", pt: "Divorciado (a)", es: "Divorciado (a)" },
+        separated: { en: "Legally Separated", pt: "Separado (a) Legalmente", es: "Separado (a) Legalmente" }
+      },
+      dob: { en: "Date of Birth", pt: "Data de Nascimento", es: "Fecha de Nacimiento" },
+      cityBirth: { en: "City of birth:", pt: "Cidade onde nasceu:", es: "Ciudad de nacimiento:" },
+      stateBirth: { en: "State of birth:", pt: "Estado onde nasceu:", es: "Estado de nacimiento:" },
+      countryBirth: { en: "Country of birth:", pt: "País onde nasceu:", es: "País de nacimiento:" }
+    },
+    personal2: {
+      title: { en: "Personal Information 2", pt: "Informações Pessoais 2", es: "Información Personal 2" },
+      nationality: { en: "Nationality", pt: "Nacionalidade", es: "Nacionalidad" },
+      hasOtherNationality: { en: "Do you have or have you ever had any nationality other than the one indicated above?", pt: "Tem ou teve outra nacionalidade diferente da que indicou acima?", es: "¿Tiene o ha tenido alguna otra nacionalidad diferente a la indicada anteriormente?" },
+      hasPassportOtherCountry: { en: "Do you hold a passport from the country of the nationality mentioned above?", pt: "Você possui passaporte do país referente a nacionalidade mencionada acima?", es: "¿Posee pasaporte del país referente a la nacionalidad mencionada anteriormente?" },
+      passportNumber: { en: "If yes, passport number:", pt: "Se sim, número do passaporte:", es: "Si es así, número de pasaporte:" },
+      permanentResidentOther: { en: "Are you a permanent resident of a country/region other than your country/region of origin indicated?", pt: "Você é residente permanente de um país/região diferente do seu país/região de origem indicada", es: "¿Es residente permanente de un país/región diferente a su país/región de origen indicado?" },
+      nationalID: { en: "National Identification Number (SSN/CPF):", pt: "Número de identificação Nacional (informar o seu CPF):", es: "Número de identificación nacional (informar su CPF/DNI):" },
+      ssn: { en: "U.S. Social Security Number (if any):", pt: "Número do Seguro Social E.U.A.:(caso tenha):", es: "Número de Seguro Social de EE.UU. (si aplica):" },
+      taxID: { en: "U.S. Taxpayer ID Number (if any):", pt: "Número de identificação fiscal dos E.U.A.:(caso tenha):", es: "Número de identificación fiscal de EE.UU. (si aplica):" }
+    },
+    travel: {
+      title: { en: "Travel Information", pt: "Informações de Viagem", es: "Información de Viaje" },
+      specificPlan: { en: "Do you have a specific travel plan?", pt: "Você tem um plano de viagem específico?", es: "¿Tiene un plan de viaje específico?" },
+      arrivalDate: { en: "Arrival Date", pt: "Data de Chegada", es: "Fecha de llegada" },
+      arrivalHelper: {
+        en: "Provide the date you will arrive in the US. This date is only a travel forecast, it does not mean that you have to already have your tickets purchased.",
+        pt: "Aqui você coloca a data que chegará nos EUA, Essa data é apenas uma previsão de viagem, não significa que você tem que já estar com as passagens compradas. O próprio consulado recomenda às pessoas que comprem suas passagens somente após estarem com visto em mãos.",
+        es: "Aquí pone la fecha en que llegará a los EE.UU. Esta fecha es solo una previsión de viaje, no significa que ya tenga que tener los boletos comprados."
+      },
+      visitLocations: { en: "Provide the locations you plan to visit in the US:", pt: "Forneça os locais que planeja visitar nos EUA (localização)", es: "Proporcione los lugares que planea visitar en los EE.UU. (ubicación):" },
+      visitHelper: { en: "Mention here the locations you plan to visit.", pt: "Mencione aqui os locais que você planeja visitar, ponha todos que tem vontade de visitar.", es: "Mencione aquí los lugares que planea visitar." },
+      stayAddress: { en: "Address where you intend to stay in the US:", pt: "Endereço que pretende ficar nos EUA:", es: "Dirección donde planea quedarse en los EE.UU.:" },
+      stayHelper: { en: "If you don't know yet, put a hotel as a reference.", pt: "Se você não sabe ainda, coloque algum hotel como referência.", es: "Si aún no lo sabe, ponga algún hotel como referencia." },
+      stayCity: { en: "City where you intend to stay in the US:", pt: "Cidade que pretende ficar nos EUA:", es: "Ciudad donde planea quedarse en los EE.UU.:" },
+      stayState: { en: "State where you intend to stay in the US:", pt: "Estado que pretende ficar nos EUA:", es: "Estado donde planea quedarse en los EE.UU.:" },
+      stayZip: { en: "ZIP Code of the place you intend to stay in the US:", pt: "CEP do local que pretende ficar nos EUA:", es: "Código ZIP del lugar donde planea quedarse en los EE.UU.:" },
+      payer: { en: "Who is paying for your trip:", pt: "Quem vai pagar pela sua viagem:", es: "¿Quién pagará por su viaje?:" },
+      payerOptions: {
+        self: { en: "Self", pt: "Self/Você", es: "Mismo" },
+        other: { en: "Other Person", pt: "Outra pessoa", es: "Otra persona" },
+        org: { en: "Organization/Company", pt: "Empresa", es: "Empresa" },
+        employer: { en: "Current Employer", pt: "Atual Empregador", es: "Empleador actual" },
+        usEmployer: { en: "Employer in the US", pt: "Empregador nos EUA", es: "Empleador en EE.UU." }
+      },
+      payerHelper: {
+        en: "Self: If it's yourself. Other person: If it's someone else, then specify name and relationship.",
+        pt: "Self: Se for você mesmo. Other person: Se for outra pessoa e então deverá preencher o nome e o grau parentesco com você.",
+        es: "Self: Si es usted mismo. Other person: Si es otra persona, entonces deberá completar el nombre y el parentesco con usted."
+      }
+    },
+    companions: {
+      title: { en: "Travel Companions Information", pt: "Informações sobre companheiros de viagem", es: "Información sobre compañeros de viaje" },
+      hasCompanions: { en: "Is there another person traveling with you?", pt: "Tem outra pessoa viajando com você?", es: "¿Hay otra persona viajando con usted?" },
+      companionHelper: { en: "If you mark 'yes', you will have to fill in the data of the person who is going with you.", pt: "Se você marcar ”sim”, terá que preencher os dados da pessoa com quem está indo com você.", es: "Si marca 'sí', tendrá que completar los datos de la persona que va con usted." },
+      isGrpup: { en: "Are you traveling with a group or organization?", pt: "Está viajando com um grupo ou organização", es: "¿Está viajando con un grupo u organización?" }
+    },
+    previousTravel: {
+      title: { en: "Previous US Travel Information", pt: "INFORMAÇÕES DE VIAGEM ANTERIORES DOS EUA", es: "Información de viajes anteriores a EE.UU." },
+      beenToUS: { en: "Have you ever been to the US?", pt: "Já esteve nos EUA?", es: "¿Ha estado alguna vez en los EE.UU.?" },
+      hasUSLicense: { en: "Do you have or have you ever had a US driver's license?", pt: "Tem ou já teve carteira de habilitação dos EUA?", es: "¿Tiene o ha tenido alguna vez licencia de conducir de EE.UU.?" },
+      hasUSVisa: { en: "Have you ever had or do you possess a US visa?", pt: "Já teve ou possui visto americano?", es: "¿Alguna vez ha tenido o posee una visa estadounidense?" },
+      visaRefused: { en: "Have you ever been refused a US visa, refused admission to the United States, or withdrawn your application for admission at the port of entry?", pt: "Alguma vez lhe foi recusado um visto americano, foi-lhe recusada a admissão nos Estados Unidos, ou retirado o seu pedido de admissão no ponto de entrada?", es: "¿Alguna vez se le ha negado una visa estadounidense, se le ha negado la admisión a los Estados Unidos o ha retirado su solicitud de admisión en el punto de entrada?" },
+      immigrationPetition: { en: "Has anyone ever filed an immigrant petition on your behalf with the United States Citizenship and Immigration Services?", pt: "Alguém alguma vez apresentou uma petição de imigração em seu nome aos Serviços de Cidadania e Imigração dos Estados Unidos?", es: "¿Alguien ha presentado alguna vez una petición de inmigración en su nombre ante los Servicios de Ciudadanía e Inmigración de los Estados Unidos?" },
+      petitionHelper: { en: "Check 'yes' only if you have already completed an immigration and citizenship petition in the United States.", pt: "Marque “sim” apenas se já tiver preenchido uma petição de imigração e cidadania nos Estados Unidos.", es: "Marque 'sí' solo si ya ha completado una petición de inmigración y ciudadanía en los Estados Unidos." }
+    },
+    addressPhone: {
+      title: { en: "Address and Phone Information", pt: "ENDEREÇO E INFORMAÇÕES TELEFÔNICAS", es: "Información de dirección y teléfono" },
+      homeAddress: { en: "Home Address:", pt: "Endereço residencial:", es: "Dirección residencial:" },
+      city: { en: "City:", pt: "Cidade:", es: "Ciudad:" },
+      state: { en: "State/Province:", pt: "Estado/Município:", es: "Estado/Provincia:" },
+      zip: { en: "ZIP/Postal Code:", pt: "CEP/Código Postal:", es: "Código Postal:" },
+      country: { en: "Country:", pt: "País", es: "País:" },
+      mailingSame: { en: "Is the mailing address the same as the one informed above?", pt: "Endereço de correspondência é o mesmo informado acima?", es: "¿La dirección de correspondencia es la misma que la informada anteriormente?" },
+      mobilePhone: { en: "Mobile Phone:", pt: "Telefone Celular", es: "Teléfono Celular:" },
+      homePhone: { en: "Home Phone:", pt: "Telefone residencial:", es: "Teléfono residencial:" },
+      workPhone: { en: "Work Phone:", pt: "Telefone do trabalho:", es: "Teléfono del trabajo:" },
+      otherPhone5Years: { en: "Have you had another phone in the last 5 years?", pt: "Você teve outro telefone nos últimos 5 anos?", es: "¿Ha tenido otro teléfono en los últimos 5 años?" },
+      otherEmail5Years: { en: "Have you had another email in the last 5 years?", pt: "Você teve outro email nos últimos 5 anos?", es: "¿Ha tenido otro correo electrónico en los últimos 5 anos?" }
+    },
+    socialMedia: {
+      title: { en: "Social Media", pt: "MÍDIAS SOCIAIS", es: "Redes Sociales" },
+      helper: { en: "Inform the social media you have and add your account identifier. EX: Platform: Instagram Identifier: @JohnDoe", pt: "Informe as mídias sociais que você possui e adicione o identificador da sua conta. EX: Nome da plataforma: Instagram Identificador: @JoãoSilva", es: "Informe las redes sociales que tiene y agregue el identificador de su cuenta. EJ: Plataforma: Instagram Identificador: @JuanPerez" },
+      platformLabel: { en: "Platform Name / Identifier:", pt: "Nome da Plataforma/ Identificador:", es: "Nombre de la Plataforma / Identificador:" }
+    },
+    passport: {
+      title: { en: "Passport Information", pt: "INFORMAÇÃO DO PASSAPORTE", es: "Información del Pasaporte" },
+      type: { en: "Passport Type:", pt: "Tipo de passaporte:", es: "Tipo de pasaporte:" },
+      typeOptions: {
+        regular: { en: "Regular", pt: "Regular", es: "Regular" },
+        official: { en: "Official", pt: "Oficial", es: "Oficial" },
+        diplomatic: { en: "Diplomatic", pt: "Diplomático", es: "Diplomático" },
+        laissezPasser: { en: "Laissez Passer", pt: "Laissez Passer", es: "Laissez Passer" },
+        other: { en: "Other", pt: "Outros", es: "Otros" }
+      },
+      typeHelper: { en: "Mark 'Regular' for common passports, which is the case for most.", pt: "Marque a opção “Regular” para passaportes comuns, que é o caso da maioria.", es: "Marque 'Regular' para pasaportes comunes, que es el caso de la mayoría." },
+      number: { en: "Passport Number:", pt: "Número do Passaporte:", es: "Número de Pasaporte:" },
+      numberHelper: { en: "Enter your passport number", pt: "Coloque o número do seu passaporte", es: "Ingrese su número de pasaporte" },
+      authority: { en: "Passport Issuing Authority:", pt: "Autoridade que emitiu o passaporte:", es: "Autoridad que emitió el pasaporte:" },
+      city: { en: "City where issued:", pt: "Cidade onde o passaporte foi emitido:", es: "Ciudad donde se emitió:" },
+      state: { en: "State where issued:", pt: "Estado onde o passaporte foi emitido:", es: "Estado donde se emitió:" },
+      country: { en: "Country where issued:", pt: "País onde o passaporte foi emitido:", es: "País donde se emitió:" },
+      issuanceDate: { en: "Issuance Date:", pt: "Data de emissão:", es: "Fecha de emisión:" },
+      expirationDate: { en: "Expiration Date:", pt: "Data de expiração:", es: "Fecha de expiración:" },
+      lostStolen: { en: "Have you ever had a passport lost or stolen?", pt: "Já teve algum passaporte roubado ou extraviado:", es: "¿Alguna vez le han robado o se le ha extraviado un pasaporte?" }
+    },
+    contact: {
+      title: { en: "US Point of Contact Information", pt: "INFORMAÇÕES DO PONTO DE CONTACTO DOS EUA", es: "Información del Punto de Contacto en EE.UU." },
+      hasContact: { en: "Do you have a contact in the United States? Person or Organization?", pt: "Possui contato nos Estados Unidos? Pessoa ou Organização nos Estados Unidos?", es: "¿Tiene un contacto en los Estados Unidos? ¿Persona u Organización?" },
+      contactHelper: {
+        en: "Enter Surname and Name. If B1/B2, we recommend marking 'Do Not Know'.",
+        pt: "Informe o Sobrenome e nome. Caso seja F1, informamos nessa área o nome do responsável da instituição de ensino. Nessa Parte recomendamos marcar ”Do Not Know” em caso de B1/B2.",
+        es: "Ingrese Apellido y Nombre. Si es B1/B2, recomendamos marcar 'No lo sé'."
+      },
+      orgName: { en: "Organization Name:", pt: "Nome da organização", es: "Nombre de la Organización:" },
+      orgHelper: {
+        en: "I recommend putting here the name of the hotel, school you will attend, or another place you entered previously.",
+        pt: "Recomendo colocar aqui o nome do hotel, escola que vai frequentar, ou outro lugar no qual você inseriu anteriormente na parte onde ficará nos EUA, nesse caso você pode usar aquele lugar como referência.",
+        es: "Recomiendo poner aquí el nombre del hotel, escuela a la que asistirá u otro lugar que ingresó anteriormente."
+      },
+      relationship: { en: "Relationship to you:", pt: "Relação com você", es: "Relación con usted:" },
+      relOptions: {
+        relative: { en: "Relative", pt: "Parente", es: "Pariente" },
+        spouse: { en: "Spouse", pt: "Cônjugue", es: "Cónyuge" },
+        friend: { en: "Friend", pt: "Amigo", es: "Amigo" },
+        business: { en: "Business Associate", pt: "Associação Comercial", es: "Socio Comercial" },
+        employer: { en: "Employer", pt: "Empregador", es: "Empleador" },
+        school: { en: "Educational Institution", pt: "Escola/Instituição de Ensino", es: "Institución Educativa" },
+        other: { en: "Other", pt: "Outros", es: "Otro" }
+      },
+      relHelper: { en: "Mark 'Other' for a hotel. Mark 'Educational Institution' for a school.", pt: "Marque a opção ”Other” em caso de hotel. Marque a opção “Official School” em caso de escola", es: "Marque 'Otro' para un hotel. Marque 'Institución Educativa' para una escuela." },
+      addressPhone: { en: "Address and Phone Number of Contact in the US:", pt: "Endereço e número de telefone do contato nos EUA:", es: "Dirección y teléfono del contacto en EE.UU.:" },
+      address: { en: "US Address:", pt: "Endereço nos EUA", es: "Dirección en EE.UU.:" },
+      city: { en: "City:", pt: "Cidade:", es: "Ciudad:" },
+      state: { en: "State:", pt: "Estado:", es: "Estado:" },
+      zip: { en: "ZIP Code:", pt: "Zip Code/CEP:", es: "Código ZIP:" },
+      phone: { en: "Phone Number:", pt: "Número de telefone:", es: "Número de teléfono:" },
+      email: { en: "Email:", pt: "Email do local:", es: "Correo electrónico:" },
+      emailHelper: { en: "Enter the same address you provided for the place you're staying. If you don't know the hotel's email, mark 'Does Not Apply'.", pt: "Insira o mesmo endereço que forneceu no lugar onde vai ficar nos EUA, se você não sabe qual é o e-mail do hotel, não tem problema, marque a opção “Does Not Apply”", es: "Ingrese la misma dirección que proporcionó para el lugar donde se hospedará. Si no conoce el correo del hotel, marque 'No aplica'." }
+    },
+    family: {
+      title: { en: "Family Information: Relatives", pt: "INFORMAÇÕES SOBRE A FAMÍLIA: PARENTE", es: "Información Familiar: Parientes" },
+      fatherLast: { en: "Father's Surname:", pt: "Último nome do seu pai:", es: "Apellidos del padre:" },
+      fatherFirst: { en: "Father's Given Names:", pt: "Primeiro nome e nome do meio do seu pai:", es: "Nombres del padre:" },
+      fatherDOB: { en: "Father's Date of Birth:", pt: "Informe a data de nascimento do seu pai:", es: "Fecha de nacimiento del padre:" },
+      isFatherInUS: { en: "Is your father in the United States?", pt: "Seu pai está nos Estados Unidos?", es: "¿Su padre está en el Estados Unidos?" },
+      fatherStatus: { en: "Father's Status in the US:", pt: "Informe o Status do seu pai nos Estados Unidos", es: "Estado de su padre en EE.UU.:" },
+      motherLast: { en: "Mother's Surname:", pt: "Último nome da sua mãe:", es: "Apellidos de la madre:" },
+      motherFirst: { en: "Mother's Given Names:", pt: "Primeiro nome e nome do meio da sua Mãe:", es: "Nombres de la madre:" },
+      motherDOB: { en: "Mother's Date of Birth:", pt: "Informe a data de nascimento da sua mãe:", es: "Fecha de nacimiento de la madre:" },
+      isMotherInUS: { en: "Is your mother in the United States?", pt: "Sua mãe está nos Estados Unidos:", es: "¿Su madre está en EE.UU.?" },
+      motherStatus: { en: "Mother's Status in the US:", pt: "Informe o Status da sua mãe nos Estados Unidos:", es: "Estado de su madre en EE.UU.:" },
+      statusOptions: {
+        citizen: { en: "U.S. Citizen", pt: "Cidadão Americano", es: "Ciudadano estadounidense" },
+        lpr: { en: "Legal Permanent Resident (LPR)", pt: "Residente Permanente Legal dos EUA (LPR)", es: "Residente Permanente Legal (LPR)" },
+        nonImmigrant: { en: "Non-Immigrant", pt: "Não Imigrante", es: "No Inmigrante" },
+        unknown: { en: "Other/I Don't Know", pt: "Outro/Não sei", es: "Otro / No lo sé" }
+      },
+      hasImmediateRelInUS: { en: "Do you have any immediate relatives, not including parents, in the United States?", pt: "Tem algum parente próxima, não incluindo os pais, nos Estados Unidos?", es: "¿Tiene algún pariente cercano, sin incluir a los padres, en los Estados Unidos?" },
+      hasOtherRelInUS: { en: "Do you have any other relatives in the United States?", pt: "Tem mais algum parente nos Estados Unidos?", es: "¿Tiene algún otro pariente en los Estados Unidos?" }
+    },
+    workEducation: {
+      title: { en: "Current Work / Education / Training Information", pt: "INFORMAÇÕES ATUAIS SOBRE O TRABALHO/EDUCAÇÃO/FORMAÇÃO NO MOMENTO", es: "Información actual de Trabajo / Educación / Capacitación" },
+      primaryOccupation: { en: "Primary Occupation:", pt: "Trabalho atual/educação/formação. Qual a sua Ocupação primária:", es: "Ocupación Principal:" },
+      occHelper: { en: "Select a function that fits your profile. Mark 'Other' if none match and specify below.", pt: "Insira uma das funções que se encaixa ao seu perfil, Marque “Other” Se nenhuma das alternativas bate com você, e então específica abaixo a sua profissão.", es: "Seleccione una función que se ajuste a su perfil. Marque 'Otro' si ninguna coincide y especifique abajo." },
+      employerName: { en: "Employer/Company or School Name:", pt: "Apresentar o nome do Empregador/Empresa ou Instituição de Ensino(para estudante):", es: "Nombre del Empleador / Empresa o Institución Educativa:" },
+      employerHelper: { en: "Name of the company where you work or school you attend.", pt: "Nome da empresa onde você trabalha ou escola que frequenta.", es: "Nombre de la empresa donde trabaja o escuela a la que asiste." },
+      employerAddress: { en: "Employer or School Address:", pt: "Endereço atual do empregador ou Instituição de Ensino(para estudantes):", es: "Dirección del Empleador o Institución Educativa:" },
+      addressHelper: { en: "Address where you work or study. (If you are young and don't work yet).", pt: "Coloque aqui o endereço onde você trabalha ou da escola em que estuda. (Se é ainda jovem e não trabalha)", es: "Dirección donde trabaja o estudia." },
+      city: { en: "Work/School City:", pt: "Cidade do trabalho/Instituição de ensino:", es: "Ciudad de trabajo / estudio:" },
+      state: { en: "Work/School State:", pt: "Estado do trabalho/Instituição de ensino:", es: "Estado de trabajo / estudio:" },
+      zip: { en: "Work/School ZIP Code:", pt: "Cep do trabalho/Instituição de ensino:", es: "Código ZIP de trabajo / estudio:" },
+      phone: { en: "Work/School Phone:", pt: "Telefone da Instituição de ensino:", es: "Teléfono de trabajo / estudio:" },
+      country: { en: "Work/School Country:", pt: "País do trabalho/Instituição de ensino:", es: "País de trabajo / estudio:" },
+      startDate: { en: "Start Date:", pt: "Data em que iniciou o trabalho ou os estudos na instituição:", es: "Fecha de inicio:" },
+      monthlyIncome: { en: "Monthly Income in Local Currency (if employed):", pt: "Rendimento mensal em Moeda Local (se empregado):", es: "Ingreso Mensual en Moneda Local (si está empleado):" },
+      incomeHelper: { en: "Enter your gross income, Example: 5000", pt: "Coloque aqui sua renda bruta, Exemplo: Se você ganha R$5,000,00 Coloque este formato: 5000", es: "Ingrese su ingreso bruto, Ejemplo: 5000" },
+      duties: { en: "Briefly describe your duties:", pt: "Descreva resumidamente as suas funções:", es: "Describa brevemente sus funciones:" },
+      prevEmployed: { en: "Were you previously employed?", pt: "Você estava empregado Anteriormente?", es: "¿Estuvo empleado anteriormente?" },
+      educationLevel: { en: "Have you attended any secondary or higher education level institution?", pt: "Você frequentou alguma instituição de ensino de nível secundário ou superior?", es: "¿Ha asistido a alguna institución de educación secundaria o superior?" },
+      eduOptions: {
+        secondary: { en: "Yes, Secondary Education", pt: "Sim, Ensino Secundário", es: "Sí, Educación Secundaria" },
+        higher: { en: "Yes, Higher Education", pt: "Sim, Ensino Superior", es: "Sí, Educación Superior" },
+        no: { en: "No", pt: "Não", es: "No" }
+      }
+    },
+    additional: {
+      title: { en: "Additional Information", pt: "INFORMAÇÕES ADICIONAIS", es: "Información Adicional" },
+      clanTribue: { en: "Do you belong to a clan or tribe?", pt: "Pertence a um clã ou tribo:", es: "¿Pertenece a un clan o tribu?" },
+      languages: { en: "Provide a list of languages you speak (if more than one):", pt: "Fornece uma lista de línguas que fala (caso fale mais de uma língua):", es: "Proporcione una lista de idiomas que habla (si es más de uno):" },
+      countries5Years: { en: "Have you traveled to any country/region in the last five years?", pt: "Viajou para alguma região/país nos últimos cinco anos?", es: "¿Ha viajado a algún país/región en los últimos cinco años?" }
+    }
   },
 
   // ──── Chat ────
@@ -550,7 +836,7 @@ export const translations = {
   // ──── Uploads ────
   uploads: {
     title: { en: "Documents", pt: "Documentos", es: "Documentos" },
-    subtitle: { en: "Upload your documents by category. Accepted: PDF, JPG, PNG (max. 10MB).", pt: "Envie seus documentos por categoria. Aceitos: PDF, JPG, PNG (máx. 10MB).", es: "Sube tus documentos por categoría. Aceptados: PDF, JPG, PNG (máx. 10MB)." },
+    subtitle: { en: "Upload your documents by category. Accepted: JPG, PNG (max. 10MB).", pt: "Envie seus documentos por categoria. Aceitos: JPG, PNG (máx. 10MB).", es: "Sube tus documentos por categoría. Aceptados: JPG, PNG (máx. 10MB)." },
     tip: { en: "Documents must be legible, uncropped, and in good resolution. Scans are preferred over photos.", pt: "Documentos devem estar legíveis, sem cortes e em boa resolução. Escaneamentos são preferíveis a fotos.", es: "Los documentos deben ser legibles, sin recortes y en buena resolución. Los escaneos son preferibles a las fotos." },
     received: { en: "Received", pt: "Recebido", es: "Recibido" },
     pending: { en: "Pending", pt: "Pendente", es: "Pendiente" },
@@ -819,6 +1105,8 @@ export const translations = {
       },
       dependentPrice: { en: "US$ 50.00", pt: "US$ 50,00", es: "US$ 50,00" },
       price: { en: "US$ 200.00", pt: "US$ 200,00", es: "US$ 200,00" },
+      basePrice: 200,
+      depPrice: 50,
       originalPrice: { en: "US$ 400.00", pt: "US$ 400,00", es: "US$ 400,00" },
       description: {
         en: "Complete step-by-step guide to apply for the tourism/business visa (B1/B2) at the American consulate. Includes document checklist, DS-160 guidance, and interview preparation.",
@@ -881,6 +1169,8 @@ export const translations = {
       },
       dependentPrice: { en: "US$ 100.00", pt: "US$ 100,00", es: "US$ 100,00" },
       price: { en: "US$ 350.00", pt: "US$ 350,00", es: "US$ 350,00" },
+      basePrice: 350,
+      depPrice: 100,
       originalPrice: { en: "US$ 700.00", pt: "US$ 700,00", es: "US$ 700,00" },
       description: {
         en: "Step-by-step guide to apply for the F-1 student visa. Guidance on I-20, DS-160, SEVIS, financial documentation, and consulate interview preparation.",
@@ -943,6 +1233,8 @@ export const translations = {
       },
       dependentPrice: { en: "US$ 100.00", pt: "US$ 100,00", es: "US$ 100,00" },
       price: { en: "US$ 200.00", pt: "US$ 200,00", es: "US$ 200,00" },
+      basePrice: 200,
+      depPrice: 100,
       originalPrice: { en: "US$ 400.00", pt: "US$ 400,00", es: "US$ 400,00" },
       description: {
         en: "Guide to request status extension with USCIS using Form I-539. Ideal for those in the US with a valid visa needing more time before returning.",
@@ -1001,6 +1293,8 @@ export const translations = {
       },
       dependentPrice: { en: "US$ 100.00", pt: "US$ 100,00", es: "US$ 100,00" },
       price: { en: "US$ 350.00", pt: "US$ 350,00", es: "US$ 350,00" },
+      basePrice: 350,
+      depPrice: 100,
       originalPrice: { en: "US$ 700.00", pt: "US$ 700,00", es: "US$ 700,00" },
       description: {
         en: "Step-by-step guide to request Change of Status within the US via Form I-539 or equivalent. For those needing to change from one visa category to another without leaving the country.",

@@ -9,6 +9,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { checkIsAdmin } from "@/lib/admin";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -23,14 +24,18 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
-      navigate("/dashboard");
+      if (data.user && checkIsAdmin(data.user.email)) {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -49,11 +54,16 @@ export default function Login() {
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="email">{p.email[lang]}</Label>
-            <Input id="email" type="email" placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" />
+            <Input id="email" type="email" onChange={(e) => setEmail(e.target.value)} className="mt-1" />
           </div>
           <div>
-            <Label htmlFor="password">{p.password[lang]}</Label>
-            <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1" />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">{p.password[lang]}</Label>
+              <Link to="/forgot-password" className="text-xs text-accent hover:underline">
+                {p.forgotPassword[lang]}
+              </Link>
+            </div>
+            <Input id="password" type="password" onChange={(e) => setPassword(e.target.value)} className="mt-1" />
           </div>
           <Button type="submit" disabled={loading} className="w-full bg-accent text-accent-foreground shadow-button hover:bg-green-dark">
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

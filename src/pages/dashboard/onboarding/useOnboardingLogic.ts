@@ -1,4 +1,4 @@
-
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -7,11 +7,31 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { OnboardingData, UploadedDocument } from "./types";
 
 export const useOnboardingLogic = () => {
+    const navigate = useNavigate();
     const { lang, t } = useLanguage();
-    const o = t.onboardingPage;
-    const steps = o.steps[lang];
+    const [serviceSlug, setServiceSlug] = useState<string>("visto-b1-b2"); // Default to b1/b2
     const [loading, setLoading] = useState(true);
-    const [currentStep, setCurrentStep] = useState(0);
+    const [serviceId, setServiceId] = useState<string | null>(null);
+    const [currentStep, setCurrentStep] = useState(() => {
+        const saved = localStorage.getItem("onboarding_step");
+        return saved ? parseInt(saved, 10) : 0;
+    });
+
+    const o = t.onboardingPage;
+    const ds = t.ds160;
+
+    // Dynamically determine steps based on service
+    const steps = serviceSlug === "visto-b1-b2" ? ds.steps[lang] : o.steps[lang];
+    const totalSteps = steps.length;
+
+    const stepSlugs = serviceSlug === "visto-b1-b2"
+        ? [
+            "personal1", "personal2", "travel",
+            "companions", "previous-travel", "address-phone",
+            "social-media", "passport", "us-contact", "family",
+            "work-education", "additional", "documents", "review"
+        ]
+        : ["personal", "history", "process", "documents", "review"];
 
     useEffect(() => {
         localStorage.setItem("onboarding_step", currentStep.toString());
@@ -35,60 +55,103 @@ export const useOnboardingLogic = () => {
             if (!user) return;
 
             // Fetch or create user service
-            let { data: service, error: serviceError } = await supabase
+            // We order by created_at desc to get the latest one if multiple exist, 
+            // but we also try to find the one that matches our target slug or just the active one.
+            const { data: services, error: serviceError } = await supabase
                 .from("user_services")
-                .select("id, status, current_step")
+                .select("id, status, current_step, service_slug")
                 .eq("user_id", user.id)
                 .in("status", ["active", "review_pending"])
-                .maybeSingle();
+                .order("created_at", { ascending: false });
 
             if (serviceError) {
                 console.error("Error fetching service:", serviceError);
                 return;
             }
 
-            let serviceId;
+            // Find the best service to use: either the first one or specifically visto-b1-b2
+            const service = services?.find(s => s.service_slug === "visto-b1-b2") || services?.[0];
+
+            let sId: string;
+            let slug = "visto-b1-b2";
+
             if (!service) {
                 try {
                     const { data: newService, error: createError } = await supabase
                         .from("user_services")
-                        .insert({ user_id: user.id, service_slug: "visto-b1-b2", status: "active" })
+                        .insert({ user_id: user.id, service_slug: slug, status: "active" })
                         .select()
                         .single();
 
-                    if (createError) throw createError;
-                    serviceId = newService.id;
+                    if (createError || !newService) throw createError || new Error("Failed to create service");
+                    sId = newService.id;
+                    setServiceId(sId);
+                    setServiceSlug(slug);
                 } catch (err) {
                     console.error("Error creating service:", err);
                     return;
                 }
             } else {
-                serviceId = service.id;
+                sId = service.id;
+                setServiceId(sId);
+                slug = service.service_slug || "visto-b1-b2";
+                setServiceSlug(slug);
 
                 // Synchronize step from DB
-                // @ts-ignore
                 if (service.current_step !== undefined && service.current_step !== null) {
-                    // If current_step is 5 (finalized), show the last step (Review - index 4)
-                    // @ts-ignore
-                    const stepToIndex = Math.min(service.current_step, 4);
+                    // Adjust max step based on service
+                    const maxStep = slug === "visto-b1-b2" ? 13 : 4;
+                    const stepToIndex = Math.min(service.current_step, maxStep);
                     setCurrentStep(stepToIndex);
                 }
             }
 
+            // Fetch profile for pre-filling
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("full_name, email")
+                .eq("id", user.id)
+                .maybeSingle();
+
             // Load form responses
-            const { data: responses } = await supabase
+            const { data: responses, error: responseError } = await supabase
                 .from("onboarding_responses")
                 .select("step_slug, data")
-                .eq("user_service_id", serviceId);
+                .eq("user_service_id", sId);
 
-            if (responses) {
+            if (responseError) {
+                console.error("Error loading responses:", responseError);
+            } else if (responses) {
                 const combinedData = responses.reduce((acc: any, curr: any) => ({ ...acc, ...curr.data }), {});
+
+                // Pre-fill with profile data if empty
+                if (profile) {
+                    if (!combinedData.email && profile.email) {
+                        combinedData.email = profile.email;
+                    }
+                    if (profile.full_name && (!combinedData.firstName || !combinedData.lastName)) {
+                        const nameParts = profile.full_name.trim().split(" ");
+                        if (nameParts.length > 1) {
+                            if (!combinedData.firstName) combinedData.firstName = nameParts.slice(0, -1).join(" ");
+                            if (!combinedData.lastName) combinedData.lastName = nameParts[nameParts.length - 1];
+                        } else if (nameParts.length === 1 && !combinedData.firstName) {
+                            combinedData.firstName = nameParts[0];
+                        }
+                    }
+                }
+
                 reset(combinedData);
             }
 
             // Load uploaded documents
-            const { data: docs } = await supabase.from("documents").select("name, storage_path").eq("user_id", user.id);
-            if (docs) {
+            const { data: docs, error: docsError } = await supabase
+                .from("documents")
+                .select("name, storage_path")
+                .eq("user_id", user.id);
+
+            if (docsError) {
+                console.error("Error loading documents:", docsError);
+            } else if (docs) {
                 setUploadedDocs(docs.map(d => ({ name: d.name, path: d.storage_path })));
             }
         };
@@ -178,51 +241,55 @@ export const useOnboardingLogic = () => {
     };
 
     const saveCurrentStep = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!serviceId) return;
 
-        const { data: service } = await supabase
-            .from("user_services")
-            .select("id")
-            .eq("user_id", user.id)
-            .eq("status", "active")
-            .maybeSingle();
-
-        if (!service) return;
-
-        const stepSlugs = ["personal", "history", "process", "documents", "review"];
         const currentSlug = stepSlugs[currentStep];
 
-        // Only save form data steps
+        // Only save form data steps (not documents or review)
+        if (currentSlug === "documents" || currentSlug === "review") return;
+
+        // In the new approach, we can save the entire formData 
+        // specifically for the current step's context if needed, 
+        // but for now let's keep it simple and save what's in the form.
+        // For DS-160 we'll save the relevant fields per step.
+
         let stepData: any = {};
-        if (currentStep === 0) {
-            stepData = {
-                fullName: formData.fullName,
-                dob: formData.dob,
-                passportNumber: formData.passportNumber,
-                nationality: formData.nationality,
-                currentAddress: formData.currentAddress
-            };
-        } else if (currentStep === 1) {
-            stepData = {
-                travelledBefore: formData.travelledBefore,
-                hadVisa: formData.hadVisa,
-                countriesVisited: formData.countriesVisited
-            };
-        } else if (currentStep === 2) {
-            stepData = {
-                travelPurpose: formData.travelPurpose,
-                expectedDate: formData.expectedDate,
-                expectedDuration: formData.expectedDuration,
-                consulateCity: formData.consulateCity
-            };
+
+        if (serviceSlug === "visto-b1-b2") {
+            // Mapping DS-160 steps to fields (simplified for now to save everything)
+            // Ideally we'd filter, but since we are using a JSON column, we can save the current state
+            stepData = { ...formData };
+        } else {
+            // Legacy flow
+            if (currentStep === 0) {
+                stepData = {
+                    fullName: formData.fullName,
+                    dob: formData.dob,
+                    passportNumber: formData.passportNumber,
+                    nationality: formData.nationality,
+                    currentAddress: formData.currentAddress
+                };
+            } else if (currentStep === 1) {
+                stepData = {
+                    travelledBefore: formData.travelledBefore,
+                    hadVisa: formData.hadVisa,
+                    countriesVisited: formData.countriesVisited
+                };
+            } else if (currentStep === 2) {
+                stepData = {
+                    travelPurpose: formData.travelPurpose,
+                    expectedDate: formData.expectedDate,
+                    expectedDuration: formData.expectedDuration,
+                    consulateCity: formData.consulateCity
+                };
+            }
         }
 
         if (Object.keys(stepData).length > 0) {
             const { error } = await supabase
                 .from("onboarding_responses")
                 .upsert({
-                    user_service_id: service.id,
+                    user_service_id: serviceId,
                     step_slug: currentSlug,
                     data: stepData,
                     updated_at: new Date().toISOString()
@@ -233,6 +300,50 @@ export const useOnboardingLogic = () => {
     };
 
     const validateCurrentStep = async () => {
+        const currentSlug = stepSlugs[currentStep];
+
+        if (serviceSlug === "visto-b1-b2") {
+            switch (currentSlug) {
+                case "personal1":
+                    return await trigger(["email", "firstName", "lastName", "gender", "maritalStatus", "birthDate", "birthCity", "birthCountry"]);
+                case "personal2":
+                    return await trigger(["nationalityInfo", "nationalID"]);
+                case "travel":
+                    return await trigger(["hasSpecificTravelPlan", "arrivalDate", "travelPayer"]);
+                case "companions":
+                    return await trigger(["hasTravelCompanions", "isTravelingWithGroup"]);
+                case "previous-travel":
+                    return await trigger(["hasBeenToUS", "hasUSDriverLicense", "hasHadUSVisa", "hasBeenDeniedVisa", "hasImmigrationPetition"]);
+                case "address-phone":
+                    return await trigger(["homeAddress", "homeCity", "mobilePhone", "hasOtherPhoneLast5Years", "hasOtherEmailLast5Years"]);
+                case "social-media":
+                    return await trigger(["socialMedia1"]);
+                case "passport":
+                    return await trigger(["passportType", "passportNumberDS", "passportIssuanceCountry", "passportIssuanceDate", "passportExpirationDate", "hasPassportBeenLostStolen"]);
+                case "us-contact":
+                    return await trigger(["hasUSContact", "contactName", "contactRelationship", "contactPhone"]);
+                case "family":
+                    return await trigger(["fatherLastName", "fatherFirstName", "motherLastName", "motherFirstName"]);
+                case "work-education":
+                    return await trigger(["primaryOccupation", "employerName", "jobStartDate"]);
+                case "additional":
+                    return true;
+                case "documents":
+                    const requiredDocs = [o.docPhoto[lang]]; // Only selfie for B1/B2
+                    const uploadedNames = uploadedDocs.map(d => d.name);
+                    const missing = requiredDocs.filter(req => !uploadedNames.includes(req));
+
+                    if (missing.length > 0) {
+                        toast.error(lang === 'pt' ? `Faltam documentos: ${missing.join(", ")}` : `Missing documents: ${missing.join(", ")}`);
+                        return false;
+                    }
+                    return true;
+                default:
+                    return true;
+            }
+        }
+
+        // Legacy validation
         if (currentStep === 0) {
             return await trigger(["fullName", "dob", "passportNumber", "nationality", "currentAddress"]);
         } else if (currentStep === 1) {
@@ -240,7 +351,7 @@ export const useOnboardingLogic = () => {
         } else if (currentStep === 2) {
             return await trigger(["travelPurpose", "expectedDate", "expectedDuration", "consulateCity"]);
         } else if (currentStep === 3) {
-            const requiredDocs = [o.docPassport[lang], o.docPhoto[lang]]; // Example requirements
+            const requiredDocs = [o.docPassport[lang], o.docPhoto[lang]];
             const uploadedNames = uploadedDocs.map(d => d.name);
             const missing = requiredDocs.filter(req => !uploadedNames.includes(req));
 
@@ -259,23 +370,32 @@ export const useOnboardingLogic = () => {
 
         await saveCurrentStep();
 
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data: service } = await supabase
+        if (serviceId) {
+            try {
+                await supabase
                     .from("user_services")
-                    .select("id")
-                    .eq("user_id", user.id)
-                    .eq("status", "active")
-                    .maybeSingle();
-
-                if (service) {
-                    // @ts-ignore
-                    await supabase.from("user_services").update({ current_step: currentStep + 1 }).eq("id", service.id);
-                }
+                    .update({ current_step: currentStep + 1 })
+                    .eq("id", serviceId);
+            } catch (error) {
+                console.error("Error updating step:", error);
             }
-        } catch (error) {
-            console.error("Error updating step:", error);
+        }
+
+        setCurrentStep((s) => s + 1);
+    };
+
+    const handleSkip = async () => {
+        await saveCurrentStep();
+
+        if (serviceId) {
+            try {
+                await supabase
+                    .from("user_services")
+                    .update({ current_step: currentStep + 1 })
+                    .eq("id", serviceId);
+            } catch (error) {
+                console.error("Error updating step:", error);
+            }
         }
 
         setCurrentStep((s) => s + 1);
@@ -290,33 +410,23 @@ export const useOnboardingLogic = () => {
             const { data: { user } } = await supabase.auth.getUser();
             console.log("👤 [handleFinish] User authenticated:", user?.id);
 
-            if (user) {
-                const { data: service, error: serviceError } = await supabase
+            if (serviceId) {
+                console.log("🔄 [handleFinish] Updating service status to 'review_pending'...");
+                const { error: updateError } = await supabase
                     .from("user_services")
-                    .select("id, status")
-                    .eq("user_id", user.id)
-                    .eq("status", "active")
-                    .maybeSingle();
+                    .update({
+                        current_step: 13, // Final step for DS-160
+                        status: 'review_pending'
+                    })
+                    .eq("id", serviceId);
 
-                if (serviceError) console.error("🔴 [handleFinish] Error fetching service:", serviceError);
-                console.log("🛠️ [handleFinish] Active service found:", service);
-
-                if (service) {
-                    console.log("🔄 [handleFinish] Updating service status to 'review_pending'...");
-                    const { error: updateError } = await supabase
-                        .from("user_services")
-                        // @ts-ignore
-                        .update({ current_step: 5, status: 'review_pending' })
-                        .eq("id", service.id);
-
-                    if (updateError) {
-                        console.error("🔴 [handleFinish] Error updating service:", updateError);
-                    } else {
-                        console.log("✅ [handleFinish] Service updated successfully.");
-                    }
+                if (updateError) {
+                    console.error("🔴 [handleFinish] Error updating service:", updateError);
                 } else {
-                    console.warn("⚠️ [handleFinish] No active service found to update.");
+                    console.log("✅ [handleFinish] Service updated successfully.");
                 }
+            } else {
+                console.warn("⚠️ [handleFinish] No serviceId found to update.");
             }
         } catch (err) {
             console.error("🔴 [handleFinish] Unexpected error:", err);
@@ -325,16 +435,16 @@ export const useOnboardingLogic = () => {
         console.log("🏁 [handleFinish] Redirecting to dashboard...");
         toast.success(lang === 'pt' ? 'Pacote gerado com sucesso!' : 'Package generated successfully!');
         localStorage.removeItem("onboarding_step");
-        window.location.href = "/dashboard";
+        navigate("/dashboard");
     };
 
     return {
-        lang, t, o, steps,
+        lang, t, o, steps, serviceSlug,
         currentStep, setCurrentStep,
         loading,
         uploading, uploadedDocs, fileInputRef, selectedDoc, setSelectedDoc,
         register, handleSubmit, watch, errors, setValue, formData,
         handleUpload, handleRemoveDoc,
-        handleNext, handleFinish
+        handleNext, handleFinish, handleSkip
     };
 };

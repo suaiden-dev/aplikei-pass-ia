@@ -1,154 +1,291 @@
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { LayoutDashboard, CheckSquare, MessageSquare, Upload, FileText, HelpCircle, ArrowRight } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  LayoutDashboard,
+  CheckSquare,
+  MessageSquare,
+  Upload,
+  FileText,
+  HelpCircle,
+  ArrowRight,
+  Briefcase,
+  ChevronRight
+} from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
 
 export default function UserDashboard() {
+  const [searchParams] = useSearchParams();
+  const isAfterCheckout = !!searchParams.get("session_id");
   const { lang, t } = useLanguage();
   const d = t.dashboard;
+
+  const [services, setServices] = useState<any[]>([]);
+  const [currentServiceId, setCurrentServiceId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [docsUploaded, setDocsUploaded] = useState(0);
-  const [status, setStatus] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
+  // 1. Fetch all services and their individual progress
   useEffect(() => {
-    const fetchProgress = async () => {
-      console.log("Iniciando busca de progresso...");
+    const fetchServices = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      console.log("Usuário autenticado:", user?.id);
+      if (!user) return;
 
-      if (!user) {
-        console.warn("Nenhum usuário encontrado no fetchProgress");
+      const { data: servicesData, error } = await supabase
+        .from("user_services")
+        .select("id, status, current_step, service_slug, created_at")
+        .eq("user_id", user.id)
+        .in("status", ["active", "review_pending", "completed"])
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        setLoading(false);
         return;
       }
 
-      console.log("Buscando serviço ativo para o usuário...");
-      const { data: service, error: serviceError } = await supabase
-        .from("user_services")
-        .select("id, status, current_step")
-        .eq("user_id", user.id)
-        .in("status", ["active", "review_pending", "completed"])
-        .maybeSingle();
 
-      if (serviceError) {
-        console.error("Erro ao buscar serviço:", serviceError);
-      }
 
-      console.log("Resultado da busca de serviço:", service);
+      if (servicesData && servicesData.length > 0) {
+        // Group by slug to keep only the most recent entry for each unique guide
+        const uniqueServicesMap = new Map();
 
-      if (service) {
-        // @ts-ignore
-        if (service.status === 'review_pending' || service.status === 'completed') {
-          setProgress(100);
+        servicesData.forEach(s => {
+          if (!uniqueServicesMap.has(s.service_slug)) {
+            let p = 0;
+            if (s.status === 'review_pending' || s.status === 'completed') p = 100;
+            else p = Math.min(Math.round(((s.current_step || 0) / 5) * 100), 100);
+
+            uniqueServicesMap.set(s.service_slug, { ...s, calculatedProgress: p });
+          }
+        });
+
+        const servicesWithProgress = Array.from(uniqueServicesMap.values());
+        console.log("DEBUG: Serviços únicos processados:", servicesWithProgress);
+
+        setServices(servicesWithProgress);
+
+
+        // Pick the service from URL or the last one saved or the most recent
+        const savedServiceId = localStorage.getItem('last_selected_service');
+        const urlServiceId = searchParams.get('service_id');
+
+        if (urlServiceId) {
+          setCurrentServiceId(urlServiceId);
+        } else if (savedServiceId && servicesWithProgress.find(s => s.id === savedServiceId)) {
+          setCurrentServiceId(savedServiceId);
         } else {
-          // Onboarding has 5 steps (0-4), so current_step 5 means completed.
-          // Safe fallback if current_step is undefined/null is 0
-          // @ts-ignore
-          const step = service.current_step || 0;
-          const calculatedProgress = Math.min(Math.round((step / 5) * 100), 100);
-          console.log("Progresso calculado:", calculatedProgress);
-          setProgress(calculatedProgress);
+          setCurrentServiceId(servicesWithProgress[0].id);
         }
-
-        // @ts-ignore
-        setStatus(service.status);
-
-        // Fetch uploaded docs count for checklist card
-        const { count: docsCount } = await supabase
-          .from("documents")
-          .select("*", { count: 'exact', head: true })
-          // @ts-ignore
-          .eq("user_service_id", service.id);
-
-        setDocsUploaded(docsCount || 0);
-
-      } else {
-        console.log("Nenhum serviço ativo encontrado para este usuário.");
       }
       setLoading(false);
     };
-    fetchProgress();
-  }, []);
+    fetchServices();
+  }, [searchParams]);
+
+  const currentService = services.find(s => s.id === currentServiceId) || services[0];
+
+  // 2. Sync UI with current selection
+  useEffect(() => {
+    if (!currentService) return;
+
+    localStorage.setItem('last_selected_service', currentService.id);
+    setProgress(currentService.calculatedProgress);
+
+    const fetchDocs = async () => {
+      const { count } = await supabase
+        .from("documents")
+        .select("*", { count: 'exact', head: true })
+        .eq("user_service_id", currentService.id);
+      setDocsUploaded(count || 0);
+    };
+    fetchDocs();
+  }, [currentServiceId, currentService]);
 
   const cards = [
     {
       icon: <LayoutDashboard className="h-5 w-5" />,
       title: d.cards.currentService[lang],
       desc: d.cards.currentServiceDesc[lang],
-      status: status === 'review_pending' ? (lang === 'pt' ? 'Em revisão' : 'In review') : d.cards.inProgress[lang],
-      to: "/dashboard/onboarding"
+      status: currentService?.status === 'review_pending' ? (lang === 'pt' ? 'Em revisão' : 'In review') : d.cards.inProgress[lang],
+      to: `/dashboard/onboarding?service_id=${currentServiceId}`
     },
-    { icon: <CheckSquare className="h-5 w-5" />, title: d.cards.checklist[lang], desc: `${docsUploaded} de 4 documentos enviados`, progress: progress, to: "/dashboard/onboarding" },
-    { icon: <MessageSquare className="h-5 w-5" />, title: d.cards.chatAI[lang], desc: d.cards.chatAIDesc[lang], to: "/dashboard/chat" },
-    { icon: <Upload className="h-5 w-5" />, title: d.cards.uploads[lang], desc: d.cards.uploadsDesc[lang], to: "/dashboard/uploads" },
-    { icon: <FileText className="h-5 w-5" />, title: d.cards.generatePDF[lang], desc: d.cards.generatePDFDesc[lang], to: "/dashboard/pacote", disabled: progress < 100 },
+    { icon: <CheckSquare className="h-5 w-5" />, title: d.cards.checklist[lang], desc: `${docsUploaded} de 4 documentos enviados`, progress: progress, to: `/dashboard/onboarding?service_id=${currentServiceId}` },
+    { icon: <MessageSquare className="h-5 w-5" />, title: d.cards.chatAI[lang], desc: d.cards.chatAIDesc[lang], to: `/dashboard/chat?service_id=${currentServiceId}` },
+    { icon: <Upload className="h-5 w-5" />, title: d.cards.uploads[lang], desc: d.cards.uploadsDesc[lang], to: `/dashboard/uploads?service_id=${currentServiceId}` },
+    { icon: <FileText className="h-5 w-5" />, title: d.cards.generatePDF[lang], desc: d.cards.generatePDFDesc[lang], to: `/dashboard/pacote?service_id=${currentServiceId}`, disabled: progress < 100 },
     { icon: <HelpCircle className="h-5 w-5" />, title: d.cards.help[lang], desc: d.cards.helpDesc[lang], to: "/dashboard/ajuda" },
   ];
 
   if (loading) {
     return (
-      <div>
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="mt-2 h-4 w-64" />
-
-        <div className="mt-6 rounded-xl border border-border bg-card p-4 shadow-card md:p-6">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-4 w-20" />
-          </div>
-          <Skeleton className="mt-4 h-2 w-full" />
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-48" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Skeleton className="h-32 w-full rounded-2xl" />
+          <Skeleton className="h-32 w-full rounded-2xl" />
         </div>
-
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="rounded-xl border border-border bg-card p-4 shadow-card md:p-5">
-              <Skeleton className="h-10 w-10 rounded-lg" />
-              <Skeleton className="mt-4 h-5 w-32" />
-              <Skeleton className="mt-2 h-4 w-full" />
-              <Skeleton className="mt-4 h-1.5 w-full" />
-            </div>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 w-full rounded-2xl" />)}
         </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <h1 className="font-display text-2xl font-bold text-foreground">{d.title[lang]}</h1>
-      <p className="mt-1 text-muted-foreground">{d.welcome[lang]}</p>
-
-      <div className="mt-6 rounded-xl border border-border bg-card p-4 shadow-card md:p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">{d.overallProgress[lang]}</p>
-            <p className="mt-1 font-display text-lg font-bold text-foreground">{d.onboarding[lang]}</p>
-          </div>
-          <span className="rounded-full bg-accent/10 px-3 py-1 text-sm font-semibold text-accent">{progress}% {d.complete[lang]}</span>
+    <div className="space-y-8">
+      {/* Header Section */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-foreground tracking-tight">Dashboard</h1>
+          <p className="mt-1 text-muted-foreground">{d.welcome[lang]}</p>
         </div>
-        <Progress value={progress} className="mt-4 h-2" />
-      </div>
+      </header>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((card, i) => (
-          <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <Link to={card.disabled ? "#" : card.to} className={`group flex h-full flex-col rounded-xl border border-border bg-card p-4 shadow-card transition-all md:p-5 ${card.disabled ? "cursor-not-allowed opacity-50" : "hover:shadow-card-hover hover:border-accent/40"}`}>
-              <div className="flex items-start justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">{card.icon}</div>
-                {card.status && <span className="rounded-full bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">{card.status}</span>}
+      {/* Success Banner (if any) */}
+      <AnimatePresence>
+        {isAfterCheckout && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="p-5 rounded-2xl border-2 border-green-500/20 bg-green-500/5 flex items-center gap-4">
+              <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center shrink-0">
+                <CheckSquare className="w-5 h-5 text-green-600" />
               </div>
-              <h3 className="mt-3 font-display font-semibold text-foreground">{card.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{card.desc}</p>
-              {card.progress !== undefined && <Progress value={card.progress} className="mt-3 h-1.5" />}
-              {!card.disabled && <span className="mt-auto flex items-center gap-1 pt-3 text-xs font-medium text-accent group-hover:underline">{d.access[lang]} <ArrowRight className="h-3 w-3" /></span>}
-            </Link>
+              <p className="text-sm font-medium text-green-800 dark:text-green-300">
+                {lang === 'pt' ? 'Pagamento confirmado! Seu novo guia já está disponível abaixo.' : 'Payment confirmed! Your new guide is available below.'}
+              </p>
+            </div>
           </motion.div>
-        ))}
-      </div>
+        )}
+      </AnimatePresence>
+
+      {/* MULTI-SERVICE SELECTOR SECTION */}
+      <section>
+        <div className="flex items-center gap-2 mb-4">
+          <Briefcase className="w-5 h-5 text-primary" />
+          <h2 className="font-bold text-lg text-foreground">
+            {lang === 'pt' ? 'Seus Processos Ativos' : 'Your Active Processes'}
+          </h2>
+          <Badge variant="secondary" className="ml-2">{services.length}</Badge>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {services.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setCurrentServiceId(s.id)}
+              className={`relative text-left p-5 rounded-2xl border-2 transition-all duration-300 group ${currentServiceId === s.id
+                ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
+                : 'border-border bg-card hover:border-primary/40'
+                }`}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className={`p-2 rounded-lg ${currentServiceId === s.id ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                  <FileText className="w-5 h-5" />
+                </div>
+                {currentServiceId === s.id && (
+                  <Badge className="bg-primary text-white border-none">Ativo</Badge>
+                )}
+              </div>
+
+              <h3 className="font-bold text-foreground mb-1">
+                {s.service_slug?.toUpperCase().replace('-', ' ')}
+              </h3>
+
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                <span>{s.status === 'active' ? (lang === 'pt' ? 'Em preenchimento' : 'Filling out') : s.status}</span>
+                <span className="font-bold text-primary">{s.calculatedProgress}%</span>
+              </div>
+
+              <Progress value={s.calculatedProgress} className="h-1.5" />
+
+              {currentServiceId !== s.id && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/40 dark:bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                  <span className="bg-white dark:bg-slate-800 px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-border">
+                    {lang === 'pt' ? 'Selecionar Processo' : 'Select Process'}
+                  </span>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <hr className="border-border" />
+
+      {/* ACTIVE SERVICE ACTIONS GRID */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <LayoutDashboard className="w-5 h-5 text-primary" />
+            <h2 className="font-bold text-lg text-foreground">
+              {lang === 'pt' ? 'Gerenciar:' : 'Manage:'} <span className="text-primary font-black uppercase ml-1 italic">{currentService?.service_slug?.replace('-', ' ')}</span>
+            </h2>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {cards.map((card, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + (i * 0.05) }}
+            >
+              <Link
+                to={card.disabled ? "#" : card.to}
+                className={`group flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 ${card.disabled
+                  ? "cursor-not-allowed opacity-50 grayscale"
+                  : "hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1"
+                  }`}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                    {card.icon}
+                  </div>
+                  {card.status && (
+                    <Badge variant="outline" className="text-[10px] uppercase tracking-wider font-bold">
+                      {card.status}
+                    </Badge>
+                  )}
+                </div>
+
+                <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                  {card.title}
+                </h3>
+
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                  {card.desc}
+                </p>
+
+                {card.progress !== undefined && (
+                  <div className="mt-auto pt-4">
+                    <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground mb-1">
+                      <span>Progresso</span>
+                      <span>{card.progress}%</span>
+                    </div>
+                    <Progress value={card.progress} className="h-1" />
+                  </div>
+                )}
+
+                {!card.disabled && (
+                  <div className="mt-auto pt-4 flex items-center gap-1 text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0">
+                    {lang === 'pt' ? 'ACESSAR AGORA' : 'ACCESS NOW'} <ChevronRight className="w-4 h-4" />
+                  </div>
+                )}
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
