@@ -32,6 +32,8 @@ interface ContractOrder {
   created_at: string;
   service_status: string;
   application_id?: string;
+  date_of_birth?: string;
+  grandmother_name?: string;
 }
 
 export default function AdminContracts() {
@@ -61,7 +63,9 @@ export default function AdminContracts() {
       // Fetch service statuses for all users in orders
       const { data: services, error: servicesError } = await (supabase
         .from("user_services")
-        .select("user_id, status, service_slug, application_id")
+        .select(
+          "user_id, status, service_slug, application_id, date_of_birth, grandmother_name",
+        )
         .in("user_id", data.map((o) => o.user_id).filter(Boolean)) as any);
 
       if (servicesError) {
@@ -78,6 +82,8 @@ export default function AdminContracts() {
           ...order,
           service_status: service?.status,
           application_id: service?.application_id,
+          date_of_birth: service?.date_of_birth,
+          grandmother_name: service?.grandmother_name,
         };
       });
 
