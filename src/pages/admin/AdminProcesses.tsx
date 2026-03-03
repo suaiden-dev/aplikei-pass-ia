@@ -1,0 +1,264 @@
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { AdminDataTable } from "@/components/admin/AdminDataTable";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  FileText,
+  ExternalLink,
+  RefreshCw,
+  Download,
+  ClipboardList,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { AdminStatusTimeline } from "@/components/admin/AdminStatusTimeline";
+import { AdminStepModal } from "@/components/admin/AdminStepModal";
+
+interface ContractOrder {
+  id: string;
+  order_number: string;
+  user_id: string | null;
+  client_name: string;
+  client_email: string;
+  product_slug: string;
+  total_price_usd: number;
+  payment_method: string;
+  payment_status: string;
+  contract_pdf_url: string | null;
+  contract_selfie_url: string | null;
+  terms_accepted_at: string | null;
+  client_ip: string | null;
+  created_at: string;
+  service_status?: string;
+}
+
+export default function AdminContracts() {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState<ContractOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<ContractOrder | null>(
+    null,
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("visa_orders")
+        .select(
+          "id, order_number, user_id, client_name, client_email, product_slug, total_price_usd, payment_method, payment_status, contract_pdf_url, contract_selfie_url, terms_accepted_at, client_ip, created_at",
+        )
+        .eq("payment_status", "paid")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch service statuses for all users in orders
+      const { data: services, error: servicesError } = await supabase
+        .from("user_services")
+        .select("user_id, status, service_slug")
+        .in("user_id", data.map((o) => o.user_id).filter(Boolean));
+
+      if (servicesError) {
+        console.error("Erro ao buscar status dos serviços:", servicesError);
+      }
+
+      const ordersWithStatus = (data as ContractOrder[]).map((order) => {
+        const service = services?.find(
+          (s) =>
+            s.user_id === order.user_id &&
+            s.service_slug === order.product_slug,
+        );
+        return {
+          ...order,
+          service_status: service?.status,
+        };
+      });
+
+      setOrders(ordersWithStatus ?? []);
+    } catch (err: any) {
+      console.error("Erro ao buscar contratos:", err);
+      toast({ title: "Erro ao carregar contratos", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  const handleRegeneratePdf = async (order: ContractOrder) => {
+    setRegeneratingId(order.id);
+    try {
+      // Limpa o PDF atual para forçar regeneração
+      await supabase
+        .from("visa_orders")
+        .update({ contract_pdf_url: null })
+        .eq("id", order.id);
+
+      const { error } = await supabase.functions.invoke(
+        "generate-contract-pdf",
+        {
+          body: { order_id: order.id },
+        },
+      );
+
+      if (error) throw error;
+
+      toast({
+        title: `PDF do pedido ${order.order_number} regenerado com sucesso!`,
+      });
+      fetchOrders();
+    } catch (err: any) {
+      console.error("Erro ao regenerar PDF:", err);
+      toast({
+        title: "Erro ao regenerar PDF",
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setRegeneratingId(null);
+    }
+  };
+
+  const formatDate = (date: string | null) => {
+    if (!date) return "—";
+    return new Date(date).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(value);
+
+  const totalWithPdf = orders.filter((o) => o.contract_pdf_url).length;
+  const totalWithoutPdf = orders.filter((o) => !o.contract_pdf_url).length;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="font-display text-2xl font-bold text-foreground">
+            Processos
+          </h2>
+          <p className="mt-1 text-muted-foreground">
+            Contratos gerados automaticamente após confirmação de pagamento.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={fetchOrders}
+          className="gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Atualizar
+        </Button>
+      </div>
+
+      {/* Resumo */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="text-sm text-muted-foreground">
+            Total de pedidos pagos
+          </p>
+          <p className="mt-1 text-2xl font-bold text-foreground">
+            {orders.length}
+          </p>
+        </div>
+        <div className="rounded-xl border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/20 p-4">
+          <p className="text-sm text-green-700 dark:text-green-400">
+            Com PDF gerado
+          </p>
+          <p className="mt-1 text-2xl font-bold text-green-700 dark:text-green-400">
+            {totalWithPdf}
+          </p>
+        </div>
+        <div className="rounded-xl border border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950/20 p-4">
+          <p className="text-sm text-yellow-700 dark:text-yellow-400">
+            Sem PDF
+          </p>
+          <p className="mt-1 text-2xl font-bold text-yellow-700 dark:text-yellow-400">
+            {totalWithoutPdf}
+          </p>
+        </div>
+      </div>
+
+      {/* Tabela */}
+      <div className="rounded-xl bg-card">
+        <AdminDataTable
+          loading={loading}
+          data={orders}
+          columns={[
+            { key: "client_name", header: "Cliente" },
+            {
+              key: "product_slug",
+              header: "Serviço",
+              render: (item) => (
+                <Badge variant="outline" className="capitalize text-xs">
+                  {item.product_slug?.replace(/-/g, " ")}
+                </Badge>
+              ),
+            },
+            {
+              key: "payment_method",
+              header: "Método",
+              render: (item) => (
+                <span className="text-xs capitalize">
+                  {item.payment_method?.replace(/_/g, " ") || "—"}
+                </span>
+              ),
+            },
+            {
+              key: "fluxo",
+              header: "Fluxo",
+              render: (item) => (
+                <AdminStatusTimeline status={item.service_status} />
+              ),
+            },
+            {
+              key: "actions",
+              header: "Ações",
+              className: "text-right",
+              render: (item) => (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-[10px] font-bold gap-1.5 hover:bg-accent/10 hover:text-accent"
+                  onClick={() => {
+                    setSelectedOrder(item);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  ACESSAR ETAPA
+                </Button>
+              ),
+            },
+          ]}
+          searchKeys={["order_number", "client_name", "client_email"]}
+          searchPlaceholder="Buscar por pedido, cliente ou e-mail..."
+          pageSize={20}
+        />
+      </div>
+
+      <AdminStepModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        order={selectedOrder}
+      />
+    </div>
+  );
+}

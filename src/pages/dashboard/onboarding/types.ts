@@ -219,6 +219,7 @@ export interface StepProps {
     t: any; // Translation object
     o: any; // Onboarding translations helper
     serviceSlug?: string;
+    serviceStatus?: string | null;
 }
 
 export interface DocumentStepProps extends StepProps {
@@ -227,4 +228,5 @@ export interface DocumentStepProps extends StepProps {
     handleRemove: (docName: string) => Promise<void>;
     uploading: string | null;
     handleSkip?: () => Promise<void>;
+    serviceStatus?: string | null;
 }

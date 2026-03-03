@@ -9,7 +9,7 @@ import {
   HelpCircle,
   ArrowRight,
   Briefcase,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,50 +33,76 @@ export default function UserDashboard() {
   // 1. Fetch all services and their individual progress
   useEffect(() => {
     const fetchServices = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: servicesData, error } = await supabase
+      const { data: servicesData, error } = (await supabase
         .from("user_services")
-        .select("id, status, current_step, service_slug, created_at")
+        .select(
+          "id, status, current_step, service_slug, created_at, application_id",
+        )
         .eq("user_id", user.id)
-        .in("status", ["active", "review_pending", "completed"])
-        .order('created_at', { ascending: false });
+        .in("status", [
+          "active",
+          "review_pending",
+          "review_assign",
+          "completed",
+        ])
+        .order("created_at", { ascending: false })) as any;
 
       if (error) {
         setLoading(false);
         return;
       }
 
-
-
       if (servicesData && servicesData.length > 0) {
         // Group by slug to keep only the most recent entry for each unique guide
         const uniqueServicesMap = new Map();
 
-        servicesData.forEach(s => {
-          if (!uniqueServicesMap.has(s.service_slug)) {
-            let p = 0;
-            if (s.status === 'review_pending' || s.status === 'completed') p = 100;
-            else p = Math.min(Math.round(((s.current_step || 0) / 5) * 100), 100);
+        servicesData.forEach((s) => {
+          const existing = uniqueServicesMap.get(s.service_slug);
 
-            uniqueServicesMap.set(s.service_slug, { ...s, calculatedProgress: p });
+          // Logic: Keep the service if:
+          // 1. We don't have one for this slug yet
+          // 2. OR the new one is more "advanced" (review_pending/completed) than the currently stored one (active)
+          const isNewAdvanced =
+            (s.status === "review_pending" || s.status === "completed") &&
+            existing?.status === "active";
+
+          if (!existing || isNewAdvanced) {
+            let p = 0;
+            if (s.status === "review_pending" || s.status === "completed")
+              p = 100;
+            else
+              p = Math.min(Math.round(((s.current_step || 0) / 13) * 100), 100);
+
+            uniqueServicesMap.set(s.service_slug, {
+              ...s,
+              calculatedProgress: p,
+            });
           }
         });
 
         const servicesWithProgress = Array.from(uniqueServicesMap.values());
-        console.log("DEBUG: Serviços únicos processados:", servicesWithProgress);
+        console.log(
+          "DEBUG: Serviços únicos processados:",
+          servicesWithProgress,
+        );
 
         setServices(servicesWithProgress);
 
-
         // Pick the service from URL or the last one saved or the most recent
-        const savedServiceId = localStorage.getItem('last_selected_service');
-        const urlServiceId = searchParams.get('service_id');
+        const savedServiceId = localStorage.getItem("last_selected_service");
+        const urlServiceId = searchParams.get("service_id");
 
         if (urlServiceId) {
           setCurrentServiceId(urlServiceId);
-        } else if (savedServiceId && servicesWithProgress.find(s => s.id === savedServiceId)) {
+        } else if (
+          savedServiceId &&
+          servicesWithProgress.find((s) => s.id === savedServiceId)
+        ) {
           setCurrentServiceId(savedServiceId);
         } else {
           setCurrentServiceId(servicesWithProgress[0].id);
@@ -87,19 +113,20 @@ export default function UserDashboard() {
     fetchServices();
   }, [searchParams]);
 
-  const currentService = services.find(s => s.id === currentServiceId) || services[0];
+  const currentService =
+    services.find((s) => s.id === currentServiceId) || services[0];
 
   // 2. Sync UI with current selection
   useEffect(() => {
     if (!currentService) return;
 
-    localStorage.setItem('last_selected_service', currentService.id);
+    localStorage.setItem("last_selected_service", currentService.id);
     setProgress(currentService.calculatedProgress);
 
     const fetchDocs = async () => {
       const { count } = await supabase
         .from("documents")
-        .select("*", { count: 'exact', head: true })
+        .select("*", { count: "exact", head: true })
         .eq("user_service_id", currentService.id);
       setDocsUploaded(count || 0);
     };
@@ -111,14 +138,52 @@ export default function UserDashboard() {
       icon: <LayoutDashboard className="h-5 w-5" />,
       title: d.cards.currentService[lang],
       desc: d.cards.currentServiceDesc[lang],
-      status: currentService?.status === 'review_pending' ? (lang === 'pt' ? 'Em revisão' : 'In review') : d.cards.inProgress[lang],
-      to: `/dashboard/onboarding?service_id=${currentServiceId}`
+      status:
+        currentService?.status === "review_pending"
+          ? lang === "pt"
+            ? currentService?.service_slug === "visto-b1-b2" ||
+              currentService?.service_slug === "visto-f1"
+              ? "Processando DS-160"
+              : "Processando"
+            : currentService?.service_slug === "visto-b1-b2" ||
+                currentService?.service_slug === "visto-f1"
+              ? "Processing DS-160"
+              : "Processing"
+          : d.cards.inProgress[lang],
+      to: `/dashboard/onboarding?service_id=${currentServiceId}`,
     },
-    { icon: <CheckSquare className="h-5 w-5" />, title: d.cards.checklist[lang], desc: `${docsUploaded} de 4 documentos enviados`, progress: progress, to: `/dashboard/onboarding?service_id=${currentServiceId}` },
-    { icon: <MessageSquare className="h-5 w-5" />, title: d.cards.chatAI[lang], desc: d.cards.chatAIDesc[lang], to: `/dashboard/chat?service_id=${currentServiceId}` },
-    { icon: <Upload className="h-5 w-5" />, title: d.cards.uploads[lang], desc: d.cards.uploadsDesc[lang], to: `/dashboard/uploads?service_id=${currentServiceId}` },
-    { icon: <FileText className="h-5 w-5" />, title: d.cards.generatePDF[lang], desc: d.cards.generatePDFDesc[lang], to: `/dashboard/pacote?service_id=${currentServiceId}`, disabled: progress < 100 },
-    { icon: <HelpCircle className="h-5 w-5" />, title: d.cards.help[lang], desc: d.cards.helpDesc[lang], to: "/dashboard/ajuda" },
+    {
+      icon: <CheckSquare className="h-5 w-5" />,
+      title: d.cards.checklist[lang],
+      desc: `${docsUploaded} de 4 documentos enviados`,
+      progress: progress,
+      to: `/dashboard/onboarding?service_id=${currentServiceId}`,
+    },
+    {
+      icon: <MessageSquare className="h-5 w-5" />,
+      title: d.cards.chatAI[lang],
+      desc: d.cards.chatAIDesc[lang],
+      to: `/dashboard/chat?service_id=${currentServiceId}`,
+    },
+    {
+      icon: <Upload className="h-5 w-5" />,
+      title: d.cards.uploads[lang],
+      desc: d.cards.uploadsDesc[lang],
+      to: `/dashboard/uploads?service_id=${currentServiceId}`,
+    },
+    {
+      icon: <FileText className="h-5 w-5" />,
+      title: d.cards.generatePDF[lang],
+      desc: d.cards.generatePDFDesc[lang],
+      to: `/dashboard/pacote?service_id=${currentServiceId}`,
+      disabled: progress < 100,
+    },
+    {
+      icon: <HelpCircle className="h-5 w-5" />,
+      title: d.cards.help[lang],
+      desc: d.cards.helpDesc[lang],
+      to: "/dashboard/ajuda",
+    },
   ];
 
   if (loading) {
@@ -130,7 +195,9 @@ export default function UserDashboard() {
           <Skeleton className="h-32 w-full rounded-2xl" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 w-full rounded-2xl" />)}
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-48 w-full rounded-2xl" />
+          ))}
         </div>
       </div>
     );
@@ -141,7 +208,9 @@ export default function UserDashboard() {
       {/* Header Section */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold text-foreground tracking-tight">Dashboard</h1>
+          <h1 className="font-display text-3xl font-bold text-foreground tracking-tight">
+            Dashboard
+          </h1>
           <p className="mt-1 text-muted-foreground">{d.welcome[lang]}</p>
         </div>
       </header>
@@ -151,7 +220,7 @@ export default function UserDashboard() {
         {isAfterCheckout && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
@@ -160,7 +229,9 @@ export default function UserDashboard() {
                 <CheckSquare className="w-5 h-5 text-green-600" />
               </div>
               <p className="text-sm font-medium text-green-800 dark:text-green-300">
-                {lang === 'pt' ? 'Pagamento confirmado! Seu novo guia já está disponível abaixo.' : 'Payment confirmed! Your new guide is available below.'}
+                {lang === "pt"
+                  ? "Pagamento confirmado! Seu novo guia já está disponível abaixo."
+                  : "Payment confirmed! Your new guide is available below."}
               </p>
             </div>
           </motion.div>
@@ -172,9 +243,11 @@ export default function UserDashboard() {
         <div className="flex items-center gap-2 mb-4">
           <Briefcase className="w-5 h-5 text-primary" />
           <h2 className="font-bold text-lg text-foreground">
-            {lang === 'pt' ? 'Seus Processos Ativos' : 'Your Active Processes'}
+            {lang === "pt" ? "Seus Processos Ativos" : "Your Active Processes"}
           </h2>
-          <Badge variant="secondary" className="ml-2">{services.length}</Badge>
+          <Badge variant="secondary" className="ml-2">
+            {services.length}
+          </Badge>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -182,27 +255,62 @@ export default function UserDashboard() {
             <button
               key={s.id}
               onClick={() => setCurrentServiceId(s.id)}
-              className={`relative text-left p-5 rounded-2xl border-2 transition-all duration-300 group ${currentServiceId === s.id
-                ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
-                : 'border-border bg-card hover:border-primary/40'
-                }`}
+              className={`relative text-left p-5 rounded-2xl border-2 transition-all duration-300 group ${
+                currentServiceId === s.id
+                  ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+                  : "border-border bg-card hover:border-primary/40"
+              }`}
             >
               <div className="flex justify-between items-start mb-4">
-                <div className={`p-2 rounded-lg ${currentServiceId === s.id ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                <div
+                  className={`p-2 rounded-lg ${currentServiceId === s.id ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}
+                >
                   <FileText className="w-5 h-5" />
                 </div>
                 {currentServiceId === s.id && (
-                  <Badge className="bg-primary text-white border-none">Ativo</Badge>
+                  <Badge className="bg-primary text-white border-none">
+                    Ativo
+                  </Badge>
                 )}
               </div>
 
               <h3 className="font-bold text-foreground mb-1">
-                {s.service_slug?.toUpperCase().replace('-', ' ')}
+                {s.service_slug?.toUpperCase().replace("-", " ")}
               </h3>
 
+              {s.application_id && (
+                <div className="mb-2">
+                  <span className="text-[10px] font-bold text-green-600 dark:text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">
+                    Application ID: {s.application_id}
+                  </span>
+                </div>
+              )}
+
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-                <span>{s.status === 'active' ? (lang === 'pt' ? 'Em preenchimento' : 'Filling out') : s.status}</span>
-                <span className="font-bold text-primary">{s.calculatedProgress}%</span>
+                <span>
+                  {s.status === "active"
+                    ? lang === "pt"
+                      ? "Em preenchimento"
+                      : "Filling out"
+                    : s.status === "review_assign"
+                      ? lang === "pt"
+                        ? "Revise e assine sua DS-160"
+                        : "Review and sign your DS-160"
+                      : s.status === "review_pending"
+                        ? lang === "pt"
+                          ? s.service_slug === "visto-b1-b2" ||
+                            s.service_slug === "visto-f1"
+                            ? "Processando DS-160"
+                            : "Processando"
+                          : s.service_slug === "visto-b1-b2" ||
+                              s.service_slug === "visto-f1"
+                            ? "Processing DS-160"
+                            : "Processing"
+                        : s.status}
+                </span>
+                <span className="font-bold text-primary">
+                  {s.calculatedProgress}%
+                </span>
               </div>
 
               <Progress value={s.calculatedProgress} className="h-1.5" />
@@ -210,7 +318,7 @@ export default function UserDashboard() {
               {currentServiceId !== s.id && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white/40 dark:bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
                   <span className="bg-white dark:bg-slate-800 px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-border">
-                    {lang === 'pt' ? 'Selecionar Processo' : 'Select Process'}
+                    {lang === "pt" ? "Selecionar Processo" : "Select Process"}
                   </span>
                 </div>
               )}
@@ -227,7 +335,10 @@ export default function UserDashboard() {
           <div className="flex items-center gap-2">
             <LayoutDashboard className="w-5 h-5 text-primary" />
             <h2 className="font-bold text-lg text-foreground">
-              {lang === 'pt' ? 'Gerenciar:' : 'Manage:'} <span className="text-primary font-black uppercase ml-1 italic">{currentService?.service_slug?.replace('-', ' ')}</span>
+              {lang === "pt" ? "Gerenciar:" : "Manage:"}{" "}
+              <span className="text-primary font-black uppercase ml-1 italic">
+                {currentService?.service_slug?.replace("-", " ")}
+              </span>
             </h2>
           </div>
         </div>
@@ -238,21 +349,25 @@ export default function UserDashboard() {
               key={i}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + (i * 0.05) }}
+              transition={{ delay: 0.1 + i * 0.05 }}
             >
               <Link
                 to={card.disabled ? "#" : card.to}
-                className={`group flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 ${card.disabled
-                  ? "cursor-not-allowed opacity-50 grayscale"
-                  : "hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1"
-                  }`}
+                className={`group flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 ${
+                  card.disabled
+                    ? "cursor-not-allowed opacity-50 grayscale"
+                    : "hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1"
+                }`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                     {card.icon}
                   </div>
                   {card.status && (
-                    <Badge variant="outline" className="text-[10px] uppercase tracking-wider font-bold">
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] uppercase tracking-wider font-bold"
+                    >
                       {card.status}
                     </Badge>
                   )}
@@ -278,7 +393,8 @@ export default function UserDashboard() {
 
                 {!card.disabled && (
                   <div className="mt-auto pt-4 flex items-center gap-1 text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0">
-                    {lang === 'pt' ? 'ACESSAR AGORA' : 'ACCESS NOW'} <ChevronRight className="w-4 h-4" />
+                    {lang === "pt" ? "ACESSAR AGORA" : "ACCESS NOW"}{" "}
+                    <ChevronRight className="w-4 h-4" />
                   </div>
                 )}
               </Link>

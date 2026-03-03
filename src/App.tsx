@@ -39,7 +39,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminOrderDetail from "./pages/admin/AdminOrderDetail";
 import AdminPayments from "./pages/admin/AdminPayments";
-import AdminContracts from "./pages/admin/AdminContracts";
+import AdminContracts from "./pages/admin/AdminProcesses";
 import AdminClients from "./pages/admin/AdminClients";
 import AdminClientDetail from "./pages/admin/AdminClientDetail";
 import AdminDocuments from "./pages/admin/AdminDocuments";

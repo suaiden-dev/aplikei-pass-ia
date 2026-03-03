@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -8,10 +8,13 @@ import { OnboardingData, UploadedDocument } from "./types";
 
 export const useOnboardingLogic = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const urlServiceId = searchParams.get("service_id");
     const { lang, t } = useLanguage();
     const [serviceSlug, setServiceSlug] = useState<string>("visto-b1-b2"); // Default to b1/b2
     const [loading, setLoading] = useState(true);
     const [serviceId, setServiceId] = useState<string | null>(null);
+    const [serviceStatus, setServiceStatus] = useState<string | null>(null);
     const [currentStep, setCurrentStep] = useState(() => {
         const saved = localStorage.getItem("onboarding_step");
         return saved ? parseInt(saved, 10) : 0;
@@ -61,7 +64,7 @@ export const useOnboardingLogic = () => {
                 .from("user_services")
                 .select("id, status, current_step, service_slug")
                 .eq("user_id", user.id)
-                .in("status", ["active", "review_pending"])
+                .in("status", ["active", "review_pending", "review_assign", "completed"])
                 .order("created_at", { ascending: false });
 
             if (serviceError) {
@@ -69,8 +72,13 @@ export const useOnboardingLogic = () => {
                 return;
             }
 
-            // Find the best service to use: either the first one or specifically visto-b1-b2
-            const service = services?.find(s => s.service_slug === "visto-b1-b2") || services?.[0];
+            // Find the best service to use: 
+            // 1. Match the ID from URL if provided
+            // 2. Match the target slug
+            // 3. Take the most recent one
+            const service = urlServiceId 
+                ? services?.find(s => s.id === urlServiceId)
+                : (services?.find(s => s.service_slug === "visto-b1-b2") || services?.[0]);
 
             let sId: string;
             let slug = "visto-b1-b2";
@@ -94,6 +102,8 @@ export const useOnboardingLogic = () => {
             } else {
                 sId = service.id;
                 setServiceId(sId);
+                const status = service.status || "active";
+                setServiceStatus(status);
                 slug = service.service_slug || "visto-b1-b2";
                 setServiceSlug(slug);
 
@@ -156,7 +166,7 @@ export const useOnboardingLogic = () => {
             }
         };
         loadData().finally(() => setLoading(false));
-    }, [reset]);
+    }, [reset, urlServiceId]);
 
     const normalizeFileName = (str: string) => {
         return str
@@ -416,7 +426,7 @@ export const useOnboardingLogic = () => {
                     .from("user_services")
                     .update({
                         current_step: 13, // Final step for DS-160
-                        status: 'review_pending'
+                        status: "review_pending",
                     })
                     .eq("id", serviceId);
 
@@ -442,6 +452,7 @@ export const useOnboardingLogic = () => {
         lang, t, o, steps, serviceSlug,
         currentStep, setCurrentStep,
         loading,
+        serviceStatus,
         uploading, uploadedDocs, fileInputRef, selectedDoc, setSelectedDoc,
         register, handleSubmit, watch, errors, setValue, formData,
         handleUpload, handleRemoveDoc,
