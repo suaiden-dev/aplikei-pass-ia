@@ -29,8 +29,6 @@ export default function AdminDS160ViewerPage() {
     status: string;
     application_id?: string;
   } | null>(null);
-  const [appIdInput, setAppIdInput] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
 
   const fetchDS160Data = useCallback(async () => {
     setLoading(true);
@@ -62,7 +60,6 @@ export default function AdminDS160ViewerPage() {
         status: service.status,
         application_id: service.application_id,
       });
-      setAppIdInput(service.application_id || "");
 
       const { data: responses, error } = await supabase
         .from("onboarding_responses")
@@ -96,41 +93,6 @@ export default function AdminDS160ViewerPage() {
       fetchDS160Data();
     }
   }, [userId, fetchDS160Data]);
-
-  const handleSaveApplicationId = async () => {
-    if (!serviceData || !appIdInput.trim()) return;
-
-    setIsSaving(true);
-    try {
-      const { error } = await supabase
-        .from("user_services")
-        .update({
-          application_id: appIdInput.trim(),
-          status: "review_assign",
-        })
-        .eq("id", serviceData.id);
-
-      if (error) throw error;
-
-      toast.success(
-        "Application ID salvo e status atualizado para 'Revise e Assine'",
-      );
-      setServiceData((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: "review_assign",
-              application_id: appIdInput.trim(),
-            }
-          : null,
-      );
-    } catch (err: any) {
-      console.error("Erro ao salvar Application ID:", err);
-      toast.error("Erro ao salvar Application ID");
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const translateYesNo = (val?: string) => {
     if (val === "yes") return lang === "pt" ? "Sim" : "Yes";
@@ -406,48 +368,6 @@ export default function AdminDS160ViewerPage() {
             </p>
           </div>
         </div>
-
-        {serviceData &&
-          (serviceData.status === "review_pending" ||
-            serviceData.status === "review_assign" ||
-            serviceData.status === "active") && (
-            <div className="flex items-center gap-2 bg-background p-2 rounded-lg border border-border shadow-sm">
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground ml-1 mb-1">
-                  Application ID
-                </span>
-                <div className="flex items-center gap-2">
-                  <Input
-                    placeholder="Ex: AA00..."
-                    className="h-9 w-40 font-mono text-sm"
-                    value={appIdInput}
-                    onChange={(e) => setAppIdInput(e.target.value)}
-                    disabled={
-                      serviceData.status === "review_assign" &&
-                      !!serviceData.application_id
-                    }
-                  />
-                  <Button
-                    size="sm"
-                    className="h-9 bg-accent hover:bg-green-dark"
-                    onClick={handleSaveApplicationId}
-                    disabled={
-                      isSaving ||
-                      !appIdInput.trim() ||
-                      (serviceData.status === "review_assign" &&
-                        !!serviceData.application_id)
-                    }
-                  >
-                    {isSaving ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "Enviar"
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
       </div>
 
       <div className="bg-card border border-border shadow-sm rounded-xl p-8 min-h-[500px]">

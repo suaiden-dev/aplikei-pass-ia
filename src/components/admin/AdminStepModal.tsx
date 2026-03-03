@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,6 +8,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   ClipboardList,
   Upload,
@@ -16,17 +18,25 @@ import {
   XCircle,
   Info,
   Clock,
+  Loader2,
+  Save,
+  Fingerprint,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface AdminStepModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onRefresh?: () => void;
   order: {
     id: string;
     client_name: string;
     user_id: string;
     service_status: string;
+    application_id?: string;
+    product_slug: string;
     [key: string]: any;
   } | null;
 }
@@ -34,12 +44,57 @@ interface AdminStepModalProps {
 export function AdminStepModal({
   isOpen,
   onClose,
+  onRefresh,
   order,
 }: AdminStepModalProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [appId, setAppId] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (order) {
+      setAppId(order.application_id || "");
+    }
+  }, [order]);
+
   if (!order) return null;
 
   const status = order.service_status || "unknown";
+
+  const handleSaveAppId = async () => {
+    if (!appId.trim()) return;
+    setIsSaving(true);
+
+    try {
+      const { error } = await supabase
+        .from("user_services")
+        .update({
+          application_id: appId.trim(),
+          status: "review_assign", // Auto transition to Revise and Sign
+        })
+        .eq("user_id", order.user_id)
+        .eq("service_slug", order.product_slug);
+
+      if (error) throw error;
+
+      toast({
+        title: "Application ID salvo",
+        description: "Status atualizado para 'Revise e Assine'.",
+      });
+
+      onRefresh?.();
+      onClose();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao salvar",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const renderContent = () => {
     switch (status) {
@@ -50,7 +105,7 @@ export function AdminStepModal({
       case "review_pending":
       case "review_assign":
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
               <ClipboardList className="h-5 w-5 text-yellow-600" />
               <div>
@@ -63,8 +118,43 @@ export function AdminStepModal({
                 </p>
               </div>
             </div>
+
+            <div className="space-y-3 p-4 bg-muted/40 rounded-xl border border-border">
+              <div className="flex items-center gap-2 mb-1">
+                <Fingerprint className="h-4 w-4 text-accent" />
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Application ID
+                </label>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Ex: AA00..."
+                  value={appId}
+                  onChange={(e) => setAppId(e.target.value)}
+                  className="font-mono"
+                />
+                <Button
+                  size="sm"
+                  onClick={handleSaveAppId}
+                  disabled={isSaving || !appId.trim()}
+                  className="bg-accent hover:bg-green-dark shrink-0"
+                >
+                  {isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <p className="text-[10px] text-muted-foreground italic">
+                Salvar o ID mudará o status para "Revise e Assine"
+                automaticamente.
+              </p>
+            </div>
+
             <Button
-              className="w-full gap-2"
+              variant="outline"
+              className="w-full gap-2 h-10 border-accent/20 text-accent hover:bg-accent/5"
               onClick={() =>
                 navigate(`/admin/ds160/${order.user_id}`, {
                   state: { clientName: order.client_name },
@@ -197,7 +287,7 @@ export function AdminStepModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-xl">
             Gestão do Processo
           </DialogTitle>
           <DialogDescription>
@@ -207,13 +297,9 @@ export function AdminStepModal({
 
         <div className="py-2">{renderContent()}</div>
 
-        <DialogFooter>
-          <Button
-            variant="ghost"
-            onClick={onClose}
-            className="w-full lg:w-auto"
-          >
-            Fechar
+        <DialogFooter className="mt-4">
+          <Button variant="ghost" onClick={onClose} className="w-full">
+            Voltar
           </Button>
         </DialogFooter>
       </DialogContent>

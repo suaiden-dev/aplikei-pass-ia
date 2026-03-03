@@ -30,7 +30,8 @@ interface ContractOrder {
   terms_accepted_at: string | null;
   client_ip: string | null;
   created_at: string;
-  service_status?: string;
+  service_status: string;
+  application_id?: string;
 }
 
 export default function AdminContracts() {
@@ -58,10 +59,10 @@ export default function AdminContracts() {
       if (error) throw error;
 
       // Fetch service statuses for all users in orders
-      const { data: services, error: servicesError } = await supabase
+      const { data: services, error: servicesError } = await (supabase
         .from("user_services")
-        .select("user_id, status, service_slug")
-        .in("user_id", data.map((o) => o.user_id).filter(Boolean));
+        .select("user_id, status, service_slug, application_id")
+        .in("user_id", data.map((o) => o.user_id).filter(Boolean)) as any);
 
       if (servicesError) {
         console.error("Erro ao buscar status dos serviços:", servicesError);
@@ -76,6 +77,7 @@ export default function AdminContracts() {
         return {
           ...order,
           service_status: service?.status,
+          application_id: service?.application_id,
         };
       });
 
@@ -258,6 +260,7 @@ export default function AdminContracts() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         order={selectedOrder}
+        onRefresh={fetchOrders}
       />
     </div>
   );
