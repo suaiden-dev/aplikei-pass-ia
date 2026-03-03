@@ -1,7 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, Circle, ChevronRight, ChevronLeft } from "lucide-react";
+import {
+  CheckCircle2,
+  Circle,
+  ChevronRight,
+  ChevronLeft,
+  FileText,
+} from "lucide-react";
 import { useOnboardingLogic } from "./useOnboardingLogic";
 import { PersonalInfoStep } from "./steps/PersonalInfoStep";
 import { HistoryStep } from "./steps/HistoryStep";
@@ -9,7 +15,6 @@ import { ProcessStep } from "./steps/ProcessStep";
 import { DocumentsStep } from "./steps/DocumentsStep";
 import { ReviewStep } from "./steps/ReviewStep";
 
-// DS-160 Steps
 import { PersonalInfo1Step } from "./steps/visto-b1-b2/PersonalInfo1Step";
 import { PersonalInfo2Step } from "./steps/visto-b1-b2/PersonalInfo2Step";
 import { TravelInfoStep } from "./steps/visto-b1-b2/TravelInfoStep";
@@ -23,6 +28,8 @@ import { FamilyInfoStep } from "./steps/visto-b1-b2/FamilyInfoStep";
 import { WorkEducationStep } from "./steps/visto-b1-b2/WorkEducationStep";
 import { AdditionalInfoStep } from "./steps/visto-b1-b2/AdditionalInfoStep";
 import { ReviewAndSignDS160Step } from "./steps/visto-b1-b2/ReviewAndSignDS160Step";
+import { DS160ReviewModal } from "./components/DS160ReviewModal";
+import { useState } from "react";
 
 export default function Onboarding() {
   const {
@@ -50,7 +57,10 @@ export default function Onboarding() {
     handleRemoveDoc,
     selectedDoc,
     setSelectedDoc,
+    serviceId,
   } = useOnboardingLogic();
+
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   const progress = ((currentStep + 1) / steps.length) * 100;
 
@@ -304,36 +314,62 @@ export default function Onboarding() {
             </div>
             <Progress value={progress} className="mt-3 h-2" />
 
-            <div className="mt-4 flex flex-wrap gap-2 lg:flex-nowrap lg:flex-col lg:items-stretch lg:gap-3">
-              {steps.map((step: string, i: number) => (
-                <button
-                  key={i}
-                  onClick={() => (i <= currentStep ? setCurrentStep(i) : null)}
-                  disabled={i > currentStep}
-                  className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium transition-all ring-1 ${
-                    i === currentStep
-                      ? "bg-accent/10 text-accent ring-accent/20"
-                      : i < currentStep
-                        ? "text-foreground ring-transparent hover:bg-muted"
-                        : "cursor-not-allowed text-muted-foreground opacity-50 ring-transparent"
-                  }`}
+            {serviceSlug !== "visto-b1-b2" && (
+              <div className="mt-4 flex flex-wrap gap-2 lg:flex-nowrap lg:flex-col lg:items-stretch lg:gap-3">
+                {steps.map((step: string, i: number) => (
+                  <button
+                    key={i}
+                    onClick={() =>
+                      i <= currentStep ? setCurrentStep(i) : null
+                    }
+                    disabled={i > currentStep}
+                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium transition-all ring-1 ${
+                      i === currentStep
+                        ? "bg-accent/10 text-accent ring-accent/20"
+                        : i < currentStep
+                          ? "text-foreground ring-transparent hover:bg-muted"
+                          : "cursor-not-allowed text-muted-foreground opacity-50 ring-transparent"
+                    }`}
+                  >
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+                      {i < currentStep ? (
+                        <CheckCircle2 className="h-4 w-4 text-accent" />
+                      ) : i === currentStep ? (
+                        <div className="h-2 w-2 rounded-full bg-accent animate-pulse" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground/30" />
+                      )}
+                    </div>
+                    <span className="truncate">{step}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {serviceSlug === "visto-b1-b2" && (
+              <div className="mt-6 pt-6 border-t border-border">
+                <Button
+                  onClick={() => setIsPreviewModalOpen(true)}
+                  variant="outline"
+                  className="w-full gap-2 border-accent/20 text-accent hover:bg-accent/5 hover:text-accent font-bold text-xs"
                 >
-                  <div className="flex h-5 w-5 shrink-0 items-center justify-center">
-                    {i < currentStep ? (
-                      <CheckCircle2 className="h-4 w-4 text-accent" />
-                    ) : i === currentStep ? (
-                      <div className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-                    ) : (
-                      <Circle className="h-4 w-4 text-muted-foreground/30" />
-                    )}
-                  </div>
-                  <span className="truncate">{step}</span>
-                </button>
-              ))}
-            </div>
+                  <FileText className="w-4 h-4" />
+                  {lang === "pt"
+                    ? "REVISAR RESPOSTAS DS-160"
+                    : "REVIEW DS-160 RESPONSES"}
+                </Button>
+              </div>
+            )}
           </div>
         </aside>
       </div>
+
+      <DS160ReviewModal
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
+        serviceId={serviceId || ""}
+        lang={lang}
+      />
 
       {/* Mobile Sticky Buttons */}
       <div className="fixed bottom-16 left-0 right-0 border-t border-border bg-background p-4 md:hidden">

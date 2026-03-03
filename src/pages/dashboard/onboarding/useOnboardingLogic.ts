@@ -463,6 +463,7 @@ export const useOnboardingLogic = () => {
         currentStep, setCurrentStep,
         loading,
         serviceStatus,
+        serviceId,
         uploading, uploadedDocs, fileInputRef, selectedDoc, setSelectedDoc,
         register, handleSubmit, watch, errors, setValue, formData,
         handleUpload, handleRemoveDoc,

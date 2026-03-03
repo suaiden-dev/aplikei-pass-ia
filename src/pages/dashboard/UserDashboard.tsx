@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -9,8 +9,19 @@ import {
   HelpCircle,
   ArrowRight,
   Briefcase,
+  Shield,
+  Fingerprint,
+  Calendar,
+  User,
   ChevronRight,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -101,6 +112,7 @@ const getStatusDisplay = (
 };
 
 export default function UserDashboard() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isAfterCheckout = !!searchParams.get("session_id");
   const { lang, t } = useLanguage();
@@ -111,6 +123,12 @@ export default function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [docsUploaded, setDocsUploaded] = useState(0);
+  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
+  const [selectedSecurityData, setSelectedSecurityData] = useState<{
+    appId: string;
+    dob: string;
+    grandma: string;
+  } | null>(null);
 
   // 1. Fetch all services and their individual progress
   useEffect(() => {
@@ -123,7 +141,7 @@ export default function UserDashboard() {
       const { data: servicesData, error } = (await supabase
         .from("user_services")
         .select(
-          "id, status, current_step, service_slug, created_at, application_id",
+          "id, status, current_step, service_slug, created_at, application_id, date_of_birth, grandmother_name",
         )
         .eq("user_id", user.id)
         .in("status", [
@@ -339,7 +357,10 @@ export default function UserDashboard() {
           {services.map((s) => (
             <button
               key={s.id}
-              onClick={() => setCurrentServiceId(s.id)}
+              onClick={() => {
+                setCurrentServiceId(s.id);
+                navigate(`/dashboard/onboarding?service_id=${s.id}`);
+              }}
               className={`relative text-left p-5 rounded-2xl border-2 transition-all duration-300 group ${
                 currentServiceId === s.id
                   ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
@@ -363,11 +384,26 @@ export default function UserDashboard() {
                 {s.service_slug?.toUpperCase().replace("-", " ")}
               </h3>
 
-              {s.application_id && (
-                <div className="mb-2">
-                  <span className="text-[10px] font-bold text-green-600 dark:text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">
-                    Application ID: {s.application_id}
-                  </span>
+              {(s.status === "ds160AwaitingReviewAndSignature" ||
+                s.status === "review_assign") && (
+                <div className="mb-3">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedSecurityData({
+                        appId: s.application_id,
+                        dob: s.date_of_birth,
+                        grandma: s.grandmother_name,
+                      });
+                      setIsSecurityModalOpen(true);
+                    }}
+                    className="flex items-center justify-center gap-2 px-3 py-2 bg-accent/10 hover:bg-accent/20 text-accent rounded-xl text-[11px] font-bold transition-all border border-accent/20 w-fit"
+                  >
+                    <Shield className="w-3.5 h-3.5" />
+                    {lang === "pt"
+                      ? "VER DADOS DE SEGURANÇA"
+                      : "VIEW SECURITY DATA"}
+                  </button>
                 </div>
               )}
 
@@ -475,6 +511,67 @@ export default function UserDashboard() {
           ))}
         </div>
       </section>
+
+      <Dialog open={isSecurityModalOpen} onOpenChange={setIsSecurityModalOpen}>
+        <DialogContent className="sm:max-w-[400px] rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+              <Shield className="w-5 h-5 text-accent" />
+              {lang === "pt" ? "Dados de Segurança" : "Security Data"}
+            </DialogTitle>
+            <DialogDescription>
+              {lang === "pt"
+                ? "Utilize esses dados se precisar acessar sua DS-160 no portal consular."
+                : "Use these details if you need to access your DS-160 on the consular portal."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-border space-y-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <Fingerprint className="w-3 h-3" />
+                  Application ID
+                </div>
+                <p className="font-mono text-lg font-bold text-foreground bg-white dark:bg-slate-800 p-2 rounded-lg border border-border shadow-sm">
+                  {selectedSecurityData?.appId || "---"}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <Calendar className="w-3 h-3" />
+                    {lang === "pt" ? "Nascimento" : "Birth Date"}
+                  </div>
+                  <p className="text-sm font-bold text-foreground bg-white dark:bg-slate-800 p-2 rounded-lg border border-border shadow-sm">
+                    {selectedSecurityData?.dob || "---"}
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <User className="w-3 h-3" />
+                    {lang === "pt" ? "Nome da Avó" : "Grandma Name"}
+                  </div>
+                  <p className="text-sm font-bold text-foreground bg-white dark:bg-slate-800 p-2 rounded-lg border border-border shadow-sm truncate">
+                    {selectedSecurityData?.grandma || "---"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-2xl flex items-start gap-3">
+              <HelpCircle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
+              <p className="text-xs text-yellow-700 leading-relaxed">
+                {lang === "pt"
+                  ? "Guarde esses dados com segurança. Eles são necessários para revisar e assinar seu formulário oficial."
+                  : "Keep this data safe. It is required to review and sign your official form."}
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

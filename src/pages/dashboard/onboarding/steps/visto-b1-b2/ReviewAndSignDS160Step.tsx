@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { UploadedDocument } from "../../types";
 import {
   Upload,
@@ -6,9 +6,14 @@ import {
   FileText,
   CheckCircle2,
   Loader2,
-  PlayCircle,
+  Image as ImageIcon,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface ReviewAndSignDS160StepProps {
   uploadedDocs: UploadedDocument[];
@@ -50,30 +55,154 @@ export function ReviewAndSignDS160Step({
     },
   ];
 
+  const [activeStep, setActiveStep] = useState(0);
+
+  const tutorialSteps = [
+    {
+      title: lang === "pt" ? "Acesse o Portal" : "Access the Portal",
+      desc:
+        lang === "pt"
+          ? "Use seu Application ID e dados de segurança para entrar no portal consular."
+          : "Use your Application ID and security data to log in to the consular portal.",
+      img: "https://images.unsplash.com/photo-1432888622747-4eb9a8f2c205?q=80&w=800&h=450&auto=format&fit=crop",
+    },
+    {
+      title: lang === "pt" ? "Revise as Informações" : "Review Information",
+      desc:
+        lang === "pt"
+          ? "Confira detalhadamente cada seção do formulário preenchido por nossa equipe."
+          : "Carefully check each section of the form filled out by our team.",
+      img: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=800&h=450&auto=format&fit=crop",
+    },
+    {
+      title: lang === "pt" ? "Assine Digitalmente" : "Sign Digitally",
+      desc:
+        lang === "pt"
+          ? "Role até o final, confirme sua identidade e realize a assinatura digital."
+          : "Scroll to the end, confirm your identity, and complete the digital signature.",
+      img: "https://images.unsplash.com/photo-1554224155-169641357599?q=80&w=800&h=450&auto=format&fit=crop",
+    },
+    {
+      title: lang === "pt" ? "Baixe a Confirmação" : "Download Confirmation",
+      desc:
+        lang === "pt"
+          ? "Salve o formulário completo e a página de confirmação com código de barras."
+          : "Save the complete form and the confirmation page with the barcode.",
+      img: "https://images.unsplash.com/photo-1618044733300-9472154094ee?q=80&w=800&h=450&auto=format&fit=crop",
+    },
+  ];
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center space-y-3">
         <h2 className="text-2xl font-bold font-display text-foreground">
           {lang === "pt"
-            ? "Revisão e Assinatura da DS-160"
-            : "DS-160 Review and Signature"}
+            ? "Tutorial: Revisão e Assinatura"
+            : "Tutorial: Review and Signature"}
         </h2>
         <p className="text-muted-foreground text-sm max-w-2xl mx-auto">
           {lang === "pt"
-            ? "Sua DS-160 foi gerada! Assista ao vídeo abaixo para instruções sobre como revisar e assinar seu formulário. Em seguida, envie os documentos obrigatórios."
-            : "Your DS-160 has been generated! Watch the video below for instructions on how to review and sign your form. Then, upload the required documents."}
+            ? "Siga os passos abaixo no portal oficial para concluir seu processo."
+            : "Follow the steps below on the official portal to complete your process."}
         </p>
       </div>
 
-      <div className="bg-slate-900 aspect-video rounded-2xl overflow-hidden relative flex items-center justify-center group shadow-xl border border-slate-800">
-        {/* Placeholder for actual video implementation, could be an iframe (YouTube/Vimeo) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent z-10" />
-        <PlayCircle className="w-16 h-16 text-white opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all z-20 cursor-pointer" />
-        <p className="absolute bottom-6 left-6 text-white font-medium z-20">
-          {lang === "pt"
-            ? "Como revisar e assinar a DS-160"
-            : "How to review and sign the DS-160"}
-        </p>
+      <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
+        {/* Timeline Header */}
+        <div className="bg-muted/30 p-4 md:p-6 border-b border-border">
+          <div className="relative flex justify-between items-center max-w-3xl mx-auto">
+            {/* Base Line */}
+            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-border -translate-y-1/2 z-0" />
+
+            {/* Active Progress Line */}
+            <div
+              className="absolute top-1/2 left-0 h-0.5 bg-accent -translate-y-1/2 z-0 transition-all duration-500"
+              style={{
+                width: `${(activeStep / (tutorialSteps.length - 1)) * 100}%`,
+              }}
+            />
+
+            {tutorialSteps.map((step, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveStep(i)}
+                className="relative z-10 flex flex-col items-center group"
+              >
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 border-2 shadow-sm ${
+                    i <= activeStep
+                      ? "bg-accent border-accent text-white"
+                      : "bg-background border-border text-muted-foreground group-hover:border-accent/40"
+                  }`}
+                >
+                  {i < activeStep ? (
+                    <CheckCircle2 className="w-4 h-4" />
+                  ) : (
+                    i + 1
+                  )}
+                </div>
+                <span
+                  className={`absolute -bottom-6 text-[10px] font-bold uppercase tracking-tighter whitespace-nowrap transition-colors duration-300 ${
+                    i === activeStep ? "text-accent" : "text-muted-foreground"
+                  } hidden md:block`}
+                >
+                  {step.title}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-2">
+          {/* Image Display */}
+          <div className="relative aspect-video lg:aspect-auto h-64 lg:h-[400px] overflow-hidden bg-slate-100 border-b lg:border-b-0 lg:border-r border-border">
+            <img
+              src={tutorialSteps[activeStep].img}
+              alt={tutorialSteps[activeStep].title}
+              className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
+            />
+          </div>
+
+          {/* Description & Navigation */}
+          <div className="p-8 flex flex-col justify-center">
+            <div className="space-y-4 mb-8">
+              <Badge className="bg-accent/10 text-accent border-none font-bold uppercase tracking-wider text-[10px] py-1 px-3">
+                {lang === "pt"
+                  ? `Passo ${activeStep + 1} de ${tutorialSteps.length}`
+                  : `Step ${activeStep + 1} of ${tutorialSteps.length}`}
+              </Badge>
+              <h3 className="text-2xl font-bold text-foreground">
+                {tutorialSteps[activeStep].title}
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {tutorialSteps[activeStep].desc}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={activeStep === 0}
+                onClick={() => setActiveStep((prev) => prev - 1)}
+                className="rounded-xl border-border hover:bg-muted font-bold text-xs"
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                {lang === "pt" ? "Anterior" : "Previous"}
+              </Button>
+              <Button
+                size="sm"
+                disabled={activeStep === tutorialSteps.length - 1}
+                onClick={() => setActiveStep((prev) => prev + 1)}
+                className="bg-accent hover:bg-green-dark text-white rounded-xl shadow-lg shadow-accent/20 font-bold text-xs px-6"
+              >
+                {lang === "pt" ? "Próximo Passo" : "Next Step"}
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="bg-accent/5 border border-accent/20 rounded-2xl p-6 space-y-6">

@@ -211,6 +211,10 @@ export default function AdminContracts() {
         <AdminDataTable
           loading={loading}
           data={orders}
+          onRowClick={(item) => {
+            setSelectedOrder(item as ContractOrder);
+            setIsModalOpen(true);
+          }}
           columns={[
             { key: "client_name", header: "Cliente" },
             {
@@ -236,25 +240,6 @@ export default function AdminContracts() {
               header: "Fluxo",
               render: (item) => (
                 <AdminStatusTimeline status={item.service_status} />
-              ),
-            },
-            {
-              key: "actions",
-              header: "Ações",
-              className: "text-right",
-              render: (item) => (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 text-[10px] font-bold gap-1.5 hover:bg-accent/10 hover:text-accent"
-                  onClick={() => {
-                    setSelectedOrder(item);
-                    setIsModalOpen(true);
-                  }}
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  ACESSAR ETAPA
-                </Button>
               ),
             },
           ]}
