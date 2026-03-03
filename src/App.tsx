@@ -19,7 +19,6 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 
-
 import Terms from "./pages/legal/Terms";
 import Privacy from "./pages/legal/Privacy";
 import Refund from "./pages/legal/Refund";
@@ -45,6 +44,7 @@ import AdminClientDetail from "./pages/admin/AdminClientDetail";
 import AdminDocuments from "./pages/admin/AdminDocuments";
 import AdminPlaceholder from "./pages/admin/AdminPlaceholder";
 import AdminDS160ViewerPage from "./pages/admin/AdminDS160ViewerPage";
+import AdminProcessDetail from "./pages/admin/AdminProcessDetail";
 import Checkout from "./pages/Checkout";
 
 import NotFound from "./pages/NotFound";
@@ -60,7 +60,9 @@ const ProtectedRoute = () => {
       setSession(!!session);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(!!session);
     });
 
@@ -89,7 +91,10 @@ const App = () => (
               <Route path="/servicos/:slug" element={<ServiceDetail />} />
               <Route path="/login" element={<Login />} />
               <Route path="/cadastro" element={<Signup />} />
-              <Route path="/auth/confirm-password" element={<ConfirmPassword />} />
+              <Route
+                path="/auth/confirm-password"
+                element={<ConfirmPassword />}
+              />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -119,19 +124,50 @@ const App = () => (
               <Route element={<AdminLayout />}>
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/pedidos" element={<AdminOrders />} />
-                <Route path="/admin/pedidos/:id" element={<AdminOrderDetail />} />
+                <Route
+                  path="/admin/pedidos/:id"
+                  element={<AdminOrderDetail />}
+                />
                 <Route path="/admin/pagamentos" element={<AdminPayments />} />
                 <Route path="/admin/clientes" element={<AdminClients />} />
-                <Route path="/admin/clientes/:id" element={<AdminClientDetail />} />
+                <Route
+                  path="/admin/clientes/:id"
+                  element={<AdminClientDetail />}
+                />
                 <Route path="/admin/documentos" element={<AdminDocuments />} />
-                <Route path="/admin/sellers" element={<AdminPlaceholder title="Sellers" />} />
-                <Route path="/admin/parceiros" element={<AdminPlaceholder title="Parceiros Globais" />} />
+                <Route
+                  path="/admin/sellers"
+                  element={<AdminPlaceholder title="Sellers" />}
+                />
+                <Route
+                  path="/admin/parceiros"
+                  element={<AdminPlaceholder title="Parceiros Globais" />}
+                />
                 <Route path="/admin/contratos" element={<AdminContracts />} />
-                <Route path="/admin/recorrencias" element={<AdminPlaceholder title="Recorrências" />} />
-                <Route path="/admin/produtos" element={<AdminPlaceholder title="Produtos & Cupons" />} />
-                <Route path="/admin/suporte" element={<AdminPlaceholder title="Suporte" />} />
-                <Route path="/admin/analytics" element={<AdminPlaceholder title="Analytics" />} />
-                <Route path="/admin/ds160/:userId" element={<AdminDS160ViewerPage />} />
+                <Route
+                  path="/admin/contratos/:id"
+                  element={<AdminProcessDetail />}
+                />
+                <Route
+                  path="/admin/recorrencias"
+                  element={<AdminPlaceholder title="Recorrências" />}
+                />
+                <Route
+                  path="/admin/produtos"
+                  element={<AdminPlaceholder title="Produtos & Cupons" />}
+                />
+                <Route
+                  path="/admin/suporte"
+                  element={<AdminPlaceholder title="Suporte" />}
+                />
+                <Route
+                  path="/admin/analytics"
+                  element={<AdminPlaceholder title="Analytics" />}
+                />
+                <Route
+                  path="/admin/ds160/:userId"
+                  element={<AdminDS160ViewerPage />}
+                />
               </Route>
             </Route>
 

@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AdminStatusTimeline } from "@/components/admin/AdminStatusTimeline";
-import { AdminStepModal } from "@/components/admin/AdminStepModal";
 
 interface ContractOrder {
   id: string;
@@ -43,10 +42,6 @@ export default function AdminContracts() {
   const [orders, setOrders] = useState<ContractOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
-  const [selectedOrder, setSelectedOrder] = useState<ContractOrder | null>(
-    null,
-  );
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -211,10 +206,7 @@ export default function AdminContracts() {
         <AdminDataTable
           loading={loading}
           data={orders}
-          onRowClick={(item) => {
-            setSelectedOrder(item as ContractOrder);
-            setIsModalOpen(true);
-          }}
+          onRowClick={(item) => navigate(`/admin/contratos/${item.id}`)}
           columns={[
             { key: "client_name", header: "Cliente" },
             {
@@ -248,13 +240,6 @@ export default function AdminContracts() {
           pageSize={20}
         />
       </div>
-
-      <AdminStepModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onRefresh={fetchOrders}
-        order={selectedOrder}
-      />
     </div>
   );
 }
