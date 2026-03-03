@@ -36,6 +36,8 @@ interface AdminStepModalProps {
     user_id: string;
     service_status: string;
     application_id?: string;
+    date_of_birth?: string;
+    grandmother_name?: string;
     product_slug: string;
     [key: string]: any;
   } | null;
@@ -50,27 +52,30 @@ export function AdminStepModal({
   const navigate = useNavigate();
   const { toast } = useToast();
   const [appId, setAppId] = useState("");
+  const [dob, setDob] = useState("");
+  const [grandmaName, setGrandmaName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (order) {
       setAppId(order.application_id || "");
+      setDob(order.date_of_birth || "");
+      setGrandmaName(order.grandmother_name || "");
     }
   }, [order]);
-
   if (!order) return null;
 
   const status = order.service_status || "unknown";
 
-  const handleSaveAppId = async () => {
-    if (!appId.trim()) return;
+  const handleSaveFields = async () => {
     setIsSaving(true);
-
     try {
       const { error } = await supabase
         .from("user_services")
         .update({
           application_id: appId.trim(),
+          date_of_birth: dob.trim(),
+          grandmother_name: grandmaName.trim(),
           status: "review_assign", // Auto transition to Revise and Sign
         })
         .eq("user_id", order.user_id)
@@ -79,7 +84,7 @@ export function AdminStepModal({
       if (error) throw error;
 
       toast({
-        title: "Application ID salvo",
+        title: "Dados salvos com sucesso",
         description: "Status atualizado para 'Revise e Assine'.",
       });
 
@@ -119,36 +124,66 @@ export function AdminStepModal({
               </div>
             </div>
 
-            <div className="space-y-3 p-4 bg-muted/40 rounded-xl border border-border">
-              <div className="flex items-center gap-2 mb-1">
-                <Fingerprint className="h-4 w-4 text-accent" />
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Application ID
-                </label>
+            <div className="space-y-4 p-4 bg-muted/40 rounded-xl border border-border">
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <Fingerprint className="h-3.5 w-3.5 text-accent" />
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Application ID
+                    </label>
+                  </div>
+                  <Input
+                    placeholder="Ex: AA00..."
+                    value={appId}
+                    onChange={(e) => setAppId(e.target.value)}
+                    className="font-mono h-9 text-sm"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-0.5">
+                      Data de Nascimento
+                    </label>
+                    <Input
+                      placeholder="DD/MM/AAAA"
+                      value={dob}
+                      onChange={(e) => setDob(e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-0.5">
+                      Nome da Avó
+                    </label>
+                    <Input
+                      placeholder="Nome Completo"
+                      value={grandmaName}
+                      onChange={(e) => setGrandmaName(e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Ex: AA00..."
-                  value={appId}
-                  onChange={(e) => setAppId(e.target.value)}
-                  className="font-mono"
-                />
-                <Button
-                  size="sm"
-                  onClick={handleSaveAppId}
-                  disabled={isSaving || !appId.trim()}
-                  className="bg-accent hover:bg-green-dark shrink-0"
-                >
-                  {isSaving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              <p className="text-[10px] text-muted-foreground italic">
-                Salvar o ID mudará o status para "Revise e Assine"
-                automaticamente.
+
+              <Button
+                className="w-full bg-accent hover:bg-green-dark gap-2 mt-2 h-9"
+                onClick={handleSaveFields}
+                disabled={
+                  isSaving ||
+                  (!appId.trim() && !dob.trim() && !grandmaName.trim())
+                }
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                Salvar Dados de Segurança
+              </Button>
+              <p className="text-[10px] text-center text-muted-foreground italic">
+                Salvar mudará o status para "Revise e Assine" automaticamente.
               </p>
             </div>
 
@@ -287,7 +322,7 @@ export function AdminStepModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
+          <DialogTitle className="flex items-center gap-2">
             Gestão do Processo
           </DialogTitle>
           <DialogDescription>
@@ -297,9 +332,13 @@ export function AdminStepModal({
 
         <div className="py-2">{renderContent()}</div>
 
-        <DialogFooter className="mt-4">
-          <Button variant="ghost" onClick={onClose} className="w-full">
-            Voltar
+        <DialogFooter>
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            className="w-full lg:w-auto"
+          >
+            Fechar
           </Button>
         </DialogFooter>
       </DialogContent>

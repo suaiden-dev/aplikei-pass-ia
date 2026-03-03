@@ -22,47 +22,19 @@ const statuses = [
 const statusLabels: Record<string, string> = {
   ds160InProgress: "DS-160: Em Andamento",
   ds160Processing: "DS-160: Processando",
-  ds160AwaitingReviewAndSignature: "DS-160: Em Revisão",
-  uploadsUnderReview: "Documentos em Análise",
-  casvSchedulingPending: "Aguardando Agendamento",
-  casvFeeProcessing: "Taxa em Processamento",
-  casvPaymentPending: "Pagamento Pendente",
+  ds160AwaitingReviewAndSignature: "DS-160: Aguardando Revisão/Assinatura",
+  uploadsUnderReview: "Uploads: Em Revisão",
+  casvSchedulingPending: "CASV: Agendamento Pendente",
+  casvFeeProcessing: "CASV: Taxa em Processamento",
+  casvPaymentPending: "CASV: Pagamento Pendente",
   awaitingInterview: "Aguardando Entrevista",
-  approved: "Visto Aprovado",
-  rejected: "Visto Negado",
+  approved: "Aprovado",
+  rejected: "Rejeitado",
   // Legacy mappings
   active: "DS-160: Em Andamento",
   review_pending: "DS-160: Processando",
-  review_assign: "DS-160: Em Revisão",
-  completed: "Visto Aprovado",
-};
-
-const statusDescriptions: Record<string, string> = {
-  ds160InProgress:
-    "O cliente iniciou o formulário e está preenchendo as informações pessoais.",
-  ds160Processing:
-    "As informações foram enviadas e estão sendo preparadas para a revisão técnica.",
-  ds160AwaitingReviewAndSignature:
-    "O formulário está completo e aguarda a conferência final e assinatura digital.",
-  uploadsUnderReview:
-    "Os documentos de suporte (passaporte, fotos, etc.) estão sendo validados pela nossa equipe.",
-  casvSchedulingPending:
-    "O sistema está monitorando a abertura de vagas nos postos consulares para agendamento.",
-  casvFeeProcessing:
-    "A confirmação do pagamento da taxa consular (MRV) está sendo processada pelo banco.",
-  casvPaymentPending:
-    "O boleto ou link de pagamento foi gerado e aguarda a quitação pelo cliente.",
-  awaitingInterview:
-    "O agendamento foi realizado com sucesso. O cliente deve comparecer na data e local marcados.",
-  approved:
-    "O consulado aprovou a solicitação de visto. Processo finalizado com sucesso.",
-  rejected:
-    "Infelizmente o visto foi negado nesta solicitação. Verifique os motivos com o consulado.",
-  // Legacy descriptions
-  active: "O cliente iniciou o formulário e está preenchendo as informações.",
-  review_pending: "As informações estão sendo preparadas para revisão.",
-  review_assign: "O formulário aguarda a conferência final.",
-  completed: "Visto aprovado e processo finalizado.",
+  review_assign: "DS-160: Aguardando Revisão",
+  completed: "Aprovado",
 };
 
 export function AdminStatusTimeline({ status }: { status?: string }) {
@@ -135,16 +107,8 @@ export function AdminStatusTimeline({ status }: { status?: string }) {
                     )}
                   />
                 </TooltipTrigger>
-                <TooltipContent
-                  side="bottom"
-                  className="max-w-[200px] py-2 px-3"
-                >
-                  <p className="font-bold text-[10px] mb-1">
-                    {statusLabels[s]}
-                  </p>
-                  <p className="text-[10px] leading-tight text-muted-foreground">
-                    {statusDescriptions[s]}
-                  </p>
+                <TooltipContent side="bottom" className="text-[10px] py-1 px-2">
+                  <p>{statusLabels[s]}</p>
                 </TooltipContent>
               </Tooltip>
             );
