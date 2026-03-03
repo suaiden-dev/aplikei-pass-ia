@@ -202,24 +202,33 @@ export type Database = {
       }
       user_services: {
         Row: {
+          application_id: string | null
           created_at: string | null
           current_step: number | null
+          date_of_birth: string | null
+          grandmother_name: string | null
           id: string
           service_slug: string
           status: string | null
           user_id: string
         }
         Insert: {
+          application_id?: string | null
           created_at?: string | null
           current_step?: number | null
+          date_of_birth?: string | null
+          grandmother_name?: string | null
           id?: string
           service_slug: string
           status?: string | null
           user_id: string
         }
         Update: {
+          application_id?: string | null
           created_at?: string | null
           current_step?: number | null
+          date_of_birth?: string | null
+          grandmother_name?: string | null
           id?: string
           service_slug?: string
           status?: string | null

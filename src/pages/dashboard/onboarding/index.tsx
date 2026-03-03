@@ -22,6 +22,7 @@ import { USContactStep } from "./steps/visto-b1-b2/USContactStep";
 import { FamilyInfoStep } from "./steps/visto-b1-b2/FamilyInfoStep";
 import { WorkEducationStep } from "./steps/visto-b1-b2/WorkEducationStep";
 import { AdditionalInfoStep } from "./steps/visto-b1-b2/AdditionalInfoStep";
+import { ReviewAndSignDS160Step } from "./steps/visto-b1-b2/ReviewAndSignDS160Step";
 
 export default function Onboarding() {
   const {
@@ -66,6 +67,24 @@ export default function Onboarding() {
       serviceSlug,
       serviceStatus,
     };
+
+    if (
+      serviceSlug === "visto-b1-b2" &&
+      (serviceStatus === "ds160AwaitingReviewAndSignature" ||
+        serviceStatus === "review_assign" ||
+        serviceStatus === "uploadsUnderReview")
+    ) {
+      return (
+        <ReviewAndSignDS160Step
+          uploadedDocs={uploadedDocs}
+          handleUpload={handleUpload}
+          handleRemove={handleRemoveDoc}
+          uploading={uploading}
+          fileInputRef={fileInputRef}
+          setSelectedDoc={setSelectedDoc}
+        />
+      );
+    }
 
     if (serviceSlug === "visto-b1-b2") {
       switch (currentStep) {
@@ -207,12 +226,22 @@ export default function Onboarding() {
             <div className="mt-8 hidden justify-between md:flex">
               <Button
                 variant="outline"
-                disabled={currentStep === 0}
+                disabled={
+                  currentStep === 0 ||
+                  serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                  serviceStatus === "review_assign" ||
+                  serviceStatus === "uploadsUnderReview"
+                }
                 onClick={() => setCurrentStep((s) => s - 1)}
               >
                 <ChevronLeft className="mr-1 h-4 w-4" /> {o.previous[lang]}
               </Button>
-              {currentStep < steps.length - 1 ? (
+              {currentStep < steps.length - 1 &&
+              !(
+                serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                serviceStatus === "review_assign" ||
+                serviceStatus === "uploadsUnderReview"
+              ) ? (
                 <Button
                   className="bg-accent text-accent-foreground hover:bg-green-dark"
                   onClick={handleNext}
@@ -225,20 +254,35 @@ export default function Onboarding() {
                   onClick={handleFinish}
                   disabled={
                     serviceStatus === "review_pending" ||
-                    serviceStatus === "review_assign" ||
-                    serviceStatus === "completed"
+                    serviceStatus === "ds160Processing" ||
+                    serviceStatus === "completed" ||
+                    ((serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                      serviceStatus === "review_assign") &&
+                      (!uploadedDocs.some((d) => d.name === "ds160_assinada") ||
+                        !uploadedDocs.some(
+                          (d) => d.name === "ds160_comprovante",
+                        )))
                   }
                 >
-                  {serviceStatus === "review_pending"
+                  {serviceStatus === "review_pending" ||
+                  serviceStatus === "ds160Processing"
                     ? lang === "pt"
                       ? "Processando..."
                       : "Processing..."
                     : serviceStatus === "review_assign" ||
-                        serviceStatus === "completed"
+                        serviceStatus === "ds160AwaitingReviewAndSignature"
                       ? lang === "pt"
-                        ? "Concluído"
-                        : "Completed"
-                      : o.confirmGenerate[lang]}
+                        ? "Enviar Documentos"
+                        : "Submit Documents"
+                      : serviceStatus === "uploadsUnderReview"
+                        ? lang === "pt"
+                          ? "Documentos em Análise..."
+                          : "Documents under review..."
+                        : serviceStatus === "completed"
+                          ? lang === "pt"
+                            ? "Concluído"
+                            : "Completed"
+                          : o.confirmGenerate[lang]}
                 </Button>
               )}
             </div>
@@ -297,12 +341,22 @@ export default function Onboarding() {
           <Button
             variant="outline"
             className="flex-1"
-            disabled={currentStep === 0}
+            disabled={
+              currentStep === 0 ||
+              serviceStatus === "ds160AwaitingReviewAndSignature" ||
+              serviceStatus === "review_assign" ||
+              serviceStatus === "uploadsUnderReview"
+            }
             onClick={() => setCurrentStep((s) => s - 1)}
           >
             <ChevronLeft className="mr-1 h-4 w-4" /> {o.previous[lang]}
           </Button>
-          {currentStep < steps.length - 1 ? (
+          {currentStep < steps.length - 1 &&
+          !(
+            serviceStatus === "ds160AwaitingReviewAndSignature" ||
+            serviceStatus === "review_assign" ||
+            serviceStatus === "uploadsUnderReview"
+          ) ? (
             <Button
               className="flex-1 bg-accent text-accent-foreground hover:bg-green-dark"
               onClick={handleNext}
@@ -315,20 +369,33 @@ export default function Onboarding() {
               onClick={handleFinish}
               disabled={
                 serviceStatus === "review_pending" ||
-                serviceStatus === "review_assign" ||
-                serviceStatus === "completed"
+                serviceStatus === "ds160Processing" ||
+                serviceStatus === "completed" ||
+                ((serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                  serviceStatus === "review_assign") &&
+                  (!uploadedDocs.some((d) => d.name === "ds160_assinada") ||
+                    !uploadedDocs.some((d) => d.name === "ds160_comprovante")))
               }
             >
-              {serviceStatus === "review_pending"
+              {serviceStatus === "review_pending" ||
+              serviceStatus === "ds160Processing"
                 ? lang === "pt"
                   ? "Processando..."
                   : "Processing..."
                 : serviceStatus === "review_assign" ||
-                    serviceStatus === "completed"
+                    serviceStatus === "ds160AwaitingReviewAndSignature"
                   ? lang === "pt"
-                    ? "Concluído"
-                    : "Completed"
-                  : o.confirmGenerate[lang]}
+                    ? "Enviar Documentos"
+                    : "Submit Documents"
+                  : serviceStatus === "uploadsUnderReview"
+                    ? lang === "pt"
+                      ? "Documentos em Análise..."
+                      : "Documents under review..."
+                    : serviceStatus === "completed"
+                      ? lang === "pt"
+                        ? "Concluído"
+                        : "Completed"
+                      : o.confirmGenerate[lang]}
             </Button>
           )}
         </div>

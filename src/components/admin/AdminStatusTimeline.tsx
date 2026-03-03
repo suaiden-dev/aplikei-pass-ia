@@ -19,7 +19,7 @@ const statuses = [
   "rejected",
 ];
 
-const statusLabels: Record<string, string> = {
+export const statusLabels: Record<string, string> = {
   ds160InProgress: "DS-160: Em Andamento",
   ds160Processing: "DS-160: Processando",
   ds160AwaitingReviewAndSignature: "DS-160: Aguardando Revisão/Assinatura",

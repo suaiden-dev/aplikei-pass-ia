@@ -8,7 +8,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   ClipboardList,
   Upload,
@@ -18,13 +17,17 @@ import {
   XCircle,
   Info,
   Clock,
-  Loader2,
-  Save,
   Fingerprint,
+  ShieldCheck,
+  Save,
+  Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { statusLabels } from "./AdminStatusTimeline";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 interface AdminStepModalProps {
   isOpen: boolean;
@@ -33,13 +36,13 @@ interface AdminStepModalProps {
   order: {
     id: string;
     client_name: string;
-    user_id: string;
-    service_status: string;
+    user_id?: string | null;
+    user_service_id?: string;
+    service_status?: string;
     application_id?: string;
     date_of_birth?: string;
     grandmother_name?: string;
-    product_slug: string;
-    [key: string]: any;
+    product_slug?: string;
   } | null;
 }
 
@@ -68,6 +71,15 @@ export function AdminStepModal({
   const status = order.service_status || "unknown";
 
   const handleSaveFields = async () => {
+    if (!order.user_service_id) {
+      toast({
+        title: "Erro interno",
+        description: "ID do serviço não encontrado. Tente atualizar a página.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
       const { error } = await supabase
@@ -76,24 +88,24 @@ export function AdminStepModal({
           application_id: appId.trim(),
           date_of_birth: dob.trim(),
           grandmother_name: grandmaName.trim(),
-          status: "review_assign", // Auto transition to Revise and Sign
+          status: "ds160AwaitingReviewAndSignature",
         })
-        .eq("user_id", order.user_id)
-        .eq("service_slug", order.product_slug);
+        .eq("id", order.user_service_id);
 
       if (error) throw error;
 
       toast({
         title: "Dados salvos com sucesso",
-        description: "Status atualizado para 'Revise e Assine'.",
+        description: "Status atualizado para 'Aguardando Revisão/Assinatura'.",
       });
 
       onRefresh?.();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       toast({
         title: "Erro ao salvar",
-        description: error.message,
+        description: err.message || "Erro desconhecido ao salvar",
         variant: "destructive",
       });
     } finally {
@@ -101,16 +113,18 @@ export function AdminStepModal({
     }
   };
 
+  const isAlreadySaved = !!(
+    order.application_id &&
+    order.date_of_birth &&
+    order.grandmother_name
+  );
+
   const renderContent = () => {
     switch (status) {
       case "ds160InProgress":
-      case "ds160Processing":
-      case "ds160AwaitingReviewAndSignature":
       case "active":
-      case "review_pending":
-      case "review_assign":
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
               <ClipboardList className="h-5 w-5 text-yellow-600" />
               <div>
@@ -118,17 +132,55 @@ export function AdminStepModal({
                   Fluxo DS-160
                 </p>
                 <p className="text-xs text-yellow-600">
-                  O cliente está preenchendo ou aguardando revisão do
-                  formulário.
+                  O cliente ainda precisa preencher a DS-160.
+                </p>
+              </div>
+            </div>
+            <Button
+              className="w-full gap-2"
+              onClick={() =>
+                navigate(`/admin/ds160/${order.user_id}`, {
+                  state: { clientName: order.client_name },
+                })
+              }
+            >
+              <ClipboardList className="h-4 w-4" />
+              Ver Respostas do Formulário
+            </Button>
+          </div>
+        );
+
+      case "ds160Processing":
+      case "ds160AwaitingReviewAndSignature":
+      case "review_pending":
+      case "review_assign":
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
+              <ClipboardList className="h-5 w-5 text-yellow-600" />
+              <div>
+                <p className="text-sm font-bold text-yellow-700">
+                  Fluxo DS-160
+                </p>
+                <p className="text-xs text-yellow-600">
+                  O cliente finalizou a DS-160. Preencha os dados de segurança
+                  para prosseguir.
                 </p>
               </div>
             </div>
 
-            <div className="space-y-4 p-4 bg-muted/40 rounded-xl border border-border">
-              <div className="space-y-3">
+            <div className="space-y-4 p-5 bg-accent/5 rounded-xl border border-accent/20 shadow-sm transition-all duration-300">
+              <div className="flex items-center gap-2 border-b border-accent/10 pb-2 mb-3">
+                <ShieldCheck className="h-4 w-4 text-accent" />
+                <h4 className="text-xs font-bold uppercase tracking-widest text-accent">
+                  Dados de Segurança
+                </h4>
+              </div>
+
+              <div className="space-y-4">
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-2">
-                    <Fingerprint className="h-3.5 w-3.5 text-accent" />
+                    <Fingerprint className="h-3.5 w-3.5 text-muted-foreground" />
                     <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Application ID
                     </label>
@@ -137,11 +189,12 @@ export function AdminStepModal({
                     placeholder="Ex: AA00..."
                     value={appId}
                     onChange={(e) => setAppId(e.target.value)}
-                    className="font-mono h-9 text-sm"
+                    readOnly={isAlreadySaved}
+                    className={`font-mono h-10 text-sm focus:ring-accent/30 ${isAlreadySaved ? "bg-muted" : ""}`}
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-0.5">
                       Data de Nascimento
@@ -150,7 +203,8 @@ export function AdminStepModal({
                       placeholder="DD/MM/AAAA"
                       value={dob}
                       onChange={(e) => setDob(e.target.value)}
-                      className="h-9 text-sm"
+                      readOnly={isAlreadySaved}
+                      className={`h-10 text-sm focus:ring-accent/30 ${isAlreadySaved ? "bg-muted" : ""}`}
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -161,35 +215,49 @@ export function AdminStepModal({
                       placeholder="Nome Completo"
                       value={grandmaName}
                       onChange={(e) => setGrandmaName(e.target.value)}
-                      className="h-9 text-sm"
+                      readOnly={isAlreadySaved}
+                      className={`h-10 text-sm focus:ring-accent/30 ${isAlreadySaved ? "bg-muted" : ""}`}
                     />
                   </div>
                 </div>
               </div>
 
               <Button
-                className="w-full bg-accent hover:bg-green-dark gap-2 mt-2 h-9"
+                className={`w-full gap-2 mt-4 h-11 shadow-lg ${isAlreadySaved ? "bg-gray-400" : "bg-accent hover:bg-green-dark shadow-accent/20"}`}
                 onClick={handleSaveFields}
                 disabled={
                   isSaving ||
-                  (!appId.trim() && !dob.trim() && !grandmaName.trim())
+                  isAlreadySaved ||
+                  !appId.trim() ||
+                  !dob.trim() ||
+                  !grandmaName.trim()
                 }
               >
                 {isSaving ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isAlreadySaved ? (
+                  <CheckCircle2 className="h-4 w-4" />
                 ) : (
                   <Save className="h-4 w-4" />
                 )}
-                Salvar Dados de Segurança
+                {isAlreadySaved ? "Dados Já Salvos" : "Salvar e Prosseguir"}
               </Button>
-              <p className="text-[10px] text-center text-muted-foreground italic">
-                Salvar mudará o status para "Revise e Assine" automaticamente.
+              <p className="text-[10px] text-center text-muted-foreground/80 italic mt-2">
+                {isAlreadySaved ? (
+                  "Estes dados já foram salvos e o processo avançou."
+                ) : (
+                  <>
+                    O status será alterado para{" "}
+                    <span className="font-bold text-accent">
+                      \"Aguardando Revisão/Assinatura\"
+                    </span>{" "}
+                    ao salvar.
+                  </>
+                )}
               </p>
             </div>
-
             <Button
-              variant="outline"
-              className="w-full gap-2 h-10 border-accent/20 text-accent hover:bg-accent/5"
+              className="w-full gap-2"
               onClick={() =>
                 navigate(`/admin/ds160/${order.user_id}`, {
                   state: { clientName: order.client_name },
@@ -322,9 +390,11 @@ export function AdminStepModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            Gestão do Processo
-          </DialogTitle>
+          <div className="flex items-center justify-between gap-2">
+            <DialogTitle className="flex items-center gap-2">
+              Gestão do Processo
+            </DialogTitle>
+          </div>
           <DialogDescription>
             Ações e informações para <strong>{order.client_name}</strong>
           </DialogDescription>

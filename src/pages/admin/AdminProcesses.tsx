@@ -30,7 +30,8 @@ interface ContractOrder {
   terms_accepted_at: string | null;
   client_ip: string | null;
   created_at: string;
-  service_status: string;
+  service_status?: string;
+  user_service_id?: string;
   application_id?: string;
   date_of_birth?: string;
   grandmother_name?: string;
@@ -61,12 +62,12 @@ export default function AdminContracts() {
       if (error) throw error;
 
       // Fetch service statuses for all users in orders
-      const { data: services, error: servicesError } = await (supabase
+      const { data: services, error: servicesError } = await supabase
         .from("user_services")
         .select(
-          "user_id, status, service_slug, application_id, date_of_birth, grandmother_name",
+          "id, user_id, status, service_slug, application_id, date_of_birth, grandmother_name",
         )
-        .in("user_id", data.map((o) => o.user_id).filter(Boolean)) as any);
+        .in("user_id", data.map((o) => o.user_id).filter(Boolean));
 
       if (servicesError) {
         console.error("Erro ao buscar status dos serviços:", servicesError);
@@ -81,6 +82,7 @@ export default function AdminContracts() {
         return {
           ...order,
           service_status: service?.status,
+          user_service_id: service?.id,
           application_id: service?.application_id,
           date_of_birth: service?.date_of_birth,
           grandmother_name: service?.grandmother_name,
@@ -265,8 +267,8 @@ export default function AdminContracts() {
       <AdminStepModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        order={selectedOrder}
         onRefresh={fetchOrders}
+        order={selectedOrder}
       />
     </div>
   );

@@ -18,6 +18,88 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 
+const getStatusDisplay = (
+  status: string,
+  lang: "en" | "pt",
+  serviceSlug?: string,
+) => {
+  if (!status) return { stepText: "", label: "" };
+
+  // Legacy support
+  if (status === "active") status = "ds160InProgress";
+  if (status === "review_pending") status = "ds160Processing";
+  if (status === "review_assign") status = "ds160AwaitingReviewAndSignature";
+  if (status === "completed") status = "approved";
+
+  const totalSteps = 9;
+  let step = 0;
+  let labelPt = "";
+  let labelEn = "";
+
+  switch (status) {
+    case "ds160InProgress":
+      step = 1;
+      labelPt = "Preenchendo DS-160";
+      labelEn = "Filling out DS-160";
+      break;
+    case "ds160Processing":
+      step = 2;
+      labelPt = "Processando DS-160";
+      labelEn = "Processing DS-160";
+      break;
+    case "ds160AwaitingReviewAndSignature":
+      step = 3;
+      labelPt = "Aguardando Revisão/Assinatura";
+      labelEn = "Awaiting Review/Signature";
+      break;
+    case "uploadsUnderReview":
+      step = 4;
+      labelPt = "Uploads em Revisão";
+      labelEn = "Uploads Under Review";
+      break;
+    case "casvSchedulingPending":
+      step = 5;
+      labelPt = "Agendamento Pendente";
+      labelEn = "Scheduling Pending";
+      break;
+    case "casvFeeProcessing":
+      step = 6;
+      labelPt = "Taxa em Processamento";
+      labelEn = "Fee in Processing";
+      break;
+    case "casvPaymentPending":
+      step = 7;
+      labelPt = "Pagamento CASV Pendente";
+      labelEn = "CASV Payment Pending";
+      break;
+    case "awaitingInterview":
+      step = 8;
+      labelPt = "Aguardando Entrevista";
+      labelEn = "Awaiting Interview";
+      break;
+    case "approved":
+      step = 9;
+      labelPt = "Aprovado";
+      labelEn = "Approved";
+      break;
+    case "rejected":
+      return {
+        stepText: lang === "pt" ? "Processo Rejeitado" : "Process Rejected",
+        label: lang === "pt" ? "Rejeitado" : "Rejected",
+      };
+    default:
+      return { stepText: "", label: status };
+  }
+
+  const stepText =
+    lang === "pt"
+      ? `Etapa ${step} de ${totalSteps}`
+      : `Step ${step} of ${totalSteps}`;
+  const label = lang === "pt" ? labelPt : labelEn;
+
+  return { stepText, label, step, totalSteps };
+};
+
 export default function UserDashboard() {
   const [searchParams] = useSearchParams();
   const isAfterCheckout = !!searchParams.get("session_id");
@@ -45,6 +127,9 @@ export default function UserDashboard() {
         )
         .eq("user_id", user.id)
         .in("status", [
+          "ds160InProgress",
+          "ds160Processing",
+          "ds160AwaitingReviewAndSignature",
           "active",
           "review_pending",
           "review_assign",
@@ -138,19 +223,19 @@ export default function UserDashboard() {
       icon: <LayoutDashboard className="h-5 w-5" />,
       title: d.cards.currentService[lang],
       desc: d.cards.currentServiceDesc[lang],
-      status:
-        currentService?.status === "review_pending"
-          ? lang === "pt"
-            ? currentService?.service_slug === "visto-b1-b2" ||
-              currentService?.service_slug === "visto-f1"
-              ? "Processando DS-160"
-              : "Processando"
-            : currentService?.service_slug === "visto-b1-b2" ||
-                currentService?.service_slug === "visto-f1"
-              ? "Processing DS-160"
-              : "Processing"
-          : d.cards.inProgress[lang],
+      status: getStatusDisplay(
+        currentService?.status,
+        lang,
+        currentService?.service_slug,
+      ).label,
       to: `/dashboard/onboarding?service_id=${currentServiceId}`,
+      actionText:
+        currentService?.status === "review_assign" ||
+        currentService?.status === "ds160AwaitingReviewAndSignature"
+          ? lang === "pt"
+            ? "REVISAR E ASSINAR"
+            : "REVIEW AND SIGN"
+          : undefined,
     },
     {
       icon: <CheckSquare className="h-5 w-5" />,
@@ -287,27 +372,14 @@ export default function UserDashboard() {
               )}
 
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-                <span>
-                  {s.status === "active"
-                    ? lang === "pt"
-                      ? "Em preenchimento"
-                      : "Filling out"
-                    : s.status === "review_assign"
-                      ? lang === "pt"
-                        ? "Revise e assine sua DS-160"
-                        : "Review and sign your DS-160"
-                      : s.status === "review_pending"
-                        ? lang === "pt"
-                          ? s.service_slug === "visto-b1-b2" ||
-                            s.service_slug === "visto-f1"
-                            ? "Processando DS-160"
-                            : "Processando"
-                          : s.service_slug === "visto-b1-b2" ||
-                              s.service_slug === "visto-f1"
-                            ? "Processing DS-160"
-                            : "Processing"
-                        : s.status}
-                </span>
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-bold text-[10px] text-accent uppercase tracking-wider">
+                    {getStatusDisplay(s.status, lang, s.service_slug).stepText}
+                  </span>
+                  <span className="text-foreground font-medium">
+                    {getStatusDisplay(s.status, lang, s.service_slug).label}
+                  </span>
+                </div>
                 <span className="font-bold text-primary">
                   {s.calculatedProgress}%
                 </span>
@@ -393,7 +465,8 @@ export default function UserDashboard() {
 
                 {!card.disabled && (
                   <div className="mt-auto pt-4 flex items-center gap-1 text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0">
-                    {lang === "pt" ? "ACESSAR AGORA" : "ACCESS NOW"}{" "}
+                    {card.actionText ||
+                      (lang === "pt" ? "ACESSAR AGORA" : "ACCESS NOW")}{" "}
                     <ChevronRight className="w-4 h-4" />
                   </div>
                 )}

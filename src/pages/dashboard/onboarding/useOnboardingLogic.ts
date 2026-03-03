@@ -64,7 +64,7 @@ export const useOnboardingLogic = () => {
                 .from("user_services")
                 .select("id, status, current_step, service_slug")
                 .eq("user_id", user.id)
-                .in("status", ["active", "review_pending", "review_assign", "completed"])
+                .in("status", ["ds160InProgress", "ds160Processing", "ds160AwaitingReviewAndSignature", "active", "review_pending", "review_assign", "completed"])
                 .order("created_at", { ascending: false });
 
             if (serviceError) {
@@ -87,7 +87,7 @@ export const useOnboardingLogic = () => {
                 try {
                     const { data: newService, error: createError } = await supabase
                         .from("user_services")
-                        .insert({ user_id: user.id, service_slug: slug, status: "active" })
+                        .insert({ user_id: user.id, service_slug: slug, status: "ds160InProgress" })
                         .select()
                         .single();
 
@@ -189,7 +189,7 @@ export const useOnboardingLogic = () => {
                 .from("user_services")
                 .select("id")
                 .eq("user_id", user.id)
-                .eq("status", "active")
+                .in("status", ["ds160InProgress", "ds160Processing", "ds160AwaitingReviewAndSignature", "active", "review_pending", "review_assign"])
                 .maybeSingle();
 
             if (!service) throw new Error("No active service");
@@ -338,7 +338,7 @@ export const useOnboardingLogic = () => {
                     return await trigger(["primaryOccupation", "employerName", "jobStartDate"]);
                 case "additional":
                     return true;
-                case "documents":
+                case "documents": {
                     const requiredDocs = [o.docPhoto[lang]]; // Only selfie for B1/B2
                     const uploadedNames = uploadedDocs.map(d => d.name);
                     const missing = requiredDocs.filter(req => !uploadedNames.includes(req));
@@ -348,6 +348,7 @@ export const useOnboardingLogic = () => {
                         return false;
                     }
                     return true;
+                }
                 default:
                     return true;
             }
@@ -421,12 +422,15 @@ export const useOnboardingLogic = () => {
             console.log("👤 [handleFinish] User authenticated:", user?.id);
 
             if (serviceId) {
-                console.log("🔄 [handleFinish] Updating service status to 'review_pending'...");
+                const isSignatureSubmit = serviceStatus === "ds160AwaitingReviewAndSignature" || serviceStatus === "review_assign";
+                const nextStatus = isSignatureSubmit ? "uploadsUnderReview" : "review_pending";
+
+                console.log(`🔄 [handleFinish] Updating service status to '${nextStatus}'...`);
                 const { error: updateError } = await supabase
                     .from("user_services")
                     .update({
                         current_step: 13, // Final step for DS-160
-                        status: "review_pending",
+                        status: nextStatus,
                     })
                     .eq("id", serviceId);
 
@@ -443,7 +447,13 @@ export const useOnboardingLogic = () => {
         }
 
         console.log("🏁 [handleFinish] Redirecting to dashboard...");
-        toast.success(lang === 'pt' ? 'Pacote gerado com sucesso!' : 'Package generated successfully!');
+        
+        const isSignatureSubmit = serviceStatus === "ds160AwaitingReviewAndSignature" || serviceStatus === "review_assign";
+        toast.success(
+            lang === 'pt' 
+                ? (isSignatureSubmit ? 'Documentos enviados com sucesso!' : 'Pacote gerado com sucesso!') 
+                : (isSignatureSubmit ? 'Documents submitted successfully!' : 'Package generated successfully!')
+        );
         localStorage.removeItem("onboarding_step");
         navigate("/dashboard");
     };
