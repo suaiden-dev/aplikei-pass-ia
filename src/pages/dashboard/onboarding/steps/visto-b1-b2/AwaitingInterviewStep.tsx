@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { InterviewGuide } from "./InterviewGuide";
 import { AIInterviewChat } from "./AIInterviewChat";
+import { SpecialistTraining } from "./SpecialistTraining";
 
 interface AwaitingInterviewStepProps {
   serviceId: string | null;
@@ -45,6 +46,7 @@ export function AwaitingInterviewStep({
   const [loading, setLoading] = useState(true);
   const [showGuide, setShowGuide] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
+  const [showSpecialist, setShowSpecialist] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -100,8 +102,7 @@ export function AwaitingInterviewStep({
       icon: Users,
       color: "bg-purple-500",
       tag: "PREMIUM",
-      action: () =>
-        window.open("https://wa.me/message/YOUR_WHATSAPP", "_blank"),
+      action: () => setShowSpecialist(true),
     },
   ];
 
@@ -119,6 +120,10 @@ export function AwaitingInterviewStep({
 
   if (showAIChat) {
     return <AIInterviewChat onBack={() => setShowAIChat(false)} />;
+  }
+
+  if (showSpecialist) {
+    return <SpecialistTraining onBack={() => setShowSpecialist(false)} />;
   }
 
   return (
