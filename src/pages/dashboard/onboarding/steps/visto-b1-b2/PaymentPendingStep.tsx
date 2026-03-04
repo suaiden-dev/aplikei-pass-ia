@@ -42,6 +42,11 @@ interface ProcessDocument {
   created_at: string;
 }
 
+interface ConsularCredentials {
+  consular_login?: string | null;
+  consular_password?: string | null;
+}
+
 export function PaymentPendingStep({
   serviceId,
   onComplete,
@@ -53,30 +58,46 @@ export function PaymentPendingStep({
   const [paymentMethod, setPaymentMethod] = useState<"boleto" | "card">(
     "boleto",
   );
+  const [consularLogin, setConsularLogin] = useState("");
+  const [consularPassword, setConsularPassword] = useState("");
 
   // Fee is strictly $185
   const feeAmount = "185.00";
 
   useEffect(() => {
-    const fetchBoleto = async () => {
+    const fetchData = async () => {
       if (!serviceId) return;
       try {
-        const { data, error } = await supabase
+        // Fetch Service details (credentials)
+        const { data: service } = await supabase
+          .from("user_services")
+          .select("consular_login, consular_password")
+          .eq("id", serviceId)
+          .single();
+
+        if (service) {
+          const s = service as unknown as ConsularCredentials;
+          setConsularLogin(s.consular_login || "");
+          setConsularPassword(s.consular_password || "");
+        }
+
+        // Fetch Boleto
+        const { data: boleto } = await supabase
           .from("documents")
-          .select("*")
+          .select("id, name, storage_path, bucket_id, created_at")
           .eq("user_service_id", serviceId)
           .eq("name", "ds160_boleto")
           .single();
 
-        if (data) setBoletoDoc(data);
+        if (boleto) setBoletoDoc(boleto as unknown as ProcessDocument);
       } catch (error) {
-        console.log("No boleto found yet");
+        console.log("Error fetching data:", error);
       } finally {
         setIsLoadingDoc(false);
       }
     };
 
-    fetchBoleto();
+    fetchData();
   }, [serviceId]);
 
   const handlePaymentCompleted = async () => {
@@ -396,11 +417,41 @@ export function PaymentPendingStep({
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {lang === "pt"
-                      ? "Para pagar com cartão de crédito, você deve acessar o portal oficial do consulado com os dados que enviamos para o seu e-mail."
-                      : "To pay with a credit card, you must access the official consulate portal with the details we sent to your email."}
+                      ? "Para pagar com cartão de crédito, você deve acessar o portal oficial do consulado com os dados abaixo:"
+                      : "To pay with a credit card, you must access the official consulate portal with the details below:"}
                   </p>
-                  <Button className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-xl gap-2 font-bold uppercase text-xs tracking-widest">
-                    IR PARA O PORTAL DO CONSULADO{" "}
+
+                  {(consularLogin || consularPassword) && (
+                    <div className="bg-white dark:bg-slate-800/80 rounded-2xl p-4 border border-blue-200 dark:border-blue-900/50 shadow-inner space-y-3">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">
+                          Login / E-mail
+                        </span>
+                        <span className="text-sm font-bold font-mono break-all leading-none">
+                          {consularLogin || "---"}
+                        </span>
+                      </div>
+                      <div className="flex flex-col border-t border-slate-100 dark:border-slate-700/50 pt-3">
+                        <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">
+                          {lang === "pt" ? "Senha" : "Password"}
+                        </span>
+                        <span className="text-sm font-bold font-mono leading-none">
+                          {consularPassword || "---"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-xl gap-2 font-bold uppercase text-xs tracking-widest shadow-lg shadow-blue-500/20"
+                    onClick={() =>
+                      window.open(
+                        "https://ais.usvisa-info.com/pt-br/niv/",
+                        "_blank",
+                      )
+                    }
+                  >
+                    {lang === "pt" ? "IR PARA O PORTAL" : "GO TO PORTAL"}{" "}
                     <ExternalLink className="h-4 w-4" />
                   </Button>
                 </div>

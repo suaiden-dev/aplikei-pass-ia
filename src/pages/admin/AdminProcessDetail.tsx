@@ -47,6 +47,12 @@ interface Order {
   date_of_birth: string | null;
   grandmother_name: string | null;
   contract_pdf_url?: string | null;
+  consular_login?: string | null;
+  consular_password?: string | null;
+  interview_date?: string | null;
+  interview_time?: string | null;
+  interview_location_casv?: string | null;
+  interview_location_consulate?: string | null;
 }
 
 interface ProcessDocument {
@@ -94,6 +100,13 @@ export default function AdminProcessDetail() {
     OnboardingResponse[]
   >([]);
   const [interviewLocation, setInterviewLocation] = useState<string>("");
+  const [consularLogin, setConsularLogin] = useState("");
+  const [consularPassword, setConsularPassword] = useState("");
+  const [interviewDate, setInterviewDate] = useState("");
+  const [interviewTime, setInterviewTime] = useState("");
+  const [interviewLocationCasv, setInterviewLocationCasv] = useState("");
+  const [interviewLocationConsulate, setInterviewLocationConsulate] =
+    useState("");
   const { lang } = useLanguage();
 
   const fetchProcessData = useCallback(async () => {
@@ -116,6 +129,7 @@ export default function AdminProcessDetail() {
         .eq("service_slug", orderData.product_slug)
         .single();
 
+      const s = serviceData as any;
       const combined = {
         ...orderData,
         service_status: serviceData?.status,
@@ -123,12 +137,24 @@ export default function AdminProcessDetail() {
         application_id: serviceData?.application_id,
         date_of_birth: serviceData?.date_of_birth,
         grandmother_name: serviceData?.grandmother_name,
+        interview_date: s?.interview_date,
+        interview_time: s?.interview_time,
+        interview_location_casv: s?.interview_location_casv,
+        interview_location_consulate: s?.interview_location_consulate,
       };
 
       setOrder(combined);
       setAppId(combined.application_id || "");
       setDob(combined.date_of_birth || "");
       setGrandmaName(combined.grandmother_name || "");
+      setConsularLogin(serviceData?.consular_login || "");
+      setConsularPassword(serviceData?.consular_password || "");
+      setInterviewDate(serviceData?.interview_date || "");
+      setInterviewTime(serviceData?.interview_time || "");
+      setInterviewLocationCasv(serviceData?.interview_location_casv || "");
+      setInterviewLocationConsulate(
+        serviceData?.interview_location_consulate || "",
+      );
 
       // Fetch documents for this user
       if (orderData.user_id) {
@@ -217,6 +243,75 @@ export default function AdminProcessDetail() {
       const error = err as Error;
       toast({
         title: "Erro ao salvar",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveCredentials = async () => {
+    if (!order?.user_service_id) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_services")
+        .update({
+          consular_login: consularLogin.trim(),
+          consular_password: consularPassword.trim(),
+        })
+        .eq("id", order.user_service_id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Credenciais salvas",
+        description: "O cliente poderá visualizar os dados no portal.",
+      });
+
+      fetchProcessData();
+    } catch (err) {
+      const error = err as Error;
+      toast({
+        title: "Erro ao salvar credenciais",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveInterviewDetails = async () => {
+    if (!order?.user_service_id) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_services")
+        .update({
+          interview_date: interviewDate || null,
+          interview_time: interviewTime || null,
+          interview_location_casv: interviewLocationCasv.trim() || null,
+          interview_location_consulate:
+            interviewLocationConsulate.trim() || null,
+        })
+        .eq("id", order.user_service_id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Agendamento salvo",
+        description: "Os dados da entrevista foram atualizados.",
+      });
+
+      fetchProcessData();
+    } catch (err) {
+      const error = err as Error;
+      toast({
+        title: "Erro ao salvar agendamento",
         description: error.message,
         variant: "destructive",
       });
@@ -723,18 +818,49 @@ export default function AdminProcessDetail() {
       case "casvSchedulingPending":
       case "casvFeeProcessing":
       case "casvPaymentPending":
+      case "awaitingInterview": {
+        const sched = onboardingResponses.find(
+          (r) => r.step_slug === "casv_scheduling",
+        );
+        const schedData = sched?.data as SchedData;
+        const preferredDate = schedData?.preferred_date;
+
         return (
-          <div className="space-y-8 max-w-xl">
-            <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950/20 rounded-2xl border border-green-100 dark:border-green-900/30">
-              <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                <Calendar className="h-5 w-5 text-green-600" />
+          <div className="space-y-8 max-w-xl pb-20">
+            <div
+              className={`flex items-center gap-3 p-4 rounded-2xl border ${
+                order.service_status === "awaitingInterview"
+                  ? "bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30"
+                  : "bg-green-50 dark:bg-green-950/20 border-green-100 dark:border-green-900/30"
+              }`}
+            >
+              <div
+                className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                  order.service_status === "awaitingInterview"
+                    ? "bg-blue-100 dark:bg-blue-900"
+                    : "bg-green-100 dark:bg-green-900"
+                }`}
+              >
+                {order.service_status === "awaitingInterview" ? (
+                  <ShieldCheck className="h-5 w-5 text-blue-600" />
+                ) : (
+                  <Calendar className="h-5 w-5 text-green-600" />
+                )}
               </div>
               <div>
-                <p className="text-sm font-bold text-green-800">
-                  Fase de Agendamento e Taxas
+                <p
+                  className={`text-sm font-bold ${order.service_status === "awaitingInterview" ? "text-blue-800" : "text-green-800"}`}
+                >
+                  {order.service_status === "awaitingInterview"
+                    ? "Fase Final: Aguardando Entrevista"
+                    : "Fase de Agendamento e Taxas"}
                 </p>
-                <p className="text-xs text-green-600">
-                  Acompanhe a preferência de data e disponibilize o boleto.
+                <p
+                  className={`text-xs ${order.service_status === "awaitingInterview" ? "text-blue-600" : "text-green-600"}`}
+                >
+                  {order.service_status === "awaitingInterview"
+                    ? "O cliente já informou o pagamento e dados da entrevista estão sendo processados."
+                    : "Acompanhe a preferência de data e disponibilize o boleto."}
                 </p>
               </div>
             </div>
@@ -754,19 +880,123 @@ export default function AdminProcessDetail() {
                   Data de Preferência
                 </label>
                 <div className="font-bold text-foreground">
-                  {(() => {
-                    const sched = onboardingResponses.find(
-                      (r) => r.step_slug === "casv_scheduling",
-                    );
-                    const schedData = sched?.data as SchedData;
-                    return schedData?.preferred_date
-                      ? new Date(schedData.preferred_date).toLocaleDateString(
-                          "pt-BR",
-                        )
-                      : "Aguardando...";
-                  })()}
+                  {preferredDate
+                    ? new Date(preferredDate).toLocaleDateString("pt-BR")
+                    : "Aguardando..."}
                 </div>
               </Card>
+            </div>
+
+            <div className="space-y-4 pt-2">
+              <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Agendamento da Entrevista
+              </h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                    Data Marcada
+                  </label>
+                  <Input
+                    type="date"
+                    value={interviewDate}
+                    onChange={(e) => setInterviewDate(e.target.value)}
+                    className="h-10 bg-card"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                    Hora Marcada
+                  </label>
+                  <Input
+                    type="time"
+                    value={interviewTime}
+                    onChange={(e) => setInterviewTime(e.target.value)}
+                    className="h-10 bg-card"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                  Localidade CASV
+                </label>
+                <Input
+                  value={interviewLocationCasv}
+                  onChange={(e) => setInterviewLocationCasv(e.target.value)}
+                  placeholder="Ex: CASV São Paulo - Chácara Santo Antônio"
+                  className="h-10 bg-card"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                  Localidade Consulado
+                </label>
+                <Input
+                  value={interviewLocationConsulate}
+                  onChange={(e) =>
+                    setInterviewLocationConsulate(e.target.value)
+                  }
+                  placeholder="Ex: Consulado Americano - São Paulo"
+                  className="h-10 bg-card"
+                />
+              </div>
+              <Button
+                size="sm"
+                className="w-full h-10 gap-2 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 border-none font-black text-[10px] tracking-widest"
+                onClick={handleSaveInterviewDetails}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Save className="h-3 w-3" />
+                )}
+                SALVAR AGENDAMENTO
+              </Button>
+            </div>
+
+            <div className="space-y-4 pt-2">
+              <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4" />
+                Credenciais Consulares
+              </h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                    Login / E-mail
+                  </label>
+                  <Input
+                    value={consularLogin}
+                    onChange={(e) => setConsularLogin(e.target.value)}
+                    placeholder="E-mail do portal"
+                    className="h-10 bg-card"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                    Senha
+                  </label>
+                  <Input
+                    value={consularPassword}
+                    onChange={(e) => setConsularPassword(e.target.value)}
+                    placeholder="Senha do portal"
+                    className="h-10 bg-card"
+                  />
+                </div>
+              </div>
+              <Button
+                size="sm"
+                className="w-full h-10 gap-2 bg-accent/10 text-accent hover:bg-accent/20 border-none font-black text-[10px] tracking-widest"
+                onClick={handleSaveCredentials}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Save className="h-3 w-3" />
+                )}
+                SALVAR CREDENCIAIS
+              </Button>
             </div>
 
             <div className="space-y-4 pt-2">
@@ -775,7 +1005,18 @@ export default function AdminProcessDetail() {
                 Boleto da Taxa MRV
               </h4>
 
-              {processDocs.find((d) => d.name === "ds160_boleto") ? (
+              {!preferredDate ? (
+                <div className="p-8 border-2 border-dashed border-muted rounded-3xl bg-muted/5 flex flex-col items-center justify-center text-center">
+                  <Clock className="h-8 w-8 text-muted-foreground mb-2 opacity-50" />
+                  <p className="text-sm font-bold text-muted-foreground uppercase">
+                    Aguardando escolha da data
+                  </p>
+                  <p className="text-[10px] text-muted-foreground uppercase mt-2 max-w-[280px] leading-relaxed">
+                    O upload do boleto será habilitado assim que o cliente
+                    definir sua preferência de data no onboarding.
+                  </p>
+                </div>
+              ) : processDocs.find((d) => d.name === "ds160_boleto") ? (
                 <div className="flex items-center justify-between p-4 bg-card border border-accent/20 rounded-2xl shadow-sm">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
@@ -830,7 +1071,7 @@ export default function AdminProcessDetail() {
                 </div>
               ) : (
                 <div className="relative group">
-                  <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-accent/20 rounded-3xl bg-accent/5 hover:bg-accent/10 transition-colors group-hover:border-accent/40 cursor-pointer">
+                  <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-accent/20 rounded-3xl bg-accent/5 hover:bg-accent/10 transition-colors group-hover:border-accent/40 cursor-pointer text-center">
                     <Upload className="h-8 w-8 text-accent mb-2" />
                     <p className="text-sm font-bold text-accent">
                       UPLOAD DO BOLETO
@@ -860,6 +1101,7 @@ export default function AdminProcessDetail() {
             </div>
           </div>
         );
+      }
 
       default:
         return (
