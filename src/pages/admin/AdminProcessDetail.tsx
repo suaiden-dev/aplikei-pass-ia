@@ -29,20 +29,71 @@ import { AdminStatusTimeline } from "@/components/admin/AdminStatusTimeline";
 import { AdminVerticalTimeline } from "@/components/admin/AdminVerticalTimeline";
 import { DS160ReviewModal } from "../dashboard/onboarding/components/DS160ReviewModal";
 import { useLanguage } from "@/i18n/LanguageContext";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+
+interface Order {
+  id: string;
+  user_id: string | null;
+  product_slug: string | null;
+  service_status: string | null;
+  user_service_id: string | null;
+  application_id: string | null;
+  date_of_birth: string | null;
+  grandmother_name: string | null;
+  contract_pdf_url?: string | null;
+}
+
+interface ProcessDocument {
+  id: string;
+  user_id: string | null;
+  user_service_id: string | null;
+  name: string;
+  storage_path: string;
+  bucket_id: string | null;
+  status: string | null;
+  created_at: string;
+}
+
+interface OnboardingResponse {
+  id: string;
+  user_service_id: string | null;
+  step_slug: string;
+  data: Record<string, unknown>;
+  created_at: string;
+}
+
+interface RegistrationData {
+  interviewLocation?: string;
+  consulateCity?: string;
+}
+
+interface SchedData {
+  preferred_date?: string;
+}
 
 export default function AdminProcessDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [appId, setAppId] = useState("");
   const [dob, setDob] = useState("");
   const [grandmaName, setGrandmaName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [processDocs, setProcessDocs] = useState<any[]>([]);
+  const [processDocs, setProcessDocs] = useState<ProcessDocument[]>([]);
+  const [onboardingResponses, setOnboardingResponses] = useState<
+    OnboardingResponse[]
+  >([]);
+  const [interviewLocation, setInterviewLocation] = useState<string>("");
   const { lang } = useLanguage();
 
   const fetchProcessData = useCallback(async () => {
@@ -90,18 +141,42 @@ export default function AdminProcessDetail() {
         const relevantDocs =
           docs?.filter(
             (d) =>
-              (serviceData?.id && d.user_service_id === serviceData.id) ||
               d.name === "ds160_assinada" ||
-              d.name === "ds160_comprovante",
+              d.name === "ds160_comprovante" ||
+              d.name === "ds160_boleto",
           ) || [];
 
         console.log("DEBUG: Documentos encontrados no banco:", docs);
         console.log("DEBUG: Documentos filtrados:", relevantDocs);
 
-        setProcessDocs(relevantDocs.length > 0 ? relevantDocs : docs || []);
+        setProcessDocs(relevantDocs);
+
+        // Fetch onboarding responses to find consulate/interview location
+        const { data: responses } = await supabase
+          .from("onboarding_responses")
+          .select("*")
+          .eq("user_service_id", serviceData.id);
+
+        if (responses) {
+          setOnboardingResponses(responses);
+          // Find interview location in personal1 or legacy steps
+          const personal1 = responses.find((r) => r.step_slug === "personal1");
+          const personal1Data = personal1?.data as RegistrationData;
+          if (personal1Data?.interviewLocation) {
+            setInterviewLocation(personal1Data.interviewLocation);
+          } else {
+            // Check legacy or other steps
+            const travel = responses.find((r) => r.step_slug === "travel");
+            const travelData = travel?.data as RegistrationData;
+            if (travelData?.consulateCity) {
+              setInterviewLocation(travelData.consulateCity);
+            }
+          }
+        }
       }
-    } catch (err: any) {
-      console.error("Error fetching process data:", err);
+    } catch (err) {
+      const error = err as Error;
+      console.error("Error fetching process data:", error);
       toast({ title: "Erro ao carregar processo", variant: "destructive" });
       navigate("/admin/contratos");
     } finally {
@@ -138,7 +213,8 @@ export default function AdminProcessDetail() {
       });
 
       fetchProcessData();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       toast({
         title: "Erro ao salvar",
         description: error.message,
@@ -172,7 +248,8 @@ export default function AdminProcessDetail() {
         description: "Status alterado para 'CASV: Agendamento Pendente'.",
       });
       fetchProcessData();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       toast({
         title: "Erro ao aprovar",
         description: error.message,
@@ -206,9 +283,59 @@ export default function AdminProcessDetail() {
         description: "O cliente será solicitado a enviar novamente.",
       });
       fetchProcessData();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       toast({
         title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleBoletoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !order?.user_service_id) return;
+
+    setIsSaving(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${order.user_service_id}/boleto_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("process-documents")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Create document record
+      const { error: dbError } = await supabase.from("documents").upsert(
+        {
+          user_id: order.user_id,
+          user_service_id: order.user_service_id,
+          name: "ds160_boleto",
+          storage_path: filePath,
+          bucket_id: "process-documents",
+          status: "approved",
+          created_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,name" },
+      );
+
+      if (dbError) throw dbError;
+
+      toast({
+        title: "Boleto enviado",
+        description: "O arquivo foi disponibilizado para o cliente.",
+      });
+
+      fetchProcessData();
+    } catch (err) {
+      const error = err as Error;
+      toast({
+        title: "Erro no upload",
         description: error.message,
         variant: "destructive",
       });
@@ -244,7 +371,8 @@ export default function AdminProcessDetail() {
 
       // Aguarda um pouco e recarrega
       setTimeout(fetchProcessData, 3000);
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       console.error("Erro ao regenerar PDF:", error);
       toast({
         title: "Erro ao regenerar contrato",
@@ -587,6 +715,147 @@ export default function AdminProcessDetail() {
                   <CheckCircle2 className="h-4 w-4 mr-2" />
                 )}
                 APROVAR DOCUMENTOS
+              </Button>
+            </div>
+          </div>
+        );
+
+      case "casvSchedulingPending":
+      case "casvFeeProcessing":
+      case "casvPaymentPending":
+        return (
+          <div className="space-y-8 max-w-xl">
+            <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950/20 rounded-2xl border border-green-100 dark:border-green-900/30">
+              <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                <Calendar className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-green-800">
+                  Fase de Agendamento e Taxas
+                </p>
+                <p className="text-xs text-green-600">
+                  Acompanhe a preferência de data e disponibilize o boleto.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="p-4 border-border bg-muted/20">
+                <label className="text-[10px] font-black uppercase text-muted-foreground block mb-2">
+                  Consulado (DS-160)
+                </label>
+                <p className="font-bold text-foreground">
+                  {interviewLocation || "Não informado"}
+                </p>
+              </Card>
+
+              <Card className="p-4 border-border bg-muted/20">
+                <label className="text-[10px] font-black uppercase text-muted-foreground block mb-2">
+                  Data de Preferência
+                </label>
+                <div className="font-bold text-foreground">
+                  {(() => {
+                    const sched = onboardingResponses.find(
+                      (r) => r.step_slug === "casv_scheduling",
+                    );
+                    const schedData = sched?.data as SchedData;
+                    return schedData?.preferred_date
+                      ? new Date(schedData.preferred_date).toLocaleDateString(
+                          "pt-BR",
+                        )
+                      : "Aguardando...";
+                  })()}
+                </div>
+              </Card>
+            </div>
+
+            <div className="space-y-4 pt-2">
+              <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Boleto da Taxa MRV
+              </h4>
+
+              {processDocs.find((d) => d.name === "ds160_boleto") ? (
+                <div className="flex items-center justify-between p-4 bg-card border border-accent/20 rounded-2xl shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">
+                        Boleto Disponibilizado
+                      </p>
+                      <p className="text-[10px] text-muted-foreground uppercase">
+                        Enviado em{" "}
+                        {new Date(
+                          processDocs.find((d) => d.name === "ds160_boleto")
+                            .created_at,
+                        ).toLocaleDateString("pt-BR")}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-[10px] font-bold"
+                      onClick={() => {
+                        const doc = processDocs.find(
+                          (d) => d.name === "ds160_boleto",
+                        );
+                        const { data } = supabase.storage
+                          .from(doc.bucket_id || "documents")
+                          .getPublicUrl(doc.storage_path);
+                        window.open(data.publicUrl, "_blank");
+                      }}
+                    >
+                      ABRIR
+                    </Button>
+                    <div className="relative">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-[10px] font-bold text-accent"
+                      >
+                        SUBSTITUIR
+                      </Button>
+                      <input
+                        type="file"
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        onChange={handleBoletoUpload}
+                        accept=".pdf,.jpg,.jpeg,.png"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative group">
+                  <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-accent/20 rounded-3xl bg-accent/5 hover:bg-accent/10 transition-colors group-hover:border-accent/40 cursor-pointer">
+                    <Upload className="h-8 w-8 text-accent mb-2" />
+                    <p className="text-sm font-bold text-accent">
+                      UPLOAD DO BOLETO
+                    </p>
+                    <p className="text-[10px] text-muted-foreground uppercase mt-1">
+                      PDF, JPG ou PNG
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    onChange={handleBoletoUpload}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="pt-4 border-t border-border">
+              <Button
+                className="w-full h-12 gap-2 font-bold text-xs tracking-widest"
+                variant="outline"
+                onClick={handleRejectDocuments}
+              >
+                <RefreshCw className="h-4 w-4" /> REFAZER ANÁLISE DE DOCUMENTOS
               </Button>
             </div>
           </div>

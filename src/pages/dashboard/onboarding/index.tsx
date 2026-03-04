@@ -40,6 +40,9 @@ import { FamilyInfoStep } from "./steps/visto-b1-b2/FamilyInfoStep";
 import { WorkEducationStep } from "./steps/visto-b1-b2/WorkEducationStep";
 import { AdditionalInfoStep } from "./steps/visto-b1-b2/AdditionalInfoStep";
 import { ReviewAndSignDS160Step } from "./steps/visto-b1-b2/ReviewAndSignDS160Step";
+import { CASVSchedulingStep } from "./steps/visto-b1-b2/CASVSchedulingStep";
+import { FeeProcessingStep } from "./steps/visto-b1-b2/FeeProcessingStep";
+import { PaymentPendingStep } from "./steps/visto-b1-b2/PaymentPendingStep";
 import { DS160ReviewModal } from "./components/DS160ReviewModal";
 
 export default function Onboarding() {
@@ -91,6 +94,48 @@ export default function Onboarding() {
       serviceSlug,
       serviceStatus,
     };
+
+    if (
+      serviceSlug === "visto-b1-b2" &&
+      serviceStatus === "casvSchedulingPending"
+    ) {
+      return (
+        <CASVSchedulingStep
+          serviceId={serviceId}
+          onComplete={() => {
+            // Success logic if needed, reload is handled inside component
+          }}
+        />
+      );
+    }
+
+    if (
+      serviceSlug === "visto-b1-b2" &&
+      serviceStatus === "casvFeeProcessing"
+    ) {
+      return (
+        <FeeProcessingStep
+          serviceId={serviceId}
+          onComplete={() => {
+            // Success logic if needed
+          }}
+        />
+      );
+    }
+
+    if (
+      serviceSlug === "visto-b1-b2" &&
+      serviceStatus === "casvPaymentPending"
+    ) {
+      return (
+        <PaymentPendingStep
+          serviceId={serviceId}
+          onComplete={() => {
+            // Success logic if needed
+          }}
+        />
+      );
+    }
 
     if (
       serviceSlug === "visto-b1-b2" &&
@@ -247,79 +292,81 @@ export default function Onboarding() {
           <div className="rounded-xl border border-border bg-card p-4 shadow-card md:p-6">
             {renderStep()}
 
-            {/* Desktop Buttons */}
-            <div className="mt-8 hidden justify-between md:flex">
-              <Button
-                variant="outline"
-                disabled={
-                  currentStep === 0 ||
+            {/* Desktop Buttons - Hide if in CASV Scheduling stage */}
+            {serviceStatus !== "casvSchedulingPending" && (
+              <div className="mt-8 hidden justify-between md:flex">
+                <Button
+                  variant="outline"
+                  disabled={
+                    currentStep === 0 ||
+                    serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                    serviceStatus === "ds160upload_documents" ||
+                    serviceStatus === "review_assign" ||
+                    serviceStatus === "uploadsUnderReview"
+                  }
+                  onClick={() => setCurrentStep((s) => s - 1)}
+                >
+                  <ChevronLeft className="mr-1 h-4 w-4" /> {o.previous[lang]}
+                </Button>
+                {currentStep < steps.length - 1 &&
+                !(
                   serviceStatus === "ds160AwaitingReviewAndSignature" ||
                   serviceStatus === "ds160upload_documents" ||
                   serviceStatus === "review_assign" ||
                   serviceStatus === "uploadsUnderReview"
-                }
-                onClick={() => setCurrentStep((s) => s - 1)}
-              >
-                <ChevronLeft className="mr-1 h-4 w-4" /> {o.previous[lang]}
-              </Button>
-              {currentStep < steps.length - 1 &&
-              !(
-                serviceStatus === "ds160AwaitingReviewAndSignature" ||
-                serviceStatus === "ds160upload_documents" ||
-                serviceStatus === "review_assign" ||
-                serviceStatus === "uploadsUnderReview"
-              ) ? (
-                <Button
-                  className="bg-accent text-accent-foreground hover:bg-green-dark"
-                  onClick={handleNext}
-                >
-                  {o.next[lang]} <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
-              ) : (
-                <Button
-                  className="bg-accent text-accent-foreground hover:bg-green-dark"
-                  onClick={handleFinish}
-                  disabled={
-                    serviceStatus === "review_pending" ||
-                    serviceStatus === "ds160Processing" ||
-                    serviceStatus === "completed" ||
-                    ((serviceStatus === "ds160AwaitingReviewAndSignature" ||
-                      serviceStatus === "ds160upload_documents" ||
-                      serviceStatus === "review_assign") &&
-                      ((!uploadedDocs.some(
-                        (d) => d.name === "ds160_assinada",
-                      ) &&
-                        !pendingFiles["ds160_assinada"]) ||
-                        (!uploadedDocs.some(
-                          (d) => d.name === "ds160_comprovante",
-                        ) &&
-                          !pendingFiles["ds160_comprovante"])))
-                  }
-                >
-                  {serviceStatus === "review_pending" ||
-                  serviceStatus === "ds160Processing"
-                    ? lang === "pt"
-                      ? "Processando..."
-                      : "Processing..."
-                    : serviceStatus === "review_assign" ||
+                ) ? (
+                  <Button
+                    className="bg-accent text-accent-foreground hover:bg-green-dark"
+                    onClick={handleNext}
+                  >
+                    {o.next[lang]} <ChevronRight className="ml-1 h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    className="bg-accent text-accent-foreground hover:bg-green-dark"
+                    onClick={handleFinish}
+                    disabled={
+                      serviceStatus === "review_pending" ||
+                      serviceStatus === "ds160Processing" ||
+                      serviceStatus === "completed" ||
+                      ((serviceStatus === "ds160AwaitingReviewAndSignature" ||
                         serviceStatus === "ds160upload_documents" ||
-                        serviceStatus === "ds160AwaitingReviewAndSignature"
+                        serviceStatus === "review_assign") &&
+                        ((!uploadedDocs.some(
+                          (d) => d.name === "ds160_assinada",
+                        ) &&
+                          !pendingFiles["ds160_assinada"]) ||
+                          (!uploadedDocs.some(
+                            (d) => d.name === "ds160_comprovante",
+                          ) &&
+                            !pendingFiles["ds160_comprovante"])))
+                    }
+                  >
+                    {serviceStatus === "review_pending" ||
+                    serviceStatus === "ds160Processing"
                       ? lang === "pt"
-                        ? "Enviar Documentos"
-                        : "Submit Documents"
-                      : serviceStatus === "uploadsUnderReview" ||
+                        ? "Processando..."
+                        : "Processing..."
+                      : serviceStatus === "review_assign" ||
+                          serviceStatus === "ds160upload_documents" ||
                           serviceStatus === "ds160AwaitingReviewAndSignature"
                         ? lang === "pt"
-                          ? "Documentos em Análise..."
-                          : "Documents under review..."
-                        : serviceStatus === "completed"
+                          ? "Enviar Documentos"
+                          : "Submit Documents"
+                        : serviceStatus === "uploadsUnderReview" ||
+                            serviceStatus === "ds160AwaitingReviewAndSignature"
                           ? lang === "pt"
-                            ? "Concluído"
-                            : "Completed"
-                          : o.confirmGenerate[lang]}
-                </Button>
-              )}
-            </div>
+                            ? "Documentos em Análise..."
+                            : "Documents under review..."
+                          : serviceStatus === "completed"
+                            ? lang === "pt"
+                              ? "Concluído"
+                              : "Completed"
+                            : o.confirmGenerate[lang]}
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -462,71 +509,75 @@ export default function Onboarding() {
         lang={lang}
       />
 
-      {/* Mobile Sticky Buttons */}
-      <div className="fixed bottom-16 left-0 right-0 border-t border-border bg-background p-4 md:hidden">
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            className="flex-1"
-            disabled={
-              currentStep === 0 ||
+      {/* Mobile Sticky Buttons - Hide if in CASV Scheduling stage */}
+      {serviceStatus !== "casvSchedulingPending" && (
+        <div className="fixed bottom-16 left-0 right-0 border-t border-border bg-background p-4 md:hidden">
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              disabled={
+                currentStep === 0 ||
+                serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                serviceStatus === "review_assign" ||
+                serviceStatus === "uploadsUnderReview"
+              }
+              onClick={() => setCurrentStep((s) => s - 1)}
+            >
+              <ChevronLeft className="mr-1 h-4 w-4" /> {o.previous[lang]}
+            </Button>
+            {currentStep < steps.length - 1 &&
+            !(
               serviceStatus === "ds160AwaitingReviewAndSignature" ||
               serviceStatus === "review_assign" ||
               serviceStatus === "uploadsUnderReview"
-            }
-            onClick={() => setCurrentStep((s) => s - 1)}
-          >
-            <ChevronLeft className="mr-1 h-4 w-4" /> {o.previous[lang]}
-          </Button>
-          {currentStep < steps.length - 1 &&
-          !(
-            serviceStatus === "ds160AwaitingReviewAndSignature" ||
-            serviceStatus === "review_assign" ||
-            serviceStatus === "uploadsUnderReview"
-          ) ? (
-            <Button
-              className="flex-1 bg-accent text-accent-foreground hover:bg-green-dark"
-              onClick={handleNext}
-            >
-              {o.next[lang]} <ChevronRight className="ml-1 h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              className="flex-1 bg-accent text-accent-foreground hover:bg-green-dark"
-              onClick={handleFinish}
-              disabled={
-                serviceStatus === "review_pending" ||
-                serviceStatus === "ds160Processing" ||
-                serviceStatus === "completed" ||
-                ((serviceStatus === "ds160AwaitingReviewAndSignature" ||
-                  serviceStatus === "review_assign") &&
-                  (!uploadedDocs.some((d) => d.name === "ds160_assinada") ||
-                    !uploadedDocs.some((d) => d.name === "ds160_comprovante")))
-              }
-            >
-              {serviceStatus === "review_pending" ||
-              serviceStatus === "ds160Processing"
-                ? lang === "pt"
-                  ? "Processando..."
-                  : "Processing..."
-                : serviceStatus === "review_assign" ||
-                    serviceStatus === "ds160AwaitingReviewAndSignature"
+            ) ? (
+              <Button
+                className="flex-1 bg-accent text-accent-foreground hover:bg-green-dark"
+                onClick={handleNext}
+              >
+                {o.next[lang]} <ChevronRight className="ml-1 h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                className="flex-1 bg-accent text-accent-foreground hover:bg-green-dark"
+                onClick={handleFinish}
+                disabled={
+                  serviceStatus === "review_pending" ||
+                  serviceStatus === "ds160Processing" ||
+                  serviceStatus === "completed" ||
+                  ((serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                    serviceStatus === "review_assign") &&
+                    (!uploadedDocs.some((d) => d.name === "ds160_assinada") ||
+                      !uploadedDocs.some(
+                        (d) => d.name === "ds160_comprovante",
+                      )))
+                }
+              >
+                {serviceStatus === "review_pending" ||
+                serviceStatus === "ds160Processing"
                   ? lang === "pt"
-                    ? "Enviar Documentos"
-                    : "Submit Documents"
-                  : serviceStatus === "uploadsUnderReview"
+                    ? "Processando..."
+                    : "Processing..."
+                  : serviceStatus === "review_assign" ||
+                      serviceStatus === "ds160AwaitingReviewAndSignature"
                     ? lang === "pt"
-                      ? "Documentos em Análise..."
-                      : "Documents under review..."
-                    : serviceStatus === "completed"
+                      ? "Enviar Documentos"
+                      : "Submit Documents"
+                    : serviceStatus === "uploadsUnderReview"
                       ? lang === "pt"
-                        ? "Concluído"
-                        : "Completed"
-                      : o.confirmGenerate[lang]}
-            </Button>
-          )}
+                        ? "Documentos em Análise..."
+                        : "Documents under review..."
+                      : serviceStatus === "completed"
+                        ? lang === "pt"
+                          ? "Concluído"
+                          : "Completed"
+                        : o.confirmGenerate[lang]}
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

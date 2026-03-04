@@ -227,7 +227,16 @@ export const useOnboardingLogic = () => {
                 .from("user_services")
                 .select("id")
                 .eq("user_id", user.id)
-                .in("status", ["ds160InProgress", "ds160Processing", "ds160upload_documents", "ds160AwaitingReviewAndSignature", "uploadsUnderReview", "active", "review_pending", "review_assign"])
+                .in("status", [
+                    "active", 
+                    "review_pending", 
+                    "review_assign", 
+                    "ds160InProgress", 
+                    "ds160Processing", 
+                    "ds160upload_documents", 
+                    "ds160AwaitingReviewAndSignature",
+                    "uploadsUnderReview"
+                ])
                 .maybeSingle();
 
             if (!service) throw new Error("No active service");
