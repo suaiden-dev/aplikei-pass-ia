@@ -682,12 +682,15 @@ export const ReviewStep = ({
           {currentSection.fields.map((field, fIdx) => (
             <div
               key={fIdx}
-              className="flex flex-col bg-muted/30 p-3 rounded-md border border-border/50 transition-all hover:border-accent/40"
+              className="flex flex-col bg-muted/30 p-3 rounded-md border border-border/50 transition-all hover:border-accent/40 min-w-0"
             >
-              <span className="text-xs text-muted-foreground">
+              <span
+                className="text-xs text-muted-foreground truncate"
+                title={field.label}
+              >
                 {field.label}
               </span>
-              <span className="font-medium text-foreground mt-1 break-words leading-tight">
+              <span className="font-medium text-foreground mt-1 break-all whitespace-normal leading-tight">
                 {field.value}
               </span>
             </div>

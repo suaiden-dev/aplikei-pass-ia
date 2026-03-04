@@ -11,27 +11,27 @@ import { useState } from "react";
 const statuses = [
   {
     id: "ds160InProgress",
-    label: "DS-160: Em Andamento",
+    label: "1. DS-160: Preenchimento",
     description:
       "O cliente está preenchendo as informações iniciais do formulário DS-160.",
   },
   {
     id: "ds160Processing",
-    label: "DS-160: Processando",
+    label: "2. DS-160: Processando",
     description:
-      "O formulário foi enviado para processamento interno e geração de dados de segurança.",
+      "O formulário foi enviado para processamento e geração de dados de segurança.",
+  },
+  {
+    id: "ds160upload_documents",
+    label: "3. DS-160: Anexar Documentos",
+    description:
+      "O cliente deve anexar o formulário assinado e o comprovante de envio.",
   },
   {
     id: "ds160AwaitingReviewAndSignature",
-    label: "DS-160: Aguardando Revisão/Assinatura",
+    label: "4. DS-160: Revisão e Assinatura",
     description:
-      "Os dados de segurança foram preenchidos. O cliente deve revisar e assinar o formulário.",
-  },
-  {
-    id: "uploadsUnderReview",
-    label: "Uploads: Em Revisão",
-    description:
-      "Documentos complementares foram enviados e aguardam validação do administrador.",
+      "O administrador está revisando os documentos anexados pelo cliente.",
   },
   {
     id: "casvSchedulingPending",

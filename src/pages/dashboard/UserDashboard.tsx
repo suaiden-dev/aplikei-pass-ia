@@ -29,9 +29,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 
+const TOTAL_STEPS = 9;
+
 const getStatusDisplay = (
   status: string,
-  lang: "en" | "pt",
+  lang: string,
   serviceSlug?: string,
 ) => {
   if (!status) return { stepText: "", label: "" };
@@ -42,7 +44,6 @@ const getStatusDisplay = (
   if (status === "review_assign") status = "ds160AwaitingReviewAndSignature";
   if (status === "completed") status = "approved";
 
-  const totalSteps = 9;
   let step = 0;
   let labelPt = "";
   let labelEn = "";
@@ -58,45 +59,52 @@ const getStatusDisplay = (
       labelPt = "Processando DS-160";
       labelEn = "Processing DS-160";
       break;
-    case "ds160AwaitingReviewAndSignature":
+    case "ds160upload_documents":
       step = 3;
-      labelPt = "Aguardando Revisão/Assinatura";
-      labelEn = "Awaiting Review/Signature";
+      labelPt = "3. Anexar Documentos";
+      labelEn = "3. Upload Documents";
       break;
-    case "uploadsUnderReview":
+    case "ds160AwaitingReviewAndSignature":
       step = 4;
-      labelPt = "Uploads em Revisão";
-      labelEn = "Uploads Under Review";
+      labelPt = "4. Revisão e Assinatura";
+      labelEn = "4. Review and Signature";
+      break;
+    case "uploadsUnderReview": // Legacy/Alternative
+      step = 4;
+      labelPt = "4. Revisão de Documentos";
+      labelEn = "4. Documents Review";
       break;
     case "casvSchedulingPending":
       step = 5;
-      labelPt = "Agendamento Pendente";
-      labelEn = "Scheduling Pending";
+      labelPt = "5. Agendamento Pendente";
+      labelEn = "5. Scheduling Pending";
       break;
     case "casvFeeProcessing":
       step = 6;
-      labelPt = "Taxa em Processamento";
-      labelEn = "Fee in Processing";
+      labelPt = "6. Taxa em Processamento";
+      labelEn = "6. Fee in Processing";
       break;
     case "casvPaymentPending":
       step = 7;
-      labelPt = "Pagamento CASV Pendente";
-      labelEn = "CASV Payment Pending";
+      labelPt = "7. Pagamento CASV Pendente";
+      labelEn = "7. CASV Payment Pending";
       break;
     case "awaitingInterview":
       step = 8;
-      labelPt = "Aguardando Entrevista";
-      labelEn = "Awaiting Interview";
+      labelPt = "8. Aguardando Entrevista";
+      labelEn = "8. Awaiting Interview";
       break;
     case "approved":
       step = 9;
-      labelPt = "Aprovado";
-      labelEn = "Approved";
+      labelPt = "9. Aprovado";
+      labelEn = "9. Approved";
       break;
     case "rejected":
       return {
         stepText: lang === "pt" ? "Processo Rejeitado" : "Process Rejected",
         label: lang === "pt" ? "Rejeitado" : "Rejected",
+        step: 0,
+        totalSteps: TOTAL_STEPS,
       };
     default:
       return { stepText: "", label: status };
@@ -104,11 +112,11 @@ const getStatusDisplay = (
 
   const stepText =
     lang === "pt"
-      ? `Etapa ${step} de ${totalSteps}`
-      : `Step ${step} of ${totalSteps}`;
+      ? `Etapa ${step} de ${TOTAL_STEPS}`
+      : `Step ${step} of ${TOTAL_STEPS}`;
   const label = lang === "pt" ? labelPt : labelEn;
 
-  return { stepText, label, step, totalSteps };
+  return { stepText, label, step, totalSteps: TOTAL_STEPS };
 };
 
 export default function UserDashboard() {
@@ -118,17 +126,11 @@ export default function UserDashboard() {
   const { lang, t } = useLanguage();
   const d = t.dashboard;
 
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [currentServiceId, setCurrentServiceId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [docsUploaded, setDocsUploaded] = useState(0);
-  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
-  const [selectedSecurityData, setSelectedSecurityData] = useState<{
-    appId: string;
-    dob: string;
-    grandma: string;
-  } | null>(null);
 
   // 1. Fetch all services and their individual progress
   useEffect(() => {
@@ -145,12 +147,20 @@ export default function UserDashboard() {
         )
         .eq("user_id", user.id)
         .in("status", [
-          "ds160InProgress",
-          "ds160Processing",
-          "ds160AwaitingReviewAndSignature",
           "active",
           "review_pending",
           "review_assign",
+          "ds160InProgress",
+          "ds160Processing",
+          "ds160upload_documents",
+          "ds160AwaitingReviewAndSignature",
+          "uploadsUnderReview",
+          "casvSchedulingPending",
+          "casvFeeProcessing",
+          "casvPaymentPending",
+          "awaitingInterview",
+          "approved",
+          "rejected",
           "completed",
         ])
         .order("created_at", { ascending: false })) as any;
@@ -175,11 +185,20 @@ export default function UserDashboard() {
             existing?.status === "active";
 
           if (!existing || isNewAdvanced) {
+            const statusInfo = getStatusDisplay(s.status, lang as string);
             let p = 0;
-            if (s.status === "review_pending" || s.status === "completed")
+
+            if (s.status === "approved" || s.status === "completed") {
               p = 100;
-            else
-              p = Math.min(Math.round(((s.current_step || 0) / 13) * 100), 100);
+            } else if (statusInfo.step > 0) {
+              // 100% divided by 9 steps. Each completed step gives roughly 11%
+              // Plus progress within step 1 (onboarding) if it's the current step
+              if (statusInfo.step === 1) {
+                p = Math.min(Math.round(((s.current_step || 0) / 13) * 10), 10);
+              } else {
+                p = Math.round(((statusInfo.step - 1) / TOTAL_STEPS) * 100);
+              }
+            }
 
             uniqueServicesMap.set(s.service_slug, {
               ...s,
@@ -214,7 +233,7 @@ export default function UserDashboard() {
       setLoading(false);
     };
     fetchServices();
-  }, [searchParams]);
+  }, [searchParams, lang]);
 
   const currentService =
     services.find((s) => s.id === currentServiceId) || services[0];
@@ -243,7 +262,7 @@ export default function UserDashboard() {
       desc: d.cards.currentServiceDesc[lang],
       status: getStatusDisplay(
         currentService?.status,
-        lang,
+        lang as string,
         currentService?.service_slug,
       ).label,
       to: `/dashboard/onboarding?service_id=${currentServiceId}`,
@@ -384,36 +403,19 @@ export default function UserDashboard() {
                 {s.service_slug?.toUpperCase().replace("-", " ")}
               </h3>
 
-              {(s.status === "ds160AwaitingReviewAndSignature" ||
-                s.status === "review_assign") && (
-                <div className="mb-3">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedSecurityData({
-                        appId: s.application_id,
-                        dob: s.date_of_birth,
-                        grandma: s.grandmother_name,
-                      });
-                      setIsSecurityModalOpen(true);
-                    }}
-                    className="flex items-center justify-center gap-2 px-3 py-2 bg-accent/10 hover:bg-accent/20 text-accent rounded-xl text-[11px] font-bold transition-all border border-accent/20 w-fit"
-                  >
-                    <Shield className="w-3.5 h-3.5" />
-                    {lang === "pt"
-                      ? "VER DADOS DE SEGURANÇA"
-                      : "VIEW SECURITY DATA"}
-                  </button>
-                </div>
-              )}
-
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
                 <div className="flex flex-col gap-0.5">
                   <span className="font-bold text-[10px] text-accent uppercase tracking-wider">
-                    {getStatusDisplay(s.status, lang, s.service_slug).stepText}
+                    {
+                      getStatusDisplay(s.status, lang as string, s.service_slug)
+                        .stepText
+                    }
                   </span>
                   <span className="text-foreground font-medium">
-                    {getStatusDisplay(s.status, lang, s.service_slug).label}
+                    {
+                      getStatusDisplay(s.status, lang as string, s.service_slug)
+                        .label
+                    }
                   </span>
                 </div>
                 <span className="font-bold text-primary">
@@ -511,67 +513,6 @@ export default function UserDashboard() {
           ))}
         </div>
       </section>
-
-      <Dialog open={isSecurityModalOpen} onOpenChange={setIsSecurityModalOpen}>
-        <DialogContent className="sm:max-w-[400px] rounded-3xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
-              <Shield className="w-5 h-5 text-accent" />
-              {lang === "pt" ? "Dados de Segurança" : "Security Data"}
-            </DialogTitle>
-            <DialogDescription>
-              {lang === "pt"
-                ? "Utilize esses dados se precisar acessar sua DS-160 no portal consular."
-                : "Use these details if you need to access your DS-160 on the consular portal."}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-border space-y-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  <Fingerprint className="w-3 h-3" />
-                  Application ID
-                </div>
-                <p className="font-mono text-lg font-bold text-foreground bg-white dark:bg-slate-800 p-2 rounded-lg border border-border shadow-sm">
-                  {selectedSecurityData?.appId || "---"}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <Calendar className="w-3 h-3" />
-                    {lang === "pt" ? "Nascimento" : "Birth Date"}
-                  </div>
-                  <p className="text-sm font-bold text-foreground bg-white dark:bg-slate-800 p-2 rounded-lg border border-border shadow-sm">
-                    {selectedSecurityData?.dob || "---"}
-                  </p>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <User className="w-3 h-3" />
-                    {lang === "pt" ? "Nome da Avó" : "Grandma Name"}
-                  </div>
-                  <p className="text-sm font-bold text-foreground bg-white dark:bg-slate-800 p-2 rounded-lg border border-border shadow-sm truncate">
-                    {selectedSecurityData?.grandma || "---"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-2xl flex items-start gap-3">
-              <HelpCircle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-yellow-700 leading-relaxed">
-                {lang === "pt"
-                  ? "Guarde esses dados com segurança. Eles são necessários para revisar e assinar seu formulário oficial."
-                  : "Keep this data safe. It is required to review and sign your official form."}
-              </p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

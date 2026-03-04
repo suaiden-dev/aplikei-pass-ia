@@ -15,10 +15,12 @@ export const useOnboardingLogic = () => {
     const [loading, setLoading] = useState(true);
     const [serviceId, setServiceId] = useState<string | null>(null);
     const [serviceStatus, setServiceStatus] = useState<string | null>(null);
+    const [securityData, setSecurityData] = useState<{ appId: string; dob: string; grandma: string } | null>(null);
     const [currentStep, setCurrentStep] = useState(() => {
         const saved = localStorage.getItem("onboarding_step");
         return saved ? parseInt(saved, 10) : 0;
     });
+    const [pendingFiles, setPendingFiles] = useState<Record<string, File>>({});
 
     const o = t.onboardingPage;
     const ds = t.ds160;
@@ -62,9 +64,25 @@ export const useOnboardingLogic = () => {
             // but we also try to find the one that matches our target slug or just the active one.
             const { data: services, error: serviceError } = await supabase
                 .from("user_services")
-                .select("id, status, current_step, service_slug")
+                .select("id, status, current_step, service_slug, application_id, date_of_birth, grandmother_name")
                 .eq("user_id", user.id)
-                .in("status", ["ds160InProgress", "ds160Processing", "ds160AwaitingReviewAndSignature", "active", "review_pending", "review_assign", "completed"])
+                .in("status", [
+                    "active", 
+                    "review_pending", 
+                    "review_assign", 
+                    "ds160InProgress", 
+                    "ds160Processing", 
+                    "ds160upload_documents", 
+                    "ds160AwaitingReviewAndSignature",
+                    "uploadsUnderReview",
+                    "casvSchedulingPending",
+                    "casvFeeProcessing",
+                    "casvPaymentPending",
+                    "awaitingInterview",
+                    "approved",
+                    "rejected",
+                    "completed"
+                ])
                 .order("created_at", { ascending: false });
 
             if (serviceError) {
@@ -106,6 +124,14 @@ export const useOnboardingLogic = () => {
                 setServiceStatus(status);
                 slug = service.service_slug || "visto-b1-b2";
                 setServiceSlug(slug);
+
+                if (service.application_id) {
+                    setSecurityData({
+                        appId: service.application_id,
+                        dob: service.date_of_birth || "",
+                        grandma: service.grandmother_name || ""
+                    });
+                }
 
                 // Synchronize step from DB
                 if (service.current_step !== undefined && service.current_step !== null) {
@@ -180,6 +206,18 @@ export const useOnboardingLogic = () => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        const isProcessSpecialDoc = docName === "ds160_assinada" || docName === "ds160_comprovante";
+
+        if (isProcessSpecialDoc) {
+            setPendingFiles(prev => ({ ...prev, [docName]: file }));
+            // Add a mock document to the list so UI shows it as selected
+            setUploadedDocs(prev => {
+                if (prev.some(d => d.name === docName)) return prev;
+                return [...prev, { name: docName, path: "pending..." }];
+            });
+            return;
+        }
+
         setUploading(docName);
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -189,17 +227,20 @@ export const useOnboardingLogic = () => {
                 .from("user_services")
                 .select("id")
                 .eq("user_id", user.id)
-                .in("status", ["ds160InProgress", "ds160Processing", "ds160AwaitingReviewAndSignature", "active", "review_pending", "review_assign"])
+                .in("status", ["ds160InProgress", "ds160Processing", "ds160upload_documents", "ds160AwaitingReviewAndSignature", "uploadsUnderReview", "active", "review_pending", "review_assign"])
                 .maybeSingle();
 
             if (!service) throw new Error("No active service");
 
+            const isProcessSpecialDoc = docName === "ds160_assinada" || docName === "ds160_comprovante";
+            const bucketName = isProcessSpecialDoc ? "process-documents" : "documents";
+            const folderPath = isProcessSpecialDoc ? (service.id) : (user.id);
             const fileExt = file.name.split(".").pop();
             const safeDocName = normalizeFileName(docName);
-            const filePath = `${user.id}/${safeDocName}_${Date.now()}.${fileExt}`;
+            const filePath = `${folderPath}/${safeDocName}_${Date.now()}.${fileExt}`;
 
             const { error: uploadError } = await supabase.storage
-                .from("documents")
+                .from(bucketName)
                 .upload(filePath, file);
 
             if (uploadError) throw uploadError;
@@ -211,6 +252,7 @@ export const useOnboardingLogic = () => {
                     user_service_id: service.id,
                     name: docName,
                     storage_path: filePath,
+                    bucket_id: bucketName,
                     status: "received",
                     created_at: new Date().toISOString()
                 }, { onConflict: "user_id,name" });
@@ -236,6 +278,18 @@ export const useOnboardingLogic = () => {
     };
 
     const handleRemoveDoc = async (docName: string) => {
+        const isProcessSpecialDoc = docName === "ds160_assinada" || docName === "ds160_comprovante";
+        
+        if (isProcessSpecialDoc && pendingFiles[docName]) {
+            setPendingFiles(prev => {
+                const next = { ...prev };
+                delete next[docName];
+                return next;
+            });
+            setUploadedDocs(prev => prev.filter(d => d.name !== docName));
+            return;
+        }
+
         try {
             const { error } = await supabase.from("documents").delete().match({ name: docName });
             if (!error) {
@@ -422,8 +476,55 @@ export const useOnboardingLogic = () => {
             console.log("👤 [handleFinish] User authenticated:", user?.id);
 
             if (serviceId) {
-                const isSignatureSubmit = serviceStatus === "ds160AwaitingReviewAndSignature" || serviceStatus === "review_assign";
-                const nextStatus = isSignatureSubmit ? "uploadsUnderReview" : "review_pending";
+                const isSignatureSubmit = 
+                    serviceStatus === "ds160upload_documents" || 
+                    serviceStatus === "ds160AwaitingReviewAndSignature" || 
+                    serviceStatus === "review_assign" ||
+                    serviceStatus === "uploadsUnderReview";
+                
+                if (isSignatureSubmit) {
+                    // Check if both files are present (either in pendingFiles or already in uploadedDocs)
+                    const hasAssinada = pendingFiles["ds160_assinada"] || uploadedDocs.some(d => d.name === "ds160_assinada");
+                    const hasComprovante = pendingFiles["ds160_comprovante"] || uploadedDocs.some(d => d.name === "ds160_comprovante");
+
+                    if (!hasAssinada || !hasComprovante) {
+                        toast.error(lang === "pt" ? "Você deve selecionar os 2 documentos solicitados." : "You must select both requested documents.");
+                        return;
+                    }
+
+                    // Perform actual uploads for pending files
+                    setLoading(true);
+                    for (const [docName, file] of Object.entries(pendingFiles)) {
+                        const bucketName = "process-documents";
+                        const folderPath = serviceId;
+                        const fileExt = file.name.split(".").pop();
+                        const safeDocName = normalizeFileName(docName);
+                        const filePath = `${folderPath}/${safeDocName}_${Date.now()}.${fileExt}`;
+
+                        const { error: uploadError } = await supabase.storage
+                            .from(bucketName)
+                            .upload(filePath, file);
+
+                        if (uploadError) throw uploadError;
+
+                        const { error: dbError } = await supabase
+                            .from("documents")
+                            .upsert({
+                                user_id: user?.id,
+                                user_service_id: serviceId,
+                                name: docName,
+                                storage_path: filePath,
+                                bucket_id: bucketName,
+                                status: "received",
+                                created_at: new Date().toISOString()
+                            }, { onConflict: "user_id,name" });
+
+                        if (dbError) throw dbError;
+                    }
+                    setPendingFiles({});
+                }
+
+                const nextStatus = isSignatureSubmit ? "ds160AwaitingReviewAndSignature" : "review_pending";
 
                 console.log(`🔄 [handleFinish] Updating service status to '${nextStatus}'...`);
                 const { error: updateError } = await supabase
@@ -442,13 +543,22 @@ export const useOnboardingLogic = () => {
             } else {
                 console.warn("⚠️ [handleFinish] No serviceId found to update.");
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("🔴 [handleFinish] Unexpected error:", err);
+            toast.error(err.message || "Erro inesperado");
+            setLoading(false);
+            return;
+        } finally {
+            setLoading(false);
         }
 
         console.log("🏁 [handleFinish] Redirecting to dashboard...");
         
-        const isSignatureSubmit = serviceStatus === "ds160AwaitingReviewAndSignature" || serviceStatus === "review_assign";
+        const isSignatureSubmit = 
+            serviceStatus === "ds160upload_documents" || 
+            serviceStatus === "ds160AwaitingReviewAndSignature" || 
+            serviceStatus === "review_assign" ||
+            serviceStatus === "uploadsUnderReview";
         toast.success(
             lang === 'pt' 
                 ? (isSignatureSubmit ? 'Documentos enviados com sucesso!' : 'Pacote gerado com sucesso!') 
@@ -464,7 +574,9 @@ export const useOnboardingLogic = () => {
         loading,
         serviceStatus,
         serviceId,
+        securityData,
         uploading, uploadedDocs, fileInputRef, selectedDoc, setSelectedDoc,
+        pendingFiles, setPendingFiles,
         register, handleSubmit, watch, errors, setValue, formData,
         handleUpload, handleRemoveDoc,
         handleNext, handleFinish, handleSkip

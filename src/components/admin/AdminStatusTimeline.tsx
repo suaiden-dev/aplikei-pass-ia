@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 const statuses = [
   "ds160InProgress",
   "ds160Processing",
+  "ds160upload_documents",
   "ds160AwaitingReviewAndSignature",
-  "uploadsUnderReview",
   "casvSchedulingPending",
   "casvFeeProcessing",
   "casvPaymentPending",
@@ -20,20 +20,21 @@ const statuses = [
 ];
 
 export const statusLabels: Record<string, string> = {
-  ds160InProgress: "DS-160: Em Andamento",
-  ds160Processing: "DS-160: Processando",
-  ds160AwaitingReviewAndSignature: "DS-160: Aguardando Revisão/Assinatura",
-  uploadsUnderReview: "Uploads: Em Revisão",
-  casvSchedulingPending: "CASV: Agendamento Pendente",
-  casvFeeProcessing: "CASV: Taxa em Processamento",
-  casvPaymentPending: "CASV: Pagamento Pendente",
-  awaitingInterview: "Aguardando Entrevista",
-  approved: "Aprovado",
+  ds160InProgress: "1. DS-160: Preenchimento",
+  ds160Processing: "2. DS-160: Processando",
+  ds160upload_documents: "3. DS-160: Anexar Documentos",
+  ds160AwaitingReviewAndSignature: "4. DS-160: Revisão e Assinatura",
+  casvSchedulingPending: "5. CASV: Agendamento Pendente",
+  casvFeeProcessing: "6. CASV: Taxa em Processamento",
+  casvPaymentPending: "7. CASV: Pagamento Pendente",
+  awaitingInterview: "8. Aguardando Entrevista",
+  approved: "9. Aprovado",
   rejected: "Rejeitado",
   // Legacy mappings
-  active: "DS-160: Em Andamento",
+  active: "DS-160: Preenchimento",
   review_pending: "DS-160: Processando",
-  review_assign: "DS-160: Aguardando Revisão",
+  review_assign: "DS-160: Anexar Documentos",
+  uploadsUnderReview: "DS-160: Revisão e Assinatura",
   completed: "Aprovado",
 };
 

@@ -7,7 +7,19 @@ import {
   ChevronRight,
   ChevronLeft,
   FileText,
+  Shield,
+  Fingerprint,
+  Calendar,
+  User,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { useState } from "react";
 import { useOnboardingLogic } from "./useOnboardingLogic";
 import { PersonalInfoStep } from "./steps/PersonalInfoStep";
 import { HistoryStep } from "./steps/HistoryStep";
@@ -29,7 +41,6 @@ import { WorkEducationStep } from "./steps/visto-b1-b2/WorkEducationStep";
 import { AdditionalInfoStep } from "./steps/visto-b1-b2/AdditionalInfoStep";
 import { ReviewAndSignDS160Step } from "./steps/visto-b1-b2/ReviewAndSignDS160Step";
 import { DS160ReviewModal } from "./components/DS160ReviewModal";
-import { useState } from "react";
 
 export default function Onboarding() {
   const {
@@ -57,10 +68,13 @@ export default function Onboarding() {
     handleRemoveDoc,
     selectedDoc,
     setSelectedDoc,
+    pendingFiles,
     serviceId,
+    securityData,
   } = useOnboardingLogic();
 
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
 
   const progress = ((currentStep + 1) / steps.length) * 100;
 
@@ -81,6 +95,7 @@ export default function Onboarding() {
     if (
       serviceSlug === "visto-b1-b2" &&
       (serviceStatus === "ds160AwaitingReviewAndSignature" ||
+        serviceStatus === "ds160upload_documents" ||
         serviceStatus === "review_assign" ||
         serviceStatus === "uploadsUnderReview")
     ) {
@@ -239,6 +254,7 @@ export default function Onboarding() {
                 disabled={
                   currentStep === 0 ||
                   serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                  serviceStatus === "ds160upload_documents" ||
                   serviceStatus === "review_assign" ||
                   serviceStatus === "uploadsUnderReview"
                 }
@@ -249,6 +265,7 @@ export default function Onboarding() {
               {currentStep < steps.length - 1 &&
               !(
                 serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                serviceStatus === "ds160upload_documents" ||
                 serviceStatus === "review_assign" ||
                 serviceStatus === "uploadsUnderReview"
               ) ? (
@@ -267,11 +284,16 @@ export default function Onboarding() {
                     serviceStatus === "ds160Processing" ||
                     serviceStatus === "completed" ||
                     ((serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                      serviceStatus === "ds160upload_documents" ||
                       serviceStatus === "review_assign") &&
-                      (!uploadedDocs.some((d) => d.name === "ds160_assinada") ||
-                        !uploadedDocs.some(
+                      ((!uploadedDocs.some(
+                        (d) => d.name === "ds160_assinada",
+                      ) &&
+                        !pendingFiles["ds160_assinada"]) ||
+                        (!uploadedDocs.some(
                           (d) => d.name === "ds160_comprovante",
-                        )))
+                        ) &&
+                          !pendingFiles["ds160_comprovante"])))
                   }
                 >
                   {serviceStatus === "review_pending" ||
@@ -280,11 +302,13 @@ export default function Onboarding() {
                       ? "Processando..."
                       : "Processing..."
                     : serviceStatus === "review_assign" ||
+                        serviceStatus === "ds160upload_documents" ||
                         serviceStatus === "ds160AwaitingReviewAndSignature"
                       ? lang === "pt"
                         ? "Enviar Documentos"
                         : "Submit Documents"
-                      : serviceStatus === "uploadsUnderReview"
+                      : serviceStatus === "uploadsUnderReview" ||
+                          serviceStatus === "ds160AwaitingReviewAndSignature"
                         ? lang === "pt"
                           ? "Documentos em Análise..."
                           : "Documents under review..."
@@ -360,9 +384,76 @@ export default function Onboarding() {
                 </Button>
               </div>
             )}
+
+            {securityData && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <Button
+                  onClick={() => setIsSecurityModalOpen(true)}
+                  variant="outline"
+                  className="w-full gap-2 border-accent/20 text-accent hover:bg-accent/5 hover:text-accent font-bold text-xs"
+                >
+                  <Shield className="w-4 h-4" />
+                  {lang === "pt"
+                    ? "VER DADOS DE SEGURANÇA"
+                    : "VIEW SECURITY DATA"}
+                </Button>
+              </div>
+            )}
           </div>
         </aside>
       </div>
+
+      <Dialog open={isSecurityModalOpen} onOpenChange={setIsSecurityModalOpen}>
+        <DialogContent className="sm:max-w-[400px] rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+              <Shield className="w-5 h-5 text-accent" />
+              {lang === "pt" ? "Dados de Segurança" : "Security Data"}
+            </DialogTitle>
+            <DialogDescription>
+              {lang === "pt"
+                ? "Utilize esses dados se precisar acessar sua DS-160 no portal consular."
+                : "Use these details if you need to access your DS-160 on the consular portal."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-border space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <Fingerprint className="w-3.5 h-3.5 text-accent" />
+                  Application ID
+                </div>
+                <p className="font-mono text-lg font-black text-foreground bg-white dark:bg-slate-800 p-3 rounded-xl border border-border shadow-sm text-center">
+                  {securityData?.appId}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <Calendar className="w-3.5 h-3.5 text-accent" />
+                    {lang === "pt" ? "Nascimento" : "Birth Date"}
+                  </div>
+                  <p className="text-sm font-bold text-foreground bg-white dark:bg-slate-800 p-3 rounded-xl border border-border shadow-sm text-center">
+                    {securityData?.dob}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <User className="w-3.5 h-3.5 text-accent" />
+                    {lang === "pt" ? "Nome da Avó" : "Grandma Name"}
+                  </div>
+                  <p className="text-sm font-bold text-foreground bg-white dark:bg-slate-800 p-3 rounded-xl border border-border shadow-sm text-center truncate">
+                    {securityData?.grandma}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <DS160ReviewModal
         isOpen={isPreviewModalOpen}

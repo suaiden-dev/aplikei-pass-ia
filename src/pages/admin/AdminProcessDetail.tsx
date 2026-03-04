@@ -27,6 +27,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { AdminStatusTimeline } from "@/components/admin/AdminStatusTimeline";
 import { AdminVerticalTimeline } from "@/components/admin/AdminVerticalTimeline";
+import { DS160ReviewModal } from "../dashboard/onboarding/components/DS160ReviewModal";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export default function AdminProcessDetail() {
   const { id } = useParams<{ id: string }>();
@@ -39,6 +41,9 @@ export default function AdminProcessDetail() {
   const [grandmaName, setGrandmaName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [processDocs, setProcessDocs] = useState<any[]>([]);
+  const { lang } = useLanguage();
 
   const fetchProcessData = useCallback(async () => {
     setLoading(true);
@@ -73,6 +78,28 @@ export default function AdminProcessDetail() {
       setAppId(combined.application_id || "");
       setDob(combined.date_of_birth || "");
       setGrandmaName(combined.grandmother_name || "");
+
+      // Fetch documents for this user
+      if (orderData.user_id) {
+        const { data: docs } = await supabase
+          .from("documents")
+          .select("*")
+          .eq("user_id", orderData.user_id);
+
+        // Filter documents belonging to this service or the special DS-160 upload names
+        const relevantDocs =
+          docs?.filter(
+            (d) =>
+              (serviceData?.id && d.user_service_id === serviceData.id) ||
+              d.name === "ds160_assinada" ||
+              d.name === "ds160_comprovante",
+          ) || [];
+
+        console.log("DEBUG: Documentos encontrados no banco:", docs);
+        console.log("DEBUG: Documentos filtrados:", relevantDocs);
+
+        setProcessDocs(relevantDocs.length > 0 ? relevantDocs : docs || []);
+      }
     } catch (err: any) {
       console.error("Error fetching process data:", err);
       toast({ title: "Erro ao carregar processo", variant: "destructive" });
@@ -99,7 +126,7 @@ export default function AdminProcessDetail() {
           application_id: appId.trim(),
           date_of_birth: dob.trim(),
           grandmother_name: grandmaName.trim(),
-          status: "ds160AwaitingReviewAndSignature",
+          status: "ds160upload_documents",
         })
         .eq("id", order.user_service_id);
 
@@ -114,6 +141,74 @@ export default function AdminProcessDetail() {
     } catch (error: any) {
       toast({
         title: "Erro ao salvar",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleApproveDocuments = async () => {
+    if (!order?.user_service_id) return;
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_services")
+        .update({ status: "casvSchedulingPending" })
+        .eq("id", order.user_service_id);
+
+      if (error) throw error;
+
+      // Update all documents status to approved if desired,
+      // but the requirement just says change process status
+      await supabase
+        .from("documents")
+        .update({ status: "approved" })
+        .eq("user_service_id", order.user_service_id);
+
+      toast({
+        title: "Documentos aprovados",
+        description: "Status alterado para 'CASV: Agendamento Pendente'.",
+      });
+      fetchProcessData();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao aprovar",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRejectDocuments = async () => {
+    if (!order?.user_service_id) return;
+    // For rejection, we might want to move back to a state where they can re-upload
+    // or just leave it in current state and ask for re-upload
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_services")
+        .update({ status: "ds160upload_documents" })
+        .eq("id", order.user_service_id);
+
+      if (error) throw error;
+
+      await supabase
+        .from("documents")
+        .update({ status: "resubmit" })
+        .eq("user_service_id", order.user_service_id);
+
+      toast({
+        title: "Documentos rejeitados",
+        description: "O cliente será solicitado a enviar novamente.",
+      });
+      fetchProcessData();
+    } catch (error: any) {
+      toast({
+        title: "Erro",
         description: error.message,
         variant: "destructive",
       });
@@ -197,11 +292,7 @@ export default function AdminProcessDetail() {
             </div>
             <Button
               className="w-full gap-2"
-              onClick={() =>
-                navigate(`/admin/ds160/${order.user_id}`, {
-                  state: { clientName: order.client_name },
-                })
-              }
+              onClick={() => setShowReviewModal(true)}
             >
               <ClipboardList className="h-4 w-4" />
               Ver Respostas do Formulário
@@ -210,7 +301,8 @@ export default function AdminProcessDetail() {
         );
 
       case "ds160Processing":
-      case "ds160AwaitingReviewAndSignature":
+      case "review_pending":
+      case "review_assign":
         return (
           <div className="space-y-6 max-w-xl">
             <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
@@ -220,8 +312,8 @@ export default function AdminProcessDetail() {
                   Fluxo DS-160
                 </p>
                 <p className="text-xs text-yellow-600">
-                  O cliente finalizou a DS-160. Preencha os dados de segurança
-                  para prosseguir.
+                  Preencha os dados de segurança para liberar o upload dos
+                  documentos pelo cliente.
                 </p>
               </div>
             </div>
@@ -242,9 +334,8 @@ export default function AdminProcessDetail() {
                   <Input
                     placeholder="Ex: AA00..."
                     value={appId}
-                    onChange={(e) => setAppId(e.target.value)}
-                    readOnly={isAlreadySaved}
-                    className={`font-mono h-11 ${isAlreadySaved ? "bg-muted" : ""}`}
+                    onChange={(e) => setAppId(e.target.value.toUpperCase())}
+                    className="font-mono h-11 uppercase"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -256,8 +347,6 @@ export default function AdminProcessDetail() {
                       placeholder="DD/MM/AAAA"
                       value={dob}
                       onChange={(e) => setDob(e.target.value)}
-                      readOnly={isAlreadySaved}
-                      className={isAlreadySaved ? "bg-muted" : ""}
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -268,19 +357,16 @@ export default function AdminProcessDetail() {
                       placeholder="Nome Completo"
                       value={grandmaName}
                       onChange={(e) => setGrandmaName(e.target.value)}
-                      readOnly={isAlreadySaved}
-                      className={isAlreadySaved ? "bg-muted" : ""}
                     />
                   </div>
                 </div>
               </div>
 
               <Button
-                className={`w-full gap-2 mt-4 h-12 shadow-lg ${isAlreadySaved ? "bg-gray-400" : "bg-accent hover:bg-green-dark"}`}
+                className="w-full gap-2 mt-4 h-12 shadow-lg bg-accent hover:bg-green-dark"
                 onClick={handleSaveFields}
                 disabled={
                   isSaving ||
-                  isAlreadySaved ||
                   !appId.trim() ||
                   !dob.trim() ||
                   !grandmaName.trim()
@@ -288,23 +374,17 @@ export default function AdminProcessDetail() {
               >
                 {isSaving ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
-                ) : isAlreadySaved ? (
-                  <CheckCircle2 className="h-4 w-4" />
                 ) : (
                   <Save className="h-4 w-4" />
                 )}
-                {isAlreadySaved ? "Dados Já Salvos" : "Salvar e Prosseguir"}
+                SALVAR E PEDIR UPLOADS
               </Button>
             </div>
 
             <Button
               variant="outline"
               className="w-full gap-2 border-accent text-accent hover:bg-accent hover:text-white transition-all"
-              onClick={() =>
-                navigate(`/admin/ds160/${order.user_id}`, {
-                  state: { clientName: order.client_name },
-                })
-              }
+              onClick={() => setShowReviewModal(true)}
             >
               <ClipboardList className="h-4 w-4" />
               Ver Respostas do Formulário DS-160
@@ -312,19 +392,202 @@ export default function AdminProcessDetail() {
           </div>
         );
 
-      case "uploadsUnderReview":
+      case "ds160upload_documents":
         return (
           <div className="space-y-4 max-w-xl">
+            <div className="flex items-center gap-3 p-4 bg-orange-50 dark:bg-orange-950/20 rounded-xl border border-orange-200 dark:border-orange-900/30">
+              <Clock className="h-5 w-5 text-orange-600" />
+              <div>
+                <p className="text-sm font-bold text-orange-700">
+                  Aguardando Cliente
+                </p>
+                <p className="text-xs text-orange-600">
+                  Os dados de segurança foram salvos. O cliente agora precisa
+                  anexar os documentos assinados e a confirmação de envio.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 bg-muted/20 rounded-2xl border border-border space-y-4">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  Dados Salvos
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-[10px] font-bold"
+                  onClick={() => {
+                    // Permite editar se precisar
+                  }}
+                >
+                  EDITAR
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">
+                    Application ID
+                  </label>
+                  <p className="font-mono font-bold text-lg">{appId}</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">
+                    Nascimento
+                  </label>
+                  <p className="font-bold text-lg">{dob}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border border-dashed border-border rounded-xl text-center">
+              <p className="text-xs text-muted-foreground italic">
+                O fluxo avançará automaticamente assim que o cliente clicar em
+                "Enviar Documentos" no portal dele.
+              </p>
+            </div>
+
+            {processDocs.length > 0 && (
+              <div className="mt-8 space-y-4">
+                <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Arquivos já recebidos (Parcial)
+                </h4>
+                <div className="grid gap-3">
+                  {processDocs.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between p-4 bg-card border border-border rounded-xl shadow-sm hover:border-accent/40 transition-shadow"
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center text-blue-600">
+                          <FileText className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold truncate">
+                            {doc.name === "ds160_assinada"
+                              ? "DS-160 Assinada"
+                              : doc.name === "ds160_comprovante"
+                                ? "Comprovante DS-160"
+                                : doc.name}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 border-accent/20 text-accent hover:bg-accent/10 font-bold text-[10px] tracking-wider"
+                        onClick={() => {
+                          const { data } = supabase.storage
+                            .from(doc.bucket_id || "documents")
+                            .getPublicUrl(doc.storage_path);
+                          window.open(data.publicUrl, "_blank");
+                        }}
+                      >
+                        ABRIR
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
+      case "ds160AwaitingReviewAndSignature":
+      case "uploadsUnderReview":
+        return (
+          <div className="space-y-6 max-w-xl">
             <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-900/30">
               <Upload className="h-5 w-5 text-blue-600" />
               <div>
                 <p className="text-sm font-bold text-blue-700">
-                  Revisão de Documentos
+                  Validação de Documentos
                 </p>
                 <p className="text-xs text-blue-600">
-                  O cliente enviou os documentos e eles precisam ser validados.
+                  O cliente enviou os documentos. Por favor, revise os anexos
+                  abaixo para prosseguir com o agendamento.
                 </p>
               </div>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Arquivos do Processo
+              </h4>
+              <div className="grid gap-3">
+                {processDocs.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between p-4 bg-card border border-border rounded-xl shadow-sm hover:border-accent/40 transition-shadow"
+                  >
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center text-blue-600">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold truncate">
+                          {doc.name === "ds160_assinada"
+                            ? "DS-160 Assinada"
+                            : doc.name === "ds160_comprovante"
+                              ? "Comprovante DS-160"
+                              : doc.name}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground uppercase font-medium">
+                          {doc.storage_path.split(".").pop()} •{" "}
+                          {new Date(doc.created_at).toLocaleDateString("pt-BR")}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 border-accent/20 text-accent hover:bg-accent/10 font-bold text-[10px] tracking-wider"
+                      onClick={() => {
+                        const { data } = supabase.storage
+                          .from(doc.bucket_id || "documents")
+                          .getPublicUrl(doc.storage_path);
+                        window.open(data.publicUrl, "_blank");
+                      }}
+                    >
+                      ABRIR
+                    </Button>
+                  </div>
+                ))}
+
+                {processDocs.length === 0 && (
+                  <div className="text-center py-10 border-2 border-dashed border-border rounded-xl bg-muted/10">
+                    <p className="text-sm text-muted-foreground italic">
+                      Nenhum documento anexado ainda.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 pt-4">
+              <Button
+                variant="outline"
+                className="h-12 border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold text-xs tracking-wide"
+                onClick={handleRejectDocuments}
+                disabled={isSaving}
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                REJEITAR / PEDIR RECORREÇÃO
+              </Button>
+              <Button
+                className="h-12 bg-accent hover:bg-green-dark text-white font-bold text-xs tracking-wide shadow-lg shadow-accent/20"
+                onClick={handleApproveDocuments}
+                disabled={isSaving || processDocs.length === 0}
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                )}
+                APROVAR DOCUMENTOS
+              </Button>
             </div>
           </div>
         );
@@ -395,11 +658,13 @@ export default function AdminProcessDetail() {
                 </p>
                 <p className="text-sm font-medium">{order.order_number}</p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase">
                   E-mail
                 </p>
-                <p className="text-sm font-medium">{order.client_email}</p>
+                <p className="text-sm font-medium break-all leading-tight">
+                  {order.client_email}
+                </p>
               </div>
               <div>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase">
@@ -519,6 +784,15 @@ export default function AdminProcessDetail() {
           </div>
         </div>
       </div>
+
+      {order.user_service_id && (
+        <DS160ReviewModal
+          isOpen={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          serviceId={order.user_service_id}
+          lang={lang}
+        />
+      )}
     </div>
   );
 }
