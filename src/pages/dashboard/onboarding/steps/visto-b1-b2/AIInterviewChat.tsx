@@ -32,6 +32,9 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string>(
+    () => Math.random().toString(36).substring(2, 15) + Date.now().toString(36),
+  );
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -127,6 +130,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
             userId: userId,
             processId: serviceId,
             lang: lang,
+            sessionId: sessionId,
           }),
         },
       );
@@ -194,6 +198,10 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
         role: "assistant",
         content: initialMsg.content,
       });
+
+      setSessionId(
+        Math.random().toString(36).substring(2, 15) + Date.now().toString(36),
+      );
 
       toast.success(lang === "pt" ? "Treino reiniciado" : "Training restarted");
     } catch (error) {

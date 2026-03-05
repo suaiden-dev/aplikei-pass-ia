@@ -288,19 +288,6 @@ export default function UserDashboard() {
       to: `/dashboard/chat?service_id=${currentServiceId}`,
     },
     {
-      icon: <Upload className="h-5 w-5" />,
-      title: d.cards.uploads[lang],
-      desc: d.cards.uploadsDesc[lang],
-      to: `/dashboard/uploads?service_id=${currentServiceId}`,
-    },
-    {
-      icon: <FileText className="h-5 w-5" />,
-      title: d.cards.generatePDF[lang],
-      desc: d.cards.generatePDFDesc[lang],
-      to: `/dashboard/pacote?service_id=${currentServiceId}`,
-      disabled: progress < 100,
-    },
-    {
       icon: <HelpCircle className="h-5 w-5" />,
       title: d.cards.help[lang],
       desc: d.cards.helpDesc[lang],
@@ -433,83 +420,6 @@ export default function UserDashboard() {
                 </div>
               )}
             </button>
-          ))}
-        </div>
-      </section>
-
-      <hr className="border-border" />
-
-      {/* ACTIVE SERVICE ACTIONS GRID */}
-      <section className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <LayoutDashboard className="w-5 h-5 text-primary" />
-            <h2 className="font-bold text-lg text-foreground">
-              {lang === "pt" ? "Gerenciar:" : "Manage:"}{" "}
-              <span className="text-primary font-black uppercase ml-1 italic">
-                {currentService?.service_slug?.replace("-", " ")}
-              </span>
-            </h2>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {cards.map((card, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + i * 0.05 }}
-            >
-              <Link
-                to={card.disabled ? "#" : card.to}
-                className={`group flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 ${
-                  card.disabled
-                    ? "cursor-not-allowed opacity-50 grayscale"
-                    : "hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1"
-                }`}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                    {card.icon}
-                  </div>
-                  {card.status && (
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] uppercase tracking-wider font-bold"
-                    >
-                      {card.status}
-                    </Badge>
-                  )}
-                </div>
-
-                <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                  {card.title}
-                </h3>
-
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                  {card.desc}
-                </p>
-
-                {card.progress !== undefined && (
-                  <div className="mt-auto pt-4">
-                    <div className="flex justify-between text-[10px] font-bold uppercase text-muted-foreground mb-1">
-                      <span>Progresso</span>
-                      <span>{card.progress}%</span>
-                    </div>
-                    <Progress value={card.progress} className="h-1" />
-                  </div>
-                )}
-
-                {!card.disabled && (
-                  <div className="mt-auto pt-4 flex items-center gap-1 text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0">
-                    {card.actionText ||
-                      (lang === "pt" ? "ACESSAR AGORA" : "ACCESS NOW")}{" "}
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
-                )}
-              </Link>
-            </motion.div>
           ))}
         </div>
       </section>

@@ -1,13 +1,12 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import Stripe from "https://esm.sh/stripe@14.16.0?target=deno";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
+import Stripe from "https://esm.sh/stripe@14.16.0";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
     console.log("--- WEBHOOK REQUEST RECEIVED ---");
     console.log("Method:", req.method);
 

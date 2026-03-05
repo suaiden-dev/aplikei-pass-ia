@@ -818,7 +818,9 @@ export default function AdminProcessDetail() {
       case "casvSchedulingPending":
       case "casvFeeProcessing":
       case "casvPaymentPending":
-      case "awaitingInterview": {
+      case "awaitingInterview":
+      case "approved":
+      case "completed": {
         const sched = onboardingResponses.find(
           (r) => r.step_slug === "casv_scheduling",
         );
@@ -887,208 +889,220 @@ export default function AdminProcessDetail() {
               </Card>
             </div>
 
-            <div className="space-y-4 pt-2">
-              <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Agendamento da Entrevista
-              </h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
-                    Data Marcada
-                  </label>
-                  <Input
-                    type="date"
-                    value={interviewDate}
-                    onChange={(e) => setInterviewDate(e.target.value)}
-                    className="h-10 bg-card"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
-                    Hora Marcada
-                  </label>
-                  <Input
-                    type="time"
-                    value={interviewTime}
-                    onChange={(e) => setInterviewTime(e.target.value)}
-                    className="h-10 bg-card"
-                  />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
-                  Localidade CASV
-                </label>
-                <Input
-                  value={interviewLocationCasv}
-                  onChange={(e) => setInterviewLocationCasv(e.target.value)}
-                  placeholder="Ex: CASV São Paulo - Chácara Santo Antônio"
-                  className="h-10 bg-card"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
-                  Localidade Consulado
-                </label>
-                <Input
-                  value={interviewLocationConsulate}
-                  onChange={(e) =>
-                    setInterviewLocationConsulate(e.target.value)
-                  }
-                  placeholder="Ex: Consulado Americano - São Paulo"
-                  className="h-10 bg-card"
-                />
-              </div>
-              <Button
-                size="sm"
-                className="w-full h-10 gap-2 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 border-none font-black text-[10px] tracking-widest"
-                onClick={handleSaveInterviewDetails}
-                disabled={isSaving}
-              >
-                {isSaving ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <Save className="h-3 w-3" />
-                )}
-                SALVAR AGENDAMENTO
-              </Button>
-            </div>
-
-            <div className="space-y-4 pt-2">
-              <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4" />
-                Credenciais Consulares
-              </h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
-                    Login / E-mail
-                  </label>
-                  <Input
-                    value={consularLogin}
-                    onChange={(e) => setConsularLogin(e.target.value)}
-                    placeholder="E-mail do portal"
-                    className="h-10 bg-card"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
-                    Senha
-                  </label>
-                  <Input
-                    value={consularPassword}
-                    onChange={(e) => setConsularPassword(e.target.value)}
-                    placeholder="Senha do portal"
-                    className="h-10 bg-card"
-                  />
-                </div>
-              </div>
-              <Button
-                size="sm"
-                className="w-full h-10 gap-2 bg-accent/10 text-accent hover:bg-accent/20 border-none font-black text-[10px] tracking-widest"
-                onClick={handleSaveCredentials}
-                disabled={isSaving}
-              >
-                {isSaving ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <Save className="h-3 w-3" />
-                )}
-                SALVAR CREDENCIAIS
-              </Button>
-            </div>
-
-            <div className="space-y-4 pt-2">
-              <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Boleto da Taxa MRV
-              </h4>
-
-              {!preferredDate ? (
-                <div className="p-8 border-2 border-dashed border-muted rounded-3xl bg-muted/5 flex flex-col items-center justify-center text-center">
-                  <Clock className="h-8 w-8 text-muted-foreground mb-2 opacity-50" />
-                  <p className="text-sm font-bold text-muted-foreground uppercase">
-                    Aguardando escolha da data
-                  </p>
-                  <p className="text-[10px] text-muted-foreground uppercase mt-2 max-w-[280px] leading-relaxed">
-                    O upload do boleto será habilitado assim que o cliente
-                    definir sua preferência de data no onboarding.
-                  </p>
-                </div>
-              ) : processDocs.find((d) => d.name === "ds160_boleto") ? (
-                <div className="flex items-center justify-between p-4 bg-card border border-accent/20 rounded-2xl shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-foreground">
-                        Boleto Disponibilizado
-                      </p>
-                      <p className="text-[10px] text-muted-foreground uppercase">
-                        Enviado em{" "}
-                        {new Date(
-                          processDocs.find((d) => d.name === "ds160_boleto")
-                            .created_at,
-                        ).toLocaleDateString("pt-BR")}
-                      </p>
-                    </div>
+            {["awaitingInterview", "approved", "completed"].includes(
+              status,
+            ) && (
+              <div className="space-y-4 pt-2">
+                <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Agendamento da Entrevista
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                      Data Marcada
+                    </label>
+                    <Input
+                      type="date"
+                      value={interviewDate}
+                      onChange={(e) => setInterviewDate(e.target.value)}
+                      className="h-10 bg-card"
+                    />
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-[10px] font-bold"
-                      onClick={() => {
-                        const doc = processDocs.find(
-                          (d) => d.name === "ds160_boleto",
-                        );
-                        const { data } = supabase.storage
-                          .from(doc.bucket_id || "documents")
-                          .getPublicUrl(doc.storage_path);
-                        window.open(data.publicUrl, "_blank");
-                      }}
-                    >
-                      ABRIR
-                    </Button>
-                    <div className="relative">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                      Hora Marcada
+                    </label>
+                    <Input
+                      type="time"
+                      value={interviewTime}
+                      onChange={(e) => setInterviewTime(e.target.value)}
+                      className="h-10 bg-card"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                    Localidade CASV
+                  </label>
+                  <Input
+                    value={interviewLocationCasv}
+                    onChange={(e) => setInterviewLocationCasv(e.target.value)}
+                    placeholder="Ex: CASV São Paulo - Chácara Santo Antônio"
+                    className="h-10 bg-card"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                    Localidade Consulado
+                  </label>
+                  <Input
+                    value={interviewLocationConsulate}
+                    onChange={(e) =>
+                      setInterviewLocationConsulate(e.target.value)
+                    }
+                    placeholder="Ex: Consulado Americano - São Paulo"
+                    className="h-10 bg-card"
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  className="w-full h-10 gap-2 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 border-none font-black text-[10px] tracking-widest"
+                  onClick={handleSaveInterviewDetails}
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Save className="h-3 w-3" />
+                  )}
+                  SALVAR AGENDAMENTO
+                </Button>
+              </div>
+            )}
+
+            {!["awaitingInterview", "approved", "completed"].includes(
+              status,
+            ) && (
+              <div className="space-y-4 pt-2">
+                <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4" />
+                  Credenciais Consulares
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                      Login / E-mail
+                    </label>
+                    <Input
+                      value={consularLogin}
+                      onChange={(e) => setConsularLogin(e.target.value)}
+                      placeholder="E-mail do portal"
+                      className="h-10 bg-card"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                      Senha
+                    </label>
+                    <Input
+                      value={consularPassword}
+                      onChange={(e) => setConsularPassword(e.target.value)}
+                      placeholder="Senha do portal"
+                      className="h-10 bg-card"
+                    />
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  className="w-full h-10 gap-2 bg-accent/10 text-accent hover:bg-accent/20 border-none font-black text-[10px] tracking-widest"
+                  onClick={handleSaveCredentials}
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Save className="h-3 w-3" />
+                  )}
+                  SALVAR CREDENCIAIS
+                </Button>
+              </div>
+            )}
+
+            {!["awaitingInterview", "approved", "completed"].includes(
+              status,
+            ) && (
+              <div className="space-y-4 pt-2">
+                <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Boleto da Taxa MRV
+                </h4>
+
+                {!preferredDate ? (
+                  <div className="p-8 border-2 border-dashed border-muted rounded-3xl bg-muted/5 flex flex-col items-center justify-center text-center">
+                    <Clock className="h-8 w-8 text-muted-foreground mb-2 opacity-50" />
+                    <p className="text-sm font-bold text-muted-foreground uppercase">
+                      Aguardando escolha da data
+                    </p>
+                    <p className="text-[10px] text-muted-foreground uppercase mt-2 max-w-[280px] leading-relaxed">
+                      O upload do boleto será habilitado assim que o cliente
+                      definir sua preferência de data no onboarding.
+                    </p>
+                  </div>
+                ) : processDocs.find((d) => d.name === "ds160_boleto") ? (
+                  <div className="flex items-center justify-between p-4 bg-card border border-accent/20 rounded-2xl shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-foreground">
+                          Boleto Disponibilizado
+                        </p>
+                        <p className="text-[10px] text-muted-foreground uppercase">
+                          Enviado em{" "}
+                          {new Date(
+                            processDocs.find((d) => d.name === "ds160_boleto")
+                              .created_at,
+                          ).toLocaleDateString("pt-BR")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="h-8 text-[10px] font-bold text-accent"
+                        className="h-8 text-[10px] font-bold"
+                        onClick={() => {
+                          const doc = processDocs.find(
+                            (d) => d.name === "ds160_boleto",
+                          );
+                          const { data } = supabase.storage
+                            .from(doc.bucket_id || "documents")
+                            .getPublicUrl(doc.storage_path);
+                          window.open(data.publicUrl, "_blank");
+                        }}
                       >
-                        SUBSTITUIR
+                        ABRIR
                       </Button>
-                      <input
-                        type="file"
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                        onChange={handleBoletoUpload}
-                        accept=".pdf,.jpg,.jpeg,.png"
-                      />
+                      <div className="relative">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-[10px] font-bold text-accent"
+                        >
+                          SUBSTITUIR
+                        </Button>
+                        <input
+                          type="file"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          onChange={handleBoletoUpload}
+                          accept=".pdf,.jpg,.jpeg,.png"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="relative group">
-                  <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-accent/20 rounded-3xl bg-accent/5 hover:bg-accent/10 transition-colors group-hover:border-accent/40 cursor-pointer text-center">
-                    <Upload className="h-8 w-8 text-accent mb-2" />
-                    <p className="text-sm font-bold text-accent">
-                      UPLOAD DO BOLETO
-                    </p>
-                    <p className="text-[10px] text-muted-foreground uppercase mt-1">
-                      PDF, JPG ou PNG
-                    </p>
+                ) : (
+                  <div className="relative group">
+                    <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-accent/20 rounded-3xl bg-accent/5 hover:bg-accent/10 transition-colors group-hover:border-accent/40 cursor-pointer text-center">
+                      <Upload className="h-8 w-8 text-accent mb-2" />
+                      <p className="text-sm font-bold text-accent">
+                        UPLOAD DO BOLETO
+                      </p>
+                      <p className="text-[10px] text-muted-foreground uppercase mt-1">
+                        PDF, JPG ou PNG
+                      </p>
+                    </div>
+                    <input
+                      type="file"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={handleBoletoUpload}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                    />
                   </div>
-                  <input
-                    type="file"
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                    onChange={handleBoletoUpload}
-                    accept=".pdf,.jpg,.jpeg,.png"
-                  />
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             <div className="pt-4 border-t border-border">
               <Button

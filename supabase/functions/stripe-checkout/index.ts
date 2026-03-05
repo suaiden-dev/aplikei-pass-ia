@@ -1,11 +1,11 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import Stripe from "https://esm.sh/stripe@14.16.0?target=deno";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
+import Stripe from "https://esm.sh/stripe@14.16.0";
 import { calculateCardAmountWithFees, calculateUSDToPixFinalBRL, getExchangeRate } from "../_shared/stripe-fee-calculator.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 const STRIPE_PRICES = {
@@ -15,11 +15,11 @@ const STRIPE_PRICES = {
     'troca-status': { usd: 350, name: 'Guia Troca de Status', dependentPrice: 100 },
 };
 
-serve(async (req) => {
-    if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+Deno.serve(async (req) => {
+    if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
     try {
-        const { slug, email, fullName, phone, dependents = 0, origin_url, paymentMethod = 'card' } = await req.json();
+        const { slug, email, fullName, phone, dependents = 0, origin_url, paymentMethod = 'card', contract_selfie_url, terms_accepted_at } = await req.json();
 
         if (!slug || !email) {
             throw new Error("Missing required parameters: slug and email are required.");
@@ -121,10 +121,11 @@ serve(async (req) => {
                 paymentMethod,
                 netAmountUSD: subtotalUSD.toString(),
                 exchange_rate: appliedExchangeRate ? appliedExchangeRate.toString() : "",
-                origin_url: origin_url || "http://localhost:5173"
+                origin_url: origin_url || "http://localhost:5173",
+                contract_selfie_url: contract_selfie_url || "",
+                terms_accepted_at: terms_accepted_at || ""
             },
         });
-
 
         return new Response(JSON.stringify({ url: session.url }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },

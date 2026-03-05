@@ -26,6 +26,7 @@ import Disclaimers from "./pages/legal/Disclaimers";
 import ContractTerms from "./pages/legal/ContractTerms";
 
 import UserDashboard from "./pages/dashboard/UserDashboard";
+import UserProcesses from "./pages/dashboard/UserProcesses";
 import Onboarding from "./pages/dashboard/Onboarding";
 import Chat from "./pages/dashboard/Chat";
 import Uploads from "./pages/dashboard/Uploads";
@@ -111,6 +112,10 @@ const App = () => (
             <Route element={<ProtectedRoute />}>
               <Route element={<UserDashboardLayout />}>
                 <Route path="/dashboard" element={<UserDashboard />} />
+                <Route
+                  path="/dashboard/processos"
+                  element={<UserProcesses />}
+                />
                 <Route path="/dashboard/onboarding" element={<Onboarding />} />
                 <Route path="/dashboard/chat" element={<Chat />} />
                 <Route path="/dashboard/uploads" element={<Uploads />} />

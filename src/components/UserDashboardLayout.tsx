@@ -7,6 +7,7 @@ import {
   HelpCircle,
   LogOut,
   CheckSquare,
+  Briefcase,
 } from "lucide-react";
 import LanguageToggle from "./LanguageToggle";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -30,9 +31,12 @@ export default function UserDashboardLayout() {
 
   const sidebarLinks = [
     { to: "/dashboard", label: s.dashboard[lang], icon: LayoutDashboard },
+    {
+      to: "/dashboard/processos",
+      label: lang === "pt" ? "Meus Processos" : "My Processes",
+      icon: Briefcase,
+    },
     { to: "/dashboard/chat", label: s.chatAI[lang], icon: MessageSquare },
-    { to: "/dashboard/uploads", label: s.documents[lang], icon: Upload },
-    { to: "/dashboard/pacote", label: s.finalPackage[lang], icon: FileText },
     { to: "/dashboard/ajuda", label: s.help[lang], icon: HelpCircle },
   ];
 
