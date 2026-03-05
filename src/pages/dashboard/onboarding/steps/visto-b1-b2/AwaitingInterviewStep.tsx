@@ -119,11 +119,21 @@ export function AwaitingInterviewStep({
   }
 
   if (showAIChat) {
-    return <AIInterviewChat onBack={() => setShowAIChat(false)} />;
+    return (
+      <AIInterviewChat
+        onBack={() => setShowAIChat(false)}
+        serviceId={serviceId}
+      />
+    );
   }
 
   if (showSpecialist) {
-    return <SpecialistTraining onBack={() => setShowSpecialist(false)} />;
+    return (
+      <SpecialistTraining
+        onBack={() => setShowSpecialist(false)}
+        serviceId={serviceId}
+      />
+    );
   }
 
   return (

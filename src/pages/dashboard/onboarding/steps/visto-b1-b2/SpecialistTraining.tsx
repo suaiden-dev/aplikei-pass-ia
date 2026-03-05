@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -27,12 +27,17 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SpecialistTrainingProps {
   onBack: () => void;
+  serviceId: string | null;
 }
 
-export function SpecialistTraining({ onBack }: SpecialistTrainingProps) {
+export function SpecialistTraining({
+  onBack,
+  serviceId,
+}: SpecialistTrainingProps) {
   const { lang } = useLanguage();
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string | null>(null);
@@ -40,6 +45,7 @@ export function SpecialistTraining({ onBack }: SpecialistTrainingProps) {
     "scheduling",
   );
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const timeSlots = [
     "09:00",
@@ -51,6 +57,74 @@ export function SpecialistTraining({ onBack }: SpecialistTrainingProps) {
     "17:00",
     "18:00",
   ];
+
+  useEffect(() => {
+    const checkSpecialistStatus = async () => {
+      if (!serviceId) {
+        setIsLoading(false);
+        return;
+      }
+
+      const { data: service } = await supabase
+        .from("user_services")
+        .select("specialist_training_data")
+        .eq("id", serviceId)
+        .single();
+
+      if (service?.specialist_training_data) {
+        const trainingData = service.specialist_training_data as any;
+        if (trainingData.status === "paid") {
+          setDate(new Date(trainingData.date));
+          setTime(trainingData.time);
+          setStep("success");
+        }
+      }
+      setIsLoading(false);
+    };
+
+    checkSpecialistStatus();
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("specialist_success") === "true") {
+      handleSpecialistSuccess();
+    }
+  }, [serviceId]);
+
+  const handleSpecialistSuccess = async () => {
+    if (!serviceId) return;
+
+    setIsProcessing(true);
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+
+    const savedSelection = localStorage.getItem(
+      `specialist_selection_${serviceId}`,
+    );
+    if (savedSelection) {
+      const { date: savedDate, time: savedTime } = JSON.parse(savedSelection);
+
+      await supabase
+        .from("user_services")
+        .update({
+          specialist_training_data: {
+            status: "paid",
+            date: savedDate,
+            time: savedTime,
+            stripe_session_id: sessionId,
+          },
+        })
+        .eq("id", serviceId);
+
+      setDate(new Date(savedDate));
+      setTime(savedTime);
+      setStep("success");
+      localStorage.removeItem(`specialist_selection_${serviceId}`);
+
+      // Clean URL
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    setIsProcessing(false);
+  };
 
   const handleConfirmScheduling = () => {
     if (!date || !time) {
@@ -64,17 +138,58 @@ export function SpecialistTraining({ onBack }: SpecialistTrainingProps) {
     setStep("payment");
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
+    if (!serviceId || !date || !time) return;
+
     setIsProcessing(true);
-    // Simulate Stripe payment
-    setTimeout(() => {
-      setIsProcessing(false);
-      setStep("success");
-      toast.success(
-        lang === "pt" ? "Pagamento confirmado!" : "Payment confirmed!",
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      localStorage.setItem(
+        `specialist_selection_${serviceId}`,
+        JSON.stringify({
+          date: date.toISOString().split("T")[0],
+          time,
+        }),
       );
-    }, 2000);
+
+      const { data, error } = await supabase.functions.invoke(
+        "stripe-specialist-checkout",
+        {
+          body: {
+            email: user.email,
+            fullName: user.user_metadata?.full_name || "Cliente",
+            serviceId,
+            date: date.toISOString().split("T")[0],
+            time,
+            origin_url: window.location.origin,
+          },
+        },
+      );
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error: any) {
+      console.error("Payment error:", error);
+      toast.error(
+        lang === "pt" ? "Erro ao iniciar pagamento" : "Error starting payment",
+      );
+      setIsProcessing(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-24">
+        <Clock className="h-10 w-10 animate-spin text-accent" />
+      </div>
+    );
+  }
 
   if (step === "success") {
     return (
@@ -108,6 +223,7 @@ export function SpecialistTraining({ onBack }: SpecialistTrainingProps) {
                   {date?.toLocaleDateString(lang === "pt" ? "pt-BR" : "en-US", {
                     day: "numeric",
                     month: "long",
+                    year: "numeric",
                   })}{" "}
                   às {time}
                 </span>

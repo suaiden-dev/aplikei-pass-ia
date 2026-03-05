@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Message {
   id: string;
@@ -21,24 +23,69 @@ interface Message {
 
 interface AIInterviewChatProps {
   onBack: () => void;
+  serviceId: string | null;
 }
 
-export function AIInterviewChat({ onBack }: AIInterviewChatProps) {
+export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
   const { lang } = useLanguage();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      role: "assistant",
-      content:
-        lang === "pt"
-          ? "Olá! Sou seu instrutor de IA. Vamos treinar para sua entrevista no consulado? Posso fazer perguntas reais e avaliar suas respostas. Por onde quer começar?"
-          : "Hello! I'm your AI instructor. Shall we practice for your consulate interview? I can ask real questions and evaluate your answers. Where would you like to start?",
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const loadMessages = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      setUserId(user.id);
+
+      const { data: existingMessages, error } = await supabase
+        .from("chat_messages")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        console.error("Error loading messages:", error);
+        return;
+      }
+
+      if (existingMessages && existingMessages.length > 0) {
+        setMessages(
+          existingMessages.map((m) => ({
+            id: m.id,
+            role: m.role as "assistant" | "user",
+            content: m.content,
+            timestamp: new Date(m.created_at || Date.now()),
+          })),
+        );
+      } else {
+        // First message if empty
+        const initialMsg: Message = {
+          id: "1",
+          role: "assistant",
+          content:
+            lang === "pt"
+              ? "Olá! Sou seu instrutor de IA. Vamos treinar para sua entrevista no consulado? Posso fazer perguntas reais e avaliar suas respostas. Por onde quer começar?"
+              : "Hello! I'm your AI instructor. Shall we practice for your consulate interview? I can ask real questions and evaluate your answers. Where would you like to start?",
+          timestamp: new Date(),
+        };
+        setMessages([initialMsg]);
+
+        // Optionally save initial message to DB
+        await supabase.from("chat_messages").insert({
+          user_id: user.id,
+          role: "assistant",
+          content: initialMsg.content,
+        });
+      }
+    };
+
+    loadMessages();
+  }, [lang]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -46,13 +93,14 @@ export function AIInterviewChat({ onBack }: AIInterviewChatProps) {
     }
   }, [messages, isTyping]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = async () => {
+    if (!input.trim() || !userId) return;
 
+    const currentInput = input;
     const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: input,
+      content: currentInput,
       timestamp: new Date(),
     };
 
@@ -60,20 +108,98 @@ export function AIInterviewChat({ onBack }: AIInterviewChatProps) {
     setInput("");
     setIsTyping(true);
 
-    // Simulated AI Response (Future automation endpoint)
-    setTimeout(() => {
+    try {
+      // 1. Save user message to Supabase
+      await supabase.from("chat_messages").insert({
+        user_id: userId,
+        role: "user",
+        content: currentInput,
+      });
+
+      // 2. Call n8n webhook
+      const response = await fetch(
+        "https://nwh.suaiden.com/webhook/chat-consulado",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: currentInput,
+            userId: userId,
+            processId: serviceId,
+            lang: lang,
+          }),
+        },
+      );
+
+      if (!response.ok) throw new Error("Webhook error");
+
+      const data = await response.json();
+      const aiContent =
+        data.output ||
+        data.response ||
+        data.text ||
+        (typeof data === "string"
+          ? data
+          : "Desculpe, tive um problema ao processar sua resposta.");
+
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content:
-          lang === "pt"
-            ? "Essa é uma ótima resposta! Em breve estarei integrado com um motor de inteligência artificial avançado para te dar feedbacks detalhados sobre cada frase. Por enquanto, continue praticando sua confiança!"
-            : "That's a great answer! Soon I'll be integrated with an advanced AI engine to give you detailed feedback on every sentence. For now, keep practicing your confidence!",
+        content: aiContent,
         timestamp: new Date(),
       };
+
+      // 3. Save AI message to Supabase
+      await supabase.from("chat_messages").insert({
+        user_id: userId,
+        role: "assistant",
+        content: aiContent,
+      });
+
       setMessages((prev) => [...prev, aiMsg]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      toast.error(
+        lang === "pt" ? "Erro ao conectar com a IA" : "Error connecting to AI",
+      );
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
+  };
+
+  const handleRestart = async () => {
+    if (!userId) return;
+
+    try {
+      const { error } = await supabase
+        .from("chat_messages")
+        .delete()
+        .eq("user_id", userId);
+
+      if (error) throw error;
+
+      const initialMsg: Message = {
+        id: "1",
+        role: "assistant",
+        content:
+          lang === "pt"
+            ? "Olá! Sou seu instrutor de IA. Vamos treinar para sua entrevista no consulado? Posso fazer perguntas reais e avaliar suas respostas. Por onde quer começar?"
+            : "Hello! I'm your AI instructor. Shall we practice for your consulate interview? I can ask real questions and evaluate your answers. Where would you like to start?",
+        timestamp: new Date(),
+      };
+      setMessages([initialMsg]);
+
+      await supabase.from("chat_messages").insert({
+        user_id: userId,
+        role: "assistant",
+        content: initialMsg.content,
+      });
+
+      toast.success(lang === "pt" ? "Treino reiniciado" : "Training restarted");
+    } catch (error) {
+      console.error("Error restarting chat:", error);
+      toast.error("Error restarting chat");
+    }
   };
 
   return (
@@ -106,8 +232,9 @@ export function AIInterviewChat({ onBack }: AIInterviewChatProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-xl"
-          onClick={() => setMessages([messages[0]])}
+          className="rounded-xl text-muted-foreground hover:text-accent"
+          onClick={handleRestart}
+          title={lang === "pt" ? "Recomeçar" : "Restart"}
         >
           <RefreshCw className="h-4 w-4" />
         </Button>
