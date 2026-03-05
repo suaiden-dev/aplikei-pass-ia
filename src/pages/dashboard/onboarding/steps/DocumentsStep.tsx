@@ -94,22 +94,6 @@ export const DocumentsStep = ({
           );
         })}
       </div>
-
-      {isDevelopment && handleSkip && (
-        <div className="mt-4 pt-4 border-t border-dashed border-border flex justify-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs text-muted-foreground hover:text-accent"
-            onClick={handleSkip}
-          >
-            [DEV]{" "}
-            {lang === "pt"
-              ? "Pular fase de documentos"
-              : "Skip documents phase"}
-          </Button>
-        </div>
-      )}
     </div>
   );
 };

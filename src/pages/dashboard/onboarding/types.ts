@@ -207,6 +207,7 @@ export interface UploadedDocument {
     name: string;
     path: string;
     id?: string;
+    bucket_id?: string;
 }
 
 export interface StepProps {
@@ -220,6 +221,7 @@ export interface StepProps {
     o: any; // Onboarding translations helper
     serviceSlug?: string;
     serviceStatus?: string | null;
+    securityData?: { appId: string | null; dob: string | null; grandma: string | null } | null;
 }
 
 export interface DocumentStepProps extends StepProps {

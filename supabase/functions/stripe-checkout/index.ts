@@ -123,7 +123,8 @@ Deno.serve(async (req) => {
                 exchange_rate: appliedExchangeRate ? appliedExchangeRate.toString() : "",
                 origin_url: origin_url || "http://localhost:5173",
                 contract_selfie_url: contract_selfie_url || "",
-                terms_accepted_at: terms_accepted_at || ""
+                terms_accepted_at: terms_accepted_at || "",
+                project: "aplikei"
             },
         });
 

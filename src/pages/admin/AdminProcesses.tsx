@@ -220,11 +220,16 @@ export default function AdminContracts() {
             },
             {
               key: "payment_method",
-              header: "Método",
+              header: "Pagamento",
               render: (item) => (
-                <span className="text-xs capitalize">
-                  {item.payment_method?.replace(/_/g, " ") || "—"}
-                </span>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs capitalize font-medium">
+                    {item.payment_method?.replace(/_/g, " ") || "—"}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-mono">
+                    {formatCurrency(item.total_price_usd)}
+                  </span>
+                </div>
               ),
             },
             {

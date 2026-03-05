@@ -10,7 +10,13 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
+  Shield,
+  Fingerprint,
+  Calendar,
+  User,
+  Copy,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +31,11 @@ interface ReviewAndSignDS160StepProps {
   uploading: string | null;
   fileInputRef: React.RefObject<HTMLInputElement>;
   setSelectedDoc: (docName: string) => void;
+  securityData?: {
+    appId: string | null;
+    dob: string | null;
+    grandma: string | null;
+  } | null;
 }
 
 export function ReviewAndSignDS160Step({
@@ -33,6 +44,7 @@ export function ReviewAndSignDS160Step({
   uploading,
   fileInputRef,
   setSelectedDoc,
+  securityData,
 }: ReviewAndSignDS160StepProps) {
   const { lang } = useLanguage();
 
@@ -56,6 +68,12 @@ export function ReviewAndSignDS160Step({
   ];
 
   const [activeStep, setActiveStep] = useState(0);
+
+  const handleCopy = (text: string | null | undefined) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    toast.success(lang === "pt" ? "Copiado!" : "Copied!");
+  };
 
   const tutorialSteps = [
     {
@@ -204,6 +222,84 @@ export function ReviewAndSignDS160Step({
           </div>
         </div>
       </div>
+
+      {securityData && (
+        <div className="mt-8 space-y-4 rounded-xl border border-primary/20 bg-primary/5 p-6 shadow-sm">
+          <div className="flex items-center gap-2 text-xl font-bold text-primary mb-2">
+            <Shield className="w-6 h-6 text-accent" />
+            {lang === "pt"
+              ? "Seus Dados de Segurança da DS-160"
+              : "Your DS-160 Security Data"}
+          </div>
+          <p className="text-muted-foreground text-sm">
+            {lang === "pt"
+              ? "Utilize essas informações para acessar a sua DS-160 oficial através do portal consular do governo."
+              : "Use this information to access your official DS-160 through the government consular portal."}
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+            <div className="space-y-2 p-4 bg-white dark:bg-slate-800 rounded-xl border border-border flex flex-col justify-between shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <Fingerprint className="w-4 h-4 text-accent" />
+                  Application ID
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 hover:bg-transparent"
+                  onClick={() => handleCopy(securityData.appId)}
+                >
+                  <Copy className="h-4 w-4 text-muted-foreground hover:text-accent transition-colors" />
+                </Button>
+              </div>
+              <p className="font-mono text-base font-black text-foreground truncate select-all bg-muted/30 p-2 rounded-lg text-center">
+                {securityData.appId}
+              </p>
+            </div>
+
+            <div className="space-y-2 p-4 bg-white dark:bg-slate-800 rounded-xl border border-border flex flex-col justify-between shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <Calendar className="w-4 h-4 text-accent" />
+                  {lang === "pt" ? "Data de Nascimento" : "Birth Date"}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 hover:bg-transparent"
+                  onClick={() => handleCopy(securityData.dob)}
+                >
+                  <Copy className="h-4 w-4 text-muted-foreground hover:text-accent transition-colors" />
+                </Button>
+              </div>
+              <p className="font-mono text-base font-black text-foreground truncate select-all bg-muted/30 p-2 rounded-lg text-center">
+                {securityData.dob}
+              </p>
+            </div>
+
+            <div className="space-y-2 p-4 bg-white dark:bg-slate-800 rounded-xl border border-border flex flex-col justify-between shadow-sm lg:col-span-1 md:col-span-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <User className="w-4 h-4 text-accent" />
+                  {lang === "pt" ? "Nome da Avó" : "Grandma Name"}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 hover:bg-transparent"
+                  onClick={() => handleCopy(securityData.grandma)}
+                >
+                  <Copy className="h-4 w-4 text-muted-foreground hover:text-accent transition-colors" />
+                </Button>
+              </div>
+              <p className="font-mono text-base font-black text-foreground truncate select-all bg-muted/30 p-2 rounded-lg text-center">
+                {securityData.grandma}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-accent/5 border border-accent/20 rounded-2xl p-6 space-y-6">
         <h3 className="font-bold text-lg text-foreground flex items-center gap-2">

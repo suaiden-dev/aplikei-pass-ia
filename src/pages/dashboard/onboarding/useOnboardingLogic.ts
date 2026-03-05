@@ -15,7 +15,9 @@ export const useOnboardingLogic = () => {
     const [loading, setLoading] = useState(true);
     const [serviceId, setServiceId] = useState<string | null>(null);
     const [serviceStatus, setServiceStatus] = useState<string | null>(null);
+    const [orderNumber, setOrderNumber] = useState<string | null>(null);
     const [securityData, setSecurityData] = useState<{ appId: string; dob: string; grandma: string } | null>(null);
+    const [hasConsularCredentials, setHasConsularCredentials] = useState<boolean>(false);
     const [currentStep, setCurrentStep] = useState(() => {
         const saved = localStorage.getItem("onboarding_step");
         return saved ? parseInt(saved, 10) : 0;
@@ -34,7 +36,7 @@ export const useOnboardingLogic = () => {
             "personal1", "personal2", "travel",
             "companions", "previous-travel", "address-phone",
             "social-media", "passport", "us-contact", "family",
-            "work-education", "additional", "documents", "review"
+            "work-education", "additional"
         ]
         : ["personal", "history", "process", "documents", "review"];
 
@@ -64,7 +66,7 @@ export const useOnboardingLogic = () => {
             // but we also try to find the one that matches our target slug or just the active one.
             const { data: services, error: serviceError } = await supabase
                 .from("user_services")
-                .select("id, status, current_step, service_slug, application_id, date_of_birth, grandmother_name")
+                .select("id, status, current_step, service_slug, application_id, date_of_birth, grandmother_name, consular_login")
                 .eq("user_id", user.id)
                 .in("status", [
                     "active", 
@@ -133,12 +135,32 @@ export const useOnboardingLogic = () => {
                     });
                 }
 
+                // Check if admin has set consular credentials
+                const svc = service as typeof service & { consular_login?: string };
+                setHasConsularCredentials(!!(svc.consular_login && svc.consular_login.trim()));
+
                 // Synchronize step from DB
                 if (service.current_step !== undefined && service.current_step !== null) {
                     // Adjust max step based on service
-                    const maxStep = slug === "visto-b1-b2" ? 13 : 4;
+                    const maxStep = slug === "visto-b1-b2" ? 11 : 4;
                     const stepToIndex = Math.min(service.current_step, maxStep);
                     setCurrentStep(stepToIndex);
+                }
+            }
+
+            // Fetch order number
+            if (sId) {
+                const { data: orderData } = await supabase
+                    .from("visa_orders")
+                    .select("order_number")
+                    .eq("product_slug", slug)
+                    .eq("user_id", user.id)
+                    .order("created_at", { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                
+                if (orderData?.order_number) {
+                    setOrderNumber(orderData.order_number);
                 }
             }
 
@@ -158,7 +180,7 @@ export const useOnboardingLogic = () => {
             if (responseError) {
                 console.error("Error loading responses:", responseError);
             } else if (responses) {
-                const combinedData = responses.reduce((acc: any, curr: any) => ({ ...acc, ...curr.data }), {});
+                const combinedData = responses.reduce((acc: Record<string, unknown>, curr: { step_slug: string; data: unknown }) => ({ ...acc, ...curr.data as object }), {});
 
                 // Pre-fill with profile data if empty
                 if (profile) {
@@ -182,13 +204,13 @@ export const useOnboardingLogic = () => {
             // Load uploaded documents
             const { data: docs, error: docsError } = await supabase
                 .from("documents")
-                .select("name, storage_path")
+                .select("name, storage_path, bucket_id")
                 .eq("user_id", user.id);
 
             if (docsError) {
                 console.error("Error loading documents:", docsError);
             } else if (docs) {
-                setUploadedDocs(docs.map(d => ({ name: d.name, path: d.storage_path })));
+                setUploadedDocs(docs.map(d => ({ name: d.name, path: d.storage_path, bucket_id: d.bucket_id })));
             }
         };
         loadData().finally(() => setLoading(false));
@@ -276,8 +298,8 @@ export const useOnboardingLogic = () => {
                 setUploadedDocs(docs.map(d => ({ name: d.name, path: d.storage_path })));
             }
 
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (error: unknown) {
+            toast.error((error as Error).message);
         } finally {
             setUploading(null);
             if (fileInputRef.current) {
@@ -307,7 +329,7 @@ export const useOnboardingLogic = () => {
             } else {
                 throw error;
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error removing doc:", error);
             toast.error("Error removing document");
         }
@@ -326,7 +348,7 @@ export const useOnboardingLogic = () => {
         // but for now let's keep it simple and save what's in the form.
         // For DS-160 we'll save the relevant fields per step.
 
-        let stepData: any = {};
+        let stepData: Record<string, unknown> = {};
 
         if (serviceSlug === "visto-b1-b2") {
             // Mapping DS-160 steps to fields (simplified for now to save everything)
@@ -364,7 +386,7 @@ export const useOnboardingLogic = () => {
                 .upsert({
                     user_service_id: serviceId,
                     step_slug: currentSlug,
-                    data: stepData,
+                    data: stepData as any,
                     updated_at: new Date().toISOString()
                 }, { onConflict: "user_service_id,step_slug" });
 
@@ -533,13 +555,13 @@ export const useOnboardingLogic = () => {
                     setPendingFiles({});
                 }
 
-                const nextStatus = isSignatureSubmit ? "ds160AwaitingReviewAndSignature" : "review_pending";
+                const nextStatus = isSignatureSubmit ? "uploadsUnderReview" : "review_pending";
 
                 console.log(`🔄 [handleFinish] Updating service status to '${nextStatus}'...`);
                 const { error: updateError } = await supabase
                     .from("user_services")
                     .update({
-                        current_step: 13, // Final step for DS-160
+                        current_step: serviceSlug === "visto-b1-b2" ? 11 : 4,
                         status: nextStatus,
                     })
                     .eq("id", serviceId);
@@ -552,9 +574,9 @@ export const useOnboardingLogic = () => {
             } else {
                 console.warn("⚠️ [handleFinish] No serviceId found to update.");
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("🔴 [handleFinish] Unexpected error:", err);
-            toast.error(err.message || "Erro inesperado");
+            toast.error((err as Error).message || "Erro inesperado");
             setLoading(false);
             return;
         } finally {
@@ -573,8 +595,8 @@ export const useOnboardingLogic = () => {
                 ? (isSignatureSubmit ? 'Documentos enviados com sucesso!' : 'Pacote gerado com sucesso!') 
                 : (isSignatureSubmit ? 'Documents submitted successfully!' : 'Package generated successfully!')
         );
-        localStorage.removeItem("onboarding_step");
-        navigate("/dashboard");
+        // Reload to reflect changes and show success screen
+        window.location.reload();
     };
 
     return {
@@ -583,7 +605,9 @@ export const useOnboardingLogic = () => {
         loading,
         serviceStatus,
         serviceId,
+        orderNumber,
         securityData,
+        hasConsularCredentials,
         uploading, uploadedDocs, fileInputRef, selectedDoc, setSelectedDoc,
         pendingFiles, setPendingFiles,
         register, handleSubmit, watch, errors, setValue, formData,

@@ -2,6 +2,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { StepProps } from "../../types";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertCircle,
+  Shield,
+  Fingerprint,
+  Calendar,
+  User,
+  Copy,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -9,6 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 export const PersonalInfo1Step = ({
   register,
@@ -16,6 +27,7 @@ export const PersonalInfo1Step = ({
   setValue,
   lang,
   t,
+  securityData,
 }: StepProps) => {
   const ds = t.ds160;
   const hasOtherNames = watch("hasOtherNames");
@@ -23,8 +35,30 @@ export const PersonalInfo1Step = ({
   const maritalStatus = watch("maritalStatus");
   const hasTelecode = watch("hasTelecode");
 
+  const handleCopy = (text: string | null | undefined) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    toast.success(lang === "pt" ? "Copiado!" : "Copied!");
+  };
+
   return (
     <div className="space-y-6 fade-in">
+      <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 shadow-sm">
+        <div className="flex items-start gap-4">
+          <div className="rounded-full bg-primary/10 p-2 text-primary">
+            <AlertCircle className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <h4 className="font-display font-bold text-primary text-sm uppercase tracking-wider">
+              {lang === "pt" ? "Instrução da Etapa" : "Stage Instruction"}
+            </h4>
+            <p className="text-primary/95 text-sm leading-relaxed font-medium">
+              {ds.interview.fillNotice[lang]}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <h2 className="font-display text-lg font-semibold text-foreground">
         {ds.personal1.title[lang]}
       </h2>
@@ -45,11 +79,16 @@ export const PersonalInfo1Step = ({
             />
           </SelectTrigger>
           <SelectContent>
-            {ds.interview.options.map((option: any, index: number) => (
-              <SelectItem key={index} value={option.en}>
-                {option[lang]}
-              </SelectItem>
-            ))}
+            {ds.interview.options.map(
+              (
+                option: { en: string; pt: string; es: string },
+                index: number,
+              ) => (
+                <SelectItem key={index} value={option.en}>
+                  {option[lang]}
+                </SelectItem>
+              ),
+            )}
           </SelectContent>
         </Select>
       </div>

@@ -48,6 +48,17 @@ Deno.serve(async (req) => {
 
             if (!metadata) throw new Error("No metadata in session");
 
+            // --- PROJECT ISOLATION GUARD ---
+            // Only process events intended for the 'aplikei' project.
+            // If it's another project or missing, skip processing.
+            if (metadata.project !== 'aplikei') {
+                console.log(`[IGNORED] Stripe event from another project (Project: ${metadata.project || 'N/A'}) - Session: ${session.id}`);
+                return new Response(JSON.stringify({ received: true, ignored: true }), {
+                    headers: { ...corsHeaders, "Content-Type": "application/json" },
+                    status: 200,
+                });
+            }
+
             const supabaseAdmin = createClient(
                 Deno.env.get('SUPABASE_URL') ?? '',
                 Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -165,16 +176,7 @@ Deno.serve(async (req) => {
                 if (serviceError) console.error("Error creating user service:", serviceError.message);
             }
 
-            // 4. Gera o PDF do contrato em background
-            try {
-                console.log(`[stripe-webhook] Invocando generate-contract-pdf para ordem ${order.id}`);
-                const { error: pdfError } = await supabaseAdmin.functions.invoke("generate-contract-pdf", {
-                    body: { order_id: order.id }
-                });
-                if (pdfError) console.error("[stripe-webhook] Erro ao gerar PDF:", pdfError);
-            } catch (pdfErr: any) {
-                console.error("[stripe-webhook] Erro inesperado ao gerar PDF:", pdfErr.message);
-            }
+
 
             console.log(`Successfully processed order ${order.order_number} for ${email}`);
         }

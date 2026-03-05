@@ -22,12 +22,19 @@ import {
   FileText,
   Download,
   RefreshCw,
+  Eye,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { AdminStatusTimeline } from "@/components/admin/AdminStatusTimeline";
 import { AdminVerticalTimeline } from "@/components/admin/AdminVerticalTimeline";
-import { DS160ReviewModal } from "../dashboard/onboarding/components/DS160ReviewModal";
 import { useLanguage } from "@/i18n/LanguageContext";
 import {
   Card,
@@ -107,7 +114,26 @@ export default function AdminProcessDetail() {
   const [interviewLocationCasv, setInterviewLocationCasv] = useState("");
   const [interviewLocationConsulate, setInterviewLocationConsulate] =
     useState("");
+  const [consulateInterviewDate, setConsulateInterviewDate] = useState("");
+  const [consulateInterviewTime, setConsulateInterviewTime] = useState("");
+  const [sameLocation, setSameLocation] = useState(true);
+  const [isViewDocsModalOpen, setIsViewDocsModalOpen] = useState(false);
   const { lang } = useLanguage();
+
+  const handleOpenDocAdmin = async (doc: ProcessDocument) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from(doc.bucket_id || "process-documents")
+        .createSignedUrl(doc.storage_path, 3600);
+      if (error) throw error;
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, "_blank");
+      }
+    } catch (err) {
+      console.error("Error opening doc:", err);
+      toast({ title: "Erro ao abrir documento", variant: "destructive" });
+    }
+  };
 
   const fetchProcessData = useCallback(async () => {
     setLoading(true);
@@ -155,6 +181,14 @@ export default function AdminProcessDetail() {
       setInterviewLocationConsulate(
         serviceData?.interview_location_consulate || "",
       );
+      const svcAny = serviceData as typeof serviceData & {
+        consulate_interview_date?: string;
+        consulate_interview_time?: string;
+        same_location?: boolean;
+      };
+      setConsulateInterviewDate(svcAny?.consulate_interview_date || "");
+      setConsulateInterviewTime(svcAny?.consulate_interview_time || "");
+      setSameLocation(svcAny?.same_location !== false);
 
       // Fetch documents for this user
       if (orderData.user_id) {
@@ -297,6 +331,13 @@ export default function AdminProcessDetail() {
           interview_location_casv: interviewLocationCasv.trim() || null,
           interview_location_consulate:
             interviewLocationConsulate.trim() || null,
+          same_location: sameLocation,
+          consulate_interview_date: sameLocation
+            ? null
+            : consulateInterviewDate || null,
+          consulate_interview_time: sameLocation
+            ? null
+            : consulateInterviewTime || null,
         })
         .eq("id", order.user_service_id);
 
@@ -513,13 +554,6 @@ export default function AdminProcessDetail() {
                 </p>
               </div>
             </div>
-            <Button
-              className="w-full gap-2"
-              onClick={() => setShowReviewModal(true)}
-            >
-              <ClipboardList className="h-4 w-4" />
-              Ver Respostas do Formulário
-            </Button>
           </div>
         );
 
@@ -603,15 +637,6 @@ export default function AdminProcessDetail() {
                 SALVAR E PEDIR UPLOADS
               </Button>
             </div>
-
-            <Button
-              variant="outline"
-              className="w-full gap-2 border-accent text-accent hover:bg-accent hover:text-white transition-all"
-              onClick={() => setShowReviewModal(true)}
-            >
-              <ClipboardList className="h-4 w-4" />
-              Ver Respostas do Formulário DS-160
-            </Button>
           </div>
         );
 
@@ -897,30 +922,101 @@ export default function AdminProcessDetail() {
                   <Calendar className="h-4 w-4" />
                   Agendamento da Entrevista
                 </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
-                      Data Marcada
-                    </label>
-                    <Input
-                      type="date"
-                      value={interviewDate}
-                      onChange={(e) => setInterviewDate(e.target.value)}
-                      className="h-10 bg-card"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
-                      Hora Marcada
-                    </label>
-                    <Input
-                      type="time"
-                      value={interviewTime}
-                      onChange={(e) => setInterviewTime(e.target.value)}
-                      className="h-10 bg-card"
-                    />
+
+                {/* Same / Different location toggle */}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSameLocation(true)}
+                    className={`p-3 rounded-xl border-2 text-xs font-bold transition-all ${
+                      sameLocation
+                        ? "border-accent bg-accent/10 text-accent"
+                        : "border-border bg-card text-muted-foreground hover:border-accent/40"
+                    }`}
+                  >
+                    🏢 CASV e Consulado no mesmo local
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSameLocation(false)}
+                    className={`p-3 rounded-xl border-2 text-xs font-bold transition-all ${
+                      !sameLocation
+                        ? "border-accent bg-accent/10 text-accent"
+                        : "border-border bg-card text-muted-foreground hover:border-accent/40"
+                    }`}
+                  >
+                    📍 CASV e Consulado em locais diferentes
+                  </button>
+                </div>
+
+                {/* CASV Date */}
+                <div>
+                  <p className="text-[10px] font-black uppercase text-muted-foreground mb-2">
+                    {sameLocation ? "Data CASV / Consulado" : "Data CASV"}
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                        Data Marcada
+                      </label>
+                      <Input
+                        type="date"
+                        value={interviewDate}
+                        onChange={(e) => setInterviewDate(e.target.value)}
+                        className="h-10 bg-card"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                        Hora Marcada
+                      </label>
+                      <Input
+                        type="time"
+                        value={interviewTime}
+                        onChange={(e) => setInterviewTime(e.target.value)}
+                        className="h-10 bg-card"
+                      />
+                    </div>
                   </div>
                 </div>
+
+                {/* Consulate Date — only when locations are different */}
+                {!sameLocation && (
+                  <div>
+                    <p className="text-[10px] font-black uppercase text-muted-foreground mb-2">
+                      Data Consulado
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                          Data Marcada
+                        </label>
+                        <Input
+                          type="date"
+                          value={consulateInterviewDate}
+                          onChange={(e) =>
+                            setConsulateInterviewDate(e.target.value)
+                          }
+                          className="h-10 bg-card"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                          Hora Marcada
+                        </label>
+                        <Input
+                          type="time"
+                          value={consulateInterviewTime}
+                          onChange={(e) =>
+                            setConsulateInterviewTime(e.target.value)
+                          }
+                          className="h-10 bg-card"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
                     Localidade CASV
@@ -961,9 +1057,23 @@ export default function AdminProcessDetail() {
               </div>
             )}
 
-            {!["awaitingInterview", "approved", "completed"].includes(
-              status,
-            ) && (
+            {status === "casvFeeProcessing" && (
+              <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
+                <Clock className="h-5 w-5 text-yellow-600 shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-yellow-700">
+                    Aguardando confirmação do e-mail
+                  </p>
+                  <p className="text-xs text-yellow-600">
+                    O cliente ainda não confirmou o e-mail no portal. As
+                    credenciais consulares e o upload do boleto serão
+                    habilitados após essa confirmação.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {status === "casvPaymentPending" && (
               <div className="space-y-4 pt-2">
                 <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4" />
@@ -1009,9 +1119,7 @@ export default function AdminProcessDetail() {
               </div>
             )}
 
-            {!["awaitingInterview", "approved", "completed"].includes(
-              status,
-            ) && (
+            {status === "casvPaymentPending" && (
               <div className="space-y-4 pt-2">
                 <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                   <Download className="h-4 w-4" />
@@ -1103,6 +1211,23 @@ export default function AdminProcessDetail() {
                 )}
               </div>
             )}
+
+            {status === "casvPaymentPending" &&
+              !!processDocs.find((d) => d.name === "ds160_boleto") &&
+              !!(consularLogin || consularPassword) && (
+                <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-900/30">
+                  <Clock className="h-5 w-5 text-blue-600 shrink-0 animate-pulse" />
+                  <div>
+                    <p className="text-sm font-bold text-blue-700">
+                      Aguardando confirmação de pagamento
+                    </p>
+                    <p className="text-xs text-blue-600">
+                      O boleto e as credenciais foram disponibilizados ao
+                      cliente. Aguardando ele confirmar o pagamento no portal.
+                    </p>
+                  </div>
+                </div>
+              )}
 
             <div className="pt-4 border-t border-border">
               <Button
@@ -1225,6 +1350,41 @@ export default function AdminProcessDetail() {
             </div>
           </div>
 
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
+              Formulário DS-160
+            </h3>
+            <Button
+              variant="outline"
+              className="w-full gap-2 border-accent text-accent hover:bg-accent hover:text-white transition-all h-11 font-bold"
+              onClick={() =>
+                navigate(`/admin/ds160/${order.user_id}`, {
+                  state: { clientName: order.client_name },
+                })
+              }
+            >
+              <ClipboardList className="h-4 w-4" />
+              VER RESPOSTAS DS-160
+            </Button>
+
+            {(status === "casvSchedulingPending" ||
+              status === "casvFeeProcessing" ||
+              status === "casvPaymentPending" ||
+              status === "awaitingInterview" ||
+              status === "approved" ||
+              status === "completed") &&
+              processDocs.length > 0 && (
+                <Button
+                  variant="outline"
+                  className="w-full mt-3 gap-2 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary transition-all h-11 font-bold"
+                  onClick={() => setIsViewDocsModalOpen(true)}
+                >
+                  <Eye className="h-4 w-4" />
+                  VER DOCUMENTOS ENVIADOS
+                </Button>
+              )}
+          </div>
+
           {/* Contract PDF Section */}
           <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
@@ -1310,14 +1470,45 @@ export default function AdminProcessDetail() {
         </div>
       </div>
 
-      {order.user_service_id && (
-        <DS160ReviewModal
-          isOpen={showReviewModal}
-          onClose={() => setShowReviewModal(false)}
-          serviceId={order.user_service_id}
-          lang={lang}
-        />
-      )}
+      <Dialog open={isViewDocsModalOpen} onOpenChange={setIsViewDocsModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Documentos Enviados</DialogTitle>
+            <DialogDescription>
+              Visualize os documentos anexados neste processo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 py-4">
+            {processDocs.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Nenhum documento encontrado.
+              </p>
+            ) : (
+              processDocs.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="flex items-center justify-between p-3 rounded-xl border bg-muted/30"
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-accent" />
+                    <span className="text-sm font-medium pr-4 break-all">
+                      {doc.name.replace(/_/g, " ").toUpperCase()}
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleOpenDocAdmin(doc)}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Abrir
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

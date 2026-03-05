@@ -9,11 +9,23 @@ import {
   ChevronRight,
   AlertCircle,
   ArrowLeft,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+
+interface DS160Field {
+  label: string;
+  value: string | number | null | undefined;
+}
+
+interface DS160Section {
+  title: string;
+  fields: DS160Field[];
+}
 
 export default function AdminDS160ViewerPage() {
   const { userId } = useParams<{ userId: string }>();
@@ -23,14 +35,12 @@ export default function AdminDS160ViewerPage() {
 
   const { lang, t } = useLanguage();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<any>(null);
+  const [formData, setFormData] = useState<Record<string, any> | null>(null);
   const [serviceData, setServiceData] = useState<{
     id: string;
     status: string;
     application_id?: string;
   } | null>(null);
-  const [appIdInput, setAppIdInput] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
 
   const fetchDS160Data = useCallback(async () => {
     setLoading(true);
@@ -47,7 +57,9 @@ export default function AdminDS160ViewerPage() {
         console.error("❌ Erro ao buscar serviço:", serviceError);
       }
 
-      const service = (services as any)?.[0];
+      const service = (
+        services as { id: string; status: string; application_id?: string }[]
+      )?.[0];
 
       if (!service) {
         console.warn("⚠️ Nenhum serviço 'visto-b1-b2' encontrado.");
@@ -62,7 +74,6 @@ export default function AdminDS160ViewerPage() {
         status: service.status,
         application_id: service.application_id,
       });
-      setAppIdInput(service.application_id || "");
       const { data: responses, error } = await supabase
         .from("onboarding_responses")
         .select("step_slug, data")
@@ -75,7 +86,7 @@ export default function AdminDS160ViewerPage() {
 
       if (responses && responses.length > 0) {
         const combined = responses.reduce(
-          (acc, curr) => ({ ...acc, ...(curr.data as any) }),
+          (acc, curr) => ({ ...acc, ...(curr.data as Record<string, any>) }),
           {},
         );
         setFormData(combined);
@@ -95,40 +106,6 @@ export default function AdminDS160ViewerPage() {
       fetchDS160Data();
     }
   }, [userId, fetchDS160Data]);
-  const handleSaveApplicationId = async () => {
-    if (!serviceData || !appIdInput.trim()) return;
-
-    setIsSaving(true);
-    try {
-      const { error } = await supabase
-        .from("user_services")
-        .update({
-          application_id: appIdInput.trim(),
-          status: "review_assign",
-        })
-        .eq("id", serviceData.id);
-
-      if (error) throw error;
-
-      toast.success(
-        "Application ID salvo e status atualizado para 'Revise e Assine'",
-      );
-      setServiceData((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: "review_assign",
-              application_id: appIdInput.trim(),
-            }
-          : null,
-      );
-    } catch (err: any) {
-      console.error("Erro ao salvar Application ID:", err);
-      toast.error("Erro ao salvar Application ID");
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const translateYesNo = (val?: string) => {
     if (val === "yes") return lang === "pt" ? "Sim" : "Yes";
@@ -136,10 +113,16 @@ export default function AdminDS160ViewerPage() {
     return val || "—";
   };
 
+  const getFieldValue = (key: string, label?: string) => {
+    if (formData[key + "DoesNotApply"]) return "Does Not Apply";
+    if (formData[key]) return formData[key];
+    return "—";
+  };
+
   const sections = formData
     ? [
         {
-          title: "Personal Information 1",
+          title: "1. Personal Information 1",
           fields: [
             { label: "Given Names", value: formData.firstName },
             { label: "Surname", value: formData.lastName },
@@ -148,20 +131,27 @@ export default function AdminDS160ViewerPage() {
               value: formData.fullNamePassport,
             },
             { label: "Email", value: formData.email },
+            { label: "Interview Location", value: formData.interviewLocation },
             {
               label: "Other Names Used?",
               value: translateYesNo(formData.hasOtherNames),
             },
             { label: "Details (Other Names)", value: formData.otherNames },
+            {
+              label: "Has Telecode?",
+              value: translateYesNo(formData.hasTelecode),
+            },
+            { label: "Telecode Value", value: formData.telecodeValue },
             { label: "Gender", value: formData.gender },
             { label: "Marital Status", value: formData.maritalStatus },
             { label: "Birth Date", value: formData.birthDate },
             { label: "Birth City", value: formData.birthCity },
+            { label: "Birth State", value: formData.birthState },
             { label: "Birth Country", value: formData.birthCountry },
           ],
         },
         {
-          title: "Personal Information 2",
+          title: "2. Personal Information 2",
           fields: [
             { label: "Nationality", value: formData.nationalityInfo },
             {
@@ -172,40 +162,119 @@ export default function AdminDS160ViewerPage() {
               label: "Other Nationalities",
               value: formData.otherNationalities,
             },
-            { label: "National ID (CPF/RG)", value: formData.nationalID },
-            { label: "US Social Security #", value: formData.ssn },
-            { label: "US Taxpayer ID #", value: formData.taxID },
+            {
+              label: "Has Passport Other Country?",
+              value: translateYesNo(formData.hasNationalityPassport),
+            },
+            {
+              label: "Other Passport Number",
+              value: formData.nationalityPassportNumber,
+            },
+            {
+              label: "Permanent Resident Other Country?",
+              value: translateYesNo(formData.isPermanentResidentOtherCountry),
+            },
+            {
+              label: "Permanent Resident Details",
+              value: formData.permResCountryDetails,
+            },
+            { label: "National ID (CPF)", value: getFieldValue("nationalID") },
+            { label: "US Social Security #", value: getFieldValue("ssn") },
+            { label: "US Taxpayer ID #", value: getFieldValue("taxID") },
           ],
         },
         {
-          title: "Travel Information",
+          title: "3. Address & Phone",
+          fields: [
+            { label: "Home Address", value: formData.homeAddress },
+            { label: "Home City", value: formData.homeCity },
+            { label: "Home State", value: formData.homeState },
+            { label: "Home Zip", value: formData.homeZip },
+            { label: "Home Country", value: formData.homeCountry },
+            {
+              label: "Mailing same as Home?",
+              value: translateYesNo(formData.isMailingSameAsHome),
+            },
+            { label: "Mailing Address", value: formData.mailingAddress },
+            { label: "Mailing City", value: formData.mailingCity },
+            { label: "Mailing State", value: formData.mailingState },
+            { label: "Mailing Zip", value: formData.mailingZip },
+            { label: "Primary Phone", value: formData.mobilePhone },
+            { label: "Secondary Phone", value: formData.homePhone },
+            { label: "Work Phone", value: formData.workPhone },
+            {
+              label: "Other Phone (Last 5 years)?",
+              value: translateYesNo(formData.hasOtherPhoneLast5Years),
+            },
+            {
+              label: "Other Phone Details",
+              value: formData.otherPhonesDetails,
+            },
+            {
+              label: "Other Email (Last 5 years)?",
+              value: translateYesNo(formData.hasOtherEmailLast5Years),
+            },
+            {
+              label: "Other Email Details",
+              value: formData.otherEmailsDetails,
+            },
+          ],
+        },
+        {
+          title: "4. Passport Information",
+          fields: [
+            { label: "Passport Type", value: formData.passportType },
+            { label: "Passport Number", value: formData.passportNumberDS },
+            { label: "Issuance City", value: formData.passportIssuanceCity },
+            {
+              label: "Issuance Country",
+              value: formData.passportIssuanceCountry,
+            },
+            { label: "Issuance Date", value: formData.passportIssuanceDate },
+            {
+              label: "Expiration Date",
+              value: formData.passportExpirationDate,
+            },
+          ],
+        },
+        {
+          title: "5. Travel Information",
           fields: [
             {
-              label: "Plan Type",
-              value:
-                formData.hasSpecificTravelPlan === "yes"
-                  ? "Specific Plan"
-                  : "Estimated",
+              label: "Specific Travel Plan?",
+              value: translateYesNo(formData.hasSpecificTravelPlan),
             },
             { label: "Arrival Date", value: formData.arrivalDate },
+            {
+              label: "Arrival Flight Number",
+              value: formData.arrivalFlightNumber,
+            },
+            { label: "Arrival City", value: formData.arrivalCity },
             { label: "Departure Date", value: formData.departureDate },
             {
+              label: "Departure Flight Number",
+              value: formData.departureFlightNumber,
+            },
+            { label: "Departure City", value: formData.departureCity },
+            {
               label: "Stay Duration",
-              value: `${formData.stayDurationValue} ${formData.stayDurationUnit}`,
+              value:
+                formData.stayDurationValue && formData.stayDurationUnit
+                  ? `${formData.stayDurationValue} ${formData.stayDurationUnit}`
+                  : null,
             },
-            {
-              label: "US Address",
-              value: `${formData.stayAddress}, ${formData.stayCity}, ${formData.stayState} ${formData.stayZip}`,
-            },
+            { label: "Visit Locations", value: formData.visitLocations },
+            { label: "US Stay Address", value: formData.stayAddress },
+            { label: "US Stay City", value: formData.stayCity },
+            { label: "US Stay State", value: formData.stayState },
+            { label: "US Stay Zip", value: formData.stayZip },
             { label: "Payer", value: formData.travelPayer },
-            {
-              label: "Payer Name/Relationship",
-              value: `${formData.payerName} (${formData.payerRelationship})`,
-            },
+            { label: "Payer Name", value: formData.payerName },
+            { label: "Payer Relationship", value: formData.payerRelationship },
           ],
         },
         {
-          title: "Travel Companions",
+          title: "6. Travel Companions",
           fields: [
             {
               label: "Traveling with Others?",
@@ -219,7 +288,7 @@ export default function AdminDS160ViewerPage() {
           ],
         },
         {
-          title: "Previous US Travel",
+          title: "7. Previous US Travel",
           fields: [
             {
               label: "Been to US before?",
@@ -227,85 +296,107 @@ export default function AdminDS160ViewerPage() {
             },
             { label: "Last Arrival Date", value: formData.lastUSTravelDate },
             {
-              label: "Last Stay Duration",
-              value: `${formData.lastUSTravelDurationValue} ${formData.lastUSTravelDurationUnit}`,
+              label: "Last Port of Entry",
+              value: formData.lastUSTravelPortOfEntry,
             },
+            {
+              label: "Last Stay Duration",
+              value:
+                formData.lastUSTravelDurationValue &&
+                formData.lastUSTravelDurationUnit
+                  ? `${formData.lastUSTravelDurationValue} ${formData.lastUSTravelDurationUnit}`
+                  : null,
+            },
+            {
+              label: "Last Purpose of Visit",
+              value: formData.lastUSTravelPurpose,
+            },
+            {
+              label: "Has US Driver License?",
+              value: translateYesNo(formData.hasUSDriverLicense),
+            },
+            {
+              label: "US License Number",
+              value: formData.usDriverLicenseNumber,
+            },
+            { label: "US License State", value: formData.usDriverLicenseState },
             {
               label: "Ever had US Visa?",
               value: translateYesNo(formData.hasHadUSVisa),
             },
+            { label: "Last Visa Date", value: formData.lastVisaIssuanceDate },
+            { label: "Last Visa Number", value: formData.lastVisaNumber },
             {
-              label: "Last Visa Number/Date",
-              value: `${formData.lastVisaNumber} (${formData.lastVisaIssuanceDate})`,
+              label: "Same Type of Visa?",
+              value: translateYesNo(formData.isSolicitingSameTypeVisa),
+            },
+            {
+              label: "Applying in Same Country?",
+              value: translateYesNo(formData.isApplyingInSameCountry),
+            },
+            {
+              label: "Fingerprinted Before?",
+              value: translateYesNo(formData.haveBeenFingerprintedBefore),
+            },
+            {
+              label: "Visa Lost or Stolen?",
+              value: translateYesNo(formData.hasVisaBeenLostStolen),
+            },
+            { label: "Lost Visa Year", value: formData.visaLostStolenYear },
+            {
+              label: "Lost Visa Explanation",
+              value: formData.visaLostStolenExplanation,
+            },
+            {
+              label: "Visa Cancelled/Revoked?",
+              value: translateYesNo(formData.hasVisaBeenCancelled),
+            },
+            {
+              label: "Cancellation Details",
+              value: formData.visaCancellationDetails,
             },
             {
               label: "Visa Refused?",
               value: translateYesNo(formData.hasBeenDeniedVisa),
             },
             { label: "Refusal Details", value: formData.visaRefusalDetails },
-          ],
-        },
-        {
-          title: "Address & Contact",
-          fields: [
             {
-              label: "Home Address",
-              value: `${formData.homeAddress}, ${formData.homeCity}, ${formData.homeState}, ${formData.homeCountry}`,
+              label: "Immigration Petition?",
+              value: translateYesNo(formData.hasImmigrationPetition),
             },
-            { label: "Phone", value: formData.mobilePhone },
-            { label: "Other Phones", value: formData.otherPhonesDetails },
-            { label: "Other Emails", value: formData.otherEmailsDetails },
-          ],
-        },
-        {
-          title: "Passport Information",
-          fields: [
-            { label: "Passport Type", value: formData.passportType },
-            { label: "Passport Number", value: formData.passportNumberDS },
             {
-              label: "Issuance City/Country",
-              value: `${formData.passportIssuanceCity}, ${formData.passportIssuanceCountry}`,
-            },
-            { label: "Issuance Date", value: formData.passportIssuanceDate },
-            {
-              label: "Expiration Date",
-              value: formData.passportExpirationDate,
+              label: "Petition Details",
+              value: formData.immigrationPetitionDetails,
             },
           ],
         },
         {
-          title: "US Contact Information",
+          title: "8. US Contact Information",
           fields: [
             { label: "Contact Name", value: formData.contactName },
             { label: "Organization", value: formData.contactOrganization },
             { label: "Relationship", value: formData.contactRelationship },
-            {
-              label: "Contact Address",
-              value: `${formData.contactAddress}, ${formData.contactCity}, ${formData.contactState} ${formData.contactZip}`,
-            },
-            {
-              label: "Contact Phone/Email",
-              value: `${formData.contactPhone} / ${formData.contactEmail}`,
-            },
+            { label: "Contact Address", value: formData.contactAddress },
+            { label: "Contact City", value: formData.contactCity },
+            { label: "Contact State", value: formData.contactState },
+            { label: "Contact Zip", value: formData.contactZip },
+            { label: "Contact Phone", value: formData.contactPhone },
+            { label: "Contact Email", value: formData.contactEmail },
           ],
         },
         {
-          title: "Family Information",
+          title: "9. Family Information",
           fields: [
-            {
-              label: "Father's Name",
-              value: `${formData.fatherFirstName || ""} ${formData.fatherLastName || ""}`,
-            },
+            { label: "Father's First Name", value: formData.fatherFirstName },
+            { label: "Father's Last Name", value: formData.fatherLastName },
             { label: "Father's DOB", value: formData.fatherBirthDate },
             {
               label: "Is Father in US?",
               value: translateYesNo(formData.isFatherInUS),
             },
             { label: "Father's US Status", value: formData.fatherUSStatus },
-            {
-              label: "Mother's Name",
-              value: `${formData.motherFirstName || ""} ${formData.motherLastName || ""}`,
-            },
+            { label: "Mother's First Name", value: formData.motherFirstName },
+            { label: "Mother's Last Name", value: formData.motherLastName },
             { label: "Mother's DOB", value: formData.motherBirthDate },
             {
               label: "Is Mother in US?",
@@ -335,21 +426,48 @@ export default function AdminDS160ViewerPage() {
           ],
         },
         {
-          title: "Work / Education / Training",
+          title: "10. Work / Education / Training",
           fields: [
             { label: "Primary Occupation", value: formData.primaryOccupation },
             { label: "Employer/School Name", value: formData.employerName },
-            {
-              label: "Employer Address",
-              value: `${formData.employerAddress || ""} ${formData.employerCity || ""} ${formData.employerState || ""} ${formData.employerCountry || ""}`,
-            },
+            { label: "Employer Phone", value: formData.employerPhone },
+            { label: "Employer Address", value: formData.employerAddress },
+            { label: "Employer City", value: formData.employerCity },
+            { label: "Employer State", value: formData.employerState },
+            { label: "Employer Zip", value: formData.employerZip },
+            { label: "Employer Country", value: formData.employerCountry },
             { label: "Job Start Date", value: formData.jobStartDate },
             { label: "Monthly Income", value: formData.monthlyIncome },
             { label: "Job Description", value: formData.jobDescription },
+            {
+              label: "Previously Employed?",
+              value: translateYesNo(formData.wasPreviouslyEmployed),
+            },
+            { label: "Prev. Employer Name", value: formData.prevEmployerName },
+            { label: "Prev. Job Title", value: formData.prevJobTitle },
+            { label: "Prev. Job Period", value: formData.prevJobPeriod },
+            {
+              label: "Prev. Supervisor",
+              value: formData.prevEmployerSupervisor,
+            },
+            { label: "Reason for Leaving", value: formData.prevJobReasonLeft },
+            {
+              label: "Secondary Education?",
+              value: translateYesNo(formData.hasSecondaryEducation),
+            },
+            {
+              label: "Institution Name",
+              value: formData.educationInstitutionName,
+            },
+            {
+              label: "Completion Date",
+              value: formData.educationCompletionDate,
+            },
+            { label: "Degree Obtained", value: formData.educationDegree },
           ],
         },
         {
-          title: "Social Media",
+          title: "11. Social Media",
           fields: [
             { label: "Platform 1", value: formData.socialMedia1 },
             { label: "Platform 2", value: formData.socialMedia2 },
@@ -357,7 +475,7 @@ export default function AdminDS160ViewerPage() {
           ],
         },
         {
-          title: "Additional Information",
+          title: "12. Additional Information",
           fields: [
             {
               label: "Belongs to Clan/Tribe?",
@@ -375,15 +493,22 @@ export default function AdminDS160ViewerPage() {
             },
           ],
         },
-      ]
-        .map((s: any) => ({
-          ...s,
-          fields: s.fields.filter(
-            (f: any) =>
-              f.value && f.value !== "—" && f.value !== "undefined undefined",
-          ),
-        }))
-        .filter((s: any) => s.fields.length > 0)
+      ].map((s: DS160Section) => ({
+        ...s,
+        fields: s.fields.map((f: DS160Field) => {
+          const isEmpty =
+            f.value === undefined ||
+            f.value === null ||
+            f.value === "" ||
+            f.value === "undefined undefined" ||
+            f.value === "undefined" ||
+            (typeof f.value === "string" && f.value.trim() === "");
+          return {
+            ...f,
+            value: isEmpty ? "—" : f.value,
+          };
+        }),
+      }))
     : [];
 
   return (
@@ -404,51 +529,17 @@ export default function AdminDS160ViewerPage() {
             </p>
           </div>
         </div>
-
-        {serviceData &&
-          (serviceData.status === "review_pending" ||
-            serviceData.status === "review_assign" ||
-            serviceData.status === "active") && (
-            <div className="flex items-center gap-2 bg-background p-2 rounded-lg border border-border shadow-sm">
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground ml-1 mb-1">
-                  Application ID
-                </span>
-                <div className="flex items-center gap-2">
-                  <Input
-                    placeholder="Ex: AA00..."
-                    className="h-9 w-40 font-mono text-sm"
-                    value={appIdInput}
-                    onChange={(e) => setAppIdInput(e.target.value)}
-                    disabled={
-                      serviceData.status === "review_assign" &&
-                      !!serviceData.application_id
-                    }
-                  />
-                  <Button
-                    size="sm"
-                    className="h-9 bg-accent hover:bg-green-dark"
-                    onClick={handleSaveApplicationId}
-                    disabled={
-                      isSaving ||
-                      !appIdInput.trim() ||
-                      (serviceData.status === "review_assign" &&
-                        !!serviceData.application_id)
-                    }
-                  >
-                    {isSaving ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "Enviar"
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
       </div>
 
       <div className="bg-card border border-border shadow-sm rounded-xl p-8 min-h-[500px]">
+        <div className="flex items-center gap-2 mb-8 p-3 bg-muted/30 rounded-lg border border-border/50">
+          <AlertCircle className="h-4 w-4 text-accent" />
+          <p className="text-xs text-muted-foreground">
+            Clique no ícone de cópia ao lado de cada valor para agilizar o
+            preenchimento no site do consulado.
+          </p>
+        </div>
+
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 space-y-4">
             <Loader2 className="h-10 w-10 animate-spin text-accent" />
@@ -470,7 +561,7 @@ export default function AdminDS160ViewerPage() {
           </div>
         ) : (
           <div className="space-y-12 flex flex-col h-full">
-            {sections.map((section: any, idx: number) => (
+            {sections.map((section: DS160Section, idx: number) => (
               <div key={idx} className="space-y-6">
                 <div className="border-b pb-4">
                   <h3 className="font-bold text-xl text-primary flex items-center gap-2">
@@ -481,19 +572,43 @@ export default function AdminDS160ViewerPage() {
                   </h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {section.fields.map((field: any, i: number) => (
-                    <div
-                      key={i}
-                      className="space-y-2 p-4 rounded-xl bg-background border border-border hover:border-accent/40 transition-colors shadow-sm"
-                    >
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        {field.label}
-                      </p>
-                      <p className="text-base font-medium text-foreground">
-                        {field.value}
-                      </p>
-                    </div>
-                  ))}
+                  {section.fields.map((field: DS160Field, fieldIdx: number) => {
+                    const handleCopy = (text: string) => {
+                      if (!text || text === "—") return;
+                      navigator.clipboard.writeText(text);
+                      toast.success(
+                        `Copiado: ${text.length > 20 ? text.substring(0, 20) + "..." : text}`,
+                      );
+                    };
+
+                    return (
+                      <div
+                        key={fieldIdx}
+                        className="group space-y-2 p-4 rounded-xl bg-background border border-border hover:border-accent/40 transition-all hover:shadow-md relative"
+                      >
+                        <div className="flex justify-between items-start">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                            {field.label}
+                          </p>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-accent"
+                            onClick={() => handleCopy(String(field.value))}
+                            disabled={!field.value || field.value === "—"}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <p
+                          className="text-sm font-bold text-foreground break-words cursor-pointer hover:text-accent transition-colors"
+                          onClick={() => handleCopy(String(field.value))}
+                        >
+                          {field.value}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}

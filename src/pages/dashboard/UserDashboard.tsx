@@ -14,6 +14,8 @@ import {
   Calendar,
   User,
   ChevronRight,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import {
   Dialog,
@@ -28,8 +30,26 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const TOTAL_STEPS = 9;
+
+interface UserServiceRaw {
+  id: string;
+  status: string;
+  current_step: number;
+  service_slug: string;
+  created_at: string;
+  application_id?: string;
+  date_of_birth?: string;
+  grandmother_name?: string;
+}
+
+interface ServiceWithProgress extends UserServiceRaw {
+  calculatedProgress: number;
+  label: string;
+  stepText: string;
+}
 
 const getStatusDisplay = (
   status: string,
@@ -126,11 +146,18 @@ export default function UserDashboard() {
   const { lang, t } = useLanguage();
   const d = t.dashboard;
 
-  const [services, setServices] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [services, setServices] = useState<ServiceWithProgress[]>([]);
   const [currentServiceId, setCurrentServiceId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [docsUploaded, setDocsUploaded] = useState(0);
+  const [isSelfieModalOpen, setIsSelfieModalOpen] = useState(false);
+  const [uploadingSelfie, setUploadingSelfie] = useState(false);
+  const [checkingSelfie, setCheckingSelfie] = useState<string | null>(null);
+  const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [pendingServiceToNavigate, setPendingServiceToNavigate] =
+    useState<ServiceWithProgress | null>(null);
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
   // 1. Fetch all services and their individual progress
   useEffect(() => {
@@ -140,7 +167,7 @@ export default function UserDashboard() {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: servicesData, error } = (await supabase
+      const { data: servicesData, error } = await supabase
         .from("user_services")
         .select(
           "id, status, current_step, service_slug, created_at, application_id, date_of_birth, grandmother_name",
@@ -163,18 +190,20 @@ export default function UserDashboard() {
           "rejected",
           "completed",
         ])
-        .order("created_at", { ascending: false })) as any;
+        .order("created_at", { ascending: false });
 
       if (error) {
         setLoading(false);
         return;
       }
 
-      if (servicesData && servicesData.length > 0) {
-        // Group by slug to keep only the most recent entry for each unique guide
-        const uniqueServicesMap = new Map();
+      const servicesDataTyped = servicesData as UserServiceRaw[];
 
-        servicesData.forEach((s) => {
+      if (servicesDataTyped && servicesDataTyped.length > 0) {
+        // Group by slug to keep only the most recent entry for each unique guide
+        const uniqueServicesMap = new Map<string, ServiceWithProgress>();
+
+        servicesDataTyped.forEach((s) => {
           const existing = uniqueServicesMap.get(s.service_slug);
 
           // Logic: Keep the service if:
@@ -203,6 +232,8 @@ export default function UserDashboard() {
             uniqueServicesMap.set(s.service_slug, {
               ...s,
               calculatedProgress: p,
+              label: statusInfo.label,
+              stepText: statusInfo.stepText,
             });
           }
         });
@@ -254,6 +285,99 @@ export default function UserDashboard() {
     };
     fetchDocs();
   }, [currentServiceId, currentService]);
+
+  const handleServiceClick = async (service: ServiceWithProgress) => {
+    if (checkingSelfie) return;
+
+    setCheckingSelfie(service.id);
+    try {
+      // 1. Fetch current user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // 2. Fetch latest visa_order for this product and user (check by user_id OR email)
+      const { data: order, error } = await supabase
+        .from("visa_orders")
+        .select("id, contract_selfie_url")
+        .eq("product_slug", service.service_slug)
+        .or(`user_id.eq.${user.id},client_email.eq.${user.email}`)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (order && !order.contract_selfie_url) {
+        setPendingServiceToNavigate(service);
+        setPendingOrderId(order.id);
+        setIsSelfieModalOpen(true);
+      } else {
+        // Already has selfie or no order found
+        setCurrentServiceId(service.id);
+        navigate(`/dashboard/onboarding?service_id=${service.id}`);
+      }
+    } catch (err) {
+      console.error("Error checking selfie:", err);
+      // Fallback: navigate anyway or show error?
+      setCurrentServiceId(service.id);
+      navigate(`/dashboard/onboarding?service_id=${service.id}`);
+    } finally {
+      setCheckingSelfie(null);
+    }
+  };
+
+  const handleSelfieUpload = async () => {
+    if (!selfieFile || !pendingOrderId) return;
+
+    setUploadingSelfie(true);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const fileExt = selfieFile.name.split(".").pop();
+      const fileName = `selfie_${Date.now()}.${fileExt}`;
+      const filePath = `contracts/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("visa-documents")
+        .upload(filePath, selfieFile);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("visa-documents").getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from("visa_orders")
+        .update({
+          contract_selfie_url: publicUrl,
+          user_id: user.id, // Ensure order is linked to user
+        })
+        .eq("id", pendingOrderId);
+
+      if (updateError) throw updateError;
+
+      setIsSelfieModalOpen(false);
+      setSelfieFile(null);
+      if (pendingServiceToNavigate) {
+        setCurrentServiceId(pendingServiceToNavigate.id);
+        navigate(
+          `/dashboard/onboarding?service_id=${pendingServiceToNavigate.id}`,
+        );
+      }
+    } catch (err: unknown) {
+      console.error("Error uploading selfie:", err);
+      alert(lang === "pt" ? "Erro ao enviar selfie" : "Error uploading selfie");
+    } finally {
+      setUploadingSelfie(false);
+    }
+  };
 
   const cards = [
     {
@@ -363,21 +487,23 @@ export default function UserDashboard() {
           {services.map((s) => (
             <button
               key={s.id}
-              onClick={() => {
-                setCurrentServiceId(s.id);
-                navigate(`/dashboard/onboarding?service_id=${s.id}`);
-              }}
+              onClick={() => handleServiceClick(s)}
+              disabled={checkingSelfie === s.id}
               className={`relative text-left p-5 rounded-2xl border-2 transition-all duration-300 group ${
                 currentServiceId === s.id
                   ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
                   : "border-border bg-card hover:border-primary/40"
-              }`}
+              } ${checkingSelfie === s.id ? "opacity-70 cursor-wait" : ""}`}
             >
               <div className="flex justify-between items-start mb-4">
                 <div
                   className={`p-2 rounded-lg ${currentServiceId === s.id ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}
                 >
-                  <FileText className="w-5 h-5" />
+                  {checkingSelfie === s.id ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <FileText className="w-5 h-5" />
+                  )}
                 </div>
                 {currentServiceId === s.id && (
                   <Badge className="bg-primary text-white border-none">
@@ -423,6 +549,80 @@ export default function UserDashboard() {
           ))}
         </div>
       </section>
+      <Dialog open={isSelfieModalOpen} onOpenChange={setIsSelfieModalOpen}>
+        <DialogContent className="sm:max-w-[450px] rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+              <Camera className="w-5 h-5 text-primary" />
+              {t.dashboard.selfieModal.title[lang]}
+            </DialogTitle>
+            <DialogDescription>
+              {t.dashboard.selfieModal.desc[lang]}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            <div className="flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-border group relative overflow-hidden">
+              {selfieFile ? (
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
+                    <CheckSquare className="w-10 h-10 text-primary" />
+                  </div>
+                  <p className="text-sm font-bold text-foreground">
+                    {selfieFile.name}
+                  </p>
+                  <button
+                    onClick={() => setSelfieFile(null)}
+                    className="text-[10px] font-bold text-red-500 uppercase hover:underline"
+                  >
+                    {lang === "pt" ? "Remover" : "Remove"}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center space-y-4 text-center">
+                  <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center">
+                    <Upload className="w-8 h-8 text-primary/40" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-foreground">
+                      {lang === "pt"
+                        ? "Selecione sua selfie"
+                        : "Select your selfie"}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground uppercase">
+                      JPG, PNG {lang === "pt" ? "ou" : "or"} JPEG
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setSelfieFile(e.target.files?.[0] || null)}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                </div>
+              )}
+            </div>
+
+            <Button
+              className="w-full bg-primary text-white hover:bg-primary/90 font-bold h-12 rounded-xl shadow-lg shadow-primary/20"
+              disabled={!selfieFile || uploadingSelfie}
+              onClick={handleSelfieUpload}
+            >
+              {uploadingSelfie ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t.dashboard.selfieModal.submitting[lang]}
+                </>
+              ) : (
+                <>
+                  <Camera className="mr-2 h-4 w-4" />
+                  {t.dashboard.selfieModal.uploadBtn[lang]}
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

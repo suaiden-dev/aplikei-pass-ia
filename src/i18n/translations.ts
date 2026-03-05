@@ -202,7 +202,7 @@ export const translations = {
         a: {
           en: "No. AI helps organize data, documents, and generate checklists. It does not analyze eligibility, provide legal advice, or guarantee results.",
           pt: "Não. A IA ajuda a organizar dados, documentos e gerar checklists. Ela não analisa elegibilidade, não dá conselhos jurídicos e não garante resultados.",
-          es: "No. La IA ayuda a organizar datos, documentos y generar checklists. No analiza elegibilidad, no da asesoría legal y no garantiza resultados.",
+          es: "No. La IA ayuda a organizar dados, documentos y generar checklists. No analiza elegibilidad, no da asesoría legal y no garantiza resultados.",
         },
       },
       {
@@ -505,6 +505,17 @@ export const translations = {
       helpDesc: { en: "Questions about platform usage", pt: "Dúvidas sobre uso da plataforma", es: "Preguntas sobre uso de la plataforma" },
     },
     access: { en: "Access", pt: "Acessar", es: "Acceder" },
+    selfieModal: {
+      title: { en: "Identity Verification Required", pt: "Verificação de Identidade Necessária", es: "Verificación de Identidad Requerida" },
+      desc: {
+        en: "To proceed with your DS-160 application, you must upload a selfie holding your passport (open at the identification page).",
+        pt: "Para prosseguir com sua solicitação de DS-160, você precisa realizar o upload de uma selfie segurando seu passaporte (aberto na página de identificação).",
+        es: "Para continuar con su solicitud de DS-160, debe subir una selfie sosteniendo su pasaporte (abierto en la página de identificación)."
+      },
+      uploadBtn: { en: "Upload Selfie", pt: "Fazer Upload da Selfie", es: "Subir Selfie" },
+      submitting: { en: "Uploading...", pt: "Enviando...", es: "Subiendo..." },
+      success: { en: "Selfie uploaded successfully!", pt: "Selfie enviada com sucesso!", es: "¡Selfie subida con éxito!" },
+    },
   },
 
   // ──── Dashboard sidebar ────
@@ -577,17 +588,17 @@ export const translations = {
       en: [
         "Personal Info 1", "Personal Info 2", "Travel Info",
         "Companions", "Previous US Travel", "Address & Phone", "Social Media", "Passport Info",
-        "US Contact", "Family Info", "Work & Education", "Additional Info", "Documents", "Final Review"
+        "US Contact", "Family Info", "Work & Education", "Additional Info"
       ],
       pt: [
         "Info Pessoal 1", "Info Pessoal 2", "Info de Viagem",
         "Acompanhantes", "Viagens Anteriores", "Endereço e Telefone", "Mídias Sociais", "Passaporte",
-        "Contato nos EUA", "Informações de Família", "Trabalho e Educação", "Informações Adicionais", "Documentos", "Revisão Final"
+        "Contato nos EUA", "Informações de Família", "Trabalho e Educação", "Informações Adicionais"
       ],
       es: [
         "Info Personal 1", "Info Personal 2", "Info de Viaje",
         "Acompañantes", "Viajes Anteriores", "Dirección y Teléfono", "Redes Sociales", "Pasaporte",
-        "Contacto en EE.UU.", "Información Familiar", "Trabajo y Educación", "Información Adicional", "Documentos", "Revisión Final"
+        "Contacto en EE.UU.", "Información Familiar", "Trabajo y Educación", "Información Adicional"
       ],
     },
     interview: {
@@ -599,7 +610,12 @@ export const translations = {
         { en: "Recife", pt: "Recife", es: "Recife" },
         { en: "Rio de Janeiro", pt: "Rio de Janeiro", es: "Río de Janeiro" },
         { en: "São Paulo", pt: "São Paulo", es: "São Paulo" },
-      ]
+      ],
+      fillNotice: {
+        en: "You are currently in the DS-160 filling stage. Please complete all steps carefully to ensure your application is generated correctly.",
+        pt: "Você está na etapa de preenchimento da sua DS-160. Por favor, complete todas as etapas com atenção para garantir que sua aplicação seja gerada corretamente.",
+        es: "Usted se encontra en la etapa de completar su DS-160. Por favor, complete todos los pasos con atención para asegurar que su solicitud se genere correctamente.",
+      }
     },
     personal1: {
       title: { en: "Personal Information 1", pt: "Informações Pessoais 1", es: "Información Personal 1" },

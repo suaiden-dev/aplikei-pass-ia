@@ -11,6 +11,8 @@ import {
   Fingerprint,
   Calendar,
   User,
+  Eye,
+  Clock,
 } from "lucide-react";
 import {
   Dialog,
@@ -26,6 +28,8 @@ import { HistoryStep } from "./steps/HistoryStep";
 import { ProcessStep } from "./steps/ProcessStep";
 import { DocumentsStep } from "./steps/DocumentsStep";
 import { ReviewStep } from "./steps/ReviewStep";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 import { PersonalInfo1Step } from "./steps/visto-b1-b2/PersonalInfo1Step";
 import { PersonalInfo2Step } from "./steps/visto-b1-b2/PersonalInfo2Step";
@@ -45,6 +49,7 @@ import { FeeProcessingStep } from "./steps/visto-b1-b2/FeeProcessingStep";
 import { PaymentPendingStep } from "./steps/visto-b1-b2/PaymentPendingStep";
 import { AwaitingInterviewStep } from "./steps/visto-b1-b2/AwaitingInterviewStep";
 import { DS160ReviewModal } from "./components/DS160ReviewModal";
+import { ProcessingStatusStep } from "./steps/visto-b1-b2/ProcessingStatusStep";
 
 export default function Onboarding() {
   const {
@@ -57,6 +62,7 @@ export default function Onboarding() {
     setCurrentStep,
     loading,
     serviceStatus,
+    orderNumber,
     register,
     formData,
     setValue,
@@ -75,10 +81,34 @@ export default function Onboarding() {
     pendingFiles,
     serviceId,
     securityData,
+    hasConsularCredentials,
   } = useOnboardingLogic();
 
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
+  const [isViewDocsModalOpen, setIsViewDocsModalOpen] = useState(false);
+
+  const handleOpenDoc = async (doc: {
+    name: string;
+    path: string;
+    bucket_id?: string;
+  }) => {
+    if (doc.path === "pending...") return;
+    try {
+      const { data, error } = await supabase.storage
+        .from(doc.bucket_id || "process-documents")
+        .createSignedUrl(doc.path, 3600);
+
+      if (error) throw error;
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, "_blank");
+      }
+    } catch (error) {
+      console.error("Error opening document:", error);
+      toast.error(
+        lang === "pt" ? "Erro ao abrir documento." : "Error opening document.",
+      );
+    }
+  };
 
   const progress = ((currentStep + 1) / steps.length) * 100;
 
@@ -94,12 +124,33 @@ export default function Onboarding() {
       errors,
       serviceSlug,
       serviceStatus,
+      securityData,
     };
 
     if (
       serviceSlug === "visto-b1-b2" &&
       serviceStatus === "casvSchedulingPending"
     ) {
+      // Only show scheduling step if admin has set consular credentials
+      if (!hasConsularCredentials) {
+        return (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-2xl mx-auto space-y-8 min-h-[400px] flex flex-col justify-center">
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center justify-center h-24 w-24 rounded-[32px] bg-accent/10 text-accent mb-2">
+                <Clock className="h-12 w-12 animate-pulse" />
+              </div>
+              <h2 className="text-4xl font-black tracking-tight text-foreground">
+                {lang === "pt" ? "Quase lá!" : "Almost there!"}
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
+                {lang === "pt"
+                  ? "Nossa equipe está preparando os dados de acesso ao portal consular. Você receberá uma notificação quando estiver pronto para confirmar seu agendamento."
+                  : "Our team is preparing your consular portal access credentials. You will be notified when they are ready for you to confirm your scheduling."}
+              </p>
+            </div>
+          </div>
+        );
+      }
       return (
         <CASVSchedulingStep
           serviceId={serviceId}
@@ -140,6 +191,15 @@ export default function Onboarding() {
 
     if (
       serviceSlug === "visto-b1-b2" &&
+      (serviceStatus === "review_pending" ||
+        serviceStatus === "ds160Processing" ||
+        serviceStatus === "uploadsUnderReview")
+    ) {
+      return <ProcessingStatusStep status={serviceStatus} />;
+    }
+
+    if (
+      serviceSlug === "visto-b1-b2" &&
       serviceStatus === "awaitingInterview"
     ) {
       return <AwaitingInterviewStep serviceId={serviceId} />;
@@ -149,8 +209,7 @@ export default function Onboarding() {
       serviceSlug === "visto-b1-b2" &&
       (serviceStatus === "ds160AwaitingReviewAndSignature" ||
         serviceStatus === "ds160upload_documents" ||
-        serviceStatus === "review_assign" ||
-        serviceStatus === "uploadsUnderReview")
+        serviceStatus === "review_assign")
     ) {
       return (
         <ReviewAndSignDS160Step
@@ -160,6 +219,7 @@ export default function Onboarding() {
           uploading={uploading}
           fileInputRef={fileInputRef}
           setSelectedDoc={setSelectedDoc}
+          securityData={securityData}
         />
       );
     }
@@ -281,11 +341,35 @@ export default function Onboarding() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
         {/* Main Content (Left Column on Desktop) */}
         <div className="space-y-6">
-          <header>
-            <h1 className="font-display text-2xl font-bold text-foreground">
-              {o.title[lang]}
-            </h1>
-            <p className="mt-1 text-muted-foreground">{o.subtitle[lang]}</p>
+          <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="font-display text-2xl font-bold text-foreground">
+                {o.title[lang]}
+              </h1>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <p className="text-muted-foreground">{o.subtitle[lang]}</p>
+                {serviceSlug && (
+                  <>
+                    <span className="text-muted-foreground hidden md:inline">
+                      •
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary uppercase">
+                      {serviceSlug.replace("-", " ")}
+                    </span>
+                  </>
+                )}
+                {orderNumber && (
+                  <>
+                    <span className="text-muted-foreground hidden md:inline">
+                      •
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-bold text-slate-600 dark:text-slate-400">
+                      #{orderNumber}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
           </header>
 
           <input
@@ -304,7 +388,9 @@ export default function Onboarding() {
             {serviceStatus !== "casvSchedulingPending" &&
               serviceStatus !== "casvFeeProcessing" &&
               serviceStatus !== "casvPaymentPending" &&
-              serviceStatus !== "awaitingInterview" && (
+              serviceStatus !== "awaitingInterview" &&
+              serviceStatus !== "review_pending" &&
+              serviceStatus !== "ds160Processing" && (
                 <div className="mt-8 hidden justify-between md:flex">
                   <Button
                     variant="outline"
@@ -386,133 +472,101 @@ export default function Onboarding() {
         <aside className="space-y-6 lg:sticky lg:top-6 lg:h-fit">
           {/* Progress & Steps Indicator */}
           <div className="rounded-xl border border-border bg-card p-4 shadow-card md:p-6">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-foreground">
-                {lang === "en" ? "Step" : lang === "pt" ? "Etapa" : "Paso"}{" "}
-                {currentStep + 1} {o.stepOf[lang]} {steps.length}
-              </span>
-              <span className="text-muted-foreground">
-                {Math.round(progress)}%
-              </span>
-            </div>
-            <Progress value={progress} className="mt-3 h-2" />
-
             {serviceSlug !== "visto-b1-b2" && (
-              <div className="mt-4 flex flex-wrap gap-2 lg:flex-nowrap lg:flex-col lg:items-stretch lg:gap-3">
-                {steps.map((step: string, i: number) => (
-                  <button
-                    key={i}
-                    onClick={() =>
-                      i <= currentStep ? setCurrentStep(i) : null
-                    }
-                    disabled={i > currentStep}
-                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium transition-all ring-1 ${
-                      i === currentStep
-                        ? "bg-accent/10 text-accent ring-accent/20"
-                        : i < currentStep
-                          ? "text-foreground ring-transparent hover:bg-muted"
-                          : "cursor-not-allowed text-muted-foreground opacity-50 ring-transparent"
-                    }`}
-                  >
-                    <div className="flex h-5 w-5 shrink-0 items-center justify-center">
-                      {i < currentStep ? (
-                        <CheckCircle2 className="h-4 w-4 text-accent" />
-                      ) : i === currentStep ? (
-                        <div className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-                      ) : (
-                        <Circle className="h-4 w-4 text-muted-foreground/30" />
-                      )}
-                    </div>
-                    <span className="truncate">{step}</span>
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-foreground">
+                    {lang === "en" ? "Step" : lang === "pt" ? "Etapa" : "Paso"}{" "}
+                    {currentStep + 1} {o.stepOf[lang]} {steps.length}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {Math.round(progress)}%
+                  </span>
+                </div>
+                <Progress value={progress} className="mt-3 h-2" />
+
+                <div className="mt-4 flex flex-wrap gap-2 lg:flex-nowrap lg:flex-col lg:items-stretch lg:gap-3">
+                  {steps.map((step: string, i: number) => (
+                    <button
+                      key={i}
+                      onClick={() =>
+                        i <= currentStep ? setCurrentStep(i) : null
+                      }
+                      disabled={i > currentStep}
+                      className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium transition-all ring-1 ${
+                        i === currentStep
+                          ? "bg-accent/10 text-accent ring-accent/20"
+                          : i < currentStep
+                            ? "text-foreground ring-transparent hover:bg-muted"
+                            : "cursor-not-allowed text-muted-foreground opacity-50 ring-transparent"
+                      }`}
+                    >
+                      <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+                        {i < currentStep ? (
+                          <CheckCircle2 className="h-4 w-4 text-accent" />
+                        ) : i === currentStep ? (
+                          <div className="h-2 w-2 rounded-full bg-accent animate-pulse" />
+                        ) : (
+                          <Circle className="h-4 w-4 text-muted-foreground/30" />
+                        )}
+                      </div>
+                      <span className="truncate">{step}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
 
-            {serviceSlug === "visto-b1-b2" && (
-              <div className="mt-6 pt-6 border-t border-border">
+            {serviceSlug === "visto-b1-b2" ? (
+              <div className="text-center py-2">
+                <p className="text-xs font-bold text-accent uppercase tracking-widest">
+                  {lang === "pt" ? "Formulário DS-160" : "DS-160 Form"}
+                </p>
+                <div className="mt-4 flex items-center justify-center gap-2 text-muted-foreground bg-muted/30 p-3 rounded-xl border border-dashed border-border mb-4">
+                  <FileText className="w-4 h-4" />
+                  <span className="text-[10px] font-medium leading-tight">
+                    {lang === "pt"
+                      ? "Preencha as informações solicitadas para prosseguir."
+                      : "Fill in the requested information to proceed."}
+                  </span>
+                </div>
+
                 <Button
                   onClick={() => setIsPreviewModalOpen(true)}
                   variant="outline"
                   className="w-full gap-2 border-accent/20 text-accent hover:bg-accent/5 hover:text-accent font-bold text-xs"
                 >
                   <FileText className="w-4 h-4" />
-                  {lang === "pt"
-                    ? "REVISAR RESPOSTAS DS-160"
-                    : "REVIEW DS-160 RESPONSES"}
+                  {lang === "pt" ? "VISUALIZAR MINHA DS-160" : "VIEW MY DS-160"}
                 </Button>
-              </div>
-            )}
 
-            {securityData && (
-              <div className="mt-4 pt-4 border-t border-border">
-                <Button
-                  onClick={() => setIsSecurityModalOpen(true)}
-                  variant="outline"
-                  className="w-full gap-2 border-accent/20 text-accent hover:bg-accent/5 hover:text-accent font-bold text-xs"
-                >
-                  <Shield className="w-4 h-4" />
-                  {lang === "pt"
-                    ? "VER DADOS DE SEGURANÇA"
-                    : "VIEW SECURITY DATA"}
-                </Button>
+                {(serviceStatus === "review_pending" ||
+                  serviceStatus === "ds160Processing" ||
+                  serviceStatus === "uploadsUnderReview" ||
+                  serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                  serviceStatus === "completed" ||
+                  serviceStatus === "approved" ||
+                  serviceStatus === "awaitingInterview" ||
+                  serviceStatus === "casvSchedulingPending" ||
+                  serviceStatus === "casvFeeProcessing" ||
+                  serviceStatus === "casvPaymentPending") &&
+                  uploadedDocs.length > 0 && (
+                    <Button
+                      onClick={() => setIsViewDocsModalOpen(true)}
+                      variant="outline"
+                      className="w-full mt-3 gap-2 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary font-bold text-xs"
+                    >
+                      <Eye className="w-4 h-4" />
+                      {lang === "pt"
+                        ? "VISUALIZAR DOCUMENTOS"
+                        : "VIEW DOCUMENTS"}
+                    </Button>
+                  )}
               </div>
-            )}
+            ) : null}
           </div>
         </aside>
       </div>
-
-      <Dialog open={isSecurityModalOpen} onOpenChange={setIsSecurityModalOpen}>
-        <DialogContent className="sm:max-w-[400px] rounded-3xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
-              <Shield className="w-5 h-5 text-accent" />
-              {lang === "pt" ? "Dados de Segurança" : "Security Data"}
-            </DialogTitle>
-            <DialogDescription>
-              {lang === "pt"
-                ? "Utilize esses dados se precisar acessar sua DS-160 no portal consular."
-                : "Use these details if you need to access your DS-160 on the consular portal."}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-border space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  <Fingerprint className="w-3.5 h-3.5 text-accent" />
-                  Application ID
-                </div>
-                <p className="font-mono text-lg font-black text-foreground bg-white dark:bg-slate-800 p-3 rounded-xl border border-border shadow-sm text-center">
-                  {securityData?.appId}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <Calendar className="w-3.5 h-3.5 text-accent" />
-                    {lang === "pt" ? "Nascimento" : "Birth Date"}
-                  </div>
-                  <p className="text-sm font-bold text-foreground bg-white dark:bg-slate-800 p-3 rounded-xl border border-border shadow-sm text-center">
-                    {securityData?.dob}
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <User className="w-3.5 h-3.5 text-accent" />
-                    {lang === "pt" ? "Nome da Avó" : "Grandma Name"}
-                  </div>
-                  <p className="text-sm font-bold text-foreground bg-white dark:bg-slate-800 p-3 rounded-xl border border-border shadow-sm text-center truncate">
-                    {securityData?.grandma}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <DS160ReviewModal
         isOpen={isPreviewModalOpen}
@@ -521,11 +575,60 @@ export default function Onboarding() {
         lang={lang}
       />
 
+      <Dialog open={isViewDocsModalOpen} onOpenChange={setIsViewDocsModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {lang === "pt" ? "Documentos Enviados" : "Submitted Documents"}
+            </DialogTitle>
+            <DialogDescription>
+              {lang === "pt"
+                ? "Visualize os documentos que você já enviou."
+                : "View the documents you have already submitted."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 py-4">
+            {uploadedDocs.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                {lang === "pt"
+                  ? "Nenhum documento encontrado."
+                  : "No documents found."}
+              </p>
+            ) : (
+              uploadedDocs.map((doc, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-3 rounded-xl border bg-muted/30"
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-accent" />
+                    <span className="text-sm font-medium pr-4 break-all">
+                      {doc.name.replace(/_/g, " ").toUpperCase()}
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleOpenDoc(doc)}
+                    disabled={doc.path === "pending..."}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    {lang === "pt" ? "Abrir" : "Open"}
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Mobile Sticky Buttons - Hide if in post-scheduling stages */}
       {serviceStatus !== "casvSchedulingPending" &&
         serviceStatus !== "casvFeeProcessing" &&
         serviceStatus !== "casvPaymentPending" &&
-        serviceStatus !== "awaitingInterview" && (
+        serviceStatus !== "awaitingInterview" &&
+        serviceStatus !== "review_pending" &&
+        serviceStatus !== "ds160Processing" && (
           <div className="fixed bottom-16 left-0 right-0 border-t border-border bg-background p-4 md:hidden">
             <div className="flex gap-3">
               <Button

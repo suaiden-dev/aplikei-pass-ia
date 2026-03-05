@@ -160,7 +160,6 @@ export default function AdminClientDetail() {
       <Tabs defaultValue="perfil">
         <TabsList>
           <TabsTrigger value="perfil">Perfil</TabsTrigger>
-          <TabsTrigger value="pedidos">Pedidos ({orders.length})</TabsTrigger>
           <TabsTrigger value="documentos">
             Documentos ({files.length})
           </TabsTrigger>
@@ -264,68 +263,6 @@ export default function AdminClientDetail() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-
-        <TabsContent value="pedidos" className="mt-6">
-          <Card>
-            <AdminDataTable
-              loading={false}
-              data={orders}
-              columns={[
-                {
-                  key: "order_number",
-                  header: "Nº Pedido",
-                  className: "font-mono",
-                },
-                {
-                  key: "product_slug",
-                  header: "Produto",
-                  render: (item) => (
-                    <Badge variant="secondary" className="capitalize">
-                      {item.product_slug.replace(/-/g, " ")}
-                    </Badge>
-                  ),
-                },
-                {
-                  key: "total_price_usd",
-                  header: "Valor",
-                  render: (item) => formatCurrency(item.total_price_usd),
-                },
-                {
-                  key: "payment_status",
-                  header: "Status",
-                  render: (item) => (
-                    <Badge
-                      variant={
-                        item.payment_status === "paid" ? "default" : "secondary"
-                      }
-                    >
-                      {item.payment_status}
-                    </Badge>
-                  ),
-                },
-                {
-                  key: "created_at",
-                  header: "Data",
-                  render: (item) => formatDate(item.created_at),
-                },
-                {
-                  key: "actions",
-                  header: "",
-                  className: "text-right",
-                  render: (item) => (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/admin/pedidos/${item.id}`)}
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  ),
-                },
-              ]}
-            />
-          </Card>
         </TabsContent>
 
         <TabsContent value="documentos" className="mt-6">
