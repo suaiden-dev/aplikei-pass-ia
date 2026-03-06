@@ -13,6 +13,10 @@ import {
   User,
   Eye,
   Clock,
+  Camera,
+  Upload,
+  Loader2,
+  CheckSquare,
 } from "lucide-react";
 import {
   Dialog,
@@ -82,6 +86,12 @@ export default function Onboarding() {
     serviceId,
     securityData,
     hasConsularCredentials,
+    requiresSelfie,
+    setRequiresSelfie,
+    uploadingSelfie,
+    selfieFile,
+    setSelfieFile,
+    handleSelfieUpload,
   } = useOnboardingLogic();
 
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -131,26 +141,6 @@ export default function Onboarding() {
       serviceSlug === "visto-b1-b2" &&
       serviceStatus === "casvSchedulingPending"
     ) {
-      // Only show scheduling step if admin has set consular credentials
-      if (!hasConsularCredentials) {
-        return (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-2xl mx-auto space-y-8 min-h-[400px] flex flex-col justify-center">
-            <div className="text-center space-y-4">
-              <div className="inline-flex items-center justify-center h-24 w-24 rounded-[32px] bg-accent/10 text-accent mb-2">
-                <Clock className="h-12 w-12 animate-pulse" />
-              </div>
-              <h2 className="text-4xl font-black tracking-tight text-foreground">
-                {lang === "pt" ? "Quase lá!" : "Almost there!"}
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-                {lang === "pt"
-                  ? "Nossa equipe está preparando os dados de acesso ao portal consular. Você receberá uma notificação quando estiver pronto para confirmar seu agendamento."
-                  : "Our team is preparing your consular portal access credentials. You will be notified when they are ready for you to confirm your scheduling."}
-              </p>
-            </div>
-          </div>
-        );
-      }
       return (
         <CASVSchedulingStep
           serviceId={serviceId}
@@ -622,6 +612,88 @@ export default function Onboarding() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={requiresSelfie} onOpenChange={setRequiresSelfie}>
+        <DialogContent
+          className="sm:max-w-[450px] rounded-3xl"
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+              <Camera className="w-5 h-5 text-primary" />
+              {lang === "pt"
+                ? "Verificação de Identidade Necessária"
+                : "Identity Verification Required"}
+            </DialogTitle>
+            <DialogDescription>
+              {lang === "pt"
+                ? "Para prosseguir com sua solicitação de DS-160, você precisa realizar o upload de uma selfie segurando seu passaporte (aberto na página de identificação)."
+                : "To proceed with your DS-160 application, you must upload a selfie holding your passport (open at the identification page)."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            <div className="flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-border group relative overflow-hidden">
+              {selfieFile ? (
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
+                    <CheckSquare className="w-10 h-10 text-primary" />
+                  </div>
+                  <p className="text-sm font-bold text-foreground">
+                    {selfieFile.name}
+                  </p>
+                  <button
+                    onClick={() => setSelfieFile(null)}
+                    className="text-[10px] font-bold text-red-500 uppercase hover:underline"
+                  >
+                    {lang === "pt" ? "Remover" : "Remove"}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center space-y-4 text-center">
+                  <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center">
+                    <Upload className="w-8 h-8 text-primary/40" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-foreground">
+                      {lang === "pt"
+                        ? "Selecione sua selfie"
+                        : "Select your selfie"}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground uppercase">
+                      JPG, PNG {lang === "pt" ? "ou" : "or"} JPEG
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setSelfieFile(e.target.files?.[0] || null)}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                </div>
+              )}
+            </div>
+
+            <Button
+              className="w-full bg-primary text-white hover:bg-primary/90 font-bold h-12 rounded-xl shadow-lg shadow-primary/20"
+              disabled={!selfieFile || uploadingSelfie}
+              onClick={handleSelfieUpload}
+            >
+              {uploadingSelfie ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {lang === "pt" ? "Enviando..." : "Uploading..."}
+                </>
+              ) : (
+                <>
+                  <Camera className="mr-2 h-4 w-4" />
+                  {lang === "pt" ? "Fazer Upload da Selfie" : "Upload Selfie"}
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Mobile Sticky Buttons - Hide if in post-scheduling stages */}
       {serviceStatus !== "casvSchedulingPending" &&
         serviceStatus !== "casvFeeProcessing" &&
@@ -631,22 +703,25 @@ export default function Onboarding() {
         serviceStatus !== "ds160Processing" && (
           <div className="fixed bottom-16 left-0 right-0 border-t border-border bg-background p-4 md:hidden">
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                disabled={
-                  currentStep === 0 ||
-                  serviceStatus === "ds160AwaitingReviewAndSignature" ||
-                  serviceStatus === "review_assign" ||
-                  serviceStatus === "uploadsUnderReview"
-                }
-                onClick={() => setCurrentStep((s) => s - 1)}
-              >
-                <ChevronLeft className="mr-1 h-4 w-4" /> {o.previous[lang]}
-              </Button>
+              {!(
+                serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                serviceStatus === "ds160upload_documents" ||
+                serviceStatus === "review_assign" ||
+                serviceStatus === "uploadsUnderReview"
+              ) && (
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  disabled={currentStep === 0}
+                  onClick={() => setCurrentStep((s) => s - 1)}
+                >
+                  <ChevronLeft className="mr-1 h-4 w-4" /> {o.previous[lang]}
+                </Button>
+              )}
               {currentStep < steps.length - 1 &&
               !(
                 serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                serviceStatus === "ds160upload_documents" ||
                 serviceStatus === "review_assign" ||
                 serviceStatus === "uploadsUnderReview"
               ) ? (
@@ -665,6 +740,7 @@ export default function Onboarding() {
                     serviceStatus === "ds160Processing" ||
                     serviceStatus === "completed" ||
                     ((serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                      serviceStatus === "ds160upload_documents" ||
                       serviceStatus === "review_assign") &&
                       (!uploadedDocs.some((d) => d.name === "ds160_assinada") ||
                         !uploadedDocs.some(
@@ -678,6 +754,7 @@ export default function Onboarding() {
                       ? "Processando..."
                       : "Processing..."
                     : serviceStatus === "review_assign" ||
+                        serviceStatus === "ds160upload_documents" ||
                         serviceStatus === "ds160AwaitingReviewAndSignature"
                       ? lang === "pt"
                         ? "Enviar Documentos"

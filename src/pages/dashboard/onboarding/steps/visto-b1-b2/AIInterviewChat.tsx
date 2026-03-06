@@ -120,20 +120,17 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
       });
 
       // 2. Call n8n webhook
-      const response = await fetch(
-        "https://nwh.suaiden.com/webhook/chat-consulado",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: currentInput,
-            userId: userId,
-            processId: serviceId,
-            lang: lang,
-            sessionId: sessionId,
-          }),
-        },
-      );
+      const response = await fetch(import.meta.env.VITE_N8N_BOT_INTERVIEW, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: currentInput,
+          userId: userId,
+          processId: serviceId,
+          lang: lang,
+          sessionId: sessionId,
+        }),
+      });
 
       if (!response.ok) throw new Error("Webhook error");
 

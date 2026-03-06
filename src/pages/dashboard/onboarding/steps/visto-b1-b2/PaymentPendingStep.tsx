@@ -475,7 +475,7 @@ export function PaymentPendingStep({
 
           <div className="pt-4 space-y-6">
             <Button
-              className="w-full h-20 bg-accent hover:bg-green-dark text-white rounded-[32px] shadow-2xl shadow-accent/30 font-black text-xl transition-all active:scale-[0.98] group relative overflow-hidden"
+              className="w-full h-auto min-h-20 py-4 px-4 bg-accent hover:bg-green-dark text-white rounded-[32px] shadow-2xl shadow-accent/30 font-black text-sm sm:text-base md:text-xl whitespace-normal transition-all active:scale-[0.98] group relative overflow-hidden"
               disabled={isSaving}
               onClick={handlePaymentCompleted}
             >
@@ -483,13 +483,15 @@ export function PaymentPendingStep({
               {isSaving ? (
                 <Loader2 className="h-6 w-6 animate-spin" />
               ) : (
-                <div className="flex items-center justify-center gap-4 relative z-10">
-                  <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
-                    <CheckCircle2 className="h-6 w-6" />
+                <div className="flex items-center justify-center gap-2 sm:gap-4 relative z-10 w-full">
+                  <div className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 rounded-full bg-white/20 flex items-center justify-center">
+                    <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
-                  {lang === "pt"
-                    ? "JÁ REALIZEI O PAGAMENTO"
-                    : "I HAVE COMPLETED THE PAYMENT"}
+                  <span className="text-center leading-tight">
+                    {lang === "pt"
+                      ? "JÁ REALIZEI O PAGAMENTO"
+                      : "I HAVE COMPLETED THE PAYMENT"}
+                  </span>
                 </div>
               )}
             </Button>

@@ -38,6 +38,7 @@ import {
   getExchangeRate,
 } from "@/lib/stripe/stripeFeeCalculator";
 import { useEffect } from "react";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { ZellePaymentModal } from "@/components/checkout/ZellePaymentModal";
 import { useNavigate } from "react-router-dom";
 
@@ -383,16 +384,13 @@ export default function Checkout() {
 
                     <div className="space-y-2">
                       <Label htmlFor="phone">Telefone / WhatsApp</Label>
-                      <Input
+                      <PhoneInput
                         id="phone"
-                        name="phone"
-                        required
                         value={formData.phone}
-                        onChange={handleInputChange}
-                        readOnly={isLoggedIn && !!formData.phone}
-                        className={
-                          isLoggedIn && !!formData.phone ? "bg-muted" : ""
+                        onChange={(value) =>
+                          setFormData((prev) => ({ ...prev, phone: value }))
                         }
+                        required
                       />
                     </div>
 
@@ -678,12 +676,16 @@ export default function Checkout() {
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="payerPhone">Telefone</Label>
-                              <Input
+                              <PhoneInput
                                 id="payerPhone"
-                                name="payerPhone"
-                                required={formData.isAlternativePayer}
                                 value={formData.payerPhone}
-                                onChange={handleInputChange}
+                                onChange={(value) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    payerPhone: value,
+                                  }))
+                                }
+                                required={formData.isAlternativePayer}
                               />
                             </div>
                           </motion.div>

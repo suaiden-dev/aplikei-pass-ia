@@ -1,12 +1,27 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Briefcase, FileText, ChevronRight } from "lucide-react";
+import {
+  Briefcase,
+  FileText,
+  ChevronRight,
+  Camera,
+  Upload,
+  Loader2,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const TOTAL_STEPS = 9;
 
@@ -99,6 +114,14 @@ export default function UserProcesses() {
   const { lang } = useLanguage();
   const [services, setServices] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [loading, setLoading] = useState(true);
+  const [isSelfieModalOpen, setIsSelfieModalOpen] = useState(false);
+  const [uploadingSelfie, setUploadingSelfie] = useState(false);
+  const [checkingSelfie, setCheckingSelfie] = useState<string | null>(null);
+  const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [pendingServiceToNavigate, setPendingServiceToNavigate] = useState<
+    any | null
+  >(null);
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -148,6 +171,93 @@ export default function UserProcesses() {
     fetchServices();
   }, [lang]);
 
+  const handleServiceClick = async (service: any) => {
+    if (checkingSelfie) return;
+
+    setCheckingSelfie(service.id);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: order, error } = await supabase
+        .from("visa_orders")
+        .select("id, contract_selfie_url")
+        .eq("product_slug", service.service_slug)
+        .or(`user_id.eq.${user.id},client_email.eq.${user.email}`)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (order && !order.contract_selfie_url) {
+        setPendingServiceToNavigate(service);
+        setPendingOrderId(order.id);
+        setIsSelfieModalOpen(true);
+      } else {
+        navigate(`/dashboard/onboarding?service_id=${service.id}`);
+      }
+    } catch (err) {
+      console.error("Error checking selfie:", err);
+      navigate(`/dashboard/onboarding?service_id=${service.id}`);
+    } finally {
+      setCheckingSelfie(null);
+    }
+  };
+
+  const handleSelfieUpload = async () => {
+    if (!selfieFile || !pendingOrderId) return;
+
+    setUploadingSelfie(true);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const fileExt = selfieFile.name.split(".").pop();
+      const fileName = `selfie_${Date.now()}.${fileExt}`;
+      const filePath = `contracts/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("visa-documents")
+        .upload(filePath, selfieFile);
+
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("visa-documents").getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from("visa_orders")
+        .update({
+          contract_selfie_url: publicUrl,
+          user_id: user.id,
+        })
+        .eq("id", pendingOrderId);
+
+      if (updateError) throw updateError;
+
+      setIsSelfieModalOpen(false);
+      setSelfieFile(null);
+      if (pendingServiceToNavigate) {
+        navigate(
+          `/dashboard/onboarding?service_id=${pendingServiceToNavigate.id}`,
+        );
+      }
+    } catch (err: any) {
+      console.error("Error uploading selfie:", err);
+      const msg =
+        lang === "pt" ? "Erro ao enviar selfie" : "Error uploading selfie";
+      alert(msg);
+    } finally {
+      setUploadingSelfie(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -190,10 +300,9 @@ export default function UserProcesses() {
                 key={s.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                onClick={() =>
-                  navigate(`/dashboard/onboarding?service_id=${s.id}`)
-                }
-                className="relative text-left p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/40 transition-all duration-300 group shadow-sm hover:shadow-lg"
+                onClick={() => handleServiceClick(s)}
+                disabled={checkingSelfie === s.id}
+                className={`relative text-left p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/40 transition-all duration-300 group shadow-sm hover:shadow-lg ${checkingSelfie === s.id ? "opacity-70 cursor-wait" : ""}`}
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
@@ -236,6 +345,85 @@ export default function UserProcesses() {
           )}
         </div>
       </section>
+
+      <Dialog open={isSelfieModalOpen} onOpenChange={setIsSelfieModalOpen}>
+        <DialogContent className="sm:max-w-[450px] rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+              <Camera className="w-5 h-5 text-primary" />
+              {lang === "pt"
+                ? "Verificação de Identidade Necessária"
+                : "Identity Verification Required"}
+            </DialogTitle>
+            <DialogDescription>
+              {lang === "pt"
+                ? "Para prosseguir com sua solicitação de DS-160, você precisa realizar o upload de uma selfie segurando seu passaporte (aberto na página de identificação)."
+                : "To proceed with your DS-160 application, you must upload a selfie holding your passport (open at the identification page)."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            <div className="flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-border group relative overflow-hidden">
+              {selfieFile ? (
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
+                    <CheckSquare className="w-10 h-10 text-primary" />
+                  </div>
+                  <p className="text-sm font-bold text-foreground">
+                    {selfieFile.name}
+                  </p>
+                  <button
+                    onClick={() => setSelfieFile(null)}
+                    className="text-[10px] font-bold text-red-500 uppercase hover:underline"
+                  >
+                    {lang === "pt" ? "Remover" : "Remove"}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center space-y-4 text-center">
+                  <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center">
+                    <Upload className="w-8 h-8 text-primary/40" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-foreground">
+                      {lang === "pt"
+                        ? "Selecione sua selfie"
+                        : "Select your selfie"}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground uppercase">
+                      JPG, PNG {lang === "pt" ? "ou" : "or"} JPEG
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setSelfieFile(e.target.files?.[0] || null)}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                </div>
+              )}
+            </div>
+
+            <Button
+              className="w-full bg-primary text-white hover:bg-primary/90 font-bold h-12 rounded-xl shadow-lg shadow-primary/20"
+              disabled={!selfieFile || uploadingSelfie}
+              onClick={handleSelfieUpload}
+            >
+              {uploadingSelfie ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {lang === "pt" ? "Enviando..." : "Uploading..."}
+                </>
+              ) : (
+                <>
+                  <Camera className="mr-2 h-4 w-4" />
+                  {lang === "pt" ? "Fazer Upload da Selfie" : "Upload Selfie"}
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

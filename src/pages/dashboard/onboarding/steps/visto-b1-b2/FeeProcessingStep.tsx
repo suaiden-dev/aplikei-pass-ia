@@ -148,7 +148,7 @@ export function FeeProcessingStep({
 
           <div className="pt-4">
             <Button
-              className="w-full h-16 bg-accent hover:bg-green-dark text-white rounded-[24px] shadow-xl shadow-accent/30 font-black text-lg transition-all active:scale-[0.98] group relative overflow-hidden"
+              className="w-full h-auto min-h-16 py-4 px-4 bg-accent hover:bg-green-dark text-white rounded-[24px] shadow-xl shadow-accent/30 font-black text-xs sm:text-sm md:text-lg whitespace-normal transition-all active:scale-[0.98] group relative overflow-hidden"
               disabled={isSaving}
               onClick={handleEmailConfirmed}
             >
@@ -156,11 +156,11 @@ export function FeeProcessingStep({
                 <Loader2 className="h-6 w-6 animate-spin" />
               ) : (
                 <>
-                  <span className="relative z-10 flex items-center gap-3">
+                  <span className="relative z-10 flex items-center justify-center gap-2">
                     {lang === "pt"
                       ? "JÁ CONFIRMEI O EMAIL"
                       : "I'VE ALREADY CONFIRMED THE EMAIL"}
-                    <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform duration-300" />
+                    <ArrowRight className="h-4 w-4 md:h-5 md:w-5 shrink-0 group-hover:translate-x-2 transition-transform duration-300" />
                   </span>
                 </>
               )}

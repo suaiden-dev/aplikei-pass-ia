@@ -18,6 +18,10 @@ export const useOnboardingLogic = () => {
     const [orderNumber, setOrderNumber] = useState<string | null>(null);
     const [securityData, setSecurityData] = useState<{ appId: string; dob: string; grandma: string } | null>(null);
     const [hasConsularCredentials, setHasConsularCredentials] = useState<boolean>(false);
+    const [requiresSelfie, setRequiresSelfie] = useState<boolean>(false);
+    const [uploadingSelfie, setUploadingSelfie] = useState<boolean>(false);
+    const [selfieFile, setSelfieFile] = useState<File | null>(null);
+    const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
     const [currentStep, setCurrentStep] = useState(() => {
         const saved = localStorage.getItem("onboarding_step");
         return saved ? parseInt(saved, 10) : 0;
@@ -148,19 +152,25 @@ export const useOnboardingLogic = () => {
                 }
             }
 
-            // Fetch order number
+            // Fetch order and check for selfie
             if (sId) {
                 const { data: orderData } = await supabase
                     .from("visa_orders")
-                    .select("order_number")
+                    .select("id, order_number, contract_selfie_url")
                     .eq("product_slug", slug)
                     .eq("user_id", user.id)
                     .order("created_at", { ascending: false })
                     .limit(1)
                     .maybeSingle();
                 
-                if (orderData?.order_number) {
-                    setOrderNumber(orderData.order_number);
+                if (orderData) {
+                    if (orderData.order_number) {
+                        setOrderNumber(orderData.order_number);
+                    }
+                    setPendingOrderId(orderData.id);
+                    if (!orderData.contract_selfie_url) {
+                        setRequiresSelfie(true);
+                    }
                 }
             }
 
@@ -497,6 +507,49 @@ export const useOnboardingLogic = () => {
         setCurrentStep((s) => s + 1);
     };
 
+    const handleSelfieUpload = async () => {
+        if (!selfieFile || !pendingOrderId) return;
+
+        setUploadingSelfie(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("Not authenticated");
+
+            const fileExt = selfieFile.name.split(".").pop();
+            const fileName = `selfie_${Date.now()}.${fileExt}`;
+            const filePath = `contracts/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from("visa-documents")
+                .upload(filePath, selfieFile);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from("visa-documents")
+                .getPublicUrl(filePath);
+
+            const { error: updateError } = await supabase
+                .from("visa_orders")
+                .update({
+                    contract_selfie_url: publicUrl,
+                    user_id: user.id
+                })
+                .eq("id", pendingOrderId);
+
+            if (updateError) throw updateError;
+
+            setRequiresSelfie(false);
+            setSelfieFile(null);
+            toast.success(lang === "pt" ? "Selfie enviada com sucesso!" : "Selfie uploaded successfully!");
+        } catch (err: any) {
+            console.error("Error uploading selfie:", err);
+            toast.error(lang === "pt" ? "Erro ao enviar selfie" : "Error uploading selfie");
+        } finally {
+            setUploadingSelfie(false);
+        }
+    };
+
     const handleFinish = async () => {
         console.log("🔵 [handleFinish] Starting onboarding finalization...");
         await saveCurrentStep();
@@ -612,6 +665,7 @@ export const useOnboardingLogic = () => {
         pendingFiles, setPendingFiles,
         register, handleSubmit, watch, errors, setValue, formData,
         handleUpload, handleRemoveDoc,
-        handleNext, handleFinish, handleSkip
+        handleNext, handleFinish, handleSkip,
+        requiresSelfie, setRequiresSelfie, uploadingSelfie, selfieFile, setSelfieFile, handleSelfieUpload
     };
 };
