@@ -23,6 +23,9 @@ import {
   Download,
   RefreshCw,
   Eye,
+  Package,
+  MapPin,
+  Trophy,
 } from "lucide-react";
 import {
   Dialog,
@@ -35,6 +38,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { AdminStatusTimeline } from "@/components/admin/AdminStatusTimeline";
 import { AdminVerticalTimeline } from "@/components/admin/AdminVerticalTimeline";
+import { AdminProcessLogs } from "@/components/admin/AdminProcessLogs";
 import { useLanguage } from "@/i18n/LanguageContext";
 import {
   Card,
@@ -43,6 +47,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Order {
   id: string;
@@ -206,8 +211,18 @@ export default function AdminProcessDetail() {
               d.name === "ds160_boleto",
           ) || [];
 
-        console.log("DEBUG: Documentos encontrados no banco:", docs);
-        console.log("DEBUG: Documentos filtrados:", relevantDocs);
+        // Custom sort: 1. assinada, 2. comprovante, 3. boleto
+        const sortOrder: Record<string, number> = {
+          ds160_assinada: 1,
+          ds160_comprovante: 2,
+          ds160_boleto: 3,
+        };
+
+        relevantDocs.sort((a, b) => {
+          return (sortOrder[a.name] || 99) - (sortOrder[b.name] || 99);
+        });
+
+        console.log("DEBUG: Documentos filtrados e ordenados:", relevantDocs);
 
         setProcessDocs(relevantDocs);
 
@@ -714,10 +729,15 @@ export default function AdminProcessDetail() {
                         <div className="min-w-0">
                           <p className="text-sm font-bold truncate">
                             {doc.name === "ds160_assinada"
-                              ? "DS-160 Assinada"
+                              ? "ASSINADA"
                               : doc.name === "ds160_comprovante"
-                                ? "Comprovante DS-160"
-                                : doc.name}
+                                ? "COMPROVANTE"
+                                : doc.name === "ds160_boleto"
+                                  ? "BOLETO"
+                                  : doc.name
+                                      .replace(/ds160_?|DS160_?/gi, "")
+                                      .replace(/_/g, " ")
+                                      .toUpperCase()}
                           </p>
                         </div>
                       </div>
@@ -777,10 +797,15 @@ export default function AdminProcessDetail() {
                       <div className="min-w-0">
                         <p className="text-sm font-bold truncate">
                           {doc.name === "ds160_assinada"
-                            ? "DS-160 Assinada"
+                            ? "ASSINADA"
                             : doc.name === "ds160_comprovante"
-                              ? "Comprovante DS-160"
-                              : doc.name}
+                              ? "COMPROVANTE"
+                              : doc.name === "ds160_boleto"
+                                ? "BOLETO"
+                                : doc.name
+                                    .replace(/ds160_?|DS160_?/gi, "")
+                                    .replace(/_/g, " ")
+                                    .toUpperCase()}
                         </p>
                         <p className="text-[10px] text-muted-foreground uppercase font-medium">
                           {doc.storage_path.split(".").pop()} •{" "}
@@ -840,12 +865,34 @@ export default function AdminProcessDetail() {
           </div>
         );
 
+      case "approved":
+      case "completed": {
+        return (
+          <div className="space-y-6">
+            <div className="p-8 border-2 border-green-200 dark:border-green-900/30 rounded-3xl bg-green-50 dark:bg-green-950/20 flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-600"></div>
+
+              <div className="h-16 w-16 mb-4 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center border-4 border-white dark:border-green-800 shadow-sm">
+                <Trophy className="h-8 w-8 text-green-600 dark:text-green-400" />
+              </div>
+
+              <h3 className="text-xl font-display font-bold text-green-800 dark:text-green-300 mb-2">
+                Visto Aprovado!
+              </h3>
+
+              <p className="text-sm text-green-700 dark:text-green-400 max-w-[320px] leading-relaxed mb-6">
+                Este processo foi concluído com sucesso e o visto do cliente foi
+                aprovado na entrevista.
+              </p>
+            </div>
+          </div>
+        );
+      }
+
       case "casvSchedulingPending":
       case "casvFeeProcessing":
       case "casvPaymentPending":
-      case "awaitingInterview":
-      case "approved":
-      case "completed": {
+      case "awaitingInterview": {
         const sched = onboardingResponses.find(
           (r) => r.step_slug === "casv_scheduling",
         );
@@ -892,25 +939,51 @@ export default function AdminProcessDetail() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card className="p-4 border-border bg-muted/20">
                 <label className="text-[10px] font-black uppercase text-muted-foreground block mb-2">
                   Consulado (DS-160)
                 </label>
-                <p className="font-bold text-foreground">
+                <p className="font-bold text-foreground text-sm">
                   {interviewLocation || "Não informado"}
                 </p>
               </Card>
 
-              <Card className="p-4 border-border bg-muted/20">
-                <label className="text-[10px] font-black uppercase text-muted-foreground block mb-2">
-                  Data de Preferência
+              <Card className="p-4 border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20 dark:border-yellow-900/30">
+                <label className="text-[10px] font-black uppercase text-yellow-600 block mb-2">
+                  Preferência do Cliente
                 </label>
-                <div className="font-bold text-foreground">
+                <div className="font-bold text-foreground text-sm">
                   {preferredDate
-                    ? new Date(preferredDate).toLocaleDateString("pt-BR")
+                    ? new Date(preferredDate + "T12:00:00").toLocaleDateString(
+                        "pt-BR",
+                      )
                     : "Aguardando..."}
                 </div>
+              </Card>
+
+              <Card
+                className={`p-4 ${order.interview_date ? "border-accent/30 bg-accent/5" : "border-border bg-muted/20"}`}
+              >
+                <label className="text-[10px] font-black uppercase text-accent block mb-2">
+                  Data Marcada (Admin)
+                </label>
+                <div className="font-bold text-foreground text-sm">
+                  {order.interview_date ? (
+                    new Date(
+                      order.interview_date + "T12:00:00",
+                    ).toLocaleDateString("pt-BR")
+                  ) : (
+                    <span className="text-muted-foreground italic text-xs">
+                      Não definida ainda
+                    </span>
+                  )}
+                </div>
+                {order.interview_time && (
+                  <p className="text-xs text-accent font-bold mt-1">
+                    @ {order.interview_time.slice(0, 5)}
+                  </p>
+                )}
               </Card>
             </div>
 
@@ -1228,16 +1301,6 @@ export default function AdminProcessDetail() {
                   </div>
                 </div>
               )}
-
-            <div className="pt-4 border-t border-border">
-              <Button
-                className="w-full h-12 gap-2 font-bold text-xs tracking-widest"
-                variant="outline"
-                onClick={handleRejectDocuments}
-              >
-                <RefreshCw className="h-4 w-4" /> REFAZER ANÁLISE DE DOCUMENTOS
-              </Button>
-            </div>
           </div>
         );
       }
@@ -1277,14 +1340,42 @@ export default function AdminProcessDetail() {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Left Column: Status info */}
+        {/* Left Column: Status info & Logs */}
         <div className="lg:col-span-3 space-y-6">
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm min-h-[300px]">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-6">
-              Ações Necessárias
-            </h3>
-            {renderStatusContent()}
-          </div>
+          <Tabs defaultValue="actions" className="w-full">
+            <TabsList className="mb-4 bg-muted/50 p-1 border border-border">
+              <TabsTrigger
+                value="actions"
+                className="text-xs font-bold uppercase tracking-wider px-6 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
+              >
+                Ações Necessárias
+              </TabsTrigger>
+              <TabsTrigger
+                value="logs"
+                className="text-xs font-bold uppercase tracking-wider px-6 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
+              >
+                Histórico e Observações
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent
+              value="actions"
+              className="mt-0 focus-visible:outline-none focus-visible:ring-0"
+            >
+              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm min-h-[300px]">
+                {renderStatusContent()}
+              </div>
+            </TabsContent>
+
+            <TabsContent
+              value="logs"
+              className="mt-0 focus-visible:outline-none focus-visible:ring-0"
+            >
+              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+                <AdminProcessLogs userServiceId={order.user_service_id} />
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Right Column: Process & Order info */}
@@ -1292,10 +1383,48 @@ export default function AdminProcessDetail() {
           {/* Timeline Section */}
           <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
-              Histórico do Processo
+              Resumo do Status
             </h3>
             <AdminVerticalTimeline currentStatus={status} />
           </div>
+
+          {/* Security Data Card — shown after saving */}
+          {isAlreadySaved && (
+            <div className="bg-card border border-accent/20 rounded-2xl p-6 shadow-sm space-y-4">
+              <div className="flex items-center gap-2 border-b border-accent/10 pb-3">
+                <ShieldCheck className="h-4 w-4 text-accent" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-accent">
+                  Dados de Segurança
+                </h3>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                    Application ID
+                  </p>
+                  <p className="font-mono font-bold text-foreground text-sm mt-0.5 break-all">
+                    {order.application_id}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                    Nascimento
+                  </p>
+                  <p className="font-bold text-foreground text-sm mt-0.5">
+                    {order.date_of_birth}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                    Nome da Avó
+                  </p>
+                  <p className="font-bold text-foreground text-sm mt-0.5">
+                    {order.grandmother_name}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
@@ -1491,8 +1620,17 @@ export default function AdminProcessDetail() {
                 >
                   <div className="flex items-center gap-3">
                     <FileText className="w-5 h-5 text-accent" />
-                    <span className="text-sm font-medium pr-4 break-all">
-                      {doc.name.replace(/_/g, " ").toUpperCase()}
+                    <span className="text-sm font-bold pr-4 break-all">
+                      {doc.name === "ds160_assinada"
+                        ? "ASSINADA"
+                        : doc.name === "ds160_comprovante"
+                          ? "COMPROVANTE"
+                          : doc.name === "ds160_boleto"
+                            ? "BOLETO"
+                            : doc.name
+                                .replace(/ds160_?|DS160_?/gi, "")
+                                .replace(/_/g, " ")
+                                .toUpperCase()}
                     </span>
                   </div>
                   <Button

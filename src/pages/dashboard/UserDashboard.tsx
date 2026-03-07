@@ -16,6 +16,11 @@ import {
   ChevronRight,
   Camera,
   Loader2,
+  ShoppingBag,
+  Plane,
+  GraduationCap,
+  Lock,
+  Sparkles,
 } from "lucide-react";
 import {
   Dialog,
@@ -549,6 +554,182 @@ export default function UserDashboard() {
           ))}
         </div>
       </section>
+
+      {/* GET PROCESSES SECTION */}
+      {(() => {
+        const availableProducts = [
+          {
+            slug: "visto-b1-b2",
+            icon: <Plane className="h-6 w-6" />,
+            color: "bg-blue-500",
+            gradientFrom: "from-blue-500",
+            gradientTo: "to-indigo-600",
+            badgeLabel: lang === "pt" ? "Disponível" : "Available",
+            titlePt: "Visto Turismo B1/B2",
+            titleEn: "B1/B2 Tourist Visa",
+            subtitlePt: "Para brasileiros aplicando do Brasil",
+            subtitleEn: "For Brazilians applying from Brazil",
+            descPt:
+              "Guia completo passo a passo para aplicar ao visto de turismo/negócios. Inclui orientação para DS-160 e preparação para entrevista.",
+            descEn:
+              "Complete step-by-step guide to apply for a tourist/business visa. Includes DS-160 guidance and interview preparation.",
+            features: [
+              {
+                pt: "Guia digital com acesso vitalício",
+                en: "Digital guide with lifetime access",
+              },
+              {
+                pt: "Checklist completo de documentos",
+                en: "Complete documents checklist",
+              },
+              {
+                pt: "Simulado de entrevista com IA",
+                en: "AI-powered interview simulator",
+              },
+              {
+                pt: "Suporte humano operacional",
+                en: "Human operational support",
+              },
+            ],
+            available: true,
+            checkoutUrl: "/checkout/visto-b1-b2",
+          },
+          {
+            slug: "visto-f1",
+            icon: <GraduationCap className="h-6 w-6" />,
+            color: "bg-purple-500",
+            gradientFrom: "from-purple-500",
+            gradientTo: "to-violet-600",
+            badgeLabel: lang === "pt" ? "Em breve" : "Coming soon",
+            titlePt: "Visto de Estudante F-1",
+            titleEn: "F-1 Student Visa",
+            subtitlePt: "Para estudantes aceitos em instituições americanas",
+            subtitleEn: "For students accepted by US institutions",
+            descPt:
+              "Guia passo a passo para aplicar ao visto F-1. Orientação sobre I-20, DS-160, SEVIS e preparação para entrevista.",
+            descEn:
+              "Step-by-step guide for the F-1 visa. Guidance on I-20, DS-160, SEVIS and interview preparation.",
+            features: [
+              {
+                pt: "Orientação sobre I-20 e SEVIS",
+                en: "I-20 and SEVIS guidance",
+              },
+              {
+                pt: "Guia para pagamento da taxa SEVIS",
+                en: "SEVIS fee payment guide",
+              },
+              { pt: "Preparação para entrevista", en: "Interview preparation" },
+            ],
+            available: false,
+            checkoutUrl: "/checkout/visto-f1",
+          },
+        ];
+
+        const userServiceSlugs = services.map((s) => s.service_slug);
+        const products = availableProducts.filter(
+          (p) => !userServiceSlugs.includes(p.slug),
+        );
+
+        if (products.length === 0) return null;
+
+        return (
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <ShoppingBag className="w-5 h-5 text-primary" />
+              <h2 className="font-bold text-lg text-foreground">
+                {lang === "pt" ? "Obter Processos" : "Get Processes"}
+              </h2>
+            </div>
+
+            <div
+              className={`grid gap-6 ${
+                products.length === 1
+                  ? "grid-cols-1 max-w-2xl"
+                  : "grid-cols-1 lg:grid-cols-2"
+              }`}
+            >
+              {products.map((product) => (
+                <div
+                  key={product.slug}
+                  className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md group"
+                >
+                  {/* Top gradient bar */}
+                  <div
+                    className={`h-1.5 w-full bg-gradient-to-r ${product.gradientFrom} ${product.gradientTo}`}
+                  />
+
+                  <div className="p-6 space-y-5">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`h-11 w-11 rounded-2xl ${product.color} text-white flex items-center justify-center shadow-sm`}
+                        >
+                          {product.icon}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-foreground text-base">
+                            {lang === "pt" ? product.titlePt : product.titleEn}
+                          </h3>
+                          <p className="text-xs text-muted-foreground">
+                            {lang === "pt"
+                              ? product.subtitlePt
+                              : product.subtitleEn}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge
+                        className={`shrink-0 ${
+                          product.available
+                            ? "bg-accent/10 text-accent border-accent/20"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                        variant="outline"
+                      >
+                        {product.available && (
+                          <Sparkles className="h-3 w-3 mr-1" />
+                        )}
+                        {product.badgeLabel}
+                      </Badge>
+                    </div>
+
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {lang === "pt" ? product.descPt : product.descEn}
+                    </p>
+
+                    <ul className="space-y-2">
+                      {product.features.map((f, i) => (
+                        <li key={i} className="flex items-center gap-2 text-sm">
+                          <CheckSquare className="h-4 w-4 text-accent shrink-0" />
+                          <span className="text-foreground">
+                            {lang === "pt" ? f.pt : f.en}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {product.available ? (
+                      <Link to={product.checkoutUrl}>
+                        <Button className="w-full bg-primary font-bold h-11 rounded-xl gap-2 hover:bg-primary/90 shadow-sm">
+                          {lang === "pt" ? "Contratar Agora" : "Get Started"}
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button
+                        disabled
+                        className="w-full h-11 rounded-xl gap-2 opacity-60 cursor-not-allowed"
+                      >
+                        <Lock className="h-4 w-4" />
+                        {lang === "pt" ? "Em Breve" : "Coming Soon"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
       <Dialog open={isSelfieModalOpen} onOpenChange={setIsSelfieModalOpen}>
         <DialogContent className="sm:max-w-[450px] rounded-3xl">
           <DialogHeader>

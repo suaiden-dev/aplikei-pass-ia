@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useAdmin } from "@/hooks/useAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -113,16 +114,19 @@ export default function AdminLayout() {
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="flex h-16 items-center gap-4 border-b border-border bg-card px-4 lg:px-6">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="rounded-md p-1.5 text-muted-foreground hover:text-foreground lg:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <h1 className="font-display text-lg font-semibold text-foreground">
-            Painel Administrativo
-          </h1>
+        <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 lg:px-6">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="rounded-md p-1.5 text-muted-foreground hover:text-foreground lg:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <h1 className="font-display text-lg font-semibold text-foreground">
+              Painel Administrativo
+            </h1>
+          </div>
+          <NotificationBell />
         </header>
 
         {/* Page content */}

@@ -190,9 +190,17 @@ export default function Onboarding() {
 
     if (
       serviceSlug === "visto-b1-b2" &&
-      serviceStatus === "awaitingInterview"
+      (serviceStatus === "awaitingInterview" ||
+        serviceStatus === "approved" ||
+        serviceStatus === "refused" ||
+        serviceStatus === "completed")
     ) {
-      return <AwaitingInterviewStep serviceId={serviceId} />;
+      return (
+        <AwaitingInterviewStep
+          serviceId={serviceId}
+          serviceStatus={serviceStatus}
+        />
+      );
     }
 
     if (
@@ -446,7 +454,9 @@ export default function Onboarding() {
                             ? lang === "pt"
                               ? "Documentos em Análise..."
                               : "Documents under review..."
-                            : serviceStatus === "completed"
+                            : serviceStatus === "completed" ||
+                                serviceStatus === "approved" ||
+                                serviceStatus === "refused"
                               ? lang === "pt"
                                 ? "Concluído"
                                 : "Completed"
@@ -536,6 +546,7 @@ export default function Onboarding() {
                   serviceStatus === "ds160AwaitingReviewAndSignature" ||
                   serviceStatus === "completed" ||
                   serviceStatus === "approved" ||
+                  serviceStatus === "refused" ||
                   serviceStatus === "awaitingInterview" ||
                   serviceStatus === "casvSchedulingPending" ||
                   serviceStatus === "casvFeeProcessing" ||

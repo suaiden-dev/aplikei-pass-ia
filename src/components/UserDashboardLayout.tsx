@@ -1,4 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -47,7 +48,10 @@ export default function UserDashboardLayout() {
           <Link to="/" className="font-display text-lg font-bold text-primary">
             Aplikei
           </Link>
-          <LanguageToggle />
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <LanguageToggle />
+          </div>
         </div>
         <nav className="flex-1 space-y-1 p-4">
           {sidebarLinks.map((l) => {
@@ -80,7 +84,10 @@ export default function UserDashboardLayout() {
           <Link to="/" className="font-display text-lg font-bold text-primary">
             Aplikei
           </Link>
-          <LanguageToggle />
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <LanguageToggle />
+          </div>
         </header>
 
         <div className="flex-1 overflow-y-auto bg-background p-4 md:p-8 w-full max-w-full">
