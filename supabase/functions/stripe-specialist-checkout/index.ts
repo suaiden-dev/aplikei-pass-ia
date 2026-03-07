@@ -17,14 +17,22 @@ Deno.serve(async (req) => {
       email,
       fullName,
       serviceId,
-      date,
-      time,
+      packageType, // 1, 2, or 3
       origin_url,
     } = await req.json();
 
-    if (!email || !serviceId || !date || !time) {
+    if (!email || !serviceId || !packageType) {
       throw new Error("Missing required parameters.");
     }
+
+    const packages: Record<number, { name: string; price: number; desc: string }> = {
+      1: { name: "Mentoria Individual (1 Aula)", price: 4900, desc: "Sessão única de treinamento especializado." },
+      2: { name: "Pacote Bronze (2 Aulas)", price: 8900, desc: "Duas sessões de treinamento especializado." },
+      3: { name: "Pacote Gold (3 Aulas)", price: 11900, desc: "Três sessões de treinamento - Preparação Completa." },
+    };
+
+    const selectedPackage = packages[packageType];
+    if (!selectedPackage) throw new Error("Invalid package type.");
 
     let host = "";
     try {
@@ -56,26 +64,26 @@ Deno.serve(async (req) => {
           price_data: {
             currency: "usd",
             product_data: {
-              name: "Treinamento com Especialista",
-              description: `Mentoria Individual - ${date} às ${time}`,
+              name: selectedPackage.name,
+              description: selectedPackage.desc,
             },
-            unit_amount: 9900, // $99.00
+            unit_amount: selectedPackage.price,
           },
           quantity: 1,
         },
       ],
       mode: "payment",
       customer_email: email,
-      success_url: `${origin_url}/dashboard/onboarding?specialist_success=true&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin_url}/dashboard/onboarding?specialist_success=true&package_type=${packageType}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin_url}/dashboard/onboarding`,
       metadata: {
         type: "specialist_training",
         email,
         fullName,
         serviceId,
-        date,
-        time,
+        packageType: packageType.toString(),
         env,
+        project: "aplikei",
       },
     });
 

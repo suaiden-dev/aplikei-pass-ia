@@ -163,22 +163,43 @@ Deno.serve(async (req) => {
 
             if (orderError) throw orderError;
 
-            // 3. Create User Service (The "Operational" part)
+            // 3. Handle different types of payments
             if (userId) {
-                const { error: serviceError } = await supabaseAdmin
-                    .from('user_services')
-                    .insert({
-                        user_id: userId,
-                        service_slug: slug,
-                        status: 'active'
-                    });
+                if (metadata.type === 'specialist_training') {
+                    const serviceId = metadata.serviceId;
+                    const packageType = parseInt(metadata.packageType || '1');
+                    
+                    console.log(`Processing specialist training for user ${userId}, service ${serviceId}, package ${packageType}`);
+                    
+                    const { error: updateError } = await supabaseAdmin
+                        .from('user_services')
+                        .update({
+                            specialist_training_data: {
+                                status: 'paid',
+                                package_type: packageType,
+                                stripe_session_id: session.id,
+                                updated_at: new Date().toISOString()
+                            }
+                        })
+                        .eq('id', serviceId)
+                        .eq('user_id', userId);
 
-                if (serviceError) console.error("Error creating user service:", serviceError.message);
+                    if (updateError) console.error("Error updating specialist training data:", updateError.message);
+                } else {
+                    // Default behavior for visa orders: Create/Update User Service
+                    const { error: serviceError } = await supabaseAdmin
+                        .from('user_services')
+                        .insert({
+                            user_id: userId,
+                            service_slug: slug,
+                            status: 'active'
+                        });
+
+                    if (serviceError) console.error("Error creating user service:", serviceError.message);
+                }
             }
 
-
-
-            console.log(`Successfully processed order ${order.order_number} for ${email}`);
+            console.log(`Successfully processed order for ${email}`);
         }
 
         return new Response(JSON.stringify({ received: true }), {
