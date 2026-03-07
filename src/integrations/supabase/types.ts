@@ -141,6 +141,53 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          email_sent: boolean
+          id: string
+          is_read: boolean
+          link: string | null
+          message: string
+          send_email: boolean
+          target_type: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_sent?: boolean
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message: string
+          send_email?: boolean
+          target_type: string
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_sent?: boolean
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string
+          send_email?: boolean
+          target_type?: string
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onboarding_responses: {
         Row: {
           data: Json
@@ -166,6 +213,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "onboarding_responses_user_service_id_fkey"
+            columns: ["user_service_id"]
+            isOneToOne: false
+            referencedRelation: "user_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      process_logs: {
+        Row: {
+          action_type: string
+          actor_id: string | null
+          actor_name: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          new_status: string | null
+          note: string | null
+          previous_status: string | null
+          user_service_id: string
+        }
+        Insert: {
+          action_type: string
+          actor_id?: string | null
+          actor_name?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          new_status?: string | null
+          note?: string | null
+          previous_status?: string | null
+          user_service_id: string
+        }
+        Update: {
+          action_type?: string
+          actor_id?: string | null
+          actor_name?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          new_status?: string | null
+          note?: string | null
+          previous_status?: string | null
+          user_service_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "process_logs_user_service_id_fkey"
             columns: ["user_service_id"]
             isOneToOne: false
             referencedRelation: "user_services"
@@ -208,6 +302,8 @@ export type Database = {
           application_id: string | null
           consular_login: string | null
           consular_password: string | null
+          consulate_interview_date: string | null
+          consulate_interview_time: string | null
           created_at: string | null
           current_step: number | null
           date_of_birth: string | null
@@ -217,6 +313,7 @@ export type Database = {
           interview_location_casv: string | null
           interview_location_consulate: string | null
           interview_time: string | null
+          same_location: boolean | null
           service_slug: string
           specialist_training_data: Json | null
           status: string | null
@@ -226,6 +323,8 @@ export type Database = {
           application_id?: string | null
           consular_login?: string | null
           consular_password?: string | null
+          consulate_interview_date?: string | null
+          consulate_interview_time?: string | null
           created_at?: string | null
           current_step?: number | null
           date_of_birth?: string | null
@@ -235,6 +334,7 @@ export type Database = {
           interview_location_casv?: string | null
           interview_location_consulate?: string | null
           interview_time?: string | null
+          same_location?: boolean | null
           service_slug: string
           specialist_training_data?: Json | null
           status?: string | null
@@ -244,6 +344,8 @@ export type Database = {
           application_id?: string | null
           consular_login?: string | null
           consular_password?: string | null
+          consulate_interview_date?: string | null
+          consulate_interview_time?: string | null
           created_at?: string | null
           current_step?: number | null
           date_of_birth?: string | null
@@ -253,6 +355,7 @@ export type Database = {
           interview_location_casv?: string | null
           interview_location_consulate?: string | null
           interview_time?: string | null
+          same_location?: boolean | null
           service_slug?: string
           specialist_training_data?: Json | null
           status?: string | null
@@ -402,7 +505,7 @@ export type Database = {
         Update: {
           admin_approved_at?: string | null
           admin_notes?: string | null
-          amount: number
+          amount?: number
           confirmation_code?: string | null
           created_at?: string | null
           fee_type_global?: string | null
