@@ -14,14 +14,14 @@ import {
   CheckCircle2,
   ArrowRight,
   ShieldCheck,
-  Progress,
-} from "lucide-react"; // Import Progress or just use custom UI
+} from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { InlineWidget, useCalendlyEventListener } from "react-calendly";
+import { PopupButton, useCalendlyEventListener } from "react-calendly";
 
 interface SpecialistTrainingProps {
   onBack: () => void;
@@ -110,7 +110,8 @@ export function SpecialistTraining({
         .eq("id", serviceId)
         .single();
 
-      const currentData = (service?.specialist_training_data as any) || {};
+      const currentData =
+        (service?.specialist_training_data as Record<string, unknown>) || {};
 
       await supabase
         .from("user_services")
@@ -128,7 +129,6 @@ export function SpecialistTraining({
       setPurchasedPackage(packageType);
       setStep("success");
 
-      // Clean URL
       window.history.replaceState({}, "", window.location.pathname);
       toast.success(
         lang === "pt" ? "Pagamento processado!" : "Payment processed!",
@@ -154,14 +154,19 @@ export function SpecialistTraining({
         .single();
 
       if (service?.specialist_training_data) {
-        const trainingData = service.specialist_training_data as {
-          status?: string;
-          package_type?: number;
-          total_scheduled?: number;
-        };
-        if (trainingData.status === "paid") {
-          setPurchasedPackage(trainingData.package_type || 1);
-          setScheduledCount(trainingData.total_scheduled || 0);
+        const trainingData = service.specialist_training_data as Record<
+          string,
+          unknown
+        >;
+        const status = trainingData.status as string | undefined;
+        const packageType = trainingData.package_type as number | undefined;
+        const totalScheduled = trainingData.total_scheduled as
+          | number
+          | undefined;
+
+        if (status === "paid") {
+          setPurchasedPackage(packageType || 1);
+          setScheduledCount(totalScheduled || 0);
           setStep("success");
         }
       }
@@ -191,9 +196,6 @@ export function SpecialistTraining({
 
   useCalendlyEventListener({
     onEventScheduled: (e) => {
-      console.log("Event scheduled!", e);
-      // Backend Webhook will update total_scheduled,
-      // but we can optimisticly update UI or refresh
       setScheduledCount((prev) => prev + 1);
       toast.success(
         lang === "pt"
@@ -253,49 +255,41 @@ export function SpecialistTraining({
     const isFullyScheduled = scheduledCount >= pkg.classes;
 
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="max-w-4xl mx-auto"
-      >
-        <Card className="border-none bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl overflow-hidden">
+      <div className="max-w-4xl mx-auto w-full">
+        <div className="bg-white dark:bg-slate-900 md:rounded-[40px] md:shadow-2xl overflow-hidden border border-slate-100 dark:border-slate-800 md:border-none">
           <div className="h-2 bg-accent" />
-          <CardHeader className="p-10 text-center space-y-4">
-            <div className="mx-auto h-20 w-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 mb-2">
-              <CheckCircle2 className="h-10 w-10" />
+          <div className="p-6 md:p-10 text-center space-y-4">
+            <div className="mx-auto h-16 w-16 md:h-20 md:w-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 mb-2">
+              <CheckCircle2 className="h-8 w-8 md:h-10 md:w-10" />
             </div>
-            <CardTitle className="text-4xl font-black">
+            <h2 className="text-2xl md:text-4xl font-black">
               {lang === "pt"
                 ? "Prepare-se para o Sucesso!"
                 : "Get Ready for Success!"}
-            </CardTitle>
-            <CardDescription className="text-lg">
+            </h2>
+            <p className="text-sm md:text-lg text-muted-foreground">
               {lang === "pt"
                 ? `Você adquiriu o ${pkg.name} (${pkg.classes} aulas).`
                 : `You purchased the ${pkg.name} (${pkg.classes} sessions).`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-10 pt-0 space-y-8">
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-8 space-y-6 text-center">
+            </p>
+          </div>
+
+          <div className="p-4 md:p-10 pt-0 space-y-8">
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 md:p-8 space-y-6 text-center">
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
-                  <p className="font-black text-xl text-accent">
+                  <p className="font-black text-lg md:text-xl text-accent">
                     {scheduledCount} / {pkg.classes}{" "}
                     {lang === "pt" ? "Aulas Agendadas" : "Sessions Scheduled"}
                   </p>
-                  <span className="text-sm font-bold opacity-60">
+                  <span className="text-xs md:text-sm font-bold opacity-60">
                     {Math.round((scheduledCount / pkg.classes) * 100)}%
                   </span>
                 </div>
-                <div className="h-3 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{
-                      width: `${(scheduledCount / pkg.classes) * 100}%`,
-                    }}
-                    className="h-full bg-accent"
-                  />
-                </div>
+                <Progress
+                  value={(scheduledCount / pkg.classes) * 100}
+                  className="h-3"
+                />
               </div>
 
               {isFullyScheduled ? (
@@ -314,34 +308,43 @@ export function SpecialistTraining({
                   </div>
                 </div>
               ) : (
-                <div className="bg-white dark:bg-slate-900 rounded-3xl p-2 overflow-hidden min-h-[700px] border border-slate-100 dark:border-slate-800 shadow-inner">
-                  <InlineWidget
+                <div className="py-10 flex flex-col items-center space-y-8">
+                  <div className="bg-accent/5 p-6 rounded-3xl border border-accent/10 max-w-sm">
+                    <p className="text-accent font-bold text-sm leading-relaxed">
+                      {lang === "pt"
+                        ? "Para garantir 100% de precisão no celular, o agendamento abrirá em uma janela segura."
+                        : "To ensure 100% accuracy on mobile, scheduling will open in a secure window."}
+                    </p>
+                  </div>
+
+                  <PopupButton
                     url={pkg.calendly}
+                    rootElement={document.getElementById("root")!}
+                    text={
+                      lang === "pt"
+                        ? "AGENDAR MINHA AULA AGORA"
+                        : "SCHEDULE MY SESSION NOW"
+                    }
                     prefill={{
                       email: userProfile.email,
                       name: userProfile.name,
                     }}
-                    styles={{
-                      height: "700px",
-                      width: "100%",
-                    }}
+                    className="w-full md:w-auto px-10 h-16 md:h-20 bg-accent hover:opacity-90 text-white rounded-2xl md:rounded-3xl font-black md:text-lg shadow-xl shadow-accent/20 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
                   />
                 </div>
               )}
             </div>
 
-            <div className="space-y-4">
-              <Button
-                onClick={onBack}
-                variant="ghost"
-                className="w-full h-14 rounded-2xl font-bold text-muted-foreground"
-              >
-                {lang === "pt" ? "VOLTAR AO PAINEL" : "BACK TO DASHBOARD"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+            <Button
+              onClick={onBack}
+              variant="ghost"
+              className="w-full h-12 md:h-14 rounded-xl md:rounded-2xl font-bold text-muted-foreground"
+            >
+              {lang === "pt" ? "VOLTAR AO PAINEL" : "BACK TO DASHBOARD"}
+            </Button>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -358,26 +361,26 @@ export function SpecialistTraining({
         </Button>
       </div>
 
-      <div className="text-center space-y-4 max-w-3xl mx-auto">
-        <h2 className="text-4xl md:text-5xl font-black tracking-tight">
+      <div className="text-center space-y-4 max-w-3xl mx-auto px-4">
+        <h2 className="text-3xl md:text-5xl font-black tracking-tight">
           {lang === "pt"
             ? "Treinamento com Especialista"
             : "Specialist Training"}
         </h2>
-        <p className="text-lg text-muted-foreground leading-relaxed">
+        <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
           {lang === "pt"
             ? "Simule sua entrevista real com um consultor experiente. Recomendamos o pacote de 3 aulas para uma preparação completa e segura."
             : "Simulate your real interview with an experienced consultant. We recommend the 3-session package for a complete and secure preparation."}
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-8 pt-4">
+      <div className="grid md:grid-cols-3 gap-6 md:gap-8 pt-4 px-4">
         {packages.map((pkg) => (
           <motion.div
             key={pkg.id}
             whileHover={{ y: -8 }}
             className={cn(
-              "relative flex flex-col p-8 rounded-[40px] border-2 transition-all",
+              "relative flex flex-col p-8 rounded-[32px] md:rounded-[40px] border-2 transition-all",
               pkg.recommended
                 ? "border-accent bg-accent/5 shadow-2xl shadow-accent/10"
                 : "border-slate-100 dark:border-slate-800 bg-card hover:border-slate-200",
@@ -447,8 +450,8 @@ export function SpecialistTraining({
         ))}
       </div>
 
-      <div className="text-center pt-8">
-        <div className="inline-flex items-center gap-2 px-6 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl text-xs font-bold text-muted-foreground">
+      <div className="text-center pt-8 pb-12 px-4">
+        <div className="inline-flex items-center gap-2 px-6 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl text-[10px] md:text-xs font-bold text-muted-foreground">
           <ShieldCheck className="h-4 w-4 text-green-500" />
           {lang === "pt"
             ? "Pagamento seguro via Stripe • Acesso imediato ao agendamento"
