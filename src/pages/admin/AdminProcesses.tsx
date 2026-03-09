@@ -52,9 +52,27 @@ export default function AdminContracts() {
           "id, order_number, user_id, client_name, client_email, product_slug, total_price_usd, payment_method, payment_status, contract_pdf_url, contract_selfie_url, terms_accepted_at, client_ip, created_at",
         )
         .eq("payment_status", "paid")
+        .in("product_slug", [
+          "visto-b1-b2",
+          "visto-f1",
+          "extensao-status",
+          "guia-visto-consular-b1b2",
+        ])
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+
+      // De-duplicate orders by user_id and product_slug (e.g., when a user restarts)
+      const uniqueOrders: any[] = [];
+      const seen = new Set<string>();
+
+      (data || []).forEach((order) => {
+        const key = `${order.user_id}-${order.product_slug}`;
+        if (!seen.has(key)) {
+          uniqueOrders.push(order);
+          seen.add(key);
+        }
+      });
 
       // Fetch service statuses for all users in orders
       const { data: services, error: servicesError } = await supabase
@@ -62,27 +80,29 @@ export default function AdminContracts() {
         .select(
           "id, user_id, status, service_slug, application_id, date_of_birth, grandmother_name",
         )
-        .in("user_id", data.map((o) => o.user_id).filter(Boolean));
+        .in("user_id", uniqueOrders.map((o) => o.user_id).filter(Boolean));
 
       if (servicesError) {
         console.error("Erro ao buscar status dos serviços:", servicesError);
       }
 
-      const ordersWithStatus = (data as ContractOrder[]).map((order) => {
-        const service = services?.find(
-          (s) =>
-            s.user_id === order.user_id &&
-            s.service_slug === order.product_slug,
-        );
-        return {
-          ...order,
-          service_status: service?.status,
-          user_service_id: service?.id,
-          application_id: service?.application_id,
-          date_of_birth: service?.date_of_birth,
-          grandmother_name: service?.grandmother_name,
-        };
-      });
+      const ordersWithStatus = (uniqueOrders as ContractOrder[]).map(
+        (order) => {
+          const service = services?.find(
+            (s) =>
+              s.user_id === order.user_id &&
+              s.service_slug === order.product_slug,
+          );
+          return {
+            ...order,
+            service_status: service?.status,
+            user_service_id: service?.id,
+            application_id: service?.application_id,
+            date_of_birth: service?.date_of_birth,
+            grandmother_name: service?.grandmother_name,
+          };
+        },
+      );
 
       setOrders(ordersWithStatus ?? []);
     } catch (err: any) {

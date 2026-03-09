@@ -65,6 +65,8 @@ interface Order {
   interview_time?: string | null;
   interview_location_casv?: string | null;
   interview_location_consulate?: string | null;
+  specialist_training_data?: any;
+  specialist_review_data?: any;
 }
 
 interface ProcessDocument {
@@ -172,6 +174,8 @@ export default function AdminProcessDetail() {
         interview_time: s?.interview_time,
         interview_location_casv: s?.interview_location_casv,
         interview_location_consulate: s?.interview_location_consulate,
+        specialist_training_data: s?.specialist_training_data,
+        specialist_review_data: s?.specialist_review_data,
       };
 
       setOrder(combined);
@@ -1356,6 +1360,12 @@ export default function AdminProcessDetail() {
               >
                 Histórico e Observações
               </TabsTrigger>
+              <TabsTrigger
+                value="upsells"
+                className="text-xs font-bold uppercase tracking-wider px-6 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
+              >
+                Serviços Adicionais
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent
@@ -1373,6 +1383,117 @@ export default function AdminProcessDetail() {
             >
               <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
                 <AdminProcessLogs userServiceId={order.user_service_id} />
+              </div>
+            </TabsContent>
+
+            <TabsContent
+              value="upsells"
+              className="mt-0 focus-visible:outline-none focus-visible:ring-0"
+            >
+              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-6">
+                <div className="flex items-center gap-2 border-b border-border pb-3">
+                  <Package className="h-5 w-5 text-accent" />
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-accent">
+                    Treinamento e Revisão
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Treinamento */}
+                  <Card className="p-4 border-border bg-muted/10">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="h-4 w-4 text-accent" />
+                        <h4 className="text-sm font-bold">
+                          Treinamento Especialista
+                        </h4>
+                      </div>
+                      <Badge
+                        variant={
+                          order.specialist_training_data?.status === "paid"
+                            ? "default"
+                            : "secondary"
+                        }
+                        className="text-[10px]"
+                      >
+                        {order.specialist_training_data?.status === "paid"
+                          ? "CONTRATADO"
+                          : "NÃO CONTRATADO"}
+                      </Badge>
+                    </div>
+                    {order.specialist_training_data?.status === "paid" && (
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Pacote:</span>
+                          <span className="font-medium">
+                            {order.specialist_training_data.package_type ===
+                              1 && "Bronze (1 Aula)"}
+                            {order.specialist_training_data.package_type ===
+                              2 && "Prata (2 Aulas)"}
+                            {order.specialist_training_data.package_type ===
+                              3 && "Ouro (3 Aulas)"}
+                            {!order.specialist_training_data.package_type &&
+                              "Personalizado"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Última Atualização:
+                          </span>
+                          <span className="font-medium">
+                            {new Date(
+                              order.specialist_training_data.updated_at,
+                            ).toLocaleDateString("pt-BR")}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+
+                  {/* Revisão */}
+                  <Card className="p-4 border-border bg-muted/10">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="h-4 w-4 text-accent" />
+                        <h4 className="text-sm font-bold">
+                          Revisão Especialista
+                        </h4>
+                      </div>
+                      <Badge
+                        variant={
+                          order.specialist_review_data?.status === "paid"
+                            ? "default"
+                            : "secondary"
+                        }
+                        className="text-[10px]"
+                      >
+                        {order.specialist_review_data?.status === "paid"
+                          ? "CONTRATADO"
+                          : "NÃO CONTRATADO"}
+                      </Badge>
+                    </div>
+                    {order.specialist_review_data?.status === "paid" && (
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Status:</span>
+                          <span className="font-medium text-green-600">
+                            Pagamento Confirmado
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Última Atualização:
+                          </span>
+                          <span className="font-medium">
+                            {new Date(
+                              order.specialist_review_data.updated_at,
+                            ).toLocaleDateString("pt-BR")}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                </div>
               </div>
             </TabsContent>
           </Tabs>

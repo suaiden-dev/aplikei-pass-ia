@@ -79,6 +79,7 @@ Deno.serve(async (req) => {
       cancel_url: `${origin_url}/dashboard/onboarding`,
       metadata: {
         type: packageType === 4 ? "specialist_review" : "specialist_training",
+        slug: packageType === 4 ? "specialist-review" : "specialist-training",
         email,
         fullName,
         serviceId,
