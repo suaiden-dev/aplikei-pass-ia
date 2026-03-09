@@ -192,7 +192,7 @@ export default function Onboarding() {
       serviceSlug === "visto-b1-b2" &&
       (serviceStatus === "awaitingInterview" ||
         serviceStatus === "approved" ||
-        serviceStatus === "refused" ||
+        serviceStatus === "rejected" ||
         serviceStatus === "completed")
     ) {
       return (
@@ -388,7 +388,10 @@ export default function Onboarding() {
               serviceStatus !== "casvPaymentPending" &&
               serviceStatus !== "awaitingInterview" &&
               serviceStatus !== "review_pending" &&
-              serviceStatus !== "ds160Processing" && (
+              serviceStatus !== "ds160Processing" &&
+              serviceStatus !== "approved" &&
+              serviceStatus !== "rejected" &&
+              serviceStatus !== "completed" && (
                 <div className="mt-8 hidden justify-between md:flex">
                   <Button
                     variant="outline"
@@ -456,7 +459,7 @@ export default function Onboarding() {
                               : "Documents under review..."
                             : serviceStatus === "completed" ||
                                 serviceStatus === "approved" ||
-                                serviceStatus === "refused"
+                                serviceStatus === "rejected"
                               ? lang === "pt"
                                 ? "Concluído"
                                 : "Completed"
@@ -546,7 +549,7 @@ export default function Onboarding() {
                   serviceStatus === "ds160AwaitingReviewAndSignature" ||
                   serviceStatus === "completed" ||
                   serviceStatus === "approved" ||
-                  serviceStatus === "refused" ||
+                  serviceStatus === "rejected" ||
                   serviceStatus === "awaitingInterview" ||
                   serviceStatus === "casvSchedulingPending" ||
                   serviceStatus === "casvFeeProcessing" ||
@@ -711,7 +714,10 @@ export default function Onboarding() {
         serviceStatus !== "casvPaymentPending" &&
         serviceStatus !== "awaitingInterview" &&
         serviceStatus !== "review_pending" &&
-        serviceStatus !== "ds160Processing" && (
+        serviceStatus !== "ds160Processing" &&
+        serviceStatus !== "approved" &&
+        serviceStatus !== "rejected" &&
+        serviceStatus !== "completed" && (
           <div className="fixed bottom-16 left-0 right-0 border-t border-border bg-background p-4 md:hidden">
             <div className="flex gap-3">
               {!(

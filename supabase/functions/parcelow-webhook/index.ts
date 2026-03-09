@@ -145,12 +145,20 @@ Deno.serve(async (req) => {
 
                     // Ativa o serviço
                     if (orderData.product_slug) {
-                        await supabase.from("user_services").upsert({
-                            user_id: finalUserId,
-                            service_slug: orderData.product_slug,
-                            status: "active"
-                        });
-                        console.log(`[parcelow-webhook] Serviço ${orderData.product_slug} ativado.`);
+                        const metadata = orderData.payment_metadata || {};
+                        if (metadata.action === 'restart' && metadata.serviceId) {
+                            console.log(`[parcelow-webhook] Restarting service ${metadata.serviceId}`);
+                            await supabase.from("user_services").update({
+                                status: "active"
+                            }).eq("id", metadata.serviceId).eq("user_id", finalUserId);
+                        } else {
+                            await supabase.from("user_services").upsert({
+                                user_id: finalUserId,
+                                service_slug: orderData.product_slug,
+                                status: "active"
+                            });
+                            console.log(`[parcelow-webhook] Serviço ${orderData.product_slug} ativado.`);
+                        }
                     }
 
                     // Gera o PDF do contrato após pagamento confirmado

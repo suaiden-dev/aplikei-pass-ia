@@ -86,7 +86,8 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
     };
 
     loadMessages();
-  }, [lang, user, authLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang, user?.id, authLoading]);
 
   useEffect(() => {
     if (scrollRef.current) {

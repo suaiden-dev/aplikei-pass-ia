@@ -37,9 +37,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // ÚNICO ouvinte para todo o app
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      // Only update state if the user actually changed (by ID)
+      // This prevents cascading re-renders when token refresh
+      // returns the same user with a new object reference
+      setSession((prev) => {
+        if (
+          prev?.user?.id === newSession?.user?.id &&
+          prev?.access_token === newSession?.access_token
+        ) {
+          return prev;
+        }
+        return newSession;
+      });
+      setUser((prev) => {
+        const newUser = newSession?.user ?? null;
+        if (prev?.id === newUser?.id) {
+          return prev;
+        }
+        return newUser;
+      });
       setLoading(false);
     });
 

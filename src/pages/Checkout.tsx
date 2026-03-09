@@ -1,4 +1,4 @@
-import { useParams, Navigate, Link } from "react-router-dom";
+import { useParams, Navigate, Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,9 @@ import { useNavigate } from "react-router-dom";
 
 export default function Checkout() {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
+  const action = searchParams.get("action");
+  const serviceId = searchParams.get("serviceId");
   const { lang, t } = useLanguage();
 
   const service = t.servicesData.find((s) => s.slug === slug);
@@ -193,6 +196,8 @@ export default function Checkout() {
                 formData.paymentMethod === "stripe_pix" ? "pix" : "card",
               contract_selfie_url: selfieUrl,
               terms_accepted_at: acceptedAt,
+              action,
+              serviceId,
             },
             headers: {
               Authorization: `Bearer ${currentSession?.access_token}`,
@@ -219,6 +224,11 @@ export default function Checkout() {
             payment_status: "pending",
             contract_selfie_url: selfieUrl || null,
             terms_accepted_at: acceptedAt || null,
+            // Armazenar metadados em jsonb payment_metadata futuramente ou simplesmente aguardar restart ser tratado (Zelle não processa restart automático hoje)
+            payment_metadata: {
+              action,
+              serviceId,
+            },
           })
           .select("id")
           .single();
@@ -263,6 +273,8 @@ export default function Checkout() {
               origin_url: window.location.origin,
               contract_selfie_url: selfieUrl,
               terms_accepted_at: acceptedAt,
+              action,
+              serviceId,
             },
           },
         );

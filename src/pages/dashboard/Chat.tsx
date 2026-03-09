@@ -47,7 +47,8 @@ export default function Chat() {
       setLoading(false);
     };
     loadChat();
-  }, [lang, user, authLoading, c.initialMessage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang, user?.id, authLoading]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -56,7 +57,8 @@ export default function Chat() {
   // Reset initial message when language changes
   useEffect(() => {
     setMessages([{ role: "assistant", content: c.initialMessage[lang] }]);
-  }, [lang, c.initialMessage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
 
   const handleSend = async () => {
     if (!input.trim() || isTyping || !user) return;

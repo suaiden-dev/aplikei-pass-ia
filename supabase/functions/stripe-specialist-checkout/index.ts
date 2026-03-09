@@ -29,6 +29,7 @@ Deno.serve(async (req) => {
       1: { name: "Mentoria Individual (1 Aula)", price: 4900, desc: "Sessão única de treinamento especializado." },
       2: { name: "Pacote Bronze (2 Aulas)", price: 8900, desc: "Duas sessões de treinamento especializado." },
       3: { name: "Pacote Gold (3 Aulas)", price: 11900, desc: "Três sessões de treinamento - Preparação Completa." },
+      4: { name: "Revisão com Especialista", price: 4900, desc: "Sessão única de análise de recusa de visto e plano de ação." }
     };
 
     const selectedPackage = packages[packageType];
@@ -77,7 +78,7 @@ Deno.serve(async (req) => {
       success_url: `${origin_url}/dashboard/onboarding?specialist_success=true&package_type=${packageType}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin_url}/dashboard/onboarding`,
       metadata: {
-        type: "specialist_training",
+        type: packageType === 4 ? "specialist_review" : "specialist_training",
         email,
         fullName,
         serviceId,

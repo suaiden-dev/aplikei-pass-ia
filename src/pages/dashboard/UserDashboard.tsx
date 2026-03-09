@@ -166,9 +166,12 @@ export default function UserDashboard() {
     useState<ServiceWithProgress | null>(null);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
+  const userId = user?.id;
+  const serviceIdParam = searchParams.get("service_id");
+
   // 1. Fetch all services and their individual progress
   useEffect(() => {
-    if (authLoading || !user) return;
+    if (authLoading || !userId) return;
 
     const fetchServices = async () => {
       const { data: servicesData, error } = await supabase
@@ -176,7 +179,7 @@ export default function UserDashboard() {
         .select(
           "id, status, current_step, service_slug, created_at, application_id, date_of_birth, grandmother_name",
         )
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .in("status", [
           "active",
           "review_pending",
@@ -252,7 +255,7 @@ export default function UserDashboard() {
 
         // Pick the service from URL or the last one saved or the most recent
         const savedServiceId = localStorage.getItem("last_selected_service");
-        const urlServiceId = searchParams.get("service_id");
+        const urlServiceId = serviceIdParam;
 
         if (urlServiceId) {
           setCurrentServiceId(urlServiceId);
@@ -268,27 +271,34 @@ export default function UserDashboard() {
       setLoading(false);
     };
     fetchServices();
-  }, [user, authLoading, searchParams, lang]);
+  }, [userId, authLoading, serviceIdParam, lang]);
 
   const currentService =
     services.find((s) => s.id === currentServiceId) || services[0];
+  const currentServiceIdForEffect = currentService?.id;
 
   // 2. Sync UI with current selection
   useEffect(() => {
-    if (authLoading || !user || !currentService) return;
+    if (authLoading || !userId || !currentServiceIdForEffect) return;
 
-    localStorage.setItem("last_selected_service", currentService.id);
+    localStorage.setItem("last_selected_service", currentServiceIdForEffect);
     setProgress(currentService.calculatedProgress);
 
     const fetchDocs = async () => {
       const { count } = await supabase
         .from("documents")
         .select("*", { count: "exact", head: true })
-        .eq("user_service_id", currentService.id);
+        .eq("user_service_id", currentServiceIdForEffect);
       setDocsUploaded(count || 0);
     };
     fetchDocs();
-  }, [user, authLoading, currentServiceId, currentService]);
+  }, [
+    userId,
+    authLoading,
+    currentServiceId,
+    currentServiceIdForEffect,
+    currentService?.calculatedProgress,
+  ]);
 
   const handleServiceClick = async (service: ServiceWithProgress) => {
     if (checkingSelfie || !user) return;

@@ -26,6 +26,7 @@ import { PopupButton, useCalendlyEventListener } from "react-calendly";
 interface SpecialistTrainingProps {
   onBack: () => void;
   serviceId: string | null;
+  mode?: "training" | "review";
 }
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,9 +34,91 @@ import { useAuth } from "@/contexts/AuthContext";
 export function SpecialistTraining({
   onBack,
   serviceId,
+  mode = "training",
 }: SpecialistTrainingProps) {
   const { lang } = useLanguage();
   const { user, loading: authLoading } = useAuth();
+
+  const trainingPackages = [
+    {
+      id: 1,
+      name: lang === "pt" ? "Individual" : "Individual",
+      classes: 1,
+      price: 49,
+      recommended: false,
+      description:
+        lang === "pt" ? "1 Aula de Treinamento" : "1 Training Session",
+      features: [
+        { pt: "45 min de mentoria", en: "45 min mentoring" },
+        { pt: "Simulado de perguntas", en: "Interview simulation" },
+        { pt: "Feedback imediato", en: "Immediate feedback" },
+      ],
+      calendly:
+        "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
+    },
+    {
+      id: 2,
+      name: lang === "pt" ? "Pacote Bronze" : "Bronze Package",
+      classes: 2,
+      price: 89,
+      recommended: false,
+      description:
+        lang === "pt" ? "2 Aulas de Treinamento" : "2 Training Sessions",
+      features: [
+        { pt: "2x 45 min de mentoria", en: "2x 45 min mentoring" },
+        { pt: "Análise profunda de perfil", en: "Deep profile analysis" },
+        { pt: "Simulado avançado", en: "Advanced simulation" },
+        { pt: "Suporte via WhatsApp", en: "WhatsApp support" },
+      ],
+      calendly:
+        "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
+    },
+    {
+      id: 3,
+      name: lang === "pt" ? "Pacote Gold" : "Gold Package",
+      classes: 3,
+      price: 119,
+      recommended: true,
+      description:
+        lang === "pt" ? "3 Aulas de Treinamento" : "3 Training Sessions",
+      features: [
+        { pt: "3x 45 min de mentoria", en: "3x 45 min mentoring" },
+        { pt: "Preparação Completa", en: "Full Preparation" },
+        { pt: "Estratégia de Resposta", en: "Response Strategy" },
+        { pt: "Revisão de Documentos", en: "Document Review" },
+        { pt: "Suporte VIP", en: "VIP Support" },
+      ],
+      calendly:
+        "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
+    },
+  ];
+
+  const reviewPackages = [
+    {
+      id: 4,
+      name: lang === "pt" ? "Revisão com Especialista" : "Specialist Review",
+      classes: 1,
+      price: 49,
+      recommended: false,
+      description:
+        lang === "pt"
+          ? "Análise da recusa e plano de ação"
+          : "Refusal analysis and action plan",
+      features: [
+        { pt: "Análise detalhada da recusa", en: "Detailed refusal analysis" },
+        { pt: "45 min com especialista", en: "45 min with specialist" },
+        { pt: "Plano de ação personalizado", en: "Custom action plan" },
+        { pt: "Orientação para próximos passos", en: "Next steps guidance" },
+      ],
+      calendly:
+        "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
+    },
+  ];
+
+  const packages = mode === "review" ? reviewPackages : trainingPackages;
+  const dataColumn =
+    mode === "review" ? "specialist_review_data" : "specialist_training_data";
+
   const [step, setStep] = useState<"packages" | "success">("packages");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,6 +129,18 @@ export function SpecialistTraining({
     email?: string;
   }>({});
 
+  const handleSpecialistSuccess = useCallback(() => {
+    setStep("success");
+    toast.success(
+      lang === "pt"
+        ? "Pagamento processado com sucesso!"
+        : "Payment processed successfully!",
+    );
+    const url = new URL(window.location.href);
+    url.searchParams.delete("specialist_success");
+    window.history.replaceState({}, document.title, url.toString());
+  }, [lang]);
+
   useEffect(() => {
     if (authLoading || !user) return;
 
@@ -55,27 +150,32 @@ export function SpecialistTraining({
         return;
       }
 
-      const { data: service } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: service } = (await supabase
         .from("user_services")
-        .select("specialist_training_data")
+        .select("specialist_training_data, specialist_review_data")
         .eq("id", serviceId)
-        .single();
+        .single()) as any;
 
-      if (service?.specialist_training_data) {
-        const trainingData = service.specialist_training_data as Record<
-          string,
-          unknown
-        >;
-        const status = trainingData.status as string | undefined;
-        const packageType = trainingData.package_type as number | undefined;
-        const totalScheduled = trainingData.total_scheduled as
-          | number
-          | undefined;
+      if (service) {
+        const relevantData =
+          mode === "review"
+            ? service.specialist_review_data
+            : service.specialist_training_data;
 
-        if (status === "paid") {
-          setPurchasedPackage(packageType || 1);
-          setScheduledCount(totalScheduled || 0);
-          setStep("success");
+        if (relevantData) {
+          const trainingData = relevantData as Record<string, unknown>;
+          const status = trainingData.status as string | undefined;
+          const packageType = trainingData.package_type as number | undefined;
+          const totalScheduled = trainingData.total_scheduled as
+            | number
+            | undefined;
+
+          if (status === "paid") {
+            setPurchasedPackage(packageType || 1);
+            setScheduledCount(totalScheduled || 0);
+            setStep("success");
+          }
         }
       }
       setIsLoading(false);
@@ -97,7 +197,8 @@ export function SpecialistTraining({
     if (params.get("specialist_success") === "true") {
       handleSpecialistSuccess();
     }
-  }, [serviceId, user, authLoading, handleSpecialistSuccess]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serviceId, user?.id, authLoading, handleSpecialistSuccess]);
 
   useCalendlyEventListener({
     onEventScheduled: (e) => {
@@ -263,18 +364,31 @@ export function SpecialistTraining({
 
       <div className="text-center space-y-4 max-w-3xl mx-auto px-4">
         <h2 className="text-3xl md:text-5xl font-black tracking-tight">
-          {lang === "pt"
-            ? "Treinamento com Especialista"
-            : "Specialist Training"}
+          {mode === "review"
+            ? lang === "pt"
+              ? "Revisão com Especialista"
+              : "Specialist Review"
+            : lang === "pt"
+              ? "Treinamento com Especialista"
+              : "Specialist Training"}
         </h2>
         <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-          {lang === "pt"
-            ? "Simule sua entrevista real com um consultor experiente. Recomendamos o pacote de 3 aulas para uma preparação completa e segura."
-            : "Simulate your real interview with an experienced consultant. We recommend the 3-session package for a complete and secure preparation."}
+          {mode === "review"
+            ? lang === "pt"
+              ? "Agende uma sessão com nosso especialista para analisar a recusa do seu visto e montar um plano de ação para reaplicar com sucesso."
+              : "Schedule a session with our specialist to analyze your visa refusal and build an action plan to reapply successfully."
+            : lang === "pt"
+              ? "Simule sua entrevista real com um consultor experiente. Recomendamos o pacote de 3 aulas para uma preparação completa e segura."
+              : "Simulate your real interview with an experienced consultant. We recommend the 3-session package for a complete and secure preparation."}
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 md:gap-8 pt-4 px-4">
+      <div
+        className={cn(
+          "grid gap-6 md:gap-8 pt-4 px-4",
+          mode === "review" ? "max-w-lg mx-auto" : "md:grid-cols-3",
+        )}
+      >
         {packages.map((pkg) => (
           <motion.div
             key={pkg.id}

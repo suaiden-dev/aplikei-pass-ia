@@ -185,6 +185,36 @@ Deno.serve(async (req) => {
                         .eq('user_id', userId);
 
                     if (updateError) console.error("Error updating specialist training data:", updateError.message);
+                } else if (metadata.type === 'specialist_review') {
+                    const serviceId = metadata.serviceId;
+                    
+                    console.log(`Processing specialist review for user ${userId}, service ${serviceId}`);
+                    
+                    const { error: reviewError } = await supabaseAdmin
+                        .from('user_services')
+                        .update({
+                            specialist_review_data: {
+                                status: 'paid',
+                                stripe_session_id: session.id,
+                                updated_at: new Date().toISOString()
+                            }
+                        })
+                        .eq('id', serviceId)
+                        .eq('user_id', userId);
+
+                    if (reviewError) console.error("Error updating specialist review data:", reviewError.message);
+                } else if (metadata.action === 'restart' && metadata.serviceId) {
+                    console.log(`Processing restart for user ${userId}, service ${metadata.serviceId}`);
+                    
+                    const { error: restartError } = await supabaseAdmin
+                        .from('user_services')
+                        .update({
+                            status: 'active'
+                        })
+                        .eq('id', metadata.serviceId)
+                        .eq('user_id', userId);
+
+                    if (restartError) console.error("Error restarting user service:", restartError.message);
                 } else {
                     // Default behavior for visa orders: Create/Update User Service
                     const { error: serviceError } = await supabaseAdmin

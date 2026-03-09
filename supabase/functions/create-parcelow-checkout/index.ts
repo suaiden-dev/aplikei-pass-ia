@@ -27,7 +27,7 @@ serve(async (req) => {
     try {
         const payload = await req.json();
         console.log("[create-parcelow-checkout] Payload Recebido (v2):", JSON.stringify(payload));
-        const { slug, email, fullName, phone, dependents = 0, cpf, payerInfo, paymentMethod, origin_url } = payload;
+        const { slug, email, fullName, phone, dependents = 0, cpf, payerInfo, paymentMethod, origin_url, action, serviceId } = payload;
 
         if (!slug || !email || (!cpf && !payerInfo?.cpf)) {
             console.error("[create-parcelow-checkout] Falha na validação. Dados recebidos:", { slug, email, cpf, hasPayer: !!payerInfo?.cpf });
@@ -132,7 +132,9 @@ serve(async (req) => {
                     phone,
                     payerInfo: payerInfo || null,
                     parcelow_cpf: finalPayerCpf,
-                    parcelow_phone: finalPayerPhone
+                    parcelow_phone: finalPayerPhone,
+                    action: action || null,
+                    serviceId: serviceId || null
                 }
             });
 

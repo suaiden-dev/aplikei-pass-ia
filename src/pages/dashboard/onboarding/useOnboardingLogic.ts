@@ -37,6 +37,8 @@ export const useOnboardingLogic = () => {
     const steps = serviceSlug === "visto-b1-b2" ? ds.steps[lang] : o.steps[lang];
     const totalSteps = steps.length;
 
+    const userId = user?.id;
+
     const stepSlugs = serviceSlug === "visto-b1-b2"
         ? [
             "personal1", "personal2", "travel",
@@ -62,7 +64,7 @@ export const useOnboardingLogic = () => {
 
     // Load User Data & Service
     useEffect(() => {
-        if (authLoading || !user) return;
+        if (authLoading || !userId) return;
 
         const loadData = async () => {
             setLoading(true);
@@ -107,7 +109,7 @@ export const useOnboardingLogic = () => {
                 try {
                     const { data: newService, error: createError } = await supabase
                         .from("user_services")
-                        .insert({ user_id: user.id, service_slug: slug, status: "ds160InProgress" })
+                        .insert({ user_id: userId, service_slug: slug, status: "ds160InProgress" })
                         .select()
                         .single();
 
@@ -150,7 +152,7 @@ export const useOnboardingLogic = () => {
                     .from("visa_orders")
                     .select("id, order_number, contract_selfie_url")
                     .eq("product_slug", slug)
-                    .eq("user_id", user.id)
+                    .eq("user_id", userId)
                     .order("created_at", { ascending: false })
                     .limit(1)
                     .maybeSingle();
@@ -169,7 +171,7 @@ export const useOnboardingLogic = () => {
             const { data: profile } = await supabase
                 .from("profiles")
                 .select("full_name, email")
-                .eq("id", user.id)
+                .eq("id", userId)
                 .maybeSingle();
 
             const { data: responses, error: responseError } = await supabase
@@ -203,7 +205,7 @@ export const useOnboardingLogic = () => {
             const { data: docs, error: docsError } = await supabase
                 .from("documents")
                 .select("name, storage_path, bucket_id")
-                .eq("user_id", user.id)
+                .eq("user_id", userId)
                 .eq("user_service_id", sId);
 
             if (docsError) {
@@ -213,7 +215,8 @@ export const useOnboardingLogic = () => {
             }
         };
         loadData().finally(() => setLoading(false));
-    }, [user, authLoading, reset, urlServiceId]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userId, authLoading, reset, urlServiceId]);
 
     const normalizeFileName = (str: string) => {
         return str

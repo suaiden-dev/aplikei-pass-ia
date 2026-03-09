@@ -17,6 +17,7 @@ import {
   Users,
   CheckCircle2,
   ChevronRight,
+  ArrowRight,
   ExternalLink,
   ShieldCheck,
   ThumbsUp,
@@ -35,6 +36,7 @@ import { InterviewGuide } from "./InterviewGuide";
 import { AIInterviewChat } from "./AIInterviewChat";
 import { SpecialistTraining } from "./SpecialistTraining";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface AwaitingInterviewStepProps {
   serviceId: string | null;
@@ -56,6 +58,7 @@ export function AwaitingInterviewStep({
   serviceStatus,
 }: AwaitingInterviewStepProps) {
   const { lang } = useLanguage();
+  const navigate = useNavigate();
   const [data, setData] = useState<AwaitingInterviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showGuide, setShowGuide] = useState(false);
@@ -65,6 +68,7 @@ export function AwaitingInterviewStep({
     "correios" | "consular" | "entrada_eua" | null
   >(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [showReview, setShowReview] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -149,7 +153,7 @@ export function AwaitingInterviewStep({
       })()
     : false;
 
-  const handleInterviewOutcome = async (outcome: "approved" | "refused") => {
+  const handleInterviewOutcome = async (outcome: "approved" | "rejected") => {
     if (!serviceId) return;
     setIsUpdatingStatus(true);
     try {
@@ -199,6 +203,16 @@ export function AwaitingInterviewStep({
     );
   }
 
+  if (showReview) {
+    return (
+      <SpecialistTraining
+        onBack={() => setShowReview(false)}
+        serviceId={serviceId}
+        mode="review"
+      />
+    );
+  }
+
   if (showSpecialist) {
     return (
       <SpecialistTraining
@@ -210,7 +224,7 @@ export function AwaitingInterviewStep({
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-5xl mx-auto space-y-8">
-      {serviceStatus === "refused" && (
+      {serviceStatus === "rejected" && (
         <div className="text-center space-y-4">
           <Badge
             variant="outline"
@@ -229,6 +243,31 @@ export function AwaitingInterviewStep({
               ? "Infelizmente, desta vez o seu visto não foi aprovado pelo oficial consular. Sabemos como isso é frustrante."
               : "Unfortunately, this time your visa was not approved by the consular officer. We know how frustrating this is."}
           </p>
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button
+              size="lg"
+              className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white"
+              onClick={() => setShowReview(true)}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              {lang === "pt"
+                ? "Rever o caso com um especialista"
+                : "Review case with a specialist"}
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto"
+              onClick={() =>
+                navigate(
+                  `/checkout/visto-b1-b2?action=restart&serviceId=${serviceId}`,
+                )
+              }
+            >
+              <ArrowRight className="mr-2 h-4 w-4" />
+              {lang === "pt" ? "Recomeçar novamente" : "Start again"}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -299,7 +338,7 @@ export function AwaitingInterviewStep({
       )}
 
       {(serviceStatus === "awaitingInterview" ||
-        serviceStatus === "refused") && (
+        serviceStatus === "rejected") && (
         <div
           className={cn(
             "grid gap-6",
@@ -870,7 +909,7 @@ export function AwaitingInterviewStep({
                 variant="outline"
                 className="h-16 border-2 border-red-500/20 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-700 font-bold text-lg rounded-[24px]"
                 disabled={isUpdatingStatus}
-                onClick={() => handleInterviewOutcome("refused")}
+                onClick={() => handleInterviewOutcome("rejected")}
               >
                 {isUpdatingStatus ? (
                   <Loader2 className="h-5 w-5 animate-spin mr-2" />

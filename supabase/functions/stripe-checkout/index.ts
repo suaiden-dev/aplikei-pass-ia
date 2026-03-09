@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
     try {
-        const { slug, email, fullName, phone, dependents = 0, origin_url, paymentMethod = 'card', contract_selfie_url, terms_accepted_at } = await req.json();
+        const { slug, email, fullName, phone, dependents = 0, origin_url, paymentMethod = 'card', contract_selfie_url, terms_accepted_at, action, serviceId } = await req.json();
 
         if (!slug || !email) {
             throw new Error("Missing required parameters: slug and email are required.");
@@ -124,7 +124,9 @@ Deno.serve(async (req) => {
                 origin_url: origin_url || "http://localhost:5173",
                 contract_selfie_url: contract_selfie_url || "",
                 terms_accepted_at: terms_accepted_at || "",
-                project: "aplikei"
+                project: "aplikei",
+                action: action || "",
+                serviceId: serviceId || "",
             },
         });
 
