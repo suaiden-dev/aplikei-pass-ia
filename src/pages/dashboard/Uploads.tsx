@@ -13,8 +13,11 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
+import { useAuth } from "@/contexts/AuthContext";
+
 export default function Uploads() {
   const { lang, t } = useLanguage();
+  const { user, loading: authLoading } = useAuth();
   const u = t.uploads;
   const [dbDocs, setDbDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,15 +28,12 @@ export default function Uploads() {
   const expectedDocs = u.docs[lang];
 
   useEffect(() => {
+    if (authLoading || !user) return;
     fetchDocs();
-  }, []);
+  }, [user, authLoading]);
 
   const fetchDocs = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-
+    if (!user?.id) return;
     const { data: docs } = await supabase
       .from("documents")
       .select("*")
@@ -48,15 +48,10 @@ export default function Uploads() {
     docName: string,
   ) => {
     const file = e.target.files?.[0];
-    if (!file || !docName) return;
+    if (!file || !docName || !user) return;
 
     setUploading(docName);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
       // Buscar serviço relacionado
       const { data: service } = await supabase
         .from("user_services")

@@ -4,10 +4,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/i18n/LanguageContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
 import Layout from "./components/Layout";
 import UserDashboardLayout from "./components/UserDashboardLayout";
 
+// ... (todas as importações continuam aqui)
 import Index from "./pages/Index";
 import HowItWorks from "./pages/HowItWorks";
 import Services from "./pages/Services";
@@ -49,29 +51,14 @@ import AdminProcessDetail from "./pages/admin/AdminProcessDetail";
 import Checkout from "./pages/Checkout";
 
 import NotFound from "./pages/NotFound";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Navigate, Outlet } from "react-router-dom";
 
+import { NotificationProvider } from "@/contexts/NotificationContext";
+
 const ProtectedRoute = () => {
-  const [session, setSession] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(!!session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(!!session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (session === null) return null;
-  return session ? <Outlet /> : <Navigate to="/login" replace />;
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return user ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
 const queryClient = new QueryClient();
@@ -79,109 +66,128 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter
-          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-        >
-          <Routes>
-            {/* Public pages */}
-            <Route element={<Layout />}>
-              <Route path="/" element={<Index />} />
-              <Route path="/como-funciona" element={<HowItWorks />} />
-              <Route path="/servicos" element={<Services />} />
-              <Route path="/servicos/:slug" element={<ServiceDetail />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/cadastro" element={<Signup />} />
-              <Route
-                path="/auth/confirm-password"
-                element={<ConfirmPassword />}
-              />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+      <AuthProvider>
+        <NotificationProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter
+              future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+            >
+              <Routes>
+                {/* Public pages */}
+                <Route element={<Layout />}>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/como-funciona" element={<HowItWorks />} />
+                  <Route path="/servicos" element={<Services />} />
+                  <Route path="/servicos/:slug" element={<ServiceDetail />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/cadastro" element={<Signup />} />
+                  <Route
+                    path="/auth/confirm-password"
+                    element={<ConfirmPassword />}
+                  />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
 
-              <Route path="/termos" element={<Terms />} />
-              <Route path="/privacidade" element={<Privacy />} />
-              <Route path="/reembolso" element={<Refund />} />
-              <Route path="/disclaimers" element={<Disclaimers />} />
-              <Route path="/termos-contrato" element={<ContractTerms />} />
-              <Route path="/checkout/:slug" element={<Checkout />} />
-              <Route path="/checkout-success" element={<CheckoutSuccess />} />
-            </Route>
+                  <Route path="/termos" element={<Terms />} />
+                  <Route path="/privacidade" element={<Privacy />} />
+                  <Route path="/reembolso" element={<Refund />} />
+                  <Route path="/disclaimers" element={<Disclaimers />} />
+                  <Route path="/termos-contrato" element={<ContractTerms />} />
+                  <Route path="/checkout/:slug" element={<Checkout />} />
+                  <Route
+                    path="/checkout-success"
+                    element={<CheckoutSuccess />}
+                  />
+                </Route>
 
-            {/* Dashboard (logged area) */}
-            <Route element={<ProtectedRoute />}>
-              <Route element={<UserDashboardLayout />}>
-                <Route path="/dashboard" element={<UserDashboard />} />
-                <Route
-                  path="/dashboard/processos"
-                  element={<UserProcesses />}
-                />
-                <Route path="/dashboard/onboarding" element={<Onboarding />} />
-                <Route path="/dashboard/chat" element={<Chat />} />
-                <Route path="/dashboard/uploads" element={<Uploads />} />
-                <Route path="/dashboard/pacote" element={<PackagePDF />} />
-                <Route path="/dashboard/ajuda" element={<HelpCenter />} />
-              </Route>
-            </Route>
+                {/* Dashboard area */}
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<UserDashboardLayout />}>
+                    <Route path="/dashboard" element={<UserDashboard />} />
+                    <Route
+                      path="/dashboard/processos"
+                      element={<UserProcesses />}
+                    />
+                    <Route
+                      path="/dashboard/onboarding"
+                      element={<Onboarding />}
+                    />
+                    <Route path="/dashboard/chat" element={<Chat />} />
+                    <Route path="/dashboard/uploads" element={<Uploads />} />
+                    <Route path="/dashboard/pacote" element={<PackagePDF />} />
+                    <Route path="/dashboard/ajuda" element={<HelpCenter />} />
+                  </Route>
+                </Route>
 
-            {/* Admin area */}
-            <Route element={<AdminRoute />}>
-              <Route element={<AdminLayout />}>
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/pedidos" element={<AdminOrders />} />
-                <Route
-                  path="/admin/pedidos/:id"
-                  element={<AdminOrderDetail />}
-                />
-                <Route path="/admin/pagamentos" element={<AdminPayments />} />
-                <Route path="/admin/clientes" element={<AdminClients />} />
-                <Route
-                  path="/admin/clientes/:id"
-                  element={<AdminClientDetail />}
-                />
-                <Route path="/admin/documentos" element={<AdminDocuments />} />
-                <Route
-                  path="/admin/sellers"
-                  element={<AdminPlaceholder title="Sellers" />}
-                />
-                <Route
-                  path="/admin/parceiros"
-                  element={<AdminPlaceholder title="Parceiros Globais" />}
-                />
-                <Route path="/admin/contratos" element={<AdminContracts />} />
-                <Route
-                  path="/admin/contratos/:id"
-                  element={<AdminProcessDetail />}
-                />
-                <Route
-                  path="/admin/recorrencias"
-                  element={<AdminPlaceholder title="Recorrências" />}
-                />
-                <Route
-                  path="/admin/produtos"
-                  element={<AdminPlaceholder title="Produtos & Cupons" />}
-                />
-                <Route
-                  path="/admin/suporte"
-                  element={<AdminPlaceholder title="Suporte" />}
-                />
-                <Route
-                  path="/admin/analytics"
-                  element={<AdminPlaceholder title="Analytics" />}
-                />
-                <Route
-                  path="/admin/ds160/:userId"
-                  element={<AdminDS160ViewerPage />}
-                />
-              </Route>
-            </Route>
+                {/* Admin area */}
+                <Route element={<AdminRoute />}>
+                  <Route element={<AdminLayout />}>
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/pedidos" element={<AdminOrders />} />
+                    <Route
+                      path="/admin/pedidos/:id"
+                      element={<AdminOrderDetail />}
+                    />
+                    <Route
+                      path="/admin/pagamentos"
+                      element={<AdminPayments />}
+                    />
+                    <Route path="/admin/clientes" element={<AdminClients />} />
+                    <Route
+                      path="/admin/clientes/:id"
+                      element={<AdminClientDetail />}
+                    />
+                    <Route
+                      path="/admin/documentos"
+                      element={<AdminDocuments />}
+                    />
+                    <Route
+                      path="/admin/contratos"
+                      element={<AdminContracts />}
+                    />
+                    <Route
+                      path="/admin/contratos/:id"
+                      element={<AdminProcessDetail />}
+                    />
+                    <Route
+                      path="/admin/ds160/:userId"
+                      element={<AdminDS160ViewerPage />}
+                    />
+                    <Route
+                      path="/admin/sellers"
+                      element={<AdminPlaceholder title="Sellers" />}
+                    />
+                    <Route
+                      path="/admin/parceiros"
+                      element={<AdminPlaceholder title="Parceiros Globais" />}
+                    />
+                    <Route
+                      path="/admin/recorrencias"
+                      element={<AdminPlaceholder title="Recorrências" />}
+                    />
+                    <Route
+                      path="/admin/produtos"
+                      element={<AdminPlaceholder title="Produtos & Cupons" />}
+                    />
+                    <Route
+                      path="/admin/suporte"
+                      element={<AdminPlaceholder title="Suporte" />}
+                    />
+                    <Route
+                      path="/admin/analytics"
+                      element={<AdminPlaceholder title="Analytics" />}
+                    />
+                  </Route>
+                </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </NotificationProvider>
+      </AuthProvider>
     </LanguageProvider>
   </QueryClientProvider>
 );

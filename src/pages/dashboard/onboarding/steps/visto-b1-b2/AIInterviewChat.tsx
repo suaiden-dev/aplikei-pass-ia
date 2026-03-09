@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+import { useAuth } from "@/contexts/AuthContext";
+
 interface Message {
   id: string;
   role: "assistant" | "user";
@@ -28,23 +30,19 @@ interface AIInterviewChatProps {
 
 export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
   const { lang } = useLanguage();
+  const { user, loading: authLoading } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string>(
     () => Math.random().toString(36).substring(2, 15) + Date.now().toString(36),
   );
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const loadMessages = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-      setUserId(user.id);
+    if (authLoading || !user) return;
 
+    const loadMessages = async () => {
       const { data: existingMessages, error } = await supabase
         .from("chat_messages")
         .select("*")
@@ -88,7 +86,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
     };
 
     loadMessages();
-  }, [lang]);
+  }, [lang, user, authLoading]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -97,7 +95,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
   }, [messages, isTyping]);
 
   const handleSend = async () => {
-    if (!input.trim() || !userId) return;
+    if (!input.trim() || !user) return;
 
     const currentInput = input;
     const userMsg: Message = {
@@ -114,7 +112,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
     try {
       // 1. Save user message to Supabase
       await supabase.from("chat_messages").insert({
-        user_id: userId,
+        user_id: user.id,
         role: "user",
         content: currentInput,
       });
@@ -125,7 +123,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: currentInput,
-          userId: userId,
+          userId: user.id,
           processId: serviceId,
           lang: lang,
           sessionId: sessionId,
@@ -152,7 +150,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
 
       // 3. Save AI message to Supabase
       await supabase.from("chat_messages").insert({
-        user_id: userId,
+        user_id: user.id,
         role: "assistant",
         content: aiContent,
       });
@@ -169,13 +167,13 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
   };
 
   const handleRestart = async () => {
-    if (!userId) return;
+    if (!user) return;
 
     try {
       const { error } = await supabase
         .from("chat_messages")
         .delete()
-        .eq("user_id", userId);
+        .eq("user_id", user.id);
 
       if (error) throw error;
 

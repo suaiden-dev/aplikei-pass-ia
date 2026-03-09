@@ -87,7 +87,7 @@ export function PaymentPendingStep({
           .select("id, name, storage_path, bucket_id, created_at")
           .eq("user_service_id", serviceId)
           .eq("name", "ds160_boleto")
-          .single();
+          .maybeSingle();
 
         if (boleto) setBoletoDoc(boleto as unknown as ProcessDocument);
       } catch (error) {

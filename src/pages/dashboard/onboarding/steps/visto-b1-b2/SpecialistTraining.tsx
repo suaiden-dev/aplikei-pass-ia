@@ -28,11 +28,14 @@ interface SpecialistTrainingProps {
   serviceId: string | null;
 }
 
+import { useAuth } from "@/contexts/AuthContext";
+
 export function SpecialistTraining({
   onBack,
   serviceId,
 }: SpecialistTrainingProps) {
   const { lang } = useLanguage();
+  const { user, loading: authLoading } = useAuth();
   const [step, setStep] = useState<"packages" | "success">("packages");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,104 +46,9 @@ export function SpecialistTraining({
     email?: string;
   }>({});
 
-  const packages = [
-    {
-      id: 1,
-      name: lang === "pt" ? "Individual" : "Individual",
-      classes: 1,
-      price: 49,
-      description:
-        lang === "pt" ? "1 Aula de Treinamento" : "1 Training Session",
-      features: [
-        { pt: "45 min de mentoria", en: "45 min mentoring" },
-        { pt: "Simulado de perguntas", en: "Interview simulation" },
-        { pt: "Feedback imediato", en: "Immediate feedback" },
-      ],
-      calendly:
-        "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
-    },
-    {
-      id: 2,
-      name: lang === "pt" ? "Pacote Bronze" : "Bronze Package",
-      classes: 2,
-      price: 89,
-      description:
-        lang === "pt" ? "2 Aulas de Treinamento" : "2 Training Sessions",
-      features: [
-        { pt: "2x 45 min de mentoria", en: "2x 45 min mentoring" },
-        { pt: "Análise profunda de perfil", en: "Deep profile analysis" },
-        { pt: "Simulado avançado", en: "Advanced simulation" },
-        { pt: "Suporte via WhatsApp", en: "WhatsApp support" },
-      ],
-      calendly:
-        "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
-    },
-    {
-      id: 3,
-      name: lang === "pt" ? "Pacote Gold" : "Gold Package",
-      classes: 3,
-      price: 119,
-      recommended: true,
-      description:
-        lang === "pt" ? "3 Aulas de Treinamento" : "3 Training Sessions",
-      features: [
-        { pt: "3x 45 min de mentoria", en: "3x 45 min mentoring" },
-        { pt: "Preparação Completa", en: "Full Preparation" },
-        { pt: "Estratégia de Resposta", en: "Response Strategy" },
-        { pt: "Revisão de Documentos", en: "Document Review" },
-        { pt: "Suporte VIP", en: "VIP Support" },
-      ],
-      calendly:
-        "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
-    },
-  ];
-
-  const handleSpecialistSuccess = useCallback(async () => {
-    if (!serviceId) return;
-
-    setIsProcessing(true);
-    const params = new URLSearchParams(window.location.search);
-    const sessionId = params.get("session_id");
-    const packageType = parseInt(params.get("package_type") || "1");
-
-    try {
-      const { data: service } = await supabase
-        .from("user_services")
-        .select("specialist_training_data")
-        .eq("id", serviceId)
-        .single();
-
-      const currentData =
-        (service?.specialist_training_data as Record<string, unknown>) || {};
-
-      await supabase
-        .from("user_services")
-        .update({
-          specialist_training_data: {
-            ...currentData,
-            status: "paid",
-            package_type: packageType,
-            stripe_session_id: sessionId,
-            updated_at: new Date().toISOString(),
-          },
-        })
-        .eq("id", serviceId);
-
-      setPurchasedPackage(packageType);
-      setStep("success");
-
-      window.history.replaceState({}, "", window.location.pathname);
-      toast.success(
-        lang === "pt" ? "Pagamento processado!" : "Payment processed!",
-      );
-    } catch (error) {
-      console.error("Error updating service:", error);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [serviceId, lang]);
-
   useEffect(() => {
+    if (authLoading || !user) return;
+
     const checkSpecialistStatus = async () => {
       if (!serviceId) {
         setIsLoading(false);
@@ -174,9 +82,6 @@ export function SpecialistTraining({
     };
 
     const fetchUserProfile = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
       if (user) {
         setUserProfile({
           name: user.user_metadata?.full_name || user.email?.split("@")[0],
@@ -192,7 +97,7 @@ export function SpecialistTraining({
     if (params.get("specialist_success") === "true") {
       handleSpecialistSuccess();
     }
-  }, [serviceId, handleSpecialistSuccess]);
+  }, [serviceId, user, authLoading, handleSpecialistSuccess]);
 
   useCalendlyEventListener({
     onEventScheduled: (e) => {
@@ -206,15 +111,10 @@ export function SpecialistTraining({
   });
 
   const handlePayment = async (pkgId: number) => {
-    if (!serviceId) return;
+    if (!serviceId || !user) return;
 
     setIsProcessing(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
       const { data, error } = await supabase.functions.invoke(
         "stripe-specialist-checkout",
         {

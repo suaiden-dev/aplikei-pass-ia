@@ -85,7 +85,6 @@ export default function UserDashboardLayout() {
             Aplikei
           </Link>
           <div className="flex items-center gap-2">
-            <NotificationBell />
             <LanguageToggle />
           </div>
         </header>

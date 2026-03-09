@@ -7,6 +7,7 @@ import {
   Camera,
   Upload,
   Loader2,
+  CheckSquare,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
@@ -22,6 +23,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 const TOTAL_STEPS = 9;
 
@@ -112,6 +114,7 @@ const getStatusDisplay = (status: string, lang: string) => {
 export default function UserProcesses() {
   const navigate = useNavigate();
   const { lang } = useLanguage();
+  const { user, loading: authLoading } = useAuth();
   const [services, setServices] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [loading, setLoading] = useState(true);
   const [isSelfieModalOpen, setIsSelfieModalOpen] = useState(false);
@@ -124,12 +127,9 @@ export default function UserProcesses() {
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchServices = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
+    if (authLoading || !user) return;
 
+    const fetchServices = async () => {
       const { data: servicesData, error } = await supabase
         .from("user_services")
         .select("id, status, current_step, service_slug, created_at")
@@ -148,12 +148,10 @@ export default function UserProcesses() {
 
           if (s.status === "approved" || s.status === "completed") {
             p = 100;
-          } else if (statusInfo.step > 0) {
-            if (statusInfo.step === 1) {
-              p = Math.min(Math.round(((s.current_step || 0) / 13) * 10), 10);
-            } else {
-              p = Math.round(((statusInfo.step - 1) / TOTAL_STEPS) * 100);
-            }
+          } else if (statusInfo.step > 1) {
+            p = Math.round(((statusInfo.step - 1) / TOTAL_STEPS) * 100);
+          } else if (statusInfo.step === 1) {
+            p = Math.min(Math.round(((s.current_step || 0) / 13) * 10), 10);
           }
 
           return {
@@ -169,18 +167,13 @@ export default function UserProcesses() {
       setLoading(false);
     };
     fetchServices();
-  }, [lang]);
+  }, [user, authLoading, lang]);
 
   const handleServiceClick = async (service: any) => {
-    if (checkingSelfie) return;
+    if (checkingSelfie || !user) return;
 
     setCheckingSelfie(service.id);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
       const { data: order, error } = await supabase
         .from("visa_orders")
         .select("id, contract_selfie_url")
@@ -208,15 +201,10 @@ export default function UserProcesses() {
   };
 
   const handleSelfieUpload = async () => {
-    if (!selfieFile || !pendingOrderId) return;
+    if (!selfieFile || !pendingOrderId || !user) return;
 
     setUploadingSelfie(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
       const fileExt = selfieFile.name.split(".").pop();
       const fileName = `selfie_${Date.now()}.${fileExt}`;
       const filePath = `contracts/${fileName}`;

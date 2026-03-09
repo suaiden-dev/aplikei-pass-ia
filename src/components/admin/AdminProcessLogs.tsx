@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,6 +28,7 @@ export function AdminProcessLogs({ userServiceId }: AdminProcessLogsProps) {
   const [loading, setLoading] = useState(true);
   const [noteText, setNoteText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const fetchLogs = useCallback(async () => {
@@ -52,27 +54,23 @@ export function AdminProcessLogs({ userServiceId }: AdminProcessLogsProps) {
   }, [fetchLogs]);
 
   const handleAddNote = async () => {
-    if (!noteText.trim()) return;
+    if (!noteText.trim() || !user) return;
 
     setIsSubmitting(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      let adminName = user.user_metadata?.full_name || "Admin";
 
-      let adminName = "Admin";
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", user.id)
-          .single();
-        adminName = profile?.full_name || "Admin";
-      }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.full_name) adminName = profile.full_name;
 
       const { error } = await supabase.from("process_logs").insert({
         user_service_id: userServiceId,
-        actor_id: user?.id,
+        actor_id: user.id,
         actor_name: adminName,
         action_type: "manual_note",
         note: noteText.trim(),

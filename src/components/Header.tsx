@@ -1,35 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, LayoutDashboard, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import LanguageToggle from "./LanguageToggle";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { checkIsAdmin } from "@/lib/admin";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const { user, signOut } = useAuth();
   const { lang, t } = useLanguage();
   const location = useLocation();
   const isAdmin = checkIsAdmin(user?.email);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     window.location.href = "/";
   };
 
@@ -57,8 +45,11 @@ export default function Header() {
             <Link
               key={l.to}
               to={l.to}
-              className={`text-sm font-medium transition-colors hover:text-accent ${location.pathname === l.to ? "text-accent" : "text-muted-foreground"
-                }`}
+              className={`text-sm font-medium transition-colors hover:text-accent ${
+                location.pathname === l.to
+                  ? "text-accent"
+                  : "text-muted-foreground"
+              }`}
             >
               {l.label}
             </Link>
@@ -70,16 +61,28 @@ export default function Header() {
           {user ? (
             <>
               <Button variant="ghost" size="sm" asChild>
-                <Link to={isAdmin ? "/admin" : "/dashboard"} className="flex items-center gap-2">
+                <Link
+                  to={isAdmin ? "/admin" : "/dashboard"}
+                  className="flex items-center gap-2"
+                >
                   <LayoutDashboard className="h-4 w-4" />
                   {isAdmin
-                    ? (lang === 'pt' ? 'Painel Admin' : 'Admin Panel')
-                    : (lang === 'pt' ? 'Painel' : 'Dashboard')}
+                    ? lang === "pt"
+                      ? "Painel Admin"
+                      : "Admin Panel"
+                    : lang === "pt"
+                      ? "Painel"
+                      : "Dashboard"}
                 </Link>
               </Button>
-              <Button variant="outline" size="sm" onClick={handleLogout} className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="flex items-center gap-2"
+              >
                 <LogOut className="h-4 w-4" />
-                {lang === 'pt' ? 'Sair' : 'Logout'}
+                {lang === "pt" ? "Sair" : "Logout"}
               </Button>
             </>
           ) : (
@@ -87,7 +90,11 @@ export default function Header() {
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/login">{t.nav.login[lang]}</Link>
               </Button>
-              <Button size="sm" className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark" asChild>
+              <Button
+                size="sm"
+                className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark"
+                asChild
+              >
                 <Link to="/cadastro">{t.nav.getStarted[lang]}</Link>
               </Button>
             </>
@@ -125,26 +132,56 @@ export default function Header() {
               <div className="flex flex-col gap-3 pt-2">
                 {user ? (
                   <>
-                    <Button variant="ghost" size="sm" asChild className="justify-start">
-                      <Link to={isAdmin ? "/admin" : "/dashboard"} onClick={() => setOpen(false)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                      className="justify-start"
+                    >
+                      <Link
+                        to={isAdmin ? "/admin" : "/dashboard"}
+                        onClick={() => setOpen(false)}
+                      >
                         <LayoutDashboard className="mr-2 h-4 w-4" />
                         {isAdmin
-                          ? (lang === 'pt' ? 'Ir para o Admin' : 'Go to Admin')
-                          : (lang === 'pt' ? 'Ir para o Painel' : 'Go to Dashboard')}
+                          ? lang === "pt"
+                            ? "Ir para o Admin"
+                            : "Go to Admin"
+                          : lang === "pt"
+                            ? "Ir para o Painel"
+                            : "Go to Dashboard"}
                       </Link>
                     </Button>
-                    <Button variant="outline" size="sm" onClick={handleLogout} className="justify-start">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleLogout}
+                      className="justify-start"
+                    >
                       <LogOut className="mr-2 h-4 w-4" />
-                      {lang === 'pt' ? 'Sair' : 'Logout'}
+                      {lang === "pt" ? "Sair" : "Logout"}
                     </Button>
                   </>
                 ) : (
                   <>
-                    <Button variant="ghost" size="sm" asChild className="justify-start">
-                      <Link to="/login" onClick={() => setOpen(false)}>{t.nav.login[lang]}</Link>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                      className="justify-start"
+                    >
+                      <Link to="/login" onClick={() => setOpen(false)}>
+                        {t.nav.login[lang]}
+                      </Link>
                     </Button>
-                    <Button size="sm" className="bg-accent text-accent-foreground shadow-button" asChild>
-                      <Link to="/cadastro" onClick={() => setOpen(false)}>{t.nav.getStarted[lang]}</Link>
+                    <Button
+                      size="sm"
+                      className="bg-accent text-accent-foreground shadow-button"
+                      asChild
+                    >
+                      <Link to="/cadastro" onClick={() => setOpen(false)}>
+                        {t.nav.getStarted[lang]}
+                      </Link>
                     </Button>
                   </>
                 )}

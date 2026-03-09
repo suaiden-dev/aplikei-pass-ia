@@ -7,10 +7,21 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-interface Message { role: "user" | "assistant"; content: string; }
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
+import { useAuth } from "@/contexts/AuthContext";
+
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
 
 export default function Chat() {
   const { lang, t } = useLanguage();
+  const { user, loading: authLoading } = useAuth();
   const c = t.chat;
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -19,10 +30,9 @@ export default function Chat() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const loadChat = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    if (authLoading || !user) return;
 
+    const loadChat = async () => {
       const { data: history } = await supabase
         .from("chat_messages")
         .select("role, content")
@@ -37,17 +47,19 @@ export default function Chat() {
       setLoading(false);
     };
     loadChat();
-  }, [lang, c.initialMessage]);
+  }, [lang, user, authLoading, c.initialMessage]);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   // Reset initial message when language changes
   useEffect(() => {
     setMessages([{ role: "assistant", content: c.initialMessage[lang] }]);
-  }, [lang]);
+  }, [lang, c.initialMessage]);
 
   const handleSend = async () => {
-    if (!input.trim() || isTyping) return;
+    if (!input.trim() || isTyping || !user) return;
 
     const userMessage: Message = { role: "user", content: input.trim() };
     const newMessages = [...messages, userMessage];
@@ -57,15 +69,12 @@ export default function Chat() {
     setIsTyping(true);
 
     try {
-      // Salvar mensagem do usuário no DB (opcional, mas recomendado)
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("chat_messages").insert({
-          user_id: user.id,
-          role: "user",
-          content: userMessage.content,
-        });
-      }
+      // Salvar mensagem do usuário no DB
+      await supabase.from("chat_messages").insert({
+        user_id: user.id,
+        role: "user",
+        content: userMessage.content,
+      });
 
       const { data, error } = await supabase.functions.invoke("chat", {
         body: { messages: newMessages },
@@ -73,27 +82,26 @@ export default function Chat() {
 
       if (error) throw error;
 
-      // Se a função retornar um stream ou objeto, tratamos aqui
-      // No caso atual, a função no index.ts retorna a resposta da IA
-      // Vamos assumir que a função retorna o texto diretamente ou via stream.
-      // A função fornecida no Passo 64 usa stream: true. 
-      // Para simplificar agora, vamos tratar como objeto se não for stream, 
-      // ou implementar o parser de stream simples.
-
-      const assistantMessage: Message = { role: "assistant", content: data.choices?.[0]?.message?.content || data.message || "Desculpe, tive um problema." };
+      const assistantMessage: Message = {
+        role: "assistant",
+        content:
+          data.choices?.[0]?.message?.content ||
+          data.message ||
+          "Desculpe, tive um problema.",
+      };
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      if (user) {
-        await supabase.from("chat_messages").insert({
-          user_id: user.id,
-          role: "assistant",
-          content: assistantMessage.content,
-        });
-      }
+      await supabase.from("chat_messages").insert({
+        user_id: user.id,
+        role: "assistant",
+        content: assistantMessage.content,
+      });
     } catch (error: any) {
       console.error("Chat error:", error);
-      toast.error(lang === "pt" ? "Erro ao falar com a IA." : "Error talking to AI.");
+      toast.error(
+        lang === "pt" ? "Erro ao falar com a IA." : "Error talking to AI.",
+      );
     } finally {
       setIsTyping(false);
     }
@@ -102,7 +110,9 @@ export default function Chat() {
   return (
     <div className="flex h-[calc(100dvh-8rem)] flex-col md:h-[calc(100vh-4rem)]">
       <div className="mb-4">
-        <h1 className="font-display text-2xl font-bold text-foreground">{c.title[lang]}</h1>
+        <h1 className="font-display text-2xl font-bold text-foreground">
+          {c.title[lang]}
+        </h1>
         <p className="text-sm text-muted-foreground">{c.subtitle[lang]}</p>
       </div>
       <div className="flex-1 overflow-y-auto rounded-xl border border-border bg-card p-4 shadow-card">
@@ -110,20 +120,36 @@ export default function Chat() {
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className={`flex gap-3 ${i % 2 === 0 ? "flex-row-reverse" : ""}`}>
+                <div
+                  key={i}
+                  className={`flex gap-3 ${i % 2 === 0 ? "flex-row-reverse" : ""}`}
+                >
                   <Skeleton className="h-8 w-8 rounded-full" />
-                  <Skeleton className={`h-12 w-[70%] rounded-xl ${i % 2 === 0 ? "bg-accent/20" : "bg-muted"}`} />
+                  <Skeleton
+                    className={`h-12 w-[70%] rounded-xl ${i % 2 === 0 ? "bg-accent/20" : "bg-muted"}`}
+                  />
                 </div>
               ))}
             </div>
           ) : (
             <>
               {messages.map((msg, i) => (
-                <div key={i} className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
-                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${msg.role === "assistant" ? "bg-accent/10 text-accent" : "bg-primary text-primary-foreground"}`}>
-                    {msg.role === "assistant" ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
+                <div
+                  key={i}
+                  className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
+                >
+                  <div
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${msg.role === "assistant" ? "bg-accent/10 text-accent" : "bg-primary text-primary-foreground"}`}
+                  >
+                    {msg.role === "assistant" ? (
+                      <Bot className="h-4 w-4" />
+                    ) : (
+                      <User className="h-4 w-4" />
+                    )}
                   </div>
-                  <div className={`max-w-[85%] rounded-xl px-4 py-3 text-sm md:max-w-[80%] ${msg.role === "assistant" ? "bg-muted text-foreground" : "bg-accent text-accent-foreground"}`}>
+                  <div
+                    className={`max-w-[85%] rounded-xl px-4 py-3 text-sm md:max-w-[80%] ${msg.role === "assistant" ? "bg-muted text-foreground" : "bg-accent text-accent-foreground"}`}
+                  >
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
                 </div>
@@ -156,7 +182,14 @@ export default function Chat() {
           className="flex-1 text-base md:text-sm" // Prevent zoom on iOS
           disabled={loading || isTyping}
         />
-        <Button onClick={handleSend} className="bg-accent text-accent-foreground hover:bg-green-dark" size="icon" disabled={loading || isTyping}><Send className="h-4 w-4" /></Button>
+        <Button
+          onClick={handleSend}
+          className="bg-accent text-accent-foreground hover:bg-green-dark"
+          size="icon"
+          disabled={loading || isTyping}
+        >
+          <Send className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );

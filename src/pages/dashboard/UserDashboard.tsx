@@ -36,6 +36,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const TOTAL_STEPS = 9;
 
@@ -149,6 +150,7 @@ export default function UserDashboard() {
   const [searchParams] = useSearchParams();
   const isAfterCheckout = !!searchParams.get("session_id");
   const { lang, t } = useLanguage();
+  const { user, loading: authLoading } = useAuth();
   const d = t.dashboard;
 
   const [services, setServices] = useState<ServiceWithProgress[]>([]);
@@ -166,12 +168,9 @@ export default function UserDashboard() {
 
   // 1. Fetch all services and their individual progress
   useEffect(() => {
-    const fetchServices = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
+    if (authLoading || !user) return;
 
+    const fetchServices = async () => {
       const { data: servicesData, error } = await supabase
         .from("user_services")
         .select(
@@ -269,14 +268,14 @@ export default function UserDashboard() {
       setLoading(false);
     };
     fetchServices();
-  }, [searchParams, lang]);
+  }, [user, authLoading, searchParams, lang]);
 
   const currentService =
     services.find((s) => s.id === currentServiceId) || services[0];
 
   // 2. Sync UI with current selection
   useEffect(() => {
-    if (!currentService) return;
+    if (authLoading || !user || !currentService) return;
 
     localStorage.setItem("last_selected_service", currentService.id);
     setProgress(currentService.calculatedProgress);
@@ -289,19 +288,13 @@ export default function UserDashboard() {
       setDocsUploaded(count || 0);
     };
     fetchDocs();
-  }, [currentServiceId, currentService]);
+  }, [user, authLoading, currentServiceId, currentService]);
 
   const handleServiceClick = async (service: ServiceWithProgress) => {
-    if (checkingSelfie) return;
+    if (checkingSelfie || !user) return;
 
     setCheckingSelfie(service.id);
     try {
-      // 1. Fetch current user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
       // 2. Fetch latest visa_order for this product and user (check by user_id OR email)
       const { data: order, error } = await supabase
         .from("visa_orders")
@@ -334,15 +327,10 @@ export default function UserDashboard() {
   };
 
   const handleSelfieUpload = async () => {
-    if (!selfieFile || !pendingOrderId) return;
+    if (!selfieFile || !pendingOrderId || !user) return;
 
     setUploadingSelfie(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
       const fileExt = selfieFile.name.split(".").pop();
       const fileName = `selfie_${Date.now()}.${fileExt}`;
       const filePath = `contracts/${fileName}`;

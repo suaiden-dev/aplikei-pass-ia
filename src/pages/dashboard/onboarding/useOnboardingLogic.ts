@@ -5,12 +5,14 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { OnboardingData, UploadedDocument } from "./types";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const useOnboardingLogic = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const urlServiceId = searchParams.get("service_id");
     const { lang, t } = useLanguage();
+    const { user, loading: authLoading } = useAuth();
     const [serviceSlug, setServiceSlug] = useState<string>("visto-b1-b2"); // Default to b1/b2
     const [loading, setLoading] = useState(true);
     const [serviceId, setServiceId] = useState<string | null>(null);
@@ -60,14 +62,12 @@ export const useOnboardingLogic = () => {
 
     // Load User Data & Service
     useEffect(() => {
+        if (authLoading || !user) return;
+
         const loadData = async () => {
             setLoading(true);
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
 
             // Fetch or create user service
-            // We order by created_at desc to get the latest one if multiple exist, 
-            // but we also try to find the one that matches our target slug or just the active one.
             const { data: services, error: serviceError } = await supabase
                 .from("user_services")
                 .select("id, status, current_step, service_slug, application_id, date_of_birth, grandmother_name, consular_login")
@@ -96,10 +96,6 @@ export const useOnboardingLogic = () => {
                 return;
             }
 
-            // Find the best service to use: 
-            // 1. Match the ID from URL if provided
-            // 2. Match the target slug
-            // 3. Take the most recent one
             const service = urlServiceId 
                 ? services?.find(s => s.id === urlServiceId)
                 : (services?.find(s => s.service_slug === "visto-b1-b2") || services?.[0]);
@@ -139,20 +135,16 @@ export const useOnboardingLogic = () => {
                     });
                 }
 
-                // Check if admin has set consular credentials
                 const svc = service as typeof service & { consular_login?: string };
                 setHasConsularCredentials(!!(svc.consular_login && svc.consular_login.trim()));
 
-                // Synchronize step from DB
                 if (service.current_step !== undefined && service.current_step !== null) {
-                    // Adjust max step based on service
                     const maxStep = slug === "visto-b1-b2" ? 11 : 4;
                     const stepToIndex = Math.min(service.current_step, maxStep);
                     setCurrentStep(stepToIndex);
                 }
             }
 
-            // Fetch order and check for selfie
             if (sId) {
                 const { data: orderData } = await supabase
                     .from("visa_orders")
@@ -174,14 +166,12 @@ export const useOnboardingLogic = () => {
                 }
             }
 
-            // Fetch profile for pre-filling
             const { data: profile } = await supabase
                 .from("profiles")
                 .select("full_name, email")
                 .eq("id", user.id)
                 .maybeSingle();
 
-            // Load form responses
             const { data: responses, error: responseError } = await supabase
                 .from("onboarding_responses")
                 .select("step_slug, data")
@@ -192,7 +182,6 @@ export const useOnboardingLogic = () => {
             } else if (responses) {
                 const combinedData = responses.reduce((acc: Record<string, unknown>, curr: { step_slug: string; data: unknown }) => ({ ...acc, ...curr.data as object }), {});
 
-                // Pre-fill with profile data if empty
                 if (profile) {
                     if (!combinedData.email && profile.email) {
                         combinedData.email = profile.email;
@@ -211,11 +200,11 @@ export const useOnboardingLogic = () => {
                 reset(combinedData);
             }
 
-            // Load uploaded documents
             const { data: docs, error: docsError } = await supabase
                 .from("documents")
                 .select("name, storage_path, bucket_id")
-                .eq("user_id", user.id);
+                .eq("user_id", user.id)
+                .eq("user_service_id", sId);
 
             if (docsError) {
                 console.error("Error loading documents:", docsError);
@@ -224,7 +213,7 @@ export const useOnboardingLogic = () => {
             }
         };
         loadData().finally(() => setLoading(false));
-    }, [reset, urlServiceId]);
+    }, [user, authLoading, reset, urlServiceId]);
 
     const normalizeFileName = (str: string) => {
         return str
@@ -236,13 +225,12 @@ export const useOnboardingLogic = () => {
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, docName: string) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+        if (!file || !user) return;
 
         const isProcessSpecialDoc = docName === "ds160_assinada" || docName === "ds160_comprovante";
 
         if (isProcessSpecialDoc) {
             setPendingFiles(prev => ({ ...prev, [docName]: file }));
-            // Add a mock document to the list so UI shows it as selected
             setUploadedDocs(prev => {
                 if (prev.some(d => d.name === docName)) return prev;
                 return [...prev, { name: docName, path: "pending..." }];
@@ -252,9 +240,6 @@ export const useOnboardingLogic = () => {
 
         setUploading(docName);
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("Not authenticated");
-
             const { data: service } = await supabase
                 .from("user_services")
                 .select("id")
@@ -302,8 +287,7 @@ export const useOnboardingLogic = () => {
 
             toast.success(lang === "pt" ? "Documento enviado!" : "Document uploaded!");
 
-            // Refresh uploaded docs list
-            const { data: docs } = await supabase.from("documents").select("name, storage_path").eq("user_id", user.id);
+            const { data: docs } = await supabase.from("documents").select("name, storage_path").eq("user_id", user.id).eq("user_service_id", service.id);
             if (docs) {
                 setUploadedDocs(docs.map(d => ({ name: d.name, path: d.storage_path })));
             }
@@ -350,22 +334,13 @@ export const useOnboardingLogic = () => {
 
         const currentSlug = stepSlugs[currentStep];
 
-        // Only save form data steps (not documents or review)
         if (currentSlug === "documents" || currentSlug === "review") return;
-
-        // In the new approach, we can save the entire formData 
-        // specifically for the current step's context if needed, 
-        // but for now let's keep it simple and save what's in the form.
-        // For DS-160 we'll save the relevant fields per step.
 
         let stepData: Record<string, unknown> = {};
 
         if (serviceSlug === "visto-b1-b2") {
-            // Mapping DS-160 steps to fields (simplified for now to save everything)
-            // Ideally we'd filter, but since we are using a JSON column, we can save the current state
             stepData = { ...formData };
         } else {
-            // Legacy flow
             if (currentStep === 0) {
                 stepData = {
                     fullName: formData.fullName,
@@ -434,7 +409,7 @@ export const useOnboardingLogic = () => {
                 case "additional":
                     return true;
                 case "documents": {
-                    const requiredDocs = [o.docPhoto[lang]]; // Only selfie for B1/B2
+                    const requiredDocs = [o.docPhoto[lang]]; 
                     const uploadedNames = uploadedDocs.map(d => d.name);
                     const missing = requiredDocs.filter(req => !uploadedNames.includes(req));
 
@@ -449,7 +424,6 @@ export const useOnboardingLogic = () => {
             }
         }
 
-        // Legacy validation
         if (currentStep === 0) {
             return await trigger(["fullName", "dob", "passportNumber", "nationality", "currentAddress"]);
         } else if (currentStep === 1) {
@@ -508,13 +482,10 @@ export const useOnboardingLogic = () => {
     };
 
     const handleSelfieUpload = async () => {
-        if (!selfieFile || !pendingOrderId) return;
+        if (!selfieFile || !pendingOrderId || !user) return;
 
         setUploadingSelfie(true);
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("Not authenticated");
-
             const fileExt = selfieFile.name.split(".").pop();
             const fileName = `selfie_${Date.now()}.${fileExt}`;
             const filePath = `contracts/${fileName}`;
@@ -551,14 +522,10 @@ export const useOnboardingLogic = () => {
     };
 
     const handleFinish = async () => {
-        console.log("🔵 [handleFinish] Starting onboarding finalization...");
+        if (!user) return;
         await saveCurrentStep();
-        console.log("🟢 [handleFinish] Current step data saved.");
 
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            console.log("👤 [handleFinish] User authenticated:", user?.id);
-
             if (serviceId) {
                 const isSignatureSubmit = 
                     serviceStatus === "ds160upload_documents" || 
@@ -567,7 +534,6 @@ export const useOnboardingLogic = () => {
                     serviceStatus === "uploadsUnderReview";
                 
                 if (isSignatureSubmit) {
-                    // Check if both files are present (either in pendingFiles or already in uploadedDocs)
                     const hasAssinada = pendingFiles["ds160_assinada"] || uploadedDocs.some(d => d.name === "ds160_assinada");
                     const hasComprovante = pendingFiles["ds160_comprovante"] || uploadedDocs.some(d => d.name === "ds160_comprovante");
 
@@ -576,7 +542,6 @@ export const useOnboardingLogic = () => {
                         return;
                     }
 
-                    // Perform actual uploads for pending files
                     setLoading(true);
                     for (const [docName, file] of Object.entries(pendingFiles)) {
                         const bucketName = "process-documents";
@@ -594,7 +559,7 @@ export const useOnboardingLogic = () => {
                         const { error: dbError } = await supabase
                             .from("documents")
                             .upsert({
-                                user_id: user?.id,
+                                user_id: user.id,
                                 user_service_id: serviceId,
                                 name: docName,
                                 storage_path: filePath,
@@ -610,7 +575,6 @@ export const useOnboardingLogic = () => {
 
                 const nextStatus = isSignatureSubmit ? "uploadsUnderReview" : "review_pending";
 
-                console.log(`🔄 [handleFinish] Updating service status to '${nextStatus}'...`);
                 const { error: updateError } = await supabase
                     .from("user_services")
                     .update({
@@ -620,23 +584,17 @@ export const useOnboardingLogic = () => {
                     .eq("id", serviceId);
 
                 if (updateError) {
-                    console.error("🔴 [handleFinish] Error updating service:", updateError);
-                } else {
-                    console.log("✅ [handleFinish] Service updated successfully.");
+                    console.error("Error updating service:", updateError);
                 }
-            } else {
-                console.warn("⚠️ [handleFinish] No serviceId found to update.");
             }
         } catch (err: unknown) {
-            console.error("🔴 [handleFinish] Unexpected error:", err);
+            console.error("Unexpected error:", err);
             toast.error((err as Error).message || "Erro inesperado");
             setLoading(false);
             return;
         } finally {
             setLoading(false);
         }
-
-        console.log("🏁 [handleFinish] Redirecting to dashboard...");
         
         const isSignatureSubmit = 
             serviceStatus === "ds160upload_documents" || 
@@ -648,7 +606,6 @@ export const useOnboardingLogic = () => {
                 ? (isSignatureSubmit ? 'Documentos enviados com sucesso!' : 'Pacote gerado com sucesso!') 
                 : (isSignatureSubmit ? 'Documents submitted successfully!' : 'Package generated successfully!')
         );
-        // Reload to reflect changes and show success screen
         window.location.reload();
     };
 
