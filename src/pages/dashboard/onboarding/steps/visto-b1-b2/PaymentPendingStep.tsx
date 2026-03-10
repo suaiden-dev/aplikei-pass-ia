@@ -347,13 +347,13 @@ export function PaymentPendingStep({
                   : "CARD DETAILS"}
             </span>
             <div className="flex items-center justify-center gap-1">
-              <span className="text-title font-bold text-muted-foreground self-start mt-2">
+              <span className="text-lg sm:text-title font-bold text-muted-foreground self-start mt-1 sm:mt-2">
                 $
               </span>
-              <span className="text-7xl font-black text-foreground tracking-tighter">
+              <span className="text-5xl sm:text-7xl font-black text-foreground tracking-tighter">
                 {feeAmount}
               </span>
-              <span className="text-subtitle font-bold text-muted-foreground self-end mb-2">
+              <span className="text-sm sm:text-subtitle font-bold text-muted-foreground self-end mb-1 sm:mb-2">
                 USD
               </span>
             </div>
@@ -363,27 +363,27 @@ export function PaymentPendingStep({
             {paymentMethod === "boleto" ? (
               <div className="grid gap-4">
                 <div
-                  className="p-5 bg-accent/5 rounded-[32px] border border-accent/20 text-left flex items-center justify-between group cursor-pointer"
+                  className="p-4 sm:p-5 bg-accent/5 rounded-2xl md:rounded-[32px] border border-accent/20 text-left flex items-center justify-between group cursor-pointer"
                   onClick={handleDownloadBoleto}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="h-14 w-14 sm:h-16 sm:w-16 bg-accent rounded-md flex items-center justify-center text-white shadow-lg shadow-accent/20 group-hover:scale-110 transition-transform shrink-0">
+                  <div className="flex items-center gap-3 sm:gap-4 w-full">
+                    <div className="h-12 w-12 sm:h-16 sm:w-16 bg-accent rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-accent/20 group-hover:scale-110 transition-transform shrink-0">
                       <Download className="h-6 w-6 sm:h-8 sm:w-8" />
                     </div>
-                    <div>
-                      <h4 className="font-black text-base sm:text-subtitle tracking-tight leading-tight">
+                    <div className="flex-1 min-w-0 pr-2">
+                      <h4 className="font-black text-sm sm:text-subtitle tracking-tight leading-tight">
                         {lang === "pt"
                           ? "Baixar Boleto PDF"
                           : "Download PDF Slip"}
                       </h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-0.5 sm:mt-1">
                         {lang === "pt"
                           ? "O boleto oficial já está disponível."
                           : "The official slip is now available."}
                       </p>
                     </div>
                   </div>
-                  <MousePointer2 className="h-6 w-6 text-accent animate-bounce hidden md:block" />
+                  <MousePointer2 className="h-5 w-5 sm:h-6 sm:w-6 text-accent animate-bounce hidden sm:block shrink-0 ml-2" />
                 </div>
 
                 <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border text-left space-y-2">
