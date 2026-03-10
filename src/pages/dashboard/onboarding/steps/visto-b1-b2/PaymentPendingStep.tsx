@@ -366,24 +366,24 @@ export function PaymentPendingStep({
                   className="p-4 sm:p-5 bg-accent/5 rounded-2xl md:rounded-[32px] border border-accent/20 text-left flex items-center justify-between group cursor-pointer"
                   onClick={handleDownloadBoleto}
                 >
-                  <div className="flex items-center gap-3 sm:gap-4 w-full">
-                    <div className="h-12 w-12 sm:h-16 sm:w-16 bg-accent rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-accent/20 group-hover:scale-110 transition-transform shrink-0">
-                      <Download className="h-6 w-6 sm:h-8 sm:w-8" />
-                    </div>
-                    <div className="flex-1 min-w-0 pr-2">
-                      <h4 className="font-black text-sm sm:text-subtitle tracking-tight leading-tight">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 sm:gap-4 w-full">
+                    <div className="flex-1 min-w-0 text-center sm:text-left order-first sm:order-last">
+                      <h4 className="font-black text-base sm:text-subtitle tracking-tight leading-tight">
                         {lang === "pt"
                           ? "Baixar Boleto PDF"
                           : "Download PDF Slip"}
                       </h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-0.5 sm:mt-1">
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-1 sm:mt-1">
                         {lang === "pt"
                           ? "O boleto oficial já está disponível."
                           : "The official slip is now available."}
                       </p>
                     </div>
+                    <div className="h-16 w-full sm:w-16 bg-accent rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-accent/20 group-hover:scale-105 transition-transform shrink-0 order-last sm:order-first">
+                      <Download className="h-8 w-8 sm:h-8 sm:w-8" />
+                    </div>
                   </div>
-                  <MousePointer2 className="h-5 w-5 sm:h-6 sm:w-6 text-accent animate-bounce hidden sm:block shrink-0 ml-2" />
+                  <MousePointer2 className="h-6 w-6 text-accent animate-bounce hidden sm:block shrink-0 ml-2" />
                 </div>
 
                 <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border text-left space-y-2">
