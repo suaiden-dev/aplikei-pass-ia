@@ -512,14 +512,14 @@ export default function AdminDS160ViewerPage() {
     : [];
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-4 pb-20">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h2 className="font-display text-2xl font-bold flex items-center gap-2">
+            <h2 className="font-display text-title font-bold flex items-center gap-2">
               <FileText className="h-6 w-6 text-accent" />
               Formulário DS-160 completo
             </h2>
@@ -531,8 +531,8 @@ export default function AdminDS160ViewerPage() {
         </div>
       </div>
 
-      <div className="bg-card border border-border shadow-sm rounded-xl p-8 min-h-[500px]">
-        <div className="flex items-center gap-2 mb-8 p-3 bg-muted/30 rounded-lg border border-border/50">
+      <div className="bg-card border border-border shadow-sm rounded-md p-5 min-h-[500px]">
+        <div className="flex items-center gap-2 mb-5 p-3 bg-muted/30 rounded-md border border-border/50">
           <AlertCircle className="h-4 w-4 text-accent" />
           <p className="text-xs text-muted-foreground">
             Clique no ícone de cópia ao lado de cada valor para agilizar o
@@ -562,16 +562,16 @@ export default function AdminDS160ViewerPage() {
         ) : (
           <div className="space-y-12 flex flex-col h-full">
             {sections.map((section: DS160Section, idx: number) => (
-              <div key={idx} className="space-y-6">
+              <div key={idx} className="space-y-4">
                 <div className="border-b pb-4">
-                  <h3 className="font-bold text-xl text-primary flex items-center gap-2">
-                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-lg text-sm">
+                  <h3 className="font-bold text-subtitle text-primary flex items-center gap-2">
+                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-md text-sm">
                       {idx + 1}
                     </span>
                     {section.title}
                   </h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {section.fields.map((field: DS160Field, fieldIdx: number) => {
                     const handleCopy = (text: string) => {
                       if (!text || text === "—") return;
@@ -584,7 +584,7 @@ export default function AdminDS160ViewerPage() {
                     return (
                       <div
                         key={fieldIdx}
-                        className="group space-y-2 p-4 rounded-xl bg-background border border-border hover:border-accent/40 transition-all hover:shadow-md relative"
+                        className="group space-y-2 p-4 rounded-md bg-background border border-border hover:border-accent/40 transition-all hover:shadow-md relative"
                       >
                         <div className="flex justify-between items-start">
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">

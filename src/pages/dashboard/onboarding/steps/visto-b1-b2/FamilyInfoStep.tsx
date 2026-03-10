@@ -13,11 +13,11 @@ export const FamilyInfoStep = ({ register, watch, setValue, lang, t }: StepProps
     const statusOptions = ds.family.statusOptions;
 
     return (
-        <div className="space-y-6 fade-in">
+        <div className="space-y-4 fade-in">
             <h2 className="font-display text-lg font-semibold text-foreground">{ds.family.title[lang]}</h2>
 
             {/* Father's Info */}
-            <div className="space-y-4 rounded-lg border border-border p-4 bg-muted/30">
+            <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30">
                 <h3 className="text-md font-medium">{lang === 'pt' ? "Dados do Pai" : "Father's Details"}</h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="space-y-2">
@@ -76,7 +76,7 @@ export const FamilyInfoStep = ({ register, watch, setValue, lang, t }: StepProps
             </div>
 
             {/* Mother's Info */}
-            <div className="space-y-4 rounded-lg border border-border p-4 bg-muted/30">
+            <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30">
                 <h3 className="text-md font-medium">{lang === 'pt' ? "Dados da Mãe" : "Mother's Details"}</h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="space-y-2">
@@ -134,7 +134,7 @@ export const FamilyInfoStep = ({ register, watch, setValue, lang, t }: StepProps
                 </div>
             </div>
 
-            <div className="space-y-4 border-t border-border pt-6">
+            <div className="space-y-4 border-t border-border pt-4">
                 <div className="space-y-3">
                     <Label>{ds.family.hasImmediateRelInUS[lang]} *</Label>
                     <RadioGroup

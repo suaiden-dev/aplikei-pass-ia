@@ -223,7 +223,7 @@ export function AwaitingInterviewStep({
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-5xl mx-auto space-y-8">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-5xl mx-auto space-y-5">
       {serviceStatus === "rejected" && (
         <div className="text-center space-y-4">
           <Badge
@@ -243,7 +243,7 @@ export function AwaitingInterviewStep({
               ? "Infelizmente, desta vez o seu visto não foi aprovado pelo oficial consular. Sabemos como isso é frustrante."
               : "Unfortunately, this time your visa was not approved by the consular officer. We know how frustrating this is."}
           </p>
-          <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
               size="lg"
               className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white"
@@ -341,7 +341,7 @@ export function AwaitingInterviewStep({
         serviceStatus === "rejected") && (
         <div
           className={cn(
-            "grid gap-6",
+            "grid gap-4",
             data?.same_location === false
               ? "md:grid-cols-2"
               : "max-w-xl mx-auto",
@@ -349,7 +349,7 @@ export function AwaitingInterviewStep({
         >
           {/* CASV Card */}
           <Card className="border-none bg-slate-50 dark:bg-slate-900/50 rounded-[40px] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden h-full flex flex-col">
-            <CardHeader className="bg-accent/5 pb-8 shrink-0">
+            <CardHeader className="bg-accent/5 pb-5 shrink-0">
               <div className="flex items-center gap-2 text-accent mb-2">
                 <Calendar className="h-4 w-4" />
                 <span className="text-[10px] font-black uppercase tracking-widest">
@@ -358,7 +358,7 @@ export function AwaitingInterviewStep({
                     : "CONFIRMED CASV DATE"}
                 </span>
               </div>
-              <CardTitle className="text-3xl font-black leading-tight">
+              <CardTitle className="text-title-xl font-black leading-tight">
                 {data?.interview_date
                   ? new Date(
                       data.interview_date + "T12:00:00",
@@ -375,10 +375,10 @@ export function AwaitingInterviewStep({
                 {data?.interview_time ? `@ ${data.interview_time}` : ""}
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-8 space-y-6 flex-1">
+            <CardContent className="p-5 space-y-4 flex-1">
               <div className="space-y-4">
                 <div className="flex gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-sm">
+                  <div className="h-10 w-10 rounded-md bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-sm">
                     <MapPin className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
@@ -400,7 +400,7 @@ export function AwaitingInterviewStep({
           {/* Consulate Card - Only shown if same_location is false */}
           {data?.same_location === false && (
             <Card className="border-none bg-accent/5 dark:bg-accent/10 rounded-[40px] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden h-full flex flex-col">
-              <CardHeader className="bg-accent/10 pb-8 shrink-0">
+              <CardHeader className="bg-accent/10 pb-5 shrink-0">
                 <div className="flex items-center gap-2 text-accent mb-2">
                   <Calendar className="h-4 w-4" />
                   <span className="text-[10px] font-black uppercase tracking-widest">
@@ -409,7 +409,7 @@ export function AwaitingInterviewStep({
                       : "CONFIRMED CONSULATE DATE"}
                   </span>
                 </div>
-                <CardTitle className="text-3xl font-black leading-tight">
+                <CardTitle className="text-title-xl font-black leading-tight">
                   {data?.consulate_interview_date
                     ? new Date(
                         data.consulate_interview_date + "T12:00:00",
@@ -428,10 +428,10 @@ export function AwaitingInterviewStep({
                     : ""}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-8 space-y-6 flex-1 text-foreground">
+              <CardContent className="p-5 space-y-4 flex-1 text-foreground">
                 <div className="space-y-4">
                   <div className="flex gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-sm">
+                    <div className="h-10 w-10 rounded-md bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-sm">
                       <MapPin className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
@@ -455,12 +455,12 @@ export function AwaitingInterviewStep({
 
       {/* Post-Interview Guide Selector */}
       {(serviceStatus === "approved" || serviceStatus === "completed") && (
-        <div className="max-w-3xl mx-auto mt-10">
+        <div className="max-w-3xl mx-auto mt-6">
           {activeGuide === null ? (
             /* Guide Selection Screen */
             <Card className="border-border shadow-2xl rounded-[40px] overflow-hidden bg-card/50 backdrop-blur-md relative">
-              <CardHeader className="text-center pb-4 pt-10">
-                <CardTitle className="text-2xl font-black">
+              <CardHeader className="text-center pb-4 pt-6">
+                <CardTitle className="text-title font-black">
                   {lang === "pt"
                     ? "Como deseja receber seu visto?"
                     : "How do you want to receive your visa?"}
@@ -471,17 +471,17 @@ export function AwaitingInterviewStep({
                     : "The Consulate keeps your passport to stamp the visa. Choose an option to see the guide:"}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-8 grid md:grid-cols-2 gap-6">
+              <CardContent className="p-5 grid md:grid-cols-2 gap-4">
                 {/* Correios Option */}
                 <button
                   onClick={() => handleDeliveryGuide("correios")}
-                  className="p-8 rounded-[32px] border-2 border-border bg-card hover:border-accent hover:bg-accent/5 transition-all group flex flex-col items-center text-center space-y-4"
+                  className="p-5 rounded-[32px] border-2 border-border bg-card hover:border-accent hover:bg-accent/5 transition-all group flex flex-col items-center text-center space-y-4"
                 >
-                  <div className="h-16 w-16 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <div className="h-16 w-16 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-md flex items-center justify-center group-hover:scale-110 transition-transform">
                     <Package className="h-8 w-8" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black tracking-tight mb-2">
+                    <h3 className="text-subtitle font-black tracking-tight mb-2">
                       {lang === "pt"
                         ? "Correios (Em Casa)"
                         : "Postal Service (Home)"}
@@ -500,13 +500,13 @@ export function AwaitingInterviewStep({
                 {/* CASV Option */}
                 <button
                   onClick={() => handleDeliveryGuide("consular")}
-                  className="p-8 rounded-[32px] border-2 border-border bg-card hover:border-accent hover:bg-accent/5 transition-all group flex flex-col items-center text-center space-y-4"
+                  className="p-5 rounded-[32px] border-2 border-border bg-card hover:border-accent hover:bg-accent/5 transition-all group flex flex-col items-center text-center space-y-4"
                 >
-                  <div className="h-16 w-16 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <div className="h-16 w-16 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 rounded-md flex items-center justify-center group-hover:scale-110 transition-transform">
                     <Building2 className="h-8 w-8" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black tracking-tight mb-2">
+                    <h3 className="text-subtitle font-black tracking-tight mb-2">
                       {lang === "pt" ? "Retirar no CASV" : "Pick up at CASV"}
                     </h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
@@ -524,7 +524,7 @@ export function AwaitingInterviewStep({
           ) : activeGuide === "correios" ? (
             /* Correios Guide */
             <Card className="border-accent/20 shadow-2xl rounded-[40px] overflow-hidden bg-card">
-              <CardHeader className="bg-blue-50 dark:bg-blue-950/20 p-8">
+              <CardHeader className="bg-blue-50 dark:bg-blue-950/20 p-5">
                 <button
                   onClick={() => setActiveGuide(null)}
                   className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 mb-4 transition-colors"
@@ -532,11 +532,11 @@ export function AwaitingInterviewStep({
                   ← {lang === "pt" ? "Voltar" : "Back"}
                 </button>
                 <div className="flex items-center gap-4">
-                  <div className="h-14 w-14 bg-blue-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                  <div className="h-14 w-14 bg-blue-500 rounded-md flex items-center justify-center text-white shadow-lg">
                     <Package className="h-7 w-7" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-black">
+                    <CardTitle className="text-title font-black">
                       {lang === "pt"
                         ? "Recebimento pelos Correios"
                         : "Postal Service Delivery"}
@@ -549,7 +549,7 @@ export function AwaitingInterviewStep({
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-8 space-y-6">
+              <CardContent className="p-5 space-y-4">
                 <div className="space-y-4">
                   {[
                     {
@@ -594,9 +594,9 @@ export function AwaitingInterviewStep({
                   ].map((item) => (
                     <div
                       key={item.step}
-                      className="flex gap-4 p-4 rounded-2xl bg-muted/30"
+                      className="flex gap-4 p-4 rounded-md bg-muted/30"
                     >
-                      <span className="text-2xl font-black text-blue-500/30">
+                      <span className="text-title font-black text-blue-500/30">
                         {item.step}
                       </span>
                       <div>
@@ -610,7 +610,7 @@ export function AwaitingInterviewStep({
                 </div>
                 <button
                   onClick={() => setActiveGuide(null)}
-                  className="w-full mt-2 p-4 rounded-2xl border-2 border-dashed border-border text-sm font-bold text-muted-foreground hover:border-accent hover:text-accent transition-all"
+                  className="w-full mt-2 p-4 rounded-md border-2 border-dashed border-border text-sm font-bold text-muted-foreground hover:border-accent hover:text-accent transition-all"
                 >
                   ←{" "}
                   {lang === "pt"
@@ -622,7 +622,7 @@ export function AwaitingInterviewStep({
           ) : activeGuide === "consular" ? (
             /* CASV Guide */
             <Card className="border-accent/20 shadow-2xl rounded-[40px] overflow-hidden bg-card">
-              <CardHeader className="bg-purple-50 dark:bg-purple-950/20 p-8">
+              <CardHeader className="bg-purple-50 dark:bg-purple-950/20 p-5">
                 <button
                   onClick={() => setActiveGuide(null)}
                   className="flex items-center gap-2 text-sm font-bold text-purple-600 hover:text-purple-800 mb-4 transition-colors"
@@ -630,11 +630,11 @@ export function AwaitingInterviewStep({
                   ← {lang === "pt" ? "Voltar" : "Back"}
                 </button>
                 <div className="flex items-center gap-4">
-                  <div className="h-14 w-14 bg-purple-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                  <div className="h-14 w-14 bg-purple-500 rounded-md flex items-center justify-center text-white shadow-lg">
                     <Building2 className="h-7 w-7" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-black">
+                    <CardTitle className="text-title font-black">
                       {lang === "pt" ? "Retirada no CASV" : "CASV Pickup"}
                     </CardTitle>
                     <CardDescription className="mt-1">
@@ -645,7 +645,7 @@ export function AwaitingInterviewStep({
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-8 space-y-6">
+              <CardContent className="p-5 space-y-4">
                 <div className="space-y-4">
                   {[
                     {
@@ -693,9 +693,9 @@ export function AwaitingInterviewStep({
                   ].map((item) => (
                     <div
                       key={item.step}
-                      className="flex gap-4 p-4 rounded-2xl bg-muted/30"
+                      className="flex gap-4 p-4 rounded-md bg-muted/30"
                     >
-                      <span className="text-2xl font-black text-purple-500/30">
+                      <span className="text-title font-black text-purple-500/30">
                         {item.step}
                       </span>
                       <div>
@@ -709,7 +709,7 @@ export function AwaitingInterviewStep({
                 </div>
                 <button
                   onClick={() => setActiveGuide(null)}
-                  className="w-full mt-2 p-4 rounded-2xl border-2 border-dashed border-border text-sm font-bold text-muted-foreground hover:border-accent hover:text-accent transition-all"
+                  className="w-full mt-2 p-4 rounded-md border-2 border-dashed border-border text-sm font-bold text-muted-foreground hover:border-accent hover:text-accent transition-all"
                 >
                   ←{" "}
                   {lang === "pt"
@@ -723,7 +723,7 @@ export function AwaitingInterviewStep({
           {/* US Entry Guide */}
           {activeGuide === "entrada_eua" && (
             <Card className="border-accent/20 shadow-2xl rounded-[40px] overflow-hidden bg-card">
-              <CardHeader className="bg-green-50 dark:bg-green-950/20 p-8">
+              <CardHeader className="bg-green-50 dark:bg-green-950/20 p-5">
                 <button
                   onClick={() => setActiveGuide(null)}
                   className="flex items-center gap-2 text-sm font-bold text-green-600 hover:text-green-800 mb-4 transition-colors"
@@ -731,11 +731,11 @@ export function AwaitingInterviewStep({
                   ← {lang === "pt" ? "Voltar" : "Back"}
                 </button>
                 <div className="flex items-center gap-4">
-                  <div className="h-14 w-14 bg-green-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                  <div className="h-14 w-14 bg-green-500 rounded-md flex items-center justify-center text-white shadow-lg">
                     <Plane className="h-7 w-7" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-black">
+                    <CardTitle className="text-title font-black">
                       {lang === "pt"
                         ? "Guia de Entrada nos EUA"
                         : "US Entry Guide"}
@@ -748,7 +748,7 @@ export function AwaitingInterviewStep({
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-8 space-y-6">
+              <CardContent className="p-5 space-y-4">
                 <div className="space-y-4">
                   {[
                     {
@@ -818,9 +818,9 @@ export function AwaitingInterviewStep({
                   ].map((item) => (
                     <div
                       key={item.step}
-                      className="flex gap-4 p-4 rounded-2xl bg-muted/30"
+                      className="flex gap-4 p-4 rounded-md bg-muted/30"
                     >
-                      <span className="text-2xl font-black text-green-500/30">
+                      <span className="text-title font-black text-green-500/30">
                         {item.step}
                       </span>
                       <div>
@@ -834,7 +834,7 @@ export function AwaitingInterviewStep({
                 </div>
                 <button
                   onClick={() => setActiveGuide(null)}
-                  className="w-full mt-2 p-4 rounded-2xl border-2 border-dashed border-border text-sm font-bold text-muted-foreground hover:border-accent hover:text-accent transition-all"
+                  className="w-full mt-2 p-4 rounded-md border-2 border-dashed border-border text-sm font-bold text-muted-foreground hover:border-accent hover:text-accent transition-all"
                 >
                   ←{" "}
                   {lang === "pt"
@@ -848,9 +848,9 @@ export function AwaitingInterviewStep({
           {activeGuide === null && (
             <button
               onClick={() => handleDeliveryGuide("entrada_eua")}
-              className="w-full mt-4 p-6 rounded-[32px] border-2 border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-950/20 hover:border-green-400 dark:hover:border-green-700 hover:bg-green-100 dark:hover:bg-green-950/40 transition-all group flex items-center gap-6 text-left"
+              className="w-full mt-4 p-4 rounded-[32px] border-2 border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-950/20 hover:border-green-400 dark:hover:border-green-700 hover:bg-green-100 dark:hover:bg-green-950/40 transition-all group flex items-center gap-4 text-left"
             >
-              <div className="h-14 w-14 bg-green-500 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0 group-hover:scale-110 transition-transform">
+              <div className="h-14 w-14 bg-green-500 rounded-md flex items-center justify-center text-white shadow-lg shrink-0 group-hover:scale-110 transition-transform">
                 <Plane className="h-7 w-7" />
               </div>
               <div className="flex-1">
@@ -877,9 +877,9 @@ export function AwaitingInterviewStep({
       {/* Outcome Selection for Awaiting Interview - Only if date is reached */}
       {serviceStatus === "awaitingInterview" && isInterviewDateReached && (
         <Card className="max-w-4xl mx-auto border-border shadow-2xl rounded-[40px] overflow-hidden bg-card/10 backdrop-blur-md relative border-dashed mt-12">
-          <CardContent className="p-8 md:p-12 space-y-8 text-center">
+          <CardContent className="p-5 md:p-12 space-y-5 text-center">
             <div className="space-y-3">
-              <h3 className="text-3xl font-black tracking-tight">
+              <h3 className="text-title-xl font-black tracking-tight">
                 {lang === "pt"
                   ? "Sua entrevista já aconteceu?"
                   : "Has your interview already taken place?"}
@@ -925,7 +925,7 @@ export function AwaitingInterviewStep({
 
       {/* Preparation Tools Section — only shown before the interview date */}
       {serviceStatus === "awaitingInterview" && !isInterviewDateReached && (
-        <div className="space-y-6 max-w-4xl mx-auto mt-12">
+        <div className="space-y-4 max-w-4xl mx-auto mt-12">
           <div className="px-4 text-center">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
@@ -940,16 +940,16 @@ export function AwaitingInterviewStep({
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4 pb-8">
+          <div className="grid md:grid-cols-3 gap-4 pb-5">
             {tools.map((tool) => (
               <button
                 key={tool.id}
                 onClick={tool.action}
-                className="group flex flex-col items-center text-center p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] hover:border-accent/40 hover:shadow-2xl hover:shadow-accent/10 transition-all relative overflow-hidden h-full"
+                className="group flex flex-col items-center text-center p-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] hover:border-accent/40 hover:shadow-2xl hover:shadow-accent/10 transition-all relative overflow-hidden h-full"
               >
                 <div
                   className={cn(
-                    "h-16 w-16 rounded-[24px] flex items-center justify-center text-white shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 mb-6",
+                    "h-16 w-16 rounded-[24px] flex items-center justify-center text-white shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 mb-4",
                     tool.color,
                   )}
                 >
@@ -963,7 +963,7 @@ export function AwaitingInterviewStep({
                     {tool.tag && (
                       <Badge
                         variant="secondary"
-                        className="bg-accent/10 text-accent text-[8px] font-black h-5 px-2 rounded-lg"
+                        className="bg-accent/10 text-accent text-[8px] font-black h-5 px-2 rounded-md"
                       >
                         {tool.tag}
                       </Badge>
@@ -973,7 +973,7 @@ export function AwaitingInterviewStep({
                     {tool.description}
                   </p>
                 </div>
-                <div className="mt-6 h-10 w-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center group-hover:bg-accent group-hover:text-white transition-all">
+                <div className="mt-4 h-10 w-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center group-hover:bg-accent group-hover:text-white transition-all">
                   <ChevronRight className="h-5 w-5" />
                 </div>
               </button>

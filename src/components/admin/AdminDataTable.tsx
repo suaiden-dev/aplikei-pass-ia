@@ -52,7 +52,7 @@ export function AdminDataTable<T extends Record<string, any>>({
         return (
             <div className="space-y-3">
                 <Skeleton className="h-10 w-full max-w-sm" />
-                <div className="rounded-xl border border-border">
+                <div className="rounded-md border border-border">
                     {Array.from({ length: 5 }).map((_, i) => (
                         <div key={i} className="flex gap-4 border-b border-border p-4">
                             {columns.map((_, j) => (
@@ -84,7 +84,7 @@ export function AdminDataTable<T extends Record<string, any>>({
             )}
 
             {/* Table */}
-            <div className="overflow-x-auto rounded-xl border border-border bg-card">
+            <div className="overflow-x-auto rounded-md border border-border bg-card">
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="border-b border-border bg-muted/50">
@@ -103,7 +103,7 @@ export function AdminDataTable<T extends Record<string, any>>({
                             <tr>
                                 <td
                                     colSpan={columns.length}
-                                    className="px-4 py-8 text-center text-muted-foreground"
+                                    className="px-4 py-5 text-center text-muted-foreground"
                                 >
                                     Nenhum registro encontrado.
                                 </td>

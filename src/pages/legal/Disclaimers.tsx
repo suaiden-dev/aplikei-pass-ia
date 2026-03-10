@@ -8,11 +8,11 @@ export default function Disclaimers() {
   return (
     <div className="py-16">
       <div className="container max-w-3xl">
-        <h1 className="font-display text-3xl font-bold text-foreground">{d.title[lang]}</h1>
+        <h1 className="font-display text-title-xl font-bold text-foreground">{d.title[lang]}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{d.readCarefully[lang]}</p>
 
-        <div className="mt-8 space-y-6">
-          <div className="rounded-xl border-2 border-amber-300/50 bg-amber-50/60 p-6">
+        <div className="mt-5 space-y-4">
+          <div className="rounded-md border-2 border-amber-300/50 bg-amber-50/60 p-4">
             <h2 className="flex items-center gap-2 font-display text-lg font-bold text-foreground">
               <Shield className="h-5 w-5 text-amber-600" />
               {d.natureTitle[lang]}
@@ -27,7 +27,7 @@ export default function Disclaimers() {
             </ul>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <div className="rounded-md border border-border bg-card p-4 shadow-card">
             <h2 className="font-display text-lg font-bold text-foreground">{d.offersTitle[lang]}</h2>
             <ul className="mt-4 space-y-2 text-sm text-foreground/80">
               {d.offersItems[lang].map((item, i) => (
@@ -36,7 +36,7 @@ export default function Disclaimers() {
             </ul>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <div className="rounded-md border border-border bg-card p-4 shadow-card">
             <h2 className="font-display text-lg font-bold text-foreground">{d.supportTitle[lang]}</h2>
             <p className="mt-3 text-sm text-foreground/80"><strong>{d.supportDesc[lang]}</strong></p>
             <ul className="mt-3 space-y-1.5 text-sm text-foreground/80">
@@ -45,7 +45,7 @@ export default function Disclaimers() {
             <p className="mt-4 text-sm font-medium text-destructive">{d.supportWarning[lang]}</p>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <div className="rounded-md border border-border bg-card p-4 shadow-card">
             <h2 className="font-display text-lg font-bold text-foreground">{d.recommendationTitle[lang]}</h2>
             <p className="mt-3 text-sm text-foreground/80">{d.recommendationDesc[lang]}</p>
           </div>

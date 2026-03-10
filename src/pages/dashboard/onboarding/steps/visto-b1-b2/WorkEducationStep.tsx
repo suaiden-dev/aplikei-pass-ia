@@ -9,10 +9,10 @@ export const WorkEducationStep = ({ register, watch, setValue, lang, t }: StepPr
     const hasSecondaryEducation = watch("hasSecondaryEducation");
 
     return (
-        <div className="space-y-6 fade-in">
+        <div className="space-y-4 fade-in">
             <h2 className="font-display text-lg font-semibold text-foreground">{ds.workEducation.title[lang]}</h2>
 
-            <div className="space-y-4 rounded-lg border border-border p-4 bg-muted/30">
+            <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30">
                 <div className="space-y-2">
                     <Label htmlFor="primaryOccupation">{ds.workEducation.primaryOccupation[lang]} *</Label>
                     <Input
@@ -101,7 +101,7 @@ export const WorkEducationStep = ({ register, watch, setValue, lang, t }: StepPr
                 </div>
             </div>
 
-            <div className="space-y-4 border-t border-border pt-6">
+            <div className="space-y-4 border-t border-border pt-4">
                 <div className="space-y-3">
                     <Label>{ds.workEducation.prevEmployed[lang]} *</Label>
                     <RadioGroup

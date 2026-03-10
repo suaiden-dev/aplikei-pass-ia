@@ -15,8 +15,31 @@ export function ProcessingStatusStep({ status }: ProcessingStatusStepProps) {
     status === "ds160AwaitingReviewAndSignature" ||
     status === "uploadsUnderReview";
 
+  const getFriendlyStatus = (rawStatus: string, language: string) => {
+    switch (rawStatus) {
+      case "review_pending":
+      case "ds160Processing":
+        return language === "pt" ? "Processando DS-160" : "Processing DS-160";
+      case "ds160AwaitingReviewAndSignature":
+      case "review_assign":
+        return language === "pt" ? "Aguardando Revisão" : "Awaiting Review";
+      case "uploadsUnderReview":
+        return language === "pt"
+          ? "Revisando Documentos"
+          : "Reviewing Documents";
+      case "casvSchedulingPending":
+        return language === "pt"
+          ? "Aguardando Agendamento"
+          : "Awaiting Scheduling";
+      case "ds160upload_documents":
+        return language === "pt" ? "Aguardando Upload" : "Awaiting Upload";
+      default:
+        return rawStatus.replace(/_/g, " ");
+    }
+  };
+
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-2xl mx-auto space-y-8 min-h-[400px] flex flex-col justify-center">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-2xl mx-auto space-y-5 min-h-[400px] flex flex-col justify-center">
       <div className="text-center space-y-4">
         <div className="inline-flex items-center justify-center h-24 w-24 rounded-[32px] bg-accent/10 text-accent mb-2">
           {isPending ? (
@@ -26,7 +49,7 @@ export function ProcessingStatusStep({ status }: ProcessingStatusStepProps) {
           )}
         </div>
 
-        <h2 className="text-4xl font-black tracking-tight text-foreground">
+        <h2 className="text-title md:text-title-xl font-black tracking-tight text-foreground">
           {isPending
             ? lang === "pt"
               ? "Processando seus dados"
@@ -36,7 +59,7 @@ export function ProcessingStatusStep({ status }: ProcessingStatusStepProps) {
               : "Documents Received!"}
         </h2>
 
-        <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
+        <p className="text-body md:text-subtitle text-muted-foreground max-w-md mx-auto leading-relaxed">
           {isPending
             ? lang === "pt"
               ? "Nossa equipe já recebeu suas informações e está trabalhando no preenchimento do seu formulário DS-160."
@@ -47,18 +70,18 @@ export function ProcessingStatusStep({ status }: ProcessingStatusStepProps) {
         </p>
       </div>
 
-      <Card className="border-none bg-slate-50 dark:bg-slate-900/50 rounded-[40px] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden p-8">
-        <CardContent className="p-0 space-y-6">
-          <div className="flex items-center gap-4 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
-            <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+      <Card className="border-none bg-slate-50 dark:bg-slate-900/50 rounded-[40px] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden p-5">
+        <CardContent className="p-0 space-y-4">
+          <div className="flex items-center gap-4 p-4 bg-white dark:bg-slate-800 rounded-md border border-slate-100 dark:border-slate-700">
+            <div className="h-10 w-10 rounded-md bg-accent/10 flex items-center justify-center shrink-0">
               <Loader2 className="h-5 w-5 text-accent animate-spin" />
             </div>
             <div>
               <p className="text-sm font-bold text-foreground">
                 {lang === "pt" ? "Status Atual" : "Current Status"}
               </p>
-              <p className="text-xs text-muted-foreground uppercase tracking-widest font-black">
-                {status.replace(/_/g, " ")}
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">
+                {getFriendlyStatus(status, lang as string)}
               </p>
             </div>
           </div>

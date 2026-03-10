@@ -6,10 +6,10 @@ export const SocialMediaStep = ({ register, watch, setValue, lang, t }: StepProp
     const ds = t.ds160;
 
     return (
-        <div className="space-y-6 fade-in">
+        <div className="space-y-4 fade-in">
             <h2 className="font-display text-lg font-semibold text-foreground">{ds.socialMedia.title[lang]}</h2>
 
-            <p className="text-sm text-muted-foreground bg-muted/30 p-4 rounded-lg border border-border">
+            <p className="text-sm text-muted-foreground bg-muted/30 p-4 rounded-md border border-border">
                 {ds.socialMedia.helper[lang]}
             </p>
 

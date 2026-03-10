@@ -64,21 +64,21 @@ export function InterviewGuide({ onBack }: InterviewGuideProps) {
 
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-500 max-w-3xl mx-auto pb-20">
-      <header className="flex items-center justify-between mb-8">
+      <header className="flex items-center justify-between mb-5">
         <Button
           variant="ghost"
           onClick={onBack}
-          className="group hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl px-4 gap-2"
+          className="group hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md px-4 gap-2"
         >
           <ChevronLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
           <span className="font-bold">{lang === "pt" ? "Voltar" : "Back"}</span>
         </Button>
-        <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent">
+        <div className="h-10 w-10 rounded-md bg-accent/10 flex items-center justify-center text-accent">
           <BookOpen className="h-5 w-5" />
         </div>
       </header>
 
-      <div className="space-y-4 mb-10">
+      <div className="space-y-4 mb-6">
         <h1 className="text-4xl font-black tracking-tight text-foreground">
           {lang === "pt" ? "Guia do Visto Americano" : "US Visa Guide"}
         </h1>
@@ -89,20 +89,20 @@ export function InterviewGuide({ onBack }: InterviewGuideProps) {
         </p>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-4">
         {sections.map((section, idx) => (
           <div
             key={idx}
-            className="group p-8 bg-card border border-border rounded-[32px] hover:border-accent/30 hover:shadow-xl hover:shadow-accent/5 transition-all"
+            className="group p-5 bg-card border border-border rounded-[32px] hover:border-accent/30 hover:shadow-xl hover:shadow-accent/5 transition-all"
           >
             <div className="flex items-start gap-4">
               <div
-                className={`h-12 w-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-border flex items-center justify-center shrink-0 ${section.color}`}
+                className={`h-12 w-12 rounded-md bg-slate-50 dark:bg-slate-900 border border-border flex items-center justify-center shrink-0 ${section.color}`}
               >
                 <section.icon className="h-6 w-6" />
               </div>
               <div className="space-y-4">
-                <h3 className="text-xl font-black tracking-tight">
+                <h3 className="text-subtitle font-black tracking-tight">
                   {section.title}
                 </h3>
                 <div className="space-y-3">
@@ -124,11 +124,11 @@ export function InterviewGuide({ onBack }: InterviewGuideProps) {
         ))}
       </div>
 
-      <div className="mt-12 p-8 bg-accent/5 border border-accent/10 rounded-[40px] text-center space-y-4">
-        <div className="h-12 w-12 rounded-2xl bg-accent flex items-center justify-center text-white mx-auto shadow-lg shadow-accent/20">
+      <div className="mt-12 p-5 bg-accent/5 border border-accent/10 rounded-[40px] text-center space-y-4">
+        <div className="h-12 w-12 rounded-md bg-accent flex items-center justify-center text-white mx-auto shadow-lg shadow-accent/20">
           <CheckCircle2 className="h-6 w-6" />
         </div>
-        <h4 className="text-xl font-black">
+        <h4 className="text-subtitle font-black">
           {lang === "pt"
             ? "Dica Final: Mantenha a Calma"
             : "Final Tip: Keep Calm"}

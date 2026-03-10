@@ -88,9 +88,9 @@ export function CASVSchedulingStep({
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center space-y-3">
-        <h2 className="text-3xl font-bold font-display text-foreground tracking-tight">
+        <h2 className="text-title-xl font-bold font-display text-foreground tracking-tight">
           {lang === "pt" ? "Agendamento CASV" : "CASV Scheduling"}
         </h2>
         <p className="text-muted-foreground text-sm max-w-2xl mx-auto">
@@ -100,12 +100,12 @@ export function CASVSchedulingStep({
         </p>
       </div>
 
-      <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/30 rounded-2xl">
+      <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/30 rounded-md [&>svg~*]:pl-9 md:[&>svg~*]:pl-10">
         <Info className="h-5 w-5 text-amber-600" />
         <AlertDescription className="text-amber-800 dark:text-amber-400 text-sm font-medium leading-relaxed">
           {lang === "pt"
-            ? "A DATA E HORÁRIO DEPENDERÃO DA DISPONIBILIDADE. Esta é apenas uma indicação de sua preferência."
-            : "THE DATE AND TIME WILL DEPEND ON AVAILABILITY. This is only an indication of your preference."}
+            ? "A data e horário final dependerão da disponibilidade do Consulado. Esta é apenas uma indicação de sua preferência inicial."
+            : "The final date and time will depend on Consulate availability. This is only an indication of your initial preference."}
           <div className="mt-2">
             <a
               href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html"
@@ -122,7 +122,7 @@ export function CASVSchedulingStep({
         </AlertDescription>
       </Alert>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
         <Card className="border-border shadow-xl rounded-3xl overflow-hidden bg-card/50 backdrop-blur-sm">
           <CardHeader className="bg-muted/30 border-b border-border">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -137,19 +137,19 @@ export function CASVSchedulingStep({
                 : "Select the day that best fits you."}
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-6 flex justify-center">
+          <CardContent className="p-2 sm:p-4 flex justify-center overflow-x-auto">
             <Calendar
               mode="single"
               selected={date}
               onSelect={setDate}
-              className="rounded-xl border border-border pointer-events-auto"
+              className="rounded-md border border-border pointer-events-auto max-w-full"
               locale={lang === "pt" ? ptBR : undefined}
               disabled={(date) => date < new Date()}
             />
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card className="border-border shadow-lg rounded-3xl bg-card/50 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-lg">
@@ -157,7 +157,7 @@ export function CASVSchedulingStep({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-4 bg-muted/40 rounded-2xl border border-border/50">
+              <div className="p-4 bg-muted/40 rounded-md border border-border/50">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-sm text-muted-foreground">
                     {lang === "pt" ? "Data Selecionada" : "Selected Date"}
@@ -194,18 +194,18 @@ export function CASVSchedulingStep({
               </div>
 
               <Button
-                className="w-full h-14 bg-accent hover:bg-green-dark text-white rounded-2xl shadow-lg shadow-accent/20 font-bold text-lg transition-all active:scale-95 group"
+                className="w-full h-12 md:h-14 bg-accent hover:bg-green-dark text-white rounded-md shadow-lg shadow-accent/20 font-bold text-base md:text-lg transition-all active:scale-95 group"
                 disabled={!date || isSaving}
                 onClick={handleConfirmSchedule}
               >
                 {isSaving ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <Loader2 className="h-5 w-5 md:h-6 md:w-6 animate-spin" />
                 ) : (
                   <>
                     {lang === "pt"
                       ? "Confirmar Preferência"
                       : "Confirm Preference"}
-                    <CheckCircle2 className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    <CheckCircle2 className="ml-2 h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-1 transition-transform shrink-0" />
                   </>
                 )}
               </Button>

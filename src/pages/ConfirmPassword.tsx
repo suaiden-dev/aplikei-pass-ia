@@ -60,13 +60,13 @@ const ConfirmPassword = () => {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-8"
+                className="w-full max-w-md bg-white dark:bg-slate-900 rounded-md shadow-xl border border-slate-200 dark:border-slate-800 p-5"
             >
-                <div className="flex flex-col items-center mb-8">
+                <div className="flex flex-col items-center mb-5">
                     <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                         <ShieldCheck className="w-8 h-8 text-primary" />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white text-center">
+                    <h1 className="text-title font-bold text-slate-900 dark:text-white text-center">
                         Bem-vindo à Aplikei!
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 text-center mt-2">
@@ -74,7 +74,7 @@ const ConfirmPassword = () => {
                     </p>
                 </div>
 
-                <form onSubmit={handleSetPassword} className="space-y-6">
+                <form onSubmit={handleSetPassword} className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="password">Nova Senha</Label>
                         <div className="relative">
@@ -82,7 +82,7 @@ const ConfirmPassword = () => {
                             <Input
                                 id="password"
                                 type="password"
-                                className="pl-10"
+                                className="pl-6"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -97,7 +97,7 @@ const ConfirmPassword = () => {
                             <Input
                                 id="confirmPassword"
                                 type="password"
-                                className="pl-10"
+                                className="pl-6"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required

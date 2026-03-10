@@ -154,7 +154,7 @@ export default function FloatingChat() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-4 z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xl sm:inset-auto sm:bottom-24 sm:right-6 sm:h-[28rem] sm:w-[22rem]"
+            className="fixed inset-4 z-50 flex flex-col overflow-hidden rounded-md border border-border bg-card shadow-xl sm:inset-auto sm:bottom-24 sm:right-6 sm:h-[28rem] sm:w-[22rem]"
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border bg-accent/10 px-4 py-3">
@@ -170,14 +170,14 @@ export default function FloatingChat() {
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
               {messages.length === 0 && (
-                <p className="text-center text-xs text-muted-foreground pt-8">
+                <p className="text-center text-xs text-muted-foreground pt-5">
                   Olá! 👋 Pergunte sobre vistos, extensão ou troca de status.
                 </p>
               )}
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
-                    className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
+                    className={`max-w-[85%] rounded-md px-3 py-2 text-sm ${
                       m.role === "user"
                         ? "bg-accent text-accent-foreground"
                         : "bg-muted text-foreground"
@@ -195,7 +195,7 @@ export default function FloatingChat() {
               ))}
               {isLoading && messages[messages.length - 1]?.role === "user" && (
                 <div className="flex justify-start">
-                  <div className="rounded-xl bg-muted px-3 py-2">
+                  <div className="rounded-md bg-muted px-3 py-2">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   </div>
                 </div>

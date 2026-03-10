@@ -20,7 +20,7 @@ export const PersonalInfo2Step = ({
   );
 
   return (
-    <div className="space-y-6 fade-in">
+    <div className="space-y-4 fade-in">
       <h2 className="font-display text-lg font-semibold text-foreground">
         {ds.personal2.title[lang]}
       </h2>
@@ -137,7 +137,7 @@ export const PersonalInfo2Step = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t border-border pt-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t border-border pt-4">
         <div className="space-y-2">
           <Label htmlFor="nationalID">{ds.personal2.nationalID[lang]} *</Label>
           <Input

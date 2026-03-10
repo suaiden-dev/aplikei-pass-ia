@@ -16,11 +16,11 @@ export function AdminStatCard({
     trend,
 }: AdminStatCardProps) {
     return (
-        <div className="rounded-xl border border-border bg-card p-5 shadow-card">
+        <div className="rounded-md border border-border bg-card p-5 shadow-card">
             <div className="flex items-start justify-between">
                 <div>
                     <p className="text-sm font-medium text-muted-foreground">{title}</p>
-                    <p className="mt-1 font-display text-2xl font-bold text-foreground">
+                    <p className="mt-1 font-display text-title font-bold text-foreground">
                         {value}
                     </p>
                     {description && (
@@ -35,7 +35,7 @@ export function AdminStatCard({
                         </p>
                     )}
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-accent/10 text-accent">
                     {icon}
                 </div>
             </div>

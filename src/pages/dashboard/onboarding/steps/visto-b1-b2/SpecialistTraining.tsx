@@ -259,11 +259,11 @@ export function SpecialistTraining({
       <div className="max-w-4xl mx-auto w-full">
         <div className="bg-white dark:bg-slate-900 md:rounded-[40px] md:shadow-2xl overflow-hidden border border-slate-100 dark:border-slate-800 md:border-none">
           <div className="h-2 bg-accent" />
-          <div className="p-6 md:p-10 text-center space-y-4">
+          <div className="p-4 md:p-6 text-center space-y-4">
             <div className="mx-auto h-16 w-16 md:h-20 md:w-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 mb-2">
               <CheckCircle2 className="h-8 w-8 md:h-10 md:w-10" />
             </div>
-            <h2 className="text-2xl md:text-4xl font-black">
+            <h2 className="text-title md:text-4xl font-black">
               {lang === "pt"
                 ? "Prepare-se para o Sucesso!"
                 : "Get Ready for Success!"}
@@ -275,11 +275,11 @@ export function SpecialistTraining({
             </p>
           </div>
 
-          <div className="p-4 md:p-10 pt-0 space-y-8">
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 md:p-8 space-y-6 text-center">
+          <div className="p-4 md:p-6 pt-0 space-y-5">
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-4 md:p-5 space-y-4 text-center">
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
-                  <p className="font-black text-lg md:text-xl text-accent">
+                  <p className="font-black text-lg md:text-subtitle text-accent">
                     {scheduledCount} / {pkg.classes}{" "}
                     {lang === "pt" ? "Aulas Agendadas" : "Sessions Scheduled"}
                   </p>
@@ -294,8 +294,8 @@ export function SpecialistTraining({
               </div>
 
               {isFullyScheduled ? (
-                <div className="py-10 space-y-4">
-                  <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-2xl border-2 border-green-100 dark:border-green-900/30">
+                <div className="py-6 space-y-4">
+                  <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-md border-2 border-green-100 dark:border-green-900/30">
                     <p className="text-green-600 dark:text-green-400 font-bold text-lg">
                       {lang === "pt"
                         ? "Todas as suas aulas foram agendadas! ✅"
@@ -309,8 +309,8 @@ export function SpecialistTraining({
                   </div>
                 </div>
               ) : (
-                <div className="py-10 flex flex-col items-center space-y-8">
-                  <div className="bg-accent/5 p-6 rounded-3xl border border-accent/10 max-w-sm">
+                <div className="py-6 flex flex-col items-center space-y-5">
+                  <div className="bg-accent/5 p-4 rounded-3xl border border-accent/10 max-w-sm">
                     <p className="text-accent font-bold text-sm leading-relaxed">
                       {lang === "pt"
                         ? "Para garantir 100% de precisão no celular, o agendamento abrirá em uma janela segura."
@@ -330,7 +330,7 @@ export function SpecialistTraining({
                       email: userProfile.email,
                       name: userProfile.name,
                     }}
-                    className="w-full md:w-auto px-10 h-16 md:h-20 bg-accent hover:opacity-90 text-white rounded-2xl md:rounded-3xl font-black md:text-lg shadow-xl shadow-accent/20 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
+                    className="w-full md:w-auto px-6 h-16 md:h-20 bg-accent hover:opacity-90 text-white rounded-md md:rounded-3xl font-black md:text-lg shadow-xl shadow-accent/20 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
                   />
                 </div>
               )}
@@ -339,7 +339,7 @@ export function SpecialistTraining({
             <Button
               onClick={onBack}
               variant="ghost"
-              className="w-full h-12 md:h-14 rounded-xl md:rounded-2xl font-bold text-muted-foreground"
+              className="w-full h-12 md:h-14 rounded-md md:rounded-md font-bold text-muted-foreground"
             >
               {lang === "pt" ? "VOLTAR AO PAINEL" : "BACK TO DASHBOARD"}
             </Button>
@@ -350,7 +350,7 @@ export function SpecialistTraining({
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="max-w-6xl mx-auto space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between">
         <Button
           variant="ghost"
@@ -363,7 +363,7 @@ export function SpecialistTraining({
       </div>
 
       <div className="text-center space-y-4 max-w-3xl mx-auto px-4">
-        <h2 className="text-3xl md:text-5xl font-black tracking-tight">
+        <h2 className="text-title-xl md:text-5xl font-black tracking-tight">
           {mode === "review"
             ? lang === "pt"
               ? "Revisão com Especialista"
@@ -385,7 +385,7 @@ export function SpecialistTraining({
 
       <div
         className={cn(
-          "grid gap-6 md:gap-8 pt-4 px-4",
+          "grid gap-4 md:gap-5 pt-4 px-4",
           mode === "review" ? "max-w-lg mx-auto" : "md:grid-cols-3",
         )}
       >
@@ -394,22 +394,22 @@ export function SpecialistTraining({
             key={pkg.id}
             whileHover={{ y: -8 }}
             className={cn(
-              "relative flex flex-col p-8 rounded-[32px] md:rounded-[40px] border-2 transition-all",
+              "relative flex flex-col p-5 rounded-[32px] md:rounded-[40px] border-2 transition-all",
               pkg.recommended
                 ? "border-accent bg-accent/5 shadow-2xl shadow-accent/10"
                 : "border-slate-100 dark:border-slate-800 bg-card hover:border-slate-200",
             )}
           >
             {pkg.recommended && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent text-white px-6 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent text-white px-4 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
                 {lang === "pt"
                   ? "MAIS PROCURADO / IDEAL"
                   : "MOST POPULAR / IDEAL"}
               </div>
             )}
 
-            <div className="space-y-4 mb-8">
-              <h3 className="text-2xl font-black">{pkg.name}</h3>
+            <div className="space-y-4 mb-5">
+              <h3 className="text-title font-black">{pkg.name}</h3>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-black text-accent">
                   US$ {pkg.price}
@@ -429,7 +429,7 @@ export function SpecialistTraining({
               </p>
             </div>
 
-            <ul className="space-y-4 flex-1 mb-10">
+            <ul className="space-y-4 flex-1 mb-6">
               {pkg.features.map((feature, idx) => (
                 <li
                   key={idx}
@@ -445,7 +445,7 @@ export function SpecialistTraining({
               onClick={() => handlePayment(pkg.id)}
               disabled={isProcessing}
               className={cn(
-                "w-full h-14 rounded-2xl font-black text-xs tracking-widest gap-2",
+                "w-full h-14 rounded-md font-black text-xs tracking-widest gap-2",
                 pkg.recommended
                   ? "bg-accent hover:bg-green-dark text-white"
                   : "bg-slate-900 dark:bg-white text-white dark:text-black hover:opacity-90",
@@ -464,8 +464,8 @@ export function SpecialistTraining({
         ))}
       </div>
 
-      <div className="text-center pt-8 pb-12 px-4">
-        <div className="inline-flex items-center gap-2 px-6 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl text-[10px] md:text-xs font-bold text-muted-foreground">
+      <div className="text-center pt-5 pb-12 px-4">
+        <div className="inline-flex items-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-md text-[10px] md:text-xs font-bold text-muted-foreground">
           <ShieldCheck className="h-4 w-4 text-green-500" />
           {lang === "pt"
             ? "Pagamento seguro via Stripe • Acesso imediato ao agendamento"

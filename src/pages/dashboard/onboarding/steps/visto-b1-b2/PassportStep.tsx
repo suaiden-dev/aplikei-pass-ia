@@ -8,7 +8,7 @@ export const PassportStep = ({ register, watch, setValue, lang, t }: StepProps) 
     const hasPassportBeenLostStolen = watch("hasPassportBeenLostStolen");
 
     return (
-        <div className="space-y-6 fade-in">
+        <div className="space-y-4 fade-in">
             <h2 className="font-display text-lg font-semibold text-foreground">{ds.passport.title[lang]}</h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -68,7 +68,7 @@ export const PassportStep = ({ register, watch, setValue, lang, t }: StepProps) 
                 </div>
             </div>
 
-            <div className="space-y-3 border-t border-border pt-6">
+            <div className="space-y-3 border-t border-border pt-4">
                 <Label>{ds.passport.lostStolen[lang]} *</Label>
                 <RadioGroup
                     onValueChange={(val) => setValue("hasPassportBeenLostStolen", val)}

@@ -8,24 +8,24 @@ export default function PackagePDF() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-bold text-foreground">{p.title[lang]}</h1>
+      <h1 className="font-display text-title font-bold text-foreground">{p.title[lang]}</h1>
       <p className="mt-1 text-muted-foreground">{p.subtitle[lang]}</p>
 
-      <div className="mt-4 rounded-lg border-2 border-amber-300/50 bg-amber-50/60 p-4">
+      <div className="mt-4 rounded-md border-2 border-amber-300/50 bg-amber-50/60 p-4">
         <div className="flex items-start gap-2">
           <Shield className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
           <p className="text-xs text-foreground/70">{p.disclaimer[lang]}</p>
         </div>
       </div>
 
-      <div className="mt-6 rounded-xl border border-border bg-card p-8 text-center shadow-card">
+      <div className="mt-4 rounded-md border border-border bg-card p-5 text-center shadow-card">
         <FileText className="mx-auto h-12 w-12 text-accent" />
         <h2 className="mt-4 font-display text-lg font-semibold text-foreground">{p.generate[lang]}</h2>
         <p className="mt-2 text-sm text-muted-foreground">{p.generateDesc[lang]}</p>
-        <Button className="mt-6 bg-accent text-accent-foreground shadow-button hover:bg-green-dark" disabled>{p.generateBtn[lang]}</Button>
+        <Button className="mt-4 bg-accent text-accent-foreground shadow-button hover:bg-green-dark" disabled>{p.generateBtn[lang]}</Button>
       </div>
 
-      <div className="mt-6 rounded-xl border border-border bg-card p-6 shadow-card">
+      <div className="mt-4 rounded-md border border-border bg-card p-4 shadow-card">
         <h3 className="font-display font-semibold text-foreground">{p.pdfContains[lang]}</h3>
         <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
           {p.pdfItems[lang].map((item, i) => (
@@ -34,10 +34,10 @@ export default function PackagePDF() {
         </ul>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-4">
         <h3 className="font-display font-semibold text-foreground">{p.history[lang]}</h3>
         <div className="mt-3 space-y-2">
-          <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+          <div className="flex items-center justify-between rounded-md border border-border bg-card p-4">
             <div className="flex items-center gap-3">
               <FileText className="h-5 w-5 text-muted-foreground" />
               <div>

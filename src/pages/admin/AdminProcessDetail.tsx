@@ -562,7 +562,7 @@ export default function AdminProcessDetail() {
       case "active":
         return (
           <div className="space-y-4 max-w-xl">
-            <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
+            <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-md border border-yellow-200 dark:border-yellow-900/30">
               <ClipboardList className="h-5 w-5 text-yellow-600" />
               <div>
                 <p className="text-sm font-bold text-yellow-700">
@@ -580,8 +580,8 @@ export default function AdminProcessDetail() {
       case "review_pending":
       case "review_assign":
         return (
-          <div className="space-y-6 max-w-xl">
-            <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
+          <div className="space-y-4 max-w-xl">
+            <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-md border border-yellow-200 dark:border-yellow-900/30">
               <ClipboardList className="h-5 w-5 text-yellow-600" />
               <div>
                 <p className="text-sm font-bold text-yellow-700">
@@ -594,7 +594,7 @@ export default function AdminProcessDetail() {
               </div>
             </div>
 
-            <div className="space-y-4 p-6 bg-accent/5 rounded-2xl border border-accent/20 shadow-sm">
+            <div className="space-y-4 p-4 bg-accent/5 rounded-md border border-accent/20 shadow-sm">
               <div className="flex items-center gap-2 border-b border-accent/10 pb-3 mb-4">
                 <ShieldCheck className="h-5 w-5 text-accent" />
                 <h4 className="text-sm font-bold uppercase tracking-widest text-accent">
@@ -662,7 +662,7 @@ export default function AdminProcessDetail() {
       case "ds160upload_documents":
         return (
           <div className="space-y-4 max-w-xl">
-            <div className="flex items-center gap-3 p-4 bg-orange-50 dark:bg-orange-950/20 rounded-xl border border-orange-200 dark:border-orange-900/30">
+            <div className="flex items-center gap-3 p-4 bg-orange-50 dark:bg-orange-950/20 rounded-md border border-orange-200 dark:border-orange-900/30">
               <Clock className="h-5 w-5 text-orange-600" />
               <div>
                 <p className="text-sm font-bold text-orange-700">
@@ -675,7 +675,7 @@ export default function AdminProcessDetail() {
               </div>
             </div>
 
-            <div className="p-6 bg-muted/20 rounded-2xl border border-border space-y-4">
+            <div className="p-4 bg-muted/20 rounded-md border border-border space-y-4">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   Dados Salvos
@@ -691,7 +691,7 @@ export default function AdminProcessDetail() {
                   EDITAR
                 </Button>
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">
                     Application ID
@@ -707,7 +707,7 @@ export default function AdminProcessDetail() {
               </div>
             </div>
 
-            <div className="p-4 border border-dashed border-border rounded-xl text-center">
+            <div className="p-4 border border-dashed border-border rounded-md text-center">
               <p className="text-xs text-muted-foreground italic">
                 O fluxo avançará automaticamente assim que o cliente clicar em
                 "Enviar Documentos" no portal dele.
@@ -715,7 +715,7 @@ export default function AdminProcessDetail() {
             </div>
 
             {processDocs.length > 0 && (
-              <div className="mt-8 space-y-4">
+              <div className="mt-5 space-y-4">
                 <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Arquivos já recebidos (Parcial)
@@ -724,10 +724,10 @@ export default function AdminProcessDetail() {
                   {processDocs.map((doc) => (
                     <div
                       key={doc.id}
-                      className="flex items-center justify-between p-4 bg-card border border-border rounded-xl shadow-sm hover:border-accent/40 transition-shadow"
+                      className="flex items-center justify-between p-4 bg-card border border-border rounded-md shadow-sm hover:border-accent/40 transition-shadow"
                     >
                       <div className="flex items-center gap-4 min-w-0">
-                        <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center text-blue-600">
+                        <div className="h-10 w-10 rounded-md bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center text-blue-600">
                           <FileText className="h-5 w-5" />
                         </div>
                         <div className="min-w-0">
@@ -769,8 +769,8 @@ export default function AdminProcessDetail() {
       case "ds160AwaitingReviewAndSignature":
       case "uploadsUnderReview":
         return (
-          <div className="space-y-6 max-w-xl">
-            <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-900/30">
+          <div className="space-y-4 max-w-xl">
+            <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-900/30">
               <Upload className="h-5 w-5 text-blue-600" />
               <div>
                 <p className="text-sm font-bold text-blue-700">
@@ -792,10 +792,10 @@ export default function AdminProcessDetail() {
                 {processDocs.map((doc) => (
                   <div
                     key={doc.id}
-                    className="flex items-center justify-between p-4 bg-card border border-border rounded-xl shadow-sm hover:border-accent/40 transition-shadow"
+                    className="flex items-center justify-between p-4 bg-card border border-border rounded-md shadow-sm hover:border-accent/40 transition-shadow"
                   >
                     <div className="flex items-center gap-4 min-w-0">
-                      <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center text-blue-600">
+                      <div className="h-10 w-10 rounded-md bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center text-blue-600">
                         <FileText className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
@@ -834,7 +834,7 @@ export default function AdminProcessDetail() {
                 ))}
 
                 {processDocs.length === 0 && (
-                  <div className="text-center py-10 border-2 border-dashed border-border rounded-xl bg-muted/10">
+                  <div className="text-center py-6 border-2 border-dashed border-border rounded-md bg-muted/10">
                     <p className="text-sm text-muted-foreground italic">
                       Nenhum documento anexado ainda.
                     </p>
@@ -872,19 +872,19 @@ export default function AdminProcessDetail() {
       case "approved":
       case "completed": {
         return (
-          <div className="space-y-6">
-            <div className="p-8 border-2 border-green-200 dark:border-green-900/30 rounded-3xl bg-green-50 dark:bg-green-950/20 flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden">
+          <div className="space-y-4">
+            <div className="p-5 border-2 border-green-200 dark:border-green-900/30 rounded-3xl bg-green-50 dark:bg-green-950/20 flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-600"></div>
 
               <div className="h-16 w-16 mb-4 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center border-4 border-white dark:border-green-800 shadow-sm">
                 <Trophy className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
 
-              <h3 className="text-xl font-display font-bold text-green-800 dark:text-green-300 mb-2">
+              <h3 className="text-subtitle font-display font-bold text-green-800 dark:text-green-300 mb-2">
                 Visto Aprovado!
               </h3>
 
-              <p className="text-sm text-green-700 dark:text-green-400 max-w-[320px] leading-relaxed mb-6">
+              <p className="text-sm text-green-700 dark:text-green-400 max-w-[320px] leading-relaxed mb-4">
                 Este processo foi concluído com sucesso e o visto do cliente foi
                 aprovado na entrevista.
               </p>
@@ -904,9 +904,9 @@ export default function AdminProcessDetail() {
         const preferredDate = schedData?.preferred_date;
 
         return (
-          <div className="space-y-8 max-w-xl pb-20">
+          <div className="space-y-5 max-w-xl pb-20">
             <div
-              className={`flex items-center gap-3 p-4 rounded-2xl border ${
+              className={`flex items-center gap-3 p-4 rounded-md border ${
                 order.service_status === "awaitingInterview"
                   ? "bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30"
                   : "bg-green-50 dark:bg-green-950/20 border-green-100 dark:border-green-900/30"
@@ -1005,7 +1005,7 @@ export default function AdminProcessDetail() {
                   <button
                     type="button"
                     onClick={() => setSameLocation(true)}
-                    className={`p-3 rounded-xl border-2 text-xs font-bold transition-all ${
+                    className={`p-3 rounded-md border-2 text-xs font-bold transition-all ${
                       sameLocation
                         ? "border-accent bg-accent/10 text-accent"
                         : "border-border bg-card text-muted-foreground hover:border-accent/40"
@@ -1016,7 +1016,7 @@ export default function AdminProcessDetail() {
                   <button
                     type="button"
                     onClick={() => setSameLocation(false)}
-                    className={`p-3 rounded-xl border-2 text-xs font-bold transition-all ${
+                    className={`p-3 rounded-md border-2 text-xs font-bold transition-all ${
                       !sameLocation
                         ? "border-accent bg-accent/10 text-accent"
                         : "border-border bg-card text-muted-foreground hover:border-accent/40"
@@ -1134,23 +1134,40 @@ export default function AdminProcessDetail() {
               </div>
             )}
 
-            {status === "casvFeeProcessing" && (
-              <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-xl border border-yellow-200 dark:border-yellow-900/30">
-                <Clock className="h-5 w-5 text-yellow-600 shrink-0" />
-                <div>
-                  <p className="text-sm font-bold text-yellow-700">
-                    Aguardando confirmação do e-mail
-                  </p>
-                  <p className="text-xs text-yellow-600">
-                    O cliente ainda não confirmou o e-mail no portal. As
-                    credenciais consulares e o upload do boleto serão
-                    habilitados após essa confirmação.
-                  </p>
+            {status === "casvFeeProcessing" &&
+              !(consularLogin || consularPassword) && (
+                <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-md border border-yellow-200 dark:border-yellow-900/30">
+                  <Clock className="h-5 w-5 text-yellow-600 shrink-0" />
+                  <div>
+                    <p className="text-sm font-bold text-yellow-700">
+                      Aguardando Credenciais
+                    </p>
+                    <p className="text-xs text-yellow-600">
+                      O cliente está aguardando você criar e enviar as
+                      credenciais consulares.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {status === "casvPaymentPending" && (
+            {status === "casvFeeProcessing" &&
+              !!(consularLogin || consularPassword) && (
+                <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-900/30">
+                  <Clock className="h-5 w-5 text-blue-600 shrink-0 animate-pulse" />
+                  <div>
+                    <p className="text-sm font-bold text-blue-700">
+                      Aguardando cliente confirmar o e-mail
+                    </p>
+                    <p className="text-xs text-blue-600">
+                      As credenciais foram salvas. O cliente agora precisa
+                      validar a conta no portal dele.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+            {(status === "casvFeeProcessing" ||
+              status === "casvPaymentPending") && (
               <div className="space-y-4 pt-2">
                 <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4" />
@@ -1204,7 +1221,7 @@ export default function AdminProcessDetail() {
                 </h4>
 
                 {!preferredDate ? (
-                  <div className="p-8 border-2 border-dashed border-muted rounded-3xl bg-muted/5 flex flex-col items-center justify-center text-center">
+                  <div className="p-5 border-2 border-dashed border-muted rounded-3xl bg-muted/5 flex flex-col items-center justify-center text-center">
                     <Clock className="h-8 w-8 text-muted-foreground mb-2 opacity-50" />
                     <p className="text-sm font-bold text-muted-foreground uppercase">
                       Aguardando escolha da data
@@ -1215,9 +1232,9 @@ export default function AdminProcessDetail() {
                     </p>
                   </div>
                 ) : processDocs.find((d) => d.name === "ds160_boleto") ? (
-                  <div className="flex items-center justify-between p-4 bg-card border border-accent/20 rounded-2xl shadow-sm">
+                  <div className="flex items-center justify-between p-4 bg-card border border-accent/20 rounded-md shadow-sm">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+                      <div className="h-10 w-10 rounded-md bg-accent/10 flex items-center justify-center text-accent">
                         <FileText className="h-5 w-5" />
                       </div>
                       <div>
@@ -1269,7 +1286,7 @@ export default function AdminProcessDetail() {
                   </div>
                 ) : (
                   <div className="relative group">
-                    <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-accent/20 rounded-3xl bg-accent/5 hover:bg-accent/10 transition-colors group-hover:border-accent/40 cursor-pointer text-center">
+                    <div className="flex flex-col items-center justify-center p-5 border-2 border-dashed border-accent/20 rounded-3xl bg-accent/5 hover:bg-accent/10 transition-colors group-hover:border-accent/40 cursor-pointer text-center">
                       <Upload className="h-8 w-8 text-accent mb-2" />
                       <p className="text-sm font-bold text-accent">
                         UPLOAD DO BOLETO
@@ -1292,7 +1309,7 @@ export default function AdminProcessDetail() {
             {status === "casvPaymentPending" &&
               !!processDocs.find((d) => d.name === "ds160_boleto") &&
               !!(consularLogin || consularPassword) && (
-                <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-900/30">
+                <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-900/30">
                   <Clock className="h-5 w-5 text-blue-600 shrink-0 animate-pulse" />
                   <div>
                     <p className="text-sm font-bold text-blue-700">
@@ -1320,7 +1337,7 @@ export default function AdminProcessDetail() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <header className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -1330,7 +1347,7 @@ export default function AdminProcessDetail() {
           <ChevronLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h2 className="font-display text-2xl font-bold text-foreground">
+          <h2 className="font-display text-title font-bold text-foreground">
             Gestão do Processo
           </h2>
           <p className="text-muted-foreground">
@@ -1343,26 +1360,26 @@ export default function AdminProcessDetail() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Left Column: Status info & Logs */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="lg:col-span-3 space-y-4">
           <Tabs defaultValue="actions" className="w-full">
             <TabsList className="mb-4 bg-muted/50 p-1 border border-border">
               <TabsTrigger
                 value="actions"
-                className="text-xs font-bold uppercase tracking-wider px-6 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
+                className="text-xs font-bold uppercase tracking-wider px-4 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
               >
                 Ações Necessárias
               </TabsTrigger>
               <TabsTrigger
                 value="logs"
-                className="text-xs font-bold uppercase tracking-wider px-6 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
+                className="text-xs font-bold uppercase tracking-wider px-4 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
               >
                 Histórico e Observações
               </TabsTrigger>
               <TabsTrigger
                 value="upsells"
-                className="text-xs font-bold uppercase tracking-wider px-6 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
+                className="text-xs font-bold uppercase tracking-wider px-4 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
               >
                 Serviços Adicionais
               </TabsTrigger>
@@ -1372,7 +1389,7 @@ export default function AdminProcessDetail() {
               value="actions"
               className="mt-0 focus-visible:outline-none focus-visible:ring-0"
             >
-              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm min-h-[300px]">
+              <div className="bg-card border border-border rounded-md p-4 shadow-sm min-h-[300px]">
                 {renderStatusContent()}
               </div>
             </TabsContent>
@@ -1381,7 +1398,7 @@ export default function AdminProcessDetail() {
               value="logs"
               className="mt-0 focus-visible:outline-none focus-visible:ring-0"
             >
-              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+              <div className="bg-card border border-border rounded-md p-4 shadow-sm">
                 <AdminProcessLogs userServiceId={order.user_service_id} />
               </div>
             </TabsContent>
@@ -1390,7 +1407,7 @@ export default function AdminProcessDetail() {
               value="upsells"
               className="mt-0 focus-visible:outline-none focus-visible:ring-0"
             >
-              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-6">
+              <div className="bg-card border border-border rounded-md p-4 shadow-sm space-y-4">
                 <div className="flex items-center gap-2 border-b border-border pb-3">
                   <Package className="h-5 w-5 text-accent" />
                   <h3 className="text-sm font-bold uppercase tracking-wider text-accent">
@@ -1500,9 +1517,9 @@ export default function AdminProcessDetail() {
         </div>
 
         {/* Right Column: Process & Order info */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Timeline Section */}
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+          <div className="bg-card border border-border rounded-md p-4 shadow-sm">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
               Resumo do Status
             </h3>
@@ -1511,7 +1528,7 @@ export default function AdminProcessDetail() {
 
           {/* Security Data Card — shown after saving */}
           {isAlreadySaved && (
-            <div className="bg-card border border-accent/20 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="bg-card border border-accent/20 rounded-md p-4 shadow-sm space-y-4">
               <div className="flex items-center gap-2 border-b border-accent/10 pb-3">
                 <ShieldCheck className="h-4 w-4 text-accent" />
                 <h3 className="text-sm font-bold uppercase tracking-wider text-accent">
@@ -1547,7 +1564,7 @@ export default function AdminProcessDetail() {
             </div>
           )}
 
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+          <div className="bg-card border border-border rounded-md p-4 shadow-sm">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
               Informações do Pedido
             </h3>
@@ -1600,7 +1617,7 @@ export default function AdminProcessDetail() {
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+          <div className="bg-card border border-border rounded-md p-4 shadow-sm">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
               Formulário DS-160
             </h3>
@@ -1636,7 +1653,7 @@ export default function AdminProcessDetail() {
           </div>
 
           {/* Contract PDF Section */}
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+          <div className="bg-card border border-border rounded-md p-4 shadow-sm">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
               <FileText className="h-4 w-4 text-accent" />
               Contrato do Processo
@@ -1655,7 +1672,7 @@ export default function AdminProcessDetail() {
                   </Button>
                 </a>
               ) : (
-                <div className="p-4 bg-muted/50 rounded-xl border border-dashed border-border text-center">
+                <div className="p-4 bg-muted/50 rounded-md border border-dashed border-border text-center">
                   <p className="text-xs text-muted-foreground italic mb-2">
                     PDF não disponível ou em geração
                   </p>
@@ -1680,13 +1697,13 @@ export default function AdminProcessDetail() {
           </div>
 
           {/* Selfie Section */}
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm overflow-hidden">
+          <div className="bg-card border border-border rounded-md p-4 shadow-sm overflow-hidden">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
               <UserIcon className="h-4 w-4 text-accent" />
               Selfie do Cliente
             </h3>
             {order.contract_selfie_url ? (
-              <div className="relative group overflow-hidden rounded-xl border border-border aspect-square bg-slate-50 flex items-center justify-center">
+              <div className="relative group overflow-hidden rounded-md border border-border aspect-square bg-slate-50 flex items-center justify-center">
                 <img
                   src={order.contract_selfie_url}
                   alt="Selfie do cliente"
@@ -1709,7 +1726,7 @@ export default function AdminProcessDetail() {
                 </a>
               </div>
             ) : (
-              <div className="py-12 text-center bg-slate-50 dark:bg-slate-900 rounded-xl border-2 border-dashed border-muted-foreground/20">
+              <div className="py-12 text-center bg-slate-50 dark:bg-slate-900 rounded-md border-2 border-dashed border-muted-foreground/20">
                 <UserIcon className="h-10 w-10 mx-auto text-muted-foreground/20 mb-2" />
                 <p className="text-[10px] font-medium text-muted-foreground uppercase">
                   Nenhuma selfie disponível
@@ -1737,7 +1754,7 @@ export default function AdminProcessDetail() {
               processDocs.map((doc) => (
                 <div
                   key={doc.id}
-                  className="flex items-center justify-between p-3 rounded-xl border bg-muted/30"
+                  className="flex items-center justify-between p-3 rounded-md border bg-muted/30"
                 >
                   <div className="flex items-center gap-3">
                     <FileText className="w-5 h-5 text-accent" />

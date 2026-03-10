@@ -151,9 +151,9 @@ export default function AdminPayments() {
         new Date(date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             <div>
-                <h2 className="font-display text-2xl font-bold text-foreground">Gestão de Pagamentos</h2>
+                <h2 className="font-display text-title font-bold text-foreground">Gestão de Pagamentos</h2>
                 <p className="text-muted-foreground">Fila de verificação manual de transferências Zelle.</p>
             </div>
 
@@ -165,7 +165,7 @@ export default function AdminPayments() {
                 </TabsList>
 
                 <TabsContent value={activeTab}>
-                    <div className="rounded-xl bg-card">
+                    <div className="rounded-md bg-card">
                         <AdminDataTable
                             loading={loading}
                             data={payments}
@@ -204,7 +204,7 @@ export default function AdminPayments() {
                                                         </p>
                                                     )}
                                                 </DialogHeader>
-                                                <div className="flex justify-center bg-black/5 rounded-lg overflow-hidden">
+                                                <div className="flex justify-center bg-black/5 rounded-md overflow-hidden">
                                                     <img
                                                         src={item.screenshot_url}
                                                         alt="Comprovante Zelle"

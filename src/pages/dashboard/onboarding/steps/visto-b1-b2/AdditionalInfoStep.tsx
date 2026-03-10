@@ -9,7 +9,7 @@ export const AdditionalInfoStep = ({ register, watch, setValue, lang, t }: StepP
     const hasVisitedOtherCountries = watch("hasVisitedOtherCountries");
 
     return (
-        <div className="space-y-6 fade-in">
+        <div className="space-y-4 fade-in">
             <h2 className="font-display text-lg font-semibold text-foreground">{ds.additional.title[lang]}</h2>
 
             <div className="space-y-4">

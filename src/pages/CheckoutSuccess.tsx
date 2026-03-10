@@ -161,9 +161,9 @@ const CheckoutSuccess = () => {
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="max-w-xl w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-8 md:p-12 text-center"
+                className="max-w-xl w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-5 md:p-12 text-center"
             >
-                <div className="flex justify-center mb-10">
+                <div className="flex justify-center mb-6">
                     <div className="relative">
                         <motion.div
                             initial={{ scale: 0 }}
@@ -180,14 +180,14 @@ const CheckoutSuccess = () => {
                     </div>
                 </div>
 
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
+                <h1 className="text-title-xl font-bold text-slate-900 dark:text-white mb-4">
                     {isUploading || isPending
                         ? (lang === 'pt' ? 'Pagamento sendo processado' : 'Payment being processed')
                         : (lang === 'pt' ? 'Pagamento Confirmado!' : 'Payment Confirmed!')
                     }
                 </h1>
 
-                <p className="text-slate-600 dark:text-slate-400 text-lg mb-8">
+                <p className="text-slate-600 dark:text-slate-400 text-lg mb-5">
                     {isUploading || isPending
                         ? (lang === 'pt'
                             ? 'Por favor, aguarde. Estamos validando sua transação.'
@@ -201,7 +201,7 @@ const CheckoutSuccess = () => {
                 {(!isUploading && !isPending) && (
                     <>
                         {!isLoggedIn ? (
-                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 mb-8 text-left border border-slate-100 dark:border-slate-800">
+                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-md p-4 mb-5 text-left border border-slate-100 dark:border-slate-800">
                                 <h2 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                                     <Mail className="w-5 h-5 text-primary" />
                                     {lang === 'pt' ? 'Próximos Passos:' : 'Next Steps:'}
@@ -235,7 +235,7 @@ const CheckoutSuccess = () => {
                                 </ul>
                             </div>
                         ) : (
-                            <div className="bg-primary/5 rounded-2xl p-6 mb-8 text-center border border-primary/20">
+                            <div className="bg-primary/5 rounded-md p-4 mb-5 text-center border border-primary/20">
                                 <p className="text-primary font-medium">
                                     {lang === 'pt'
                                         ? 'O novo guia já foi adicionado ao seu painel!'

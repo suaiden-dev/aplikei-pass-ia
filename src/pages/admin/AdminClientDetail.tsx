@@ -128,7 +128,7 @@ export default function AdminClientDetail() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <Skeleton className="h-20 w-full" />
         <Skeleton className="h-64 w-full" />
       </div>
@@ -138,7 +138,7 @@ export default function AdminClientDetail() {
   if (!client) return <div>Cliente não encontrado.</div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -148,7 +148,7 @@ export default function AdminClientDetail() {
           <ChevronLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h2 className="font-display text-2xl font-bold text-foreground">
+          <h2 className="font-display text-title font-bold text-foreground">
             {client.full_name}
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -165,8 +165,8 @@ export default function AdminClientDetail() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="perfil" className="space-y-6 mt-6">
-          <div className="grid gap-6 md:grid-cols-2">
+        <TabsContent value="perfil" className="space-y-4 mt-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -265,10 +265,10 @@ export default function AdminClientDetail() {
           </div>
         </TabsContent>
 
-        <TabsContent value="documentos" className="mt-6">
+        <TabsContent value="documentos" className="mt-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {files.length === 0 ? (
-              <p className="text-muted-foreground italic col-span-full py-8 text-center bg-muted/20 rounded-xl border border-dashed">
+              <p className="text-muted-foreground italic col-span-full py-5 text-center bg-muted/20 rounded-md border border-dashed">
                 Nenhum documento enviado ainda.
               </p>
             ) : (
@@ -279,7 +279,7 @@ export default function AdminClientDetail() {
                 >
                   <CardContent className="p-4 flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
-                      <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
                         <FileText className="h-5 w-5" />
                       </div>
                       <div className="space-y-1">

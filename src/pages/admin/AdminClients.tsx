@@ -62,14 +62,14 @@ export default function AdminClients() {
         new Date(date).toLocaleDateString("pt-BR");
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             <div>
-                <h2 className="font-display text-2xl font-bold text-foreground">Gestão de Clientes</h2>
+                <h2 className="font-display text-title font-bold text-foreground">Gestão de Clientes</h2>
                 <p className="text-muted-foreground">Base de dados completa de usuários e investidores.</p>
             </div>
 
             {/* Filtros */}
-            <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-card p-4">
+            <div className="flex flex-wrap items-center gap-4 rounded-md border border-border bg-card p-4">
                 <div className="flex flex-1 items-center gap-2 min-w-[250px]">
                     <Search className="h-4 w-4 text-muted-foreground" />
                     <Input
@@ -92,7 +92,7 @@ export default function AdminClients() {
                 )}
             </div>
 
-            <div className="rounded-xl bg-card">
+            <div className="rounded-md bg-card">
                 <AdminDataTable
                     loading={loading}
                     data={filteredClients}

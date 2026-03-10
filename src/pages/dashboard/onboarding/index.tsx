@@ -158,6 +158,7 @@ export default function Onboarding() {
       return (
         <FeeProcessingStep
           serviceId={serviceId}
+          hasConsularCredentials={hasConsularCredentials}
           onComplete={() => {
             // Success logic if needed
           }}
@@ -303,7 +304,7 @@ export default function Onboarding() {
         <Skeleton className="h-8 w-48" />
         <Skeleton className="mt-2 h-4 w-64" />
 
-        <div className="mt-6 rounded-xl border border-border bg-card p-4 shadow-card md:p-6">
+        <div className="mt-4 rounded-md border border-border bg-card p-4 shadow-card md:p-4">
           <div className="flex items-center justify-between">
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-4 w-8" />
@@ -316,7 +317,7 @@ export default function Onboarding() {
           </div>
         </div>
 
-        <div className="mt-6 rounded-xl border border-border bg-card p-4 shadow-card md:p-6">
+        <div className="mt-4 rounded-md border border-border bg-card p-4 shadow-card md:p-4">
           <div className="space-y-4">
             <Skeleton className="h-10 w-full" />
             <div className="grid grid-cols-2 gap-4">
@@ -325,7 +326,7 @@ export default function Onboarding() {
             </div>
             <Skeleton className="h-24 w-full" />
           </div>
-          <div className="mt-8 flex justify-between">
+          <div className="mt-5 flex justify-between">
             <Skeleton className="h-10 w-32" />
             <Skeleton className="h-10 w-32" />
           </div>
@@ -336,12 +337,12 @@ export default function Onboarding() {
 
   return (
     <div className="pb-24 pt-4 md:pb-0 md:pt-0">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
         {/* Main Content (Left Column on Desktop) */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="font-display text-2xl font-bold text-foreground">
+              <h1 className="font-display text-title font-bold text-foreground">
                 {o.title[lang]}
               </h1>
               <div className="flex flex-wrap items-center gap-2 mt-1">
@@ -379,7 +380,7 @@ export default function Onboarding() {
           />
 
           {/* Step Content */}
-          <div className="rounded-xl border border-border bg-card p-4 shadow-card md:p-6">
+          <div className="rounded-md border border-border bg-card p-4 shadow-card md:p-4">
             {renderStep()}
 
             {/* Desktop Buttons - Hide if in post-scheduling stages */}
@@ -392,7 +393,7 @@ export default function Onboarding() {
               serviceStatus !== "approved" &&
               serviceStatus !== "rejected" &&
               serviceStatus !== "completed" && (
-                <div className="mt-8 hidden justify-between md:flex">
+                <div className="mt-5 hidden justify-between md:flex">
                   <Button
                     variant="outline"
                     disabled={
@@ -472,9 +473,9 @@ export default function Onboarding() {
         </div>
 
         {/* Sidebar (Right Column on Desktop) */}
-        <aside className="space-y-6 lg:sticky lg:top-6 lg:h-fit">
+        <aside className="space-y-4 lg:sticky lg:top-6 lg:h-fit">
           {/* Progress & Steps Indicator */}
-          <div className="rounded-xl border border-border bg-card p-4 shadow-card md:p-6">
+          <div className="rounded-md border border-border bg-card p-4 shadow-card md:p-4">
             {serviceSlug !== "visto-b1-b2" && (
               <>
                 <div className="flex items-center justify-between text-sm">
@@ -496,7 +497,7 @@ export default function Onboarding() {
                         i <= currentStep ? setCurrentStep(i) : null
                       }
                       disabled={i > currentStep}
-                      className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium transition-all ring-1 ${
+                      className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-medium transition-all ring-1 ${
                         i === currentStep
                           ? "bg-accent/10 text-accent ring-accent/20"
                           : i < currentStep
@@ -525,7 +526,7 @@ export default function Onboarding() {
                 <p className="text-xs font-bold text-accent uppercase tracking-widest">
                   {lang === "pt" ? "Formulário DS-160" : "DS-160 Form"}
                 </p>
-                <div className="mt-4 flex items-center justify-center gap-2 text-muted-foreground bg-muted/30 p-3 rounded-xl border border-dashed border-border mb-4">
+                <div className="mt-4 flex items-center justify-center gap-2 text-muted-foreground bg-muted/30 p-3 rounded-md border border-dashed border-border mb-4">
                   <FileText className="w-4 h-4" />
                   <span className="text-[10px] font-medium leading-tight">
                     {lang === "pt"
@@ -602,7 +603,7 @@ export default function Onboarding() {
               uploadedDocs.map((doc, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-3 rounded-xl border bg-muted/30"
+                  className="flex items-center justify-between p-3 rounded-md border bg-muted/30"
                 >
                   <div className="flex items-center gap-3">
                     <FileText className="w-5 h-5 text-accent" />
@@ -632,7 +633,7 @@ export default function Onboarding() {
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+            <DialogTitle className="flex items-center gap-2 text-subtitle font-bold">
               <Camera className="w-5 h-5 text-primary" />
               {lang === "pt"
                 ? "Verificação de Identidade Necessária"
@@ -645,8 +646,8 @@ export default function Onboarding() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
-            <div className="flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-border group relative overflow-hidden">
+          <div className="space-y-4 py-4">
+            <div className="flex flex-col items-center justify-center p-5 bg-slate-50 dark:bg-slate-900 rounded-md border border-dashed border-border group relative overflow-hidden">
               {selfieFile ? (
                 <div className="flex flex-col items-center space-y-3">
                   <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
@@ -688,7 +689,7 @@ export default function Onboarding() {
             </div>
 
             <Button
-              className="w-full bg-primary text-white hover:bg-primary/90 font-bold h-12 rounded-xl shadow-lg shadow-primary/20"
+              className="w-full bg-primary text-white hover:bg-primary/90 font-bold h-12 rounded-md shadow-lg shadow-primary/20"
               disabled={!selfieFile || uploadingSelfie}
               onClick={handleSelfieUpload}
             >

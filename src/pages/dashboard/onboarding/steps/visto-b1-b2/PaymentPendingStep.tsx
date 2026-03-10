@@ -159,23 +159,23 @@ export function PaymentPendingStep({
   // If no boleto is found, show the Processing screen
   if (!boletoDoc) {
     return (
-      <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700">
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-2xl mb-2">
+          <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-md mb-2">
             <Clock className="h-8 w-8 text-accent animate-spin-slow" />
           </div>
-          <h2 className="text-4xl font-black font-display text-foreground tracking-tight uppercase">
+          <h2 className="text-title md:text-title-xl font-black font-display text-foreground tracking-tight uppercase">
             {lang === "pt" ? "TAXA EM PROCESSAMENTO" : "FEE IN PROCESSING"}
           </h2>
-          <p className="text-muted-foreground text-base max-w-xl mx-auto leading-relaxed">
+          <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto leading-relaxed md:px-0 px-4">
             {lang === "pt"
               ? "Excelente! Sua confirmação de e-mail foi recebida. Agora nossa equipe está gerando o seu boleto para pagamento da taxa MRV."
               : "Excellent! Your email confirmation has been received. Now our team is generating your slip for the MRV fee payment."}
           </p>
         </div>
 
-        <Card className="border-border shadow-2xl rounded-[32px] overflow-hidden bg-card/10 backdrop-blur-md relative p-10 text-center border-dashed">
-          <div className="space-y-6">
+        <Card className="border-border shadow-2xl rounded-[32px] overflow-hidden bg-card/10 backdrop-blur-md relative p-6 text-center border-dashed">
+          <div className="space-y-4">
             <div className="flex justify-center">
               <div className="relative">
                 <div className="absolute inset-0 bg-accent/20 blur-xl rounded-full animate-pulse"></div>
@@ -185,7 +185,7 @@ export function PaymentPendingStep({
               </div>
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl font-bold">
+              <h3 className="text-subtitle font-bold">
                 {lang === "pt" ? "Gerando Boleto..." : "Generating Slip..."}
               </h3>
               <p className="text-muted-foreground max-w-sm mx-auto text-sm">
@@ -197,10 +197,10 @@ export function PaymentPendingStep({
             <div className="pt-4">
               <Button
                 variant="outline"
-                className="rounded-full px-8 border-accent/20 text-accent hover:bg-accent/5"
+                className="rounded-full px-5 border-accent/20 text-accent hover:bg-accent/5 h-auto py-2 whitespace-normal text-xs sm:text-sm text-center"
                 onClick={() => window.location.reload()}
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
+                <RefreshCw className="h-4 w-4 mr-2 shrink-0" />
                 {lang === "pt" ? "ATUALIZAR STATUS" : "REFRESH STATUS"}
               </Button>
             </div>
@@ -211,28 +211,28 @@ export function PaymentPendingStep({
   }
 
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700">
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-2xl mb-2">
+        <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-md mb-2">
           <Wallet className="h-8 w-8 text-accent animate-pulse" />
         </div>
-        <h2 className="text-4xl font-black font-display text-foreground tracking-tight uppercase">
+        <h2 className="text-title md:text-title-xl font-black font-display text-foreground tracking-tight uppercase px-2">
           {lang === "pt"
             ? "PAGAMENTO DA TAXA CONSULAR"
             : "CONSULAR FEE PAYMENT"}
         </h2>
-        <p className="text-muted-foreground text-base max-w-xl mx-auto leading-relaxed">
+        <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto leading-relaxed px-4">
           {lang === "pt"
             ? "Selecione a forma de pagamento desejada para prosseguir com o agendamento."
             : "Select the desired payment method to proceed with scheduling."}
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
         {/* Method Selection: Boleto */}
         <div
           className={cn(
-            "relative p-8 rounded-[32px] border-2 transition-all cursor-pointer group hover:scale-[1.02] active:scale-[0.98]",
+            "relative p-5 rounded-[32px] border-2 transition-all cursor-pointer group hover:scale-[1.02] active:scale-[0.98]",
             paymentMethod === "boleto"
               ? "bg-accent/5 border-accent shadow-xl shadow-accent/10"
               : "bg-card border-border hover:border-accent/40",
@@ -260,7 +260,7 @@ export function PaymentPendingStep({
           <div className="space-y-4">
             <div
               className={cn(
-                "h-14 w-14 rounded-2xl flex items-center justify-center transition-colors",
+                "h-14 w-14 rounded-md flex items-center justify-center transition-colors",
                 paymentMethod === "boleto"
                   ? "bg-accent text-white"
                   : "bg-muted/50 text-muted-foreground",
@@ -269,7 +269,7 @@ export function PaymentPendingStep({
               <FileText className="h-7 w-7" />
             </div>
             <div>
-              <h3 className="text-xl font-black uppercase tracking-tight">
+              <h3 className="text-subtitle font-black uppercase tracking-tight">
                 {lang === "pt" ? "Boleto Bancário" : "Bank Slip"}
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
@@ -284,7 +284,7 @@ export function PaymentPendingStep({
         {/* Method Selection: Card */}
         <div
           className={cn(
-            "relative p-8 rounded-[32px] border-2 transition-all cursor-pointer group hover:scale-[1.02] active:scale-[0.98]",
+            "relative p-5 rounded-[32px] border-2 transition-all cursor-pointer group hover:scale-[1.02] active:scale-[0.98]",
             paymentMethod === "card"
               ? "bg-accent/5 border-accent shadow-xl shadow-accent/10"
               : "bg-card border-border hover:border-accent/40",
@@ -312,7 +312,7 @@ export function PaymentPendingStep({
           <div className="space-y-4">
             <div
               className={cn(
-                "h-14 w-14 rounded-2xl flex items-center justify-center transition-colors",
+                "h-14 w-14 rounded-md flex items-center justify-center transition-colors",
                 paymentMethod === "card"
                   ? "bg-accent text-white"
                   : "bg-muted/50 text-muted-foreground",
@@ -321,7 +321,7 @@ export function PaymentPendingStep({
               <CreditCard className="h-7 w-7" />
             </div>
             <div>
-              <h3 className="text-xl font-black uppercase tracking-tight">
+              <h3 className="text-subtitle font-black uppercase tracking-tight">
                 {lang === "pt" ? "Cartão de Crédito" : "Credit Card"}
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
@@ -335,7 +335,7 @@ export function PaymentPendingStep({
       </div>
 
       <Card className="border-border shadow-2xl rounded-[40px] overflow-hidden bg-card/10 backdrop-blur-md relative border-dashed max-w-3xl mx-auto">
-        <CardContent className="p-10 space-y-10 text-center">
+        <CardContent className="p-6 space-y-6 text-center">
           <div className="space-y-2">
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               {paymentMethod === "boleto"
@@ -347,13 +347,13 @@ export function PaymentPendingStep({
                   : "CARD DETAILS"}
             </span>
             <div className="flex items-center justify-center gap-1">
-              <span className="text-2xl font-bold text-muted-foreground self-start mt-2">
+              <span className="text-title font-bold text-muted-foreground self-start mt-2">
                 $
               </span>
               <span className="text-7xl font-black text-foreground tracking-tighter">
                 {feeAmount}
               </span>
-              <span className="text-xl font-bold text-muted-foreground self-end mb-2">
+              <span className="text-subtitle font-bold text-muted-foreground self-end mb-2">
                 USD
               </span>
             </div>
@@ -361,17 +361,17 @@ export function PaymentPendingStep({
 
           <div className="animate-in fade-in zoom-in-95 duration-500">
             {paymentMethod === "boleto" ? (
-              <div className="grid gap-6">
+              <div className="grid gap-4">
                 <div
-                  className="p-8 bg-accent/5 rounded-[32px] border border-accent/20 text-left flex items-center justify-between group cursor-pointer"
+                  className="p-5 bg-accent/5 rounded-[32px] border border-accent/20 text-left flex items-center justify-between group cursor-pointer"
                   onClick={handleDownloadBoleto}
                 >
-                  <div className="flex items-center gap-6">
-                    <div className="h-16 w-16 bg-accent rounded-2xl flex items-center justify-center text-white shadow-lg shadow-accent/20 group-hover:scale-110 transition-transform">
-                      <Download className="h-8 w-8" />
+                  <div className="flex items-center gap-4">
+                    <div className="h-14 w-14 sm:h-16 sm:w-16 bg-accent rounded-md flex items-center justify-center text-white shadow-lg shadow-accent/20 group-hover:scale-110 transition-transform shrink-0">
+                      <Download className="h-6 w-6 sm:h-8 sm:w-8" />
                     </div>
                     <div>
-                      <h4 className="font-black text-xl tracking-tight">
+                      <h4 className="font-black text-base sm:text-subtitle tracking-tight leading-tight">
                         {lang === "pt"
                           ? "Baixar Boleto PDF"
                           : "Download PDF Slip"}
@@ -386,7 +386,7 @@ export function PaymentPendingStep({
                   <MousePointer2 className="h-6 w-6 text-accent animate-bounce hidden md:block" />
                 </div>
 
-                <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border text-left space-y-2">
+                <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border text-left space-y-2">
                   <div className="flex items-center gap-2 text-blue-500">
                     <ShieldCheck className="h-4 w-4" />
                     <span className="text-xs font-black uppercase tracking-widest">
@@ -403,13 +403,13 @@ export function PaymentPendingStep({
                 </div>
               </div>
             ) : (
-              <div className="space-y-6">
-                <div className="p-8 bg-blue-500/5 rounded-[32px] border border-blue-500/20 text-left space-y-4">
+              <div className="space-y-4">
+                <div className="p-5 bg-blue-500/5 rounded-[32px] border border-blue-500/20 text-left space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 bg-blue-500 rounded-2xl flex items-center justify-center text-white">
-                      <CreditCard className="h-6 w-6" />
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-500 rounded-md flex items-center justify-center text-white shrink-0">
+                      <CreditCard className="h-5 w-5 sm:h-6 sm:w-6" />
                     </div>
-                    <h4 className="font-black text-xl tracking-tight">
+                    <h4 className="font-black text-base sm:text-subtitle tracking-tight leading-tight">
                       {lang === "pt"
                         ? "Pagamento via Portal"
                         : "Portal Payment"}
@@ -422,7 +422,7 @@ export function PaymentPendingStep({
                   </p>
 
                   {(consularLogin || consularPassword) && (
-                    <div className="bg-white dark:bg-slate-800/80 rounded-2xl p-4 border border-blue-200 dark:border-blue-900/50 shadow-inner space-y-3">
+                    <div className="bg-white dark:bg-slate-800/80 rounded-md p-4 border border-blue-200 dark:border-blue-900/50 shadow-inner space-y-3">
                       <div className="flex flex-col">
                         <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">
                           Login / E-mail
@@ -443,7 +443,7 @@ export function PaymentPendingStep({
                   )}
 
                   <Button
-                    className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-xl gap-2 font-bold uppercase text-xs tracking-widest shadow-lg shadow-blue-500/20"
+                    className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-md gap-2 font-bold uppercase text-xs tracking-widest shadow-lg shadow-blue-500/20"
                     onClick={() =>
                       window.open(
                         "https://ais.usvisa-info.com/pt-br/niv/",
@@ -456,7 +456,7 @@ export function PaymentPendingStep({
                   </Button>
                 </div>
 
-                <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border text-left space-y-2">
+                <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border text-left space-y-2">
                   <div className="flex items-center gap-2 text-accent">
                     <CheckCircle2 className="h-4 w-4" />
                     <span className="text-xs font-black uppercase tracking-widest">
@@ -473,9 +473,9 @@ export function PaymentPendingStep({
             )}
           </div>
 
-          <div className="pt-4 space-y-6">
+          <div className="pt-4 space-y-4">
             <Button
-              className="w-full h-auto min-h-20 py-4 px-4 bg-accent hover:bg-green-dark text-white rounded-[32px] shadow-2xl shadow-accent/30 font-black text-sm sm:text-base md:text-xl whitespace-normal transition-all active:scale-[0.98] group relative overflow-hidden"
+              className="w-full h-auto min-h-20 py-4 px-4 bg-accent hover:bg-green-dark text-white rounded-[32px] shadow-2xl shadow-accent/30 font-black text-sm sm:text-base md:text-subtitle whitespace-normal transition-all active:scale-[0.98] group relative overflow-hidden"
               disabled={isSaving}
               onClick={handlePaymentCompleted}
             >

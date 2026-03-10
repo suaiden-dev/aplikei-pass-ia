@@ -71,30 +71,30 @@ export default function ResetPassword() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-card"
+                className="w-full max-w-md rounded-md border border-border bg-card p-5 shadow-card"
             >
                 {/* Logo + Voltar */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-4">
                     <Link to="/forgot-password" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                         <ArrowLeft className="h-4 w-4" />
                         {p.backToLogin[lang]}
                     </Link>
-                    <Link to="/" className="font-display text-xl font-bold text-primary">Aplikei</Link>
+                    <Link to="/" className="font-display text-subtitle font-bold text-primary">Aplikei</Link>
                 </div>
 
                 {/* Ícone */}
-                <div className="mb-6 flex flex-col items-center text-center">
+                <div className="mb-4 flex flex-col items-center text-center">
                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 border border-accent/20">
                         <Lock className="h-8 w-8 text-accent" />
                     </div>
-                    <h1 className="font-display text-2xl font-bold text-foreground">{p.title[lang]}</h1>
+                    <h1 className="font-display text-title font-bold text-foreground">{p.title[lang]}</h1>
                     <p className="mt-2 text-sm text-muted-foreground">{p.subtitle[lang]}</p>
                 </div>
 
                 <AnimatePresence mode="wait">
                     {passwordUpdated ? (
                         <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-                            <div className="rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-5 text-center">
+                            <div className="rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-5 text-center">
                                 <CheckCircle2 className="mx-auto mb-3 h-8 w-8 text-green-600 dark:text-green-400" />
                                 <p className="font-semibold text-green-800 dark:text-green-300">{p.successTitle[lang]}</p>
                                 <p className="mt-1 text-sm text-green-700 dark:text-green-400">{p.successDesc[lang]}</p>
@@ -105,7 +105,7 @@ export default function ResetPassword() {
                         </motion.div>
                     ) : errorMessage ? (
                         <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-5 text-center">
+                            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-5 text-center">
                                 <AlertCircle className="mx-auto mb-3 h-8 w-8 text-destructive" />
                                 <p className="font-semibold text-destructive">{errorMessage}</p>
                                 <p className="mt-1 text-sm text-muted-foreground">{p.redirecting[lang]}</p>
@@ -123,7 +123,7 @@ export default function ResetPassword() {
                                             type={showPassword ? "text" : "password"}
                                             value={password}
                                             onChange={e => setPassword(e.target.value)}
-                                            className="pl-10 pr-10"
+                                            className="pl-6 pr-6"
                                             required
                                             minLength={6}
                                             autoFocus
@@ -146,7 +146,7 @@ export default function ResetPassword() {
                                             type={showConfirm ? "text" : "password"}
                                             value={confirmPassword}
                                             onChange={e => setConfirmPassword(e.target.value)}
-                                            className={`pl-10 pr-10 ${passwordMismatch ? "border-destructive" : ""}`}
+                                            className={`pl-6 pr-6 ${passwordMismatch ? "border-destructive" : ""}`}
                                             required
                                         />
                                         <button type="button" tabIndex={-1}

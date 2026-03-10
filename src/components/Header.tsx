@@ -35,7 +35,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-card/80 backdrop-blur-lg">
       <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="font-display text-xl font-bold text-primary">
+        <Link to="/" className="font-display text-subtitle font-bold text-primary">
           Aplikei
         </Link>
 

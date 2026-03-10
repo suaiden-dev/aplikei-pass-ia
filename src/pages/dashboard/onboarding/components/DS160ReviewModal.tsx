@@ -763,13 +763,13 @@ export function DS160ReviewModal({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border-none p-0 bg-white dark:bg-slate-950 shadow-2xl">
         <div className="relative">
           {/* Header Section */}
-          <div className="sticky top-0 z-10 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md px-6 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div className="sticky top-0 z-10 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md px-4 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-md bg-accent/10 flex items-center justify-center">
                 <FileText className="w-6 h-6 text-accent" />
               </div>
               <div>
-                <DialogTitle className="text-2xl font-bold text-slate-900 dark:text-white">
+                <DialogTitle className="text-title font-bold text-slate-900 dark:text-white">
                   {lang === "pt" ? "Revisão DS-160" : "DS-160 Review"}
                 </DialogTitle>
                 <DialogDescription className="text-slate-500 dark:text-slate-400">
@@ -781,7 +781,7 @@ export function DS160ReviewModal({
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="h-10 w-10 animate-spin text-accent mb-4" />
@@ -790,8 +790,8 @@ export function DS160ReviewModal({
                 </p>
               </div>
             ) : !formData ? (
-              <div className="text-center py-20 px-6">
-                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="text-center py-20 px-4">
+                <div className="w-20 h-20 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4">
                   <AlertCircle className="w-10 h-10 text-slate-300" />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
@@ -804,15 +804,15 @@ export function DS160ReviewModal({
                 </p>
               </div>
             ) : (
-              <div className="space-y-12 pb-10">
+              <div className="space-y-12 pb-6">
                 {sections.map((section, idx) => (
                   <div
                     key={idx}
                     className="animate-in fade-in slide-in-from-bottom-4 duration-500"
                     style={{ animationDelay: `${idx * 50}ms` }}
                   >
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-8 h-8 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-bold text-xs shadow-lg">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-bold text-xs shadow-lg">
                         {idx}
                       </div>
                       <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200 tracking-tight">
@@ -825,7 +825,7 @@ export function DS160ReviewModal({
                       {section.fields.map((field, i) => (
                         <div
                           key={i}
-                          className="group p-4 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-800 rounded-2xl border border-transparent hover:border-accent/20 hover:shadow-xl hover:shadow-accent/5 transition-all duration-300 min-w-0"
+                          className="group p-4 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-800 rounded-md border border-transparent hover:border-accent/20 hover:shadow-xl hover:shadow-accent/5 transition-all duration-300 min-w-0"
                         >
                           <p
                             className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 group-hover:text-accent transition-colors truncate"
@@ -845,8 +845,8 @@ export function DS160ReviewModal({
                   </div>
                 ))}
 
-                <div className="p-6 bg-gradient-to-br from-accent/5 to-transparent border border-accent/10 rounded-3xl flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+                <div className="p-4 bg-gradient-to-br from-accent/5 to-transparent border border-accent/10 rounded-3xl flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-md bg-accent/20 flex items-center justify-center shrink-0">
                     <Shield className="w-5 h-5 text-accent" />
                   </div>
                   <div>

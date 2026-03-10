@@ -85,9 +85,9 @@ export default function AdminDocuments() {
     });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
-        <h2 className="font-display text-2xl font-bold text-foreground">
+        <h2 className="font-display text-title font-bold text-foreground">
           Central de Documentos
         </h2>
         <p className="text-muted-foreground">
@@ -129,7 +129,7 @@ export default function AdminDocuments() {
         </Button>
       </div>
 
-      <div className="rounded-xl bg-card">
+      <div className="rounded-md bg-card">
         <AdminDataTable
           loading={loading}
           data={filteredDocuments}

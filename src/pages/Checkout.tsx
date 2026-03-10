@@ -333,14 +333,14 @@ export default function Checkout() {
   return (
     <div className="min-h-screen bg-muted/30 py-12 md:py-20">
       <div className="container max-w-5xl">
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid gap-5 lg:grid-cols-3">
           {/* Form Side */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <h1 className="font-display text-3xl font-bold text-foreground">
+              <h1 className="font-display text-title-xl font-bold text-foreground">
                 Finalizar Contratação
               </h1>
               <p className="mt-2 text-muted-foreground">
@@ -350,7 +350,7 @@ export default function Checkout() {
 
             <Card className="border-border shadow-md">
               <CardHeader>
-                <CardTitle className="text-xl">Informações Pessoais</CardTitle>
+                <CardTitle className="text-subtitle">Informações Pessoais</CardTitle>
                 <CardDescription>
                   Estes dados serão usados para sua conta e processamento do
                   serviço.
@@ -437,7 +437,7 @@ export default function Checkout() {
 
             <Card className="border-border shadow-md overflow-hidden">
               <CardHeader className="bg-muted/30">
-                <CardTitle className="text-xl flex items-center gap-2">
+                <CardTitle className="text-subtitle flex items-center gap-2">
                   <FileText className="h-5 w-5 text-accent" />
                   Assinatura e Termos de Contrato
                 </CardTitle>
@@ -445,8 +445,8 @@ export default function Checkout() {
                   Para prosseguir, aceite os termos do contrato.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-6 space-y-6">
-                <div className="flex items-center space-x-2 bg-muted/20 p-4 rounded-lg border border-border/50">
+              <CardContent className="pt-4 space-y-4">
+                <div className="flex items-center space-x-2 bg-muted/20 p-4 rounded-md border border-border/50">
                   <Checkbox
                     id="terms"
                     checked={contractAccepted}
@@ -485,7 +485,7 @@ export default function Checkout() {
 
             <Card className="border-border shadow-md overflow-hidden">
               <CardHeader className="bg-muted/30">
-                <CardTitle className="text-xl flex items-center gap-2">
+                <CardTitle className="text-subtitle flex items-center gap-2">
                   <Wallet className="h-5 w-5 text-accent" />
                   Método de Pagamento
                 </CardTitle>
@@ -493,7 +493,7 @@ export default function Checkout() {
                   Escolha como deseja realizar o pagamento seguro.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className="pt-4">
                 <RadioGroup
                   value={formData.paymentMethod}
                   onValueChange={(value) =>
@@ -528,7 +528,7 @@ export default function Checkout() {
                       htmlFor="stripe_pix"
                       className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-accent [&:has([data-state=checked])]:border-accent cursor-pointer transition-all h-full"
                     >
-                      <div className="mb-3 h-6 w-6 flex items-center justify-center font-bold text-xs bg-[#32bcad] text-white rounded-sm">
+                      <div className="mb-3 h-6 w-6 flex items-center justify-center font-bold text-xs bg-primary text-white rounded-sm">
                         PIX
                       </div>
                       <span className="font-semibold">Stripe PIX</span>
@@ -577,7 +577,7 @@ export default function Checkout() {
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
-                    className="mt-6 space-y-4 pt-6 border-t border-border"
+                    className="mt-4 space-y-4 pt-4 border-t border-border"
                   >
                     <div className="space-y-4">
                       <h3 className="font-semibold text-sm">Opção Parcelow</h3>
@@ -653,7 +653,7 @@ export default function Checkout() {
                           <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="grid gap-4 sm:grid-cols-2 bg-muted/40 p-4 rounded-lg border border-border mt-2"
+                            className="grid gap-4 sm:grid-cols-2 bg-muted/40 p-4 rounded-md border border-border mt-2"
                           >
                             <div className="space-y-2">
                               <Label htmlFor="payerName">Nome Completo</Label>
@@ -729,7 +729,7 @@ export default function Checkout() {
                   </motion.div>
                 )}
               </CardContent>
-              <CardFooter className="bg-muted/10 border-t flex-col gap-3 py-6">
+              <CardFooter className="bg-muted/10 border-t flex-col gap-3 py-4">
                 <Button
                   form="checkout-form"
                   type="submit"
@@ -753,12 +753,12 @@ export default function Checkout() {
           </div>
 
           {/* Sidebar / Summary */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <Card className="border-accent/30 shadow-md">
               <CardHeader className="bg-accent/5">
                 <CardTitle className="text-lg">Resumo do Pedido</CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 space-y-4">
+              <CardContent className="pt-4 space-y-4">
                 <div className="flex justify-between items-start gap-4">
                   <div>
                     <p className="font-bold text-foreground">
@@ -825,7 +825,7 @@ export default function Checkout() {
                 <div className="border-t border-border pt-4 flex justify-between items-baseline">
                   <span className="font-display font-bold text-lg">Total</span>
                   <div className="text-right">
-                    <span className="font-display font-bold text-2xl text-accent block">
+                    <span className="font-display font-bold text-title text-accent block">
                       {formatCurrency(totalPrice, isPix ? "BRL" : "USD")}
                     </span>
                     {isPix && (
@@ -858,7 +858,7 @@ export default function Checkout() {
               </CardFooter>
             </Card>
 
-            <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800">
+            <div className="p-4 rounded-md bg-amber-50 border border-amber-200 text-xs text-amber-800">
               <p className="leading-relaxed">
                 <strong>Atenção:</strong> Ao clicar em "Confirmar e Continuar",
                 você declara estar ciente de que a Aplikei não é um escritório

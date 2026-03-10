@@ -104,7 +104,7 @@ export function AdminVerticalTimeline({
           if (!isExpanded && index > effectiveIndex && index > 2) return null;
 
           return (
-            <div key={step.id} className="relative flex gap-4 pb-6 last:pb-0">
+            <div key={step.id} className="relative flex gap-4 pb-4 last:pb-0">
               {/* Line */}
               {index !==
                 (isExpanded
@@ -167,7 +167,7 @@ export function AdminVerticalTimeline({
 
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-center gap-1.5 py-2 text-[10px] font-bold uppercase tracking-wider text-accent hover:bg-accent/5 rounded-lg transition-colors border border-accent/10 border-dashed"
+        className="w-full flex items-center justify-center gap-1.5 py-2 text-[10px] font-bold uppercase tracking-wider text-accent hover:bg-accent/5 rounded-md transition-colors border border-accent/10 border-dashed"
       >
         {isExpanded ? (
           <>

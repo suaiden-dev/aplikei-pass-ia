@@ -248,11 +248,11 @@ export default function UserProcesses() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <Skeleton className="h-10 w-48" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-48 w-full rounded-2xl" />
+            <Skeleton key={i} className="h-48 w-full rounded-md" />
           ))}
         </div>
       </div>
@@ -260,9 +260,9 @@ export default function UserProcesses() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <header>
-        <h1 className="font-display text-3xl font-bold text-foreground tracking-tight">
+        <h1 className="font-display text-title-xl font-bold text-foreground tracking-tight">
           {lang === "pt" ? "Meus Processos" : "My Processes"}
         </h1>
         <p className="mt-1 text-muted-foreground">
@@ -273,9 +273,9 @@ export default function UserProcesses() {
       </header>
 
       <section>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {services.length === 0 ? (
-            <div className="col-span-full py-12 text-center rounded-2xl border-2 border-dashed border-border">
+            <div className="col-span-full py-12 text-center rounded-md border-2 border-dashed border-border">
               <p className="text-muted-foreground">
                 {lang === "pt"
                   ? "Você ainda não possui processos ativos."
@@ -290,10 +290,10 @@ export default function UserProcesses() {
                 animate={{ opacity: 1, y: 0 }}
                 onClick={() => handleServiceClick(s)}
                 disabled={checkingSelfie === s.id}
-                className={`relative text-left p-6 rounded-2xl border-2 border-border bg-card hover:border-primary/40 transition-all duration-300 group shadow-sm hover:shadow-lg ${checkingSelfie === s.id ? "opacity-70 cursor-wait" : ""}`}
+                className={`relative text-left p-4 rounded-md border-2 border-border bg-card hover:border-primary/40 transition-all duration-300 group shadow-sm hover:shadow-lg ${checkingSelfie === s.id ? "opacity-70 cursor-wait" : ""}`}
               >
                 <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+                  <div className="p-3 rounded-md bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
                     <FileText className="w-6 h-6" />
                   </div>
                   <Badge
@@ -304,7 +304,7 @@ export default function UserProcesses() {
                   </Badge>
                 </div>
 
-                <h3 className="font-bold text-xl text-foreground mb-1 uppercase tracking-tight">
+                <h3 className="font-bold text-subtitle text-foreground mb-1 uppercase tracking-tight">
                   {s.service_slug?.replace("-", " ")}
                 </h3>
 
@@ -324,7 +324,7 @@ export default function UserProcesses() {
                   <Progress value={s.calculatedProgress} className="h-2" />
                 </div>
 
-                <div className="mt-6 flex items-center gap-1 text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0">
+                <div className="mt-4 flex items-center gap-1 text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0">
                   {lang === "pt" ? "ACESSAR DETALHES" : "ACCESS DETAILS"}
                   <ChevronRight className="w-4 h-4" />
                 </div>
@@ -337,7 +337,7 @@ export default function UserProcesses() {
       <Dialog open={isSelfieModalOpen} onOpenChange={setIsSelfieModalOpen}>
         <DialogContent className="sm:max-w-[450px] rounded-3xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+            <DialogTitle className="flex items-center gap-2 text-subtitle font-bold">
               <Camera className="w-5 h-5 text-primary" />
               {lang === "pt"
                 ? "Verificação de Identidade Necessária"
@@ -350,8 +350,8 @@ export default function UserProcesses() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
-            <div className="flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-border group relative overflow-hidden">
+          <div className="space-y-4 py-4">
+            <div className="flex flex-col items-center justify-center p-5 bg-slate-50 dark:bg-slate-900 rounded-md border border-dashed border-border group relative overflow-hidden">
               {selfieFile ? (
                 <div className="flex flex-col items-center space-y-3">
                   <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
@@ -393,7 +393,7 @@ export default function UserProcesses() {
             </div>
 
             <Button
-              className="w-full bg-primary text-white hover:bg-primary/90 font-bold h-12 rounded-xl shadow-lg shadow-primary/20"
+              className="w-full bg-primary text-white hover:bg-primary/90 font-bold h-12 rounded-md shadow-lg shadow-primary/20"
               disabled={!selfieFile || uploadingSelfie}
               onClick={handleSelfieUpload}
             >

@@ -52,13 +52,13 @@ export default function Signup() {
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center py-12">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md rounded-xl border border-border bg-card p-8 shadow-card">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md rounded-md border border-border bg-card p-5 shadow-card">
         <div className="text-center">
-          <Link to="/" className="font-display text-2xl font-bold text-primary">Aplikei</Link>
-          <h1 className="mt-4 font-display text-2xl font-bold text-foreground">{p.title[lang]}</h1>
+          <Link to="/" className="font-display text-title font-bold text-primary">Aplikei</Link>
+          <h1 className="mt-4 font-display text-title font-bold text-foreground">{p.title[lang]}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{p.subtitle[lang]}</p>
         </div>
-        <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+        <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="name">{p.fullName[lang]}</Label>
             <Input id="name" onChange={(e) => setName(e.target.value)} className="mt-1" />
@@ -82,7 +82,7 @@ export default function Signup() {
               required
             />
           </div>
-          <div className="rounded-lg border-2 border-amber-300/50 bg-amber-50/60 p-4">
+          <div className="rounded-md border-2 border-amber-300/50 bg-amber-50/60 p-4">
             <div className="flex items-start gap-2">
               <Shield className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
               <p className="text-xs text-foreground/70">{p.disclaimer[lang]}</p>
@@ -102,7 +102,7 @@ export default function Signup() {
             {p.submit[lang]}
           </Button>
         </form>
-        <p className="mt-6 text-center text-sm text-muted-foreground">
+        <p className="mt-4 text-center text-sm text-muted-foreground">
           {p.hasAccount[lang]}{" "}
           <Link to="/login" className="font-medium text-accent hover:underline">{p.loginLink[lang]}</Link>
         </p>

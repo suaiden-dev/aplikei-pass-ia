@@ -38,7 +38,7 @@ export const DocumentsStep = ({
       <p className="text-sm text-muted-foreground">{o.documentsDesc[lang]}</p>
 
       {serviceSlug === "visto-b1-b2" ? (
-        <div className="flex items-start gap-4 p-5 rounded-xl border border-accent/20 bg-accent/5">
+        <div className="flex items-start gap-4 p-5 rounded-md border border-accent/20 bg-accent/5">
           <div className="shrink-0 mt-0.5">
             <CheckCircle2 className="h-5 w-5 text-accent" />
           </div>
@@ -62,7 +62,7 @@ export const DocumentsStep = ({
             return (
               <div
                 key={i}
-                className="flex flex-col gap-3 rounded-lg border border-border p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-3 rounded-md border border-border p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-foreground">{doc}</span>

@@ -49,7 +49,7 @@ export function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-[380px] p-0 shadow-2xl rounded-2xl border-accent/20 overflow-hidden"
+        className="w-[380px] p-0 shadow-2xl rounded-md border-accent/20 overflow-hidden"
       >
         <div className="flex items-center justify-between p-4 bg-muted/30 border-b border-accent/10">
           <div className="flex items-center gap-2">
@@ -73,7 +73,7 @@ export function NotificationBell() {
 
         <div className="max-h-[400px] overflow-y-auto">
           {notifications.length === 0 ? (
-            <div className="p-8 text-center flex flex-col items-center justify-center">
+            <div className="p-5 text-center flex flex-col items-center justify-center">
               <Bell className="h-8 w-8 text-muted-foreground/30 mb-3" />
               <p className="text-sm text-muted-foreground font-medium">
                 Nenhuma notificação

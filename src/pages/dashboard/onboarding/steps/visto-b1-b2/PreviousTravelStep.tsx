@@ -18,7 +18,7 @@ export const PreviousTravelStep = ({
   const hasImmigrationPetition = watch("hasImmigrationPetition");
 
   return (
-    <div className="space-y-6 fade-in">
+    <div className="space-y-4 fade-in">
       <h2 className="font-display text-lg font-semibold text-foreground">
         {ds.previousTravel.title[lang]}
       </h2>

@@ -25,17 +25,17 @@ export default function Services() {
         </motion.h1>
         <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">{p.subtitle[lang]}</p>
 
-        <div className="mt-12 space-y-8">
+        <div className="mt-12 space-y-5">
           {t.servicesData.map((s, i) => (
-            <motion.div key={s.slug} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }} className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+            <motion.div key={s.slug} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }} className="overflow-hidden rounded-md border border-border bg-card shadow-card">
               <div className="flex flex-col md:flex-row">
-                <div className="border-b border-border p-6 md:w-1/3 md:border-b-0 md:border-r">
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                <div className="border-b border-border p-4 md:w-1/3 md:border-b-0 md:border-r">
+                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-md bg-accent/10 text-accent">
                     {iconMap[iconKeys[i]]}
                   </div>
-                  <h2 className="font-display text-xl font-bold text-foreground">{s.shortTitle[lang]}</h2>
+                  <h2 className="font-display text-subtitle font-bold text-foreground">{s.shortTitle[lang]}</h2>
                   <p className="mt-1 text-sm text-muted-foreground">{s.subtitle[lang]}</p>
-                  <p className="mt-4 font-display text-2xl font-bold text-accent">{s.price[lang]}</p>
+                  <p className="mt-4 font-display text-title font-bold text-accent">{s.price[lang]}</p>
                   <div className="mt-4">
                     <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{p.forWhom[lang]}</h4>
                     <ul className="mt-2 space-y-1">
@@ -49,8 +49,8 @@ export default function Services() {
                   </div>
                 </div>
 
-                <div className="flex-1 p-6">
-                  <div className="grid gap-6 md:grid-cols-2">
+                <div className="flex-1 p-4">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-accent">{p.includes[lang]}</h4>
                       <ul className="space-y-1.5">
@@ -74,7 +74,7 @@ export default function Services() {
                       </ul>
                     </div>
                   </div>
-                  <div className="mt-6">
+                  <div className="mt-4">
                     <Button className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark" asChild>
                       <Link to={`/servicos/${s.slug}`}>
                         {p.viewFull[lang]} <ChevronRight className="ml-1 h-4 w-4" />

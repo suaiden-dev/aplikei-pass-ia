@@ -133,9 +133,9 @@ export default function AdminOrderDetail() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <Skeleton className="h-10 w-48" />
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-3">
           <Skeleton className="h-64 lg:col-span-2" />
           <Skeleton className="h-64" />
         </div>
@@ -146,7 +146,7 @@ export default function AdminOrderDetail() {
   if (!order) return <div>Pedido não encontrado.</div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -156,7 +156,7 @@ export default function AdminOrderDetail() {
           <ChevronLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h2 className="font-display text-2xl font-bold text-foreground">
+          <h2 className="font-display text-title font-bold text-foreground">
             Pedido #{order.order_number}
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -172,9 +172,9 @@ export default function AdminOrderDetail() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         {/* Coluna Principal */}
-        <div className="space-y-6 lg:col-span-2">
+        <div className="space-y-4 lg:col-span-2">
           {/* Resumo do Pedido */}
           <Card>
             <CardHeader>
@@ -202,7 +202,7 @@ export default function AdminOrderDetail() {
                 <p className="text-xs text-muted-foreground uppercase">
                   Valor Total
                 </p>
-                <p className="text-xl font-bold text-primary">
+                <p className="text-subtitle font-bold text-primary">
                   {formatCurrency(order.total_price_usd)}
                 </p>
               </div>
@@ -225,9 +225,9 @@ export default function AdminOrderDetail() {
                 Aprovações e Contratos
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               {/* Status do Contrato */}
-              <div className="rounded-lg border p-4 bg-muted/30">
+              <div className="rounded-md border p-4 bg-muted/30">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="font-semibold">Contrato de Serviço</p>
@@ -286,7 +286,7 @@ export default function AdminOrderDetail() {
               </div>
 
               {/* Status do Anexo */}
-              <div className="rounded-lg border p-4 bg-muted/30">
+              <div className="rounded-md border p-4 bg-muted/30">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="font-semibold">Anexo/Termos Adicionais</p>
@@ -355,7 +355,7 @@ export default function AdminOrderDetail() {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Dados do Cliente */}
           <Card>
             <CardHeader>

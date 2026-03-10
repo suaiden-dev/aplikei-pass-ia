@@ -112,12 +112,12 @@ export default function Chat() {
   return (
     <div className="flex h-[calc(100dvh-8rem)] flex-col md:h-[calc(100vh-4rem)]">
       <div className="mb-4">
-        <h1 className="font-display text-2xl font-bold text-foreground">
+        <h1 className="font-display text-title font-bold text-foreground">
           {c.title[lang]}
         </h1>
         <p className="text-sm text-muted-foreground">{c.subtitle[lang]}</p>
       </div>
-      <div className="flex-1 overflow-y-auto rounded-xl border border-border bg-card p-4 shadow-card">
+      <div className="flex-1 overflow-y-auto rounded-md border border-border bg-card p-4 shadow-card">
         <div className="space-y-4">
           {loading ? (
             <div className="space-y-4">
@@ -128,7 +128,7 @@ export default function Chat() {
                 >
                   <Skeleton className="h-8 w-8 rounded-full" />
                   <Skeleton
-                    className={`h-12 w-[70%] rounded-xl ${i % 2 === 0 ? "bg-accent/20" : "bg-muted"}`}
+                    className={`h-12 w-[70%] rounded-md ${i % 2 === 0 ? "bg-accent/20" : "bg-muted"}`}
                   />
                 </div>
               ))}
@@ -150,7 +150,7 @@ export default function Chat() {
                     )}
                   </div>
                   <div
-                    className={`max-w-[85%] rounded-xl px-4 py-3 text-sm md:max-w-[80%] ${msg.role === "assistant" ? "bg-muted text-foreground" : "bg-accent text-accent-foreground"}`}
+                    className={`max-w-[85%] rounded-md px-4 py-3 text-sm md:max-w-[80%] ${msg.role === "assistant" ? "bg-muted text-foreground" : "bg-accent text-accent-foreground"}`}
                   >
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   </div>
@@ -163,7 +163,7 @@ export default function Chat() {
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
                 <Bot className="h-4 w-4" />
               </div>
-              <div className="max-w-[80%] rounded-xl bg-muted px-4 py-3 text-sm text-foreground">
+              <div className="max-w-[80%] rounded-md bg-muted px-4 py-3 text-sm text-foreground">
                 <div className="flex gap-1">
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent/40 [animation-delay:-0.3s]"></span>
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent/40 [animation-delay:-0.15s]"></span>

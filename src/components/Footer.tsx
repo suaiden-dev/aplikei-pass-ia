@@ -8,9 +8,9 @@ export default function Footer() {
   return (
     <footer className="border-t border-border bg-primary text-primary-foreground">
       <div className="container py-12">
-        <div className="grid gap-8 md:grid-cols-4">
+        <div className="grid gap-5 md:grid-cols-4">
           <div>
-            <img src={logoAplikei} alt="Aplikei" className="h-28 w-auto -my-6 object-contain" />
+            <img src={logoAplikei} alt="Aplikei" className="h-28 w-auto -my-4 object-contain" />
             <p className="mt-2 text-sm text-primary-foreground/70">{t.footer.tagline[lang]}</p>
           </div>
 
@@ -52,7 +52,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-primary-foreground/10 pt-6">
+        <div className="mt-6 border-t border-primary-foreground/10 pt-4">
           <p className="text-center text-xs text-primary-foreground/40">
             © {new Date().getFullYear()} Aplikei. {t.footer.copyright[lang]}
           </p>

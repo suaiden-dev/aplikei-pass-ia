@@ -34,16 +34,16 @@ export default function Index() {
       {/* Hero */}
       <section className="bg-hero relative overflow-hidden py-20 md:py-28">
         <div className="container relative z-10">
-          <div className="grid items-center gap-10 md:grid-cols-2">
+          <div className="grid items-center gap-6 md:grid-cols-2">
             <div>
               <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="font-display text-4xl font-extrabold leading-tight text-primary-foreground md:text-5xl lg:text-6xl">
                 {t.hero.title[lang]}{" "}<span className="text-gradient-accent">{t.hero.titleHighlight[lang]}</span>
               </motion.h1>
-              <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.6 }} className="mt-6 max-w-lg text-lg text-primary-foreground/75">
+              <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.6 }} className="mt-4 max-w-lg text-lg text-primary-foreground/75">
                 {t.hero.subtitle[lang]}
               </motion.p>
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }} className="mt-10 flex flex-col gap-4 sm:flex-row">
-                <Button size="lg" className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark px-8 text-base font-bold" asChild>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }} className="mt-6 flex flex-col gap-4 sm:flex-row">
+                <Button size="lg" className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark px-5 text-base font-bold" asChild>
                   <Link to="/servicos">{t.hero.cta[lang]}</Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10" asChild>
@@ -52,7 +52,7 @@ export default function Index() {
               </motion.div>
             </div>
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.7 }} className="hidden md:block">
-              <img src={heroIllustration} alt="Passport and checklist" className="mx-auto max-w-md rounded-2xl" />
+              <img src={heroIllustration} alt="Passport and checklist" className="mx-auto max-w-md rounded-md" />
             </motion.div>
           </div>
         </div>
@@ -63,14 +63,14 @@ export default function Index() {
       {/* Services */}
       <section className="py-20">
         <div className="container">
-          <h2 className="text-center font-display text-3xl font-bold text-foreground md:text-4xl">{t.servicesSection.title[lang]}</h2>
+          <h2 className="text-center font-display text-title-xl font-bold text-foreground md:text-4xl">{t.servicesSection.title[lang]}</h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">{t.servicesSection.subtitle[lang]}</p>
           <p className="mx-auto mt-4 text-center font-display text-lg font-bold text-accent animate-pulse">{t.servicesSection.promo[lang]}</p>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {t.servicesData.map((s, i) => (
               <motion.div key={s.slug} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-                <Link to={`/servicos/${s.slug}`} className="group flex h-full flex-col rounded-xl border border-border bg-card p-6 shadow-card transition-all hover:shadow-card-hover hover:border-accent/40">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                <Link to={`/servicos/${s.slug}`} className="group flex h-full flex-col rounded-md border border-border bg-card p-4 shadow-card transition-all hover:shadow-card-hover hover:border-accent/40">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-accent/10 text-accent">
                     {iconMap[["plane", "graduation-cap", "clock", "repeat"][i]]}
                   </div>
                   <h3 className="font-display text-base font-semibold text-foreground">{s.shortTitle[lang]}</h3>
@@ -79,7 +79,7 @@ export default function Index() {
                     <span className="text-sm text-muted-foreground line-through">{s.originalPrice[lang]}</span>
                     <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-xs font-bold text-accent">{t.servicesSection.discount[lang]}</span>
                   </div>
-                  <p className="mt-1 font-display text-2xl font-extrabold text-accent">{s.price[lang]}</p>
+                  <p className="mt-1 font-display text-title font-extrabold text-accent">{s.price[lang]}</p>
                   <span className="mt-auto flex items-center gap-1 pt-4 text-sm font-medium text-accent group-hover:underline">
                     {t.servicesSection.viewDetails[lang]} <ChevronRight className="h-4 w-4" />
                   </span>
@@ -93,7 +93,7 @@ export default function Index() {
       {/* Banner */}
       <section className="py-0">
         <div className="container">
-          <div className="overflow-hidden rounded-2xl">
+          <div className="overflow-hidden rounded-md">
             <img src={servicesBanner} alt="Travel and immigration" className="h-48 w-full object-cover md:h-64" />
           </div>
         </div>
@@ -102,16 +102,16 @@ export default function Index() {
       {/* How it works */}
       <section className="py-20">
         <div className="container">
-          <h2 className="text-center font-display text-3xl font-bold text-foreground md:text-4xl">{t.howItWorksSection.title[lang]}</h2>
+          <h2 className="text-center font-display text-title-xl font-bold text-foreground md:text-4xl">{t.howItWorksSection.title[lang]}</h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">{t.howItWorksSection.subtitle[lang]}</p>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="mt-12 grid gap-4 md:grid-cols-3">
             {[
               { step: "1", title: t.howItWorksSection.step1Title[lang], desc: t.howItWorksSection.step1Desc[lang], icon: <BookOpen className="h-7 w-7 text-accent" /> },
               { step: "2", title: t.howItWorksSection.step2Title[lang], desc: t.howItWorksSection.step2Desc[lang], icon: <Shield className="h-7 w-7 text-accent" /> },
               { step: "3", title: t.howItWorksSection.step3Title[lang], desc: t.howItWorksSection.step3Desc[lang], icon: <FileText className="h-7 w-7 text-accent" /> },
             ].map((item, i) => (
-              <motion.div key={item.step} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="group rounded-xl border border-border bg-card p-6 shadow-card transition-shadow hover:shadow-card-hover">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10">{item.icon}</div>
+              <motion.div key={item.step} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="group rounded-md border border-border bg-card p-4 shadow-card transition-shadow hover:shadow-card-hover">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-accent/10">{item.icon}</div>
                 <h3 className="font-display text-lg font-semibold text-foreground">{item.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{item.desc}</p>
               </motion.div>
@@ -123,15 +123,15 @@ export default function Index() {
       {/* What you get */}
       <section className="border-t border-border bg-muted/50 py-20">
         <div className="container">
-          <h2 className="text-center font-display text-3xl font-bold text-foreground md:text-4xl">{t.whatYouGet.title[lang]}</h2>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <h2 className="text-center font-display text-title-xl font-bold text-foreground md:text-4xl">{t.whatYouGet.title[lang]}</h2>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { image: checklistIllustration, title: t.whatYouGet.guide[lang], desc: t.whatYouGet.guideDesc[lang] },
               { image: aiIllustration, title: t.whatYouGet.ai[lang], desc: t.whatYouGet.aiDesc[lang], badge: t.whatYouGet.bonus[lang] },
               { image: supportIllustration, title: t.whatYouGet.support[lang], desc: t.whatYouGet.supportDesc[lang], badge: t.whatYouGet.bonus[lang] },
               { image: pdfIllustration, title: t.whatYouGet.pdf[lang], desc: t.whatYouGet.pdfDesc[lang] },
             ].map((item, i) => (
-              <motion.div key={i} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="relative rounded-xl border border-border bg-card p-6 shadow-card transition-shadow hover:shadow-card-hover">
+              <motion.div key={i} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="relative rounded-md border border-border bg-card p-4 shadow-card transition-shadow hover:shadow-card-hover">
                 {item.badge && <span className="absolute right-4 top-4 rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-semibold text-accent">{item.badge}</span>}
                 <img src={item.image} alt={item.title} className="mb-4 h-20 w-20 object-contain" />
                 <h3 className="font-display text-base font-semibold text-foreground">{item.title}</h3>
@@ -145,10 +145,10 @@ export default function Index() {
       {/* Testimonials */}
       <section className="py-20">
         <div className="container">
-          <h2 className="text-center font-display text-3xl font-bold text-foreground md:text-4xl">{t.testimonials.title[lang]}</h2>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <h2 className="text-center font-display text-title-xl font-bold text-foreground md:text-4xl">{t.testimonials.title[lang]}</h2>
+          <div className="mt-12 grid gap-4 md:grid-cols-3">
             {t.testimonials.items.map((item, i) => (
-              <motion.div key={i} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="flex flex-col rounded-xl border border-border bg-card p-6 shadow-card">
+              <motion.div key={i} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="flex flex-col rounded-md border border-border bg-card p-4 shadow-card">
                 <Quote className="mb-3 h-8 w-8 text-accent/30" />
                 <div className="mb-4 flex gap-1">
                   {[...Array(5)].map((_, j) => (
@@ -166,8 +166,8 @@ export default function Index() {
       {/* FAQ */}
       <section className="border-t border-border bg-muted/50 py-20">
         <div className="container max-w-3xl">
-          <h2 className="text-center font-display text-3xl font-bold text-foreground md:text-4xl">{t.faq.title[lang]}</h2>
-          <Accordion type="single" collapsible className="mt-10">
+          <h2 className="text-center font-display text-title-xl font-bold text-foreground md:text-4xl">{t.faq.title[lang]}</h2>
+          <Accordion type="single" collapsible className="mt-6">
             {t.faq.items.map((item, i) => (
               <AccordionItem key={i} value={`faq-${i}`}>
                 <AccordionTrigger className="text-left font-medium text-foreground">{item.q[lang]}</AccordionTrigger>
@@ -181,7 +181,7 @@ export default function Index() {
       {/* Disclaimers */}
       <section className="py-16">
         <div className="container max-w-3xl">
-          <div className="rounded-xl border-2 border-amber-300/50 bg-amber-50/60 p-6 md:p-8">
+          <div className="rounded-md border-2 border-amber-300/50 bg-amber-50/60 p-4 md:p-5">
             <h3 className="flex items-center gap-2 font-display text-lg font-bold text-foreground">
               <Shield className="h-5 w-5 text-amber-600" />
               {t.disclaimers.title[lang]}

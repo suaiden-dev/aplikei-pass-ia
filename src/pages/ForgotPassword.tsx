@@ -64,7 +64,7 @@ function OtpBoxes({ value, onChange }: { value: string; onChange: (v: string) =>
                     onFocus={e => e.target.select()}
                     autoFocus={i === 0}
                     className={`
-                        w-11 h-14 text-center text-xl font-bold font-mono rounded-xl border-2 transition-all duration-150
+                        w-11 h-14 text-center text-subtitle font-bold font-mono rounded-md border-2 transition-all duration-150
                         bg-background text-foreground outline-none
                         ${digits[i] ? "border-accent shadow-[0_0_0_3px_hsl(var(--accent)/0.15)]" : "border-border"}
                         focus:border-accent focus:shadow-[0_0_0_3px_hsl(var(--accent)/0.2)]
@@ -160,10 +160,10 @@ export default function ForgotPassword() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-card"
+                className="w-full max-w-md rounded-md border border-border bg-card p-5 shadow-card"
             >
                 {/* Logo + Voltar */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-4">
                     {step === "otp" ? (
                         <button
                             onClick={() => { setStep("email"); setError(null); setOtp(""); }}
@@ -178,23 +178,23 @@ export default function ForgotPassword() {
                             {p.backToLogin[lang]}
                         </Link>
                     )}
-                    <Link to="/" className="font-display text-xl font-bold text-primary">Aplikei</Link>
+                    <Link to="/" className="font-display text-subtitle font-bold text-primary">Aplikei</Link>
                 </div>
 
                 <AnimatePresence mode="wait">
                     {step === "email" ? (
                         <motion.div key="email" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                             {/* Ícone */}
-                            <div className="mb-6 flex flex-col items-center text-center">
+                            <div className="mb-4 flex flex-col items-center text-center">
                                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 border border-accent/20">
                                     <Mail className="h-8 w-8 text-accent" />
                                 </div>
-                                <h1 className="font-display text-2xl font-bold text-foreground">{p.title[lang]}</h1>
+                                <h1 className="font-display text-title font-bold text-foreground">{p.title[lang]}</h1>
                                 <p className="mt-2 text-sm text-muted-foreground">{p.subtitle[lang]}</p>
                             </div>
 
                             {error && (
-                                <div className="mb-4 flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+                                <div className="mb-4 flex items-center gap-2 rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
                                     <AlertCircle className="h-4 w-4 shrink-0" />
                                     {error}
                                 </div>
@@ -210,7 +210,7 @@ export default function ForgotPassword() {
                                             type="email"
                                             value={email}
                                             onChange={e => setEmail(e.target.value)}
-                                            className="pl-10"
+                                            className="pl-6"
                                             required
                                             autoFocus
                                         />
@@ -228,18 +228,18 @@ export default function ForgotPassword() {
                     ) : (
                         <motion.div key="otp" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                             {/* Ícone */}
-                            <div className="mb-6 flex flex-col items-center text-center">
+                            <div className="mb-4 flex flex-col items-center text-center">
                                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 border border-accent/20">
                                     <KeyRound className="h-8 w-8 text-accent" />
                                 </div>
-                                <h1 className="font-display text-2xl font-bold text-foreground">{p.otpTitle[lang]}</h1>
+                                <h1 className="font-display text-title font-bold text-foreground">{p.otpTitle[lang]}</h1>
                                 <p className="mt-2 text-sm text-muted-foreground">
                                     {p.otpSubtitle[lang]} <strong className="text-foreground">{email}</strong>
                                 </p>
                             </div>
 
                             {error && (
-                                <div className="mb-4 flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+                                <div className="mb-4 flex items-center gap-2 rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
                                     <AlertCircle className="h-4 w-4 shrink-0" />
                                     {error}
                                 </div>

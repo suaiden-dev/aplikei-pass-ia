@@ -9,7 +9,7 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
     const hasUSContact = watch("hasUSContact");
 
     return (
-        <div className="space-y-6 fade-in">
+        <div className="space-y-4 fade-in">
             <h2 className="font-display text-lg font-semibold text-foreground">{ds.contact.title[lang]}</h2>
 
             <div className="space-y-3">
@@ -31,7 +31,7 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
                 <p className="text-xs text-muted-foreground mt-1">{ds.contact.contactHelper[lang]}</p>
             </div>
 
-            <div className="space-y-6 rounded-lg border border-border p-6 bg-muted/30">
+            <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30">
                 <div className="bg-primary/10 p-4 rounded-md border border-primary/20 text-xs text-primary leading-relaxed">
                     <strong>{lang === 'pt' ? '📌 Orientações importantes:' : '📌 Important Guidance:'}</strong>
                     <ul className="list-disc ml-4 mt-2 space-y-1">
@@ -41,7 +41,7 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
                     </ul>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <Label htmlFor="contactName" className="font-medium text-sm">
@@ -116,7 +116,7 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
                 </div>
             </div>
 
-            <div className="space-y-4 border-t border-border pt-6">
+            <div className="space-y-4 border-t border-border pt-4">
                 <h3 className="text-md font-medium">{ds.contact.addressPhone[lang]}</h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="md:col-span-2 space-y-2">

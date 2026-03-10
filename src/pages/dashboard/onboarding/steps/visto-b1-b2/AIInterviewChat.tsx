@@ -209,11 +209,11 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
   return (
     <div className="flex flex-col h-[600px] max-w-3xl mx-auto bg-card border border-border rounded-[40px] shadow-2xl overflow-hidden animate-in fade-in slide-in-from-right-4 duration-500">
       {/* Header */}
-      <header className="p-6 border-b border-border bg-muted/20 flex items-center justify-between">
+      <header className="p-4 border-b border-border bg-muted/20 flex items-center justify-between">
         <Button
           variant="ghost"
           onClick={onBack}
-          className="group hover:bg-white dark:hover:bg-slate-800 rounded-2xl px-4 gap-2"
+          className="group hover:bg-white dark:hover:bg-slate-800 rounded-md px-4 gap-2"
         >
           <ChevronLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
           <span className="font-bold">
@@ -221,7 +221,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
           </span>
         </Button>
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center text-white shadow-lg shadow-accent/20">
+          <div className="h-10 w-10 rounded-md bg-accent flex items-center justify-center text-white shadow-lg shadow-accent/20">
             <Bot className="h-6 w-6" />
           </div>
           <div className="hidden sm:block">
@@ -236,7 +236,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-xl text-muted-foreground hover:text-accent"
+          className="rounded-md text-muted-foreground hover:text-accent"
           onClick={handleRestart}
           title={lang === "pt" ? "Recomeçar" : "Restart"}
         >
@@ -247,7 +247,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
       {/* Chat Area */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-90"
+        className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-90"
       >
         {messages.map((msg) => (
           <div
@@ -259,7 +259,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
           >
             <div
               className={cn(
-                "h-8 w-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm",
+                "h-8 w-8 rounded-md flex items-center justify-center shrink-0 shadow-sm",
                 msg.role === "assistant"
                   ? "bg-accent text-white"
                   : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300",
@@ -285,7 +285,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
         ))}
         {isTyping && (
           <div className="flex items-start gap-3 animate-pulse">
-            <div className="h-8 w-8 rounded-lg bg-accent text-white flex items-center justify-center shrink-0">
+            <div className="h-8 w-8 rounded-md bg-accent text-white flex items-center justify-center shrink-0">
               <Sparkles className="h-4 w-4" />
             </div>
             <div className="p-4 bg-muted/40 rounded-3xl rounded-tl-none">
@@ -300,7 +300,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
       </div>
 
       {/* Input Area */}
-      <footer className="p-6 bg-white dark:bg-slate-900 border-t border-border">
+      <footer className="p-4 bg-white dark:bg-slate-900 border-t border-border">
         <div className="relative flex items-center gap-3">
           <Input
             value={input}
@@ -311,12 +311,12 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
                 ? "Digite sua resposta aqui..."
                 : "Type your answer here..."
             }
-            className="h-14 pl-6 pr-14 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl focus-visible:ring-accent font-medium shadow-inner"
+            className="h-14 pl-4 pr-14 bg-slate-50 dark:bg-slate-800/50 border-none rounded-md focus-visible:ring-accent font-medium shadow-inner"
           />
           <Button
             onClick={handleSend}
             disabled={!input.trim() || isTyping}
-            className="absolute right-1.5 h-11 w-11 rounded-xl bg-accent hover:bg-accent/90 text-white shadow-lg shadow-accent/20 transition-all active:scale-95"
+            className="absolute right-1.5 h-11 w-11 rounded-md bg-accent hover:bg-accent/90 text-white shadow-lg shadow-accent/20 transition-all active:scale-95"
           >
             <Send className="h-5 w-5" />
           </Button>

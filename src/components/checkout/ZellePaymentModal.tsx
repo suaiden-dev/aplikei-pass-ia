@@ -91,9 +91,9 @@ export const ZellePaymentModal = ({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-6 py-4">
+                <div className="space-y-4 py-4">
                     {/* Instruções de Transferência */}
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-md border border-dashed border-slate-200 dark:border-slate-700">
                         <div className="space-y-3 text-sm">
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground text-xs uppercase font-bold">E-mail Zelle:</span>
@@ -123,7 +123,7 @@ export const ZellePaymentModal = ({
                         <Label className="text-sm font-semibold">{lang === "pt" ? "Anexe o print do comprovante" : "Attach the proof screenshot"}</Label>
                         <label
                             htmlFor="zelle-upload"
-                            className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-10 transition-all duration-300 cursor-pointer relative ${file ? 'border-green-500/50 bg-green-50/30 dark:bg-green-500/5' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 hover:border-accent/40'
+                            className={`flex flex-col items-center justify-center border-2 border-dashed rounded-md p-6 transition-all duration-300 cursor-pointer relative ${file ? 'border-green-500/50 bg-green-50/30 dark:bg-green-500/5' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 hover:border-accent/40'
                                 }`}
                         >
                             <Input
@@ -158,7 +158,7 @@ export const ZellePaymentModal = ({
                     </div>
 
                     {error && (
-                        <div className="flex items-center gap-3 text-red-500 text-sm bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-900/30 animate-in shake-1 duration-300">
+                        <div className="flex items-center gap-3 text-red-500 text-sm bg-red-50 dark:bg-red-900/20 p-4 rounded-md border border-red-100 dark:border-red-900/30 animate-in shake-1 duration-300">
                             <AlertCircle className="h-5 w-5 shrink-0" />
                             <p className="font-medium">{error}</p>
                         </div>
@@ -173,7 +173,7 @@ export const ZellePaymentModal = ({
                     <Button
                         onClick={handleSubmit}
                         disabled={!file}
-                        className="bg-accent hover:bg-accent/90 text-white px-8 h-11 rounded-xl shadow-lg shadow-accent/20 transition-all active:scale-95"
+                        className="bg-accent hover:bg-accent/90 text-white px-5 h-11 rounded-md shadow-lg shadow-accent/20 transition-all active:scale-95"
                     >
                         {lang === "pt" ? "Confirmar Envio" : "Confirm Sending"}
                     </Button>

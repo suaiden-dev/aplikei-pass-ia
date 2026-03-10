@@ -15,7 +15,7 @@ export const TravelInfoStep = ({
   const travelPayer = watch("travelPayer");
 
   return (
-    <div className="space-y-6 fade-in">
+    <div className="space-y-4 fade-in">
       <h2 className="font-display text-lg font-semibold text-foreground">
         {ds.travel.title[lang]}
       </h2>
@@ -39,7 +39,7 @@ export const TravelInfoStep = ({
       </div>
 
       {hasSpecificTravelPlan === "yes" && (
-        <div className="space-y-4 rounded-lg border border-border p-4 bg-muted/30 scale-in-center">
+        <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30 scale-in-center">
           <p className="text-xs text-muted-foreground mb-2">
             {lang === "pt"
               ? "Aqui você coloca a data que chegará nos EUA. Essa data é apenas uma previsão de viagem, não significa que você tem que já estar com as passagens compradas. O próprio consulado recomenda às pessoas que comprem suas passagens somente após estarem com visto em mãos."
@@ -135,7 +135,7 @@ export const TravelInfoStep = ({
       )}
 
       {hasSpecificTravelPlan === "no" && (
-        <div className="space-y-4 rounded-lg border border-border p-4 bg-muted/30 scale-in-center">
+        <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30 scale-in-center">
           <p className="text-xs text-muted-foreground mb-2">
             {lang === "pt"
               ? "Aqui você coloca a data que chegará nos EUA. Essa data é apenas uma previsão de viagem, não significa que você tem que já estar com as passagens compradas."
@@ -209,7 +209,7 @@ export const TravelInfoStep = ({
             </p>
           </div>
 
-          <div className="space-y-4 border-t border-border pt-6">
+          <div className="space-y-4 border-t border-border pt-4">
             <h3 className="text-md font-medium">
               {ds.travel.stayAddress[lang]}
             </h3>
@@ -272,7 +272,7 @@ export const TravelInfoStep = ({
             </div>
           </div>
 
-          <div className="space-y-3 border-t border-border pt-6">
+          <div className="space-y-3 border-t border-border pt-4">
             <Label>{ds.travel.payer[lang]} *</Label>
             <select
               {...register("travelPayer")}

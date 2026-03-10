@@ -16,12 +16,12 @@ export const AddressPhoneStep = ({
   const hasOtherEmailLast5Years = watch("hasOtherEmailLast5Years");
 
   return (
-    <div className="space-y-6 fade-in">
+    <div className="space-y-4 fade-in">
       <h2 className="font-display text-lg font-semibold text-foreground">
         {ds.addressPhone.title[lang]}
       </h2>
 
-      <div className="space-y-4 rounded-lg border border-border p-4 bg-muted/30">
+      <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30">
         <h3 className="text-md font-medium">
           {ds.addressPhone.homeAddress[lang]}
         </h3>
@@ -172,7 +172,7 @@ export const AddressPhoneStep = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 border-t border-border pt-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t border-border pt-4">
         <div className="space-y-2">
           <Label htmlFor="mobilePhone">
             {ds.addressPhone.mobilePhone[lang]} *
@@ -207,7 +207,7 @@ export const AddressPhoneStep = ({
         </div>
       </div>
 
-      <div className="space-y-4 border-t border-border pt-6">
+      <div className="space-y-4 border-t border-border pt-4">
         <div className="space-y-3">
           <Label>{ds.addressPhone.otherPhone5Years[lang]} *</Label>
           <RadioGroup

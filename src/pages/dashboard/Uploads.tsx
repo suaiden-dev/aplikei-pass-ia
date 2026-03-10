@@ -143,17 +143,17 @@ export default function Uploads() {
       <div>
         <Skeleton className="h-8 w-48" />
         <Skeleton className="mt-2 h-4 w-64" />
-        <div className="mt-4 rounded-lg border border-border bg-card p-4">
+        <div className="mt-4 rounded-md border border-border bg-card p-4">
           <Skeleton className="h-4 w-full" />
         </div>
-        <div className="mt-6 space-y-3">
+        <div className="mt-4 space-y-3">
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-card md:flex-row md:items-center md:justify-between"
+              className="flex flex-col gap-3 rounded-md border border-border bg-card p-4 shadow-card md:flex-row md:items-center md:justify-between"
             >
               <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-lg" />
+                <Skeleton className="h-10 w-10 rounded-md" />
                 <div className="space-y-2">
                   <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-3 w-48" />
@@ -169,11 +169,11 @@ export default function Uploads() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-bold text-foreground">
+      <h1 className="font-display text-title font-bold text-foreground">
         {u.title[lang]}
       </h1>
       <p className="mt-1 text-muted-foreground">{u.subtitle[lang]}</p>
-      <div className="mt-4 rounded-lg border border-border bg-card p-4 shadow-card">
+      <div className="mt-4 rounded-md border border-border bg-card p-4 shadow-card">
         <p className="text-sm text-muted-foreground">
           💡{" "}
           <strong>
@@ -189,7 +189,7 @@ export default function Uploads() {
         onChange={(e) => selectedDocName && handleUpload(e, selectedDocName)}
       />
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-4 space-y-3">
         {expectedDocs.map((name, i) => {
           const doc = dbDocs.find((d) => d.name === name);
           const status = doc?.status || "pending";
@@ -199,7 +199,7 @@ export default function Uploads() {
           return (
             <div
               key={i}
-              className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-card md:flex-row md:items-center md:justify-between"
+              className="flex flex-col gap-3 rounded-md border border-border bg-card p-4 shadow-card md:flex-row md:items-center md:justify-between"
             >
               <div className="flex items-start gap-3 md:items-center">
                 <File className="mt-1 h-5 w-5 shrink-0 text-muted-foreground md:mt-0" />

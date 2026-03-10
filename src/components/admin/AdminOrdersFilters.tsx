@@ -64,7 +64,7 @@ export function AdminOrdersFilters({ onFilterChange }: AdminOrdersFiltersProps) 
     };
 
     return (
-        <div className="rounded-xl border border-border bg-card p-4">
+        <div className="rounded-md border border-border bg-card p-4">
             <div className="mb-4 flex items-center gap-2 font-medium text-foreground">
                 <Filter className="h-4 w-4" />
                 Filtros Avançados

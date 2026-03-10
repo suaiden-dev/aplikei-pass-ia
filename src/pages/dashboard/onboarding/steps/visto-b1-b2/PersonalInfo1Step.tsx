@@ -42,8 +42,8 @@ export const PersonalInfo1Step = ({
   };
 
   return (
-    <div className="space-y-6 fade-in">
-      <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 shadow-sm">
+    <div className="space-y-4 fade-in">
+      <div className="rounded-md border border-primary/20 bg-primary/5 p-5 shadow-sm">
         <div className="flex items-start gap-4">
           <div className="rounded-full bg-primary/10 p-2 text-primary">
             <AlertCircle className="h-5 w-5" />
@@ -63,7 +63,7 @@ export const PersonalInfo1Step = ({
         {ds.personal1.title[lang]}
       </h2>
 
-      <div className="space-y-3 pb-6 border-b border-border">
+      <div className="space-y-3 pb-4 border-b border-border">
         <Label htmlFor="interviewLocation">
           {ds.interview.location[lang]} *
         </Label>
@@ -100,7 +100,7 @@ export const PersonalInfo1Step = ({
         </div>
       </div>
 
-      <div className="space-y-4 rounded-lg border border-border p-4 bg-muted/30">
+      <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="lastName">{ds.personal1.lastName[lang]} *</Label>
@@ -203,7 +203,7 @@ export const PersonalInfo1Step = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 border-t border-border pt-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t border-border pt-4">
         <div className="space-y-3">
           <Label>{ds.personal1.gender[lang]} *</Label>
           <RadioGroup
@@ -254,7 +254,7 @@ export const PersonalInfo1Step = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t border-border pt-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t border-border pt-4">
         <div className="space-y-2">
           <Label htmlFor="birthDate">{ds.personal1.dob[lang]} *</Label>
           <Input id="birthDate" type="date" {...register("birthDate")} />

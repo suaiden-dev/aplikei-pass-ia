@@ -137,7 +137,7 @@ export function PhoneInput({
             className="w-[85px] justify-between px-2 shrink-0"
             disabled={disabled}
           >
-            <span className="text-xl mr-1">{selectedCountry.flag}</span>
+            <span className="text-subtitle mr-1">{selectedCountry.flag}</span>
             <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>

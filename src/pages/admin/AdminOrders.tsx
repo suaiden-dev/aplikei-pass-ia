@@ -101,10 +101,10 @@ export default function AdminOrders() {
         new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="font-display text-2xl font-bold text-foreground">Gestão de Pedidos</h2>
+                    <h2 className="font-display text-title font-bold text-foreground">Gestão de Pedidos</h2>
                     <p className="text-muted-foreground">Visualize e gerencie todas as vendas da plataforma.</p>
                 </div>
             </div>
@@ -114,7 +114,7 @@ export default function AdminOrders() {
                 fetchOrders(f);
             }} />
 
-            <div className="rounded-xl bg-card">
+            <div className="rounded-md bg-card">
                 <AdminDataTable
                     loading={loading}
                     data={orders}

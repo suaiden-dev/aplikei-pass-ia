@@ -111,9 +111,9 @@ export function ReviewAndSignDS160Step({
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center space-y-3">
-        <h2 className="text-2xl font-bold font-display text-foreground">
+        <h2 className="text-title font-bold font-display text-foreground">
           {lang === "pt"
             ? "Tutorial: Revisão e Assinatura"
             : "Tutorial: Review and Signature"}
@@ -127,7 +127,7 @@ export function ReviewAndSignDS160Step({
 
       <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
         {/* Timeline Header */}
-        <div className="bg-muted/30 p-4 md:p-6 border-b border-border">
+        <div className="bg-muted/30 p-4 md:p-4 border-b border-border">
           <div className="relative flex justify-between items-center max-w-3xl mx-auto">
             {/* Base Line */}
             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-border -translate-y-1/2 z-0" />
@@ -183,14 +183,16 @@ export function ReviewAndSignDS160Step({
           </div>
 
           {/* Description & Navigation */}
-          <div className="p-8 flex flex-col justify-center">
-            <div className="space-y-4 mb-8">
-              <Badge className="bg-accent/10 text-accent border-none font-bold uppercase tracking-wider text-[10px] py-1 px-3">
-                {lang === "pt"
-                  ? `Passo ${activeStep + 1} de ${tutorialSteps.length}`
-                  : `Step ${activeStep + 1} of ${tutorialSteps.length}`}
-              </Badge>
-              <h3 className="text-2xl font-bold text-foreground">
+          <div className="p-5 flex flex-col justify-center text-center sm:text-left">
+            <div className="space-y-4 mb-5">
+              <div className="flex justify-center sm:justify-start">
+                <Badge className="bg-accent/10 text-accent border-none font-bold uppercase tracking-wider text-[10px] py-1 px-3">
+                  {lang === "pt"
+                    ? `Passo ${activeStep + 1} de ${tutorialSteps.length}`
+                    : `Step ${activeStep + 1} of ${tutorialSteps.length}`}
+                </Badge>
+              </div>
+              <h3 className="text-title font-bold text-foreground">
                 {tutorialSteps[activeStep].title}
               </h3>
               <p className="text-muted-foreground leading-relaxed">
@@ -198,25 +200,25 @@ export function ReviewAndSignDS160Step({
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
               <Button
                 variant="outline"
                 size="sm"
                 disabled={activeStep === 0}
                 onClick={() => setActiveStep((prev) => prev - 1)}
-                className="rounded-xl border-border hover:bg-muted font-bold text-xs"
+                className="rounded-md border-border hover:bg-muted font-bold text-xs w-full sm:w-auto justify-center"
               >
-                <ChevronLeft className="w-4 h-4 mr-1" />
+                <ChevronLeft className="w-4 h-4 mr-1 hidden sm:inline-block" />
                 {lang === "pt" ? "Anterior" : "Previous"}
               </Button>
               <Button
                 size="sm"
                 disabled={activeStep === tutorialSteps.length - 1}
                 onClick={() => setActiveStep((prev) => prev + 1)}
-                className="bg-accent hover:bg-green-dark text-white rounded-xl shadow-lg shadow-accent/20 font-bold text-xs px-6"
+                className="bg-accent hover:bg-green-dark text-white rounded-md shadow-lg shadow-accent/20 font-bold text-xs px-4 w-full sm:w-auto justify-center"
               >
                 {lang === "pt" ? "Próximo Passo" : "Next Step"}
-                <ChevronRight className="w-4 h-4 ml-1" />
+                <ChevronRight className="w-4 h-4 ml-1 hidden sm:inline-block" />
               </Button>
             </div>
           </div>
@@ -224,8 +226,8 @@ export function ReviewAndSignDS160Step({
       </div>
 
       {securityData && (
-        <div className="mt-8 space-y-4 rounded-xl border border-primary/20 bg-primary/5 p-6 shadow-sm">
-          <div className="flex items-center gap-2 text-xl font-bold text-primary mb-2">
+        <div className="mt-5 space-y-4 rounded-md border border-primary/20 bg-primary/5 p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-subtitle font-bold text-primary mb-2">
             <Shield className="w-6 h-6 text-accent" />
             {lang === "pt"
               ? "Seus Dados de Segurança da DS-160"
@@ -238,7 +240,7 @@ export function ReviewAndSignDS160Step({
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-            <div className="space-y-2 p-4 bg-white dark:bg-slate-800 rounded-xl border border-border flex flex-col justify-between shadow-sm">
+            <div className="space-y-2 p-4 bg-white dark:bg-slate-800 rounded-md border border-border flex flex-col justify-between shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   <Fingerprint className="w-4 h-4 text-accent" />
@@ -253,12 +255,12 @@ export function ReviewAndSignDS160Step({
                   <Copy className="h-4 w-4 text-muted-foreground hover:text-accent transition-colors" />
                 </Button>
               </div>
-              <p className="font-mono text-base font-black text-foreground truncate select-all bg-muted/30 p-2 rounded-lg text-center">
+              <p className="font-mono text-base font-black text-foreground truncate select-all bg-muted/30 p-2 rounded-md text-center">
                 {securityData.appId}
               </p>
             </div>
 
-            <div className="space-y-2 p-4 bg-white dark:bg-slate-800 rounded-xl border border-border flex flex-col justify-between shadow-sm">
+            <div className="space-y-2 p-4 bg-white dark:bg-slate-800 rounded-md border border-border flex flex-col justify-between shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   <Calendar className="w-4 h-4 text-accent" />
@@ -273,12 +275,12 @@ export function ReviewAndSignDS160Step({
                   <Copy className="h-4 w-4 text-muted-foreground hover:text-accent transition-colors" />
                 </Button>
               </div>
-              <p className="font-mono text-base font-black text-foreground truncate select-all bg-muted/30 p-2 rounded-lg text-center">
+              <p className="font-mono text-base font-black text-foreground truncate select-all bg-muted/30 p-2 rounded-md text-center">
                 {securityData.dob}
               </p>
             </div>
 
-            <div className="space-y-2 p-4 bg-white dark:bg-slate-800 rounded-xl border border-border flex flex-col justify-between shadow-sm lg:col-span-1 md:col-span-2">
+            <div className="space-y-2 p-4 bg-white dark:bg-slate-800 rounded-md border border-border flex flex-col justify-between shadow-sm lg:col-span-1 md:col-span-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   <User className="w-4 h-4 text-accent" />
@@ -293,7 +295,7 @@ export function ReviewAndSignDS160Step({
                   <Copy className="h-4 w-4 text-muted-foreground hover:text-accent transition-colors" />
                 </Button>
               </div>
-              <p className="font-mono text-base font-black text-foreground truncate select-all bg-muted/30 p-2 rounded-lg text-center">
+              <p className="font-mono text-base font-black text-foreground truncate select-all bg-muted/30 p-2 rounded-md text-center">
                 {securityData.grandma}
               </p>
             </div>
@@ -301,10 +303,12 @@ export function ReviewAndSignDS160Step({
         </div>
       )}
 
-      <div className="bg-accent/5 border border-accent/20 rounded-2xl p-6 space-y-6">
-        <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
-          <FileText className="w-5 h-5 text-accent" />
-          {lang === "pt" ? "Envio de Documentos" : "Document Upload"}
+      <div className="bg-accent/5 border border-accent/20 rounded-md p-4 space-y-4">
+        <h3 className="font-bold text-base md:text-lg text-foreground flex items-center gap-2">
+          <FileText className="w-4 h-4 md:w-5 md:h-5 text-accent shrink-0" />
+          <span className="truncate">
+            {lang === "pt" ? "Envio de Documentos" : "Document Upload"}
+          </span>
         </h3>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -315,7 +319,7 @@ export function ReviewAndSignDS160Step({
             return (
               <div
                 key={doc.id}
-                className={`p-5 rounded-xl border-2 transition-all ${
+                className={`p-5 rounded-md border-2 transition-all ${
                   isUploaded
                     ? "border-green-500 bg-green-500/5"
                     : isUploading
@@ -341,7 +345,7 @@ export function ReviewAndSignDS160Step({
                 {isUploaded ? (
                   <button
                     onClick={() => handleRemove(doc.id)}
-                    className="flex items-center justify-center gap-2 w-full py-2.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-900/30 rounded-lg transition-colors border border-red-200 dark:border-red-900/30"
+                    className="flex items-center justify-center gap-2 w-full py-2.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-900/30 rounded-md transition-colors border border-red-200 dark:border-red-900/30"
                   >
                     <X className="w-4 h-4" />
                     {lang === "pt" ? "Remover" : "Remove"}
@@ -353,7 +357,7 @@ export function ReviewAndSignDS160Step({
                       fileInputRef.current?.click();
                     }}
                     disabled={isUploading}
-                    className="flex items-center justify-center gap-2 w-full py-2.5 text-xs font-bold text-accent bg-accent/10 hover:bg-accent/20 rounded-lg transition-colors disabled:opacity-50 border border-accent/20"
+                    className="flex items-center justify-center gap-2 w-full py-2.5 text-xs font-bold text-accent bg-accent/10 hover:bg-accent/20 rounded-md transition-colors disabled:opacity-50 border border-accent/20"
                   >
                     {isUploading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

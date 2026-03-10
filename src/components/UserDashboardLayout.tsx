@@ -44,7 +44,7 @@ export default function UserDashboardLayout() {
   return (
     <div className="flex min-h-screen">
       <aside className="hidden w-64 flex-col border-r border-border bg-card md:flex">
-        <div className="flex h-16 items-center justify-between border-b border-border px-6">
+        <div className="flex h-16 items-center justify-between border-b border-border px-4">
           <Link to="/" className="font-display text-lg font-bold text-primary">
             Aplikei
           </Link>
@@ -60,7 +60,7 @@ export default function UserDashboardLayout() {
               <Link
                 key={l.to}
                 to={l.to}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${active ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${active ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
               >
                 <l.icon className="h-4 w-4" />
                 {l.label}
@@ -71,7 +71,7 @@ export default function UserDashboardLayout() {
         <div className="border-t border-border p-4">
           <Link
             to="/"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <LogOut className="h-4 w-4" />
             {s.logout[lang]}
@@ -90,7 +90,7 @@ export default function UserDashboardLayout() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto bg-background p-4 md:p-8 w-full max-w-full">
+        <div className="flex-1 overflow-y-auto bg-background p-4 md:p-5 w-full max-w-full">
           <Outlet />
         </div>
 
@@ -101,7 +101,7 @@ export default function UserDashboardLayout() {
               <Link
                 key={l.to}
                 to={l.to}
-                className={`flex flex-col items-center gap-1 rounded-lg p-2 ${location.pathname === l.to ? "text-accent" : "text-muted-foreground"}`}
+                className={`flex flex-col items-center gap-1 rounded-md p-2 ${location.pathname === l.to ? "text-accent" : "text-muted-foreground"}`}
               >
                 <l.icon className="h-5 w-5" />
                 <span className="text-[10px] font-medium">

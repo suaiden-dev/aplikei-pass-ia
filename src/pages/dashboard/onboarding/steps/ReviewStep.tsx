@@ -630,11 +630,11 @@ export const ReviewStep = ({
   // Se estiver vazio, não se aplica paginação
   if (sections.length === 0) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <h2 className="font-display text-lg font-semibold text-foreground">
           {o.finalReview?.[lang] || "Revisão Final"}
         </h2>
-        <div className="flex flex-col items-center justify-center p-8 text-center bg-muted/30 rounded-lg border border-dashed border-border">
+        <div className="flex flex-col items-center justify-center p-5 text-center bg-muted/30 rounded-md border border-dashed border-border">
           <p className="text-muted-foreground">
             {o.fillPrevious?.[lang] ||
               "Preencha as informações anteriores para ver o resumo."}
@@ -657,7 +657,7 @@ export const ReviewStep = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="font-display text-lg font-semibold text-foreground">
@@ -673,7 +673,7 @@ export const ReviewStep = ({
         </div>
       </div>
 
-      <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+      <div className="rounded-md border border-border bg-card p-4 space-y-4">
         <h3 className="font-medium text-accent border-b border-border/50 pb-2">
           {currentSection.title}
         </h3>
@@ -697,7 +697,7 @@ export const ReviewStep = ({
           ))}
         </div>
 
-        <div className="flex justify-between items-center mt-6 pt-4 border-t border-border/50">
+        <div className="flex justify-between items-center mt-4 pt-4 border-t border-border/50">
           <Button
             variant="outline"
             size="sm"

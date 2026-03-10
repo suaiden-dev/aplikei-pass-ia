@@ -309,11 +309,11 @@ export function AdminDS160Viewer({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-accent/10 rounded-lg">
+            <div className="p-2 bg-accent/10 rounded-md">
               <FileText className="h-5 w-5 text-accent" />
             </div>
             <div>
-              <DialogTitle className="text-xl">Formulário DS-160</DialogTitle>
+              <DialogTitle className="text-subtitle">Formulário DS-160</DialogTitle>
               <DialogDescription>
                 Visualizando respostas de <strong>{clientName}</strong>
               </DialogDescription>
@@ -334,7 +334,7 @@ export function AdminDS160Viewer({
               </p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="flex items-center justify-between border-b pb-2">
                 <h3 className="font-bold text-lg text-primary">
                   {currentSection?.title}

@@ -424,15 +424,15 @@ export default function UserDashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <Skeleton className="h-10 w-48" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Skeleton className="h-32 w-full rounded-2xl" />
-          <Skeleton className="h-32 w-full rounded-2xl" />
+          <Skeleton className="h-32 w-full rounded-md" />
+          <Skeleton className="h-32 w-full rounded-md" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-48 w-full rounded-2xl" />
+            <Skeleton key={i} className="h-48 w-full rounded-md" />
           ))}
         </div>
       </div>
@@ -440,11 +440,11 @@ export default function UserDashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {/* Header Section */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold text-foreground tracking-tight">
+          <h1 className="font-display text-title-xl font-bold text-foreground tracking-tight">
             Dashboard
           </h1>
           <p className="mt-1 text-muted-foreground">{d.welcome[lang]}</p>
@@ -460,7 +460,7 @@ export default function UserDashboard() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="p-5 rounded-2xl border-2 border-green-500/20 bg-green-500/5 flex items-center gap-4">
+            <div className="p-5 rounded-md border-2 border-green-500/20 bg-green-500/5 flex items-center gap-4">
               <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center shrink-0">
                 <CheckSquare className="w-5 h-5 text-green-600" />
               </div>
@@ -492,7 +492,7 @@ export default function UserDashboard() {
               key={s.id}
               onClick={() => handleServiceClick(s)}
               disabled={checkingSelfie === s.id}
-              className={`relative text-left p-5 rounded-2xl border-2 transition-all duration-300 group ${
+              className={`relative text-left p-5 rounded-md border-2 transition-all duration-300 group ${
                 currentServiceId === s.id
                   ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
                   : "border-border bg-card hover:border-primary/40"
@@ -500,7 +500,7 @@ export default function UserDashboard() {
             >
               <div className="flex justify-between items-start mb-4">
                 <div
-                  className={`p-2 rounded-lg ${currentServiceId === s.id ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}
+                  className={`p-2 rounded-md ${currentServiceId === s.id ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}
                 >
                   {checkingSelfie === s.id ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -542,7 +542,7 @@ export default function UserDashboard() {
               <Progress value={s.calculatedProgress} className="h-1.5" />
 
               {currentServiceId !== s.id && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white/40 dark:bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                <div className="absolute inset-0 flex items-center justify-center bg-white/40 dark:bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
                   <span className="bg-white dark:bg-slate-800 px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-border">
                     {lang === "pt" ? "Selecionar Processo" : "Select Process"}
                   </span>
@@ -640,7 +640,7 @@ export default function UserDashboard() {
             </div>
 
             <div
-              className={`grid gap-6 ${
+              className={`grid gap-4 ${
                 products.length === 1
                   ? "grid-cols-1 max-w-2xl"
                   : "grid-cols-1 lg:grid-cols-2"
@@ -656,11 +656,11 @@ export default function UserDashboard() {
                     className={`h-1.5 w-full bg-gradient-to-r ${product.gradientFrom} ${product.gradientTo}`}
                   />
 
-                  <div className="p-6 space-y-5">
+                  <div className="p-4 space-y-5">
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`h-11 w-11 rounded-2xl ${product.color} text-white flex items-center justify-center shadow-sm`}
+                          className={`h-11 w-11 rounded-md ${product.color} text-white flex items-center justify-center shadow-sm`}
                         >
                           {product.icon}
                         </div>
@@ -707,7 +707,7 @@ export default function UserDashboard() {
 
                     {product.available ? (
                       <Link to={product.checkoutUrl}>
-                        <Button className="w-full bg-primary font-bold h-11 rounded-xl gap-2 hover:bg-primary/90 shadow-sm">
+                        <Button className="w-full bg-primary font-bold h-11 rounded-md gap-2 hover:bg-primary/90 shadow-sm">
                           {lang === "pt" ? "Contratar Agora" : "Get Started"}
                           <ArrowRight className="h-4 w-4" />
                         </Button>
@@ -715,7 +715,7 @@ export default function UserDashboard() {
                     ) : (
                       <Button
                         disabled
-                        className="w-full h-11 rounded-xl gap-2 opacity-60 cursor-not-allowed"
+                        className="w-full h-11 rounded-md gap-2 opacity-60 cursor-not-allowed"
                       >
                         <Lock className="h-4 w-4" />
                         {lang === "pt" ? "Em Breve" : "Coming Soon"}
@@ -731,7 +731,7 @@ export default function UserDashboard() {
       <Dialog open={isSelfieModalOpen} onOpenChange={setIsSelfieModalOpen}>
         <DialogContent className="sm:max-w-[450px] rounded-3xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+            <DialogTitle className="flex items-center gap-2 text-subtitle font-bold">
               <Camera className="w-5 h-5 text-primary" />
               {t.dashboard.selfieModal.title[lang]}
             </DialogTitle>
@@ -740,8 +740,8 @@ export default function UserDashboard() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
-            <div className="flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-border group relative overflow-hidden">
+          <div className="space-y-4 py-4">
+            <div className="flex flex-col items-center justify-center p-5 bg-slate-50 dark:bg-slate-900 rounded-md border border-dashed border-border group relative overflow-hidden">
               {selfieFile ? (
                 <div className="flex flex-col items-center space-y-3">
                   <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
@@ -783,7 +783,7 @@ export default function UserDashboard() {
             </div>
 
             <Button
-              className="w-full bg-primary text-white hover:bg-primary/90 font-bold h-12 rounded-xl shadow-lg shadow-primary/20"
+              className="w-full bg-primary text-white hover:bg-primary/90 font-bold h-12 rounded-md shadow-lg shadow-primary/20"
               disabled={!selfieFile || uploadingSelfie}
               onClick={handleSelfieUpload}
             >

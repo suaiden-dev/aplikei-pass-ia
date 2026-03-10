@@ -95,7 +95,7 @@ export function AdminProcessLogs({ userServiceId }: AdminProcessLogsProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-col gap-4">
         <h3 className="text-lg font-bold">Adicionar Observação</h3>
         <div className="flex gap-2 items-end">
@@ -131,15 +131,15 @@ export function AdminProcessLogs({ userServiceId }: AdminProcessLogsProps) {
         </h3>
 
         {loading ? (
-          <div className="flex items-center justify-center p-8">
+          <div className="flex items-center justify-center p-5">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : logs.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center p-8 bg-muted/20 rounded-lg border border-dashed">
+          <p className="text-sm text-muted-foreground text-center p-5 bg-muted/20 rounded-md border border-dashed">
             Nenhum histórico registrado para este processo.
           </p>
         ) : (
-          <div className="relative border-l-2 border-muted ml-3 pl-6 space-y-8">
+          <div className="relative border-l-2 border-muted ml-3 pl-4 space-y-5">
             {logs.map((log) => {
               const d = new Date(log.created_at);
               const dateStr = d.toLocaleDateString("pt-BR", {

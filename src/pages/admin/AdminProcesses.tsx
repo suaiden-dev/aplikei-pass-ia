@@ -172,10 +172,10 @@ export default function AdminContracts() {
   const totalWithoutPdf = orders.filter((o) => !o.contract_pdf_url).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="font-display text-2xl font-bold text-foreground">
+          <h2 className="font-display text-title font-bold text-foreground">
             Processos
           </h2>
           <p className="mt-1 text-muted-foreground">
@@ -195,34 +195,34 @@ export default function AdminContracts() {
 
       {/* Resumo */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-border bg-card p-4">
+        <div className="rounded-md border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">
             Total de pedidos pagos
           </p>
-          <p className="mt-1 text-2xl font-bold text-foreground">
+          <p className="mt-1 text-title font-bold text-foreground">
             {orders.length}
           </p>
         </div>
-        <div className="rounded-xl border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/20 p-4">
+        <div className="rounded-md border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/20 p-4">
           <p className="text-sm text-green-700 dark:text-green-400">
             Com PDF gerado
           </p>
-          <p className="mt-1 text-2xl font-bold text-green-700 dark:text-green-400">
+          <p className="mt-1 text-title font-bold text-green-700 dark:text-green-400">
             {totalWithPdf}
           </p>
         </div>
-        <div className="rounded-xl border border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950/20 p-4">
+        <div className="rounded-md border border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950/20 p-4">
           <p className="text-sm text-yellow-700 dark:text-yellow-400">
             Sem PDF
           </p>
-          <p className="mt-1 text-2xl font-bold text-yellow-700 dark:text-yellow-400">
+          <p className="mt-1 text-title font-bold text-yellow-700 dark:text-yellow-400">
             {totalWithoutPdf}
           </p>
         </div>
       </div>
 
       {/* Tabela */}
-      <div className="rounded-xl bg-card">
+      <div className="rounded-md bg-card">
         <AdminDataTable
           loading={loading}
           data={orders}
