@@ -369,6 +369,14 @@ export const useOnboardingLogic = () => {
         }
 
         if (Object.keys(stepData).length > 0) {
+            if (!serviceId) {
+                console.error("Cannot save step because serviceId is null or undefined.");
+                toast.error("Erro interno. Não foi possível salvar os dados (serviceId ausente).");
+                return;
+            }
+
+            console.log("Saving step with serviceId:", serviceId, "slug:", currentSlug);
+
             const { error } = await supabase
                 .from("onboarding_responses")
                 .upsert({
@@ -378,7 +386,11 @@ export const useOnboardingLogic = () => {
                     updated_at: new Date().toISOString()
                 }, { onConflict: "user_service_id,step_slug" });
 
-            if (error) console.error("Error saving step:", error);
+            if (error) {
+                console.error("Error saving step:", error);
+                console.error("Service ID that failed:", serviceId);
+                toast.error("Erro ao salvar os dados desta etapa.");
+            }
         }
     };
 

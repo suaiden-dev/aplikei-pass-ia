@@ -729,11 +729,11 @@ export default function Onboarding() {
               ) && (
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 whitespace-normal h-auto py-2 min-h-10"
                   disabled={currentStep === 0}
                   onClick={() => setCurrentStep((s) => s - 1)}
                 >
-                  <ChevronLeft className="mr-1 h-4 w-4" /> {o.previous[lang]}
+                  <ChevronLeft className="mr-2 h-4 w-4 shrink-0" /> {o.previous[lang]}
                 </Button>
               )}
               {currentStep < steps.length - 1 &&
@@ -744,14 +744,14 @@ export default function Onboarding() {
                 serviceStatus === "uploadsUnderReview"
               ) ? (
                 <Button
-                  className="flex-1 bg-accent text-accent-foreground hover:bg-green-dark"
+                  className="flex-1 bg-accent text-accent-foreground hover:bg-green-dark whitespace-normal h-auto py-2 min-h-10"
                   onClick={handleNext}
                 >
-                  {o.next[lang]} <ChevronRight className="ml-1 h-4 w-4" />
+                  {o.next[lang]} <ChevronRight className="ml-2 h-4 w-4 shrink-0" />
                 </Button>
               ) : (
                 <Button
-                  className="flex-1 bg-accent text-accent-foreground hover:bg-green-dark"
+                  className="flex-[2] bg-accent text-accent-foreground hover:bg-green-dark whitespace-normal h-auto py-2 min-h-10"
                   onClick={handleFinish}
                   disabled={
                     serviceStatus === "review_pending" ||
