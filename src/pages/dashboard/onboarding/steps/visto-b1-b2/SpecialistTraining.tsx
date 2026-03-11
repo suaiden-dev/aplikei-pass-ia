@@ -36,57 +36,56 @@ export function SpecialistTraining({
   serviceId,
   mode = "training",
 }: SpecialistTrainingProps) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
+  const st = t.onboardingPage.specialistTraining;
+  const ig = t.onboardingPage.interviewGuide;
   const { user, loading: authLoading } = useAuth();
 
   const trainingPackages = [
     {
       id: 1,
-      name: lang === "pt" ? "Individual" : "Individual",
+      name: st.individual,
       classes: 1,
       price: 49,
       recommended: false,
-      description:
-        lang === "pt" ? "1 Aula de Treinamento" : "1 Training Session",
+      description: st.trainingSession,
       features: [
-        { pt: "45 min de mentoria", en: "45 min mentoring" },
-        { pt: "Simulado de perguntas", en: "Interview simulation" },
-        { pt: "Feedback imediato", en: "Immediate feedback" },
+        st.mentoring45 || "45 min de mentoria",
+        st.interviewSim || "Simulado de perguntas",
+        st.immediateFeedback || "Feedback imediato",
       ],
       calendly:
         "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
     },
     {
       id: 2,
-      name: lang === "pt" ? "Pacote Bronze" : "Bronze Package",
+      name: st.bronzePackage,
       classes: 2,
       price: 89,
       recommended: false,
-      description:
-        lang === "pt" ? "2 Aulas de Treinamento" : "2 Training Sessions",
+      description: st.sessions2Training || "2 Aulas de Treinamento",
       features: [
-        { pt: "2x 45 min de mentoria", en: "2x 45 min mentoring" },
-        { pt: "Análise profunda de perfil", en: "Deep profile analysis" },
-        { pt: "Simulado avançado", en: "Advanced simulation" },
-        { pt: "Suporte via WhatsApp", en: "WhatsApp support" },
+        st.mentoring2x45 || "2x 45 min de mentoria",
+        st.deepProfileAnalysis || "Análise profunda de perfil",
+        st.advancedSim || "Simulado avançado",
+        st.whatsappSupport || "Suporte via WhatsApp",
       ],
       calendly:
         "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
     },
     {
       id: 3,
-      name: lang === "pt" ? "Pacote Gold" : "Gold Package",
+      name: st.goldPackage || "Pacote Gold",
       classes: 3,
       price: 119,
       recommended: true,
-      description:
-        lang === "pt" ? "3 Aulas de Treinamento" : "3 Training Sessions",
+      description: st.sessions3Training || "3 Aulas de Treinamento",
       features: [
-        { pt: "3x 45 min de mentoria", en: "3x 45 min mentoring" },
-        { pt: "Preparação Completa", en: "Full Preparation" },
-        { pt: "Estratégia de Resposta", en: "Response Strategy" },
-        { pt: "Revisão de Documentos", en: "Document Review" },
-        { pt: "Suporte VIP", en: "VIP Support" },
+        st.mentoring3x45 || "3x 45 min de mentoria",
+        st.fullPreparation || "Preparação Completa",
+        st.responseStrategy || "Estratégia de Resposta",
+        st.documentReview || "Revisão de Documentos",
+        st.vipSupport || "Suporte VIP",
       ],
       calendly:
         "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
@@ -96,19 +95,16 @@ export function SpecialistTraining({
   const reviewPackages = [
     {
       id: 4,
-      name: lang === "pt" ? "Revisão com Especialista" : "Specialist Review",
+      name: st.reviewTopic,
       classes: 1,
       price: 49,
       recommended: false,
-      description:
-        lang === "pt"
-          ? "Análise da recusa e plano de ação"
-          : "Refusal analysis and action plan",
+      description: st.reviewDescShort || "Análise da recusa e plano de ação",
       features: [
-        { pt: "Análise detalhada da recusa", en: "Detailed refusal analysis" },
-        { pt: "45 min com especialista", en: "45 min with specialist" },
-        { pt: "Plano de ação personalizado", en: "Custom action plan" },
-        { pt: "Orientação para próximos passos", en: "Next steps guidance" },
+        st.detailedRefusalAnalysis || "Análise detalhada da recusa",
+        st.specialistMentoring45 || "45 min com especialista",
+        st.customActionPlan || "Plano de ação personalizado",
+        st.nextStepsGuidance || "Orientação para próximos passos",
       ],
       calendly:
         "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
@@ -131,15 +127,11 @@ export function SpecialistTraining({
 
   const handleSpecialistSuccess = useCallback(() => {
     setStep("success");
-    toast.success(
-      lang === "pt"
-        ? "Pagamento processado com sucesso!"
-        : "Payment processed successfully!",
-    );
+    toast.success(st.paymentProcessed);
     const url = new URL(window.location.href);
     url.searchParams.delete("specialist_success");
     window.history.replaceState({}, document.title, url.toString());
-  }, [lang]);
+  }, [st.paymentProcessed]);
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -203,11 +195,7 @@ export function SpecialistTraining({
   useCalendlyEventListener({
     onEventScheduled: (e) => {
       setScheduledCount((prev) => prev + 1);
-      toast.success(
-        lang === "pt"
-          ? "Aula agendada com sucesso!"
-          : "Session scheduled successfully!",
-      );
+      toast.success(st.sessionScheduledToast);
     },
   });
 
@@ -235,9 +223,7 @@ export function SpecialistTraining({
       }
     } catch (error: unknown) {
       console.error("Payment error:", error);
-      toast.error(
-        lang === "pt" ? "Erro ao iniciar pagamento" : "Error starting payment",
-      );
+      toast.error(st.errorStartingPayment);
     } finally {
       setIsProcessing(false);
     }
@@ -264,14 +250,10 @@ export function SpecialistTraining({
               <CheckCircle2 className="h-8 w-8 md:h-10 md:w-10" />
             </div>
             <h2 className="text-title md:text-4xl font-black">
-              {lang === "pt"
-                ? "Prepare-se para o Sucesso!"
-                : "Get Ready for Success!"}
+              {st.successTitle}
             </h2>
             <p className="text-sm md:text-lg text-muted-foreground">
-              {lang === "pt"
-                ? `Você adquiriu o ${pkg.name} (${pkg.classes} aulas).`
-                : `You purchased the ${pkg.name} (${pkg.classes} sessions).`}
+              {st.purchasedPkg.replace("{name}", pkg.name).replace("{classes}", pkg.classes.toString())}
             </p>
           </div>
 
@@ -280,8 +262,7 @@ export function SpecialistTraining({
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
                   <p className="font-black text-lg md:text-subtitle text-accent">
-                    {scheduledCount} / {pkg.classes}{" "}
-                    {lang === "pt" ? "Aulas Agendadas" : "Sessions Scheduled"}
+                    {st.sessionsScheduled.replace("{count}", scheduledCount.toString()).replace("{total}", pkg.classes.toString())}
                   </p>
                   <span className="text-xs md:text-sm font-bold opacity-60">
                     {Math.round((scheduledCount / pkg.classes) * 100)}%
@@ -297,14 +278,10 @@ export function SpecialistTraining({
                 <div className="py-6 space-y-4">
                   <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-md border-2 border-green-100 dark:border-green-900/30">
                     <p className="text-green-600 dark:text-green-400 font-bold text-lg">
-                      {lang === "pt"
-                        ? "Todas as suas aulas foram agendadas! ✅"
-                        : "All your sessions are scheduled! ✅"}
+                      {st.allScheduled}
                     </p>
                     <p className="text-sm text-green-600/80 dark:text-green-400/80 mt-1">
-                      {lang === "pt"
-                        ? "Verifique seu e-mail para os links das reuniões."
-                        : "Check your email for the meeting links."}
+                      {st.checkEmail}
                     </p>
                   </div>
                 </div>
@@ -312,20 +289,14 @@ export function SpecialistTraining({
                 <div className="py-6 flex flex-col items-center space-y-5">
                   <div className="bg-accent/5 p-4 rounded-3xl border border-accent/10 max-w-sm">
                     <p className="text-accent font-bold text-sm leading-relaxed">
-                      {lang === "pt"
-                        ? "Para garantir 100% de precisão no celular, o agendamento abrirá em uma janela segura."
-                        : "To ensure 100% accuracy on mobile, scheduling will open in a secure window."}
+                      {st.mobileAccuracy}
                     </p>
                   </div>
 
                   <PopupButton
                     url={pkg.calendly}
                     rootElement={document.getElementById("root")!}
-                    text={
-                      lang === "pt"
-                        ? "AGENDAR MINHA AULA AGORA"
-                        : "SCHEDULE MY SESSION NOW"
-                    }
+                    text={st.scheduleNow}
                     prefill={{
                       email: userProfile.email,
                       name: userProfile.name,
@@ -341,7 +312,7 @@ export function SpecialistTraining({
               variant="ghost"
               className="w-full h-12 md:h-14 rounded-md md:rounded-md font-bold text-muted-foreground"
             >
-              {lang === "pt" ? "VOLTAR AO PAINEL" : "BACK TO DASHBOARD"}
+              {st.backToDashboard}
             </Button>
           </div>
         </div>
@@ -358,28 +329,20 @@ export function SpecialistTraining({
           className="gap-2 font-bold text-muted-foreground hover:text-foreground"
         >
           <ChevronLeft className="h-4 w-4" />
-          {lang === "pt" ? "Voltar" : "Back"}
+          {ig.back}
         </Button>
       </div>
 
       <div className="text-center space-y-4 max-w-3xl mx-auto px-4">
         <h2 className="text-title-xl md:text-5xl font-black tracking-tight">
           {mode === "review"
-            ? lang === "pt"
-              ? "Revisão com Especialista"
-              : "Specialist Review"
-            : lang === "pt"
-              ? "Treinamento com Especialista"
-              : "Specialist Training"}
+            ? st.reviewTopic
+            : st.mentoringTopic}
         </h2>
         <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
           {mode === "review"
-            ? lang === "pt"
-              ? "Agende uma sessão com nosso especialista para analisar a recusa do seu visto e montar um plano de ação para reaplicar com sucesso."
-              : "Schedule a session with our specialist to analyze your visa refusal and build an action plan to reapply successfully."
-            : lang === "pt"
-              ? "Simule sua entrevista real com um consultor experiente. Recomendamos o pacote de 3 aulas para uma preparação completa e segura."
-              : "Simulate your real interview with an experienced consultant. We recommend the 3-session package for a complete and secure preparation."}
+            ? st.reviewDesc
+            : st.mentoringDesc}
         </p>
       </div>
 
@@ -402,9 +365,7 @@ export function SpecialistTraining({
           >
             {pkg.recommended && (
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent text-white px-4 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
-                {lang === "pt"
-                  ? "MAIS PROCURADO / IDEAL"
-                  : "MOST POPULAR / IDEAL"}
+                {st.mostPopular}
               </div>
             )}
 
@@ -416,12 +377,8 @@ export function SpecialistTraining({
                 </span>
                 <span className="text-muted-foreground font-bold text-sm">
                   {pkg.id === 1
-                    ? lang === "pt"
-                      ? "/aula"
-                      : "/session"
-                    : lang === "pt"
-                      ? "/total"
-                      : "/total"}
+                    ? st.perSession
+                    : st.total}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground font-medium">
@@ -436,7 +393,7 @@ export function SpecialistTraining({
                   className="flex gap-3 text-sm font-bold items-start"
                 >
                   <CheckCircle2 className="h-5 w-5 text-accent shrink-0" />
-                  {lang === "pt" ? feature.pt : feature.en}
+                  {feature}
                 </li>
               ))}
             </ul>
@@ -455,7 +412,7 @@ export function SpecialistTraining({
                 <Clock className="h-5 w-5 animate-spin" />
               ) : (
                 <>
-                  {lang === "pt" ? "ESCOLHER ESTE" : "CHOOSE THIS ONE"}
+                  {st.chooseThis}
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
@@ -467,9 +424,7 @@ export function SpecialistTraining({
       <div className="text-center pt-5 pb-12 px-4">
         <div className="inline-flex items-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-md text-[10px] md:text-xs font-bold text-muted-foreground">
           <ShieldCheck className="h-4 w-4 text-green-500" />
-          {lang === "pt"
-            ? "Pagamento seguro via Stripe • Acesso imediato ao agendamento"
-            : "Secure payment via Stripe • Immediate scheduling access"}
+          {st.securePayment}
         </div>
       </div>
     </div>

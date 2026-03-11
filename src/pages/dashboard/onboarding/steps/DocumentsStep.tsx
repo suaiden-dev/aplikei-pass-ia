@@ -44,14 +44,10 @@ export const DocumentsStep = ({
           </div>
           <div>
             <p className="font-bold text-sm text-foreground">
-              {lang === "pt"
-                ? "Foto já registrada!"
-                : "Photo already registered!"}
+              {o.photoAlreadyRegistered[lang]}
             </p>
             <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-              {lang === "pt"
-                ? "A sua selfie com passaporte já foi coletada no início do processo. Não é necessário enviar novamente."
-                : "Your selfie with passport was already collected at the start of the process. No need to upload it again."}
+              {o.photoCollectedDesc[lang]}
             </p>
           </div>
         </div>
@@ -87,13 +83,9 @@ export const DocumentsStep = ({
                       <Upload className="h-3.5 w-3.5" />
                     )}
                     {uploading === doc
-                      ? lang === "pt"
-                        ? "Enviando..."
-                        : "Uploading..."
+                      ? o.uploadingBtn[lang]
                       : uploaded
-                        ? lang === "pt"
-                          ? "Trocar"
-                          : "Replace"
+                        ? o.replaceBtn[lang]
                         : o.upload[lang]}
                   </Button>
 
@@ -106,7 +98,7 @@ export const DocumentsStep = ({
                     >
                       <Trash2 className="h-4 w-4" />
                       <span className="sr-only">
-                        {lang === "pt" ? "Remover" : "Remove"}
+                        {o.removeBtn[lang]}
                       </span>
                     </Button>
                   )}

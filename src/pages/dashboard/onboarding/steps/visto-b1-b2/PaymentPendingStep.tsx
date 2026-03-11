@@ -51,7 +51,8 @@ export function PaymentPendingStep({
   serviceId,
   onComplete,
 }: PaymentPendingStepProps) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
+  const p = t.onboardingPage.paymentPending;
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingDoc, setIsLoadingDoc] = useState(true);
   const [boletoDoc, setBoletoDoc] = useState<ProcessDocument | null>(null);
@@ -113,11 +114,7 @@ export function PaymentPendingStep({
 
       if (statusError) throw statusError;
 
-      toast.success(
-        lang === "pt"
-          ? "Pagamento confirmado! Agora aguarde a entrevista."
-          : "Payment confirmed! Now wait for the interview.",
-      );
+      toast.success(p.successPaymentMsg[lang]);
       if (onComplete) onComplete();
 
       // Reload to reflect changes
@@ -125,11 +122,7 @@ export function PaymentPendingStep({
     } catch (err) {
       const error = err as Error;
       console.error("Error confirming payment:", error);
-      toast.error(
-        lang === "pt"
-          ? "Erro ao confirmar pagamento."
-          : "Error confirming payment.",
-      );
+      toast.error(p.errorConfirmingPayment[lang]);
     } finally {
       setIsSaving(false);
     }
@@ -148,9 +141,7 @@ export function PaymentPendingStep({
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <Loader2 className="h-10 w-10 animate-spin text-accent" />
         <p className="text-muted-foreground animate-pulse">
-          {lang === "pt"
-            ? "Carregando informações..."
-            : "Loading information..."}
+          {p.loadingInfo[lang]}
         </p>
       </div>
     );
@@ -165,12 +156,10 @@ export function PaymentPendingStep({
             <Clock className="h-8 w-8 text-accent animate-spin-slow" />
           </div>
           <h2 className="text-title md:text-title-xl font-black font-display text-foreground tracking-tight uppercase">
-            {lang === "pt" ? "TAXA EM PROCESSAMENTO" : "FEE IN PROCESSING"}
+            {p.feeInProcessing[lang]}
           </h2>
           <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto leading-relaxed md:px-0 px-4">
-            {lang === "pt"
-              ? "Excelente! Sua confirmação de e-mail foi recebida. Agora nossa equipe está gerando o seu boleto para pagamento da taxa MRV."
-              : "Excellent! Your email confirmation has been received. Now our team is generating your slip for the MRV fee payment."}
+            {p.excellentEmailReceived[lang]}
           </p>
         </div>
 
@@ -186,12 +175,10 @@ export function PaymentPendingStep({
             </div>
             <div className="space-y-2">
               <h3 className="text-subtitle font-bold">
-                {lang === "pt" ? "Gerando Boleto..." : "Generating Slip..."}
+                {p.generatingSlip[lang]}
               </h3>
               <p className="text-muted-foreground max-w-sm mx-auto text-sm">
-                {lang === "pt"
-                  ? "Este processo geralmente leva alguns minutos. Assim que estiver pronto, as opções de pagamento aparecerão aqui."
-                  : "This process usually takes a few minutes. Once ready, the payment options will appear here."}
+                {p.processMinutes[lang]}
               </p>
             </div>
             <div className="pt-4">
@@ -201,7 +188,7 @@ export function PaymentPendingStep({
                 onClick={() => window.location.reload()}
               >
                 <RefreshCw className="h-4 w-4 mr-2 shrink-0" />
-                {lang === "pt" ? "ATUALIZAR STATUS" : "REFRESH STATUS"}
+                {p.refreshStatus[lang]}
               </Button>
             </div>
           </div>
@@ -217,14 +204,10 @@ export function PaymentPendingStep({
           <Wallet className="h-8 w-8 text-accent animate-pulse" />
         </div>
         <h2 className="text-title md:text-title-xl font-black font-display text-foreground tracking-tight uppercase px-2">
-          {lang === "pt"
-            ? "PAGAMENTO DA TAXA CONSULAR"
-            : "CONSULAR FEE PAYMENT"}
+          {p.title[lang]}
         </h2>
-        <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto leading-relaxed px-4">
-          {lang === "pt"
-            ? "Selecione a forma de pagamento desejada para prosseguir com o agendamento."
-            : "Select the desired payment method to proceed with scheduling."}
+        <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto leading-relaxed px-4 md:px-0">
+          {p.desc[lang]}
         </p>
       </div>
 
@@ -232,7 +215,7 @@ export function PaymentPendingStep({
         {/* Method Selection: Boleto */}
         <div
           className={cn(
-            "relative p-5 rounded-[32px] border-2 transition-all cursor-pointer group hover:scale-[1.02] active:scale-[0.98]",
+            "relative p-4 sm:p-5 rounded-[24px] md:rounded-[32px] border-2 transition-all cursor-pointer group hover:scale-[1.02] active:scale-[0.98]",
             paymentMethod === "boleto"
               ? "bg-accent/5 border-accent shadow-xl shadow-accent/10"
               : "bg-card border-border hover:border-accent/40",
@@ -270,12 +253,10 @@ export function PaymentPendingStep({
             </div>
             <div>
               <h3 className="text-subtitle font-black uppercase tracking-tight">
-                {lang === "pt" ? "Boleto Bancário" : "Bank Slip"}
+                {p.bankSlip[lang]}
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
-                {lang === "pt"
-                  ? "Pague em qualquer banco ou casa lotérica."
-                  : "Pay at any bank or convenience store."}
+                {p.payAnyBank[lang]}
               </p>
             </div>
           </div>
@@ -284,7 +265,7 @@ export function PaymentPendingStep({
         {/* Method Selection: Card */}
         <div
           className={cn(
-            "relative p-5 rounded-[32px] border-2 transition-all cursor-pointer group hover:scale-[1.02] active:scale-[0.98]",
+            "relative p-4 sm:p-5 rounded-[24px] md:rounded-[32px] border-2 transition-all cursor-pointer group hover:scale-[1.02] active:scale-[0.98]",
             paymentMethod === "card"
               ? "bg-accent/5 border-accent shadow-xl shadow-accent/10"
               : "bg-card border-border hover:border-accent/40",
@@ -322,38 +303,32 @@ export function PaymentPendingStep({
             </div>
             <div>
               <h3 className="text-subtitle font-black uppercase tracking-tight">
-                {lang === "pt" ? "Cartão de Crédito" : "Credit Card"}
+                {p.creditCard[lang]}
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
-                {lang === "pt"
-                  ? "Pagamento imediato via portal do consulado."
-                  : "Immediate payment via consulate portal."}
+                {p.immediatePayment[lang]}
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <Card className="border-border shadow-2xl rounded-[40px] overflow-hidden bg-card/10 backdrop-blur-md relative border-dashed max-w-3xl mx-auto">
-        <CardContent className="p-6 space-y-6 text-center">
+      <Card className="border-border shadow-2xl rounded-3xl md:rounded-[40px] overflow-hidden bg-card/10 backdrop-blur-md relative border-dashed max-w-3xl mx-auto">
+        <CardContent className="p-4 sm:p-6 space-y-4 md:space-y-6 text-center">
           <div className="space-y-2">
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               {paymentMethod === "boleto"
-                ? lang === "pt"
-                  ? "DETALHES DO BOLETO"
-                  : "SLIP DETAILS"
-                : lang === "pt"
-                  ? "DETALHES DO CARTÃO"
-                  : "CARD DETAILS"}
+                ? p.slipDetails[lang]
+                : p.cardDetails[lang]}
             </span>
             <div className="flex items-center justify-center gap-1">
-              <span className="text-lg sm:text-title font-bold text-muted-foreground self-start mt-1 sm:mt-2">
+              <span className="text-base sm:text-title font-bold text-muted-foreground self-start mt-1 sm:mt-2">
                 $
               </span>
-              <span className="text-5xl sm:text-7xl font-black text-foreground tracking-tighter">
+              <span className="text-4xl sm:text-7xl font-black text-foreground tracking-tighter">
                 {feeAmount}
               </span>
-              <span className="text-sm sm:text-subtitle font-bold text-muted-foreground self-end mb-1 sm:mb-2">
+              <span className="text-xs sm:text-subtitle font-bold text-muted-foreground self-end mb-1 sm:mb-2">
                 USD
               </span>
             </div>
@@ -363,20 +338,16 @@ export function PaymentPendingStep({
             {paymentMethod === "boleto" ? (
               <div className="grid gap-4">
                 <div
-                  className="p-4 sm:p-5 bg-accent/5 rounded-2xl md:rounded-[32px] border border-accent/20 text-left flex items-center justify-between group cursor-pointer"
+                  className="p-3 sm:p-5 bg-accent/5 rounded-2xl md:rounded-[32px] border border-accent/20 text-left flex items-center justify-between group cursor-pointer"
                   onClick={handleDownloadBoleto}
                 >
                   <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 sm:gap-4 w-full">
                     <div className="flex-1 min-w-0 text-center sm:text-left order-first sm:order-last">
                       <h4 className="font-black text-base sm:text-subtitle tracking-tight leading-tight">
-                        {lang === "pt"
-                          ? "Baixar Boleto PDF"
-                          : "Download PDF Slip"}
+                        {p.downloadPdfSlip[lang]}
                       </h4>
                       <p className="text-sm text-muted-foreground leading-relaxed mt-1 sm:mt-1">
-                        {lang === "pt"
-                          ? "O boleto oficial já está disponível."
-                          : "The official slip is now available."}
+                        {p.officialSlipAvailable[lang]}
                       </p>
                     </div>
                     <div className="h-16 w-full sm:w-16 bg-accent rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-accent/20 group-hover:scale-105 transition-transform shrink-0 order-last sm:order-first">
@@ -390,39 +361,31 @@ export function PaymentPendingStep({
                   <div className="flex items-center gap-2 text-blue-500">
                     <ShieldCheck className="h-4 w-4" />
                     <span className="text-xs font-black uppercase tracking-widest">
-                      {lang === "pt"
-                        ? "INFORMAÇÃO IMPORTANTE"
-                        : "IMPORTANT INFO"}
+                      {p.importantInfo[lang]}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {lang === "pt"
-                      ? "A compensação do boleto pode levar até 48 horas úteis. Somente após esse prazo nosso sistema liberará o seu agendamento."
-                      : "Slip clearing can take up to 48 business hours. Only after this period will our system release your scheduling."}
+                    {p.compensationDesc[lang]}
                   </p>
                 </div>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="p-5 bg-blue-500/5 rounded-[32px] border border-blue-500/20 text-left space-y-4">
+                <div className="p-3 sm:p-5 bg-blue-500/5 rounded-2xl md:rounded-[32px] border border-blue-500/20 text-left space-y-3 sm:space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-500 rounded-md flex items-center justify-center text-white shrink-0">
                       <CreditCard className="h-5 w-5 sm:h-6 sm:w-6" />
                     </div>
                     <h4 className="font-black text-base sm:text-subtitle tracking-tight leading-tight">
-                      {lang === "pt"
-                        ? "Pagamento via Portal"
-                        : "Portal Payment"}
+                      {p.portalPayment[lang]}
                     </h4>
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {lang === "pt"
-                      ? "Para pagar com cartão de crédito, você deve acessar o portal oficial do consulado com os dados abaixo:"
-                      : "To pay with a credit card, you must access the official consulate portal with the details below:"}
+                    {p.accessOfficialPortal[lang]}
                   </p>
 
                   {(consularLogin || consularPassword) && (
-                    <div className="bg-white dark:bg-slate-800/80 rounded-md p-4 border border-blue-200 dark:border-blue-900/50 shadow-inner space-y-3">
+                    <div className="bg-white dark:bg-slate-800/80 rounded-xl p-3 sm:p-4 border border-blue-200 dark:border-blue-900/50 shadow-inner space-y-2 sm:space-y-3">
                       <div className="flex flex-col">
                         <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">
                           Login / E-mail
@@ -433,7 +396,7 @@ export function PaymentPendingStep({
                       </div>
                       <div className="flex flex-col border-t border-slate-100 dark:border-slate-700/50 pt-3">
                         <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">
-                          {lang === "pt" ? "Senha" : "Password"}
+                          {p.password[lang]}
                         </span>
                         <span className="text-sm font-bold font-mono leading-none">
                           {consularPassword || "---"}
@@ -451,7 +414,7 @@ export function PaymentPendingStep({
                       )
                     }
                   >
-                    {lang === "pt" ? "IR PARA O PORTAL" : "GO TO PORTAL"}{" "}
+                    {p.goToPortal[lang]}{" "}
                     <ExternalLink className="h-4 w-4" />
                   </Button>
                 </div>
@@ -460,13 +423,11 @@ export function PaymentPendingStep({
                   <div className="flex items-center gap-2 text-accent">
                     <CheckCircle2 className="h-4 w-4" />
                     <span className="text-xs font-black uppercase tracking-widest">
-                      {lang === "pt" ? "VANTAGEM" : "ADVANTAGE"}
+                      {p.advantage[lang]}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {lang === "pt"
-                      ? "Pagamentos via cartão de crédito costumam ser compensados instantaneamente, agilizando o seu processo."
-                      : "Payments via credit card are usually cleared instantly, speeding up your process."}
+                    {p.creditCardInstant[lang]}
                   </p>
                 </div>
               </div>
@@ -475,7 +436,7 @@ export function PaymentPendingStep({
 
           <div className="pt-4 space-y-4">
             <Button
-              className="w-full h-auto min-h-20 py-4 px-4 bg-accent hover:bg-green-dark text-white rounded-[32px] shadow-2xl shadow-accent/30 font-black text-sm sm:text-base md:text-subtitle whitespace-normal transition-all active:scale-[0.98] group relative overflow-hidden"
+              className="w-full h-auto min-h-14 sm:min-h-20 py-3 sm:py-4 px-4 bg-accent hover:bg-green-dark text-white rounded-2xl sm:rounded-[32px] shadow-2xl shadow-accent/30 font-black text-xs sm:text-base md:text-subtitle whitespace-normal transition-all active:scale-[0.98] group relative overflow-hidden"
               disabled={isSaving}
               onClick={handlePaymentCompleted}
             >
@@ -488,9 +449,7 @@ export function PaymentPendingStep({
                     <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
                   <span className="text-center leading-tight">
-                    {lang === "pt"
-                      ? "JÁ REALIZEI O PAGAMENTO"
-                      : "I HAVE COMPLETED THE PAYMENT"}
+                    {p.alreadyPaid[lang]}
                   </span>
                 </div>
               )}
@@ -499,9 +458,7 @@ export function PaymentPendingStep({
             <div className="flex items-center justify-center gap-2 opacity-40">
               <ShieldCheck className="h-3 w-3" />
               <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em]">
-                {lang === "pt"
-                  ? "Ambiente seguro e criptografado"
-                  : "Secure and encrypted environment"}
+                {p.secureEnvironment[lang]}
               </p>
             </div>
           </div>

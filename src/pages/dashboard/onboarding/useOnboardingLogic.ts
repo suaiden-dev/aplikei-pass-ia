@@ -288,7 +288,7 @@ export const useOnboardingLogic = () => {
 
             if (dbError) throw dbError;
 
-            toast.success(lang === "pt" ? "Documento enviado!" : "Document uploaded!");
+            toast.success(o.docUploaded[lang]);
 
             const { data: docs } = await supabase.from("documents").select("name, storage_path").eq("user_id", user.id).eq("user_service_id", service.id);
             if (docs) {
@@ -321,14 +321,14 @@ export const useOnboardingLogic = () => {
         try {
             const { error } = await supabase.from("documents").delete().match({ name: docName });
             if (!error) {
-                toast.success(lang === 'pt' ? 'Removido!' : 'Removed!');
+                toast.success(o.removed[lang]);
                 setUploadedDocs(prev => prev.filter(d => d.name !== docName));
             } else {
                 throw error;
             }
         } catch (error: unknown) {
             console.error("Error removing doc:", error);
-            toast.error("Error removing document");
+            toast.error(o.errorRemovingDoc[lang]);
         }
     };
 
@@ -371,7 +371,7 @@ export const useOnboardingLogic = () => {
         if (Object.keys(stepData).length > 0) {
             if (!serviceId) {
                 console.error("Cannot save step because serviceId is null or undefined.");
-                toast.error("Erro interno. Não foi possível salvar os dados (serviceId ausente).");
+                toast.error(o.internalErrorServiceId[lang]);
                 return;
             }
 
@@ -389,7 +389,7 @@ export const useOnboardingLogic = () => {
             if (error) {
                 console.error("Error saving step:", error);
                 console.error("Service ID that failed:", serviceId);
-                toast.error("Erro ao salvar os dados desta etapa.");
+                toast.error(o.errorSavingStep[lang]);
             }
         }
     };
@@ -429,7 +429,7 @@ export const useOnboardingLogic = () => {
                     const missing = requiredDocs.filter(req => !uploadedNames.includes(req));
 
                     if (missing.length > 0) {
-                        toast.error(lang === 'pt' ? `Faltam documentos: ${missing.join(", ")}` : `Missing documents: ${missing.join(", ")}`);
+                        toast.error(`${o.missingDocs[lang]} ${missing.join(", ")}`);
                         return false;
                     }
                     return true;
@@ -451,7 +451,7 @@ export const useOnboardingLogic = () => {
             const missing = requiredDocs.filter(req => !uploadedNames.includes(req));
 
             if (missing.length > 0) {
-                toast.error(lang === 'pt' ? `Faltam documentos: ${missing.join(", ")}` : `Missing documents: ${missing.join(", ")}`);
+                toast.error(`${o.missingDocs[lang]} ${missing.join(", ")}`);
                 return false;
             }
             return true;
@@ -527,10 +527,10 @@ export const useOnboardingLogic = () => {
 
             setRequiresSelfie(false);
             setSelfieFile(null);
-            toast.success(lang === "pt" ? "Selfie enviada com sucesso!" : "Selfie uploaded successfully!");
+            toast.success(o.selfieUploaded[lang]);
         } catch (err: any) {
             console.error("Error uploading selfie:", err);
-            toast.error(lang === "pt" ? "Erro ao enviar selfie" : "Error uploading selfie");
+            toast.error(o.errorUploadingSelfie[lang]);
         } finally {
             setUploadingSelfie(false);
         }
@@ -553,7 +553,7 @@ export const useOnboardingLogic = () => {
                     const hasComprovante = pendingFiles["ds160_comprovante"] || uploadedDocs.some(d => d.name === "ds160_comprovante");
 
                     if (!hasAssinada || !hasComprovante) {
-                        toast.error(lang === "pt" ? "Você deve selecionar os 2 documentos solicitados." : "You must select both requested documents.");
+                        toast.error(o.selectBothDocs[lang]);
                         return;
                     }
 
@@ -604,7 +604,7 @@ export const useOnboardingLogic = () => {
             }
         } catch (err: unknown) {
             console.error("Unexpected error:", err);
-            toast.error((err as Error).message || "Erro inesperado");
+            toast.error((err as Error).message || o.unexpectedError[lang]);
             setLoading(false);
             return;
         } finally {
@@ -617,9 +617,7 @@ export const useOnboardingLogic = () => {
             serviceStatus === "review_assign" ||
             serviceStatus === "uploadsUnderReview";
         toast.success(
-            lang === 'pt' 
-                ? (isSignatureSubmit ? 'Documentos enviados com sucesso!' : 'Pacote gerado com sucesso!') 
-                : (isSignatureSubmit ? 'Documents submitted successfully!' : 'Package generated successfully!')
+            isSignatureSubmit ? o.docsSubmitted[lang] : o.packageGenerated[lang]
         );
         window.location.reload();
     };

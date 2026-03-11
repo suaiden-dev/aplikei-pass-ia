@@ -114,9 +114,7 @@ export default function Onboarding() {
       }
     } catch (error) {
       console.error("Error opening document:", error);
-      toast.error(
-        lang === "pt" ? "Erro ao abrir documento." : "Error opening document.",
-      );
+      toast.error(o.errorOpeningDoc[lang]);
     }
   };
 
@@ -219,6 +217,8 @@ export default function Onboarding() {
           fileInputRef={fileInputRef}
           setSelectedDoc={setSelectedDoc}
           securityData={securityData}
+          lang={lang}
+          t={t}
         />
       );
     }
@@ -443,27 +443,19 @@ export default function Onboarding() {
                     >
                       {serviceStatus === "review_pending" ||
                       serviceStatus === "ds160Processing"
-                        ? lang === "pt"
-                          ? "Processando..."
-                          : "Processing..."
+                        ? o.processing[lang]
                         : serviceStatus === "review_assign" ||
                             serviceStatus === "ds160upload_documents" ||
                             serviceStatus === "ds160AwaitingReviewAndSignature"
-                          ? lang === "pt"
-                            ? "Enviar Documentos"
-                            : "Submit Documents"
+                          ? o.submitDocs[lang]
                           : serviceStatus === "uploadsUnderReview" ||
                               serviceStatus ===
                                 "ds160AwaitingReviewAndSignature"
-                            ? lang === "pt"
-                              ? "Documentos em Análise..."
-                              : "Documents under review..."
+                            ? o.docsUnderReview[lang]
                             : serviceStatus === "completed" ||
                                 serviceStatus === "approved" ||
                                 serviceStatus === "rejected"
-                              ? lang === "pt"
-                                ? "Concluído"
-                                : "Completed"
+                              ? o.completed[lang]
                               : o.confirmGenerate[lang]}
                     </Button>
                   )}
@@ -480,7 +472,7 @@ export default function Onboarding() {
               <>
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-foreground">
-                    {lang === "en" ? "Step" : lang === "pt" ? "Etapa" : "Paso"}{" "}
+                    {o.stepLabel[lang]}{" "}
                     {currentStep + 1} {o.stepOf[lang]} {steps.length}
                   </span>
                   <span className="text-muted-foreground">
@@ -524,15 +516,10 @@ export default function Onboarding() {
             {serviceSlug === "visto-b1-b2" ? (
               <div className="text-center py-2">
                 <p className="text-xs font-bold text-accent uppercase tracking-widest">
-                  {lang === "pt" ? "Formulário DS-160" : "DS-160 Form"}
+                  {o.ds160Form[lang]}
                 </p>
                 <div className="mt-4 flex items-center justify-center gap-2 text-muted-foreground bg-muted/30 p-3 rounded-md border border-dashed border-border mb-4">
-                  <FileText className="w-4 h-4" />
-                  <span className="text-[10px] font-medium leading-tight">
-                    {lang === "pt"
-                      ? "Preencha as informações solicitadas para prosseguir."
-                      : "Fill in the requested information to proceed."}
-                  </span>
+                
                 </div>
 
                 <Button
@@ -541,7 +528,7 @@ export default function Onboarding() {
                   className="w-full gap-2 border-accent/20 text-accent hover:bg-accent/5 hover:text-accent font-bold text-xs"
                 >
                   <FileText className="w-4 h-4" />
-                  {lang === "pt" ? "VISUALIZAR MINHA DS-160" : "VIEW MY DS-160"}
+                  {o.viewMyDS160[lang]}
                 </Button>
 
                 {(serviceStatus === "review_pending" ||
@@ -562,9 +549,7 @@ export default function Onboarding() {
                       className="w-full mt-3 gap-2 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary font-bold text-xs"
                     >
                       <Eye className="w-4 h-4" />
-                      {lang === "pt"
-                        ? "VISUALIZAR DOCUMENTOS"
-                        : "VIEW DOCUMENTS"}
+                      {o.viewDocuments[lang]}
                     </Button>
                   )}
               </div>
@@ -584,20 +569,16 @@ export default function Onboarding() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {lang === "pt" ? "Documentos Enviados" : "Submitted Documents"}
+              {o.submittedDocs[lang]}
             </DialogTitle>
             <DialogDescription>
-              {lang === "pt"
-                ? "Visualize os documentos que você já enviou."
-                : "View the documents you have already submitted."}
+              {o.viewSubmittedDocs[lang]}
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 py-4">
             {uploadedDocs.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                {lang === "pt"
-                  ? "Nenhum documento encontrado."
-                  : "No documents found."}
+                {o.noDocsFound[lang]}
               </p>
             ) : (
               uploadedDocs.map((doc, idx) => (
@@ -618,7 +599,7 @@ export default function Onboarding() {
                     disabled={doc.path === "pending..."}
                   >
                     <Eye className="w-4 h-4 mr-2" />
-                    {lang === "pt" ? "Abrir" : "Open"}
+                    {o.open[lang]}
                   </Button>
                 </div>
               ))
@@ -635,14 +616,10 @@ export default function Onboarding() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-subtitle font-bold">
               <Camera className="w-5 h-5 text-primary" />
-              {lang === "pt"
-                ? "Verificação de Identidade Necessária"
-                : "Identity Verification Required"}
+              {o.identityVerification[lang]}
             </DialogTitle>
             <DialogDescription>
-              {lang === "pt"
-                ? "Para prosseguir com sua solicitação de DS-160, você precisa realizar o upload de uma selfie segurando seu passaporte (aberto na página de identificação)."
-                : "To proceed with your DS-160 application, you must upload a selfie holding your passport (open at the identification page)."}
+              {o.selfieInstructions[lang]}
             </DialogDescription>
           </DialogHeader>
 
@@ -660,7 +637,7 @@ export default function Onboarding() {
                     onClick={() => setSelfieFile(null)}
                     className="text-[10px] font-bold text-red-500 uppercase hover:underline"
                   >
-                    {lang === "pt" ? "Remover" : "Remove"}
+                    {o.remove[lang]}
                   </button>
                 </div>
               ) : (
@@ -670,12 +647,10 @@ export default function Onboarding() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm font-bold text-foreground">
-                      {lang === "pt"
-                        ? "Selecione sua selfie"
-                        : "Select your selfie"}
+                      {o.selectSelfie[lang]}
                     </p>
                     <p className="text-[10px] text-muted-foreground uppercase">
-                      JPG, PNG {lang === "pt" ? "ou" : "or"} JPEG
+                      JPG, PNG {o.or[lang]} JPEG
                     </p>
                   </div>
                   <input
@@ -696,12 +671,12 @@ export default function Onboarding() {
               {uploadingSelfie ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {lang === "pt" ? "Enviando..." : "Uploading..."}
+                  {o.uploading[lang]}
                 </>
               ) : (
                 <>
                   <Camera className="mr-2 h-4 w-4" />
-                  {lang === "pt" ? "Fazer Upload da Selfie" : "Upload Selfie"}
+                  {o.uploadSelfie[lang]}
                 </>
               )}
             </Button>
@@ -768,23 +743,15 @@ export default function Onboarding() {
                 >
                   {serviceStatus === "review_pending" ||
                   serviceStatus === "ds160Processing"
-                    ? lang === "pt"
-                      ? "Processando..."
-                      : "Processing..."
+                    ? o.processing[lang]
                     : serviceStatus === "review_assign" ||
                         serviceStatus === "ds160upload_documents" ||
                         serviceStatus === "ds160AwaitingReviewAndSignature"
-                      ? lang === "pt"
-                        ? "Enviar Documentos"
-                        : "Submit Documents"
+                      ? o.submitDocs[lang]
                       : serviceStatus === "uploadsUnderReview"
-                        ? lang === "pt"
-                          ? "Documentos em Análise..."
-                          : "Documents under review..."
+                        ? o.docsUnderReview[lang]
                         : serviceStatus === "completed"
-                          ? lang === "pt"
-                            ? "Concluído"
-                            : "Completed"
+                          ? o.completed[lang]
                           : o.confirmGenerate[lang]}
                 </Button>
               )}

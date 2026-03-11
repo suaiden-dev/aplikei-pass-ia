@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useCallback } from "react";
 
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -27,12 +28,7 @@ export default function Uploads() {
 
   const expectedDocs = u.docs[lang];
 
-  useEffect(() => {
-    if (authLoading || !user) return;
-    fetchDocs();
-  }, [user, authLoading]);
-
-  const fetchDocs = async () => {
+  const fetchDocs = useCallback(async () => {
     if (!user?.id) return;
     const { data: docs } = await supabase
       .from("documents")
@@ -41,7 +37,12 @@ export default function Uploads() {
 
     if (docs) setDbDocs(docs);
     setLoading(false);
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+    fetchDocs();
+  }, [user, authLoading, fetchDocs]);
 
   const handleUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -102,11 +103,7 @@ export default function Uploads() {
 
       if (dbError) throw dbError;
 
-      toast.success(
-        lang === "pt"
-          ? "Documento enviado com sucesso!"
-          : "Document uploaded successfully!",
-      );
+      toast.success(u.successMsg[lang]);
       fetchDocs();
     } catch (error: any) {
       toast.error(error.message);
@@ -132,7 +129,7 @@ export default function Uploads() {
       color: "text-amber-500",
     },
     approved: {
-      label: lang === "pt" ? "Aprovado" : "Approved",
+      label: u.approved[lang],
       icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
       color: "text-green-500",
     },
@@ -177,7 +174,7 @@ export default function Uploads() {
         <p className="text-sm text-muted-foreground">
           💡{" "}
           <strong>
-            {lang === "en" ? "Tip:" : lang === "pt" ? "Dica:" : "Consejo:"}
+            {u.tipLabel[lang]}
           </strong>{" "}
           {u.tip[lang]}
         </p>
@@ -214,11 +211,7 @@ export default function Uploads() {
                       st.icon
                     )}
                     <span className={`text-xs font-medium ${st.color}`}>
-                      {isUploading
-                        ? lang === "pt"
-                          ? "Enviando..."
-                          : "Uploading..."
-                        : st.label}
+                      {isUploading ? u.uploadingMsg[lang] : st.label}
                     </span>
                     {doc?.storage_path && !isUploading && (
                       <span className="truncate text-xs text-muted-foreground">

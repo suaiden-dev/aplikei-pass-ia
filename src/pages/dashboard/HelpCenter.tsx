@@ -20,7 +20,7 @@ export default function HelpCenter() {
       <div className="mt-4 rounded-md border-2 border-amber-300/50 bg-amber-50/60 p-4">
         <div className="flex items-start gap-2">
           <Shield className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-          <p className="text-xs text-foreground/70"><strong>{lang === "en" ? "Important:" : lang === "pt" ? "Importante:" : "Importante:"}</strong> {h.warning[lang]}</p>
+          <p className="text-xs text-foreground/70"><strong>{h.importantText[lang]}</strong> {h.warning[lang]}</p>
         </div>
       </div>
 

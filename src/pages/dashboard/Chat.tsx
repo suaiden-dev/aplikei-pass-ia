@@ -89,7 +89,7 @@ export default function Chat() {
         content:
           data.choices?.[0]?.message?.content ||
           data.message ||
-          "Desculpe, tive um problema.",
+          c.aiProblem[lang],
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -101,9 +101,7 @@ export default function Chat() {
       });
     } catch (error: any) {
       console.error("Chat error:", error);
-      toast.error(
-        lang === "pt" ? "Erro ao falar com a IA." : "Error talking to AI.",
-      );
+      toast.error(c.aiError[lang]);
     } finally {
       setIsTyping(false);
     }

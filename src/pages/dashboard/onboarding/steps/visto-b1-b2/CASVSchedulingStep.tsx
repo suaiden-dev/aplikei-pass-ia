@@ -32,7 +32,8 @@ export function CASVSchedulingStep({
   serviceId,
   onComplete,
 }: CASVSchedulingStepProps) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
+  const o = t.onboardingPage;
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isSaving, setIsSaving] = useState(false);
 
@@ -66,22 +67,14 @@ export function CASVSchedulingStep({
 
       if (statusError) throw statusError;
 
-      toast.success(
-        lang === "pt"
-          ? "Data preferencial salva com sucesso!"
-          : "Preferred date saved successfully!",
-      );
+      toast.success(o.preferredDateSaved[lang]);
       if (onComplete) onComplete();
 
       // Reload to reflect changes
       window.location.reload();
     } catch (error: any) {
       console.error("Error saving schedule:", error);
-      toast.error(
-        lang === "pt"
-          ? "Erro ao salvar agendamento."
-          : "Error saving schedule.",
-      );
+      toast.error(o.errorSavingSchedule[lang]);
     } finally {
       setIsSaving(false);
     }
@@ -91,21 +84,17 @@ export function CASVSchedulingStep({
     <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center space-y-3">
         <h2 className="text-title-xl font-bold font-display text-foreground tracking-tight">
-          {lang === "pt" ? "Agendamento CASV" : "CASV Scheduling"}
+          {o.casvSchedulingTitle[lang]}
         </h2>
         <p className="text-muted-foreground text-sm max-w-2xl mx-auto">
-          {lang === "pt"
-            ? "Selecione sua data de preferência para o agendamento no CASV e Consulado."
-            : "Select your preferred date for CASV and Consulate scheduling."}
+          {o.casvSchedulingDesc[lang]}
         </p>
       </div>
 
       <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/30 rounded-md [&>svg~*]:pl-9 md:[&>svg~*]:pl-10">
         <Info className="h-5 w-5 text-amber-600" />
         <AlertDescription className="text-amber-800 dark:text-amber-400 text-sm font-medium leading-relaxed">
-          {lang === "pt"
-            ? "A data e horário final dependerão da disponibilidade do Consulado. Esta é apenas uma indicação de sua preferência inicial."
-            : "The final date and time will depend on Consulate availability. This is only an indication of your initial preference."}
+          {o.casvSchedulingAlert[lang]}
           <div className="mt-2">
             <a
               href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html"
@@ -113,9 +102,7 @@ export function CASVSchedulingStep({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-amber-900 dark:text-amber-300 underline underline-offset-4 hover:text-amber-700 transition-colors"
             >
-              {lang === "pt"
-                ? "Confira as disponibilidades oficiais"
-                : "Check official availability"}
+              {o.officialAvailability[lang]}
               <ExternalLink className="h-3 w-3" />
             </a>
           </div>
@@ -127,14 +114,10 @@ export function CASVSchedulingStep({
           <CardHeader className="bg-muted/30 border-b border-border">
             <CardTitle className="text-lg flex items-center gap-2">
               <CalendarIcon className="h-5 w-5 text-accent" />
-              {lang === "pt"
-                ? "Calendário de Preferência"
-                : "Preference Calendar"}
+              {o.preferenceCalendar[lang]}
             </CardTitle>
             <CardDescription>
-              {lang === "pt"
-                ? "Selecione o dia que melhor se encaixa para você."
-                : "Select the day that best fits you."}
+              {o.selectDayFits[lang]}
             </CardDescription>
           </CardHeader>
           <CardContent className="p-2 sm:p-4 flex justify-center overflow-x-auto">
@@ -153,14 +136,14 @@ export function CASVSchedulingStep({
           <Card className="border-border shadow-lg rounded-3xl bg-card/50 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-lg">
-                {lang === "pt" ? "Resumo da Atividade" : "Activity Summary"}
+                {o.activitySummary[lang]}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-4 bg-muted/40 rounded-md border border-border/50">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-sm text-muted-foreground">
-                    {lang === "pt" ? "Data Selecionada" : "Selected Date"}
+                    {o.selectedDate[lang]}
                   </span>
                   <Badge
                     variant="secondary"
@@ -168,26 +151,20 @@ export function CASVSchedulingStep({
                   >
                     {date
                       ? format(date, "dd/MM/yyyy")
-                      : lang === "pt"
-                        ? "Nenhuma"
-                        : "None"}
+                      : o.none[lang]}
                   </Badge>
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-start gap-2 text-xs text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
                     <p>
-                      {lang === "pt"
-                        ? "Iremos buscar as vagas mais próximas desta data."
-                        : "We will look for spots closest to this date."}
+                      {o.spotsClosest[lang]}
                     </p>
                   </div>
                   <div className="flex items-start gap-2 text-xs text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
                     <p>
-                      {lang === "pt"
-                        ? "O suporte entrará em contato para confirmar o agendamento final."
-                        : "Support will contact you to confirm the final schedule."}
+                      {o.supportContactConfirm[lang]}
                     </p>
                   </div>
                 </div>
@@ -202,9 +179,7 @@ export function CASVSchedulingStep({
                   <Loader2 className="h-5 w-5 md:h-6 md:w-6 animate-spin" />
                 ) : (
                   <>
-                    {lang === "pt"
-                      ? "Confirmar Preferência"
-                      : "Confirm Preference"}
+                    {o.confirmPreference[lang]}
                     <CheckCircle2 className="ml-2 h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-1 transition-transform shrink-0" />
                   </>
                 )}
@@ -213,9 +188,7 @@ export function CASVSchedulingStep({
           </Card>
 
           <p className="text-[10px] text-center text-muted-foreground px-4 italic">
-            {lang === "pt"
-              ? "Ao confirmar, nossa equipe iniciará o processo de monitoramento de vagas nos sistemas consulares."
-              : "By confirming, our team will start the spot monitoring process in the consular systems."}
+            {o.monitoringStartDesc[lang]}
           </p>
         </div>
       </div>

@@ -27,7 +27,11 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const TOTAL_STEPS = 9;
 
-const getStatusDisplay = (status: string, lang: string) => {
+const getStatusDisplay = (
+  status: string,
+  lang: string,
+  tStatus: any,
+) => {
   if (!status) return { stepText: "", label: "" };
 
   // Legacy support
@@ -37,64 +41,53 @@ const getStatusDisplay = (status: string, lang: string) => {
   if (status === "completed") status = "approved";
 
   let step = 0;
-  let labelPt = "";
-  let labelEn = "";
+  let label = "";
 
   switch (status) {
     case "ds160InProgress":
       step = 1;
-      labelPt = "Preenchendo DS-160";
-      labelEn = "Filling out DS-160";
+      label = tStatus.ds160InProgress[lang];
       break;
     case "ds160Processing":
       step = 2;
-      labelPt = "Processando DS-160";
-      labelEn = "Processing DS-160";
+      label = tStatus.ds160Processing[lang];
       break;
     case "ds160upload_documents":
       step = 3;
-      labelPt = "3. Anexar Documentos";
-      labelEn = "3. Upload Documents";
+      label = tStatus.ds160uploadDocuments[lang];
       break;
     case "ds160AwaitingReviewAndSignature":
       step = 4;
-      labelPt = "4. Revisão e Assinatura";
-      labelEn = "4. Review and Signature";
+      label = tStatus.ds160AwaitingReviewAndSignature[lang];
       break;
     case "uploadsUnderReview":
       step = 4;
-      labelPt = "4. Revisão de Documentos";
-      labelEn = "4. Documents Review";
+      label = tStatus.uploadsUnderReview[lang];
       break;
     case "casvSchedulingPending":
       step = 5;
-      labelPt = "5. Agendamento Pendente";
-      labelEn = "5. Scheduling Pending";
+      label = tStatus.casvSchedulingPending[lang];
       break;
     case "casvFeeProcessing":
       step = 6;
-      labelPt = "6. Taxa em Processamento";
-      labelEn = "6. Fee in Processing";
+      label = tStatus.casvFeeProcessing[lang];
       break;
     case "casvPaymentPending":
       step = 7;
-      labelPt = "7. Pagamento CASV Pendente";
-      labelEn = "7. CASV Payment Pending";
+      label = tStatus.casvPaymentPending[lang];
       break;
     case "awaitingInterview":
       step = 8;
-      labelPt = "8. Aguardando Entrevista";
-      labelEn = "8. Awaiting Interview";
+      label = tStatus.awaitingInterview[lang];
       break;
     case "approved":
       step = 9;
-      labelPt = "9. Aprovado";
-      labelEn = "9. Approved";
+      label = tStatus.approved[lang];
       break;
     case "rejected":
       return {
-        stepText: lang === "pt" ? "Processo Rejeitado" : "Process Rejected",
-        label: lang === "pt" ? "Rejeitado" : "Rejected",
+        stepText: tStatus.rejectedText[lang],
+        label: tStatus.rejectedLabel[lang],
         step: 0,
         totalSteps: TOTAL_STEPS,
       };
@@ -102,18 +95,17 @@ const getStatusDisplay = (status: string, lang: string) => {
       return { stepText: "", label: status };
   }
 
-  const stepText =
-    lang === "pt"
-      ? `Etapa ${step} de ${TOTAL_STEPS}`
-      : `Step ${step} of ${TOTAL_STEPS}`;
-  const label = lang === "pt" ? labelPt : labelEn;
+  const stepText = tStatus.stepOf[lang]
+    .replace("[step]", String(step))
+    .replace("[total]", String(TOTAL_STEPS));
 
   return { stepText, label, step, totalSteps: TOTAL_STEPS };
 };
 
 export default function UserProcesses() {
   const navigate = useNavigate();
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
+  const d = t.dashboard;
   const { user, loading: authLoading } = useAuth();
   const [services, setServices] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [loading, setLoading] = useState(true);
@@ -143,7 +135,7 @@ export default function UserProcesses() {
 
       if (servicesData) {
         const processedServices = servicesData.map((s) => {
-          const statusInfo = getStatusDisplay(s.status, lang as string);
+          const statusInfo = getStatusDisplay(s.status, lang as string, d.status);
           let p = 0;
 
           if (s.status === "approved" || s.status === "completed") {
@@ -167,7 +159,7 @@ export default function UserProcesses() {
       setLoading(false);
     };
     fetchServices();
-  }, [user, authLoading, lang]);
+  }, [user, authLoading, lang, d.status]);
 
   const handleServiceClick = async (service: any) => {
     if (checkingSelfie || !user) return;
@@ -238,9 +230,7 @@ export default function UserProcesses() {
       }
     } catch (err: any) {
       console.error("Error uploading selfie:", err);
-      const msg =
-        lang === "pt" ? "Erro ao enviar selfie" : "Error uploading selfie";
-      alert(msg);
+      alert(d.errorUploadingSelfie[lang]);
     } finally {
       setUploadingSelfie(false);
     }
@@ -263,12 +253,10 @@ export default function UserProcesses() {
     <div className="space-y-5">
       <header>
         <h1 className="font-display text-title-xl font-bold text-foreground tracking-tight">
-          {lang === "pt" ? "Meus Processos" : "My Processes"}
+          {d.myProcesses[lang]}
         </h1>
         <p className="mt-1 text-muted-foreground">
-          {lang === "pt"
-            ? "Acompanhe o status de todos os seus guias e aplicações."
-            : "Track the status of all your guides and applications."}
+          {d.trackStatus[lang]}
         </p>
       </header>
 
@@ -277,9 +265,7 @@ export default function UserProcesses() {
           {services.length === 0 ? (
             <div className="col-span-full py-12 text-center rounded-md border-2 border-dashed border-border">
               <p className="text-muted-foreground">
-                {lang === "pt"
-                  ? "Você ainda não possui processos ativos."
-                  : "You don't have any active processes yet."}
+                {d.noActiveProcesses[lang]}
               </p>
             </div>
           ) : (
@@ -315,7 +301,7 @@ export default function UserProcesses() {
                 <div className="mt-auto">
                   <div className="flex justify-between items-end mb-2">
                     <span className="text-xs font-bold text-muted-foreground uppercase">
-                      {lang === "pt" ? "Progresso" : "Progress"}
+                      {d.progress[lang]}
                     </span>
                     <span className="text-sm font-black text-primary">
                       {s.calculatedProgress}%
@@ -325,7 +311,7 @@ export default function UserProcesses() {
                 </div>
 
                 <div className="mt-4 flex items-center gap-1 text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0">
-                  {lang === "pt" ? "ACESSAR DETALHES" : "ACCESS DETAILS"}
+                  {d.accessDetails[lang]}
                   <ChevronRight className="w-4 h-4" />
                 </div>
               </motion.button>
@@ -339,14 +325,10 @@ export default function UserProcesses() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-subtitle font-bold">
               <Camera className="w-5 h-5 text-primary" />
-              {lang === "pt"
-                ? "Verificação de Identidade Necessária"
-                : "Identity Verification Required"}
+              {d.selfieModal.title[lang]}
             </DialogTitle>
             <DialogDescription>
-              {lang === "pt"
-                ? "Para prosseguir com sua solicitação de DS-160, você precisa realizar o upload de uma selfie segurando seu passaporte (aberto na página de identificação)."
-                : "To proceed with your DS-160 application, you must upload a selfie holding your passport (open at the identification page)."}
+              {d.selfieModal.desc[lang]}
             </DialogDescription>
           </DialogHeader>
 
@@ -364,7 +346,7 @@ export default function UserProcesses() {
                     onClick={() => setSelfieFile(null)}
                     className="text-[10px] font-bold text-red-500 uppercase hover:underline"
                   >
-                    {lang === "pt" ? "Remover" : "Remove"}
+                    {d.remove[lang]}
                   </button>
                 </div>
               ) : (
@@ -374,12 +356,10 @@ export default function UserProcesses() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm font-bold text-foreground">
-                      {lang === "pt"
-                        ? "Selecione sua selfie"
-                        : "Select your selfie"}
+                      {d.selectSelfie[lang]}
                     </p>
                     <p className="text-[10px] text-muted-foreground uppercase">
-                      JPG, PNG {lang === "pt" ? "ou" : "or"} JPEG
+                      JPG, PNG {d.or[lang]} JPEG
                     </p>
                   </div>
                   <input
@@ -400,12 +380,12 @@ export default function UserProcesses() {
               {uploadingSelfie ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {lang === "pt" ? "Enviando..." : "Uploading..."}
+                  {d.selfieModal.submitting[lang]}
                 </>
               ) : (
                 <>
                   <Camera className="mr-2 h-4 w-4" />
-                  {lang === "pt" ? "Fazer Upload da Selfie" : "Upload Selfie"}
+                  {d.selfieModal.uploadBtn[lang]}
                 </>
               )}
             </Button>

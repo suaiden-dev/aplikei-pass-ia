@@ -37,6 +37,7 @@ import { AIInterviewChat } from "./AIInterviewChat";
 import { SpecialistTraining } from "./SpecialistTraining";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+// import { t } from "@/i18n/translations";
 
 interface AwaitingInterviewStepProps {
   serviceId: string | null;
@@ -57,8 +58,9 @@ export function AwaitingInterviewStep({
   serviceId,
   serviceStatus,
 }: AwaitingInterviewStepProps) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   const navigate = useNavigate();
+  const aw = t.onboardingPage.awaitingInterview;
   const [data, setData] = useState<AwaitingInterviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showGuide, setShowGuide] = useState(false);
@@ -94,34 +96,24 @@ export function AwaitingInterviewStep({
   const tools = [
     {
       id: "guide",
-      title: lang === "pt" ? "Guia de Entrevista" : "Interview Guide",
-      description:
-        lang === "pt"
-          ? "Tudo o que você precisa saber para se sair bem."
-          : "Everything you need to know to do well.",
+      title: aw.tools.guide.title[lang],
+      description: aw.tools.guide.desc[lang],
       icon: BookOpen,
       color: "bg-blue-500",
       action: () => setShowGuide(true),
     },
     {
       id: "ai",
-      title: lang === "pt" ? "Simulado com IA" : "AI Interview Sim",
-      description:
-        lang === "pt"
-          ? "Treine suas respostas com nossa inteligência artificial."
-          : "Practice your answers with our AI.",
+      title: aw.tools.ai.title[lang],
+      description: aw.tools.ai.desc[lang],
       icon: Bot,
       color: "bg-accent",
       action: () => setShowAIChat(true),
     },
     {
       id: "specialist",
-      title:
-        lang === "pt" ? "Treinar com Especialista" : "Train with Specialist",
-      description:
-        lang === "pt"
-          ? "Mentoria individual para casos complexos."
-          : "1-on-1 mentoring for complex cases.",
+      title: aw.tools.specialist.title[lang],
+      description: aw.tools.specialist.desc[lang],
       icon: Users,
       color: "bg-purple-500",
       tag: "PREMIUM",
@@ -149,7 +141,7 @@ export function AwaitingInterviewStep({
         const todayStr = `${year}-${month}-${day}`;
 
         // interviewDateToCompare is YYYY-MM-DD
-        return todayStr >= interviewDateToCompare;
+        return todayStr >= (interviewDateToCompare || "");
       })()
     : false;
 
@@ -168,9 +160,7 @@ export function AwaitingInterviewStep({
       window.location.reload();
     } catch (error) {
       console.error(error);
-      toast.error(
-        lang === "pt" ? "Erro ao atualizar status." : "Error updating status.",
-      );
+      toast.error(aw.errorUpdatingStatus[lang]);
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -230,18 +220,16 @@ export function AwaitingInterviewStep({
             variant="outline"
             className="bg-red-500/10 text-red-500 border-red-500/20 px-4 py-1 rounded-full font-black text-[10px] tracking-[0.2em] uppercase mb-4"
           >
-            {lang === "pt" ? "Resultado" : "Outcome"}
+            {aw.outcome[lang]}
           </Badge>
           <div className="inline-flex items-center justify-center p-4 bg-red-100 dark:bg-red-900/40 rounded-full mb-2">
             <ThumbsDown className="h-12 w-12 text-red-600 dark:text-red-400" />
           </div>
           <h2 className="text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance">
-            {lang === "pt" ? "Visto Negado" : "Visa Refused"}
+            {aw.visaRefusedTitle[lang]}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            {lang === "pt"
-              ? "Infelizmente, desta vez o seu visto não foi aprovado pelo oficial consular. Sabemos como isso é frustrante."
-              : "Unfortunately, this time your visa was not approved by the consular officer. We know how frustrating this is."}
+            {aw.visaRefusedDesc[lang]}
           </p>
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
@@ -250,9 +238,7 @@ export function AwaitingInterviewStep({
               onClick={() => setShowReview(true)}
             >
               <Users className="mr-2 h-4 w-4" />
-              {lang === "pt"
-                ? "Rever o caso com um especialista"
-                : "Review case with a specialist"}
+              {aw.reviewCaseSpecialist[lang]}
             </Button>
             <Button
               variant="outline"
@@ -265,7 +251,7 @@ export function AwaitingInterviewStep({
               }
             >
               <ArrowRight className="mr-2 h-4 w-4" />
-              {lang === "pt" ? "Recomeçar novamente" : "Start again"}
+              {aw.startAgain[lang]}
             </Button>
           </div>
         </div>
@@ -282,12 +268,8 @@ export function AwaitingInterviewStep({
             }`}
           >
             {isInterviewDateReached
-              ? lang === "pt"
-                ? "Data da Entrevista Chegou"
-                : "Interview Date Arrived"
-              : lang === "pt"
-                ? "Etapa Final: Preparação"
-                : "Final Stage: Preparation"}
+              ? aw.interviewDateArrived[lang]
+              : aw.finalStagePrep[lang]}
           </Badge>
           {isInterviewDateReached ? (
             <div className="inline-flex items-center justify-center p-4 bg-yellow-100 dark:bg-yellow-900/40 rounded-full mb-2">
@@ -296,21 +278,13 @@ export function AwaitingInterviewStep({
           ) : null}
           <h2 className="text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance">
             {isInterviewDateReached
-              ? lang === "pt"
-                ? "Como foi sua entrevista?"
-                : "How was your interview?"
-              : lang === "pt"
-                ? "Aguardando Entrevista"
-                : "Awaiting Interview"}
+              ? aw.howWasInterview[lang]
+              : aw.awaitingInterviewTitle[lang]}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             {isInterviewDateReached
-              ? lang === "pt"
-                ? "A data da sua entrevista no consulado já chegou! Role para baixo e nos informe o resultado para atualizarmos seu processo."
-                : "Your consulate interview date has arrived! Scroll down and let us know the outcome to update your process."
-              : lang === "pt"
-                ? "Suas datas estão confirmadas! Agora foque em sua preparação com nossas ferramentas exclusivas."
-                : "Your dates are confirmed! Now focus on your preparation with our exclusive tools."}
+              ? aw.interviewArrivedDesc[lang]
+              : aw.datesConfirmedDesc[lang]}
           </p>
         </div>
       )}
@@ -321,18 +295,16 @@ export function AwaitingInterviewStep({
             variant="outline"
             className="bg-green-500/10 text-green-500 border-green-500/20 px-4 py-1 rounded-full font-black text-[10px] tracking-[0.2em] uppercase mb-4"
           >
-            {lang === "pt" ? "Sucesso!" : "Success!"}
+            {aw.successTag[lang]}
           </Badge>
           <div className="inline-flex items-center justify-center p-4 bg-green-100 dark:bg-green-900/40 rounded-full mb-2">
             <PartyPopper className="h-12 w-12 text-green-600 dark:text-green-400" />
           </div>
           <h2 className="text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance">
-            {lang === "pt" ? "Visto Aprovado!" : "Visa Approved!"}
+            {aw.visaApprovedTitle[lang]}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            {lang === "pt"
-              ? "Parabéns pela aprovação do seu visto americano! Agora precisamos apenas saber como você pretende pegar o seu passaporte."
-              : "Congratulations on the approval of your US visa! Now we just need to know how you intend to pick up your passport."}
+            {aw.visaApprovedDesc[lang]}
           </p>
         </div>
       )}
@@ -349,13 +321,11 @@ export function AwaitingInterviewStep({
         >
           {/* CASV Card */}
           <Card className="border-none bg-slate-50 dark:bg-slate-900/50 rounded-[40px] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden h-full flex flex-col">
-            <CardHeader className="bg-accent/5 pb-5 shrink-0">
+            <CardHeader className="bg-accent/5 p-4 sm:p-5 pb-4 sm:pb-5 shrink-0">
               <div className="flex items-center gap-2 text-accent mb-2">
                 <Calendar className="h-4 w-4" />
                 <span className="text-[10px] font-black uppercase tracking-widest">
-                  {lang === "pt"
-                    ? "DATA CONFIRMADA CASV"
-                    : "CONFIRMED CASV DATE"}
+                  {aw.confirmedCasvDate[lang]}
                 </span>
               </div>
               <CardTitle className="text-title-xl font-black leading-tight">
@@ -367,15 +337,13 @@ export function AwaitingInterviewStep({
                       day: "numeric",
                       month: "long",
                     })
-                  : lang === "pt"
-                    ? "Em processamento..."
-                    : "Processing..."}
+                  : aw.processing[lang]}
               </CardTitle>
               <CardDescription className="text-lg font-bold text-accent italic">
                 {data?.interview_time ? `@ ${data.interview_time}` : ""}
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-5 space-y-4 flex-1">
+            <CardContent className="p-4 sm:p-5 space-y-4 flex-1">
               <div className="space-y-4">
                 <div className="flex gap-4">
                   <div className="h-10 w-10 rounded-md bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-sm">
@@ -383,13 +351,10 @@ export function AwaitingInterviewStep({
                   </div>
                   <div>
                     <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                      {lang === "pt" ? "LOCALIDADE CASV" : "CASV LOCATION"}
+                      {aw.casvLocation[lang]}
                     </p>
                     <p className="font-bold text-sm leading-tight">
-                      {data?.interview_location_casv ||
-                        (lang === "pt"
-                          ? "Será informado em breve"
-                          : "To be informed shortly")}
+                      {data?.interview_location_casv || aw.informedShortly[lang]}
                     </p>
                   </div>
                 </div>
@@ -400,13 +365,11 @@ export function AwaitingInterviewStep({
           {/* Consulate Card - Only shown if same_location is false */}
           {data?.same_location === false && (
             <Card className="border-none bg-accent/5 dark:bg-accent/10 rounded-[40px] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden h-full flex flex-col">
-              <CardHeader className="bg-accent/10 pb-5 shrink-0">
+              <CardHeader className="bg-accent/10 p-4 sm:p-5 pb-4 sm:pb-5 shrink-0">
                 <div className="flex items-center gap-2 text-accent mb-2">
                   <Calendar className="h-4 w-4" />
                   <span className="text-[10px] font-black uppercase tracking-widest">
-                    {lang === "pt"
-                      ? "DATA CONFIRMADA CONSULADO"
-                      : "CONFIRMED CONSULATE DATE"}
+                    {aw.confirmedConsulateDate[lang]}
                   </span>
                 </div>
                 <CardTitle className="text-title-xl font-black leading-tight">
@@ -418,9 +381,7 @@ export function AwaitingInterviewStep({
                         day: "numeric",
                         month: "long",
                       })
-                    : lang === "pt"
-                      ? "Em processamento..."
-                      : "Processing..."}
+                    : aw.processing[lang]}
                 </CardTitle>
                 <CardDescription className="text-lg font-bold text-accent italic">
                   {data?.consulate_interview_time
@@ -428,7 +389,7 @@ export function AwaitingInterviewStep({
                     : ""}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-5 space-y-4 flex-1 text-foreground">
+              <CardContent className="p-4 sm:p-5 space-y-4 flex-1 text-foreground">
                 <div className="space-y-4">
                   <div className="flex gap-4">
                     <div className="h-10 w-10 rounded-md bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-sm">
@@ -436,13 +397,10 @@ export function AwaitingInterviewStep({
                     </div>
                     <div>
                       <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                        {lang === "pt" ? "CONSULADO" : "CONSULATE"}
+                        {aw.consulate[lang]}
                       </p>
                       <p className="font-bold text-sm leading-tight">
-                        {data?.interview_location_consulate ||
-                          (lang === "pt"
-                            ? "Será informado em breve"
-                            : "To be informed shortly")}
+                        {data?.interview_location_consulate || aw.informedShortly[lang]}
                       </p>
                     </div>
                   </div>
@@ -461,17 +419,13 @@ export function AwaitingInterviewStep({
             <Card className="border-border shadow-2xl rounded-[40px] overflow-hidden bg-card/50 backdrop-blur-md relative">
               <CardHeader className="text-center pb-4 pt-6">
                 <CardTitle className="text-title font-black">
-                  {lang === "pt"
-                    ? "Como deseja receber seu visto?"
-                    : "How do you want to receive your visa?"}
+                  {aw.howReceiveVisa[lang]}
                 </CardTitle>
                 <CardDescription className="text-base mt-2">
-                  {lang === "pt"
-                    ? "O Consulado retém seu passaporte para estampar o visto. Escolha uma opção para ver o guia:"
-                    : "The Consulate keeps your passport to stamp the visa. Choose an option to see the guide:"}
+                  {aw.consulateRetainsDesc[lang]}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-5 grid md:grid-cols-2 gap-4">
+              <CardContent className="p-4 sm:p-5 grid md:grid-cols-2 gap-4">
                 {/* Correios Option */}
                 <button
                   onClick={() => handleDeliveryGuide("correios")}
@@ -482,18 +436,14 @@ export function AwaitingInterviewStep({
                   </div>
                   <div>
                     <h3 className="text-subtitle font-black tracking-tight mb-2">
-                      {lang === "pt"
-                        ? "Correios (Em Casa)"
-                        : "Postal Service (Home)"}
+                      {aw.postalHome[lang]}
                     </h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      {lang === "pt"
-                        ? "Receba seu passaporte via Correios Premium no endereço informado na DS-160."
-                        : "Receive your passport via Premium Mail at the address provided in your DS-160."}
+                      {aw.postalHomeDesc[lang]}
                     </p>
                   </div>
                   <span className="text-xs font-bold text-accent uppercase tracking-widest">
-                    {lang === "pt" ? "Ver Guia →" : "View Guide →"}
+                    {aw.viewGuide[lang]}
                   </span>
                 </button>
 
@@ -507,16 +457,14 @@ export function AwaitingInterviewStep({
                   </div>
                   <div>
                     <h3 className="text-subtitle font-black tracking-tight mb-2">
-                      {lang === "pt" ? "Retirar no CASV" : "Pick up at CASV"}
+                      {aw.pickUpCasv[lang]}
                     </h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      {lang === "pt"
-                        ? "Você ou um representante autorizado retorna ao CASV para retirar o passaporte pessoalmente."
-                        : "You or an authorized representative returns to the CASV to collect the passport in person."}
+                      {aw.pickUpCasvDesc[lang]}
                     </p>
                   </div>
                   <span className="text-xs font-bold text-accent uppercase tracking-widest">
-                    {lang === "pt" ? "Ver Guia →" : "View Guide →"}
+                    {aw.viewGuide[lang]}
                   </span>
                 </button>
               </CardContent>
@@ -524,12 +472,12 @@ export function AwaitingInterviewStep({
           ) : activeGuide === "correios" ? (
             /* Correios Guide */
             <Card className="border-accent/20 shadow-2xl rounded-[40px] overflow-hidden bg-card">
-              <CardHeader className="bg-blue-50 dark:bg-blue-950/20 p-5">
+              <CardHeader className="bg-blue-50 dark:bg-blue-950/20 p-4 sm:p-5">
                 <button
                   onClick={() => setActiveGuide(null)}
                   className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 mb-4 transition-colors"
                 >
-                  ← {lang === "pt" ? "Voltar" : "Back"}
+                  ← {aw.back[lang]}
                 </button>
                 <div className="flex items-center gap-4">
                   <div className="h-14 w-14 bg-blue-500 rounded-md flex items-center justify-center text-white shadow-lg">
@@ -537,72 +485,28 @@ export function AwaitingInterviewStep({
                   </div>
                   <div>
                     <CardTitle className="text-title font-black">
-                      {lang === "pt"
-                        ? "Recebimento pelos Correios"
-                        : "Postal Service Delivery"}
+                      {aw.postalServiceDelivery[lang]}
                     </CardTitle>
                     <CardDescription className="mt-1">
-                      {lang === "pt"
-                        ? "Guia completo para receber seu passaporte em casa"
-                        : "Complete guide to receive your passport at home"}
+                      {aw.receivePassportHomeGuide[lang]}
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-5 space-y-4">
+              <CardContent className="p-4 sm:p-5 space-y-4">
                 <div className="space-y-4">
-                  {[
-                    {
-                      step: "01",
-                      title:
-                        lang === "pt"
-                          ? "Confirmação pelo consulado"
-                          : "Consulate confirmation",
-                      desc:
-                        lang === "pt"
-                          ? "Após a aprovação, o consulado processará a estampagem do visto no seu passaporte."
-                          : "After approval, the consulate will process the visa stamping in your passport.",
-                    },
-                    {
-                      step: "02",
-                      title:
-                        lang === "pt"
-                          ? "Solicitação de envio"
-                          : "Shipping request",
-                      desc:
-                        lang === "pt"
-                          ? "O envio será feito para o endereço informado na sua DS-160. Confirme que o endereço está correto."
-                          : "Shipping will be made to the address provided in your DS-160. Confirm that the address is correct.",
-                    },
-                    {
-                      step: "03",
-                      title: lang === "pt" ? "Taxa de envio" : "Shipping fee",
-                      desc:
-                        lang === "pt"
-                          ? "O consulado pode cobrar uma taxa adicional pelos Correios Premium. Fique atento ao e-mail."
-                          : "The consulate may charge an additional fee for Premium Mail. Watch your email.",
-                    },
-                    {
-                      step: "04",
-                      title:
-                        lang === "pt" ? "Prazo de entrega" : "Delivery time",
-                      desc:
-                        lang === "pt"
-                          ? "O prazo normal é de 5 a 10 dias úteis após a estampagem do visto."
-                          : "The normal timeframe is 5 to 10 business days after visa stamping.",
-                    },
-                  ].map((item) => (
+                  {aw.guides.correios.map((item, index) => (
                     <div
-                      key={item.step}
+                      key={index}
                       className="flex gap-4 p-4 rounded-md bg-muted/30"
                     >
                       <span className="text-title font-black text-blue-500/30">
-                        {item.step}
+                        {String(index + 1).padStart(2, "0")}
                       </span>
                       <div>
-                        <p className="font-bold text-sm">{item.title}</p>
+                        <p className="font-bold text-sm">{item.title[lang]}</p>
                         <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">
-                          {item.desc}
+                          {item.desc[lang]}
                         </p>
                       </div>
                     </div>
@@ -612,22 +516,19 @@ export function AwaitingInterviewStep({
                   onClick={() => setActiveGuide(null)}
                   className="w-full mt-2 p-4 rounded-md border-2 border-dashed border-border text-sm font-bold text-muted-foreground hover:border-accent hover:text-accent transition-all"
                 >
-                  ←{" "}
-                  {lang === "pt"
-                    ? "Escolher outra opção"
-                    : "Choose another option"}
+                  ← {aw.chooseAnother[lang]}
                 </button>
               </CardContent>
             </Card>
           ) : activeGuide === "consular" ? (
             /* CASV Guide */
             <Card className="border-accent/20 shadow-2xl rounded-[40px] overflow-hidden bg-card">
-              <CardHeader className="bg-purple-50 dark:bg-purple-950/20 p-5">
+              <CardHeader className="bg-purple-50 dark:bg-purple-950/20 p-4 sm:p-5">
                 <button
                   onClick={() => setActiveGuide(null)}
                   className="flex items-center gap-2 text-sm font-bold text-purple-600 hover:text-purple-800 mb-4 transition-colors"
                 >
-                  ← {lang === "pt" ? "Voltar" : "Back"}
+                  ← {aw.back[lang]}
                 </button>
                 <div className="flex items-center gap-4">
                   <div className="h-14 w-14 bg-purple-500 rounded-md flex items-center justify-center text-white shadow-lg">
@@ -635,73 +536,28 @@ export function AwaitingInterviewStep({
                   </div>
                   <div>
                     <CardTitle className="text-title font-black">
-                      {lang === "pt" ? "Retirada no CASV" : "CASV Pickup"}
+                      {aw.casvPickup[lang]}
                     </CardTitle>
                     <CardDescription className="mt-1">
-                      {lang === "pt"
-                        ? "Guia completo para retirar seu passaporte pessoalmente"
-                        : "Complete guide to collect your passport in person"}
+                      {aw.collectPassportPersonGuide[lang]}
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-5 space-y-4">
+              <CardContent className="p-4 sm:p-5 space-y-4">
                 <div className="space-y-4">
-                  {[
-                    {
-                      step: "01",
-                      title:
-                        lang === "pt"
-                          ? "Aguarde o aviso"
-                          : "Wait for the notice",
-                      desc:
-                        lang === "pt"
-                          ? "O consulado enviará um e-mail avisando que seu passaporte está pronto para retirada no CASV."
-                          : "The consulate will send an email advising that your passport is ready for collection at the CASV.",
-                    },
-                    {
-                      step: "02",
-                      title:
-                        lang === "pt" ? "Quem pode retirar" : "Who can collect",
-                      desc:
-                        lang === "pt"
-                          ? "Você ou um representante autorizado com procuração pode retirar o passaporte no CASV."
-                          : "You or an authorized representative with a power of attorney can collect the passport from the CASV.",
-                    },
-                    {
-                      step: "03",
-                      title:
-                        lang === "pt"
-                          ? "Documentos necessários"
-                          : "Required documents",
-                      desc:
-                        lang === "pt"
-                          ? "Leve o comprovante de agendamento e um documento de identidade válido para a retirada."
-                          : "Bring the scheduling confirmation and a valid identity document for collection.",
-                    },
-                    {
-                      step: "04",
-                      title:
-                        lang === "pt"
-                          ? "Sem custo adicional"
-                          : "No additional cost",
-                      desc:
-                        lang === "pt"
-                          ? "A retirada no CASV é isenta de taxas adicionais do consulado."
-                          : "CASV pickup is exempt from additional consular fees.",
-                    },
-                  ].map((item) => (
+                  {aw.guides.casv.map((item, index) => (
                     <div
-                      key={item.step}
+                      key={index}
                       className="flex gap-4 p-4 rounded-md bg-muted/30"
                     >
                       <span className="text-title font-black text-purple-500/30">
-                        {item.step}
+                        {String(index + 1).padStart(2, "0")}
                       </span>
                       <div>
-                        <p className="font-bold text-sm">{item.title}</p>
+                        <p className="font-bold text-sm">{item.title[lang]}</p>
                         <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">
-                          {item.desc}
+                          {item.desc[lang]}
                         </p>
                       </div>
                     </div>
@@ -711,10 +567,7 @@ export function AwaitingInterviewStep({
                   onClick={() => setActiveGuide(null)}
                   className="w-full mt-2 p-4 rounded-md border-2 border-dashed border-border text-sm font-bold text-muted-foreground hover:border-accent hover:text-accent transition-all"
                 >
-                  ←{" "}
-                  {lang === "pt"
-                    ? "Escolher outra opção"
-                    : "Choose another option"}
+                  ← {aw.chooseAnother[lang]}
                 </button>
               </CardContent>
             </Card>
@@ -723,12 +576,12 @@ export function AwaitingInterviewStep({
           {/* US Entry Guide */}
           {activeGuide === "entrada_eua" && (
             <Card className="border-accent/20 shadow-2xl rounded-[40px] overflow-hidden bg-card">
-              <CardHeader className="bg-green-50 dark:bg-green-950/20 p-5">
+              <CardHeader className="bg-green-50 dark:bg-green-950/20 p-4 sm:p-5">
                 <button
                   onClick={() => setActiveGuide(null)}
                   className="flex items-center gap-2 text-sm font-bold text-green-600 hover:text-green-800 mb-4 transition-colors"
                 >
-                  ← {lang === "pt" ? "Voltar" : "Back"}
+                  ← {aw.back[lang]}
                 </button>
                 <div className="flex items-center gap-4">
                   <div className="h-14 w-14 bg-green-500 rounded-md flex items-center justify-center text-white shadow-lg">
@@ -736,97 +589,28 @@ export function AwaitingInterviewStep({
                   </div>
                   <div>
                     <CardTitle className="text-title font-black">
-                      {lang === "pt"
-                        ? "Guia de Entrada nos EUA"
-                        : "US Entry Guide"}
+                      {aw.usEntryGuide[lang]}
                     </CardTitle>
                     <CardDescription className="mt-1">
-                      {lang === "pt"
-                        ? "O que esperar na imigração americana e como se preparar"
-                        : "What to expect at US immigration and how to prepare"}
+                      {aw.whatExpectImmigration[lang]}
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-5 space-y-4">
+              <CardContent className="p-4 sm:p-5 space-y-4">
                 <div className="space-y-4">
-                  {[
-                    {
-                      step: "01",
-                      title:
-                        lang === "pt"
-                          ? "Chegada ao aeroporto"
-                          : "Arrival at the airport",
-                      desc:
-                        lang === "pt"
-                          ? "Ao chegar nos EUA, siga as placas de 'Immigration' ou 'Customs'. Tenha seu passaporte e o cartão de embarque à mão."
-                          : "Upon arriving in the US, follow the signs for 'Immigration' or 'Customs'. Have your passport and boarding pass ready.",
-                    },
-                    {
-                      step: "02",
-                      title:
-                        lang === "pt"
-                          ? "Fila de imigração"
-                          : "Immigration line",
-                      desc:
-                        lang === "pt"
-                          ? "Entre na fila para visitantes internacionais. Você passará por um quiosque APC onde escaneará seu passaporte e responderá perguntas na tela."
-                          : "Join the line for international visitors. You'll go through an APC kiosk to scan your passport and answer on-screen questions.",
-                    },
-                    {
-                      step: "03",
-                      title:
-                        lang === "pt"
-                          ? "Entrevista com o agente"
-                          : "Agent interview",
-                      desc:
-                        lang === "pt"
-                          ? "O agente revisará seu passaporte, coletará biométricos e poderá perguntar sobre o motivo da visita, tempo de estadia e onde ficará."
-                          : "The officer will review your passport, collect biometrics, and may ask about your visit purpose, length of stay, and accommodation.",
-                    },
-                    {
-                      step: "04",
-                      title:
-                        lang === "pt"
-                          ? "Documentos recomendados"
-                          : "Recommended documents",
-                      desc:
-                        lang === "pt"
-                          ? "Tenha consigo: passaporte com visto, comprovante de hospedagem, passagem de volta e comprovante de meios financeiros."
-                          : "Have with you: passport with visa, accommodation proof, return ticket, and proof of financial means.",
-                    },
-                    {
-                      step: "05",
-                      title:
-                        lang === "pt"
-                          ? "Recolhimento de bagagem"
-                          : "Baggage claim",
-                      desc:
-                        lang === "pt"
-                          ? "Após a imigração, retire suas malas e passe pela alfândega. Declare itens obrigatórios. A maioria dos turistas passa rapidamente."
-                          : "After immigration, collect your luggage and go through Customs. Declare mandatory items. Most tourists pass through quickly.",
-                    },
-                    {
-                      step: "06",
-                      title:
-                        lang === "pt" ? "Dicas importantes" : "Important tips",
-                      desc:
-                        lang === "pt"
-                          ? "Seja honesto com os agentes. Responda apenas o que for perguntado. Evite piadas sobre segurança. Mantenha a calma e seja educado."
-                          : "Be honest with officers. Answer only what is asked. Avoid security-related jokes. Stay calm and be polite.",
-                    },
-                  ].map((item) => (
+                  {aw.guides.usEntry.map((item, index) => (
                     <div
-                      key={item.step}
+                      key={index}
                       className="flex gap-4 p-4 rounded-md bg-muted/30"
                     >
                       <span className="text-title font-black text-green-500/30">
-                        {item.step}
+                        {String(index + 1).padStart(2, "0")}
                       </span>
                       <div>
-                        <p className="font-bold text-sm">{item.title}</p>
+                        <p className="font-bold text-sm">{item.title[lang]}</p>
                         <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">
-                          {item.desc}
+                          {item.desc[lang]}
                         </p>
                       </div>
                     </div>
@@ -836,10 +620,7 @@ export function AwaitingInterviewStep({
                   onClick={() => setActiveGuide(null)}
                   className="w-full mt-2 p-4 rounded-md border-2 border-dashed border-border text-sm font-bold text-muted-foreground hover:border-accent hover:text-accent transition-all"
                 >
-                  ←{" "}
-                  {lang === "pt"
-                    ? "Escolher outra opção"
-                    : "Choose another option"}
+                  ← {aw.chooseAnother[lang]}
                 </button>
               </CardContent>
             </Card>
@@ -855,15 +636,13 @@ export function AwaitingInterviewStep({
               </div>
               <div className="flex-1">
                 <p className="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1">
-                  {lang === "pt" ? "PRÓXIMO PASSO" : "NEXT STEP"}
+                  {aw.nextStep[lang]}
                 </p>
                 <h3 className="text-lg font-black tracking-tight">
-                  {lang === "pt" ? "Guia de Entrada nos EUA" : "US Entry Guide"}
+                  {aw.usEntryGuide[lang]}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">
-                  {lang === "pt"
-                    ? "Saiba o que esperar na imigração americana: fila, biométricos, perguntas e dicas essenciais."
-                    : "Learn what to expect at US immigration: queue, biometrics, questions and essential tips."}
+                  {aw.usEntryGuideDesc[lang]}
                 </p>
               </div>
               <span className="text-green-600 font-black text-lg shrink-0 group-hover:translate-x-1 transition-transform">
@@ -877,17 +656,13 @@ export function AwaitingInterviewStep({
       {/* Outcome Selection for Awaiting Interview - Only if date is reached */}
       {serviceStatus === "awaitingInterview" && isInterviewDateReached && (
         <Card className="max-w-4xl mx-auto border-border shadow-2xl rounded-[40px] overflow-hidden bg-card/10 backdrop-blur-md relative border-dashed mt-12">
-          <CardContent className="p-5 md:p-12 space-y-5 text-center">
+          <CardContent className="p-4 sm:p-5 md:p-12 space-y-4 sm:space-y-5 text-center">
             <div className="space-y-3">
               <h3 className="text-title-xl font-black tracking-tight">
-                {lang === "pt"
-                  ? "Sua entrevista já aconteceu?"
-                  : "Has your interview already taken place?"}
+                {aw.interviewTakenPlace[lang]}
               </h3>
               <p className="text-muted-foreground">
-                {lang === "pt"
-                  ? "Informe-nos o resultado final para atualizarmos seu processo no sistema."
-                  : "Let us know the final outcome to update your process in the system."}
+                {aw.informOutcome[lang]}
               </p>
             </div>
 
@@ -903,7 +678,7 @@ export function AwaitingInterviewStep({
                 ) : (
                   <ThumbsUp className="h-5 w-5 mr-3" />
                 )}
-                {lang === "pt" ? "FUI APROVADO(A)!" : "I WAS APPROVED!"}
+                {aw.iWasApproved[lang]}
               </Button>
               <Button
                 variant="outline"
@@ -916,7 +691,7 @@ export function AwaitingInterviewStep({
                 ) : (
                   <ThumbsDown className="h-5 w-5 mr-3" />
                 )}
-                {lang === "pt" ? "FUI REPROVADO(A)" : "I WAS REFUSED"}
+                {aw.iWasRefused[lang]}
               </Button>
             </div>
           </CardContent>
@@ -929,14 +704,10 @@ export function AwaitingInterviewStep({
           <div className="px-4 text-center">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
-              {lang === "pt"
-                ? "FERRAMENTAS DE PREPARAÇÃO"
-                : "PREPARATION TOOLS"}
+              {aw.prepTools[lang]}
             </h3>
             <p className="text-xs text-muted-foreground mt-1 uppercase font-bold tracking-widest">
-              {lang === "pt"
-                ? "Prepare-se para aprovação"
-                : "Prepare for approval"}
+              {aw.prepApproval[lang]}
             </p>
           </div>
 
@@ -945,7 +716,7 @@ export function AwaitingInterviewStep({
               <button
                 key={tool.id}
                 onClick={tool.action}
-                className="group flex flex-col items-center text-center p-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] hover:border-accent/40 hover:shadow-2xl hover:shadow-accent/10 transition-all relative overflow-hidden h-full"
+                className="group flex flex-col items-center text-center p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] md:rounded-[40px] hover:border-accent/40 hover:shadow-2xl hover:shadow-accent/10 transition-all relative overflow-hidden h-full"
               >
                 <div
                   className={cn(

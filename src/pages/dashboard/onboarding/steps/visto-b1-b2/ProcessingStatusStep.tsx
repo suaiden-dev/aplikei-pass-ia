@@ -8,31 +8,28 @@ interface ProcessingStatusStepProps {
 }
 
 export function ProcessingStatusStep({ status }: ProcessingStatusStepProps) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
+  const ps = t.onboardingPage.processingStatus;
 
   const isPending = status === "review_pending" || status === "ds160Processing";
   const isAwaitingReview =
     status === "ds160AwaitingReviewAndSignature" ||
     status === "uploadsUnderReview";
 
-  const getFriendlyStatus = (rawStatus: string, language: string) => {
+  const getFriendlyStatus = (rawStatus: string) => {
     switch (rawStatus) {
       case "review_pending":
       case "ds160Processing":
-        return language === "pt" ? "Processando DS-160" : "Processing DS-160";
+        return ps.processingDS160[lang];
       case "ds160AwaitingReviewAndSignature":
       case "review_assign":
-        return language === "pt" ? "Aguardando Revisão" : "Awaiting Review";
+        return ps.awaitingReview[lang];
       case "uploadsUnderReview":
-        return language === "pt"
-          ? "Revisando Documentos"
-          : "Reviewing Documents";
+        return ps.reviewingDocs[lang];
       case "casvSchedulingPending":
-        return language === "pt"
-          ? "Aguardando Agendamento"
-          : "Awaiting Scheduling";
+        return ps.awaitingScheduling[lang];
       case "ds160upload_documents":
-        return language === "pt" ? "Aguardando Upload" : "Awaiting Upload";
+        return ps.awaitingUpload[lang];
       default:
         return rawStatus.replace(/_/g, " ");
     }
@@ -50,23 +47,11 @@ export function ProcessingStatusStep({ status }: ProcessingStatusStepProps) {
         </div>
 
         <h2 className="text-title md:text-title-xl font-black tracking-tight text-foreground">
-          {isPending
-            ? lang === "pt"
-              ? "Processando seus dados"
-              : "Processing your data"
-            : lang === "pt"
-              ? "Documentos Recebidos!"
-              : "Documents Received!"}
+          {isPending ? ps.processingDataTitle[lang] : ps.documentsReceivedTitle[lang]}
         </h2>
 
         <p className="text-body md:text-subtitle text-muted-foreground max-w-md mx-auto leading-relaxed">
-          {isPending
-            ? lang === "pt"
-              ? "Nossa equipe já recebeu suas informações e está trabalhando no preenchimento do seu formulário DS-160."
-              : "Our team has received your information and is working on filling out your DS-160 form."
-            : lang === "pt"
-              ? "Seus documentos foram enviados para nossa revisão final. Você será notificado assim que o processo avançar."
-              : "Your documents have been submitted for our final review. You will be notified as soon as the process advances."}
+          {isPending ? ps.processingDataDesc[lang] : ps.documentsReceivedDesc[lang]}
         </p>
       </div>
 
@@ -78,10 +63,10 @@ export function ProcessingStatusStep({ status }: ProcessingStatusStepProps) {
             </div>
             <div>
               <p className="text-sm font-bold text-foreground">
-                {lang === "pt" ? "Status Atual" : "Current Status"}
+                {ps.currentStatus[lang]}
               </p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">
-                {getFriendlyStatus(status, lang as string)}
+                {getFriendlyStatus(status)}
               </p>
             </div>
           </div>
@@ -90,17 +75,13 @@ export function ProcessingStatusStep({ status }: ProcessingStatusStepProps) {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground">
-                {lang === "pt"
-                  ? "Você pode acompanhar o progresso em tempo real pelo seu painel."
-                  : "You can track progress in real-time through your dashboard."}
+                {ps.trackProgress[lang]}
               </p>
             </div>
             <div className="flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground">
-                {lang === "pt"
-                  ? "Caso precisemos de algum dado extra, entraremos em contato."
-                  : "Should we need any extra data, we will contact you."}
+                {ps.contactExtraData[lang]}
               </p>
             </div>
           </div>
@@ -109,9 +90,7 @@ export function ProcessingStatusStep({ status }: ProcessingStatusStepProps) {
 
       <div className="text-center">
         <p className="text-xs text-muted-foreground italic">
-          {lang === "pt"
-            ? "Obrigado por confiar na Aplikei Pass!"
-            : "Thank you for trusting Aplikei Pass!"}
+          {ps.thankYou[lang]}
         </p>
       </div>
     </div>

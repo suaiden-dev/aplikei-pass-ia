@@ -36,6 +36,8 @@ interface ReviewAndSignDS160StepProps {
     dob: string | null;
     grandma: string | null;
   } | null;
+  lang: string;
+  t: any;
 }
 
 export function ReviewAndSignDS160Step({
@@ -45,25 +47,21 @@ export function ReviewAndSignDS160Step({
   fileInputRef,
   setSelectedDoc,
   securityData,
+  lang,
+  t,
 }: ReviewAndSignDS160StepProps) {
-  const { lang } = useLanguage();
+  const rs = t.onboardingPage.reviewAndSign;
 
   const requiredDocs = [
     {
       id: "ds160_assinada",
-      title: lang === "pt" ? "DS-160 Assinada" : "Signed DS-160",
-      description:
-        lang === "pt"
-          ? "Faça o upload do formulário DS-160 assinado."
-          : "Upload the signed DS-160 form.",
+      title: rs.requiredDocs.ds160_assinada.title[lang],
+      description: rs.requiredDocs.ds160_assinada.description[lang],
     },
     {
       id: "ds160_comprovante",
-      title: lang === "pt" ? "Comprovante DS-160" : "DS-160 Confirmation",
-      description:
-        lang === "pt"
-          ? "Faça o upload do comprovante de envio."
-          : "Upload the submission confirmation.",
+      title: rs.requiredDocs.ds160_comprovante.title[lang],
+      description: rs.requiredDocs.ds160_comprovante.description[lang],
     },
   ];
 
@@ -72,40 +70,28 @@ export function ReviewAndSignDS160Step({
   const handleCopy = (text: string | null | undefined) => {
     if (!text) return;
     navigator.clipboard.writeText(text);
-    toast.success(lang === "pt" ? "Copiado!" : "Copied!");
+    toast.success(rs.copied[lang]);
   };
 
   const tutorialSteps = [
     {
-      title: lang === "pt" ? "Acesse o Portal" : "Access the Portal",
-      desc:
-        lang === "pt"
-          ? "Use seu Application ID e dados de segurança para entrar no portal consular."
-          : "Use your Application ID and security data to log in to the consular portal.",
+      title: rs.tutorialSteps[0].title[lang],
+      desc: rs.tutorialSteps[0].desc[lang],
       img: "https://images.unsplash.com/photo-1432888622747-4eb9a8f2c205?q=80&w=800&h=450&auto=format&fit=crop",
     },
     {
-      title: lang === "pt" ? "Revise as Informações" : "Review Information",
-      desc:
-        lang === "pt"
-          ? "Confira detalhadamente cada seção do formulário preenchido por nossa equipe."
-          : "Carefully check each section of the form filled out by our team.",
+      title: rs.tutorialSteps[1].title[lang],
+      desc: rs.tutorialSteps[1].desc[lang],
       img: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=800&h=450&auto=format&fit=crop",
     },
     {
-      title: lang === "pt" ? "Assine Digitalmente" : "Sign Digitally",
-      desc:
-        lang === "pt"
-          ? "Role até o final, confirme sua identidade e realize a assinatura digital."
-          : "Scroll to the end, confirm your identity, and complete the digital signature.",
+      title: rs.tutorialSteps[2].title[lang],
+      desc: rs.tutorialSteps[2].desc[lang],
       img: "https://images.unsplash.com/photo-1554224155-169641357599?q=80&w=800&h=450&auto=format&fit=crop",
     },
     {
-      title: lang === "pt" ? "Baixe a Confirmação" : "Download Confirmation",
-      desc:
-        lang === "pt"
-          ? "Salve o formulário completo e a página de confirmação com código de barras."
-          : "Save the complete form and the confirmation page with the barcode.",
+      title: rs.tutorialSteps[3].title[lang],
+      desc: rs.tutorialSteps[3].desc[lang],
       img: "https://images.unsplash.com/photo-1618044733300-9472154094ee?q=80&w=800&h=450&auto=format&fit=crop",
     },
   ];
@@ -114,14 +100,10 @@ export function ReviewAndSignDS160Step({
     <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center space-y-3">
         <h2 className="text-title font-bold font-display text-foreground">
-          {lang === "pt"
-            ? "Tutorial: Revisão e Assinatura"
-            : "Tutorial: Review and Signature"}
+          {rs.tutorialTitle[lang]}
         </h2>
         <p className="text-muted-foreground text-sm max-w-2xl mx-auto">
-          {lang === "pt"
-            ? "Siga os passos abaixo no portal oficial para concluir seu processo."
-            : "Follow the steps below on the official portal to complete your process."}
+          {rs.tutorialSubtitle[lang]}
         </p>
       </div>
 
@@ -187,9 +169,7 @@ export function ReviewAndSignDS160Step({
             <div className="space-y-4 mb-5">
               <div className="flex justify-center sm:justify-start">
                 <Badge className="bg-accent/10 text-accent border-none font-bold uppercase tracking-wider text-[10px] py-1 px-3">
-                  {lang === "pt"
-                    ? `Passo ${activeStep + 1} de ${tutorialSteps.length}`
-                    : `Step ${activeStep + 1} of ${tutorialSteps.length}`}
+                  {rs.stepLabel[lang]} {activeStep + 1} {rs.of[lang]} {tutorialSteps.length}
                 </Badge>
               </div>
               <h3 className="text-title font-bold text-foreground">
@@ -209,7 +189,7 @@ export function ReviewAndSignDS160Step({
                 className="rounded-md border-border hover:bg-muted font-bold text-xs w-full sm:w-auto justify-center"
               >
                 <ChevronLeft className="w-4 h-4 mr-1 hidden sm:inline-block" />
-                {lang === "pt" ? "Anterior" : "Previous"}
+                {rs.previous[lang]}
               </Button>
               <Button
                 size="sm"
@@ -217,7 +197,7 @@ export function ReviewAndSignDS160Step({
                 onClick={() => setActiveStep((prev) => prev + 1)}
                 className="bg-accent hover:bg-green-dark text-white rounded-md shadow-lg shadow-accent/20 font-bold text-xs px-4 w-full sm:w-auto justify-center"
               >
-                {lang === "pt" ? "Próximo Passo" : "Next Step"}
+                {rs.nextStep[lang]}
                 <ChevronRight className="w-4 h-4 ml-1 hidden sm:inline-block" />
               </Button>
             </div>
@@ -229,14 +209,10 @@ export function ReviewAndSignDS160Step({
         <div className="mt-5 space-y-4 rounded-md border border-primary/20 bg-primary/5 p-4 shadow-sm">
           <div className="flex items-center gap-2 text-subtitle font-bold text-primary mb-2">
             <Shield className="w-6 h-6 text-accent" />
-            {lang === "pt"
-              ? "Seus Dados de Segurança da DS-160"
-              : "Your DS-160 Security Data"}
+            {rs.securityDataTitle[lang]}
           </div>
           <p className="text-muted-foreground text-sm">
-            {lang === "pt"
-              ? "Utilize essas informações para acessar a sua DS-160 oficial através do portal consular do governo."
-              : "Use this information to access your official DS-160 through the government consular portal."}
+            {rs.securityDataSubtitle[lang]}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
@@ -264,7 +240,7 @@ export function ReviewAndSignDS160Step({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   <Calendar className="w-4 h-4 text-accent" />
-                  {lang === "pt" ? "Data de Nascimento" : "Birth Date"}
+                  {rs.birthDate[lang]}
                 </div>
                 <Button
                   variant="ghost"
@@ -284,7 +260,7 @@ export function ReviewAndSignDS160Step({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   <User className="w-4 h-4 text-accent" />
-                  {lang === "pt" ? "Nome da Avó" : "Grandma Name"}
+                  {rs.grandmaName[lang]}
                 </div>
                 <Button
                   variant="ghost"
@@ -307,7 +283,7 @@ export function ReviewAndSignDS160Step({
         <h3 className="font-bold text-base md:text-lg text-foreground flex items-center gap-2">
           <FileText className="w-4 h-4 md:w-5 md:h-5 text-accent shrink-0" />
           <span className="truncate">
-            {lang === "pt" ? "Envio de Documentos" : "Document Upload"}
+            {rs.documentUploadTitle[lang]}
           </span>
         </h3>
 
@@ -348,7 +324,7 @@ export function ReviewAndSignDS160Step({
                     className="flex items-center justify-center gap-2 w-full py-2.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-900/30 rounded-md transition-colors border border-red-200 dark:border-red-900/30"
                   >
                     <X className="w-4 h-4" />
-                    {lang === "pt" ? "Remover" : "Remove"}
+                    {rs.remove[lang]}
                   </button>
                 ) : (
                   <button
@@ -365,12 +341,8 @@ export function ReviewAndSignDS160Step({
                       <Upload className="w-4 h-4" />
                     )}
                     {isUploading
-                      ? lang === "pt"
-                        ? "Enviando..."
-                        : "Uploading..."
-                      : lang === "pt"
-                        ? "Fazer Upload"
-                        : "Upload File"}
+                      ? rs.uploading[lang]
+                      : rs.uploadFile[lang]}
                   </button>
                 )}
               </div>

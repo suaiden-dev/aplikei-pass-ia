@@ -41,7 +41,7 @@ export default function PackagePDF() {
             <div className="flex items-center gap-3">
               <FileText className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium text-foreground">{lang === "en" ? "Final Package" : lang === "pt" ? "Pacote Final" : "Paquete Final"} — v1.0</p>
+                <p className="text-sm font-medium text-foreground">{p.finalPackage[lang]} — v1.0</p>
                 <div className="flex items-center gap-2">
                   <Clock className="h-3 w-3 text-muted-foreground" />
                   <span className="text-xs text-muted-foreground">2026-02-10</span>

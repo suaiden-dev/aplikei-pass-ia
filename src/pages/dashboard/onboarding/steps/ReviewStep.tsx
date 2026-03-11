@@ -632,12 +632,11 @@ export const ReviewStep = ({
     return (
       <div className="space-y-4">
         <h2 className="font-display text-lg font-semibold text-foreground">
-          {o.finalReview?.[lang] || "Revisão Final"}
+          {o.finalReview[lang]}
         </h2>
         <div className="flex flex-col items-center justify-center p-5 text-center bg-muted/30 rounded-md border border-dashed border-border">
           <p className="text-muted-foreground">
-            {o.fillPrevious?.[lang] ||
-              "Preencha as informações anteriores para ver o resumo."}
+            {o.fillPrevious[lang]}
           </p>
         </div>
       </div>
@@ -661,11 +660,10 @@ export const ReviewStep = ({
       <div className="flex justify-between items-center">
         <div>
           <h2 className="font-display text-lg font-semibold text-foreground">
-            {o.finalReview?.[lang] || "Revisão Final"}
+            {o.finalReview[lang]}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {o.finalReviewDesc?.[lang] ||
-              "Revise suas informações revisando seção por seção."}
+            {o.finalReviewDesc[lang]}
           </p>
         </div>
         <div className="bg-accent/10 text-accent font-medium px-3 py-1 rounded-full text-xs">
@@ -732,16 +730,8 @@ export const ReviewStep = ({
           }`}
         >
           {serviceStatus === "review_pending"
-            ? lang === "pt"
-              ? "Seu formulário já está sendo processado pela nossa equipe. Você pode revisar as informações acima, mas não precisa enviar novamente."
-              : lang === "es"
-                ? "Su formulario ya está siendo procesado por nuestro equipo. Puede revisar la información anterior, pero no es necesario enviarlo de nuevo."
-                : "Your form is already being processed by our team. You can review the information above, but you do not need to submit it again."
-            : lang === "pt"
-              ? "Você chegou ao fim da revisão! Se tudo estiver correto, clique no botão principal para confirmar e gerar seu pacote."
-              : lang === "es"
-                ? "¡Has llegado al final de la revisión! Si todo está correcto, haz clic en el botão principal para confirmar e gerar tu pacote."
-                : "You have reached the end of the review! If everything is correct, click the main button to confirm and generate your package."}
+            ? o.reviewPendingMsg[lang]
+            : o.reviewEndMsg[lang]}
         </div>
       )}
     </div>

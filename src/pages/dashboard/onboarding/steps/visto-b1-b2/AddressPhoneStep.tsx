@@ -11,6 +11,7 @@ export const AddressPhoneStep = ({
   t,
 }: StepProps) => {
   const ds = t.ds160;
+  const ap = ds.addressPhone;
   const isMailingSameAsHome = watch("isMailingSameAsHome");
   const hasOtherPhoneLast5Years = watch("hasOtherPhoneLast5Years");
   const hasOtherEmailLast5Years = watch("hasOtherEmailLast5Years");
@@ -18,22 +19,22 @@ export const AddressPhoneStep = ({
   return (
     <div className="space-y-4 fade-in">
       <h2 className="font-display text-lg font-semibold text-foreground">
-        {ds.addressPhone.title[lang]}
+        {ap.title[lang]}
       </h2>
 
       <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30">
         <h3 className="text-md font-medium">
-          {ds.addressPhone.homeAddress[lang]}
+          {ap.homeAddress[lang]}
         </h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="md:col-span-2 space-y-2">
             <Label htmlFor="homeAddress">
-              {lang === "pt" ? "Endereço:" : "Address:"} *
+              {ap.addressLabel[lang]} *
             </Label>
             <Input id="homeAddress" {...register("homeAddress")} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="homeCity">{ds.addressPhone.city[lang]} *</Label>
+            <Label htmlFor="homeCity">{ap.city[lang]} *</Label>
             <Input
               id="homeCity"
               {...register("homeCity")}
@@ -49,7 +50,7 @@ export const AddressPhoneStep = ({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="homeState">{ds.addressPhone.state[lang]} *</Label>
+            <Label htmlFor="homeState">{ap.state[lang]} *</Label>
             <Input
               id="homeState"
               {...register("homeState")}
@@ -65,7 +66,7 @@ export const AddressPhoneStep = ({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="homeZip">{ds.addressPhone.zip[lang]} *</Label>
+            <Label htmlFor="homeZip">{ap.zip[lang]} *</Label>
             <Input
               id="homeZip"
               {...register("homeZip")}
@@ -78,7 +79,7 @@ export const AddressPhoneStep = ({
           </div>
           <div className="space-y-2">
             <Label htmlFor="homeCountry">
-              {ds.addressPhone.country[lang]} *
+              {ap.country[lang]} *
             </Label>
             <Input
               id="homeCountry"
@@ -98,7 +99,7 @@ export const AddressPhoneStep = ({
       </div>
 
       <div className="space-y-3">
-        <Label>{ds.addressPhone.mailingSame[lang]} *</Label>
+        <Label>{ap.mailingSame[lang]} *</Label>
         <RadioGroup
           onValueChange={(val) => setValue("isMailingSameAsHome", val)}
           value={isMailingSameAsHome}
@@ -106,28 +107,25 @@ export const AddressPhoneStep = ({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="yes" id="mailing-yes" />
-            <Label htmlFor="mailing-yes">{lang === "pt" ? "Sim" : "Yes"}</Label>
+            <Label htmlFor="mailing-yes">{ap.yes[lang]}</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="no" id="mailing-no" />
-            <Label htmlFor="mailing-no">{lang === "pt" ? "Não" : "No"}</Label>
+            <Label htmlFor="mailing-no">{ap.no[lang]}</Label>
           </div>
         </RadioGroup>
         {isMailingSameAsHome === "no" && (
           <div className="mt-2 space-y-4 bg-muted/20 p-4 rounded-md border border-dashed border-border scale-in-center">
             <div className="space-y-2">
               <Label htmlFor="mailingAddress">
-                {lang === "pt"
-                  ? "Endereço de correspondência:"
-                  : "Mailing address:"}{" "}
-                *
+                {ap.mailingAddressLabel[lang]} *
               </Label>
               <Input id="mailingAddress" {...register("mailingAddress")} />
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="mailingCity">
-                  {ds.addressPhone.city[lang]} *
+                  {ap.city[lang]} *
                 </Label>
                 <Input
                   id="mailingCity"
@@ -145,7 +143,7 @@ export const AddressPhoneStep = ({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="mailingState">
-                  {ds.addressPhone.state[lang]} *
+                  {ap.state[lang]} *
                 </Label>
                 <Input
                   id="mailingState"
@@ -163,7 +161,7 @@ export const AddressPhoneStep = ({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="mailingZip">
-                  {ds.addressPhone.zip[lang]} *
+                  {ap.zip[lang]} *
                 </Label>
                 <Input id="mailingZip" {...register("mailingZip")} />
               </div>
@@ -175,7 +173,7 @@ export const AddressPhoneStep = ({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t border-border pt-4">
         <div className="space-y-2">
           <Label htmlFor="mobilePhone">
-            {ds.addressPhone.mobilePhone[lang]} *
+            {ap.mobilePhone[lang]} *
           </Label>
           <Input
             id="mobilePhone"
@@ -186,7 +184,7 @@ export const AddressPhoneStep = ({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="homePhone">{ds.addressPhone.homePhone[lang]}</Label>
+          <Label htmlFor="homePhone">{ap.homePhone[lang]}</Label>
           <Input
             id="homePhone"
             {...register("homePhone")}
@@ -196,7 +194,7 @@ export const AddressPhoneStep = ({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="workPhone">{ds.addressPhone.workPhone[lang]}</Label>
+          <Label htmlFor="workPhone">{ap.workPhone[lang]}</Label>
           <Input
             id="workPhone"
             {...register("workPhone")}
@@ -209,7 +207,7 @@ export const AddressPhoneStep = ({
 
       <div className="space-y-4 border-t border-border pt-4">
         <div className="space-y-3">
-          <Label>{ds.addressPhone.otherPhone5Years[lang]} *</Label>
+          <Label>{ap.otherPhone5Years[lang]} *</Label>
           <RadioGroup
             onValueChange={(val) => setValue("hasOtherPhoneLast5Years", val)}
             value={hasOtherPhoneLast5Years}
@@ -218,23 +216,20 @@ export const AddressPhoneStep = ({
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="yes" id="other-phone-yes" />
               <Label htmlFor="other-phone-yes">
-                {lang === "pt" ? "Sim" : "Yes"}
+                {ap.yes[lang]}
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="no" id="other-phone-no" />
               <Label htmlFor="other-phone-no">
-                {lang === "pt" ? "Não" : "No"}
+                {ap.no[lang]}
               </Label>
             </div>
           </RadioGroup>
           {hasOtherPhoneLast5Years === "yes" && (
             <div className="mt-2 space-y-2 scale-in-center">
               <Label htmlFor="otherPhonesDetails">
-                {lang === "pt"
-                  ? "Informe os outros números de telefone:"
-                  : "Enter other phone numbers:"}{" "}
-                *
+                {ap.otherPhonesLabel[lang]} *
               </Label>
               <Input
                 id="otherPhonesDetails"
@@ -251,7 +246,7 @@ export const AddressPhoneStep = ({
         </div>
 
         <div className="space-y-3">
-          <Label>{ds.addressPhone.otherEmail5Years[lang]} *</Label>
+          <Label>{ap.otherEmail5Years[lang]} *</Label>
           <RadioGroup
             onValueChange={(val) => setValue("hasOtherEmailLast5Years", val)}
             value={hasOtherEmailLast5Years}
@@ -260,23 +255,20 @@ export const AddressPhoneStep = ({
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="yes" id="other-email-yes" />
               <Label htmlFor="other-email-yes">
-                {lang === "pt" ? "Sim" : "Yes"}
+                {ap.yes[lang]}
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="no" id="other-email-no" />
               <Label htmlFor="other-email-no">
-                {lang === "pt" ? "Não" : "No"}
+                {ap.no[lang]}
               </Label>
             </div>
           </RadioGroup>
           {hasOtherEmailLast5Years === "yes" && (
             <div className="mt-2 space-y-2 scale-in-center">
               <Label htmlFor="otherEmailsDetails">
-                {lang === "pt"
-                  ? "Informe os outros endereços de email:"
-                  : "Enter other email addresses:"}{" "}
-                *
+                {ap.otherEmailsLabel[lang]} *
               </Label>
               <Input
                 id="otherEmailsDetails"

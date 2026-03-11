@@ -2,33 +2,58 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StepProps } from "../../types";
 
-export const SocialMediaStep = ({ register, watch, setValue, lang, t }: StepProps) => {
-    const ds = t.ds160;
+export function SocialMediaStep({
+  register,
+  formData,
+  lang,
+  t,
+}: StepProps) {
+  const sm = t.ds160.socialMedia;
 
-    return (
-        <div className="space-y-4 fade-in">
-            <h2 className="font-display text-lg font-semibold text-foreground">{ds.socialMedia.title[lang]}</h2>
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="space-y-2">
+        <h2 className="text-title font-black tracking-tight">{sm.title}</h2>
+        <p className="text-muted-foreground text-sm">
+          {sm.helper}
+        </p>
+      </div>
 
-            <p className="text-sm text-muted-foreground bg-muted/30 p-4 rounded-md border border-border">
-                {ds.socialMedia.helper[lang]}
-            </p>
-
-            <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                    <Label htmlFor="socialMedia1">{ds.socialMedia.platformLabel[lang]} 1 *</Label>
-                    <Input id="socialMedia1" {...register("socialMedia1")} />
-                </div>
-
-                <div className="space-y-2">
-                    <Label htmlFor="socialMedia2">{ds.socialMedia.platformLabel[lang]} 2</Label>
-                    <Input id="socialMedia2" {...register("socialMedia2")} />
-                </div>
-
-                <div className="space-y-2">
-                    <Label htmlFor="socialMedia3">{ds.socialMedia.platformLabel[lang]} 3</Label>
-                    <Input id="socialMedia3" {...register("socialMedia3")} />
-                </div>
-            </div>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="social_media_1">
+            {sm.platformLabel1}
+          </Label>
+          <Input
+            id="social_media_1"
+            {...register("social_media_1")}
+            defaultValue={formData.social_media_1 || ""}
+            placeholder="Ex: Instagram - @joãosilva"
+          />
         </div>
-    );
-};
+
+        <div className="space-y-2">
+          <Label htmlFor="social_media_2">
+            {sm.platformLabel2}
+          </Label>
+          <Input
+            id="social_media_2"
+            {...register("social_media_2")}
+            defaultValue={formData.social_media_2 || ""}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="social_media_3">
+            {sm.platformLabel3}
+          </Label>
+          <Input
+            id="social_media_3"
+            {...register("social_media_3")}
+            defaultValue={formData.social_media_3 || ""}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

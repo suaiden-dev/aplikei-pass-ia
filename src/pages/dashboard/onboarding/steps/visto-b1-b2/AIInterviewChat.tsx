@@ -29,7 +29,8 @@ interface AIInterviewChatProps {
 }
 
 export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
+  const aic = t.onboardingPage.aiInterviewChat;
   const { user, loading: authLoading } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -68,10 +69,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
         const initialMsg: Message = {
           id: "1",
           role: "assistant",
-          content:
-            lang === "pt"
-              ? "Olá! Sou seu instrutor de IA. Vamos treinar para sua entrevista no consulado? Posso fazer perguntas reais e avaliar suas respostas. Por onde quer começar?"
-              : "Hello! I'm your AI instructor. Shall we practice for your consulate interview? I can ask real questions and evaluate your answers. Where would you like to start?",
+          content: aic.initialMessage,
           timestamp: new Date(),
         };
         setMessages([initialMsg]);
@@ -140,7 +138,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
         data.text ||
         (typeof data === "string"
           ? data
-          : "Desculpe, tive um problema ao processar sua resposta.");
+          : aic.errorMessage);
 
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
@@ -159,9 +157,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
       setMessages((prev) => [...prev, aiMsg]);
     } catch (error) {
       console.error("Chat error:", error);
-      toast.error(
-        lang === "pt" ? "Erro ao conectar com a IA" : "Error connecting to AI",
-      );
+      toast.error(aic.errorConnecting);
     } finally {
       setIsTyping(false);
     }
@@ -181,16 +177,13 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
       const initialMsg: Message = {
         id: "1",
         role: "assistant",
-        content:
-          lang === "pt"
-            ? "Olá! Sou seu instrutor de IA. Vamos treinar para sua entrevista no consulado? Posso fazer perguntas reais e avaliar suas respostas. Por onde quer começar?"
-            : "Hello! I'm your AI instructor. Shall we practice for your consulate interview? I can ask real questions and evaluate your answers. Where would you like to start?",
+        content: aic.initialMessage,
         timestamp: new Date(),
       };
       setMessages([initialMsg]);
 
       await supabase.from("chat_messages").insert({
-        user_id: userId,
+        user_id: user.id,
         role: "assistant",
         content: initialMsg.content,
       });
@@ -199,7 +192,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
         Math.random().toString(36).substring(2, 15) + Date.now().toString(36),
       );
 
-      toast.success(lang === "pt" ? "Treino reiniciado" : "Training restarted");
+      toast.success(aic.trainingRestarted);
     } catch (error) {
       console.error("Error restarting chat:", error);
       toast.error("Error restarting chat");
@@ -217,7 +210,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
         >
           <ChevronLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
           <span className="font-bold">
-            {lang === "pt" ? "Sair do Treino" : "Leave Training"}
+            {aic.leaveTraining}
           </span>
         </Button>
         <div className="flex items-center gap-3">
@@ -226,10 +219,10 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
           </div>
           <div className="hidden sm:block">
             <p className="text-xs font-black uppercase tracking-widest text-accent">
-              Simulado IA
+              {aic.aiSimulated}
             </p>
             <p className="text-[10px] text-muted-foreground uppercase font-bold">
-              Online & Pronto
+              {aic.onlineReady}
             </p>
           </div>
         </div>
@@ -238,7 +231,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
           size="icon"
           className="rounded-md text-muted-foreground hover:text-accent"
           onClick={handleRestart}
-          title={lang === "pt" ? "Recomeçar" : "Restart"}
+          title={aic.restart}
         >
           <RefreshCw className="h-4 w-4" />
         </Button>
@@ -306,11 +299,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder={
-              lang === "pt"
-                ? "Digite sua resposta aqui..."
-                : "Type your answer here..."
-            }
+            placeholder={aic.typeHere}
             className="h-14 pl-4 pr-14 bg-slate-50 dark:bg-slate-800/50 border-none rounded-md focus-visible:ring-accent font-medium shadow-inner"
           />
           <Button

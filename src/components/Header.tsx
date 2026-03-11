@@ -67,12 +67,8 @@ export default function Header() {
                 >
                   <LayoutDashboard className="h-4 w-4" />
                   {isAdmin
-                    ? lang === "pt"
-                      ? "Painel Admin"
-                      : "Admin Panel"
-                    : lang === "pt"
-                      ? "Painel"
-                      : "Dashboard"}
+                    ? t.nav.adminPanel[lang]
+                    : t.nav.dashboard[lang]}
                 </Link>
               </Button>
               <Button
@@ -82,7 +78,7 @@ export default function Header() {
                 className="flex items-center gap-2"
               >
                 <LogOut className="h-4 w-4" />
-                {lang === "pt" ? "Sair" : "Logout"}
+                {t.nav.logout[lang]}
               </Button>
             </>
           ) : (
@@ -144,12 +140,8 @@ export default function Header() {
                       >
                         <LayoutDashboard className="mr-2 h-4 w-4" />
                         {isAdmin
-                          ? lang === "pt"
-                            ? "Ir para o Admin"
-                            : "Go to Admin"
-                          : lang === "pt"
-                            ? "Ir para o Painel"
-                            : "Go to Dashboard"}
+                          ? t.nav.goToAdmin[lang]
+                          : t.nav.goToDashboard[lang]}
                       </Link>
                     </Button>
                     <Button
@@ -159,7 +151,7 @@ export default function Header() {
                       className="justify-start"
                     >
                       <LogOut className="mr-2 h-4 w-4" />
-                      {lang === "pt" ? "Sair" : "Logout"}
+                      {t.nav.logout[lang]}
                     </Button>
                   </>
                 ) : (

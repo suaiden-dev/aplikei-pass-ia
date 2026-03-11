@@ -41,7 +41,7 @@ export default function Signup() {
 
       if (error) throw error;
 
-      toast.success(lang === "pt" ? "Cadastro realizado! Verifique seu e-mail." : "Signup successful! Please check your email.");
+      toast.success(p.signupSuccess[lang]);
       navigate("/login");
     } catch (error: any) {
       toast.error(error.message);

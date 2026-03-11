@@ -60,6 +60,7 @@ interface ServiceWithProgress extends UserServiceRaw {
 const getStatusDisplay = (
   status: string,
   lang: string,
+  tStatus: any,
   serviceSlug?: string,
 ) => {
   if (!status) return { stepText: "", label: "" };
@@ -71,64 +72,53 @@ const getStatusDisplay = (
   if (status === "completed") status = "approved";
 
   let step = 0;
-  let labelPt = "";
-  let labelEn = "";
+  let label = "";
 
   switch (status) {
     case "ds160InProgress":
       step = 1;
-      labelPt = "Preenchendo DS-160";
-      labelEn = "Filling out DS-160";
+      label = tStatus.ds160InProgress[lang];
       break;
     case "ds160Processing":
       step = 2;
-      labelPt = "Processando DS-160";
-      labelEn = "Processing DS-160";
+      label = tStatus.ds160Processing[lang];
       break;
     case "ds160upload_documents":
       step = 3;
-      labelPt = "3. Anexar Documentos";
-      labelEn = "3. Upload Documents";
+      label = tStatus.ds160uploadDocuments[lang];
       break;
     case "ds160AwaitingReviewAndSignature":
       step = 4;
-      labelPt = "4. Revisão e Assinatura";
-      labelEn = "4. Review and Signature";
+      label = tStatus.ds160AwaitingReviewAndSignature[lang];
       break;
     case "uploadsUnderReview": // Legacy/Alternative
       step = 4;
-      labelPt = "4. Revisão de Documentos";
-      labelEn = "4. Documents Review";
+      label = tStatus.uploadsUnderReview[lang];
       break;
     case "casvSchedulingPending":
       step = 5;
-      labelPt = "5. Agendamento Pendente";
-      labelEn = "5. Scheduling Pending";
+      label = tStatus.casvSchedulingPending[lang];
       break;
     case "casvFeeProcessing":
       step = 6;
-      labelPt = "6. Taxa em Processamento";
-      labelEn = "6. Fee in Processing";
+      label = tStatus.casvFeeProcessing[lang];
       break;
     case "casvPaymentPending":
       step = 7;
-      labelPt = "7. Pagamento CASV Pendente";
-      labelEn = "7. CASV Payment Pending";
+      label = tStatus.casvPaymentPending[lang];
       break;
     case "awaitingInterview":
       step = 8;
-      labelPt = "8. Aguardando Entrevista";
-      labelEn = "8. Awaiting Interview";
+      label = tStatus.awaitingInterview[lang];
       break;
     case "approved":
       step = 9;
-      labelPt = "9. Aprovado";
-      labelEn = "9. Approved";
+      label = tStatus.approved[lang];
       break;
     case "rejected":
       return {
-        stepText: lang === "pt" ? "Processo Rejeitado" : "Process Rejected",
-        label: lang === "pt" ? "Rejeitado" : "Rejected",
+        stepText: tStatus.rejectedText[lang],
+        label: tStatus.rejectedLabel[lang],
         step: 0,
         totalSteps: TOTAL_STEPS,
       };
@@ -136,11 +126,9 @@ const getStatusDisplay = (
       return { stepText: "", label: status };
   }
 
-  const stepText =
-    lang === "pt"
-      ? `Etapa ${step} de ${TOTAL_STEPS}`
-      : `Step ${step} of ${TOTAL_STEPS}`;
-  const label = lang === "pt" ? labelPt : labelEn;
+  const stepText = tStatus.stepOf[lang]
+    .replace("[step]", String(step))
+    .replace("[total]", String(TOTAL_STEPS));
 
   return { stepText, label, step, totalSteps: TOTAL_STEPS };
 };
@@ -221,7 +209,7 @@ export default function UserDashboard() {
             existing?.status === "active";
 
           if (!existing || isNewAdvanced) {
-            const statusInfo = getStatusDisplay(s.status, lang as string);
+            const statusInfo = getStatusDisplay(s.status, lang as string, d.status);
             let p = 0;
 
             if (s.status === "approved" || s.status === "completed") {
@@ -271,7 +259,7 @@ export default function UserDashboard() {
       setLoading(false);
     };
     fetchServices();
-  }, [userId, authLoading, serviceIdParam, lang]);
+  }, [userId, authLoading, serviceIdParam, lang, d.status]);
 
   const currentService =
     services.find((s) => s.id === currentServiceId) || services[0];
@@ -376,7 +364,7 @@ export default function UserDashboard() {
       }
     } catch (err: unknown) {
       console.error("Error uploading selfie:", err);
-      alert(lang === "pt" ? "Erro ao enviar selfie" : "Error uploading selfie");
+      alert(d.errorUploadingSelfie[lang]);
     } finally {
       setUploadingSelfie(false);
     }
@@ -390,6 +378,7 @@ export default function UserDashboard() {
       status: getStatusDisplay(
         currentService?.status,
         lang as string,
+        d.status,
         currentService?.service_slug,
       ).label,
       to: `/dashboard/onboarding?service_id=${currentServiceId}`,
@@ -465,9 +454,7 @@ export default function UserDashboard() {
                 <CheckSquare className="w-5 h-5 text-green-600" />
               </div>
               <p className="text-sm font-medium text-green-800 dark:text-green-300">
-                {lang === "pt"
-                  ? "Pagamento confirmado! Seu novo guia já está disponível abaixo."
-                  : "Payment confirmed! Your new guide is available below."}
+                {d.paymentSuccess[lang]}
               </p>
             </div>
           </motion.div>
@@ -479,7 +466,7 @@ export default function UserDashboard() {
         <div className="flex items-center gap-2 mb-4">
           <Briefcase className="w-5 h-5 text-primary" />
           <h2 className="font-bold text-lg text-foreground">
-            {lang === "pt" ? "Seus Processos Ativos" : "Your Active Processes"}
+            {d.activeProcesses[lang]}
           </h2>
           <Badge variant="secondary" className="ml-2">
             {services.length}
@@ -523,13 +510,13 @@ export default function UserDashboard() {
                 <div className="flex flex-col gap-0.5">
                   <span className="font-bold text-[10px] text-accent uppercase tracking-wider">
                     {
-                      getStatusDisplay(s.status, lang as string, s.service_slug)
+                      getStatusDisplay(s.status, lang as string, d.status, s.service_slug)
                         .stepText
                     }
                   </span>
                   <span className="text-foreground font-medium">
                     {
-                      getStatusDisplay(s.status, lang as string, s.service_slug)
+                      getStatusDisplay(s.status, lang as string, d.status, s.service_slug)
                         .label
                     }
                   </span>
@@ -544,7 +531,7 @@ export default function UserDashboard() {
               {currentServiceId !== s.id && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white/40 dark:bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
                   <span className="bg-white dark:bg-slate-800 px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-border">
-                    {lang === "pt" ? "Selecionar Processo" : "Select Process"}
+                    {d.selectProcess[lang]}
                   </span>
                 </div>
               )}
@@ -635,7 +622,7 @@ export default function UserDashboard() {
             <div className="flex items-center gap-2 mb-4">
               <ShoppingBag className="w-5 h-5 text-primary" />
               <h2 className="font-bold text-lg text-foreground">
-                {lang === "pt" ? "Obter Processos" : "Get Processes"}
+                {d.getProcesses[lang]}
               </h2>
             </div>
 
@@ -708,7 +695,7 @@ export default function UserDashboard() {
                     {product.available ? (
                       <Link to={product.checkoutUrl}>
                         <Button className="w-full bg-primary font-bold h-11 rounded-md gap-2 hover:bg-primary/90 shadow-sm">
-                          {lang === "pt" ? "Contratar Agora" : "Get Started"}
+                          {d.getStarted[lang]}
                           <ArrowRight className="h-4 w-4" />
                         </Button>
                       </Link>
@@ -718,7 +705,7 @@ export default function UserDashboard() {
                         className="w-full h-11 rounded-md gap-2 opacity-60 cursor-not-allowed"
                       >
                         <Lock className="h-4 w-4" />
-                        {lang === "pt" ? "Em Breve" : "Coming Soon"}
+                        {d.comingSoon[lang]}
                       </Button>
                     )}
                   </div>
@@ -754,7 +741,7 @@ export default function UserDashboard() {
                     onClick={() => setSelfieFile(null)}
                     className="text-[10px] font-bold text-red-500 uppercase hover:underline"
                   >
-                    {lang === "pt" ? "Remover" : "Remove"}
+                    {d.remove[lang]}
                   </button>
                 </div>
               ) : (
@@ -764,12 +751,10 @@ export default function UserDashboard() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm font-bold text-foreground">
-                      {lang === "pt"
-                        ? "Selecione sua selfie"
-                        : "Select your selfie"}
+                      {d.selectSelfie[lang]}
                     </p>
                     <p className="text-[10px] text-muted-foreground uppercase">
-                      JPG, PNG {lang === "pt" ? "ou" : "or"} JPEG
+                      JPG, PNG {d.or[lang]} JPEG
                     </p>
                   </div>
                   <input
