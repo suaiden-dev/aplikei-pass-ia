@@ -86,7 +86,14 @@ Deno.serve(async (req) => {
             const email = metadata.email || session.customer_details?.email || "";
             const fullName = metadata.fullName || session.customer_details?.name || "Client";
             const phone = metadata.phone || session.customer_details?.phone || "";
-            const slug = metadata.slug || "unknown";
+            
+            let slug = metadata.slug;
+            if (!slug) {
+                if (metadata.type === 'specialist_training') slug = 'specialist-training';
+                else if (metadata.type === 'specialist_review') slug = 'specialist-review';
+                else slug = "unknown";
+            }
+            
             const exchange_rate = metadata.exchange_rate;
             const netAmountUSD = metadata.netAmountUSD;
             const contract_selfie_url = metadata.contract_selfie_url || null;
