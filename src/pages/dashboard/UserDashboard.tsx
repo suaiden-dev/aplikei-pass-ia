@@ -38,18 +38,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
-const TOTAL_STEPS = 9;
-
 interface UserServiceRaw {
   id: string;
   status: string;
-  current_step: number;
+  current_step: number | null;
   service_slug: string;
   created_at: string;
-  application_id?: string;
-  date_of_birth?: string;
-  grandmother_name?: string;
+  application_id?: string | null;
+  date_of_birth?: string | null;
+  grandmother_name?: string | null;
+  is_second_attempt?: boolean | null;
 }
+
+const TOTAL_STEPS = 9;
 
 interface ServiceWithProgress extends UserServiceRaw {
   calculatedProgress: number;
@@ -119,7 +120,14 @@ const getStatusDisplay = (
       return {
         stepText: tStatus.rejectedText[lang],
         label: tStatus.rejectedLabel[lang],
-        step: 0,
+        step: TOTAL_STEPS,
+        totalSteps: TOTAL_STEPS,
+      };
+    case "completed":
+      return {
+        stepText: tStatus.approved[lang],
+        label: tStatus.approved[lang],
+        step: TOTAL_STEPS,
         totalSteps: TOTAL_STEPS,
       };
     default:
@@ -165,7 +173,7 @@ export default function UserDashboard() {
       const { data: servicesData, error } = await supabase
         .from("user_services")
         .select(
-          "id, status, current_step, service_slug, created_at, application_id, date_of_birth, grandmother_name",
+          "id, status, current_step, service_slug, created_at, application_id, date_of_birth, grandmother_name, is_second_attempt",
         )
         .eq("user_id", userId)
         .in("status", [
@@ -192,7 +200,7 @@ export default function UserDashboard() {
         return;
       }
 
-      const servicesDataTyped = servicesData as UserServiceRaw[];
+      const servicesDataTyped = (servicesData || []) as unknown as UserServiceRaw[];
 
       if (servicesDataTyped && servicesDataTyped.length > 0) {
         // Group by slug to keep only the most recent entry for each unique guide
@@ -201,10 +209,13 @@ export default function UserDashboard() {
         servicesDataTyped.forEach((rawS) => {
           // Normalize legacy slug
           const s = { ...rawS, service_slug: rawS.service_slug === "visto-f1" ? "visa-f1f2" : rawS.service_slug };
-          const existing = uniqueServicesMap.get(s.service_slug);
+          
+          // Grouping key: slug + status (to show rejected and active separately if they exist)
+          const groupingKey = s.status === 'rejected' ? `${s.service_slug}_rejected` : s.service_slug;
+          const existing = uniqueServicesMap.get(groupingKey);
 
           // Logic: Keep the service if:
-          // 1. We don't have one for this slug yet
+          // 1. We don't have one for this key yet
           // 2. OR the new one is more "advanced" (review_pending/completed) than the currently stored one (active)
           const isNewAdvanced =
             (s.status === "review_pending" || s.status === "completed") &&
@@ -214,7 +225,7 @@ export default function UserDashboard() {
             const statusInfo = getStatusDisplay(s.status, lang as string, d.status);
             let p = 0;
 
-            if (s.status === "approved" || s.status === "completed") {
+            if (s.status === "approved" || s.status === "completed" || s.status === "rejected") {
               p = 100;
             } else if (statusInfo.step > 0) {
               // 100% divided by 9 steps. Each completed step gives roughly 11%
@@ -226,7 +237,7 @@ export default function UserDashboard() {
               }
             }
 
-            uniqueServicesMap.set(s.service_slug, {
+            uniqueServicesMap.set(groupingKey, {
               ...s,
               calculatedProgress: p,
               label: statusInfo.label,
@@ -497,9 +508,14 @@ export default function UserDashboard() {
                     <FileText className="w-5 h-5" />
                   )}
                 </div>
-                {currentServiceId === s.id && (
+                {currentServiceId === s.id && s.status !== "rejected" && (
                   <Badge className="bg-primary text-white border-none">
                     Ativo
+                  </Badge>
+                )}
+                {s.status === "rejected" && (
+                  <Badge variant="destructive" className="border-none font-black text-[10px] uppercase tracking-wider">
+                    {d.status.rejectedLabel[lang]}
                   </Badge>
                 )}
               </div>
@@ -648,10 +664,17 @@ export default function UserDashboard() {
                   <div className="p-4 space-y-5">
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
-                        <div
-                          className={`h-11 w-11 rounded-md ${product.color} text-white flex items-center justify-center shadow-sm`}
-                        >
-                          {product.icon}
+                        <div className="relative">
+                          {services.some(s => (s.service_slug === product.slug || (s.service_slug === "visto-f1" && product.slug === "visa-f1f2")) && s.is_second_attempt) && (
+                            <Badge className="absolute -top-2 -right-1 z-10 bg-amber-500 text-white border-none text-[8px] font-bold px-1 py-0 h-4 uppercase">
+                              2ª Tentativa
+                            </Badge>
+                          )}
+                          <div
+                            className={`h-11 w-11 rounded-md ${product.color} text-white flex items-center justify-center shadow-sm`}
+                          >
+                            {product.icon}
+                          </div>
                         </div>
                         <div>
                           <h3 className="font-bold text-foreground text-base">

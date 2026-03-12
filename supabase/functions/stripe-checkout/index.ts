@@ -11,6 +11,7 @@ const corsHeaders = {
 const STRIPE_PRICES = {
     'visto-b1-b2': { usd: 200, name: 'Guia Visto Americano B1/B2', dependentPrice: 50 },
     'visto-f1': { usd: 350, name: 'Guia Visto Americano F-1', dependentPrice: 100 },
+    'visa-f1f2': { usd: 350, name: 'Guia Visto Americano F-1', dependentPrice: 100 },
     'extensao-status': { usd: 200, name: 'Guia Extensão de Status', dependentPrice: 100 },
     'troca-status': { usd: 350, name: 'Guia Troca de Status', dependentPrice: 100 },
 };
@@ -19,7 +20,7 @@ Deno.serve(async (req) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
     try {
-        const { slug, email, fullName, phone, dependents = 0, origin_url, paymentMethod = 'card', contract_selfie_url, terms_accepted_at, action, serviceId } = await req.json();
+        const { slug, email, fullName, phone, dependents = 0, origin_url, paymentMethod = 'card', contract_selfie_url, terms_accepted_at, action, serviceId, discountPct = 0 } = await req.json();
 
         if (!slug || !email) {
             throw new Error("Missing required parameters: slug and email are required.");
@@ -58,7 +59,16 @@ Deno.serve(async (req) => {
             throw new Error(`Invalid service slug: ${slug}`);
         }
 
-        const subtotalUSD = basePriceUSD + (dependents * depPriceUSD);
+        // Normalize slug for storage consistency
+        const normalizedSlug = slug === 'visa-f1f2' ? 'visto-f1' : slug;
+
+        let subtotalUSD = basePriceUSD + (dependents * depPriceUSD);
+        
+        // Apply discount if provided
+        if (discountPct > 0) {
+            subtotalUSD = subtotalUSD * (1 - (discountPct / 100));
+        }
+
         let unitAmount: number;
         let currency = "usd";
         let payment_method_types: string[] = ["card"];
@@ -110,7 +120,7 @@ Deno.serve(async (req) => {
             success_url: `${origin_url}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${origin_url}/servicos/${slug}`,
             metadata: {
-                slug,
+                slug: normalizedSlug,
                 email,
                 fullName,
                 phone,
@@ -135,8 +145,12 @@ Deno.serve(async (req) => {
             status: 200,
         });
     } catch (error) {
-        console.error("Stripe error:", error.message);
-        return new Response(JSON.stringify({ error: error.message }), {
+        console.error("Stripe Checkout Error:", error);
+        return new Response(JSON.stringify({ 
+            error: error.message,
+            stack: error.stack,
+            details: "Error in stripe-checkout edge function"
+        }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 400,
         });

@@ -34,6 +34,7 @@ interface ContractOrder {
   application_id?: string;
   date_of_birth?: string;
   grandmother_name?: string;
+  is_second_attempt?: boolean;
 }
 
 export default function AdminContracts() {
@@ -61,38 +62,43 @@ export default function AdminContracts() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      const allOrders = data || [];
 
-      // De-duplicate orders by user_id and product_slug (e.g., when a user restarts)
-      const uniqueOrders: any[] = [];
-      const seen = new Set<string>();
-
-      (data || []).forEach((order) => {
-        const key = `${order.user_id}-${order.product_slug}`;
-        if (!seen.has(key)) {
-          uniqueOrders.push(order);
-          seen.add(key);
-        }
-      });
-
-      // Fetch service statuses for all users in orders
+      // Fetch ALL service statuses for all users in orders
       const { data: services, error: servicesError } = await supabase
         .from("user_services")
         .select(
-          "id, user_id, status, service_slug, application_id, date_of_birth, grandmother_name",
+          "id, user_id, status, service_slug, application_id, date_of_birth, grandmother_name, created_at, is_second_attempt",
         )
-        .in("user_id", uniqueOrders.map((o) => o.user_id).filter(Boolean));
+        .in("user_id", allOrders.map((o) => o.user_id).filter(Boolean))
+        .order("created_at", { ascending: true });
 
       if (servicesError) {
         console.error("Erro ao buscar status dos serviços:", servicesError);
       }
 
-      const ordersWithStatus = (uniqueOrders as ContractOrder[]).map(
+      // Track which services have already been mapped to an order to avoid reusing them
+      const usedServiceIds = new Set<string>();
+
+      const ordersWithStatus = (allOrders as ContractOrder[]).map(
         (order) => {
-          const service = services?.find(
-            (s) =>
-              s.user_id === order.user_id &&
-              s.service_slug === order.product_slug,
-          );
+          // Find the best service match for this order
+          const matchingServices = (services || [])
+            .filter(
+              (s) =>
+                s.user_id === order.user_id &&
+                s.service_slug === order.product_slug &&
+                !usedServiceIds.has(s.id)
+            )
+            .sort((a, b) => {
+              const diffA = Math.abs(new Date(a.created_at).getTime() - new Date(order.created_at).getTime());
+              const diffB = Math.abs(new Date(b.created_at).getTime() - new Date(order.created_at).getTime());
+              return diffA - diffB;
+            });
+
+          const service = matchingServices[0];
+          if (service) usedServiceIds.add(service.id);
+
           return {
             ...order,
             service_status: service?.status,
@@ -100,6 +106,7 @@ export default function AdminContracts() {
             application_id: service?.application_id,
             date_of_birth: service?.date_of_birth,
             grandmother_name: service?.grandmother_name,
+            is_second_attempt: (service as any)?.is_second_attempt || false,
           };
         },
       );
@@ -233,9 +240,16 @@ export default function AdminContracts() {
               key: "product_slug",
               header: "Serviço",
               render: (item) => (
-                <Badge variant="outline" className="capitalize text-xs">
-                  {item.product_slug?.replace(/-/g, " ")}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="capitalize text-xs">
+                    {item.product_slug?.replace(/-/g, " ")}
+                  </Badge>
+                  {item.is_second_attempt && (
+                    <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 font-bold text-[10px] uppercase">
+                      2ª Tentativa
+                    </Badge>
+                  )}
+                </div>
               ),
             },
             {

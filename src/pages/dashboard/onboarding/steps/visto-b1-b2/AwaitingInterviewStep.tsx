@@ -37,6 +37,7 @@ import { AIInterviewChat } from "./AIInterviewChat";
 import { SpecialistTraining } from "./SpecialistTraining";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { RejectedReapplyStep } from "../RejectedReapplyStep";
 // import { t } from "@/i18n/translations";
 
 interface AwaitingInterviewStepProps {
@@ -210,6 +211,7 @@ export function AwaitingInterviewStep({
       <SpecialistTraining
         onBack={() => setShowSpecialist(false)}
         serviceId={serviceId}
+        mode={serviceStatus === "rejected" ? "review" : "training"}
       />
     );
   }
@@ -217,46 +219,11 @@ export function AwaitingInterviewStep({
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 w-full max-w-full lg:max-w-5xl mx-auto space-y-4 sm:space-y-5">
       {serviceStatus === "rejected" && (
-        <div className="text-center space-y-4">
-          <Badge
-            variant="outline"
-            className="bg-red-500/10 text-red-500 border-red-500/20 px-4 py-1 rounded-full font-black text-[10px] tracking-[0.2em] uppercase mb-4"
-          >
-            {aw.outcome[lang]}
-          </Badge>
-          <div className="inline-flex items-center justify-center p-4 bg-red-100 dark:bg-red-900/40 rounded-full mb-2">
-            <ThumbsDown className="h-12 w-12 text-red-600 dark:text-red-400" />
-          </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance px-4 sm:px-0">
-            {aw.visaRefusedTitle[lang]}
-          </h2>
-          <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
-            {aw.visaRefusedDesc[lang]}
-          </p>
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4 px-4 sm:px-0">
-            <Button
-              size="lg"
-              className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white"
-              onClick={() => setShowReview(true)}
-            >
-              <Users className="mr-2 h-4 w-4" />
-              {aw.reviewCaseSpecialist[lang]}
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full sm:w-auto"
-              onClick={() =>
-                navigate(
-                  `/checkout/${serviceSlug || "visto-b1-b2"}?action=restart&serviceId=${serviceId}`,
-                )
-              }
-            >
-              <ArrowRight className="mr-2 h-4 w-4" />
-              {aw.startAgain[lang]}
-            </Button>
-          </div>
-        </div>
+        <RejectedReapplyStep
+          serviceId={serviceId}
+          serviceSlug={serviceSlug || "visto-b1-b2"}
+          onShowSpecialist={() => setShowSpecialist(true)}
+        />
       )}
 
       {serviceStatus === "awaitingInterview" && (
@@ -334,8 +301,7 @@ export function AwaitingInterviewStep({
         </div>
       )}
 
-      {(serviceStatus === "awaitingInterview" ||
-        serviceStatus === "rejected") && (
+      {serviceStatus === "awaitingInterview" && (
         <div
           className={cn(
             "grid gap-3 sm:gap-4 w-full px-2 sm:px-0",

@@ -222,6 +222,20 @@ Deno.serve(async (req) => {
                         .eq('user_id', userId);
 
                     if (restartError) console.error("Error restarting user service:", restartError.message);
+                } else if (metadata.action === 'reapply') {
+                    console.log(`Processing reapply for user ${userId}, old service ${metadata.serviceId}`);
+                    
+                    // Create NEW service for reapplication
+                    const { error: reapplyError } = await supabaseAdmin
+                        .from('user_services')
+                        .insert({
+                            user_id: userId,
+                            service_slug: slug,
+                            status: 'active',
+                            is_second_attempt: true
+                        });
+
+                    if (reapplyError) console.error("Error creating reapplied user service:", reapplyError.message);
                 } else {
                     // Default behavior for visa orders: Create/Update User Service
                     const { error: serviceError } = await supabaseAdmin

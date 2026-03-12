@@ -2461,14 +2461,44 @@ export const translations = {
         es: "Lamentablemente, esta vez su visa no fue aprobada por el oficial consular. Sabemos lo frustrante que esto es.",
       },
       reviewCaseSpecialist: {
-        en: "Review case with a specialist",
-        pt: "Rever o caso com um especialista",
-        es: "Revisar el caso con un especialista",
+        en: "Talk to Specialist",
+        pt: "Falar com Especialista",
+        es: "Hablar con Especialista",
       },
       startAgain: {
         en: "Start again",
         pt: "Recomeçar novamente",
         es: "Empezar de nuevo",
+      },
+      reapplyTitle: {
+        en: "Don't Give Up — Reapply with a Discount",
+        pt: "Não Desista — Reaplique com Desconto",
+        es: "No Se Rinda — Vuelva a Aplicar con Descuento",
+      },
+      reapplyDesc: {
+        en: "Many clients get approved on the second attempt. We've learned from this process and are ready to help you try again — with an exclusive 20% discount.",
+        pt: "Muitos clientes são aprovados na segunda tentativa. Aprendemos com esse processo e estamos prontos para te ajudar a tentar de novo — com 20% de desconto exclusivo.",
+        es: "Muchos clientes son aprobados en el segundo intento. Aprendemos de este proceso y estamos listos para ayudarle a intentarlo de nuevo — con un 20% de descuento exclusivo.",
+      },
+      reapplyDiscount: {
+        en: "20% OFF for Second Attempt",
+        pt: "20% OFF para 2ª Tentativa",
+        es: "20% DESCUENTO para 2.º Intento",
+      },
+      reapplyCTA: {
+        en: "I Want to Reapply",
+        pt: "Quero Reaplicar",
+        es: "Quiero Volver a Aplicar",
+      },
+      reapplyDecline: {
+        en: "No, thank you",
+        pt: "Não, obrigado",
+        es: "No, gracias",
+      },
+      reapplyProcessing: {
+        en: "Opening checkout...",
+        pt: "Abrindo checkout...",
+        es: "Abriendo pago...",
       },
       interviewDateArrived: {
         en: "Interview Date Arrived",

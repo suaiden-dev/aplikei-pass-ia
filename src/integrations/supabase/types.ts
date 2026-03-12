@@ -313,8 +313,10 @@ export type Database = {
           interview_location_casv: string | null
           interview_location_consulate: string | null
           interview_time: string | null
+          is_second_attempt: boolean | null
           same_location: boolean | null
           service_slug: string
+          specialist_review_data: Json | null
           specialist_training_data: Json | null
           status: string | null
           user_id: string
@@ -334,8 +336,10 @@ export type Database = {
           interview_location_casv?: string | null
           interview_location_consulate?: string | null
           interview_time?: string | null
+          is_second_attempt?: boolean | null
           same_location?: boolean | null
           service_slug: string
+          specialist_review_data?: Json | null
           specialist_training_data?: Json | null
           status?: string | null
           user_id: string
@@ -355,8 +359,10 @@ export type Database = {
           interview_location_casv?: string | null
           interview_location_consulate?: string | null
           interview_time?: string | null
+          is_second_attempt?: boolean | null
           same_location?: boolean | null
           service_slug?: string
+          specialist_review_data?: Json | null
           specialist_training_data?: Json | null
           status?: string | null
           user_id?: string

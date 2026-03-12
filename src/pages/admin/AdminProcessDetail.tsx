@@ -154,28 +154,46 @@ export default function AdminProcessDetail() {
 
       if (orderError) throw orderError;
 
-      // Fetch the corresponding user service
-      const { data: serviceData, error: serviceError } = await supabase
+      // Fetch service statuses for this user
+      const { data: services, error: servicesError } = await supabase
         .from("user_services")
         .select("*")
         .eq("user_id", orderData.user_id)
         .eq("service_slug", orderData.product_slug)
-        .single();
+        .order("created_at", { ascending: true });
+
+      if (servicesError) {
+        console.error("Error fetching services:", servicesError);
+      }
+
+      // Match the service that was created closest to the order
+      const matchingServices = (services || []).sort((a, b) => {
+        const diffA = Math.abs(new Date(a.created_at).getTime() - new Date(orderData.created_at).getTime());
+        const diffB = Math.abs(new Date(b.created_at).getTime() - new Date(orderData.created_at).getTime());
+        return diffA - diffB;
+      });
+
+      const serviceData = matchingServices[0] || null;
+
+      if (!serviceData) {
+        console.warn("No matching service found for this order");
+        // Fallback or early exit if service is crucial
+      }
 
       const s = serviceData as any;
       const combined = {
         ...orderData,
-        service_status: serviceData?.status,
-        user_service_id: serviceData?.id,
-        application_id: serviceData?.application_id,
-        date_of_birth: serviceData?.date_of_birth,
-        grandmother_name: serviceData?.grandmother_name,
-        interview_date: s?.interview_date,
-        interview_time: s?.interview_time,
-        interview_location_casv: s?.interview_location_casv,
-        interview_location_consulate: s?.interview_location_consulate,
-        specialist_training_data: s?.specialist_training_data,
-        specialist_review_data: s?.specialist_review_data,
+        service_status: serviceData?.status || "unknown",
+        user_service_id: serviceData?.id || null,
+        application_id: serviceData?.application_id || null,
+        date_of_birth: serviceData?.date_of_birth || null,
+        grandmother_name: serviceData?.grandmother_name || null,
+        interview_date: s?.interview_date || null,
+        interview_time: s?.interview_time || null,
+        interview_location_casv: s?.interview_location_casv || null,
+        interview_location_consulate: s?.interview_location_consulate || null,
+        specialist_training_data: s?.specialist_training_data || null,
+        specialist_review_data: s?.specialist_review_data || null,
       };
 
       setOrder(combined);
@@ -233,10 +251,12 @@ export default function AdminProcessDetail() {
         setProcessDocs(relevantDocs);
 
         // Fetch onboarding responses to find consulate/interview location
-        const { data: responses } = await supabase
-          .from("onboarding_responses")
-          .select("*")
-          .eq("user_service_id", serviceData.id);
+        const { data: responses } = serviceData?.id 
+          ? await supabase
+              .from("onboarding_responses")
+              .select("*")
+              .eq("user_service_id", serviceData.id)
+          : { data: null };
 
         if (responses) {
           setOnboardingResponses(responses);

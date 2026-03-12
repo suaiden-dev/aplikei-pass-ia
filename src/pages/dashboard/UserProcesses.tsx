@@ -80,15 +80,19 @@ const getStatusDisplay = (
       step = 8;
       label = tStatus.awaitingInterview[lang];
       break;
-    case "approved":
-      step = 9;
-      label = tStatus.approved[lang];
-      break;
     case "rejected":
       return {
         stepText: tStatus.rejectedText[lang],
         label: tStatus.rejectedLabel[lang],
         step: 0,
+        totalSteps: TOTAL_STEPS,
+      };
+    case "approved":
+    case "completed":
+      return {
+        stepText: tStatus.approved[lang],
+        label: tStatus.approved[lang],
+        step: TOTAL_STEPS,
         totalSteps: TOTAL_STEPS,
       };
     default:
@@ -124,7 +128,7 @@ export default function UserProcesses() {
     const fetchServices = async () => {
       const { data: servicesData, error } = await supabase
         .from("user_services")
-        .select("id, status, current_step, service_slug, created_at")
+        .select("id, status, current_step, service_slug, created_at, is_second_attempt")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -134,7 +138,7 @@ export default function UserProcesses() {
       }
 
       if (servicesData) {
-        const processedServices = servicesData.map((s) => {
+        const processedServices = (servicesData as any[]).map((s) => {
           const statusInfo = getStatusDisplay(s.status, lang as string, d.status);
           let p = 0;
 
@@ -282,12 +286,19 @@ export default function UserProcesses() {
                   <div className="p-3 rounded-md bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
                     <FileText className="w-6 h-6" />
                   </div>
-                  <Badge
-                    variant="secondary"
-                    className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                  >
-                    {s.statusLabel}
-                  </Badge>
+                  <div className="flex gap-2">
+                    {s.is_second_attempt && (
+                      <Badge className="bg-amber-500 text-white border-none text-[10px] font-bold">
+                        2ª TENTATIVA
+                      </Badge>
+                    )}
+                    <Badge
+                      variant="secondary"
+                      className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                    >
+                      {s.statusLabel}
+                    </Badge>
+                  </div>
                 </div>
 
                 <h3 className="font-bold text-subtitle text-foreground mb-1 uppercase tracking-tight">
