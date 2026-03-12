@@ -212,6 +212,7 @@ export default function AdminProcessDetail() {
             (d) =>
               d.name === "ds160_assinada" ||
               d.name === "ds160_comprovante" ||
+              d.name === "ds160_comprovante_sevis" ||
               d.name === "ds160_boleto",
           ) || [];
 
@@ -219,6 +220,7 @@ export default function AdminProcessDetail() {
         const sortOrder: Record<string, number> = {
           ds160_assinada: 1,
           ds160_comprovante: 2,
+          ds160_comprovante_sevis: 2,
           ds160_boleto: 3,
         };
 
@@ -744,13 +746,15 @@ export default function AdminProcessDetail() {
                             {doc.name === "ds160_assinada"
                               ? "ASSINADA"
                               : doc.name === "ds160_comprovante"
-                                ? "COMPROVANTE"
-                                : doc.name === "ds160_boleto"
-                                  ? "BOLETO"
-                                  : doc.name
-                                      .replace(/ds160_?|DS160_?/gi, "")
-                                      .replace(/_/g, " ")
-                                      .toUpperCase()}
+                                ? "COMPROVANTE MRV"
+                                : doc.name === "ds160_comprovante_sevis"
+                                  ? "COMPROVANTE DS-160"
+                                  : doc.name === "ds160_boleto"
+                                    ? "BOLETO"
+                                    : doc.name
+                                        .replace(/ds160_?|DS160_?/gi, "")
+                                        .replace(/_/g, " ")
+                                        .toUpperCase()}
                           </p>
                         </div>
                       </div>
@@ -812,13 +816,15 @@ export default function AdminProcessDetail() {
                           {doc.name === "ds160_assinada"
                             ? "ASSINADA"
                             : doc.name === "ds160_comprovante"
-                              ? "COMPROVANTE"
-                              : doc.name === "ds160_boleto"
-                                ? "BOLETO"
-                                : doc.name
-                                    .replace(/ds160_?|DS160_?/gi, "")
-                                    .replace(/_/g, " ")
-                                    .toUpperCase()}
+                              ? "COMPROVANTE MRV"
+                              : doc.name === "ds160_comprovante_sevis"
+                                ? "COMPROVANTE DS-160"
+                                : doc.name === "ds160_boleto"
+                                  ? "BOLETO"
+                                  : doc.name
+                                      .replace(/ds160_?|DS160_?/gi, "")
+                                      .replace(/_/g, " ")
+                                      .toUpperCase()}
                         </p>
                         <p className="text-[10px] text-muted-foreground uppercase font-medium">
                           {doc.storage_path.split(".").pop()} •{" "}
@@ -1771,12 +1777,14 @@ export default function AdminProcessDetail() {
                       {doc.name === "ds160_assinada"
                         ? "ASSINADA"
                         : doc.name === "ds160_comprovante"
-                          ? "COMPROVANTE"
-                          : doc.name === "ds160_boleto"
-                            ? "BOLETO"
-                            : doc.name
-                                .replace(/ds160_?|DS160_?/gi, "")
-                                .replace(/_/g, " ")
+                          ? "COMPROVANTE MRV"
+                          : doc.name === "ds160_comprovante_sevis"
+                            ? "COMPROVANTE DS-160"
+                            : doc.name === "ds160_boleto"
+                              ? "BOLETO"
+                              : doc.name
+                                  .replace(/ds160_?|DS160_?/gi, "")
+                                  .replace(/_/g, " ")
                                 .toUpperCase()}
                     </span>
                   </div>

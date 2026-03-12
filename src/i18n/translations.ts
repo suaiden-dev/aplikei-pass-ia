@@ -1772,6 +1772,18 @@ export const translations = {
             es: "El comprobante de pago de la tarifa consular.",
           },
         },
+        ds160_comprovante_sevis: {
+          title: {
+            en: "DS-160 Confirmation Page",
+            pt: "Comprovante de Envio da DS-160",
+            es: "Página de Confirmación DS-160",
+          },
+          description: {
+            en: "The DS-160 confirmation page showing the application was successfully submitted.",
+            pt: "A página de confirmação mostrando que a DS-160 foi enviada com sucesso.",
+            es: "La página de confirmación que muestra que la DS-160 fue enviada correctamente.",
+          },
+        },
       },
     },
     interviewGuide: {
@@ -5248,6 +5260,87 @@ export const translations = {
       ],
     },
   ],
+
+  f1f2: {
+    steps: {
+      en: [
+        "Personal Info",
+        "Travel Info",
+        "Address & Phone",
+        "Passport",
+        "Family Info",
+        "Education",
+        "SEVIS Info",
+        "Social Media",
+        "Additional Info",
+        "Upload Documents",
+      ],
+      pt: [
+        "Info Pessoal",
+        "Info de Viagem",
+        "Endereço e Telefone",
+        "Passaporte",
+        "Info Familiar",
+        "Educação",
+        "Info SEVIS",
+        "Mídias Sociais",
+        "Infos Adicionais",
+        "Upload de Docs",
+      ],
+      es: [
+        "Info Personal",
+        "Info de Viaje",
+        "Dirección y Tel.",
+        "Pasaporte",
+        "Info Familiar",
+        "Educación",
+        "Info SEVIS",
+        "Redes Sociales",
+        "Info Adicional",
+        "Carga de Docs",
+      ],
+    },
+    schoolName: {
+      en: "School Name",
+      pt: "Nome da Escola/Instituição",
+      es: "Nombre de la Escuela/Institución",
+    },
+    schoolAddress: {
+      en: "School Address",
+      pt: "Endereço da Escola",
+      es: "Dirección de la Escuela",
+    },
+    courseName: {
+      en: "Course Name",
+      pt: "Nome do Curso",
+      es: "Nombre del Curso",
+    },
+    courseStartDate: {
+      en: "Course Start Date",
+      pt: "Data de Início do Curso",
+      es: "Fecha de Inicio del Curso",
+    },
+    courseEndDate: {
+      en: "Course End Date",
+      pt: "Data de Término do Curso",
+      es: "Fecha de Finalización del Curso",
+    },
+    sevisId: {
+      en: "SEVIS ID",
+      pt: "SEVIS ID (Nº do documento I-20)",
+      es: "SEVIS ID (Nº del I-20)",
+    },
+    i20Document: {
+      en: "I-20 Form (Upload)",
+      pt: "Formulário I-20 (Upload)",
+      es: "Formulario I-20 (Cargar)",
+    },
+    i20DocumentDesc: {
+      en: "Upload a copy of your signed I-20 form issued by the school.",
+      pt: "Faça o upload de uma cópia do seu formulário I-20 assinado, emitido pela instituição de ensino.",
+      es: "Cargue una copia de su formulario I-20 firmado, emitido por la institución educativa.",
+    },
+  },
 
   // ──── 404 ────
   notFound: {

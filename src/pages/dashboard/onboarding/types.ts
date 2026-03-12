@@ -201,6 +201,17 @@ export interface OnboardingData {
     hasVisitedOtherCountries?: string;
     countriesVisitedLast5Years?: string;
     countriesVisitedDetails?: string;
+
+    // F1/F2 Specific Fields
+    schoolName?: string;
+    schoolAddress?: string;
+    courseName?: string;
+    courseStartDate?: string;
+    courseEndDate?: string;
+    sevisId?: string;
+    f1f2ConsulateLocation?: string;
+    f1f2ApplicationId?: string;
+    f1f2SecurityAnswer?: string;
 }
 
 export interface UploadedDocument {

@@ -42,6 +42,7 @@ import { useNavigate } from "react-router-dom";
 interface AwaitingInterviewStepProps {
   serviceId: string | null;
   serviceStatus?: string | null;
+  serviceSlug?: string;
 }
 
 interface AwaitingInterviewData {
@@ -57,6 +58,7 @@ interface AwaitingInterviewData {
 export function AwaitingInterviewStep({
   serviceId,
   serviceStatus,
+  serviceSlug,
 }: AwaitingInterviewStepProps) {
   const { lang, t } = useLanguage();
   const navigate = useNavigate();
@@ -246,7 +248,7 @@ export function AwaitingInterviewStep({
               className="w-full sm:w-auto"
               onClick={() =>
                 navigate(
-                  `/checkout/visto-b1-b2?action=restart&serviceId=${serviceId}`,
+                  `/checkout/${serviceSlug || "visto-b1-b2"}?action=restart&serviceId=${serviceId}`,
                 )
               }
             >

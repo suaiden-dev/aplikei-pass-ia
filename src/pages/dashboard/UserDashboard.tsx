@@ -198,7 +198,9 @@ export default function UserDashboard() {
         // Group by slug to keep only the most recent entry for each unique guide
         const uniqueServicesMap = new Map<string, ServiceWithProgress>();
 
-        servicesDataTyped.forEach((s) => {
+        servicesDataTyped.forEach((rawS) => {
+          // Normalize legacy slug
+          const s = { ...rawS, service_slug: rawS.service_slug === "visto-f1" ? "visa-f1f2" : rawS.service_slug };
           const existing = uniqueServicesMap.get(s.service_slug);
 
           // Logic: Keep the service if:
@@ -580,20 +582,20 @@ export default function UserDashboard() {
             checkoutUrl: "/checkout/visto-b1-b2",
           },
           {
-            slug: "visto-f1",
+            slug: "visa-f1f2",
             icon: <GraduationCap className="h-6 w-6" />,
             color: "bg-purple-500",
             gradientFrom: "from-purple-500",
             gradientTo: "to-violet-600",
-            badgeLabel: lang === "pt" ? "Em breve" : "Coming soon",
-            titlePt: "Visto de Estudante F-1",
-            titleEn: "F-1 Student Visa",
+            badgeLabel: lang === "pt" ? "Disponível" : "Available",
+            titlePt: "Visto de Estudante F-1/F-2",
+            titleEn: "F-1/F-2 Student Visa",
             subtitlePt: "Para estudantes aceitos em instituições americanas",
             subtitleEn: "For students accepted by US institutions",
             descPt:
-              "Guia passo a passo para aplicar ao visto F-1. Orientação sobre I-20, DS-160, SEVIS e preparação para entrevista.",
+              "Guia passo a passo para aplicar ao visto F-1 ou dependentes F-2. Orientação sobre I-20, DS-160, SEVIS e preparação para entrevista.",
             descEn:
-              "Step-by-step guide for the F-1 visa. Guidance on I-20, DS-160, SEVIS and interview preparation.",
+              "Step-by-step guide for the F-1 visa or F-2 dependents. Guidance on I-20, DS-160, SEVIS and interview preparation.",
             features: [
               {
                 pt: "Orientação sobre I-20 e SEVIS",
@@ -605,8 +607,8 @@ export default function UserDashboard() {
               },
               { pt: "Preparação para entrevista", en: "Interview preparation" },
             ],
-            available: false,
-            checkoutUrl: "/checkout/visto-f1",
+            available: true,
+            checkoutUrl: "/checkout/visa-f1f2",
           },
         ];
 

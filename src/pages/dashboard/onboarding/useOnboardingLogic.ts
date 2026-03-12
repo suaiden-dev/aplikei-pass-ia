@@ -34,7 +34,11 @@ export const useOnboardingLogic = () => {
     const ds = t.ds160;
 
     // Dynamically determine steps based on service
-    const steps = serviceSlug === "visto-b1-b2" ? ds.steps[lang] : o.steps[lang];
+    const steps = serviceSlug === "visto-b1-b2" 
+        ? ds.steps[lang] 
+        : serviceSlug === "visa-f1f2" 
+        ? t.f1f2.steps[lang] 
+        : o.steps[lang];
     const totalSteps = steps.length;
 
     const userId = user?.id;
@@ -45,6 +49,13 @@ export const useOnboardingLogic = () => {
             "companions", "previous-travel", "address-phone",
             "social-media", "passport", "us-contact", "family",
             "work-education", "additional"
+        ]
+        : serviceSlug === "visa-f1f2"
+        ? [
+            "f1f2-personal", "f1f2-travel", "f1f2-address-phone",
+            "f1f2-passport", "f1f2-family", "f1f2-education",
+            "f1f2-sevis", "f1f2-social-media", "f1f2-additional",
+            "f1f2-documents"
         ]
         : ["personal", "history", "process", "documents", "review"];
 
@@ -116,6 +127,8 @@ export const useOnboardingLogic = () => {
                     if (createError || !newService) throw createError || new Error("Failed to create service");
                     sId = newService.id;
                     setServiceId(sId);
+                    // Normalize legacy slug
+                    if (slug === "visto-f1") slug = "visa-f1f2";
                     setServiceSlug(slug);
                 } catch (err) {
                     console.error("Error creating service:", err);
@@ -127,6 +140,8 @@ export const useOnboardingLogic = () => {
                 const status = service.status || "active";
                 setServiceStatus(status);
                 slug = service.service_slug || "visto-b1-b2";
+                // Normalize legacy slug
+                if (slug === "visto-f1") slug = "visa-f1f2";
                 setServiceSlug(slug);
 
                 if (service.application_id) {
@@ -141,7 +156,7 @@ export const useOnboardingLogic = () => {
                 setHasConsularCredentials(!!(svc.consular_login && svc.consular_login.trim()));
 
                 if (service.current_step !== undefined && service.current_step !== null) {
-                    const maxStep = slug === "visto-b1-b2" ? 11 : 4;
+                    const maxStep = serviceSlug === "visto-b1-b2" ? 11 : serviceSlug === "visa-f1f2" ? 9 : 4;
                     const stepToIndex = Math.min(service.current_step, maxStep);
                     setCurrentStep(stepToIndex);
                 }
@@ -230,7 +245,7 @@ export const useOnboardingLogic = () => {
         const file = e.target.files?.[0];
         if (!file || !user) return;
 
-        const isProcessSpecialDoc = docName === "ds160_assinada" || docName === "ds160_comprovante";
+        const isProcessSpecialDoc = docName === "ds160_assinada" || docName === "ds160_comprovante" || docName === "ds160_comprovante_sevis";
 
         if (isProcessSpecialDoc) {
             setPendingFiles(prev => ({ ...prev, [docName]: file }));
@@ -341,7 +356,7 @@ export const useOnboardingLogic = () => {
 
         let stepData: Record<string, unknown> = {};
 
-        if (serviceSlug === "visto-b1-b2") {
+        if (serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") {
             stepData = { ...formData };
         } else {
             if (currentStep === 0) {
@@ -425,6 +440,42 @@ export const useOnboardingLogic = () => {
                     return true;
                 case "documents": {
                     const requiredDocs = [o.docPhoto[lang]]; 
+                    const uploadedNames = uploadedDocs.map(d => d.name);
+                    const missing = requiredDocs.filter(req => !uploadedNames.includes(req));
+
+                    if (missing.length > 0) {
+                        toast.error(`${o.missingDocs[lang]} ${missing.join(", ")}`);
+                        return false;
+                    }
+                    return true;
+                }
+                default:
+                    return true;
+            }
+        }
+
+        if (serviceSlug === "visa-f1f2") {
+            switch (currentSlug) {
+                case "f1f2-personal":
+                    return await trigger(["email", "firstName", "lastName"]);
+                case "f1f2-travel":
+                    return await trigger(["arrivalDate", "expectedDuration"]);
+                case "f1f2-address-phone":
+                    return await trigger(["homeAddress", "homeCity", "mobilePhone"]);
+                case "f1f2-passport":
+                    return await trigger(["passportNumberDS", "passportExpirationDate"]);
+                case "f1f2-family":
+                    return await trigger(["fatherLastName", "fatherFirstName", "motherLastName", "motherFirstName"]);
+                case "f1f2-education":
+                    return await trigger(["schoolName", "schoolAddress", "courseName", "courseStartDate", "courseEndDate"]);
+                case "f1f2-sevis":
+                    return await trigger(["sevisId"]);
+                case "f1f2-social-media":
+                    return await trigger(["socialMedia1"]);
+                case "f1f2-additional":
+                    return true;
+                case "f1f2-documents": {
+                    const requiredDocs = ["i20_document", o.docPassport[lang]]; 
                     const uploadedNames = uploadedDocs.map(d => d.name);
                     const missing = requiredDocs.filter(req => !uploadedNames.includes(req));
 
@@ -550,7 +601,8 @@ export const useOnboardingLogic = () => {
                 
                 if (isSignatureSubmit) {
                     const hasAssinada = pendingFiles["ds160_assinada"] || uploadedDocs.some(d => d.name === "ds160_assinada");
-                    const hasComprovante = pendingFiles["ds160_comprovante"] || uploadedDocs.some(d => d.name === "ds160_comprovante");
+                    const comprovanteKey = serviceSlug === "visa-f1f2" ? "ds160_comprovante_sevis" : "ds160_comprovante";
+                    const hasComprovante = pendingFiles[comprovanteKey] || uploadedDocs.some(d => d.name === comprovanteKey);
 
                     if (!hasAssinada || !hasComprovante) {
                         toast.error(o.selectBothDocs[lang]);
@@ -593,7 +645,7 @@ export const useOnboardingLogic = () => {
                 const { error: updateError } = await supabase
                     .from("user_services")
                     .update({
-                        current_step: serviceSlug === "visto-b1-b2" ? 11 : 4,
+                        current_step: serviceSlug === "visto-b1-b2" ? 11 : serviceSlug === "visa-f1f2" ? 9 : 4,
                         status: nextStatus,
                     })
                     .eq("id", serviceId);

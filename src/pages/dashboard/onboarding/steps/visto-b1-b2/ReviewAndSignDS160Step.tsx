@@ -41,6 +41,7 @@ interface ReviewAndSignDS160StepProps {
   } | null;
   lang: string;
   t: any;
+  serviceSlug?: string;
 }
 
 export function ReviewAndSignDS160Step({
@@ -52,8 +53,12 @@ export function ReviewAndSignDS160Step({
   securityData,
   lang,
   t,
+  serviceSlug,
 }: ReviewAndSignDS160StepProps) {
   const rs = t.onboardingPage.reviewAndSign;
+
+  const isF1F2 = serviceSlug === "visa-f1f2";
+  const comprovanteKey = isF1F2 ? "ds160_comprovante_sevis" : "ds160_comprovante";
 
   const requiredDocs = [
     {
@@ -62,9 +67,9 @@ export function ReviewAndSignDS160Step({
       description: rs.requiredDocs.ds160_assinada.description[lang],
     },
     {
-      id: "ds160_comprovante",
-      title: rs.requiredDocs.ds160_comprovante.title[lang],
-      description: rs.requiredDocs.ds160_comprovante.description[lang],
+      id: comprovanteKey,
+      title: rs.requiredDocs[comprovanteKey as keyof typeof rs.requiredDocs]?.title[lang] ?? rs.requiredDocs.ds160_comprovante.title[lang],
+      description: rs.requiredDocs[comprovanteKey as keyof typeof rs.requiredDocs]?.description[lang] ?? rs.requiredDocs.ds160_comprovante.description[lang],
     },
   ];
 
@@ -325,7 +330,7 @@ export function ReviewAndSignDS160Step({
                     {isUploaded ? (
                       <CheckCircle2 className="w-5 h-5 text-green-500" />
                     ) : (
-                      <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30" />
+                      <FileText className="w-5 h-5 text-muted-foreground/40" />
                     )}
                     <h4 className="font-bold text-sm">{doc.title}</h4>
                   </div>

@@ -56,6 +56,17 @@ import { AwaitingInterviewStep } from "./steps/visto-b1-b2/AwaitingInterviewStep
 import { DS160ReviewModal } from "./components/DS160ReviewModal";
 import { ProcessingStatusStep } from "./steps/visto-b1-b2/ProcessingStatusStep";
 
+import { F1F2PersonalInfoStep } from "./steps/F1F2/F1F2PersonalInfoStep";
+import { F1F2TravelInfoStep } from "./steps/F1F2/F1F2TravelInfoStep";
+import { F1F2AddressPhoneStep } from "./steps/F1F2/F1F2AddressPhoneStep";
+import { F1F2PassportStep } from "./steps/F1F2/F1F2PassportStep";
+import { F1F2FamilyInfoStep } from "./steps/F1F2/F1F2FamilyInfoStep";
+import { F1F2EducationStep } from "./steps/F1F2/F1F2EducationStep";
+import { F1F2SEVIStep } from "./steps/F1F2/F1F2SEVIStep";
+import { F1F2SocialMediaStep } from "./steps/F1F2/F1F2SocialMediaStep";
+import { F1F2AdditionalInfoStep } from "./steps/F1F2/F1F2AdditionalInfoStep";
+import { F1F2UploadDocumentsStep } from "./steps/F1F2/F1F2UploadDocumentsStep";
+import { OpenDS160Step } from "./steps/F1F2/OpenDS160Step";
 export default function Onboarding() {
   const {
     lang,
@@ -137,7 +148,7 @@ export default function Onboarding() {
     };
 
     if (
-      serviceSlug === "visto-b1-b2" &&
+      (serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") &&
       serviceStatus === "casvSchedulingPending"
     ) {
       return (
@@ -151,7 +162,7 @@ export default function Onboarding() {
     }
 
     if (
-      serviceSlug === "visto-b1-b2" &&
+      (serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") &&
       serviceStatus === "casvFeeProcessing"
     ) {
       return (
@@ -166,7 +177,7 @@ export default function Onboarding() {
     }
 
     if (
-      serviceSlug === "visto-b1-b2" &&
+      (serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") &&
       serviceStatus === "casvPaymentPending"
     ) {
       return (
@@ -180,7 +191,7 @@ export default function Onboarding() {
     }
 
     if (
-      serviceSlug === "visto-b1-b2" &&
+      (serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") &&
       (serviceStatus === "review_pending" ||
         serviceStatus === "ds160Processing" ||
         serviceStatus === "uploadsUnderReview")
@@ -189,7 +200,7 @@ export default function Onboarding() {
     }
 
     if (
-      serviceSlug === "visto-b1-b2" &&
+      (serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") &&
       (serviceStatus === "awaitingInterview" ||
         serviceStatus === "approved" ||
         serviceStatus === "rejected" ||
@@ -199,12 +210,13 @@ export default function Onboarding() {
         <AwaitingInterviewStep
           serviceId={serviceId}
           serviceStatus={serviceStatus}
+          serviceSlug={serviceSlug}
         />
       );
     }
 
     if (
-      serviceSlug === "visto-b1-b2" &&
+      (serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") &&
       (serviceStatus === "ds160AwaitingReviewAndSignature" ||
         serviceStatus === "ds160upload_documents" ||
         serviceStatus === "review_assign")
@@ -220,6 +232,7 @@ export default function Onboarding() {
           securityData={securityData}
           lang={lang}
           t={t}
+          serviceSlug={serviceSlug}
         />
       );
     }
@@ -266,6 +279,44 @@ export default function Onboarding() {
           );
         case 13:
           return <ReviewStep {...commonProps} />;
+        default:
+          return null;
+      }
+    }
+    if (serviceSlug === "visa-f1f2") {
+      switch (currentStep) {
+        case 0:
+          return <F1F2PersonalInfoStep {...commonProps} />;
+        case 1:
+          return <F1F2TravelInfoStep {...commonProps} />;
+        case 2:
+          return <F1F2AddressPhoneStep {...commonProps} />;
+        case 3:
+          return <F1F2PassportStep {...commonProps} />;
+        case 4:
+          return <F1F2FamilyInfoStep {...commonProps} />;
+        case 5:
+          return <F1F2EducationStep {...commonProps} />;
+        case 6:
+          return <F1F2SEVIStep {...commonProps} />;
+        case 7:
+          return <F1F2SocialMediaStep {...commonProps} />;
+        case 8:
+          return <F1F2AdditionalInfoStep {...commonProps} />;
+        case 9:
+          return (
+            <F1F2UploadDocumentsStep
+              uploadedDocs={uploadedDocs}
+              handleUpload={handleUpload}
+              handleRemove={handleRemoveDoc}
+              uploading={uploading}
+              fileInputRef={fileInputRef}
+              setSelectedDoc={setSelectedDoc}
+              lang={lang}
+              t={t}
+              o={o}
+            />
+          );
         default:
           return null;
       }
@@ -436,17 +487,16 @@ export default function Onboarding() {
                         serviceStatus === "review_pending" ||
                         serviceStatus === "ds160Processing" ||
                         serviceStatus === "completed" ||
-                        ((serviceStatus === "ds160AwaitingReviewAndSignature" ||
-                          serviceStatus === "ds160upload_documents" ||
-                          serviceStatus === "review_assign") &&
-                          ((!uploadedDocs.some(
-                            (d) => d.name === "ds160_assinada",
-                          ) &&
-                            !pendingFiles["ds160_assinada"]) ||
-                            (!uploadedDocs.some(
-                              (d) => d.name === "ds160_comprovante",
-                            ) &&
-                              !pendingFiles["ds160_comprovante"])))
+                        (() => {
+                          const comprovanteKey = serviceSlug === "visa-f1f2" ? "ds160_comprovante_sevis" : "ds160_comprovante";
+                          return (serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                            serviceStatus === "ds160upload_documents" ||
+                            serviceStatus === "review_assign") &&
+                            ((!uploadedDocs.some((d) => d.name === "ds160_assinada") &&
+                              !pendingFiles["ds160_assinada"]) ||
+                              (!uploadedDocs.some((d) => d.name === comprovanteKey) &&
+                                !pendingFiles[comprovanteKey]));
+                        })()
                       }
                     >
                       {serviceStatus === "review_pending" ||
@@ -476,7 +526,8 @@ export default function Onboarding() {
         <aside className="space-y-4 lg:sticky lg:top-6 lg:h-fit">
           {/* Progress & Steps Indicator */}
           <div className="rounded-md border border-border bg-card p-4 shadow-card md:p-4">
-            {serviceSlug !== "visto-b1-b2" && (
+            {serviceSlug !== "visto-b1-b2" &&
+              !(serviceSlug === "visa-f1f2" && serviceStatus && serviceStatus !== "ds160InProgress" && serviceStatus !== "active") && (
               <>
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-foreground">
@@ -521,7 +572,7 @@ export default function Onboarding() {
               </>
             )}
 
-            {serviceSlug === "visto-b1-b2" ? (
+            {(serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") ? (
               <div className="text-center py-2">
                 <p className="text-xs font-bold text-accent uppercase tracking-widest">
                   {o.ds160Form[lang]}
@@ -740,13 +791,14 @@ export default function Onboarding() {
                     serviceStatus === "review_pending" ||
                     serviceStatus === "ds160Processing" ||
                     serviceStatus === "completed" ||
-                    ((serviceStatus === "ds160AwaitingReviewAndSignature" ||
-                      serviceStatus === "ds160upload_documents" ||
-                      serviceStatus === "review_assign") &&
-                      (!uploadedDocs.some((d) => d.name === "ds160_assinada") ||
-                        !uploadedDocs.some(
-                          (d) => d.name === "ds160_comprovante",
-                        )))
+                    (() => {
+                      const comprovanteKey = serviceSlug === "visa-f1f2" ? "ds160_comprovante_sevis" : "ds160_comprovante";
+                      return (serviceStatus === "ds160AwaitingReviewAndSignature" ||
+                        serviceStatus === "ds160upload_documents" ||
+                        serviceStatus === "review_assign") &&
+                        (!uploadedDocs.some((d) => d.name === "ds160_assinada") ||
+                          !uploadedDocs.some((d) => d.name === comprovanteKey));
+                    })()
                   }
                 >
                   {serviceStatus === "review_pending" ||
