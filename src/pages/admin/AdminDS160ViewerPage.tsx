@@ -423,6 +423,10 @@ export default function AdminDS160ViewerPage() {
               label: "Has Other Relatives in US?",
               value: translateYesNo(formData.hasOtherRelativesInUS),
             },
+            {
+              label: "Maternal Grandmother's Name",
+              value: formData.maternalGrandmotherName,
+            },
           ],
         },
         {

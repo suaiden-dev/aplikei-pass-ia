@@ -1401,7 +1401,11 @@ export const translations = {
       pt: "Preencha as etapas anteriores para ver o resumo aqui.",
       es: "Completa los pasos anteriores para ver el resumen aquí.",
     },
-    casvSchedulingTitle: { en: "CASV Scheduling", pt: "Agendamento CASV", es: "Agendamiento CASV" },
+    casvSchedulingTitle: {
+      en: "CASV Scheduling",
+      pt: "Agendamento CASV",
+      es: "Agendamiento CASV",
+    },
     casvSchedulingDesc: {
       en: "Select your preferred date for CASV and Consulate scheduling.",
       pt: "Selecione sua data de preferência para o agendamento no CASV e Consulado.",
@@ -1412,15 +1416,31 @@ export const translations = {
       pt: "A data e horário final dependerão da disponibilidade do Consulado. Esta é apenas uma indicação de sua preferência inicial.",
       es: "La fecha y hora final dependerán de la disponibilidad del Consulado. Esta es solo una indicación de su preferencia inicial.",
     },
-    officialAvailability: { en: "Check official availability", pt: "Confira as disponibilidades oficiais", es: "Check official availability" },
-    preferenceCalendar: { en: "Preference Calendar", pt: "Calendário de Preferência", es: "Calendario de Preferencia" },
+    officialAvailability: {
+      en: "Check official availability",
+      pt: "Confira as disponibilidades oficiais",
+      es: "Check official availability",
+    },
+    preferenceCalendar: {
+      en: "Preference Calendar",
+      pt: "Calendário de Preferência",
+      es: "Calendario de Preferencia",
+    },
     selectDayFits: {
       en: "Select the day that best fits you.",
       pt: "Selecione o dia que melhor se encaixa para você.",
       es: "Seleccione el día que mejor se ajuste a usted.",
     },
-    activitySummary: { en: "Activity Summary", pt: "Resumo da Atividade", es: "Resumen de la Actividad" },
-    selectedDate: { en: "Selected Date", pt: "Data Selecionada", es: "Fecha Seleccionada" },
+    activitySummary: {
+      en: "Activity Summary",
+      pt: "Resumo da Atividade",
+      es: "Resumen de la Actividad",
+    },
+    selectedDate: {
+      en: "Selected Date",
+      pt: "Data Selecionada",
+      es: "Fecha Seleccionada",
+    },
     none: { en: "None", pt: "Nenhuma", es: "Ninguna" },
     spotsClosest: {
       en: "We will look for spots closest to this date.",
@@ -1432,83 +1452,312 @@ export const translations = {
       pt: "O suporte entrará em contato para confirmar o agendamento final.",
       es: "El soporte se pondrá en contacto para confirmar el agendamiento final.",
     },
-    confirmPreference: { en: "Confirm Preference", pt: "Confirmar Preferência", es: "Confirmar Preferencia" },
+    confirmPreference: {
+      en: "Confirm Preference",
+      pt: "Confirmar Preferência",
+      es: "Confirmar Preferencia",
+    },
     monitoringStartDesc: {
       en: "By confirming, our team will start the spot monitoring process in the consular systems.",
       pt: "Ao confirmar, nossa equipe iniciará o processo de monitoramento de vagas nos sistemas consulares.",
       es: "Al confirmar, nuestro equipo iniciará el proceso de monitoreo de plazas en los sistemas consulares.",
     },
-    preferredDateSaved: { en: "Preferred date saved successfully!", pt: "Data preferencial salva com sucesso!", es: "¡Fecha preferencial guardada con éxito!" },
-    errorSavingSchedule: { en: "Error saving schedule.", pt: "Erro ao salvar agendamento.", es: "Error al guardar el agendamiento." },
+    preferredDateSaved: {
+      en: "Preferred date saved successfully!",
+      pt: "Data preferencial salva com sucesso!",
+      es: "¡Fecha preferencial guardada con éxito!",
+    },
+    errorSavingSchedule: {
+      en: "Error saving schedule.",
+      pt: "Erro ao salvar agendamento.",
+      es: "Error al guardar el agendamiento.",
+    },
     feeProcessing: {
-      title: { en: "Fee Processing", pt: "Taxa em Processamento", es: "Procesamiento de Tasa" },
+      title: {
+        en: "Fee Processing",
+        pt: "Taxa em Processamento",
+        es: "Procesamiento de Tasa",
+      },
       desc: {
         en: "We are preparing the creation of your account on the official US consulate portal.",
         pt: "Estamos preparando a criação da sua conta no portal oficial do consulado americano.",
         es: "Estamos preparando la creación de su cuenta en el portal oficial del consulado estadounidense.",
       },
       nextStep: { en: "NEXT STEP", pt: "PRÓXIMA ETAPA", es: "Siguiente Paso" },
-      consularAccountTitle: { en: "Consular Account Creation", pt: "Criação de Conta Consular", es: "Creación de Cuenta Consular" },
+      consularAccountTitle: {
+        en: "Consular Account Creation",
+        pt: "Criação de Conta Consular",
+        es: "Creación de Cuenta Consular",
+      },
       consularAccountDesc: {
         en: "To continue with your visa, we will create your official access.",
         pt: "Para dar continuidade ao seu visto, criaremos seu acesso oficial.",
         es: "Para continuar con su visa, crearemos su acceso oficial.",
       },
-      accountEmailTitle: { en: "Account with your Email", pt: "Conta com seu E-mail", es: "Cuenta con su Email" },
+      accountEmailTitle: {
+        en: "Account with your Email",
+        pt: "Conta com seu E-mail",
+        es: "Cuenta con su Email",
+      },
       accountEmailDesc: {
         en: "An account was created using your email. Please check your inbox.",
         pt: "Uma conta foi criada utilizando seu email. Por favor, verifique sua caixa de entrada.",
         es: "Se ha creado una cuenta con su correo electrónico. Por favor, revise su bandeja de entrada.",
       },
-      watchEmailTitle: { en: "Watch your Email", pt: "Fique Atento ao E-mail", es: "Atento al Email" },
+      watchEmailTitle: {
+        en: "Watch your Email",
+        pt: "Fique Atento ao E-mail",
+        es: "Atento al Email",
+      },
       watchEmailDesc: {
         en: "Stay tuned to your inbox and spam folder to confirm the temporary password once it is sent.",
         pt: "Fique atento à sua caixa de entrada e spam para confirmar a senha temporária assim que ela for enviada.",
         es: "Esté atento a su bandeja de entrada y carpeta de spam para confirmar la contraseña temporal una vez que sea enviada.",
       },
-      alreadyConfirmedEmail: { en: "I'VE ALREADY CONFIRMED THE EMAIL", pt: "JÁ CONFIRMEI O EMAIL", es: "Ya He Confirmado el Email" },
+      alreadyConfirmedEmail: {
+        en: "I'VE ALREADY CONFIRMED THE EMAIL",
+        pt: "JÁ CONFIRMEI O EMAIL",
+        es: "Ya He Confirmado el Email",
+      },
       securityPriority: {
         en: "Data security is our top priority.",
         pt: "A segurança dos seus dados é nossa prioridade total.",
         es: "La seguridad de sus datos es nuestra prioridad absoluta.",
       },
-      creatingCredentialsTitle: { en: "Creating your credentials...", pt: "Criando suas credenciais...", es: "Creando sus credenciales..." },
+      creatingCredentialsTitle: {
+        en: "Creating your credentials...",
+        pt: "Criando suas credenciais...",
+        es: "Creando sus credenciales...",
+      },
       creatingCredentialsDesc: {
         en: "Our team is setting up your access in the consular system. This should be quick.",
         pt: "Nossa equipe está configurando seu acesso no sistema consular. Isso costuma ser rápido.",
         es: "Nuestro equipo está configurando su acceso en el sistema consular. Debería ser rápido.",
       },
-      successMsg: { en: "Great! Now let's proceed to payment.", pt: "Ótimo! Agora vamos para o pagamento.", es: "¡Genial! Ahora procedamos al pago." },
-      errorUpdatingStatus: { en: "Error updating status.", pt: "Erro ao atualizar status.", es: "Error al actualizar el estado." },
+      successMsg: {
+        en: "Great! Now let's proceed to payment.",
+        pt: "Ótimo! Agora vamos para o pagamento.",
+        es: "¡Genial! Ahora procedamos al pago.",
+      },
+      errorUpdatingStatus: {
+        en: "Error updating status.",
+        pt: "Erro ao atualizar status.",
+        es: "Error al actualizar el estado.",
+      },
     },
     processingStatus: {
-      processingDS160: { en: "Processing DS-160", pt: "Processando DS-160", es: "Procesando DS-160" },
-      awaitingReview: { en: "Awaiting Review", pt: "Aguardando Revisão", es: "Esperando Revisión" },
-      reviewingDocs: { en: "Reviewing Documents", pt: "Revisando Documentos", es: "Revisando Documentos" },
-      awaitingScheduling: { en: "Awaiting Scheduling", pt: "Aguardando Agendamento", es: "Esperando Agendamiento" },
-      awaitingUpload: { en: "Awaiting Upload", pt: "Aguardando Upload", es: "Esperando Carga" },
-      processingDataTitle: { en: "Processing your data", pt: "Processando seus dados", es: "Procesando sus datos" },
+      processingDS160: {
+        en: "Processing DS-160",
+        pt: "Processando DS-160",
+        es: "Procesando DS-160",
+      },
+      awaitingReview: {
+        en: "Awaiting Review",
+        pt: "Aguardando Revisão",
+        es: "Esperando Revisión",
+      },
+      reviewingDocs: {
+        en: "Reviewing Documents",
+        pt: "Revisando Documentos",
+        es: "Revisando Documentos",
+      },
+      awaitingScheduling: {
+        en: "Awaiting Scheduling",
+        pt: "Aguardando Agendamento",
+        es: "Esperando Agendamiento",
+      },
+      awaitingUpload: {
+        en: "Awaiting Upload",
+        pt: "Aguardando Upload",
+        es: "Esperando Carga",
+      },
+      processingDataTitle: {
+        en: "Processing your data",
+        pt: "Processando seus dados",
+        es: "Procesando sus datos",
+      },
       processingDataDesc: {
         en: "Our specialists are reviewing your information and preparing the official DS-160 form.",
         pt: "Nossos especialistas estão revisando suas informações e preparando o formulário DS-160 oficial.",
         es: "Nuestros especialistas están revisando su información y preparando el formulario DS-160 oficial.",
       },
-      documentsReceivedTitle: { en: "Documents Received", pt: "Documentos Recebidos", es: "Documentos Recibidos" },
+      documentsReceivedTitle: {
+        en: "Documents Received",
+        pt: "Documentos Recebidos",
+        es: "Documentos Recibidos",
+      },
       documentsReceivedDesc: {
         en: "Excellent! Your documents have been received and are being analyzed by our team.",
         pt: "Excelente! Seus documentos foram recebidos e estão sendo analisados pela nossa equipe.",
         es: "¡Excelente! Sus documentos han sido recibidos y están siendo analizados por nuestro equipo.",
       },
+      currentStatus: {
+        en: "Current Status",
+        pt: "Status Atual",
+        es: "Estado Actual",
+      },
+      trackProgress: {
+        en: "You can track the progress of your application on this screen.",
+        pt: "Você pode acompanhar o andamento da sua solicitação por esta tela.",
+        es: "Puede hacer un seguimiento del progreso de su solicitud en esta pantalla.",
+      },
+      contactExtraData: {
+        en: "We will contact you if we need any extra information.",
+        pt: "Entraremos em contato caso precisemos de algum dado extra.",
+        es: "Nos pondremos en contacto con usted si necesitamos información adicional.",
+      },
+      thankYou: {
+        en: "Thank you for trusting our services!",
+        pt: "Obrigado por confiar em nossos serviços!",
+        es: "¡Gracias por confiar en nuestros servicios!",
+      },
+    },
+    reviewAndSign: {
+      tutorialTitle: {
+        en: "How to sign your DS-160",
+        pt: "Como assinar sua DS-160",
+        es: "Cómo firmar su DS-160",
+      },
+      tutorialSubtitle: {
+        en: "Follow the steps below to correctly download, sign, and upload your DS-160 form.",
+        pt: "Siga os passos abaixo para baixar, assinar e enviar o seu formulário DS-160 corretamente.",
+        es: "Siga los pasos a continuación para descargar, firmar y enviar su formulario DS-160 correctamente.",
+      },
+      stepLabel: { en: "Step", pt: "Passo", es: "Paso" },
+      of: { en: "of", pt: "de", es: "de" },
+      previous: { en: "Previous", pt: "Anterior", es: "Anterior" },
+      nextStep: { en: "Next Step", pt: "Próximo Passo", es: "Siguiente Paso" },
+      tutorialSteps: [
+        {
+          title: {
+            en: "Retrieve Your Application",
+            pt: "Recupere sua Aplicação",
+            es: "Recupere su Solicitud",
+          },
+          desc: {
+            en: "Fill in the information. Select the application location and enter your Application ID and the code provided. Then enter the first 5 letters of your last name, your year of birth, and your mother's mother's name, and click on 'Retrieve an Application'.",
+            pt: "Preencha as informações. Selecione o local da aplicação e informe sua Application ID e o código informado. Depois coloque as primeiras 5 letras do seu sobrenome, o ano de nascimento e o nome da mãe da sua mãe, e clique em 'Retrieve an Application'.",
+            es: "Complete la información. Seleccione el lugar de la solicitud e ingrese su Application ID y el código proporcionado. Luego escriba las primeras 5 letras de su apellido, su año de nacimiento y el nombre de la madre de su madre, y haga clic en 'Retrieve an Application'.",
+          },
+        },
+        {
+          title: {
+            en: "Review, Print and Sign",
+            pt: "Revise, Imprima e Assine",
+            es: "Revise, Imprima y Firme",
+          },
+          desc: {
+            en: "On the left side you can review all the information you have filled in. After confirming your data, enter your passport information and click on 'Sign and Submit Application' to sign.",
+            pt: "Na lateral esquerda você poderá confirmar todos os dados que preencheu. Após revisar suas informações, preencha com os dados do seu passaporte e clique em 'Sign and Submit Application' para assinar.",
+            es: "En el lado izquierdo podrá confirmar todos los datos que ha completado. Después de revisar su información, ingrese los datos de su pasaporte y haga clic en 'Sign and Submit Application' para firmar.",
+          },
+        },
+        {
+          title: {
+            en: "Sign and Download",
+            pt: "Assine e Faça o Download",
+            es: "Firme y Descargue",
+          },
+          desc: {
+            en: "Click on 'Next: Confirmation', then download both 'Print Confirmation' and 'Print Application'.",
+            pt: "Clique em 'Next: Confirmation' e depois realize o download de 'Print Confirmation' e 'Print Application'.",
+            es: "Haga clic en 'Next: Confirmation' y luego descargue 'Print Confirmation' y 'Print Application'.",
+          },
+        },
+        {
+          title: {
+            en: "Upload the File",
+            pt: "Faça o Upload do Arquivo",
+            es: "Suba el Archivo",
+          },
+          desc: {
+            en: "Upload the file below to finalize the step.",
+            pt: "Envie o arquivo aqui abaixo para finalizar a etapa.",
+            es: "Suba el archivo aquí abajo para finalizar el paso.",
+          },
+        },
+      ],
+      securityDataTitle: {
+        en: "Your Security Data",
+        pt: "Seus Dados de Segurança",
+        es: "Sus Datos de Seguridad",
+      },
+      securityDataSubtitle: {
+        en: "Use these details to access the consular system if necessary.",
+        pt: "Utilize estes dados para acessar o sistema consular caso necessário.",
+        es: "Utilice estos datos para acceder al sistema consular si es necesario.",
+      },
+      birthDate: { en: "Birth Date", pt: "Data de Nasc.", es: "Fecha de Nac." },
+      grandmaName: {
+        en: "Grandma's Name",
+        pt: "Nome da Avó",
+        es: "Nombre de la Abuela",
+      },
+      copied: { en: "Copied!", pt: "Copiado!", es: "¡Copiado!" },
+      documentUploadTitle: {
+        en: "Required Documents",
+        pt: "Documentos Obrigatórios",
+        es: "Documentos Requeridos",
+      },
+      remove: { en: "Remove", pt: "Remover", es: "Eliminar" },
+      uploading: { en: "Uploading...", pt: "Enviando...", es: "Enviando..." },
+      uploadFile: {
+        en: "Upload File",
+        pt: "Enviar Arquivo",
+        es: "Subir Archivo",
+      },
+      requiredDocs: {
+        ds160_assinada: {
+          title: {
+            en: "Signed DS-160",
+            pt: "DS-160 Assinada",
+            es: "DS-160 Firmada",
+          },
+          description: {
+            en: "The printed, signed and scanned PDF document.",
+            pt: "O documento PDF impresso, assinado e digitalizado.",
+            es: "El documento PDF impreso, firmado y escaneado.",
+          },
+        },
+        ds160_comprovante: {
+          title: {
+            en: "Payment Receipt",
+            pt: "Comprovante da Taxa MRV",
+            es: "Comprobante de Pago MRV",
+          },
+          description: {
+            en: "The receipt of payment of the consular fee.",
+            pt: "O boleto ou comprovante de pagamento da taxa consular.",
+            es: "El comprobante de pago de la tarifa consular.",
+          },
+        },
+      },
     },
     interviewGuide: {
-      title: { en: "Interview Guide", pt: "Guia de Entrevista", es: "Guía de Entrevista" },
-      subtitle: { en: "Master the visa interview", pt: "Domine a entrevista para o visto", es: "Domina la entrevista para la visa" },
+      title: {
+        en: "Interview Guide",
+        pt: "Guia de Entrevista",
+        es: "Guía de Entrevista",
+      },
+      subtitle: {
+        en: "Master the visa interview",
+        pt: "Domine a entrevista para o visto",
+        es: "Domina la entrevista para la visa",
+      },
       back: { en: "Back", pt: "Voltar", es: "Volver" },
       finalTipTitle: { en: "Final Tip", pt: "Dica Final", es: "Consejo Final" },
-      finalTipDesc: { en: "Be calm and honest.", pt: "Mantenha a calma e seja honesto(a).", es: "Mantén la calma y sé honesto(a)." },
+      finalTipDesc: {
+        en: "Be calm and honest.",
+        pt: "Mantenha a calma e seja honesto(a).",
+        es: "Mantén la calma y sé honesto(a).",
+      },
       sections: {
         checklist: {
-          title: { en: "1. Documents Checklist", pt: "1. Checklist de Documentos", es: "1. Lista de Documentos" },
+          title: {
+            en: "1. Documents Checklist",
+            pt: "1. Checklist de Documentos",
+            es: "1. Lista de Documentos",
+          },
           content: {
             en: "Make sure to bring the following printed items:\n• Valid current passport (and previous ones if they have visas)\n• DS-160 confirmation page (with barcode)\n• Appointment confirmation (Instructions Page)\n• Recent 5x5 photo (if requested at CASV)\n• Supporting documents (Tax returns, bank statements, payslips, ties)",
             pt: "Certifique-se de levar os seguintes itens impressos:\n• Passaporte atual válido (e anteriores se houver visto)\n• Página de confirmação da DS-160 (com código de barras)\n• Comprovante do agendamento (Página de Instruções)\n• Foto 5x5 recente (caso solicitado no CASV)\n• Documentos de suporte (IR, extratos, holerites, vínculos)",
@@ -1516,7 +1765,11 @@ export const translations = {
           },
         },
         behavior: {
-          title: { en: "2. Behavior and Posture", pt: "2. Comportamento e Postura", es: "2. Comportamiento y Postura" },
+          title: {
+            en: "2. Behavior and Posture",
+            pt: "2. Comportamento e Postura",
+            es: "2. Comportamiento y Postura",
+          },
           content: {
             en: "First impressions matter a lot:\n• Dress casual-smart (avoid flashy clothes)\n• Be honest and direct in your answers\n• Maintain eye contact with the officer\n• Answer only what is asked\n• Speak slowly and clearly",
             pt: "A primeira impressão conta muito:\n• Vista-se de forma casual-fina (evite roupas chamativas)\n• Seja honesto e direto nas respostas\n• Mantenha o contato visual com o oficial\n• Responda apenas o que lhe for perguntado\n• Fale pausadamente e com clareza",
@@ -1524,7 +1777,11 @@ export const translations = {
           },
         },
         commonQuestions: {
-          title: { en: "3. Common Questions", pt: "3. Perguntas Frequentes", es: "3. Preguntas Frecuentes" },
+          title: {
+            en: "3. Common Questions",
+            pt: "3. Perguntas Frequentes",
+            es: "3. Preguntas Frecuentes",
+          },
           content: {
             en: "Prepare for these classic questions:\n• 'What is the purpose of your trip?'\n• 'Where are you going and how long will you stay?'\n• 'Who will pay for the trip costs?'\n• 'What do you do in Brazil?' (Your job/business)\n• 'Do you have relatives in the United States?'",
             pt: "Prepare-se para estas perguntas clássicas:\n• 'Qual o propósito da sua viagem?'\n• 'Para onde você vai e quanto tempo ficará?'\n• 'Quem pagará pelos custos da viagem?'\n• 'O que você faz no Brasil?' (Seu trabalho/empresa)\n• 'Você tem parentes nos Estados Unidos?'",
@@ -1532,7 +1789,11 @@ export const translations = {
           },
         },
         notToDo: {
-          title: { en: "4. What NOT to do", pt: "4. O que NÃO fazer", es: "4. Qué NO hacer" },
+          title: {
+            en: "4. What NOT to do",
+            pt: "4. O que NÃO fazer",
+            es: "4. Qué NO hacer",
+          },
           content: {
             en: "Avoid these common mistakes:\n• DO NOT hand over documents before being requested\n• DO NOT give long answers or tell irrelevant stories\n• DO NOT use your cell phone inside the consulate (prohibited)\n• DO NOT try to memorize answers (be natural)\n• DO NOT panic if the officer is serious",
             pt: "Evite estes erros comuns:\n• NÃO entregue documentos antes de serem solicitados\n• NÃO dê respostas longas ou conte histórias irrelevantes\n• NÃO use o celular dentro do consulado (é proibido)\n• NÃO tente decorar respostas (seja natural)\n• NÃO entre em pânico se o oficial for sério",
@@ -1542,152 +1803,528 @@ export const translations = {
       },
     },
     specialistTraining: {
-      mentoringTitle: { en: "Specialist Mentoring", pt: "Mentoria com Especialista", es: "Mentoría con Especialista" },
-      mentoringSubtitle: { en: "Personalized preparation for your case", pt: "Preparação personalizada para o seu caso", es: "Preparación personalizada para tu caso" },
-      topicsTitle: { en: "What we'll cover:", pt: "O que iremos abordar:", es: "Lo que cubriremos:" },
-      topic1: { en: "DS-160 analysis", pt: "Análise da DS-160", es: "Análisis de la DS-160" },
-      topic2: { en: "Common questions", pt: "Perguntas comuns", es: "Preguntas comunes" },
-      topic3: { en: "Evidence review", pt: "Revisão de evidências", es: "Revisión de evidencias" },
-      packageSuccess: { en: "Training package activated!", pt: "Pacote de treinamento ativado!", es: "¡Paquete de entrenamiento activado!" },
-      scheduleNow: { en: "Schedule Now", pt: "Agendar Agora", es: "Agendar Ahora" },
-      notAvailable: { en: "Scheduling not available.", pt: "Agendamento não disponível.", es: "Agendamiento no disponible." },
-      individual: { en: "Individual Session", pt: "Sessão Individual", es: "Sesión Individual" },
-      trainingSession: { en: "1 Training Session", pt: "1 Aula de Treinamento", es: "1 Sesión de Entrenamiento" },
-      mentoring45: { en: "45 min mentoring", pt: "45 min de mentoria", es: "45 min de mentoría" },
-      interviewSim: { en: "Interview simulation", pt: "Simulado de perguntas", es: "Simulacro de entrevista" },
-      immediateFeedback: { en: "Immediate feedback", pt: "Feedback imediato", es: "Comentarios inmediatos" },
-      bronzePackage: { en: "Bronze Package", pt: "Pacote Bronze", es: "Paquete Bronce" },
-      sessions2Training: { en: "2 Training Sessions", pt: "2 Aulas de Treinamento", es: "2 Sesiones de Entrenamiento" },
-      mentoring2x45: { en: "2x 45 min mentoring", pt: "2x 45 min de mentoria", es: "2x 45 min de mentoría" },
-      deepProfileAnalysis: { en: "Deep profile analysis", pt: "Análise profunda de perfil", es: "Análisis profundo de perfil" },
-      advancedSim: { en: "Advanced simulation", pt: "Simulado avançado", es: "Simulacro avanzado" },
-      whatsappSupport: { en: "WhatsApp support", pt: "Suporte via WhatsApp", es: "Soporte vía WhatsApp" },
+      mentoringTitle: {
+        en: "Specialist Mentoring",
+        pt: "Mentoria com Especialista",
+        es: "Mentoría con Especialista",
+      },
+      mentoringSubtitle: {
+        en: "Personalized preparation for your case",
+        pt: "Preparação personalizada para o seu caso",
+        es: "Preparación personalizada para tu caso",
+      },
+      topicsTitle: {
+        en: "What we'll cover:",
+        pt: "O que iremos abordar:",
+        es: "Lo que cubriremos:",
+      },
+      topic1: {
+        en: "DS-160 analysis",
+        pt: "Análise da DS-160",
+        es: "Análisis de la DS-160",
+      },
+      topic2: {
+        en: "Common questions",
+        pt: "Perguntas comuns",
+        es: "Preguntas comunes",
+      },
+      topic3: {
+        en: "Evidence review",
+        pt: "Revisão de evidências",
+        es: "Revisión de evidencias",
+      },
+      packageSuccess: {
+        en: "Training package activated!",
+        pt: "Pacote de treinamento ativado!",
+        es: "¡Paquete de entrenamiento activado!",
+      },
+      scheduleNow: {
+        en: "Schedule Now",
+        pt: "Agendar Agora",
+        es: "Agendar Ahora",
+      },
+      notAvailable: {
+        en: "Scheduling not available.",
+        pt: "Agendamento não disponível.",
+        es: "Agendamiento no disponible.",
+      },
+      individual: {
+        en: "Individual Session",
+        pt: "Sessão Individual",
+        es: "Sesión Individual",
+      },
+      trainingSession: {
+        en: "1 Training Session",
+        pt: "1 Aula de Treinamento",
+        es: "1 Sesión de Entrenamiento",
+      },
+      mentoring45: {
+        en: "45 min mentoring",
+        pt: "45 min de mentoria",
+        es: "45 min de mentoría",
+      },
+      interviewSim: {
+        en: "Interview simulation",
+        pt: "Simulado de perguntas",
+        es: "Simulacro de entrevista",
+      },
+      immediateFeedback: {
+        en: "Immediate feedback",
+        pt: "Feedback imediato",
+        es: "Comentarios inmediatos",
+      },
+      bronzePackage: {
+        en: "Bronze Package",
+        pt: "Pacote Bronze",
+        es: "Paquete Bronce",
+      },
+      sessions2Training: {
+        en: "2 Training Sessions",
+        pt: "2 Aulas de Treinamento",
+        es: "2 Sesiones de Entrenamiento",
+      },
+      mentoring2x45: {
+        en: "2x 45 min mentoring",
+        pt: "2x 45 min de mentoria",
+        es: "2x 45 min de mentoría",
+      },
+      deepProfileAnalysis: {
+        en: "Deep profile analysis",
+        pt: "Análise profunda de perfil",
+        es: "Análisis profundo de perfil",
+      },
+      advancedSim: {
+        en: "Advanced simulation",
+        pt: "Simulado avançado",
+        es: "Simulacro avanzado",
+      },
+      whatsappSupport: {
+        en: "WhatsApp support",
+        pt: "Suporte via WhatsApp",
+        es: "Soporte vía WhatsApp",
+      },
       goldPackage: { en: "Gold Package", pt: "Pacote Gold", es: "Paquete Oro" },
-      sessions3Training: { en: "3 Training Sessions", pt: "3 Aulas de Treinamento", es: "3 Sesiones de Entrenamiento" },
-      mentoring3x45: { en: "3x 45 min mentoring", pt: "3x 45 min de mentoria", es: "3x 45 min de mentoría" },
-      fullPreparation: { en: "Full Preparation", pt: "Preparação Completa", es: "Preparación Completa" },
-      responseStrategy: { en: "Response Strategy", pt: "Estratégia de Resposta", es: "Estrategia de Respuesta" },
-      documentReview: { en: "Document Review", pt: "Revisão de Documentos", es: "Revisión de Documentos" },
+      sessions3Training: {
+        en: "3 Training Sessions",
+        pt: "3 Aulas de Treinamento",
+        es: "3 Sesiones de Entrenamiento",
+      },
+      mentoring3x45: {
+        en: "3x 45 min mentoring",
+        pt: "3x 45 min de mentoria",
+        es: "3x 45 min de mentoría",
+      },
+      fullPreparation: {
+        en: "Full Preparation",
+        pt: "Preparação Completa",
+        es: "Preparación Completa",
+      },
+      responseStrategy: {
+        en: "Response Strategy",
+        pt: "Estratégia de Resposta",
+        es: "Estrategia de Respuesta",
+      },
+      documentReview: {
+        en: "Document Review",
+        pt: "Revisão de Documentos",
+        es: "Revisión de Documentos",
+      },
       vipSupport: { en: "VIP Support", pt: "Suporte VIP", es: "Soporte VIP" },
-      reviewTopic: { en: "Refusal Analysis", pt: "Análise de Recusa", es: "Análisis de Rechazo" },
-      reviewDescShort: { en: "Refusal analysis and action plan", pt: "Análise da recusa e plano de ação", es: "Análisis del rechazo y plan de acción" },
-      detailedRefusalAnalysis: { en: "Detailed refusal analysis", pt: "Análise detalhada da recusa", es: "Análisis detallado del rechazo" },
-      specialistMentoring45: { en: "45 min with specialist", pt: "45 min com especialista", es: "45 min con especialista" },
-      customActionPlan: { en: "Custom action plan", pt: "Plano de ação personalizado", es: "Plan de acción personalizado" },
-      nextStepsGuidance: { en: "Next steps guidance", pt: "Orientação para próximos passos", es: "Orientación para los próximos pasos" },
-      paymentProcessed: { en: "Payment processed successfully!", pt: "Pagamento processado com sucesso!", es: "¡Pago procesado con éxito!" },
-      sessionScheduledToast: { en: "Session scheduled successfully!", pt: "Sessão agendada com sucesso!", es: "¡Sesión programada con éxito!" },
-      errorStartingPayment: { en: "Error starting payment.", pt: "Erro ao iniciar pagamento.", es: "Error al iniciar el pago." },
-      successTitle: { en: "Package Activated!", pt: "Pacote Ativado!", es: "¡Paquete Activado!" },
-      purchasedPkg: { en: "You purchased: {name} ({classes} sessions)", pt: "Você adquiriu: {name} ({classes} aulas)", es: "Has adquirido: {name} ({classes} sesiones)" },
-      sessionsScheduled: { en: "{count} of {total} sessions scheduled", pt: "{count} de {total} aulas agendadas", es: "{count} de {total} sesiones programadas" },
-      allScheduled: { en: "All sessions scheduled!", pt: "Todas as aulas agendadas!", es: "¡Todas las sesiones programadas!" },
-      checkEmail: { en: "Check your email for confirmation and links.", pt: "Verifique seu e-mail para confirmação e links.", es: "Revise su correo electrónico para confirmación y enlaces." },
-      mobileAccuracy: { en: "For better accuracy, please open Calendly on a desktop or in a new tab.", pt: "Para melhor precisão, abra o Calendly em um computador ou em uma nova aba.", es: "Para mayor precisión, abra Calendly en una computadora o en una nueva pestaña." },
-      backToDashboard: { en: "Back to Dashboard", pt: "Voltar para o Painel", es: "Volver al Panel" },
-      mentoringTopic: { en: "Mentoring with Specialist", pt: "Mentoria com Especialista", es: "Mentoría con Especialista" },
-      mentoringDesc: { en: "Choose the package that best fits your preparation needs.", pt: "Escolha o pacote que melhor se adapta às suas necessidades de preparação.", es: "Elija el paquete que mejor se adapte a sus necesidades de preparación." },
-      reviewDesc: { en: "Understand why your visa was refused and how to fix it.", pt: "Entenda por que seu visto foi negado e como corrigir isso.", es: "Entienda por qué su visa fue rechazada y cómo corregirlo." },
-      mostPopular: { en: "Most Popular", pt: "Mais Popular", es: "Más Popular" },
+      reviewTopic: {
+        en: "Refusal Analysis",
+        pt: "Análise de Recusa",
+        es: "Análisis de Rechazo",
+      },
+      reviewDescShort: {
+        en: "Refusal analysis and action plan",
+        pt: "Análise da recusa e plano de ação",
+        es: "Análisis del rechazo y plan de acción",
+      },
+      detailedRefusalAnalysis: {
+        en: "Detailed refusal analysis",
+        pt: "Análise detalhada da recusa",
+        es: "Análisis detallado del rechazo",
+      },
+      specialistMentoring45: {
+        en: "45 min with specialist",
+        pt: "45 min com especialista",
+        es: "45 min con especialista",
+      },
+      customActionPlan: {
+        en: "Custom action plan",
+        pt: "Plano de ação personalizado",
+        es: "Plan de acción personalizado",
+      },
+      nextStepsGuidance: {
+        en: "Next steps guidance",
+        pt: "Orientação para próximos passos",
+        es: "Orientación para los próximos pasos",
+      },
+      paymentProcessed: {
+        en: "Payment processed successfully!",
+        pt: "Pagamento processado com sucesso!",
+        es: "¡Pago procesado con éxito!",
+      },
+      sessionScheduledToast: {
+        en: "Session scheduled successfully!",
+        pt: "Sessão agendada com sucesso!",
+        es: "¡Sesión programada con éxito!",
+      },
+      errorStartingPayment: {
+        en: "Error starting payment.",
+        pt: "Erro ao iniciar pagamento.",
+        es: "Error al iniciar el pago.",
+      },
+      successTitle: {
+        en: "Package Activated!",
+        pt: "Pacote Ativado!",
+        es: "¡Paquete Activado!",
+      },
+      purchasedPkg: {
+        en: "You purchased: {name} ({classes} sessions)",
+        pt: "Você adquiriu: {name} ({classes} aulas)",
+        es: "Has adquirido: {name} ({classes} sesiones)",
+      },
+      sessionsScheduled: {
+        en: "{count} of {total} sessions scheduled",
+        pt: "{count} de {total} aulas agendadas",
+        es: "{count} de {total} sesiones programadas",
+      },
+      allScheduled: {
+        en: "All sessions scheduled!",
+        pt: "Todas as aulas agendadas!",
+        es: "¡Todas las sesiones programadas!",
+      },
+      checkEmail: {
+        en: "Check your email for confirmation and links.",
+        pt: "Verifique seu e-mail para confirmação e links.",
+        es: "Revise su correo electrónico para confirmación y enlaces.",
+      },
+      mobileAccuracy: {
+        en: "For better accuracy, please open Calendly on a desktop or in a new tab.",
+        pt: "Para melhor precisão, abra o Calendly em um computador ou em uma nova aba.",
+        es: "Para mayor precisión, abra Calendly en una computadora o en una nueva pestaña.",
+      },
+      backToDashboard: {
+        en: "Back to Dashboard",
+        pt: "Voltar para o Painel",
+        es: "Volver al Panel",
+      },
+      mentoringTopic: {
+        en: "Mentoring with Specialist",
+        pt: "Mentoria com Especialista",
+        es: "Mentoría con Especialista",
+      },
+      mentoringDesc: {
+        en: "Choose the package that best fits your preparation needs.",
+        pt: "Escolha o pacote que melhor se adapta às suas necessidades de preparação.",
+        es: "Elija el paquete que mejor se adapte a sus necesidades de preparación.",
+      },
+      reviewDesc: {
+        en: "Understand why your visa was refused and how to fix it.",
+        pt: "Entenda por que seu visto foi negado e como corrigir isso.",
+        es: "Entienda por qué su visa fue rechazada y cómo corregirlo.",
+      },
+      mostPopular: {
+        en: "Most Popular",
+        pt: "Mais Popular",
+        es: "Más Popular",
+      },
       perSession: { en: "per session", pt: "por sessão", es: "por sesión" },
       total: { en: "total", pt: "total", es: "total" },
-      chooseThis: { en: "Choose This Package", pt: "Escolher este Pacote", es: "Elegir este Paquete" },
-      securePayment: { en: "Secure Payment via Stripe", pt: "Pagamento Seguro via Stripe", es: "Pago Seguro vía Stripe" },
+      chooseThis: {
+        en: "Choose This Package",
+        pt: "Escolher este Pacote",
+        es: "Elegir este Paquete",
+      },
+      securePayment: {
+        en: "Secure Payment via Stripe",
+        pt: "Pagamento Seguro via Stripe",
+        es: "Pago Seguro vía Stripe",
+      },
     },
     aiInterviewChat: {
-      practiceTitle: { en: "AI Interview Practice", pt: "Treino de Entrevista com IA", es: "Práctica de Entrevista con IA" },
-      practiceSubtitle: { en: "Practice your answers anytime", pt: "Treine suas respostas a qualquer momento", es: "Practica tus respuestas en cualquier momento" },
-      placeholder: { en: "Type your answer...", pt: "Digite sua resposta...", es: "Escriba su respuesta..." },
-      restart: { en: "Restart Simulation", pt: "Reiniciar Simulado", es: "Reiniciar Simulacro" },
-      initialMessage: { en: "Hello! I'm your AI interviewer. Shall we start?", pt: "Olá! Sou seu entrevistador IA. Vamos começar?", es: "¡Hola! Soy su entrevistador IA. ¿Empezamos?" },
-      errorMessage: { en: "I'm sorry, I'm having trouble connecting right now.", pt: "Desculpe, estou com problemas de conexão no momento.", es: "Lo siento, tengo problemas de conexión en este momento." },
-      errorConnecting: { en: "Error connecting to AI.", pt: "Erro ao conectar com a IA.", es: "Error al conectar con la IA." },
-      leaveTraining: { en: "Leave Training", pt: "Sair do Treino", es: "Salir del Entrenamiento" },
-      typeHere: { en: "Type your answer here...", pt: "Digite sua resposta aqui...", es: "Escriba su respuesta aquí..." },
-      trainingRestarted: { en: "Training restarted!", pt: "Treino reiniciado!", es: "¡Entrenamiento reiniciado!" },
-      aiSimulated: { en: "AI Simulated Interview", pt: "Entrevista Simulada por IA", es: "Entrevista Simulada por IA" },
-      onlineReady: { en: "Online & Ready", pt: "Online e Pronto", es: "En línea y listo" },
+      practiceTitle: {
+        en: "AI Interview Practice",
+        pt: "Treino de Entrevista com IA",
+        es: "Práctica de Entrevista con IA",
+      },
+      practiceSubtitle: {
+        en: "Practice your answers anytime",
+        pt: "Treine suas respostas a qualquer momento",
+        es: "Practica tus respuestas en cualquier momento",
+      },
+      placeholder: {
+        en: "Type your answer...",
+        pt: "Digite sua resposta...",
+        es: "Escriba su respuesta...",
+      },
+      restart: {
+        en: "Restart Simulation",
+        pt: "Reiniciar Simulado",
+        es: "Reiniciar Simulacro",
+      },
+      initialMessage: {
+        en: "Hello! I'm your AI interviewer. Shall we start?",
+        pt: "Olá! Sou seu entrevistador IA. Vamos começar?",
+        es: "¡Hola! Soy su entrevistador IA. ¿Empezamos?",
+      },
+      errorMessage: {
+        en: "I'm sorry, I'm having trouble connecting right now.",
+        pt: "Desculpe, estou com problemas de conexão no momento.",
+        es: "Lo siento, tengo problemas de conexión en este momento.",
+      },
+      errorConnecting: {
+        en: "Error connecting to AI.",
+        pt: "Erro ao conectar com a IA.",
+        es: "Error al conectar con la IA.",
+      },
+      leaveTraining: {
+        en: "Leave Training",
+        pt: "Sair do Treino",
+        es: "Salir del Entrenamiento",
+      },
+      typeHere: {
+        en: "Type your answer here...",
+        pt: "Digite sua resposta aqui...",
+        es: "Escriba su respuesta aquí...",
+      },
+      trainingRestarted: {
+        en: "Training restarted!",
+        pt: "Treino reiniciado!",
+        es: "¡Entrenamiento reiniciado!",
+      },
+      aiSimulated: {
+        en: "AI Simulated Interview",
+        pt: "Entrevista Simulada por IA",
+        es: "Entrevista Simulada por IA",
+      },
+      onlineReady: {
+        en: "Online & Ready",
+        pt: "Online e Pronto",
+        es: "En línea y listo",
+      },
     },
     notifications: {
-      reviewTitle: { en: "Review: {name}", pt: "Revisão: {name}", es: "Revisión: {name}" },
-      reviewMessage: { en: "Customer finished DS-160 and awaits review.", pt: "O cliente finalizou o formulário DS-160 e aguarda revisão.", es: "El cliente finalizó el formulario DS-160 y espera revisión." },
+      reviewTitle: {
+        en: "Review: {name}",
+        pt: "Revisão: {name}",
+        es: "Revisión: {name}",
+      },
+      reviewMessage: {
+        en: "Customer finished DS-160 and awaits review.",
+        pt: "O cliente finalizou o formulário DS-160 e aguarda revisão.",
+        es: "El cliente finalizó el formulario DS-160 y espera revisión.",
+      },
       docsTitle: { en: "Docs: {name}", pt: "Docs: {name}", es: "Docs: {name}" },
-      docsMessage: { en: "Customer attached new documents for analysis.", pt: "O cliente anexou novos documentos para análise.", es: "El cliente adjuntó nuevos documentos para análisis." },
-      scheduleTitle: { en: "Schedule: {name}", pt: "Agenda: {name}", es: "Agenda: {name}" },
-      scheduleMessage: { en: "Customer informed scheduling preferences.", pt: "O cliente informou as preferências de agendamento.", es: "El cliente informó las preferencias de agendamiento." },
-      actionDocsTitle: { en: "Action Required: Documents", pt: "Ação Necessária: Documentos", es: "Acción Necesaria: Documentos" },
-      actionDocsMessage: { en: "Documents are missing. Upload them now.", pt: "Identificamos que faltam documentos. Faça o upload agora para analisarmos seu processo.", es: "Identificamos que faltan documentos. Cargue ahora para analizar su proceso." },
-      actionScheduleTitle: { en: "Action Required: Scheduling", pt: "Ação Necessária: Agendamento", es: "Acción Necesaria: Agendamiento" },
-      actionScheduleMessage: { en: "Please inform your date and location preferences.", pt: "Por favor, informe suas preferências de data e local para prosseguirmos com o agendamento.", es: "Por favor, informe sus preferencias de fecha y lugar para continuar con el agendamiento." },
-      actionFeeTitle: { en: "Action Required: Consular Fee", pt: "Ação Necessária: Taxa Consular", es: "Acción Necesaria: Tasa Consular" },
-      actionFeeMessage: { en: "Pay your consular fee to proceed.", pt: "Pague sua taxa consular e acesse suas credenciais para agendarmos sua entrevista.", es: "Pague su tasa consular y acceda a sus credenciales para agendar su entrevista." },
-      actionInterviewTitle: { en: "Action Required: Interview", pt: "Ação Necessária: Entrevista", es: "Acción Necesaria: Entrevista" },
-      actionInterviewMessage: { en: "Prepare for your interview: review guidelines.", pt: "Prepare-se para a entrevista: revise as orientações e leve os documentos físicos necessários.", es: "Prepárese para la entrevista: revise las pautas y lleve los documentos físicos necesarios." },
-      actionPendingTitle: { en: "Action Required: Pending Issues", pt: "Ação Necessária: Pendências", es: "Acción Necesaria: Pendientes" },
-      actionPendingMessage: { en: "Issue found. Fix pending items to continue.", pt: "Houve um problema com sua solicitação. Corrija as pendências indicadas para continuarmos o processo.", es: "Hubo un problema con su solicitud. Corrija los pendientes indicados para continuar el proceso." },
+      docsMessage: {
+        en: "Customer attached new documents for analysis.",
+        pt: "O cliente anexou novos documentos para análise.",
+        es: "El cliente adjuntó nuevos documentos para análisis.",
+      },
+      scheduleTitle: {
+        en: "Schedule: {name}",
+        pt: "Agenda: {name}",
+        es: "Agenda: {name}",
+      },
+      scheduleMessage: {
+        en: "Customer informed scheduling preferences.",
+        pt: "O cliente informou as preferências de agendamento.",
+        es: "El cliente informó las preferencias de agendamiento.",
+      },
+      actionDocsTitle: {
+        en: "Action Required: Documents",
+        pt: "Ação Necessária: Documentos",
+        es: "Acción Necesaria: Documentos",
+      },
+      actionDocsMessage: {
+        en: "Documents are missing. Upload them now.",
+        pt: "Identificamos que faltam documentos. Faça o upload agora para analisarmos seu processo.",
+        es: "Identificamos que faltan documentos. Cargue ahora para analizar su proceso.",
+      },
+      actionScheduleTitle: {
+        en: "Action Required: Scheduling",
+        pt: "Ação Necessária: Agendamento",
+        es: "Acción Necesaria: Agendamiento",
+      },
+      actionScheduleMessage: {
+        en: "Please inform your date and location preferences.",
+        pt: "Por favor, informe suas preferências de data e local para prosseguirmos com o agendamento.",
+        es: "Por favor, informe sus preferencias de fecha y lugar para continuar con el agendamiento.",
+      },
+      actionFeeTitle: {
+        en: "Action Required: Consular Fee",
+        pt: "Ação Necessária: Taxa Consular",
+        es: "Acción Necesaria: Tasa Consular",
+      },
+      actionFeeMessage: {
+        en: "Pay your consular fee to proceed.",
+        pt: "Pague sua taxa consular e acesse suas credenciais para agendarmos sua entrevista.",
+        es: "Pague su tasa consular y acceda a sus credenciales para agendar su entrevista.",
+      },
+      actionInterviewTitle: {
+        en: "Action Required: Interview",
+        pt: "Ação Necessária: Entrevista",
+        es: "Acción Necesaria: Entrevista",
+      },
+      actionInterviewMessage: {
+        en: "Prepare for your interview: review guidelines.",
+        pt: "Prepare-se para a entrevista: revise as orientações e leve os documentos físicos necessários.",
+        es: "Prepárese para la entrevista: revise las pautas y lleve los documentos físicos necesarios.",
+      },
+      actionPendingTitle: {
+        en: "Action Required: Pending Issues",
+        pt: "Ação Necessária: Pendências",
+        es: "Acción Necesaria: Pendientes",
+      },
+      actionPendingMessage: {
+        en: "Issue found. Fix pending items to continue.",
+        pt: "Houve um problema com sua solicitação. Corrija as pendências indicadas para continuarmos o processo.",
+        es: "Hubo un problema con su solicitud. Corrija los pendientes indicados para continuar el proceso.",
+      },
     },
     paymentPending: {
-      title: { en: "CONSULAR FEE PAYMENT", pt: "PAGAMENTO DA TAXA CONSULAR", es: "PAGO DE LA TASA CONSULAR" },
+      title: {
+        en: "CONSULAR FEE PAYMENT",
+        pt: "PAGAMENTO DA TAXA CONSULAR",
+        es: "PAGO DE LA TASA CONSULAR",
+      },
       desc: {
         en: "Select the desired payment method to proceed with scheduling.",
         pt: "Selecione a forma de pagamento desejada para prosseguir com o agendamento.",
         es: "Seleccione el método de pago deseado para continuar con el agendamiento.",
       },
-      loadingInfo: { en: "Loading information...", pt: "Carregando informações...", es: "Cargando información..." },
-      feeInProcessing: { en: "FEE IN PROCESSING", pt: "TAXA EM PROCESSAMENTO", es: "Tasa en Procesamiento" },
+      loadingInfo: {
+        en: "Loading information...",
+        pt: "Carregando informações...",
+        es: "Cargando información...",
+      },
+      feeInProcessing: {
+        en: "FEE IN PROCESSING",
+        pt: "TAXA EM PROCESSAMENTO",
+        es: "Tasa en Procesamiento",
+      },
       excellentEmailReceived: {
         en: "Excellent! Your email confirmation has been received. Now our team is generating your slip for the MRV fee payment.",
         pt: "Excelente! Sua confirmação de e-mail foi recebida. Agora nossa equipe está gerando o seu boleto para pagamento da taxa MRV.",
         es: "¡Excelente! Su confirmación de correo electrónico ha sido recibida. Ahora nuestro equipo está generando su boleto para el pago de la tasa MRV.",
       },
-      generatingSlip: { en: "Generating Slip...", pt: "Gerando Boleto...", es: "Generando Boleto..." },
+      generatingSlip: {
+        en: "Generating Slip...",
+        pt: "Gerando Boleto...",
+        es: "Generando Boleto...",
+      },
       processMinutes: {
         en: "This process usually takes a few minutes. Once ready, the payment options will appear here.",
         pt: "Este processo geralmente leva alguns minutos. Assim que estiver pronto, as opções de pagamento aparecerão aqui.",
         es: "Este proceso suele durar unos minutos. Una vez listo, las opciones de pago aparecerán aquí.",
       },
-      refreshStatus: { en: "REFRESH STATUS", pt: "ATUALIZAR STATUS", es: "Actualizar Estado" },
-      slipDetails: { en: "SLIP DETAILS", pt: "DETALHES DO BOLETO", es: "Detalles del Boleto" },
-      cardDetails: { en: "CARD DETAILS", pt: "DETALHES DO CARTÃO", es: "Detalles de la Tarjeta" },
-      bankSlip: { en: "Bank Slip", pt: "Boleto Bancário", es: "Boleto Bancario" },
-      payAnyBank: { en: "Pay at any bank or convenience store.", pt: "Pague em qualquer banco ou casa lotérica.", es: "Pague en cualquier banco o casa de lotería." },
-      creditCard: { en: "Credit Card", pt: "Cartão de Crédito", es: "Tarjeta de Crédito" },
-      immediatePayment: { en: "Immediate payment via consulate portal.", pt: "Pagamento imediato via portal do consulado.", es: "Pago inmediato a través del portal del consulado." },
-      downloadPdfSlip: { en: "Download PDF Slip", pt: "Baixar Boleto PDF", es: "Descargar Boleto PDF" },
-      officialSlipAvailable: { en: "The official slip is now available.", pt: "O boleto oficial já está disponível.", es: "El boleto oficial ya está disponible." },
-      importantInfo: { en: "IMPORTANT INFO", pt: "INFORMAÇÃO IMPORTANTE", es: "Información Importante" },
+      refreshStatus: {
+        en: "REFRESH STATUS",
+        pt: "ATUALIZAR STATUS",
+        es: "Actualizar Estado",
+      },
+      slipDetails: {
+        en: "SLIP DETAILS",
+        pt: "DETALHES DO BOLETO",
+        es: "Detalles del Boleto",
+      },
+      cardDetails: {
+        en: "CARD DETAILS",
+        pt: "DETALHES DO CARTÃO",
+        es: "Detalles de la Tarjeta",
+      },
+      bankSlip: {
+        en: "Bank Slip",
+        pt: "Boleto Bancário",
+        es: "Boleto Bancario",
+      },
+      payAnyBank: {
+        en: "Pay at any bank or convenience store.",
+        pt: "Pague em qualquer banco ou casa lotérica.",
+        es: "Pague en cualquier banco o casa de lotería.",
+      },
+      creditCard: {
+        en: "Credit Card",
+        pt: "Cartão de Crédito",
+        es: "Tarjeta de Crédito",
+      },
+      immediatePayment: {
+        en: "Immediate payment via consulate portal.",
+        pt: "Pagamento imediato via portal do consulado.",
+        es: "Pago inmediato a través del portal del consulado.",
+      },
+      downloadPdfSlip: {
+        en: "Download PDF Slip",
+        pt: "Baixar Boleto PDF",
+        es: "Descargar Boleto PDF",
+      },
+      officialSlipAvailable: {
+        en: "The official slip is now available.",
+        pt: "O boleto oficial já está disponível.",
+        es: "El boleto oficial ya está disponible.",
+      },
+      importantInfo: {
+        en: "IMPORTANT INFO",
+        pt: "INFORMAÇÃO IMPORTANTE",
+        es: "Información Importante",
+      },
       compensationDesc: {
         en: "Slip clearing can take up to 48 business hours. Only after this period will our system release your scheduling.",
         pt: "A compensação do boleto pode levar até 48 horas úteis. Somente após esse prazo nosso sistema liberará o seu agendamento.",
-      es: "La acreditación del pago puede tardar hasta 48 horas hábiles. Solo después de este plazo nuestro sistema liberará su agendamiento.",
+        es: "La acreditación del pago puede tardar hasta 48 horas hábiles. Solo después de este plazo nuestro sistema liberará su agendamiento.",
       },
-      portalPayment: { en: "Portal Payment", pt: "Pagamento via Portal", es: "Pago vía Portal" },
+      portalPayment: {
+        en: "Portal Payment",
+        pt: "Pagamento via Portal",
+        es: "Pago vía Portal",
+      },
       accessOfficialPortal: {
         en: "To pay with a credit card, you must access the official consulate portal with the details below:",
         pt: "Para pagar com cartão de crédito, você deve acessar o portal oficial do consulado com os dados abaixo:",
         es: "Para pagar con tarjeta de crédito, debe acceder al portal oficial del consulado con los datos a continuación:",
       },
       password: { en: "Password", pt: "Senha", es: "Contraseña" },
-      goToPortal: { en: "GO TO PORTAL", pt: "IR PARA O PORTAL", es: "Ir al Portal" },
+      goToPortal: {
+        en: "GO TO PORTAL",
+        pt: "IR PARA O PORTAL",
+        es: "Ir al Portal",
+      },
       advantage: { en: "ADVANTAGE", pt: "VANTAGEM", es: "Ventaja" },
       creditCardInstant: {
         en: "Payments via credit card are usually cleared instantly, speeding up your process.",
         pt: "Pagamentos via cartão de crédito costumam ser compensados instantaneamente, agilizando o seu processo.",
         es: "Los pagos con tarjeta de crédito suelen acreditarse instantaneamente, acelerando su proceso.",
       },
-      alreadyPaid: { en: "I HAVE COMPLETED THE PAYMENT", pt: "JÁ REALIZEI O PAGAMENTO", es: "Ya He Realizado el Pago" },
-      secureEnvironment: { en: "Secure and encrypted environment", pt: "Ambiente seguro e criptografado", es: "Ambiente seguro y encriptado" },
+      alreadyPaid: {
+        en: "I HAVE COMPLETED THE PAYMENT",
+        pt: "JÁ REALIZEI O PAGAMENTO",
+        es: "Ya He Realizado el Pago",
+      },
+      secureEnvironment: {
+        en: "Secure and encrypted environment",
+        pt: "Ambiente seguro e criptografado",
+        es: "Ambiente seguro y encriptado",
+      },
       successPaymentMsg: {
         en: "Payment confirmed! Now wait for the interview.",
         pt: "Pagamento confirmado! Agora aguarde a entrevista.",
         es: "¡Pago confirmado! Ahora espere por la entrevista.",
       },
-      errorConfirmingPayment: { en: "Error confirming payment.", pt: "Erro ao confirmar pagamento.", es: "Error al confirmar el pago." },
+      errorConfirmingPayment: {
+        en: "Error confirming payment.",
+        pt: "Erro ao confirmar pagamento.",
+        es: "Error al confirmar el pago.",
+      },
     },
     awaitingInterview: {
       tools: {
         guide: {
-          title: { en: "Interview Guide", pt: "Guia de Entrevista", es: "Guía de Entrevista" },
+          title: {
+            en: "Interview Guide",
+            pt: "Guia de Entrevista",
+            es: "Guía de Entrevista",
+          },
           desc: {
             en: "Everything you need to know to do well.",
             pt: "Tudo o que você precisa saber para se sair bem.",
@@ -1695,7 +2332,11 @@ export const translations = {
           },
         },
         ai: {
-          title: { en: "AI Interview Sim", pt: "Simulado com IA", es: "Simulacro con IA" },
+          title: {
+            en: "AI Interview Sim",
+            pt: "Simulado com IA",
+            es: "Simulacro con IA",
+          },
           desc: {
             en: "Practice your answers with our AI.",
             pt: "Treine suas respostas com nossa inteligência artificial.",
@@ -1703,7 +2344,11 @@ export const translations = {
           },
         },
         specialist: {
-          title: { en: "Train with Specialist", pt: "Treinar com Especialista", es: "Entrenar con Especialista" },
+          title: {
+            en: "Train with Specialist",
+            pt: "Treinar com Especialista",
+            es: "Entrenar con Especialista",
+          },
           desc: {
             en: "1-on-1 mentoring for complex cases.",
             pt: "Mentoria individual para casos complexos.",
@@ -1712,18 +2357,46 @@ export const translations = {
         },
       },
       outcome: { en: "Outcome", pt: "Resultado", es: "Resultado" },
-      visaRefusedTitle: { en: "Visa Refused", pt: "Visto Negado", es: "Visa Negada" },
+      visaRefusedTitle: {
+        en: "Visa Refused",
+        pt: "Visto Negado",
+        es: "Visa Negada",
+      },
       visaRefusedDesc: {
         en: "Unfortunately, this time your visa was not approved by the consular officer. We know how frustrating this is.",
         pt: "Infelizmente, desta vez o seu visto não foi aprovado pelo oficial consular. Sabemos como isso é frustrante.",
         es: "Lamentablemente, esta vez su visa no fue aprobada por el oficial consular. Sabemos lo frustrante que esto es.",
       },
-      reviewCaseSpecialist: { en: "Review case with a specialist", pt: "Rever o caso com um especialista", es: "Revisar el caso con un especialista" },
-      startAgain: { en: "Start again", pt: "Recomeçar novamente", es: "Empezar de nuevo" },
-      interviewDateArrived: { en: "Interview Date Arrived", pt: "Data da Entrevista Chegou", es: "Llegó la Fecha de la Entrevista" },
-      finalStagePrep: { en: "Final Stage: Preparation", pt: "Etapa Final: Preparação", es: "Etapa Final: Preparación" },
-      howWasInterview: { en: "How was your interview?", pt: "Como foi sua entrevista?", es: "¿Cómo fue su entrevista?" },
-      awaitingInterviewTitle: { en: "Awaiting Interview", pt: "Aguardando Entrevista", es: "Esperando Entrevista" },
+      reviewCaseSpecialist: {
+        en: "Review case with a specialist",
+        pt: "Rever o caso com um especialista",
+        es: "Revisar el caso con un especialista",
+      },
+      startAgain: {
+        en: "Start again",
+        pt: "Recomeçar novamente",
+        es: "Empezar de nuevo",
+      },
+      interviewDateArrived: {
+        en: "Interview Date Arrived",
+        pt: "Data da Entrevista Chegou",
+        es: "Llegó la Fecha de la Entrevista",
+      },
+      finalStagePrep: {
+        en: "Final Stage: Preparation",
+        pt: "Etapa Final: Preparação",
+        es: "Etapa Final: Preparación",
+      },
+      howWasInterview: {
+        en: "How was your interview?",
+        pt: "Como foi sua entrevista?",
+        es: "¿Cómo fue su entrevista?",
+      },
+      awaitingInterviewTitle: {
+        en: "Awaiting Interview",
+        pt: "Aguardando Entrevista",
+        es: "Esperando Entrevista",
+      },
       interviewArrivedDesc: {
         en: "Your consulate interview date has arrived! Scroll down and let us know the outcome to update your process.",
         pt: "A data da sua entrevista no consulado já chegou! Role para baixo e nos informe o resultado para atualizarmos seu processo.",
@@ -1735,65 +2408,163 @@ export const translations = {
         es: "¡Sus fechas están confirmadas! Ahora enfóquese en su preparación con nuestras herramientas exclusivas.",
       },
       successTag: { en: "Success!", pt: "Sucesso!", es: "¡Éxito!" },
-      visaApprovedTitle: { en: "Visa Approved!", pt: "Visto Aprovado!", es: "¡Visa Aprobada!" },
+      visaApprovedTitle: {
+        en: "Visa Approved!",
+        pt: "Visto Aprovado!",
+        es: "¡Visa Aprobada!",
+      },
       visaApprovedDesc: {
         en: "Congratulations on the approval of your US visa! Now we just need to know how you intend to pick up your passport.",
         pt: "Parabéns pela aprovação do seu visto americano! Agora precisamos apenas saber como você pretende pegar o seu passaporte.",
         es: "¡Felicidades por la aprobación de su visa estadounidense! Ahora solo necesitamos saber cómo pretende recoger su pasaporte.",
       },
-      confirmedCasvDate: { en: "CONFIRMED CASV DATE", pt: "DATA CONFIRMADA CASV", es: "FECHA CONFIRMADA CASV" },
-      processing: { en: "Processing...", pt: "Em processamento...", es: "En procesamiento..." },
-      casvLocation: { en: "CASV LOCATION", pt: "LOCALIDADE CASV", es: "UBICACIÓN CASV" },
-      informedShortly: { en: "To be informed shortly", pt: "Será informado em breve", es: "Se informará en breve" },
-      confirmedConsulateDate: { en: "CONFIRMED CONSULATE DATE", pt: "DATA CONFIRMADA CONSULADO", es: "FECHA CONFIRMADA CONSULADO" },
+      visaApprovedDisclaimerTitle: {
+        en: "Important: Passport Delivery",
+        pt: "Atenção: Entrega do Passaporte",
+        es: "Importante: Entrega del Pasaporte",
+      },
+      visaApprovedDisclaimerBody: {
+        en: "Home delivery via postal service is only available if requested on the day of your interview ({date}). After this date, you will only be able to pick it up in person at the CASV.",
+        pt: "A opção de receber o passaporte em casa pelos correios só estará disponível se o procedimento for realizado no dia da sua entrevista ({date}). Após essa data, o passaporte só poderá ser retirado pessoalmente no CASV.",
+        es: "La opción de entrega a domicilio solo está disponible si se solicita el día de su entrevista ({date}). Después de esta fecha, solo podrá recogerlo en persona en el CASV.",
+      },
+      confirmedCasvDate: {
+        en: "CONFIRMED CASV DATE",
+        pt: "DATA CONFIRMADA CASV",
+        es: "FECHA CONFIRMADA CASV",
+      },
+      processing: {
+        en: "Processing...",
+        pt: "Em processamento...",
+        es: "En procesamiento...",
+      },
+      casvLocation: {
+        en: "CASV LOCATION",
+        pt: "LOCALIDADE CASV",
+        es: "UBICACIÓN CASV",
+      },
+      informedShortly: {
+        en: "To be informed shortly",
+        pt: "Será informado em breve",
+        es: "Se informará en breve",
+      },
+      confirmedConsulateDate: {
+        en: "CONFIRMED CONSULATE DATE",
+        pt: "DATA CONFIRMADA CONSULADO",
+        es: "FECHA CONFIRMADA CONSULADO",
+      },
       consulate: { en: "CONSULATE", pt: "CONSULADO", es: "CONSULADO" },
-      howReceiveVisa: { en: "How do you want to receive your visa?", pt: "Como deseja receber seu visto?", es: "¿Cómo desea recibir su visa?" },
+      howReceiveVisa: {
+        en: "How do you want to receive your visa?",
+        pt: "Como deseja receber seu visto?",
+        es: "¿Cómo desea recibir su visa?",
+      },
       consulateRetainsDesc: {
         en: "The Consulate keeps your passport to stamp the visa. Choose an option to see the guide:",
         pt: "O Consulado retém seu passaporte para estampar o visto. Escolha uma opção para ver o guia:",
         es: "El Consulado retiene su pasaporte para estampar la visa. Elija una opción para ver la guía:",
       },
-      postalHome: { en: "Postal Service (Home)", pt: "Correios (Em Casa)", es: "Servicio Postal (En Casa)" },
+      postalHome: {
+        en: "Postal Service (Home)",
+        pt: "Correios (Em Casa)",
+        es: "Servicio Postal (En Casa)",
+      },
       postalHomeDesc: {
         en: "Receive your passport via Premium Mail at the address provided in your DS-160.",
         pt: "Receba seu passaporte via Correios Premium no endereço informado na DS-160.",
         es: "Reciba su pasaporte a través de Correo Premium en la dirección proporcionada en su DS-160.",
       },
       viewGuide: { en: "View Guide →", pt: "Ver Guia →", es: "Ver Guía →" },
-      pickUpCasv: { en: "Pick up at CASV", pt: "Retirar no CASV", es: "Recoger en el CASV" },
+      pickUpCasv: {
+        en: "Pick up at CASV",
+        pt: "Retirar no CASV",
+        es: "Recoger en el CASV",
+      },
       pickUpCasvDesc: {
         en: "You or an authorized representative returns to the CASV to collect the passport in person.",
         pt: "Você ou um representante autorizado retorna ao CASV para retirar o passaporte pessoalmente.",
         es: "Usted o un representante autorizado regresa al CASV para recoger el pasaporte en persona.",
       },
       back: { en: "Back", pt: "Voltar", es: "Volver" },
-      postalServiceDelivery: { en: "Postal Service Delivery", pt: "Recebimento pelos Correios", es: "Entrega por Servicio Postal" },
-      receivePassportHomeGuide: { en: "Complete guide to receive your passport at home", pt: "Guia completo para receber seu passaporte em casa", es: "Guía completa para recibir su pasaporte en casa" },
-      chooseAnother: { en: "Choose another option", pt: "Escolher outra opção", es: "Elegir otra opción" },
-      casvPickup: { en: "CASV Pickup", pt: "Retirada no CASV", es: "Recogida en el CASV" },
-      collectPassportPersonGuide: { en: "Complete guide to collect your passport in person", pt: "Guia completo para retirar seu passaporte pessoalmente", es: "Guía completa para recoger su pasaporte en persona" },
-      usEntryGuide: { en: "US Entry Guide", pt: "Guia de Entrada nos EUA", es: "Guía de Entrada a EE.UU." },
-      whatExpectImmigration: { en: "What to expect at US immigration and how to prepare", pt: "O que esperar na imigração americana e como se preparar", es: "Qué esperar en la inmigración estadounidense y cómo prepararse" },
+      postalServiceDelivery: {
+        en: "Postal Service Delivery",
+        pt: "Recebimento pelos Correios",
+        es: "Entrega por Servicio Postal",
+      },
+      receivePassportHomeGuide: {
+        en: "Complete guide to receive your passport at home",
+        pt: "Guia completo para receber seu passaporte em casa",
+        es: "Guía completa para recibir su pasaporte en casa",
+      },
+      chooseAnother: {
+        en: "Choose another option",
+        pt: "Escolher outra opção",
+        es: "Elegir otra opción",
+      },
+      casvPickup: {
+        en: "CASV Pickup",
+        pt: "Retirada no CASV",
+        es: "Recogida en el CASV",
+      },
+      collectPassportPersonGuide: {
+        en: "Complete guide to collect your passport in person",
+        pt: "Guia completo para retirar seu passaporte pessoalmente",
+        es: "Guía completa para recoger su pasaporte en persona",
+      },
+      usEntryGuide: {
+        en: "US Entry Guide",
+        pt: "Guia de Entrada nos EUA",
+        es: "Guía de Entrada a EE.UU.",
+      },
+      whatExpectImmigration: {
+        en: "What to expect at US immigration and how to prepare",
+        pt: "O que esperar na imigração americana e como se preparar",
+        es: "Qué esperar en la inmigración estadounidense y cómo prepararse",
+      },
       nextStep: { en: "NEXT STEP", pt: "PRÓXIMO PASSO", es: "PRÓXIMO PASO" },
       usEntryGuideDesc: {
         en: "Learn what to expect at US immigration: queue, biometrics, questions and essential tips.",
         pt: "Saiba o que esperar na imigração americana: fila, biométricos, perguntas e dicas essenciais.",
         es: "Sepa qué esperar en la inmigración estadounidense: fila, biométricos, preguntas y consejos esenciales.",
       },
-      interviewTakenPlace: { en: "Has your interview already taken place?", pt: "Sua entrevista já aconteceu?", es: "¿Ya se realizó su entrevista?" },
+      interviewTakenPlace: {
+        en: "Has your interview already taken place?",
+        pt: "Sua entrevista já aconteceu?",
+        es: "¿Ya se realizó su entrevista?",
+      },
       informOutcome: {
         en: "Let us know the final outcome to update your process in the system.",
         pt: "Informe-nos o resultado final para atualizarmos seu processo no sistema.",
         es: "Infórmenos el resultado final para que actualicemos su proceso en el sistema.",
       },
-      iWasApproved: { en: "I WAS APPROVED!", pt: "FUI APROVADO(A)!", es: "¡FUI APROBADO(A)!" },
-      iWasRefused: { en: "I WAS REFUSED", pt: "FUI REPROVADO(A)", es: "FUI REPROBADO(A)" },
-      prepTools: { en: "PREPARATION TOOLS", pt: "FERRAMENTAS DE PREPARAÇÃO", es: "HERRAMIENTAS DE PREPARACIÓN" },
-      prepApproval: { en: "Prepare for approval", pt: "Prepare-se para aprovação", es: "Prepárese para la aprobación" },
+      iWasApproved: {
+        en: "I WAS APPROVED!",
+        pt: "FUI APROVADO(A)!",
+        es: "¡FUI APROBADO(A)!",
+      },
+      iWasRefused: {
+        en: "I WAS REFUSED",
+        pt: "FUI REPROVADO(A)",
+        es: "FUI REPROBADO(A)",
+      },
+      prepTools: {
+        en: "PREPARATION TOOLS",
+        pt: "FERRAMENTAS DE PREPARAÇÃO",
+        es: "HERRAMIENTAS DE PREPARACIÓN",
+      },
+      prepApproval: {
+        en: "Prepare for approval",
+        pt: "Prepare-se para aprovação",
+        es: "Prepárese para la aprobación",
+      },
       guides: {
         correios: [
           {
-            title: { en: "Consulate confirmation", pt: "Confirmação pelo consulado", es: "Confirmación del consulado" },
+            title: {
+              en: "Consulate confirmation",
+              pt: "Confirmação pelo consulado",
+              es: "Confirmación del consulado",
+            },
             desc: {
               en: "After approval, the consulate will process the visa stamping in your passport.",
               pt: "Após a aprovação, o consulado processará a estampagem do visto no seu passaporte.",
@@ -1801,7 +2572,11 @@ export const translations = {
             },
           },
           {
-            title: { en: "Shipping request", pt: "Solicitação de envio", es: "Solicitud de envío" },
+            title: {
+              en: "Shipping request",
+              pt: "Solicitação de envio",
+              es: "Solicitud de envío",
+            },
             desc: {
               en: "Shipping will be made to the address provided in your DS-160. Confirm that the address is correct.",
               pt: "O envio será feito para o endereço informado na sua DS-160. Confirme que o endereço está correto.",
@@ -1809,7 +2584,11 @@ export const translations = {
             },
           },
           {
-            title: { en: "Shipping fee", pt: "Taxa de envio", es: "Tasa de envío" },
+            title: {
+              en: "Shipping fee",
+              pt: "Taxa de envio",
+              es: "Tasa de envío",
+            },
             desc: {
               en: "The consulate may charge an additional fee for Premium Mail. Watch your email.",
               pt: "O consulado pode cobrar uma taxa adicional pelos Correios Premium. Fique atento ao e-mail.",
@@ -1817,7 +2596,11 @@ export const translations = {
             },
           },
           {
-            title: { en: "Delivery time", pt: "Prazo de entrega", es: "Plazo de entrega" },
+            title: {
+              en: "Delivery time",
+              pt: "Prazo de entrega",
+              es: "Plazo de entrega",
+            },
             desc: {
               en: "The normal timeframe is 5 to 10 business days after visa stamping.",
               pt: "O prazo normal é de 5 a 10 dias úteis após a estampagem do visto.",
@@ -1827,7 +2610,11 @@ export const translations = {
         ],
         casv: [
           {
-            title: { en: "Wait for the notice", pt: "Aguarde o aviso", es: "Espere el aviso" },
+            title: {
+              en: "Wait for the notice",
+              pt: "Aguarde o aviso",
+              es: "Espere el aviso",
+            },
             desc: {
               en: "The consulate will send an email advising that your passport is ready for collection at the CASV.",
               pt: "O consulado enviará um e-mail avisando que seu passaporte está pronto para retirada no CASV.",
@@ -1835,7 +2622,11 @@ export const translations = {
             },
           },
           {
-            title: { en: "Who can collect", pt: "Quem pode retirar", es: "Quién puede retirar" },
+            title: {
+              en: "Who can collect",
+              pt: "Quem pode retirar",
+              es: "Quién puede retirar",
+            },
             desc: {
               en: "You or an authorized representative with a power of attorney can collect the passport from the CASV.",
               pt: "Você ou um representante autorizado com procuração pode retirar o passaporte no CASV.",
@@ -1843,7 +2634,11 @@ export const translations = {
             },
           },
           {
-            title: { en: "Required documents", pt: "Documentos necessários", es: "Documentos necesarios" },
+            title: {
+              en: "Required documents",
+              pt: "Documentos necessários",
+              es: "Documentos necesarios",
+            },
             desc: {
               en: "Bring the scheduling confirmation and a valid identity document for collection.",
               pt: "Leve o comprovante de agendamento e um documento de identidade válido para a retirada.",
@@ -1851,7 +2646,11 @@ export const translations = {
             },
           },
           {
-            title: { en: "No additional cost", pt: "Sem custo adicional", es: "Sin costo adicional" },
+            title: {
+              en: "No additional cost",
+              pt: "Sem custo adicional",
+              es: "Sin costo adicional",
+            },
             desc: {
               en: "CASV pickup is exempt from additional consular fees.",
               pt: "A retirada no CASV é isenta de taxas adicionais do consulado.",
@@ -1861,7 +2660,11 @@ export const translations = {
         ],
         usEntry: [
           {
-            title: { en: "Arrival at the airport", pt: "Chegada ao aeroporto", es: "Llegada al aeropuerto" },
+            title: {
+              en: "Arrival at the airport",
+              pt: "Chegada ao aeroporto",
+              es: "Llegada al aeropuerto",
+            },
             desc: {
               en: "Upon arriving in the US, follow the signs for 'Immigration' or 'Customs'. Have your passport and boarding pass ready.",
               pt: "Ao chegar nos EUA, siga as placas de 'Immigration' ou 'Customs'. Tenha seu passaporte e o cartão de embarque à mão.",
@@ -1869,7 +2672,11 @@ export const translations = {
             },
           },
           {
-            title: { en: "Immigration line", pt: "Fila de imigração", es: "Fila de inmigración" },
+            title: {
+              en: "Immigration line",
+              pt: "Fila de imigração",
+              es: "Fila de inmigración",
+            },
             desc: {
               en: "Join the line for international visitors. You'll go through an APC kiosk to scan your passport and answer on-screen questions.",
               pt: "Entre na fila para visitantes internacionais. Você passará por um quiosque APC onde escaneará seu passaporte e responderá perguntas na tela.",
@@ -1877,7 +2684,11 @@ export const translations = {
             },
           },
           {
-            title: { en: "Agent interview", pt: "Entrevista com o agente", es: "Entrevista con el agente" },
+            title: {
+              en: "Agent interview",
+              pt: "Entrevista com o agente",
+              es: "Entrevista con el agente",
+            },
             desc: {
               en: "The officer will review your passport, collect biometrics, and may ask about your visit purpose, length of stay, and accommodation.",
               pt: "O agente revisará seu passaporte, coletará biométricos e poderá perguntar sobre o motivo da visita, tempo de estadia e onde ficará.",
@@ -1885,7 +2696,11 @@ export const translations = {
             },
           },
           {
-            title: { en: "Recommended documents", pt: "Documentos recomendados", es: "Documentos recomendados" },
+            title: {
+              en: "Recommended documents",
+              pt: "Documentos recomendados",
+              es: "Documentos recomendados",
+            },
             desc: {
               en: "Have with you: passport with visa, accommodation proof, return ticket, and proof of financial means.",
               pt: "Tenha consigo: passaporte com visto, comprovante de hospedagem, passagem de volta e comprovante de meios financeiros.",
@@ -1893,7 +2708,11 @@ export const translations = {
             },
           },
           {
-            title: { en: "Baggage claim", pt: "Recolhimento de bagagem", es: "Recogida de equipaje" },
+            title: {
+              en: "Baggage claim",
+              pt: "Recolhimento de bagagem",
+              es: "Recogida de equipaje",
+            },
             desc: {
               en: "After immigration, collect your luggage and go through Customs. Declare mandatory items. Most tourists pass through quickly.",
               pt: "Após a imigração, retire suas malas e passe pela alfândega. Declare itens obrigatórios. A maioria dos turistas passa rapidamente.",
@@ -1901,7 +2720,11 @@ export const translations = {
             },
           },
           {
-            title: { en: "Important tips", pt: "Dicas importantes", es: "Consejos importantes" },
+            title: {
+              en: "Important tips",
+              pt: "Dicas importantes",
+              es: "Consejos importantes",
+            },
             desc: {
               en: "Be honest with officers. Answer only what is asked. Avoid security-related jokes. Stay calm and be polite.",
               pt: "Seja honesto com os agentes. Responda apenas o que for perguntado. Evite piadas sobre segurança. Mantenha a calma e seja educado.",
@@ -1910,7 +2733,11 @@ export const translations = {
           },
         ],
       },
-      errorUpdatingStatus: { en: "Error updating status.", pt: "Erro ao atualizar status.", es: "Error al actualizar el estado." },
+      errorUpdatingStatus: {
+        en: "Error updating status.",
+        pt: "Erro ao atualizar status.",
+        es: "Error al actualizar el estado.",
+      },
     },
   },
 
@@ -2300,9 +3127,21 @@ export const translations = {
         es: "¿Ha tenido otro correo electrónico en los últimos 5 anos?",
       },
       addressLabel: { en: "Address:", pt: "Endereço:", es: "Dirección:" },
-      mailingAddressLabel: { en: "Mailing address:", pt: "Endereço de correspondência:", es: "Dirección de correspondencia:" },
-      otherPhonesLabel: { en: "Enter other phone numbers:", pt: "Informe os outros números de telefone:", es: "Ingrese otros números de teléfono:" },
-      otherEmailsLabel: { en: "Enter other email addresses:", pt: "Informe os outros endereços de email:", es: "Ingrese otras direcciones de correo electrónico:" },
+      mailingAddressLabel: {
+        en: "Mailing address:",
+        pt: "Endereço de correspondência:",
+        es: "Dirección de correspondencia:",
+      },
+      otherPhonesLabel: {
+        en: "Enter other phone numbers:",
+        pt: "Informe os outros números de telefone:",
+        es: "Ingrese otros números de teléfono:",
+      },
+      otherEmailsLabel: {
+        en: "Enter other email addresses:",
+        pt: "Informe os outros endereços de email:",
+        es: "Ingrese otras direcciones de correo electrónico:",
+      },
       yes: { en: "Yes", pt: "Sim", es: "Sí" },
       no: { en: "No", pt: "Não", es: "No" },
     },
@@ -2313,9 +3152,21 @@ export const translations = {
         pt: "Informe as mídias sociais que você possui e adicione o identificador da sua conta. EX: Nome da plataforma: Instagram Identificador: @JoãoSilva",
         es: "Informe las redes sociales que tiene y agregue el identificador de su cuenta. EJ: Plataforma: Instagram Identificador: @JuanPerez",
       },
-      platformLabel1: { en: "Platform Name / Identifier 1 *", pt: "Nome da Plataforma/ Identificador 1 *", es: "Nombre de la Plataforma / Identificador 1 *" },
-      platformLabel2: { en: "Platform Name / Identifier 2", pt: "Nome da Plataforma/ Identificador 2", es: "Nombre de la Plataforma / Identificador 2" },
-      platformLabel3: { en: "Platform Name / Identifier 3", pt: "Nome da Plataforma/ Identificador 3", es: "Nombre de la Plataforma / Identificador 3" },
+      platformLabel1: {
+        en: "Platform Name / Identifier 1 *",
+        pt: "Nome da Plataforma/ Identificador 1 *",
+        es: "Nombre de la Plataforma / Identificador 1 *",
+      },
+      platformLabel2: {
+        en: "Platform Name / Identifier 2",
+        pt: "Nome da Plataforma/ Identificador 2",
+        es: "Nombre de la Plataforma / Identificador 2",
+      },
+      platformLabel3: {
+        en: "Platform Name / Identifier 3",
+        pt: "Nome da Plataforma/ Identificador 3",
+        es: "Nombre de la Plataforma / Identificador 3",
+      },
     },
     passport: {
       title: {
@@ -2392,9 +3243,21 @@ export const translations = {
       select: { en: "Select...", pt: "Selecione...", es: "Seleccionar..." },
       yes: { en: "Yes", pt: "Sim", es: "Sí" },
       no: { en: "No", pt: "Não", es: "No" },
-      lostPassportNumber: { en: "Lost passport number:", pt: "Número do passaporte perdido:", es: "Número de pasaporte perdido:" },
-      issuingCountry: { en: "Issuing country:", pt: "País emissor:", es: "País emisor:" },
-      explanationLabel: { en: "Explain what happened:", pt: "Explique o que aconteceu:", es: "Explique lo que pasó:" },
+      lostPassportNumber: {
+        en: "Lost passport number:",
+        pt: "Número do passaporte perdido:",
+        es: "Número de pasaporte perdido:",
+      },
+      issuingCountry: {
+        en: "Issuing country:",
+        pt: "País emissor:",
+        es: "País emisor:",
+      },
+      explanationLabel: {
+        en: "Explain what happened:",
+        pt: "Explique o que aconteceu:",
+        es: "Explique lo que pasó:",
+      },
     },
     contact: {
       title: {
@@ -2529,6 +3392,11 @@ export const translations = {
         en: "Mother's Status in the US:",
         pt: "Informe o Status da sua mãe nos Estados Unidos:",
         es: "Estado de su madre en EE.UU.:",
+      },
+      maternalGrandmotherName: {
+        en: "Mother's mother's name:",
+        pt: "Nome completo da sua avó materna (mãe da sua mãe):",
+        es: "Nombre de la madre de su madre:",
       },
       statusOptions: {
         citizen: {
@@ -2669,14 +3537,42 @@ export const translations = {
       },
       yes: { en: "Yes", pt: "Sim", es: "Sí" },
       no: { en: "No", pt: "Não", es: "No" },
-      prevEmployerName: { en: "Previous employer name:", pt: "Nome do empregador anterior:", es: "Nombre del empleador anterior:" },
+      prevEmployerName: {
+        en: "Previous employer name:",
+        pt: "Nome do empregador anterior:",
+        es: "Nombre del empleador anterior:",
+      },
       jobTitle: { en: "Job title:", pt: "Cargo:", es: "Puesto de trabajo:" },
-      period: { en: "Period (ex: 2018-2022):", pt: "Período (ex: 2018-2022):", es: "Periodo (ej: 2018-2022):" },
-      supervisorName: { en: "Supervisor name:", pt: "Nome do supervisor:", es: "Nombre del supervisor:" },
-      reasonLeaving: { en: "Reason for leaving:", pt: "Motivo de saída:", es: "Motivo de salida:" },
-      institutionName: { en: "Institution name:", pt: "Nome da instituição de ensino:", es: "Nombre de la institución:" },
-      completionDate: { en: "Completion date:", pt: "Data de conclusão:", es: "Fecha de graduación:" },
-      degreeObtained: { en: "Degree obtained:", pt: "Grau obtido:", es: "Título obtenido:" },
+      period: {
+        en: "Period (ex: 2018-2022):",
+        pt: "Período (ex: 2018-2022):",
+        es: "Periodo (ej: 2018-2022):",
+      },
+      supervisorName: {
+        en: "Supervisor name:",
+        pt: "Nome do supervisor:",
+        es: "Nombre del supervisor:",
+      },
+      reasonLeaving: {
+        en: "Reason for leaving:",
+        pt: "Motivo de saída:",
+        es: "Motivo de salida:",
+      },
+      institutionName: {
+        en: "Institution name:",
+        pt: "Nome da instituição de ensino:",
+        es: "Nombre de la institución:",
+      },
+      completionDate: {
+        en: "Completion date:",
+        pt: "Data de conclusão:",
+        es: "Fecha de graduación:",
+      },
+      degreeObtained: {
+        en: "Degree obtained:",
+        pt: "Grau obtido:",
+        es: "Título obtenido:",
+      },
     },
     additional: {
       title: {
@@ -2701,9 +3597,21 @@ export const translations = {
       },
       yes: { en: "Yes", pt: "Sim", es: "Sí" },
       no: { en: "No", pt: "Não", es: "No" },
-      clanNameLabel: { en: "Clan or tribe name:", pt: "Nome do clã ou tribo:", es: "Nombre del clan o tribu:" },
-      listCountriesLabel: { en: "List countries and travel details:", pt: "Liste os países e detalhes das viagens:", es: "Lista de países y detalles del viaje:" },
-      travelDetailsPlaceholder: { en: "Country, Departure date, Return date, Purpose...", pt: "País, Data de partida, Data de retorno, Motivo...", es: "País, Fecha de salida, Fecha de regreso, Propósito..." },
+      clanNameLabel: {
+        en: "Clan or tribe name:",
+        pt: "Nome do clã ou tribo:",
+        es: "Nombre del clan o tribu:",
+      },
+      listCountriesLabel: {
+        en: "List countries and travel details:",
+        pt: "Liste os países e detalhes das viagens:",
+        es: "Lista de países y detalles del viaje:",
+      },
+      travelDetailsPlaceholder: {
+        en: "Country, Departure date, Return date, Purpose...",
+        pt: "País, Data de partida, Data de retorno, Motivo...",
+        es: "País, Fecha de salida, Fecha de regreso, Propósito...",
+      },
     },
   },
 

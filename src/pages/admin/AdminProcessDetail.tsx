@@ -251,6 +251,15 @@ export default function AdminProcessDetail() {
               setInterviewLocation(travelData.consulateCity);
             }
           }
+
+          // Pre-fill grandma name from family info if not already set in user_services
+          if (!serviceData?.grandmother_name) {
+            const familyStep = responses.find((r) => r.step_slug === "family");
+            const familyData = familyStep?.data as any;
+            if (familyData?.maternalGrandmotherName) {
+              setGrandmaName(familyData.maternalGrandmotherName);
+            }
+          }
         }
       }
     } catch (err) {

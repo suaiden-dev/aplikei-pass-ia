@@ -134,6 +134,20 @@ export const FamilyInfoStep = ({ register, watch, setValue, lang, t }: StepProps
                 </div>
             </div>
 
+            {/* Maternal Grandmother Info */}
+            <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30">
+                <h3 className="text-md font-medium">{lang === 'pt' ? 'Pergunta de Segurança (Avó)' : 'Security Question (Grandmother)'}</h3>
+                <div className="space-y-2">
+                    <Label htmlFor="maternalGrandmotherName">{ds.family.maternalGrandmotherName[lang]} *</Label>
+                    <Input
+                        id="maternalGrandmotherName"
+                        {...register("maternalGrandmotherName")}
+                        onChange={(e) => setValue("maternalGrandmotherName", e.target.value.replace(/[^a-zA-ZáéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ\s]/g, ""))}
+                        placeholder={lang === 'pt' ? "Ex: Maria dos Santos" : "Ex: Jane Doe"}
+                    />
+                </div>
+            </div>
+
             <div className="space-y-4 border-t border-border pt-4">
                 <div className="space-y-3">
                     <Label>{ds.family.hasImmediateRelInUS[lang]} *</Label>

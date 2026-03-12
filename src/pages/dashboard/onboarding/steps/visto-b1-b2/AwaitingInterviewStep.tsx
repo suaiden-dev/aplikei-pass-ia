@@ -306,6 +306,29 @@ export function AwaitingInterviewStep({
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             {aw.visaApprovedDesc[lang]}
           </p>
+
+          <div className="max-w-2xl mx-auto p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-2xl flex items-start gap-4 text-left">
+            <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h4 className="font-bold text-amber-800 dark:text-amber-400">
+                {aw.visaApprovedDisclaimerTitle[lang]}
+              </h4>
+              <p className="text-sm text-amber-700 dark:text-amber-300 leading-relaxed">
+                {aw.visaApprovedDisclaimerBody[lang].replace(
+                  "{date}",
+                  interviewDateToCompare
+                    ? new Date(
+                        interviewDateToCompare + "T12:00:00",
+                      ).toLocaleDateString(lang === "pt" ? "pt-BR" : "en-US", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })
+                    : "---",
+                )}
+              </p>
+            </div>
+          </div>
         </div>
       )}
 

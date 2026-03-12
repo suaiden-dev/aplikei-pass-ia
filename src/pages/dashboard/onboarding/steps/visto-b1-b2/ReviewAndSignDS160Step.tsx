@@ -20,6 +20,9 @@ import { toast } from "sonner";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import firstPhaseImg from "@/assets/application_tutorial/first_phase.png";
+import secondPhaseImg from "@/assets/application_tutorial/second_phase.png";
+import thirdPhaseImg from "@/assets/application_tutorial/three_phase.png";
 
 interface ReviewAndSignDS160StepProps {
   uploadedDocs: UploadedDocument[];
@@ -77,22 +80,22 @@ export function ReviewAndSignDS160Step({
     {
       title: rs.tutorialSteps[0].title[lang],
       desc: rs.tutorialSteps[0].desc[lang],
-      img: "https://images.unsplash.com/photo-1432888622747-4eb9a8f2c205?q=80&w=800&h=450&auto=format&fit=crop",
+      img: firstPhaseImg,
     },
     {
       title: rs.tutorialSteps[1].title[lang],
       desc: rs.tutorialSteps[1].desc[lang],
-      img: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=800&h=450&auto=format&fit=crop",
+      img: secondPhaseImg,
     },
     {
       title: rs.tutorialSteps[2].title[lang],
       desc: rs.tutorialSteps[2].desc[lang],
-      img: "https://images.unsplash.com/photo-1554224155-169641357599?q=80&w=800&h=450&auto=format&fit=crop",
+      img: thirdPhaseImg,
     },
     {
       title: rs.tutorialSteps[3].title[lang],
       desc: rs.tutorialSteps[3].desc[lang],
-      img: "https://images.unsplash.com/photo-1618044733300-9472154094ee?q=80&w=800&h=450&auto=format&fit=crop",
+      img: undefined,
     },
   ];
 
@@ -109,7 +112,7 @@ export function ReviewAndSignDS160Step({
 
       <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
         {/* Timeline Header */}
-        <div className="bg-muted/30 p-4 md:p-4 border-b border-border">
+        <div className="bg-muted/30 p-4 pb-8 md:p-6 md:pb-12 border-b border-border">
           <div className="relative flex justify-between items-center max-w-3xl mx-auto">
             {/* Base Line */}
             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-border -translate-y-1/2 z-0" />
@@ -156,12 +159,26 @@ export function ReviewAndSignDS160Step({
         {/* Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-2">
           {/* Image Display */}
-          <div className="relative aspect-video lg:aspect-auto h-64 lg:h-[400px] overflow-hidden bg-slate-100 border-b lg:border-b-0 lg:border-r border-border">
-            <img
-              src={tutorialSteps[activeStep].img}
-              alt={tutorialSteps[activeStep].title}
-              className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
-            />
+          <div className="relative aspect-video lg:aspect-auto h-64 lg:h-[400px] overflow-hidden bg-slate-100 border-b lg:border-b-0 lg:border-r border-border flex items-center justify-center">
+            {tutorialSteps[activeStep].img ? (
+              <img
+                src={tutorialSteps[activeStep].img}
+                alt={tutorialSteps[activeStep].title}
+                className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
+              />
+            ) : (
+              <div className="p-8 text-center animate-in fade-in zoom-in-95 duration-500">
+                <div className="mx-auto w-16 h-16 bg-accent/10 text-accent rounded-full flex items-center justify-center mb-4">
+                  <Upload className="w-8 h-8" />
+                </div>
+                <h4 className="text-title font-bold text-foreground mb-2">
+                  {lang === 'pt' ? 'Quase lá!' : lang === 'es' ? '¡Casi allí!' : 'Almost there!'}
+                </h4>
+                <p className="text-muted-foreground text-sm">
+                  {lang === 'pt' ? 'Role a página para baixo e faça o upload dos documentos solicitados.' : lang === 'es' ? 'Desplácese hacia abajo y suba los documentos solicitados.' : 'Scroll down and upload the requested documents.'}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Description & Navigation */}
