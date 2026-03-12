@@ -9,6 +9,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   CreditCard,
   Wallet,
   Receipt,
@@ -23,11 +35,17 @@ import {
   FileText,
   MousePointer2,
   ExternalLink,
+  Maximize2,
 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+import onePhaseImg from "@/assets/payment/one_phase.jpeg";
+import twoPhaseImg from "@/assets/payment/two_phase.jpeg";
+import threePhaseImg from "@/assets/payment/three_phase.jpeg";
+import fourPhaseImg from "@/assets/payment/four_phase.jpeg";
 
 interface PaymentPendingStepProps {
   serviceId: string | null;
@@ -64,6 +82,33 @@ export function PaymentPendingStep({
 
   // Fee is strictly $185
   const feeAmount = "185.00";
+
+  const carouselItems = [
+    {
+      id: 1,
+      image: onePhaseImg,
+      title: p.slide1Title[lang],
+      desc: p.slide1Desc[lang],
+    },
+    {
+      id: 2,
+      image: twoPhaseImg,
+      title: p.slide2Title[lang],
+      desc: p.slide2Desc[lang],
+    },
+    {
+      id: 3,
+      image: threePhaseImg,
+      title: p.slide3Title[lang],
+      desc: p.slide3Desc[lang],
+    },
+    {
+      id: 4,
+      image: fourPhaseImg,
+      title: p.slide4Title[lang],
+      desc: p.slide4Desc[lang],
+    },
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -198,7 +243,7 @@ export function PaymentPendingStep({
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700 w-full max-w-full">
       <div className="text-center space-y-4">
         <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-md mb-2">
           <Wallet className="h-8 w-8 text-accent animate-pulse" />
@@ -211,7 +256,7 @@ export function PaymentPendingStep({
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-3 sm:gap-4 max-w-4xl mx-auto w-full">
         {/* Method Selection: Boleto */}
         <div
           className={cn(
@@ -313,8 +358,8 @@ export function PaymentPendingStep({
         </div>
       </div>
 
-      <Card className="border-border shadow-2xl rounded-3xl md:rounded-[40px] overflow-hidden bg-card/10 backdrop-blur-md relative border-dashed max-w-3xl mx-auto">
-        <CardContent className="p-4 sm:p-6 space-y-4 md:space-y-6 text-center">
+      <Card className="border-border shadow-2xl rounded-2xl sm:rounded-3xl md:rounded-[40px] overflow-hidden bg-card/10 backdrop-blur-md relative border-dashed max-w-4xl mx-auto w-full">
+        <CardContent className="p-3 sm:p-6 space-y-4 md:space-y-6 text-center">
           <div className="space-y-2">
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               {paymentMethod === "boleto"
@@ -370,23 +415,64 @@ export function PaymentPendingStep({
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="p-3 sm:p-5 bg-blue-500/5 rounded-2xl md:rounded-[32px] border border-blue-500/20 text-left space-y-3 sm:space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-500 rounded-md flex items-center justify-center text-white shrink-0">
-                      <CreditCard className="h-5 w-5 sm:h-6 sm:w-6" />
+              <div className="space-y-4 w-full">
+                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-2 sm:p-6 shadow-inner mx-auto relative group w-full">
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {carouselItems.map((item) => (
+                        <CarouselItem key={item.id} className="w-full">
+                          <div className="flex flex-col gap-3 sm:gap-5 p-1 sm:p-2 items-center text-center w-full">
+                            <div className="space-y-2 mt-2 w-full">
+                              <h4 className="text-lg font-bold text-foreground">
+                                {item.title}
+                              </h4>
+                              <p className="text-sm text-muted-foreground font-medium leading-relaxed max-w-sm mx-auto">
+                                {item.desc}
+                              </p>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <div className="mt-3 sm:mt-4 rounded-xl overflow-hidden shadow-sm flex justify-center w-full max-w-full sm:max-w-2xl mx-auto relative group cursor-pointer">
+                                    <img
+                                      src={item.image}
+                                      alt={item.title}
+                                      className="w-full h-auto max-h-[600px] object-contain transition-transform duration-300 group-hover:scale-[1.02] rounded-xl border border-border"
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                                      <div className="bg-white/20 p-3 rounded-full backdrop-blur-md border border-white/30 text-white shadow-lg">
+                                        <Maximize2 className="w-6 h-6" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl w-[95vw] p-1 sm:p-2 bg-transparent border-none shadow-none mt-4">
+                                  <img 
+                                    src={item.image} 
+                                    alt={item.title} 
+                                    className="w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" 
+                                  />
+                                </DialogContent>
+                              </Dialog>
+                            </div>
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <div className="flex items-center justify-center gap-2 mt-6 relative z-10 w-full">
+                      <CarouselPrevious className="static bg-card border-slate-200 hover:bg-slate-100 shadow-sm transition-all text-foreground h-8 w-8 translate-x-0 translate-y-0" />
+                      <div className="flex px-4 items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                        {lang === "pt"
+                          ? "Deslize"
+                          : lang === "es"
+                            ? "Deslizar"
+                            : "Swipe"}
+                      </div>
+                      <CarouselNext className="static bg-card border-slate-200 hover:bg-slate-100 shadow-sm transition-all text-foreground h-8 w-8 translate-x-0 translate-y-0" />
                     </div>
-                    <h4 className="font-black text-base sm:text-subtitle tracking-tight leading-tight">
-                      {p.portalPayment[lang]}
-                    </h4>
-                  </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {p.accessOfficialPortal[lang]}
-                  </p>
+                  </Carousel>
 
                   {(consularLogin || consularPassword) && (
-                    <div className="bg-white dark:bg-slate-800/80 rounded-xl p-3 sm:p-4 border border-blue-200 dark:border-blue-900/50 shadow-inner space-y-2 sm:space-y-3">
-                      <div className="flex flex-col">
+                    <div className="bg-white dark:bg-slate-800/80 rounded-xl p-3 sm:p-4 border border-blue-200 dark:border-blue-900/50 shadow-inner space-y-2 sm:space-y-3 mt-6">
+                      <div className="flex flex-col text-left">
                         <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">
                           Login / E-mail
                         </span>
@@ -394,7 +480,7 @@ export function PaymentPendingStep({
                           {consularLogin || "---"}
                         </span>
                       </div>
-                      <div className="flex flex-col border-t border-slate-100 dark:border-slate-700/50 pt-3">
+                      <div className="flex flex-col text-left border-t border-slate-100 dark:border-slate-700/50 pt-3">
                         <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">
                           {p.password[lang]}
                         </span>
@@ -405,18 +491,19 @@ export function PaymentPendingStep({
                     </div>
                   )}
 
-                  <Button
-                    className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-md gap-2 font-bold uppercase text-xs tracking-widest shadow-lg shadow-blue-500/20"
-                    onClick={() =>
-                      window.open(
-                        "https://ais.usvisa-info.com/pt-br/niv/",
-                        "_blank",
-                      )
-                    }
-                  >
-                    {p.goToPortal[lang]}{" "}
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
+                  <div className="mt-6">
+                    <Button
+                      className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-md gap-2 font-bold uppercase text-xs tracking-widest shadow-lg shadow-blue-500/20"
+                      onClick={() =>
+                        window.open(
+                          "https://ais.usvisa-info.com/pt-br/niv/",
+                          "_blank",
+                        )
+                      }
+                    >
+                      {p.goToPortal[lang]} <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border text-left space-y-2">

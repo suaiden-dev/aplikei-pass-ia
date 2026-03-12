@@ -213,7 +213,7 @@ export function AwaitingInterviewStep({
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-5xl mx-auto space-y-5">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 w-full max-w-full lg:max-w-5xl mx-auto space-y-4 sm:space-y-5">
       {serviceStatus === "rejected" && (
         <div className="text-center space-y-4">
           <Badge
@@ -225,13 +225,13 @@ export function AwaitingInterviewStep({
           <div className="inline-flex items-center justify-center p-4 bg-red-100 dark:bg-red-900/40 rounded-full mb-2">
             <ThumbsDown className="h-12 w-12 text-red-600 dark:text-red-400" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance px-4 sm:px-0">
             {aw.visaRefusedTitle[lang]}
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
             {aw.visaRefusedDesc[lang]}
           </p>
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4 px-4 sm:px-0">
             <Button
               size="lg"
               className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white"
@@ -276,12 +276,12 @@ export function AwaitingInterviewStep({
               <AlertTriangle className="h-12 w-12 text-yellow-600 dark:text-yellow-400" />
             </div>
           ) : null}
-          <h2 className="text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance px-4 sm:px-0">
             {isInterviewDateReached
               ? aw.howWasInterview[lang]
               : aw.awaitingInterviewTitle[lang]}
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
             {isInterviewDateReached
               ? aw.interviewArrivedDesc[lang]
               : aw.datesConfirmedDesc[lang]}
@@ -300,15 +300,15 @@ export function AwaitingInterviewStep({
           <div className="inline-flex items-center justify-center p-4 bg-green-100 dark:bg-green-900/40 rounded-full mb-2">
             <PartyPopper className="h-12 w-12 text-green-600 dark:text-green-400" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance px-4 sm:px-0">
             {aw.visaApprovedTitle[lang]}
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
             {aw.visaApprovedDesc[lang]}
           </p>
 
-          <div className="max-w-2xl mx-auto p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-2xl flex items-start gap-4 text-left">
-            <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+          <div className="max-w-2xl p-3 sm:p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-2xl flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 text-center sm:text-left mx-4 sm:mx-auto">
+            <AlertTriangle className="h-8 w-8 sm:h-6 sm:w-6 text-amber-600 dark:text-amber-500 shrink-0 sm:mt-0.5" />
             <div className="space-y-1">
               <h4 className="font-bold text-amber-800 dark:text-amber-400">
                 {aw.visaApprovedDisclaimerTitle[lang]}
@@ -336,15 +336,15 @@ export function AwaitingInterviewStep({
         serviceStatus === "rejected") && (
         <div
           className={cn(
-            "grid gap-4",
+            "grid gap-3 sm:gap-4 w-full px-2 sm:px-0",
             data?.same_location === false
               ? "md:grid-cols-2"
               : "max-w-xl mx-auto",
           )}
         >
           {/* CASV Card */}
-          <Card className="border-none bg-slate-50 dark:bg-slate-900/50 rounded-[40px] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden h-full flex flex-col">
-            <CardHeader className="bg-accent/5 p-4 sm:p-5 pb-4 sm:pb-5 shrink-0">
+          <Card className="border-none bg-slate-50 dark:bg-slate-900/50 rounded-2xl sm:rounded-[40px] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden h-full flex flex-col w-full">
+            <CardHeader className="bg-accent/5 p-3 sm:p-5 pb-3 sm:pb-5 shrink-0">
               <div className="flex items-center gap-2 text-accent mb-2">
                 <Calendar className="h-4 w-4" />
                 <span className="text-[10px] font-black uppercase tracking-widest">
@@ -387,8 +387,8 @@ export function AwaitingInterviewStep({
 
           {/* Consulate Card - Only shown if same_location is false */}
           {data?.same_location === false && (
-            <Card className="border-none bg-accent/5 dark:bg-accent/10 rounded-[40px] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden h-full flex flex-col">
-              <CardHeader className="bg-accent/10 p-4 sm:p-5 pb-4 sm:pb-5 shrink-0">
+            <Card className="border-none bg-accent/5 dark:bg-accent/10 rounded-2xl sm:rounded-[40px] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden h-full flex flex-col w-full">
+              <CardHeader className="bg-accent/10 p-3 sm:p-5 pb-3 sm:pb-5 shrink-0">
                 <div className="flex items-center gap-2 text-accent mb-2">
                   <Calendar className="h-4 w-4" />
                   <span className="text-[10px] font-black uppercase tracking-widest">
@@ -652,12 +652,12 @@ export function AwaitingInterviewStep({
           {activeGuide === null && (
             <button
               onClick={() => handleDeliveryGuide("entrada_eua")}
-              className="w-full mt-4 p-4 rounded-[32px] border-2 border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-950/20 hover:border-green-400 dark:hover:border-green-700 hover:bg-green-100 dark:hover:bg-green-950/40 transition-all group flex items-center gap-4 text-left"
+              className="w-full mt-4 p-4 rounded-[32px] border-2 border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-950/20 hover:border-green-400 dark:hover:border-green-700 hover:bg-green-100 dark:hover:bg-green-950/40 transition-all group flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left"
             >
               <div className="h-14 w-14 bg-green-500 rounded-md flex items-center justify-center text-white shadow-lg shrink-0 group-hover:scale-110 transition-transform">
                 <Plane className="h-7 w-7" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 flex flex-col items-center sm:items-start">
                 <p className="text-[10px] font-black uppercase tracking-widest text-green-600 mb-1">
                   {aw.nextStep[lang]}
                 </p>
@@ -678,7 +678,7 @@ export function AwaitingInterviewStep({
 
       {/* Outcome Selection for Awaiting Interview - Only if date is reached */}
       {serviceStatus === "awaitingInterview" && isInterviewDateReached && (
-        <Card className="max-w-4xl mx-auto border-border shadow-2xl rounded-[40px] overflow-hidden bg-card/10 backdrop-blur-md relative border-dashed mt-12">
+        <Card className="max-w-4xl border-border shadow-2xl rounded-2xl sm:rounded-[40px] overflow-hidden bg-card/10 backdrop-blur-md relative border-dashed mt-6 sm:mt-12 w-full mx-2 sm:mx-auto">
           <CardContent className="p-4 sm:p-5 md:p-12 space-y-4 sm:space-y-5 text-center">
             <div className="space-y-3">
               <h3 className="text-title-xl font-black tracking-tight">
@@ -734,12 +734,12 @@ export function AwaitingInterviewStep({
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4 pb-5">
+          <div className="grid md:grid-cols-3 gap-3 sm:gap-4 pb-5 px-2 sm:px-0 w-full">
             {tools.map((tool) => (
               <button
                 key={tool.id}
                 onClick={tool.action}
-                className="group flex flex-col items-center text-center p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] md:rounded-[40px] hover:border-accent/40 hover:shadow-2xl hover:shadow-accent/10 transition-all relative overflow-hidden h-full"
+                className="group flex flex-col items-center text-center p-3 sm:p-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl sm:rounded-[32px] md:rounded-[40px] hover:border-accent/40 hover:shadow-2xl hover:shadow-accent/10 transition-all relative overflow-hidden h-full w-full"
               >
                 <div
                   className={cn(

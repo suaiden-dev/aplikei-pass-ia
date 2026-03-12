@@ -1509,10 +1509,51 @@ export const translations = {
         pt: "Fique Atento ao E-mail",
         es: "Atento al Email",
       },
+      // Carousel translation keys
+      slide1Title: {
+        en: "Your account is being created",
+        pt: "Sua conta está sendo criada",
+        es: "Su cuenta está siendo creada",
+      },
+      slide1Desc: {
+        en: "Our team is registering you on the official consulate portal to generate the MRV fee payment slip.",
+        pt: "Nossa equipe está realizando seu cadastro no portal oficial do consulado para gerar o boleto de pagamento da taxa MRV.",
+        es: "Nuestro equipo lo está registrando en el portal oficial del consulado para generar el recibo de pago de la tarifa MRV.",
+      },
+      slide2Title: {
+        en: "Temporary password",
+        pt: "Senha temporária",
+        es: "Contraseña temporal",
+      },
+      slide2Desc: {
+        en: "You will receive an email with a temporary password. You can change it later if you want.",
+        pt: "Você receberá um e-mail com uma senha provisória. Você poderá alterá-la depois se quiser.",
+        es: "Recibirá un correo electrónico con una contraseña provisional. Podrá cambiarla después si lo desea.",
+      },
+      slide3Title: {
+        en: "MRV Fee Payment",
+        pt: "Pagamento da Taxa MRV",
+        es: "Pago de la Tarifa MRV",
+      },
+      slide3Desc: {
+        en: "Once the account is created, you will have access to the payment slip. This fee is mandatory for the US visa.",
+        pt: "Assim que a conta for criada, você terá acesso ao boleto de pagamento. Essa taxa é obrigatória para o visto americano.",
+        es: "Una vez creada la cuenta, tendrá acceso al recibo de pago. Esta tarifa es obligatoria para la visa estadounidense.",
+      },
+      slide4Title: {
+        en: "Stay tuned to your email",
+        pt: "Fique atento ao seu e-mail",
+        es: "Esté atento a su correo electrónico",
+      },
+      slide4Desc: {
+        en: "If you have already received the confirmation email and the payment slip, click the button below to continue.",
+        pt: "Se você já recebeu o e-mail de confirmação e o boleto, clique no botão abaixo para prosseguir.",
+        es: "Si ya recibió el correo electrónico de confirmación y el recibo de pago, haga clic en el botón de abajo para continuar.",
+      },
       watchEmailDesc: {
-        en: "Stay tuned to your inbox and spam folder to confirm the temporary password once it is sent.",
-        pt: "Fique atento à sua caixa de entrada e spam para confirmar a senha temporária assim que ela for enviada.",
-        es: "Esté atento a su bandeja de entrada y carpeta de spam para confirmar la contraseña temporal una vez que sea enviada.",
+        en: "Stay tuned to your inbox and spam folder to confirm your email by clicking the link once it arrives.",
+        pt: "Fique atento à sua caixa de entrada e spam para confirmar o email clicando no link assim que ele chegar.",
+        es: "Esté atento a su bandeja de entrada y carpeta de spam para confirmar su correo electrónico haciendo clic en el enlace una vez que llegue.",
       },
       alreadyConfirmedEmail: {
         en: "I'VE ALREADY CONFIRMED THE EMAIL",
@@ -2253,6 +2294,46 @@ export const translations = {
         en: "Immediate payment via consulate portal.",
         pt: "Pagamento imediato via portal do consulado.",
         es: "Pago inmediato a través del portal del consulado.",
+      },
+      slide1Title: {
+        en: "Access the Portal",
+        pt: "Acesse o Portal",
+        es: "Acceda al Portal",
+      },
+      slide1Desc: {
+        en: "Click the button below to access the official consulate portal and log in using the credentials provided here.",
+        pt: "Clique no botão abaixo para acessar o portal oficial do consulado e faça login usando as credenciais fornecidas aqui.",
+        es: "Haga clic en el botón de abajo para acceder al portal oficial del consulado e inicie sesión usando las credenciales proporcionadas aquí.",
+      },
+      slide2Title: {
+        en: "Navigate to Payment",
+        pt: "Navegue para o Pagamento",
+        es: "Navegue al Pago",
+      },
+      slide2Desc: {
+        en: "In the portal, locate the 'Pay Visa Fee' button to proceed with your application and reach the payment section.",
+        pt: "No portal, localize o botão 'Pagar taxa de visto' para prosseguir com sua solicitação e chegar à seção de pagamento.",
+        es: "En el portal, busque el botón 'Pagar tasa de visa' para continuar con su solicitud y llegar a la sección de pago.",
+      },
+      slide3Title: {
+        en: "Select Credit Card",
+        pt: "Selecione Cartão de Crédito",
+        es: "Seleccione Tarjeta de Crédito",
+      },
+      slide3Desc: {
+        en: "Choose the 'Credit Card' option as the payment method to pay the MRV fee instantly.",
+        pt: "Escolha a opção 'Cartão de Crédito' como forma de pagamento para pagar a taxa MRV instantaneamente.",
+        es: "Elija la opción 'Tarjeta de Crédito' como método de pago para pagar la tarifa MRV al instante.",
+      },
+      slide4Title: {
+        en: "Confirm Payment",
+        pt: "Confirme o Pagamento",
+        es: "Confirme el Pago",
+      },
+      slide4Desc: {
+        en: "After successfully paying, return here and click 'I've already paid the fee' to continue scheduling your interview.",
+        pt: "Após pagar com sucesso, retorne aqui e clique em 'Já paguei a taxa' para continuar agendando sua entrevista.",
+        es: "Después de pagar con éxito, regrese aquí y haga clic en 'Ya pagué la tarifa' para continuar programando su entrevista.",
       },
       downloadPdfSlip: {
         en: "Download PDF Slip",

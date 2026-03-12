@@ -9,15 +9,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Mail,
   ShieldCheck,
   Loader2,
   ExternalLink,
   ArrowRight,
+  Info,
+  Maximize2,
 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import confirmationEmailImg from "@/assets/email/confirmation_email.png";
 
 interface FeeProcessingStepProps {
   serviceId: string | null;
@@ -47,14 +56,14 @@ export function FeeProcessingStep({
 
       if (statusError) throw statusError;
 
-      toast.success(f.successMsg[lang]);
+      toast.success(f.successMsg?.[lang] || "Status updated!");
       if (onComplete) onComplete();
 
       // Reload to reflect changes
       window.location.reload();
     } catch (error) {
       console.error("Error confirming email:", error);
-      toast.error(f.errorUpdatingStatus[lang]);
+      toast.error(f.errorUpdatingStatus?.[lang] || "Error updating status.");
     } finally {
       setIsSaving(false);
     }
@@ -118,19 +127,42 @@ export function FeeProcessingStep({
                   <div className="h-12 w-12 rounded-full bg-accent flex items-center justify-center text-white shrink-0 shadow-lg shadow-accent/20">
                     <span className="text-subtitle font-bold">2</span>
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-3 flex-1">
                     <AlertTitle className="text-base sm:text-lg font-bold">
                       {f.watchEmailTitle[lang]}
                     </AlertTitle>
                     <AlertDescription className="text-muted-foreground text-xs sm:text-sm font-medium leading-relaxed">
                       {f.watchEmailDesc[lang]}
                     </AlertDescription>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <div className="mt-4 rounded-xl overflow-hidden border border-border shadow-sm relative group cursor-pointer">
+                          <img 
+                            src={confirmationEmailImg} 
+                            alt="Email de Confirmação" 
+                            className="w-full h-auto object-cover max-h-[300px] object-top transition-transform duration-300 group-hover:scale-105" 
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                            <div className="bg-white/20 p-3 rounded-full backdrop-blur-md border border-white/30 text-white">
+                              <Maximize2 className="w-6 h-6" />
+                            </div>
+                          </div>
+                        </div>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl w-[95vw] p-1 sm:p-2 bg-transparent border-none shadow-none mt-4">
+                        <img 
+                          src={confirmationEmailImg} 
+                          alt="Email de Confirmação (Completo)" 
+                          className="w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" 
+                        />
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </Alert>
             </div>
 
-            <div className="pt-4">
+            <div className="pt-4 mt-8">
               <Button
                 className="w-full h-auto min-h-16 py-4 px-4 bg-accent hover:bg-green-dark text-white rounded-[24px] shadow-xl shadow-accent/30 font-black text-xs sm:text-sm md:text-lg whitespace-normal transition-all active:scale-[0.98] group relative overflow-hidden"
                 disabled={isSaving}
@@ -152,7 +184,7 @@ export function FeeProcessingStep({
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground opacity-60">
               <Info className="h-3 w-3" />
               <span>
-                {f.securityPriority[lang]}
+                {f.securityPriority?.[lang] || "Your data is secure"}
               </span>
             </div>
           </CardContent>
@@ -178,6 +210,3 @@ export function FeeProcessingStep({
     </div>
   );
 }
-
-import { Badge } from "@/components/ui/badge";
-import { Info } from "lucide-react";

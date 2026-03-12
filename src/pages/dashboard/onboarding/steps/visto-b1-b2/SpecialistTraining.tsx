@@ -44,48 +44,48 @@ export function SpecialistTraining({
   const trainingPackages = [
     {
       id: 1,
-      name: st.individual,
+      name: st.individual[lang] as string,
       classes: 1,
       price: 49,
       recommended: false,
-      description: st.trainingSession,
+      description: st.trainingSession[lang] as string,
       features: [
-        st.mentoring45 || "45 min de mentoria",
-        st.interviewSim || "Simulado de perguntas",
-        st.immediateFeedback || "Feedback imediato",
+        (st.mentoring45?.[lang] || "45 min de mentoria") as string,
+        (st.interviewSim?.[lang] || "Simulado de perguntas") as string,
+        (st.immediateFeedback?.[lang] || "Feedback imediato") as string,
       ],
       calendly:
         "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
     },
     {
       id: 2,
-      name: st.bronzePackage,
+      name: st.bronzePackage?.[lang] || "Pacote Bronze",
       classes: 2,
       price: 89,
       recommended: false,
-      description: st.sessions2Training || "2 Aulas de Treinamento",
+      description: st.sessions2Training?.[lang] || "2 Aulas de Treinamento",
       features: [
-        st.mentoring2x45 || "2x 45 min de mentoria",
-        st.deepProfileAnalysis || "Análise profunda de perfil",
-        st.advancedSim || "Simulado avançado",
-        st.whatsappSupport || "Suporte via WhatsApp",
+        (st.mentoring2x45?.[lang] || "2x 45 min de mentoria") as string,
+        (st.deepProfileAnalysis?.[lang] || "Análise profunda de perfil") as string,
+        (st.advancedSim?.[lang] || "Simulado avançado") as string,
+        (st.whatsappSupport?.[lang] || "Suporte via WhatsApp") as string,
       ],
       calendly:
         "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
     },
     {
       id: 3,
-      name: st.goldPackage || "Pacote Gold",
+      name: st.goldPackage?.[lang] || "Pacote Gold",
       classes: 3,
       price: 119,
       recommended: true,
-      description: st.sessions3Training || "3 Aulas de Treinamento",
+      description: st.sessions3Training?.[lang] || "3 Aulas de Treinamento",
       features: [
-        st.mentoring3x45 || "3x 45 min de mentoria",
-        st.fullPreparation || "Preparação Completa",
-        st.responseStrategy || "Estratégia de Resposta",
-        st.documentReview || "Revisão de Documentos",
-        st.vipSupport || "Suporte VIP",
+        (st.mentoring3x45?.[lang] || "3x 45 min de mentoria") as string,
+        (st.fullPreparation?.[lang] || "Preparação Completa") as string,
+        (st.responseStrategy?.[lang] || "Estratégia de Resposta") as string,
+        (st.documentReview?.[lang] || "Revisão de Documentos") as string,
+        (st.vipSupport?.[lang] || "Suporte VIP") as string,
       ],
       calendly:
         "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
@@ -95,16 +95,16 @@ export function SpecialistTraining({
   const reviewPackages = [
     {
       id: 4,
-      name: st.reviewTopic,
+      name: st.reviewTopic[lang] as string,
       classes: 1,
       price: 49,
       recommended: false,
-      description: st.reviewDescShort || "Análise da recusa e plano de ação",
+      description: st.reviewDescShort?.[lang] || "Análise da recusa e plano de ação",
       features: [
-        st.detailedRefusalAnalysis || "Análise detalhada da recusa",
-        st.specialistMentoring45 || "45 min com especialista",
-        st.customActionPlan || "Plano de ação personalizado",
-        st.nextStepsGuidance || "Orientação para próximos passos",
+        (st.detailedRefusalAnalysis?.[lang] || "Análise detalhada da recusa") as string,
+        (st.specialistMentoring45?.[lang] || "45 min com especialista") as string,
+        (st.customActionPlan?.[lang] || "Plano de ação personalizado") as string,
+        (st.nextStepsGuidance?.[lang] || "Orientação para próximos passos") as string,
       ],
       calendly:
         "https://calendly.com/infothefutureimmigration/treinamento-entrevista",
@@ -127,11 +127,11 @@ export function SpecialistTraining({
 
   const handleSpecialistSuccess = useCallback(() => {
     setStep("success");
-    toast.success(st.paymentProcessed);
+    toast.success(st.paymentProcessed[lang] as string);
     const url = new URL(window.location.href);
     url.searchParams.delete("specialist_success");
     window.history.replaceState({}, document.title, url.toString());
-  }, [st.paymentProcessed]);
+  }, [st.paymentProcessed, lang]);
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -142,12 +142,11 @@ export function SpecialistTraining({
         return;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: service } = (await supabase
         .from("user_services")
         .select("specialist_training_data, specialist_review_data")
         .eq("id", serviceId)
-        .single()) as any;
+        .single()) as { data: { specialist_training_data: unknown, specialist_review_data: unknown } | null };
 
       if (service) {
         const relevantData =
@@ -195,7 +194,7 @@ export function SpecialistTraining({
   useCalendlyEventListener({
     onEventScheduled: (e) => {
       setScheduledCount((prev) => prev + 1);
-      toast.success(st.sessionScheduledToast);
+      toast.success(st.sessionScheduledToast[lang] as string);
     },
   });
 
@@ -223,7 +222,7 @@ export function SpecialistTraining({
       }
     } catch (error: unknown) {
       console.error("Payment error:", error);
-      toast.error(st.errorStartingPayment);
+      toast.error(st.errorStartingPayment[lang] as string);
     } finally {
       setIsProcessing(false);
     }
@@ -250,10 +249,10 @@ export function SpecialistTraining({
               <CheckCircle2 className="h-8 w-8 md:h-10 md:w-10" />
             </div>
             <h2 className="text-title md:text-4xl font-black">
-              {st.successTitle}
+              {st.successTitle[lang] as React.ReactNode}
             </h2>
             <p className="text-sm md:text-lg text-muted-foreground">
-              {st.purchasedPkg.replace("{name}", pkg.name).replace("{classes}", pkg.classes.toString())}
+              {(st.purchasedPkg[lang] as string).replace("{name}", pkg.name).replace("{classes}", pkg.classes.toString())}
             </p>
           </div>
 
@@ -262,7 +261,7 @@ export function SpecialistTraining({
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
                   <p className="font-black text-lg md:text-subtitle text-accent">
-                    {st.sessionsScheduled.replace("{count}", scheduledCount.toString()).replace("{total}", pkg.classes.toString())}
+                    {(st.sessionsScheduled[lang] as string).replace("{count}", scheduledCount.toString()).replace("{total}", pkg.classes.toString())}
                   </p>
                   <span className="text-xs md:text-sm font-bold opacity-60">
                     {Math.round((scheduledCount / pkg.classes) * 100)}%
@@ -278,10 +277,10 @@ export function SpecialistTraining({
                 <div className="py-6 space-y-4">
                   <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-md border-2 border-green-100 dark:border-green-900/30">
                     <p className="text-green-600 dark:text-green-400 font-bold text-lg">
-                      {st.allScheduled}
+                      {st.allScheduled[lang] as React.ReactNode}
                     </p>
                     <p className="text-sm text-green-600/80 dark:text-green-400/80 mt-1">
-                      {st.checkEmail}
+                      {st.checkEmail[lang] as React.ReactNode}
                     </p>
                   </div>
                 </div>
@@ -289,14 +288,14 @@ export function SpecialistTraining({
                 <div className="py-6 flex flex-col items-center space-y-5">
                   <div className="bg-accent/5 p-4 rounded-3xl border border-accent/10 max-w-sm">
                     <p className="text-accent font-bold text-sm leading-relaxed">
-                      {st.mobileAccuracy}
+                      {st.mobileAccuracy[lang] as React.ReactNode}
                     </p>
                   </div>
 
                   <PopupButton
                     url={pkg.calendly}
                     rootElement={document.getElementById("root")!}
-                    text={st.scheduleNow}
+                    text={st.scheduleNow[lang] as string}
                     prefill={{
                       email: userProfile.email,
                       name: userProfile.name,
@@ -312,7 +311,7 @@ export function SpecialistTraining({
               variant="ghost"
               className="w-full h-12 md:h-14 rounded-md md:rounded-md font-bold text-muted-foreground"
             >
-              {st.backToDashboard}
+              {st.backToDashboard[lang] as React.ReactNode}
             </Button>
           </div>
         </div>
@@ -329,20 +328,20 @@ export function SpecialistTraining({
           className="gap-2 font-bold text-muted-foreground hover:text-foreground"
         >
           <ChevronLeft className="h-4 w-4" />
-          {ig.back}
+          {ig.back[lang] as React.ReactNode}
         </Button>
       </div>
 
       <div className="text-center space-y-4 max-w-3xl mx-auto px-4">
         <h2 className="text-title-xl md:text-5xl font-black tracking-tight">
           {mode === "review"
-            ? st.reviewTopic
-            : st.mentoringTopic}
+            ? (st.reviewTopic[lang] as React.ReactNode)
+            : (st.mentoringTopic[lang] as React.ReactNode)}
         </h2>
         <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
           {mode === "review"
-            ? st.reviewDesc
-            : st.mentoringDesc}
+            ? (st.reviewDesc[lang] as React.ReactNode)
+            : (st.mentoringDesc[lang] as React.ReactNode)}
         </p>
       </div>
 
@@ -365,7 +364,7 @@ export function SpecialistTraining({
           >
             {pkg.recommended && (
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent text-white px-4 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
-                {st.mostPopular}
+                {st.mostPopular[lang] as React.ReactNode}
               </div>
             )}
 
@@ -377,8 +376,8 @@ export function SpecialistTraining({
                 </span>
                 <span className="text-muted-foreground font-bold text-sm">
                   {pkg.id === 1
-                    ? st.perSession
-                    : st.total}
+                    ? (st.perSession[lang] as React.ReactNode)
+                    : (st.total[lang] as React.ReactNode)}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground font-medium">
@@ -412,7 +411,7 @@ export function SpecialistTraining({
                 <Clock className="h-5 w-5 animate-spin" />
               ) : (
                 <>
-                  {st.chooseThis}
+                  {st.chooseThis[lang] as React.ReactNode}
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
@@ -424,7 +423,7 @@ export function SpecialistTraining({
       <div className="text-center pt-5 pb-12 px-4">
         <div className="inline-flex items-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-md text-[10px] md:text-xs font-bold text-muted-foreground">
           <ShieldCheck className="h-4 w-4 text-green-500" />
-          {st.securePayment}
+          {st.securePayment[lang] as React.ReactNode}
         </div>
       </div>
     </div>

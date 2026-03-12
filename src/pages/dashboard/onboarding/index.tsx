@@ -34,6 +34,7 @@ import { DocumentsStep } from "./steps/DocumentsStep";
 import { ReviewStep } from "./steps/ReviewStep";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 import { PersonalInfo1Step } from "./steps/visto-b1-b2/PersonalInfo1Step";
 import { PersonalInfo2Step } from "./steps/visto-b1-b2/PersonalInfo2Step";
@@ -380,7 +381,14 @@ export default function Onboarding() {
           />
 
           {/* Step Content */}
-          <div className="rounded-md border border-border bg-card p-4 shadow-card md:p-4">
+          <div
+            className={cn(
+              "rounded-md",
+              serviceStatus === "casvPaymentPending" || serviceStatus === "awaitingInterview"
+                ? "w-full"
+                : "border border-border bg-card p-4 shadow-card md:p-4",
+            )}
+          >
             {renderStep()}
 
             {/* Desktop Buttons - Hide if in post-scheduling stages */}

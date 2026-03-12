@@ -69,7 +69,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
         const initialMsg: Message = {
           id: "1",
           role: "assistant",
-          content: aic.initialMessage,
+          content: aic.initialMessage[lang] as string,
           timestamp: new Date(),
         };
         setMessages([initialMsg]);
@@ -138,7 +138,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
         data.text ||
         (typeof data === "string"
           ? data
-          : aic.errorMessage);
+          : (aic.errorMessage[lang] as string));
 
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
@@ -157,7 +157,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
       setMessages((prev) => [...prev, aiMsg]);
     } catch (error) {
       console.error("Chat error:", error);
-      toast.error(aic.errorConnecting);
+      toast.error(aic.errorConnecting[lang] as string);
     } finally {
       setIsTyping(false);
     }
@@ -177,7 +177,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
       const initialMsg: Message = {
         id: "1",
         role: "assistant",
-        content: aic.initialMessage,
+        content: aic.initialMessage[lang] as string,
         timestamp: new Date(),
       };
       setMessages([initialMsg]);
@@ -192,7 +192,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
         Math.random().toString(36).substring(2, 15) + Date.now().toString(36),
       );
 
-      toast.success(aic.trainingRestarted);
+      toast.success(aic.trainingRestarted[lang] as string);
     } catch (error) {
       console.error("Error restarting chat:", error);
       toast.error("Error restarting chat");
@@ -210,7 +210,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
         >
           <ChevronLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
           <span className="font-bold">
-            {aic.leaveTraining}
+            {aic.leaveTraining[lang] as React.ReactNode}
           </span>
         </Button>
         <div className="flex items-center gap-3">
@@ -219,10 +219,10 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
           </div>
           <div className="hidden sm:block">
             <p className="text-xs font-black uppercase tracking-widest text-accent">
-              {aic.aiSimulated}
+              {aic.aiSimulated[lang] as React.ReactNode}
             </p>
             <p className="text-[10px] text-muted-foreground uppercase font-bold">
-              {aic.onlineReady}
+              {aic.onlineReady[lang] as React.ReactNode}
             </p>
           </div>
         </div>
@@ -231,7 +231,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
           size="icon"
           className="rounded-md text-muted-foreground hover:text-accent"
           onClick={handleRestart}
-          title={aic.restart}
+          title={aic.restart[lang] as string}
         >
           <RefreshCw className="h-4 w-4" />
         </Button>
@@ -299,7 +299,7 @@ export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder={aic.typeHere}
+            placeholder={aic.typeHere[lang] as string}
             className="h-14 pl-4 pr-14 bg-slate-50 dark:bg-slate-800/50 border-none rounded-md focus-visible:ring-accent font-medium shadow-inner"
           />
           <Button
