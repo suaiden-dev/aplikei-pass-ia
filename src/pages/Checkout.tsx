@@ -205,7 +205,13 @@ export default function Checkout() {
           },
         );
 
-        if (error) throw error;
+        if (error) {
+          console.error("Erro na função stripe-checkout:", error);
+          // Try to get more details if it's a known error format
+          const errorDetails = error.context?.error || error.message;
+          console.error("Detalhes do erro:", errorDetails);
+          throw error;
+        }
         if (data?.url) {
           window.location.href = data.url;
         } else {
