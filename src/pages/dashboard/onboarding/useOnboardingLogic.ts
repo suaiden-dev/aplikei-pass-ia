@@ -52,10 +52,9 @@ export const useOnboardingLogic = () => {
         ]
         : serviceSlug === "visa-f1f2"
         ? [
-            "f1f2-personal", "f1f2-travel", "f1f2-address-phone",
-            "f1f2-passport", "f1f2-family", "f1f2-education",
-            "f1f2-sevis", "f1f2-social-media", "f1f2-additional",
-            "f1f2-documents"
+            "f1f2-personal1", "f1f2-personal2", "f1f2-travel", 
+            "f1f2-history", "f1f2-address-phone", "f1f2-social-media", 
+            "f1f2-passport", "f1f2-documents"
         ]
         : ["personal", "history", "process", "documents", "review"];
 
@@ -456,24 +455,20 @@ export const useOnboardingLogic = () => {
 
         if (serviceSlug === "visa-f1f2") {
             switch (currentSlug) {
-                case "f1f2-personal":
-                    return await trigger(["email", "firstName", "lastName"]);
+                case "f1f2-personal1":
+                    return await trigger(["email", "firstName", "lastName", "gender", "maritalStatus", "birthDate", "birthCity", "birthCountry", "interviewLocation"]);
+                case "f1f2-personal2":
+                    return await trigger(["nationalityInfo", "nationalID"]);
                 case "f1f2-travel":
-                    return await trigger(["arrivalDate", "expectedDuration"]);
+                    return await trigger(["hasSpecificTravelPlan", "arrivalDate", "travelPayer"]);
+                case "f1f2-history":
+                    return await trigger(["hasBeenToUS", "hasHadUSVisa"]);
                 case "f1f2-address-phone":
                     return await trigger(["homeAddress", "homeCity", "mobilePhone"]);
-                case "f1f2-passport":
-                    return await trigger(["passportNumberDS", "passportExpirationDate"]);
-                case "f1f2-family":
-                    return await trigger(["fatherLastName", "fatherFirstName", "motherLastName", "motherFirstName"]);
-                case "f1f2-education":
-                    return await trigger(["schoolName", "schoolAddress", "courseName", "courseStartDate", "courseEndDate"]);
-                case "f1f2-sevis":
-                    return await trigger(["sevisId"]);
                 case "f1f2-social-media":
                     return await trigger(["socialMedia1"]);
-                case "f1f2-additional":
-                    return true;
+                case "f1f2-passport":
+                    return await trigger(["passportNumberDS", "passportExpirationDate"]);
                 case "f1f2-documents": {
                     const requiredDocs = ["i20_document", o.docPassport[lang]]; 
                     const uploadedNames = uploadedDocs.map(d => d.name);
@@ -579,7 +574,7 @@ export const useOnboardingLogic = () => {
             setRequiresSelfie(false);
             setSelfieFile(null);
             toast.success(o.selfieUploaded[lang]);
-        } catch (err: any) {
+        } catch (err) {
             console.error("Error uploading selfie:", err);
             toast.error(o.errorUploadingSelfie[lang]);
         } finally {

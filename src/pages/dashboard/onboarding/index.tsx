@@ -56,17 +56,14 @@ import { AwaitingInterviewStep } from "./steps/visto-b1-b2/AwaitingInterviewStep
 import { DS160ReviewModal } from "./components/DS160ReviewModal";
 import { ProcessingStatusStep } from "./steps/visto-b1-b2/ProcessingStatusStep";
 
-import { F1F2PersonalInfoStep } from "./steps/F1F2/F1F2PersonalInfoStep";
+import { F1F2Personal1Step } from "./steps/F1F2/F1F2Personal1Step";
+import { F1F2Personal2Step } from "./steps/F1F2/F1F2Personal2Step";
 import { F1F2TravelInfoStep } from "./steps/F1F2/F1F2TravelInfoStep";
+import { F1F2HistoryStep } from "./steps/F1F2/F1F2HistoryStep";
 import { F1F2AddressPhoneStep } from "./steps/F1F2/F1F2AddressPhoneStep";
-import { F1F2PassportStep } from "./steps/F1F2/F1F2PassportStep";
-import { F1F2FamilyInfoStep } from "./steps/F1F2/F1F2FamilyInfoStep";
-import { F1F2EducationStep } from "./steps/F1F2/F1F2EducationStep";
-import { F1F2SEVIStep } from "./steps/F1F2/F1F2SEVIStep";
 import { F1F2SocialMediaStep } from "./steps/F1F2/F1F2SocialMediaStep";
-import { F1F2AdditionalInfoStep } from "./steps/F1F2/F1F2AdditionalInfoStep";
+import { F1F2PassportStep } from "./steps/F1F2/F1F2PassportStep";
 import { F1F2UploadDocumentsStep } from "./steps/F1F2/F1F2UploadDocumentsStep";
-import { OpenDS160Step } from "./steps/F1F2/OpenDS160Step";
 export default function Onboarding() {
   const {
     lang,
@@ -286,24 +283,20 @@ export default function Onboarding() {
     if (serviceSlug === "visa-f1f2") {
       switch (currentStep) {
         case 0:
-          return <F1F2PersonalInfoStep {...commonProps} />;
+          return <F1F2Personal1Step {...commonProps} />;
         case 1:
-          return <F1F2TravelInfoStep {...commonProps} />;
+          return <F1F2Personal2Step {...commonProps} />;
         case 2:
-          return <F1F2AddressPhoneStep {...commonProps} />;
+          return <F1F2TravelInfoStep {...commonProps} />;
         case 3:
-          return <F1F2PassportStep {...commonProps} />;
+          return <F1F2HistoryStep {...commonProps} />;
         case 4:
-          return <F1F2FamilyInfoStep {...commonProps} />;
+          return <F1F2AddressPhoneStep {...commonProps} />;
         case 5:
-          return <F1F2EducationStep {...commonProps} />;
-        case 6:
-          return <F1F2SEVIStep {...commonProps} />;
-        case 7:
           return <F1F2SocialMediaStep {...commonProps} />;
-        case 8:
-          return <F1F2AdditionalInfoStep {...commonProps} />;
-        case 9:
+        case 6:
+          return <F1F2PassportStep {...commonProps} />;
+        case 7:
           return (
             <F1F2UploadDocumentsStep
               uploadedDocs={uploadedDocs}

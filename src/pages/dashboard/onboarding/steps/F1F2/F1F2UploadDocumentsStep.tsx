@@ -11,8 +11,8 @@ interface F1F2UploadDocumentsStepProps {
   fileInputRef: React.RefObject<HTMLInputElement>;
   setSelectedDoc: (doc: string) => void;
   lang: "pt" | "en" | "es";
-  t: any;
-  o: any;
+  t: Record<string, any>;
+  o: Record<string, any>;
 }
 
 export const F1F2UploadDocumentsStep = ({
@@ -39,7 +39,7 @@ export const F1F2UploadDocumentsStep = ({
   return (
     <div className="space-y-4 fade-in">
       <h2 className="font-display text-lg font-semibold text-foreground">
-        {t.f1f2.steps[lang][9]}
+        {t.f1f2.steps[lang][7]}
       </h2>
       
       <div className="rounded-md border border-primary/20 bg-primary/5 p-4 flex gap-3 mb-4">
