@@ -21,11 +21,11 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
                 >
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="yes" id="contact-yes" />
-                        <Label htmlFor="contact-yes">{lang === 'pt' ? 'Sim' : 'Yes'}</Label>
+                        <Label htmlFor="contact-yes">{t.common.yes[lang]}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="no" id="contact-no" />
-                        <Label htmlFor="contact-no">{lang === 'pt' ? 'Não' : 'No'}</Label>
+                        <Label htmlFor="contact-no">{t.common.no[lang]}</Label>
                     </div>
                 </RadioGroup>
                 <p className="text-xs text-muted-foreground mt-1">{ds.contact.contactHelper[lang]}</p>
@@ -33,11 +33,11 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
 
             <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30">
                 <div className="bg-primary/10 p-4 rounded-md border border-primary/20 text-xs text-primary leading-relaxed">
-                    <strong>{lang === 'pt' ? '📌 Orientações importantes:' : '📌 Important Guidance:'}</strong>
+                    <strong>{ds.contact.guidanceTitle[lang]}</strong>
                     <ul className="list-disc ml-4 mt-2 space-y-1">
-                        <li>{lang === 'pt' ? 'Informe o Sobrenome e Nome do contato.' : 'Enter Surname and Given Name of the contact.'}</li>
-                        <li>{lang === 'pt' ? 'Caso seja Visto F1, informe o nome do responsável da instituição de ensino.' : 'For F1 Visas, provide the name of the school official.'}</li>
-                        <li>{lang === 'pt' ? 'Para Visto B1/B2, recomendamos marcar "Do Not Know" se não tiver um contato específico.' : 'For B1/B2 Visas, we recommend selecting "Do Not Know" if you don\'t have a specific contact.'}</li>
+                        <li>{ds.contact.guidance1[lang]}</li>
+                        <li>{ds.contact.guidance2[lang]}</li>
+                        <li>{ds.contact.guidance3[lang]}</li>
                     </ul>
                 </div>
 
@@ -45,7 +45,7 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <Label htmlFor="contactName" className="font-medium text-sm">
-                                {lang === 'pt' ? 'Nome e Sobrenome do Contato:' : 'Contact Name and Surname:'}
+                                {ds.contact.nameLabel[lang]}
                             </Label>
                             <div className="flex items-center space-x-2 bg-background/50 px-2 py-1 rounded border border-border/50">
                                 <Checkbox
@@ -54,7 +54,7 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
                                     onCheckedChange={(checked) => setValue("contactNameDoesNotApply", checked === true)}
                                 />
                                 <label htmlFor="contactNameDoesNotApply" className="text-[10px] font-semibold uppercase text-muted-foreground cursor-pointer">
-                                    Do Not Know
+                                    {t.common.doNotKnow[lang]}
                                 </label>
                             </div>
                         </div>
@@ -79,7 +79,7 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
                                     onCheckedChange={(checked) => setValue("contactOrganizationDoesNotApply", checked === true)}
                                 />
                                 <label htmlFor="contactOrganizationDoesNotApply" className="text-[10px] font-semibold uppercase text-muted-foreground cursor-pointer">
-                                    Do Not Know
+                                    {t.common.doNotKnow[lang]}
                                 </label>
                             </div>
                         </div>
@@ -100,7 +100,7 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
                             {...register("contactRelationship")}
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            <option value="">{lang === 'pt' ? 'Selecione...' : 'Select...'}</option>
+                            <option value="">{t.common.select[lang]}</option>
                             <option value="relative">{ds.contact.relOptions.relative[lang]}</option>
                             <option value="spouse">{ds.contact.relOptions.spouse[lang]}</option>
                             <option value="friend">{ds.contact.relOptions.friend[lang]}</option>
@@ -110,7 +110,7 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
                             <option value="other">{ds.contact.relOptions.other[lang]}</option>
                         </select>
                         <div className="bg-amber-50 dark:bg-amber-950/20 p-2 rounded border border-amber-200/50 dark:border-amber-900/50 text-[10px] text-amber-800 dark:text-amber-400">
-                            <strong>{lang === 'pt' ? 'Dica:' : 'Tip:'}</strong> {ds.contact.relHelper[lang]}
+                            <strong>{t.common.tip[lang]}</strong> {ds.contact.relHelper[lang]}
                         </div>
                     </div>
                 </div>
@@ -161,7 +161,7 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
                                     onCheckedChange={(checked) => setValue("contactEmailDoesNotApply", checked === true)}
                                 />
                                 <label htmlFor="contactEmailDoesNotApply" className="text-xs text-muted-foreground cursor-pointer">
-                                    Does Not Apply
+                                    {t.common.doesNotApply[lang]}
                                 </label>
                             </div>
                         </div>

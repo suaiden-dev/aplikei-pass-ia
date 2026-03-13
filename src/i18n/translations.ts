@@ -1,6 +1,14 @@
 export type Language = "en" | "pt" | "es";
 
 export const translations = {
+  common: {
+    yes: { en: "Yes", pt: "Sim", es: "Sí" },
+    no: { en: "No", pt: "Não", es: "No" },
+    select: { en: "Select...", pt: "Selecione...", es: "Seleccionar..." },
+    tip: { en: "Tip:", pt: "Dica:", es: "Tip:" },
+    doNotKnow: { en: "Do Not Know", pt: "Não sei", es: "No lo sé" },
+    doesNotApply: { en: "Does Not Apply", pt: "Não se aplica", es: "No aplica" },
+  },
   // ──── Header / Nav ────
   nav: {
     home: { en: "Home", pt: "Home", es: "Inicio" },
@@ -3397,6 +3405,31 @@ export const translations = {
         en: "Enter Surname and Name. If B1/B2, we recommend marking 'Do Not Know'.",
         pt: "Informe o Sobrenome e nome. Caso seja F1, informamos nessa área o nome do responsável da instituição de ensino. Nessa Parte recomendamos marcar ”Do Not Know” em caso de B1/B2.",
         es: "Ingrese Apellido y Nombre. Si es B1/B2, recomendamos marcar 'No lo sé'.",
+      },
+      guidanceTitle: {
+        en: "📌 Important Guidance:",
+        pt: "📌 Orientações importantes:",
+        es: "📌 Orientación Importante:",
+      },
+      guidance1: {
+        en: "Enter Surname and Given Name of the contact.",
+        pt: "Informe o Sobrenome e Nome do contato.",
+        es: "Ingrese el Apellido y el Nombre del contacto.",
+      },
+      guidance2: {
+        en: "For F1 Visas, provide the name of the school official.",
+        pt: "Caso seja Visto F1, informe o nome do responsável da instituição de ensino.",
+        es: "Para Visas F1, proporcione el nombre del oficial de la escuela.",
+      },
+      guidance3: {
+        en: "For B1/B2 Visas, we recommend selecting 'Do Not Know' if you don't have a specific contact.",
+        pt: "Para Visto B1/B2, recomendamos marcar 'Do Not Know' se não tiver um contato específico.",
+        es: "Para Visas B1/B2, recomendamos seleccionar 'No lo sé' si no tiene um contacto específico.",
+      },
+      nameLabel: {
+        en: "Contact Name and Surname:",
+        pt: "Nome e Sobrenome do Contato:",
+        es: "Nombre y Apellido del Contacto:",
       },
       orgName: {
         en: "Organization Name:",

@@ -13,44 +13,44 @@ export function SocialMediaStep({
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="space-y-2">
-        <h2 className="text-title font-black tracking-tight">{sm.title}</h2>
+        <h2 className="text-title font-black tracking-tight">{sm.title[lang]}</h2>
         <p className="text-muted-foreground text-sm">
-          {sm.helper}
+          {sm.helper[lang]}
         </p>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="social_media_1">
-            {sm.platformLabel1}
+          <Label htmlFor="socialMedia1">
+            {sm.platformLabel1[lang]}
           </Label>
           <Input
-            id="social_media_1"
-            {...register("social_media_1")}
-            defaultValue={formData.social_media_1 || ""}
+            id="socialMedia1"
+            {...register("socialMedia1")}
+            defaultValue={formData.socialMedia1 || ""}
             placeholder="Ex: Instagram - @joãosilva"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="social_media_2">
-            {sm.platformLabel2}
+          <Label htmlFor="socialMedia2">
+            {sm.platformLabel2[lang]}
           </Label>
           <Input
-            id="social_media_2"
-            {...register("social_media_2")}
-            defaultValue={formData.social_media_2 || ""}
+            id="socialMedia2"
+            {...register("socialMedia2")}
+            defaultValue={formData.socialMedia2 || ""}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="social_media_3">
-            {sm.platformLabel3}
+          <Label htmlFor="socialMedia3">
+            {sm.platformLabel3[lang]}
           </Label>
           <Input
-            id="social_media_3"
-            {...register("social_media_3")}
-            defaultValue={formData.social_media_3 || ""}
+            id="socialMedia3"
+            {...register("socialMedia3")}
+            defaultValue={formData.socialMedia3 || ""}
           />
         </div>
       </div>
