@@ -35,6 +35,8 @@ interface ZellePayment {
     visa_order_id?: string | null;
     screenshot_url?: string;
     payment_metadata?: any;
+    guest_name?: string | null;
+    guest_email?: string | null;
     profiles?: {
         full_name: string | null;
     } | null;
@@ -267,8 +269,13 @@ export default function AdminPayments() {
                                     render: (item) => (
                                         <div className="flex flex-col min-w-[150px]">
                                             <span className="font-bold text-foreground truncate">
-                                                {item.profiles?.full_name || "Cliente sem nome"}
+                                                {item.profiles?.full_name || item.guest_name || "Cliente sem nome"}
                                             </span>
+                                            {(!item.profiles?.full_name && item.guest_email) && (
+                                                <span className="text-[10px] text-muted-foreground truncate">
+                                                    {item.guest_email}
+                                                </span>
+                                            )}
                                         </div>
                                     ),
                                 },

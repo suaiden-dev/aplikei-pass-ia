@@ -744,58 +744,6 @@ export default function AdminProcessDetail() {
                 "Enviar Documentos" no portal dele.
               </p>
             </div>
-
-            {processDocs.length > 0 && (
-              <div className="mt-5 space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Arquivos já recebidos (Parcial)
-                </h4>
-                <div className="grid gap-3">
-                  {processDocs.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="flex items-center justify-between p-4 bg-card border border-border rounded-md shadow-sm hover:border-accent/40 transition-shadow"
-                    >
-                      <div className="flex items-center gap-4 min-w-0">
-                        <div className="h-10 w-10 rounded-md bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center text-blue-600">
-                          <FileText className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-bold truncate">
-                            {doc.name === "ds160_assinada"
-                              ? "ASSINADA"
-                              : doc.name === "ds160_comprovante"
-                                ? "COMPROVANTE MRV"
-                                : doc.name === "ds160_comprovante_sevis"
-                                  ? "COMPROVANTE DS-160"
-                                  : doc.name === "ds160_boleto"
-                                    ? "BOLETO"
-                                    : doc.name
-                                        .replace(/ds160_?|DS160_?/gi, "")
-                                        .replace(/_/g, " ")
-                                        .toUpperCase()}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 border-accent/20 text-accent hover:bg-accent/10 font-bold text-[10px] tracking-wider"
-                        onClick={() => {
-                          const { data } = supabase.storage
-                            .from(doc.bucket_id || "documents")
-                            .getPublicUrl(doc.storage_path);
-                          window.open(data.publicUrl, "_blank");
-                        }}
-                      >
-                        ABRIR
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         );
 
@@ -816,66 +764,11 @@ export default function AdminProcessDetail() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Arquivos do Processo
-              </h4>
-              <div className="grid gap-3">
-                {processDocs.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="flex items-center justify-between p-4 bg-card border border-border rounded-md shadow-sm hover:border-accent/40 transition-shadow"
-                  >
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div className="h-10 w-10 rounded-md bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center text-blue-600">
-                        <FileText className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold truncate">
-                          {doc.name === "ds160_assinada"
-                            ? "ASSINADA"
-                            : doc.name === "ds160_comprovante"
-                              ? "COMPROVANTE MRV"
-                              : doc.name === "ds160_comprovante_sevis"
-                                ? "COMPROVANTE DS-160"
-                                : doc.name === "ds160_boleto"
-                                  ? "BOLETO"
-                                  : doc.name
-                                      .replace(/ds160_?|DS160_?/gi, "")
-                                      .replace(/_/g, " ")
-                                      .toUpperCase()}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground uppercase font-medium">
-                          {doc.storage_path.split(".").pop()} •{" "}
-                          {new Date(doc.created_at).toLocaleDateString("pt-BR")}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 border-accent/20 text-accent hover:bg-accent/10 font-bold text-[10px] tracking-wider"
-                      onClick={() => {
-                        const { data } = supabase.storage
-                          .from(doc.bucket_id || "documents")
-                          .getPublicUrl(doc.storage_path);
-                        window.open(data.publicUrl, "_blank");
-                      }}
-                    >
-                      ABRIR
-                    </Button>
-                  </div>
-                ))}
-
-                {processDocs.length === 0 && (
-                  <div className="text-center py-6 border-2 border-dashed border-border rounded-md bg-muted/10">
-                    <p className="text-sm text-muted-foreground italic">
-                      Nenhum documento anexado ainda.
-                    </p>
-                  </div>
-                )}
-              </div>
+            <div className="text-center py-6 border-2 border-dashed border-border rounded-md bg-muted/10">
+              <p className="text-sm text-muted-foreground italic">
+                Verifique todos os arquivos na coluna à direita para aprovar ou
+                rejeitar o processo.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4 pt-4">
@@ -1652,122 +1545,198 @@ export default function AdminProcessDetail() {
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-md p-4 shadow-sm">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
-              Formulário DS-160
-            </h3>
-            <Button
-              variant="outline"
-              className="w-full gap-2 border-accent text-accent hover:bg-accent hover:text-white transition-all h-11 font-bold"
-              onClick={() =>
-                navigate(`/admin/ds160/${order.user_id}`, {
-                  state: { clientName: order.client_name },
-                })
-              }
-            >
-              <ClipboardList className="h-4 w-4" />
-              VER RESPOSTAS DS-160
-            </Button>
-
-            {(status === "casvSchedulingPending" ||
-              status === "casvFeeProcessing" ||
-              status === "casvPaymentPending" ||
-              status === "awaitingInterview" ||
-              status === "approved" ||
-              status === "completed") &&
-              processDocs.length > 0 && (
-                <Button
-                  variant="outline"
-                  className="w-full mt-3 gap-2 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary transition-all h-11 font-bold"
-                  onClick={() => setIsViewDocsModalOpen(true)}
-                >
-                  <Eye className="h-4 w-4" />
-                  VER DOCUMENTOS ENVIADOS
-                </Button>
-              )}
-          </div>
-
-          {/* Contract PDF Section */}
-          <div className="bg-card border border-border rounded-md p-4 shadow-sm">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
-              <FileText className="h-4 w-4 text-accent" />
-              Contrato do Processo
-            </h3>
-            <div className="space-y-3">
-              {order.contract_pdf_url ? (
-                <a
-                  href={order.contract_pdf_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block"
-                >
-                  <Button className="w-full gap-2 font-bold h-11 bg-accent hover:bg-green-dark">
-                    <Download className="h-4 w-4" />
-                    BAIXAR CONTRATO PDF
-                  </Button>
-                </a>
-              ) : (
-                <div className="p-4 bg-muted/50 rounded-md border border-dashed border-border text-center">
-                  <p className="text-xs text-muted-foreground italic mb-2">
-                    PDF não disponível ou em geração
-                  </p>
-                </div>
-              )}
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full gap-2 text-[10px] font-bold h-8 border-accent/20 text-accent hover:bg-accent/5"
-                onClick={handleRegeneratePdf}
-                disabled={!!regeneratingId}
-              >
-                {regeneratingId ? (
-                  <RefreshCw className="h-3 w-3 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-3 w-3" />
-                )}
-                REGERAR CONTRATO
-              </Button>
-            </div>
-          </div>
-
-          {/* Selfie Section */}
-          <div className="bg-card border border-border rounded-md p-4 shadow-sm overflow-hidden">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
-              <UserIcon className="h-4 w-4 text-accent" />
-              Selfie do Cliente
-            </h3>
-            {order.contract_selfie_url ? (
-              <div className="relative group overflow-hidden rounded-md border border-border aspect-square bg-slate-50 flex items-center justify-center">
-                <img
-                  src={order.contract_selfie_url}
-                  alt="Selfie do cliente"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <a
-                  href={order.contract_selfie_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300"
-                >
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="font-bold text-xs gap-2"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    VER EM TELA CHEIA
-                  </Button>
-                </a>
+          {/* Document Center Section - Redesigned for Premium Look */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-xl space-y-8 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+            
+            <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-6 relative">
+              <div className="h-10 w-10 rounded-2xl bg-accent/10 flex items-center justify-center text-accent ring-4 ring-accent/5">
+                <Package className="h-5 w-5" />
               </div>
-            ) : (
-              <div className="py-12 text-center bg-slate-50 dark:bg-slate-900 rounded-md border-2 border-dashed border-muted-foreground/20">
-                <UserIcon className="h-10 w-10 mx-auto text-muted-foreground/20 mb-2" />
-                <p className="text-[10px] font-medium text-muted-foreground uppercase">
-                  Nenhuma selfie disponível
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900 dark:text-white">
+                  Documentação
+                </h3>
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">
+                  Centro de Arquivos e Dados
                 </p>
               </div>
+            </div>
+
+            {/* Main Action Grid */}
+            <div className="grid gap-4 relative">
+              {/* DS-160 Card */}
+              <div className="group p-4 rounded-3xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 hover:border-accent/30 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+                      <ClipboardList className="h-4 w-4" />
+                    </div>
+                    <span className="text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                      Formulário DS-160
+                    </span>
+                  </div>
+                  <Eye className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-between h-10 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[11px] font-bold rounded-xl hover:bg-accent hover:text-white hover:border-accent transition-all group/btn"
+                  onClick={() =>
+                    navigate(`/admin/ds160/${order.user_id}`, {
+                      state: { clientName: order.client_name },
+                    })
+                  }
+                >
+                  <span className="flex items-center gap-2">
+                    RESPOSTAS COMPLETAS
+                  </span>
+                  <ExternalLink className="h-3 w-3 opacity-50 group-hover/btn:opacity-100" />
+                </Button>
+              </div>
+
+              {/* Contract Card */}
+              <div className="group p-4 rounded-3xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 hover:border-accent/30 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                    <span className="text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                      Contrato de Prestação
+                    </span>
+                  </div>
+                  {order.contract_pdf_url && <CheckCircle2 className="h-3 w-3 text-green-500" />}
+                </div>
+                
+                <div className="space-y-2">
+                  {order.contract_pdf_url ? (
+                    <Button 
+                      className="w-full justify-between h-10 px-4 bg-accent hover:bg-green-dark text-white text-[11px] font-bold rounded-xl transition-all shadow-md shadow-accent/10"
+                      onClick={() => window.open(order.contract_pdf_url, '_blank')}
+                    >
+                      <span>DOWNLOAD DO PDF</span>
+                      <Download className="h-3 w-3" />
+                    </Button>
+                  ) : (
+                    <div className="h-10 flex items-center justify-center rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50">
+                      <span className="text-[10px] text-muted-foreground italic font-medium">Aguardando geração...</span>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleRegeneratePdf}
+                    disabled={!!regeneratingId}
+                    className="w-full flex items-center justify-center gap-2 py-1 text-[9px] font-black uppercase text-muted-foreground hover:text-accent transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCw className={`h-2.5 w-2.5 ${regeneratingId ? "animate-spin" : ""}`} />
+                    Regerar Documento
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Selfie & Identify Section */}
+            {order.contract_selfie_url && (
+              <div className="pt-2">
+                <div className="relative p-2 rounded-[2rem] border border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/40">
+                  <div className="flex items-center gap-3 mb-3 px-3 pt-2">
+                    <Fingerprint className="h-4 w-4 text-accent" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      Reconhecimento Facial
+                    </span>
+                  </div>
+                  <div className="relative group rounded-2xl overflow-hidden aspect-[4/3] bg-slate-200">
+                    <img
+                      src={order.contract_selfie_url}
+                      alt="Selfie do cliente"
+                      className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="w-full h-8 text-[10px] font-bold rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20"
+                        onClick={() => window.open(order.contract_selfie_url, '_blank')}
+                      >
+                        ABRIR ORIGINAL
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
+
+            {/* Uploaded Files Center */}
+            <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <Package className="h-3 w-3 text-slate-500" />
+                  </div>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Anexos Recebidos
+                  </h4>
+                </div>
+                <Badge variant="outline" className="text-[9px] h-5 px-2 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold">
+                  {processDocs.length} ARQUIVOS
+                </Badge>
+              </div>
+
+              <div className="grid gap-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                {processDocs.length > 0 ? (
+                  processDocs.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="group flex items-center justify-between p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl hover:border-accent/20 hover:bg-accent/[0.02] transition-all cursor-pointer"
+                      onClick={() => {
+                        const { data } = supabase.storage
+                          .from(doc.bucket_id || "documents")
+                          .getPublicUrl(doc.storage_path);
+                        window.open(data.publicUrl, "_blank");
+                      }}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-9 w-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-accent/10 group-hover:text-accent transition-colors">
+                          <FileText className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 truncate tracking-tight uppercase">
+                            {doc.name === "ds160_assinada"
+                              ? "ASSINADA"
+                              : doc.name === "ds160_comprovante"
+                                ? "COMPROVANTE MRV"
+                                : doc.name === "ds160_comprovante_sevis"
+                                  ? "COMPROVANTE DS-160"
+                                  : doc.name === "ds160_boleto"
+                                    ? "BOLETO"
+                                    : doc.name
+                                        .replace(/ds160_?|DS160_?/gi, "")
+                                        .replace(/_/g, " ")
+                                        .toUpperCase()}
+                          </p>
+                          <span className="text-[9px] text-muted-foreground font-medium flex items-center gap-1.5">
+                            <Clock className="h-2.5 w-2.5 opacity-50" />
+                            {new Date(doc.created_at).toLocaleDateString("pt-BR")}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground group-hover:text-accent group-hover:bg-accent/5 transition-all">
+                        <Eye className="h-4 w-4" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-10 rounded-3xl border-2 border-dashed border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/30">
+                    <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-2">
+                       <FileText className="h-5 w-5 text-slate-300" />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest text-center">
+                      Nenhum arquivo anexado
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

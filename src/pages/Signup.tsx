@@ -10,6 +10,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -73,11 +74,10 @@ export default function Signup() {
           </div>
           <div>
             <Label htmlFor="phone">{p.phone[lang]}</Label>
-            <Input
+            <PhoneInput
               id="phone"
-              type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+              onChange={(value) => setPhone(value)}
               className="mt-1"
               required
             />
