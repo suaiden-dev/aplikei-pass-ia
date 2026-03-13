@@ -26,6 +26,7 @@ import {
   Package,
   MapPin,
   Trophy,
+  Phone,
 } from "lucide-react";
 import {
   Dialog,
@@ -59,14 +60,24 @@ interface Order {
   date_of_birth: string | null;
   grandmother_name: string | null;
   contract_pdf_url?: string | null;
+  contract_selfie_url?: string | null;
   consular_login?: string | null;
   consular_password?: string | null;
   interview_date?: string | null;
   interview_time?: string | null;
+  consulate_interview_date?: string | null;
+  consulate_interview_time?: string | null;
   interview_location_casv?: string | null;
   interview_location_consulate?: string | null;
   specialist_training_data?: any;
   specialist_review_data?: any;
+  client_name?: string | null;
+  client_email?: string | null;
+  client_whatsapp?: string | null;
+  order_number?: string | null;
+  total_price_usd?: number;
+  created_at: string;
+  terms_accepted_at?: string | null;
 }
 
 interface ProcessDocument {
@@ -154,6 +165,17 @@ export default function AdminProcessDetail() {
 
       if (orderError) throw orderError;
 
+      // Fetch user profile for fallback data (like phone)
+      let profileData = null;
+      if (orderData.user_id) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", orderData.user_id)
+          .single();
+        profileData = profile;
+      }
+
       // Fetch service statuses for this user
       const { data: services, error: servicesError } = await supabase
         .from("user_services")
@@ -190,10 +212,14 @@ export default function AdminProcessDetail() {
         grandmother_name: serviceData?.grandmother_name || null,
         interview_date: s?.interview_date || null,
         interview_time: s?.interview_time || null,
+        consulate_interview_date: s?.consulate_interview_date || null,
+        consulate_interview_time: s?.consulate_interview_time || null,
         interview_location_casv: s?.interview_location_casv || null,
         interview_location_consulate: s?.interview_location_consulate || null,
+        contract_selfie_url: s?.contract_selfie_url || null,
         specialist_training_data: s?.specialist_training_data || null,
         specialist_review_data: s?.specialist_review_data || null,
+        client_whatsapp: orderData.client_whatsapp || profileData?.phone || null,
       };
 
       setOrder(combined);
@@ -1513,6 +1539,14 @@ export default function AdminProcessDetail() {
               </div>
               <div>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase">
+                  Telefone / WhatsApp
+                </p>
+                <p className="text-sm font-medium">
+                  {order.client_whatsapp || "Não informado"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">
                   Valor
                 </p>
                 <p className="text-sm font-medium">
@@ -1543,23 +1577,99 @@ export default function AdminProcessDetail() {
                 </p>
               </div>
             </div>
+ 
           </div>
+
+          {/* Agendamentos Section - Dedicated for CASV and Consulate Dates */}
+          {order.interview_date && (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-xl space-y-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+              
+              <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-6 relative">
+                <div className="h-10 w-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 ring-4 ring-blue-500/5">
+                  <Calendar className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900 dark:text-white">
+                    Agendamentos
+                  </h3>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">
+                    Datas de CASV e Consulado
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-3 relative">
+                {/* CASV / Principal Interview */}
+                <div className="group p-4 rounded-3xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 hover:border-blue-500/30 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 group-hover:text-blue-500 transition-colors">
+                      {order.consulate_interview_date ? "Data CASV" : "Data Entrevista"}
+                    </span>
+                    <Clock className="h-3 w-3 text-slate-300" />
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg font-black text-slate-700 dark:text-slate-200">
+                      {new Date(order.interview_date + "T12:00:00").toLocaleDateString("pt-BR")}
+                    </span>
+                    {order.interview_time && (
+                      <span className="text-xs font-bold text-accent">@ {order.interview_time.slice(0, 5)}</span>
+                    )}
+                  </div>
+                  {order.interview_location_casv && (
+                    <p className="text-[9px] text-muted-foreground mt-2 font-medium flex items-center gap-1">
+                      <MapPin className="h-2.5 w-2.5 opacity-50" />
+                      {order.interview_location_casv}
+                    </p>
+                  )}
+                </div>
+
+                {/* Consulate Interview */}
+                {order.consulate_interview_date && (
+                  <div className="group p-4 rounded-3xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 hover:border-blue-500/30 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 group-hover:text-blue-500 transition-colors">
+                        Data Consulado
+                      </span>
+                      <Trophy className="h-3 w-3 text-slate-300" />
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-lg font-black text-slate-700 dark:text-slate-200">
+                        {new Date(order.consulate_interview_date + "T12:00:00").toLocaleDateString("pt-BR")}
+                      </span>
+                      {order.consulate_interview_time && (
+                        <span className="text-xs font-bold text-accent">@ {order.consulate_interview_time.slice(0, 5)}</span>
+                      )}
+                    </div>
+                    {order.interview_location_consulate && (
+                      <p className="text-[9px] text-muted-foreground mt-2 font-medium flex items-center gap-1">
+                        <MapPin className="h-2.5 w-2.5 opacity-50" />
+                        {order.interview_location_consulate}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Document Center Section - Redesigned for Premium Look */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-xl space-y-8 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
             
-            <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-6 relative">
-              <div className="h-10 w-10 rounded-2xl bg-accent/10 flex items-center justify-center text-accent ring-4 ring-accent/5">
-                <Package className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900 dark:text-white">
-                  Documentação
-                </h3>
-                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">
-                  Centro de Arquivos e Dados
-                </p>
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-6 relative">
+                <div className="h-10 w-10 rounded-2xl bg-accent/10 flex items-center justify-center text-accent ring-4 ring-accent/5">
+                  <Package className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900 dark:text-white">
+                    Documentação
+                  </h3>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">
+                    Centro de Arquivos e Dados
+                  </p>
+                </div>
               </div>
             </div>
 
