@@ -121,7 +121,8 @@ serve(async (req) => {
                 paymentMethod,
                 netAmountUSD: subtotalUSD.toString(),
                 exchange_rate: appliedExchangeRate ? appliedExchangeRate.toString() : "",
-                origin_url: origin_url || "http://localhost:5173"
+                origin_url: origin_url || "http://localhost:5173",
+                project: "aplikei"
             },
         });
 
