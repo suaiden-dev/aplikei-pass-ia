@@ -1,13 +1,13 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/presentation/components/atoms/toaster";
+import { Toaster as Sonner } from "@/presentation/components/atoms/sonner";
+import { TooltipProvider } from "@/presentation/components/atoms/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
-import Layout from "./components/Layout";
-import UserDashboardLayout from "./components/UserDashboardLayout";
+import Layout from "@/presentation/components/templates/Layout";
+import UserDashboardLayout from "@/presentation/components/templates/UserDashboardLayout";
 
 // ... (todas as importações continuam aqui)
 import Index from "./pages/Index";
@@ -35,8 +35,8 @@ import Uploads from "./pages/dashboard/Uploads";
 import PackagePDF from "./pages/dashboard/PackagePDF";
 import HelpCenter from "./pages/dashboard/HelpCenter";
 
-import AdminRoute from "./components/AdminRoute";
-import AdminLayout from "./components/AdminLayout";
+import AdminRoute from "@/presentation/components/molecules/AdminRoute";
+import AdminLayout from "@/presentation/components/templates/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminOrderDetail from "./pages/admin/AdminOrderDetail";
@@ -56,7 +56,8 @@ import { Navigate, Outlet } from "react-router-dom";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 
 const ProtectedRoute = () => {
-  const { user, loading } = useAuth();
+  const { session, loading } = useAuth();
+  const user = session?.user;
   if (loading) return null;
   return user ? <Outlet /> : <Navigate to="/login" replace />;
 };
