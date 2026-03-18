@@ -12,17 +12,17 @@ const MAIN_SERVICE_SLUGS = [
   "guia-visto-consular-b1b2",
 ];
 
-function filterMainServices(
-  orders: Array<{ product_slug: string; [key: string]: any }>,
+function filterMainServices<T extends { product_slug: string }>(
+  orders: T[],
 ) {
   return orders.filter((o) => MAIN_SERVICE_SLUGS.includes(o.product_slug));
 }
 
 // Simulates the de-duplication logic from AdminProcesses.tsx
-function deduplicateOrders(
-  orders: Array<{ user_id: string; product_slug: string; created_at: string; [key: string]: any }>,
+function deduplicateOrders<T extends { user_id: string; product_slug: string }>(
+  orders: T[],
 ) {
-  const uniqueOrders: typeof orders = [];
+  const uniqueOrders: T[] = [];
   const seen = new Set<string>();
 
   orders.forEach((order) => {

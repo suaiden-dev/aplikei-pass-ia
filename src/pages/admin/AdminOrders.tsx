@@ -1,19 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { AdminOrdersFilters, OrderFilters } from "@/components/admin/AdminOrdersFilters";
-import { useToast } from "@/components/ui/use-toast";
+import { AdminDataTable } from "@/presentation/components/organisms/admin/AdminDataTable";
+import { AdminOrdersFilters, OrderFilters } from "@/presentation/components/organisms/admin/AdminOrdersFilters";
+import { useToast } from "@/presentation/components/atoms/use-toast";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+} from "@/presentation/components/atoms/select";
+import { Badge } from "@/presentation/components/atoms/badge";
 import { ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/presentation/components/atoms/button";
 
 interface Order {
     id: string;
@@ -32,11 +32,7 @@ export default function AdminOrders() {
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState<OrderFilters>({});
 
-    useEffect(() => {
-        fetchOrders();
-    }, []);
-
-    const fetchOrders = async (currentFilters: OrderFilters = filters) => {
+    const fetchOrders = useCallback(async (currentFilters: OrderFilters = filters) => {
         setLoading(true);
         try {
             let query = supabase
@@ -81,7 +77,11 @@ export default function AdminOrders() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filters, toast]);
+
+    useEffect(() => {
+        fetchOrders();
+    }, [fetchOrders]);
 
     const handleUpdateStatus = async (orderId: string, status: string) => {
         const { error } = await supabase
@@ -117,7 +117,7 @@ export default function AdminOrders() {
             <div className="rounded-md bg-card">
                 <AdminDataTable
                     loading={loading}
-                    data={orders}
+                    data={orders as unknown as Record<string, unknown>[]}
                     columns={[
                         { key: "order_number", header: "Nº Pedido", className: "font-mono font-medium" },
                         { key: "client_name", header: "Cliente" },
@@ -126,22 +126,22 @@ export default function AdminOrders() {
                             header: "Produto",
                             render: (item) => (
                                 <Badge variant="secondary" className="capitalize">
-                                    {item.product_slug.replace(/-/g, " ")}
+                                    {(item as unknown as Order).product_slug.replace(/-/g, " ")}
                                 </Badge>
                             ),
                         },
                         {
                             key: "total_price_usd",
                             header: "Valor",
-                            render: (item) => formatCurrency(item.total_price_usd),
+                            render: (item) => formatCurrency((item as unknown as Order).total_price_usd),
                         },
                         {
                             key: "payment_status",
                             header: "Status",
                             render: (item) => (
                                 <Select
-                                    value={item.payment_status}
-                                    onValueChange={(v) => handleUpdateStatus(item.id, v)}
+                                    value={(item as unknown as Order).payment_status}
+                                    onValueChange={(v) => handleUpdateStatus((item as unknown as Order).id, v)}
                                 >
                                     <SelectTrigger className="h-8 w-[110px] text-xs">
                                         <SelectValue />
@@ -163,7 +163,7 @@ export default function AdminOrders() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => navigate(`/admin/pedidos/${item.id}`)}
+                                    onClick={() => navigate(`/admin/pedidos/${(item as unknown as Order).id}`)}
                                 >
                                     <ExternalLink className="h-4 w-4" />
                                 </Button>

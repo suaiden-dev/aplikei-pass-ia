@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { AdminDataTable } from "@/presentation/components/organisms/admin/AdminDataTable";
+import { Badge } from "@/presentation/components/atoms/badge";
+import { Button } from "@/presentation/components/atoms/button";
+import { useToast } from "@/presentation/components/atoms/use-toast";
 import {
   FileText,
   ExternalLink,
@@ -12,9 +12,10 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { AdminStatusTimeline } from "@/components/admin/AdminStatusTimeline";
+import { AdminStatusTimeline } from "@/presentation/components/organisms/admin/AdminStatusTimeline";
 
 interface ContractOrder {
+  [key: string]: unknown;
   id: string;
   order_number: string;
   user_id: string | null;
@@ -47,7 +48,9 @@ export default function AdminContracts() {
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Justification: Usando 'any' tático para quebrar a recursão excessiva de tipos do Supabase (deep instantiation).
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      const { data, error } = await ((supabase as any)
         .from("visa_orders")
         .select(
           "id, order_number, user_id, client_name, client_email, product_slug, total_price_usd, payment_method, payment_status, contract_pdf_url, contract_selfie_url, terms_accepted_at, client_ip, created_at",
@@ -57,21 +60,26 @@ export default function AdminContracts() {
           "visto-b1-b2",
           "visto-f1",
           "extensao-status",
+          "troca-status",
           "guia-visto-consular-b1b2",
         ])
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false }) as Promise<{ data: ContractOrder[] | null; error: Error | null }>);
+      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       if (error) throw error;
       const allOrders = data || [];
 
       // Fetch ALL service statuses for all users in orders
-      const { data: services, error: servicesError } = await supabase
+      // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      const { data: services, error: servicesError } = await ((supabase as any)
         .from("user_services")
         .select(
           "id, user_id, status, service_slug, application_id, date_of_birth, grandmother_name, created_at, is_second_attempt",
         )
         .in("user_id", allOrders.map((o) => o.user_id).filter(Boolean))
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true }) as Promise<{ data: any[] | null; error: Error | null }>);
+      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       if (servicesError) {
         console.error("Erro ao buscar status dos serviços:", servicesError);
@@ -106,14 +114,15 @@ export default function AdminContracts() {
             application_id: service?.application_id,
             date_of_birth: service?.date_of_birth,
             grandmother_name: service?.grandmother_name,
-            is_second_attempt: (service as any)?.is_second_attempt || false,
+            is_second_attempt: (service as { is_second_attempt?: boolean })?.is_second_attempt || false,
           };
         },
       );
 
       setOrders(ordersWithStatus ?? []);
-    } catch (err: any) {
-      console.error("Erro ao buscar contratos:", err);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("Erro ao buscar contratos:", error);
       toast({ title: "Erro ao carregar contratos", variant: "destructive" });
     } finally {
       setLoading(false);
@@ -146,11 +155,12 @@ export default function AdminContracts() {
         title: `PDF do pedido ${order.order_number} regenerado com sucesso!`,
       });
       fetchOrders();
-    } catch (err: any) {
-      console.error("Erro ao regenerar PDF:", err);
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      console.error("Erro ao regenerar PDF:", error);
       toast({
         title: "Erro ao regenerar PDF",
-        description: err.message,
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -239,39 +249,46 @@ export default function AdminContracts() {
             {
               key: "product_slug",
               header: "Serviço",
-              render: (item) => (
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="capitalize text-xs">
-                    {item.product_slug?.replace(/-/g, " ")}
-                  </Badge>
-                  {item.is_second_attempt && (
-                    <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 font-bold text-[10px] uppercase">
-                      2ª Tentativa
+              render: (item) => {
+                const order = item as ContractOrder;
+                return (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="capitalize text-xs">
+                      {(order.product_slug as string)?.replace(/-/g, " ")}
                     </Badge>
-                  )}
-                </div>
-              ),
+                    {order.is_second_attempt && (
+                      <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 font-bold text-[10px] uppercase">
+                        2ª Tentativa
+                      </Badge>
+                    )}
+                  </div>
+                );
+              },
             },
             {
               key: "payment_method",
               header: "Pagamento",
-              render: (item) => (
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs capitalize font-medium">
-                    {item.payment_method?.replace(/_/g, " ") || "—"}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground font-mono">
-                    {formatCurrency(item.total_price_usd)}
-                  </span>
-                </div>
-              ),
+              render: (item) => {
+                const order = item as ContractOrder;
+                return (
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs capitalize font-medium">
+                      {(order.payment_method as string)?.replace(/_/g, " ") || "—"}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      {formatCurrency(order.total_price_usd as number)}
+                    </span>
+                  </div>
+                );
+              },
             },
             {
               key: "fluxo",
               header: "Fluxo",
-              render: (item) => (
-                <AdminStatusTimeline status={item.service_status} />
-              ),
+              render: (item) => {
+                const order = item as ContractOrder;
+                return <AdminStatusTimeline status={order.service_status as string} />;
+              },
             },
           ]}
           searchKeys={["order_number", "client_name", "client_email"]}

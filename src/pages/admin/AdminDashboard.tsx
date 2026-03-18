@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminStatCard } from "@/components/admin/AdminStatCard";
-import { AdminDataTable } from "@/components/admin/AdminDataTable";
+import { AdminStatCard } from "@/presentation/components/organisms/admin/AdminStatCard";
+import { AdminDataTable } from "@/presentation/components/organisms/admin/AdminDataTable";
 import { Users, DollarSign, CreditCard, Clock, TrendingUp } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/presentation/components/atoms/skeleton";
 
 interface DashboardStats {
   totalOrders: number;

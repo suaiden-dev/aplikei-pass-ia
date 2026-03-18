@@ -10,7 +10,7 @@ import { render, RenderOptions } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LanguageProvider } from "@/i18n/LanguageContext";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/presentation/components/atoms/tooltip";
 
 // Create a fresh QueryClient for each test to avoid shared state
 const createTestQueryClient = () =>
@@ -54,6 +54,7 @@ const customRender = (
 };
 
 // Re-export everything from testing library
+// eslint-disable-next-line react-refresh/only-export-components -- test utilities re-export non-component helpers by design
 export * from "@testing-library/react";
 
 // Override render with our custom version

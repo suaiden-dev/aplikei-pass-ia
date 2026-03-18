@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdminDataTable } from "@/presentation/components/organisms/admin/AdminDataTable";
+import { Badge } from "@/presentation/components/atoms/badge";
+import { Button } from "@/presentation/components/atoms/button";
+import { useToast } from "@/presentation/components/atoms/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/presentation/components/atoms/tabs";
 import { CheckCircle2, XCircle, ImageIcon, Loader2 } from "lucide-react";
 import {
     Dialog,
@@ -12,12 +12,12 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/presentation/components/atoms/dialog";
 import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/presentation/components/atoms/tooltip";
 
 interface ZellePayment {
     id: string;
@@ -34,7 +34,7 @@ interface ZellePayment {
     payment_method?: string;
     visa_order_id?: string | null;
     screenshot_url?: string;
-    payment_metadata?: any;
+    payment_metadata?: Record<string, unknown> | null;
     guest_name?: string | null;
     guest_email?: string | null;
     profiles?: {
@@ -84,20 +84,26 @@ export default function AdminPayments() {
 
             if (activeTab === "approved") {
                 // 1. Fetch from visa_orders (Stripe, Parcelow, Zelle paid)
-                const { data: visaOrders, error: visaError } = await supabase
+                // Justification: Usando 'any' tático para quebrar a recursão excessiva de tipos do Supabase (deep instantiation).
+                /* eslint-disable @typescript-eslint/no-explicit-any */
+                const { data: visaOrders, error: visaError } = await ((supabase as any)
                     .from("visa_orders")
                     .select("*")
                     .eq("payment_status", "paid")
-                    .order("created_at", { ascending: false });
+                    .order("created_at", { ascending: false }) as Promise<{ data: any[] | null; error: Error | null }>);
+                /* eslint-enable @typescript-eslint/no-explicit-any */
 
                 if (visaError) throw visaError;
 
                 // 2. Fetch from zelle_payments (Already approved Zelle)
-                const { data: zelleData, error: zelleError } = await supabase
+                // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
+                /* eslint-disable @typescript-eslint/no-explicit-any */
+                const { data: zelleData, error: zelleError } = await ((supabase as any)
                     .from("zelle_payments")
                     .select("*, profiles:user_id(full_name)")
                     .eq("status", "approved")
-                    .order("created_at", { ascending: false });
+                    .order("created_at", { ascending: false }) as Promise<{ data: any[] | null; error: Error | null }>);
+                /* eslint-enable @typescript-eslint/no-explicit-any */
 
                 if (zelleError) throw zelleError;
 
@@ -127,11 +133,14 @@ export default function AdminPayments() {
                 combinedData.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
             } else {
                 // Somente Zelle para Pendentes e Rejeitados
-                const { data, error } = await supabase
+                // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
+                /* eslint-disable @typescript-eslint/no-explicit-any */
+                const { data, error } = await ((supabase as any)
                     .from("zelle_payments")
                     .select("*, profiles:user_id(full_name)")
                     .eq("status", activeTab)
-                    .order("created_at", { ascending: false });
+                    .order("created_at", { ascending: false }) as Promise<{ data: any[] | null; error: Error | null }>);
+                /* eslint-enable @typescript-eslint/no-explicit-any */
 
                 if (error) throw error;
                 combinedData = data as ZellePayment[];
@@ -229,7 +238,7 @@ export default function AdminPayments() {
                 return "Matrícula USA - Placement";
             }
             if (metadata?.slug) {
-                return metadata.slug.replace(/-/g, " ");
+                return (metadata.slug as string).replace(/-/g, " ");
             }
             return "Serviço Adicional";
         }
@@ -261,7 +270,7 @@ export default function AdminPayments() {
                     <div className="rounded-[32px] border border-border bg-card/50 backdrop-blur-md overflow-hidden shadow-2xl">
                         <AdminDataTable
                             loading={loading}
-                            data={payments}
+                            data={payments as unknown as Record<string, unknown>[]}
                             columns={[
                                 {
                                     key: "cliente",
@@ -269,11 +278,11 @@ export default function AdminPayments() {
                                     render: (item) => (
                                         <div className="flex flex-col min-w-[150px]">
                                             <span className="font-bold text-foreground truncate">
-                                                {item.profiles?.full_name || item.guest_name || "Cliente sem nome"}
+                                                {(item as unknown as ZellePayment).profiles?.full_name || (item as unknown as ZellePayment).guest_name || "Cliente sem nome"}
                                             </span>
-                                            {(!item.profiles?.full_name && item.guest_email) && (
+                                            {(!(item as unknown as ZellePayment).profiles?.full_name && (item as unknown as ZellePayment).guest_email) && (
                                                 <span className="text-[10px] text-muted-foreground truncate">
-                                                    {item.guest_email}
+                                                    {(item as unknown as ZellePayment).guest_email}
                                                 </span>
                                             )}
                                         </div>
@@ -284,7 +293,7 @@ export default function AdminPayments() {
                                     header: "Nome do Serviço",
                                     render: (item) => (
                                         <Badge variant="outline" className="capitalize border-accent/20 text-accent font-bold px-3 py-1 bg-accent/5">
-                                            {getFriendlyServiceName(item)}
+                                            {getFriendlyServiceName(item as unknown as ZellePayment)}
                                         </Badge>
                                     )
                                 },
@@ -294,10 +303,10 @@ export default function AdminPayments() {
                                     render: (item) => (
                                         <div className="flex flex-col">
                                             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] mb-1">
-                                                MÉTODO: {item.payment_method?.replace(/_/g, " ") || "Zelle"}
+                                                MÉTODO: {((item as unknown as ZellePayment).payment_method as string)?.replace(/_/g, " ") || "Zelle"}
                                             </span>
                                             <span className="text-subtitle font-black text-primary">
-                                                {formatCurrency(item.amount)}
+                                                {formatCurrency((item as unknown as ZellePayment).amount as number)}
                                             </span>
                                         </div>
                                     ),
@@ -314,10 +323,10 @@ export default function AdminPayments() {
                                                         size="sm"
                                                         variant="outline"
                                                         className="h-10 w-10 text-green-600 border-green-200 hover:bg-green-50 rounded-xl shadow-sm transition-all active:scale-95"
-                                                        onClick={() => handleApprove(item)}
-                                                        disabled={processingId === item.id}
+                                                        onClick={() => handleApprove(item as unknown as ZellePayment)}
+                                                        disabled={processingId === (item as unknown as ZellePayment).id}
                                                     >
-                                                        {processingId === item.id ? (
+                                                        {processingId === (item as unknown as ZellePayment).id ? (
                                                             <Loader2 className="h-4 w-4 animate-spin" />
                                                         ) : (
                                                             <CheckCircle2 className="h-5 w-5" />
@@ -335,8 +344,8 @@ export default function AdminPayments() {
                                                         size="sm"
                                                         variant="outline"
                                                         className="h-10 w-10 text-red-600 border-red-200 hover:bg-red-50 rounded-xl shadow-sm transition-all active:scale-95"
-                                                        onClick={() => handleReject(item)}
-                                                        disabled={processingId === item.id}
+                                                        onClick={() => handleReject(item as unknown as ZellePayment)}
+                                                        disabled={processingId === (item as unknown as ZellePayment).id}
                                                     >
                                                         <XCircle className="h-5 w-5" />
                                                     </Button>

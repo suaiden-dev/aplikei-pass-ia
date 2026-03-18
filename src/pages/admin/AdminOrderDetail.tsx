@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/presentation/components/atoms/button";
+import { Badge } from "@/presentation/components/atoms/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/presentation/components/atoms/card";
+import { useToast } from "@/presentation/components/atoms/use-toast";
 import {
   ChevronLeft,
   User,
@@ -17,15 +17,15 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/presentation/components/atoms/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+} from "@/presentation/components/atoms/select";
+import { Textarea } from "@/presentation/components/atoms/textarea";
 
 interface OrderDetail {
   id: string;
@@ -58,29 +58,31 @@ export default function AdminOrderDetail() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [updating, setUpdating] = useState(false);
 
-  useEffect(() => {
-    if (id) fetchOrderDetail();
-  }, [id]);
-
-  const fetchOrderDetail = async () => {
+  const fetchOrderDetail = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Justification: Usando 'any' tático para quebrar a recursão excessiva de tipos do Supabase (deep instantiation).
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      const { data, error } = await ((supabase as any)
         .from("visa_orders")
         .select("*")
         .eq("id", id)
-        .single();
+        .single() as Promise<{ data: any | null; error: Error | null }>);
+      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       if (error) throw error;
-      setOrder(data as OrderDetail);
+      setOrder(data as unknown as OrderDetail);
 
-      if (data.seller_id) {
-        const { data: seller } = await supabase
+      if ((data as Record<string, unknown>).seller_id) {
+        // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        const { data: seller } = await ((supabase as any)
           .from("sellers")
           .select("full_name")
-          .eq("id", data.seller_id)
-          .single();
-        if (seller) setSellerName(seller.full_name);
+          .eq("id", (data as Record<string, unknown>).seller_id as string)
+          .single() as Promise<{ data: any | null; error: Error | null }>);
+        /* eslint-enable @typescript-eslint/no-explicit-any */
+        if (seller) setSellerName((seller as unknown as { full_name: string }).full_name);
       }
     } catch (error) {
       console.error("Erro ao buscar detalhes:", error);
@@ -88,7 +90,11 @@ export default function AdminOrderDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, toast]);
+
+  useEffect(() => {
+    if (id) fetchOrderDetail();
+  }, [id, fetchOrderDetail]);
 
   const handleUpdateStatus = async (
     field: string,
@@ -97,7 +103,7 @@ export default function AdminOrderDetail() {
   ) => {
     setUpdating(true);
     try {
-      const updates: any = { [field]: status };
+      const updates: Record<string, string | null> = { [field]: status };
       if (reason !== undefined) {
         const reasonField =
           field === "contract_approval_status"
@@ -438,7 +444,7 @@ export default function AdminOrderDetail() {
 }
 
 // Helper icons needed but not imported
-function TrendingUp(props: any) {
+function TrendingUp(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}

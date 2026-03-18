@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/presentation/components/atoms/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/presentation/components/atoms/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/presentation/components/atoms/tabs";
 import {
   ChevronLeft,
   User,
@@ -17,9 +17,9 @@ import {
   ExternalLink,
   Briefcase,
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/presentation/components/atoms/skeleton";
+import { AdminDataTable } from "@/presentation/components/organisms/admin/AdminDataTable";
+import { Badge } from "@/presentation/components/atoms/badge";
 
 interface ClientDetail {
   id: string;
@@ -65,57 +65,66 @@ export default function AdminClientDetail() {
   const [files, setFiles] = useState<IdentityFile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (id) fetchClientData();
-  }, [id]);
-
-  const fetchClientData = async () => {
+  const fetchClientData = useCallback(async () => {
+    if (!id) return;
     setLoading(true);
     try {
       // 1. Fetch Client
-      const { data: clientData, error: clientError } = await supabase
+      // Justification: Usando 'any' tático para quebrar a recursão excessiva de tipos do Supabase (deep instantiation) nesse componente específico.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: clientData, error: clientError } = await ((supabase as any)
         .from("clients")
         .select("*")
         .eq("id", id)
-        .single();
+        .single() as Promise<{ data: ClientDetail | null; error: Error | null }>);
 
       if (clientError) throw clientError;
-      setClient(clientData as ClientDetail);
+      setClient(clientData);
 
       // 2. Fetch Orders (linked via client_id in service_requests)
-      const { data: serviceRequests } = await supabase
+      // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: serviceRequests } = await ((supabase as any)
         .from("service_requests")
         .select("id")
-        .eq("client_id", id);
+        .eq("client_id", id) as Promise<{ data: { id: string }[] | null; error: Error | null }>);
 
       const srIds = serviceRequests?.map((sr) => sr.id) || [];
 
       if (srIds.length > 0) {
-        const { data: ordersData } = await supabase
+        // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: ordersData } = await ((supabase as any)
           .from("visa_orders")
           .select(
             "id, order_number, product_slug, total_price_usd, payment_status, created_at",
           )
           .in("service_request_id", srIds)
-          .order("created_at", { ascending: false });
+          .order("created_at", { ascending: false }) as Promise<{ data: Order[] | null; error: Error | null }>);
 
         setOrders((ordersData as Order[]) || []);
 
         // 3. Fetch Identity Files
-        const { data: filesData } = await supabase
+        // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: filesData } = await ((supabase as any)
           .from("identity_files")
           .select("*")
           .in("service_request_id", srIds)
-          .order("created_at", { ascending: false });
+          .order("created_at", { ascending: false }) as Promise<{ data: IdentityFile[] | null; error: Error | null }>);
 
-        setFiles((filesData as IdentityFile[]) || []);
+        setFiles(filesData || []);
       }
     } catch (error) {
       console.error("Erro ao carregar dados do cliente:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchClientData();
+  }, [fetchClientData]);
 
   const formatDate = (date: string | null) =>
     date ? new Date(date).toLocaleDateString("pt-BR") : "—";

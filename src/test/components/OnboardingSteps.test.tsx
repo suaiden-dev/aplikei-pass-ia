@@ -10,6 +10,8 @@ import type {
   OnboardingData,
   StepProps,
 } from "@/pages/dashboard/onboarding/types";
+import { translations } from "@/i18n/translations";
+import { UseFormRegister, UseFormSetValue, UseFormWatch } from "react-hook-form";
 
 // Mock supabase
 vi.mock("@/integrations/supabase/client", () => ({
@@ -45,10 +47,10 @@ const defaultStepProps: StepProps = {
     onChange: vi.fn(),
     onBlur: vi.fn(),
     ref: vi.fn(),
-  }),
+  }) as unknown as UseFormRegister<OnboardingData>,
   errors: {},
-  setValue: vi.fn(),
-  watch: vi.fn().mockReturnValue(""),
+  setValue: vi.fn() as unknown as UseFormSetValue<OnboardingData>,
+  watch: vi.fn().mockReturnValue("") as unknown as UseFormWatch<OnboardingData>,
   lang: "pt",
   t: {
     ds160: {
@@ -84,7 +86,7 @@ const defaultStepProps: StepProps = {
         stateBirth: { pt: "State", en: "State" },
         countryBirth: { pt: "Country", en: "Country" },
       },
-      passport: {
+        passport: {
         title: { pt: "Title", en: "Title" },
         type: { pt: "Type", en: "Type" },
         typeOptions: {
@@ -108,16 +110,23 @@ const defaultStepProps: StepProps = {
         expirationDate: { pt: "Expr", en: "Expr" },
         lost: { pt: "Lost", en: "Lost" },
         lostExplanation: { pt: "Expl", en: "Expl" },
+        select: { pt: "Select", en: "Select" },
+        yes: { pt: "Yes", en: "Yes" },
+        no: { pt: "No", en: "No" },
+        lostPassportNumber: { pt: "Lost No", en: "Lost No" },
+        issuingCountry: { pt: "Country", en: "Country" },
+        explanationLabel: { pt: "Expl", en: "Expl" },
       },
     },
-  } as any,
+  } as unknown as typeof translations,
   o: new Proxy(
     {},
     { get: (_t, prop) => (typeof prop === "string" ? prop : "") },
-  ) as any,
+  ) as unknown as typeof translations.onboardingPage,
   serviceSlug: "visto-b1-b2",
   serviceStatus: "active",
-  securityData: null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  securityData: null as any, // Justification: Tactical any for mock prop.
 };
 
 describe("Onboarding Steps", () => {

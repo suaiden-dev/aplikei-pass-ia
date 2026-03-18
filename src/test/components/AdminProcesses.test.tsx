@@ -8,7 +8,7 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/presentation/components/atoms/tooltip";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import AdminProcesses from "@/pages/admin/AdminProcesses";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,21 +72,24 @@ const mockServices = [
 
 // Mock supabase
 vi.mock("@/integrations/supabase/client", () => {
-  const createChain = (data: any[] = []) => ({
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    neq: vi.fn().mockReturnThis(),
-    in: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({ data: data[0], error: null }),
-    maybeSingle: vi.fn().mockResolvedValue({ data: data[0], error: null }),
-    then: function (resolve: any) {
-      return resolve({ data, error: null });
-    },
-  });
+  const createChain = (data: unknown[] = []) => {
+    const chain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      neq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: data[0], error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: data[0], error: null }),
+      then: function (resolve: (val: { data: unknown[]; error: null }) => void) {
+        return resolve({ data, error: null });
+      },
+    };
+    return chain;
+  };
 
-  let callCount = 0;
+  const callCount = 0;
 
   return {
     supabase: {

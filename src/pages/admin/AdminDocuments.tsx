@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { AdminDataTable } from "@/presentation/components/organisms/admin/AdminDataTable";
+import { Badge } from "@/presentation/components/atoms/badge";
+import { Button } from "@/presentation/components/atoms/button";
 import {
   FileText,
   Download,
@@ -16,6 +16,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 interface DocumentItem {
+  [key: string]: unknown;
   id: string;
   file_name: string;
   file_path: string;
@@ -49,23 +50,25 @@ export default function AdminDocuments() {
 
       if (filesError) throw filesError;
 
-      const enrichedDocs = (files || []).map((f: any) => {
+      const enrichedDocs = (files || []).map((f) => {
+        const file = f as Record<string, unknown>;
+        const profiles = file.profiles as Record<string, unknown> | null;
         return {
-          id: f.id,
-          file_name: f.name,
-          file_path: f.storage_path,
+          id: file.id as string,
+          file_name: file.name as string,
+          file_path: file.storage_path as string,
           file_type: "documento",
-          created_at: f.created_at,
-          service_request_id: f.user_service_id,
-          client_name: f.profiles?.full_name || "Desconhecido",
-          client_id: f.user_id,
-          status: f.status || "pending",
-          bucket_id: f.bucket_id || "documents",
+          created_at: file.created_at as string,
+          service_request_id: file.user_service_id as string,
+          client_name: profiles?.full_name as string || "Desconhecido",
+          client_id: file.user_id as string,
+          status: (file.status as string) || "pending",
+          bucket_id: (file.bucket_id as string) || "documents",
         };
-      }) as DocumentItem[];
+      });
 
       setDocuments(enrichedDocs);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Erro ao carregar documentos:", error);
     } finally {
       setLoading(false);
@@ -144,10 +147,10 @@ export default function AdminDocuments() {
                   </div>
                   <div className="max-w-[200px]">
                     <p className="font-medium truncate text-sm">
-                      {item.file_name || "Documento"}
+                      {(item.file_name as string) || "Documento"}
                     </p>
                     <p className="text-[10px] text-muted-foreground uppercase">
-                      {item.file_type.replace(/_/g, " ")}
+                      {(item.file_type as string).replace(/_/g, " ")}
                     </p>
                   </div>
                 </div>
@@ -159,7 +162,7 @@ export default function AdminDocuments() {
               render: (item) => (
                 <div className="flex items-center gap-2">
                   <User className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-sm">{item.client_name}</span>
+                  <span className="text-sm">{item.client_name as string}</span>
                 </div>
               ),
             },
@@ -167,7 +170,7 @@ export default function AdminDocuments() {
               key: "status",
               header: "Status Documento",
               render: (item) => {
-                const status = item.status || "pending";
+                const status = (item.status as string) || "pending";
                 let variant:
                   | "default"
                   | "secondary"
@@ -190,7 +193,7 @@ export default function AdminDocuments() {
               header: "Enviado em",
               render: (item) => (
                 <span className="text-xs text-muted-foreground">
-                  {formatDate(item.created_at)}
+                  {formatDate(item.created_at as string)}
                 </span>
               ),
             },
@@ -206,8 +209,8 @@ export default function AdminDocuments() {
                     className="h-8 w-8"
                     onClick={() => {
                       const { data } = supabase.storage
-                        .from(item.bucket_id || "documents")
-                        .getPublicUrl(item.file_path);
+                        .from((item.bucket_id as string) || "documents")
+                        .getPublicUrl(item.file_path as string);
                       window.open(data.publicUrl, "_blank");
                     }}
                     title="Baixar arquivo"
@@ -219,7 +222,7 @@ export default function AdminDocuments() {
                     size="icon"
                     className="h-8 w-8"
                     onClick={() =>
-                      navigate(`/admin/clientes/${item.client_id}`)
+                      navigate(`/admin/clientes/${item.client_id as string}`)
                     }
                     title="Ver cliente"
                   >

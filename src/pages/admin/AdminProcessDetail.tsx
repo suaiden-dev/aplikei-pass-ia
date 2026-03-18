@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/presentation/components/atoms/button";
 import {
   ClipboardList,
   Upload,
@@ -34,12 +34,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { AdminStatusTimeline } from "@/components/admin/AdminStatusTimeline";
-import { AdminVerticalTimeline } from "@/components/admin/AdminVerticalTimeline";
-import { AdminProcessLogs } from "@/components/admin/AdminProcessLogs";
+} from "@/presentation/components/atoms/dialog";
+import { Badge } from "@/presentation/components/atoms/badge";
+import { Input } from "@/presentation/components/atoms/input";
+import { AdminStatusTimeline } from "@/presentation/components/organisms/admin/AdminStatusTimeline";
+import { AdminVerticalTimeline } from "@/presentation/components/organisms/admin/AdminVerticalTimeline";
+import { AdminProcessLogs } from "@/presentation/components/organisms/admin/AdminProcessLogs";
 import { useLanguage } from "@/i18n/LanguageContext";
 import {
   Card,
@@ -47,8 +47,8 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/presentation/components/atoms/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/presentation/components/atoms/tabs";
 
 interface Order {
   id: string;
@@ -69,8 +69,8 @@ interface Order {
   consulate_interview_time?: string | null;
   interview_location_casv?: string | null;
   interview_location_consulate?: string | null;
-  specialist_training_data?: any;
-  specialist_review_data?: any;
+  specialist_training_data?: Record<string, unknown> | null;
+  specialist_review_data?: Record<string, unknown> | null;
   client_name?: string | null;
   client_email?: string | null;
   client_whatsapp?: string | null;
@@ -97,6 +97,30 @@ interface OnboardingResponse {
   step_slug: string;
   data: Record<string, unknown>;
   created_at: string;
+  updated_at: string | null;
+}
+
+interface ServiceData {
+  id: string;
+  service_slug: string;
+  status: string | null;
+  current_step: number | null;
+  application_id: string | null;
+  consular_login: string | null;
+  consular_password: string | null;
+  consulate_interview_date: string | null;
+  consulate_interview_time: string | null;
+  interview_date: string | null;
+  interview_time: string | null;
+  interview_location_casv: string | null;
+  interview_location_consulate: string | null;
+  created_at: string;
+  date_of_birth: string | null;
+  grandmother_name: string | null;
+  is_second_attempt: boolean | null;
+  contract_selfie_url: string | null;
+  specialist_training_data: Record<string, unknown> | null;
+  specialist_review_data: Record<string, unknown> | null;
 }
 
 interface RegistrationData {
@@ -157,32 +181,41 @@ export default function AdminProcessDetail() {
     setLoading(true);
     try {
       // Fetch the order
-      const { data: orderData, error: orderError } = await supabase
+      // Justification: Usando 'any' tático para evitar recursão profunda de tipos do Supabase.
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      const { data: orderData, error: orderError } = await ((supabase as any)
         .from("visa_orders")
         .select("*")
         .eq("id", id)
-        .single();
+        .single() as Promise<{ data: any | null; error: Error | null }>);
+      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       if (orderError) throw orderError;
 
       // Fetch user profile for fallback data (like phone)
       let profileData = null;
       if (orderData.user_id) {
-        const { data: profile } = await supabase
+        // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        const { data: profile } = await ((supabase as any)
           .from("profiles")
           .select("*")
           .eq("id", orderData.user_id)
-          .single();
+          .single() as Promise<{ data: any | null; error: Error | null }>);
+        /* eslint-enable @typescript-eslint/no-explicit-any */
         profileData = profile;
       }
 
       // Fetch service statuses for this user
-      const { data: services, error: servicesError } = await supabase
+      // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      const { data: services, error: servicesError } = await ((supabase as any)
         .from("user_services")
         .select("*")
         .eq("user_id", orderData.user_id)
         .eq("service_slug", orderData.product_slug)
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true }) as Promise<{ data: any[] | null; error: Error | null }>);
+      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       if (servicesError) {
         console.error("Error fetching services:", servicesError);
@@ -202,9 +235,9 @@ export default function AdminProcessDetail() {
         // Fallback or early exit if service is crucial
       }
 
-      const s = serviceData as any;
-      const combined = {
-        ...orderData,
+      const s = serviceData as unknown as ServiceData;
+      const combined: Order = {
+        ...(orderData as unknown as Order),
         service_status: serviceData?.status || "unknown",
         user_service_id: serviceData?.id || null,
         application_id: serviceData?.application_id || null,
@@ -219,7 +252,7 @@ export default function AdminProcessDetail() {
         contract_selfie_url: s?.contract_selfie_url || null,
         specialist_training_data: s?.specialist_training_data || null,
         specialist_review_data: s?.specialist_review_data || null,
-        client_whatsapp: orderData.client_whatsapp || profileData?.phone || null,
+        client_whatsapp: profileData?.phone || null,
       };
 
       setOrder(combined);
@@ -245,10 +278,13 @@ export default function AdminProcessDetail() {
 
       // Fetch documents for this user
       if (orderData.user_id) {
-        const { data: docs } = await supabase
+        // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        const { data: docs } = await ((supabase as any)
           .from("documents")
           .select("*")
-          .eq("user_id", orderData.user_id);
+          .eq("user_id", orderData.user_id) as Promise<{ data: any[] | null; error: Error | null }>);
+        /* eslint-enable @typescript-eslint/no-explicit-any */
 
         // Filter documents belonging to this service or the special DS-160 upload names
         const relevantDocs =
@@ -276,36 +312,38 @@ export default function AdminProcessDetail() {
 
         setProcessDocs(relevantDocs);
 
-        // Fetch onboarding responses to find consulate/interview location
+        /* eslint-disable @typescript-eslint/no-explicit-any */
         const { data: responses } = serviceData?.id 
-          ? await supabase
+          ? await ((supabase as any)
               .from("onboarding_responses")
               .select("*")
-              .eq("user_service_id", serviceData.id)
+              .eq("user_service_id", serviceData.id) as Promise<{ data: any[] | null; error: Error | null }>)
           : { data: null };
+        /* eslint-enable @typescript-eslint/no-explicit-any */
 
         if (responses) {
-          setOnboardingResponses(responses);
+          const typedResponses = responses as unknown as OnboardingResponse[];
+          setOnboardingResponses(typedResponses);
           // Find interview location in personal1 or legacy steps
-          const personal1 = responses.find((r) => r.step_slug === "personal1");
-          const personal1Data = personal1?.data as RegistrationData;
+          const personal1 = typedResponses.find((r) => r.step_slug === "personal1");
+          const personal1Data = personal1?.data as RegistrationData | undefined;
           if (personal1Data?.interviewLocation) {
-            setInterviewLocation(personal1Data.interviewLocation);
+            setInterviewLocation(String(personal1Data.interviewLocation));
           } else {
             // Check legacy or other steps
-            const travel = responses.find((r) => r.step_slug === "travel");
-            const travelData = travel?.data as RegistrationData;
+            const travel = typedResponses.find((r) => r.step_slug === "travel");
+            const travelData = travel?.data as RegistrationData | undefined;
             if (travelData?.consulateCity) {
-              setInterviewLocation(travelData.consulateCity);
+              setInterviewLocation(String(travelData.consulateCity));
             }
           }
 
           // Pre-fill grandma name from family info if not already set in user_services
           if (!serviceData?.grandmother_name) {
-            const familyStep = responses.find((r) => r.step_slug === "family");
-            const familyData = familyStep?.data as any;
+            const familyStep = typedResponses.find((r) => r.step_slug === "family");
+            const familyData = familyStep?.data as Record<string, unknown> | undefined;
             if (familyData?.maternalGrandmotherName) {
-              setGrandmaName(familyData.maternalGrandmotherName);
+              setGrandmaName(String(familyData.maternalGrandmotherName));
             }
           }
         }
@@ -1412,9 +1450,11 @@ export default function AdminProcessDetail() {
                             Última Atualização:
                           </span>
                           <span className="font-medium">
-                            {new Date(
-                              order.specialist_training_data.updated_at,
-                            ).toLocaleDateString("pt-BR")}
+                            {order.specialist_training_data?.updated_at
+                              ? new Date(
+                                  String(order.specialist_training_data.updated_at),
+                                ).toLocaleDateString("pt-BR")
+                              : "-"}
                           </span>
                         </div>
                       </div>
@@ -1456,9 +1496,11 @@ export default function AdminProcessDetail() {
                             Última Atualização:
                           </span>
                           <span className="font-medium">
-                            {new Date(
-                              order.specialist_review_data.updated_at,
-                            ).toLocaleDateString("pt-BR")}
+                            {order.specialist_review_data?.updated_at
+                              ? new Date(
+                                  String(order.specialist_review_data.updated_at),
+                                ).toLocaleDateString("pt-BR")
+                              : "-"}
                           </span>
                         </div>
                       </div>
@@ -1693,7 +1735,10 @@ export default function AdminProcessDetail() {
                   className="w-full justify-between h-10 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[11px] font-bold rounded-xl hover:bg-accent hover:text-white hover:border-accent transition-all group/btn"
                   onClick={() =>
                     navigate(`/admin/ds160/${order.user_id}`, {
-                      state: { clientName: order.client_name },
+                      state: { 
+                        clientName: order.client_name,
+                        serviceId: order.user_service_id
+                      },
                     })
                   }
                 >

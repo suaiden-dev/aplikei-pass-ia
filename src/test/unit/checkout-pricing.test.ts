@@ -123,7 +123,8 @@ describe("Checkout Pricing", () => {
     });
 
     it("should generate correct slug for specialist review", () => {
-      const slug = 4 === 4 ? "specialist-review" : "specialist-training";
+      const packageType = 4;
+      const slug = packageType === 4 ? "specialist-review" : "specialist-training";
       expect(slug).toBe("specialist-review");
     });
   });

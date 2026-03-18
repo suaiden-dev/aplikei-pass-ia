@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminDataTable } from "@/components/admin/AdminDataTable";
-import { Button } from "@/components/ui/button";
+import { AdminDataTable } from "@/presentation/components/organisms/admin/AdminDataTable";
+import { Button } from "@/presentation/components/atoms/button";
 import { Eye, Search, Filter, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/presentation/components/atoms/input";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
+} from "@/presentation/components/atoms/select";
 
 interface Client {
     id: string;

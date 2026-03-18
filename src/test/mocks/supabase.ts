@@ -5,8 +5,9 @@
 import { vi } from "vitest";
 
 // Helper to create a chainable query builder mock
-const createQueryBuilder = (data: any = [], error: any = null) => {
-  const builder: any = {
+// Helper to create a chainable query builder mock
+const createQueryBuilder = (data: unknown[] = [], error: Error | null = null) => {
+  const builder: Record<string, unknown> = {
     select: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
@@ -22,12 +23,14 @@ const createQueryBuilder = (data: any = [], error: any = null) => {
     range: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({ data: data[0] ?? null, error }),
     maybeSingle: vi.fn().mockResolvedValue({ data: data[0] ?? null, error }),
-    then: vi.fn((resolve: any) => resolve({ data, error })),
+    then: vi.fn((resolve: (val: { data: unknown; error: Error | null }) => void) => resolve({ data, error })),
   };
 
   // Make the builder itself thenable (so `await supabase.from(...).select(...)` works)
-  builder[Symbol.for("nodejs.util.promisify.custom")] = () =>
-    Promise.resolve({ data, error });
+  Object.defineProperty(builder, Symbol.for("nodejs.util.promisify.custom"), {
+    value: () => Promise.resolve({ data, error }),
+    configurable: true,
+  });
 
   return builder;
 };
@@ -35,22 +38,22 @@ const createQueryBuilder = (data: any = [], error: any = null) => {
 // Auth mock
 const mockAuth = {
   getSession: vi.fn().mockResolvedValue({
-    data: { session: null },
-    error: null,
+    data: { session: null as unknown },
+    error: null as Error | null,
   }),
   getUser: vi.fn().mockResolvedValue({
-    data: { user: null },
-    error: null,
+    data: { user: null as unknown },
+    error: null as Error | null,
   }),
   signInWithPassword: vi.fn().mockResolvedValue({
-    data: { user: null, session: null },
-    error: null,
+    data: { user: null as unknown, session: null as unknown },
+    error: null as Error | null,
   }),
   signUp: vi.fn().mockResolvedValue({
-    data: { user: null, session: null },
-    error: null,
+    data: { user: null as unknown, session: null as unknown },
+    error: null as Error | null,
   }),
-  signOut: vi.fn().mockResolvedValue({ error: null }),
+  signOut: vi.fn().mockResolvedValue({ error: null as Error | null }),
   onAuthStateChange: vi.fn().mockReturnValue({
     data: {
       subscription: {
@@ -58,10 +61,10 @@ const mockAuth = {
       },
     },
   }),
-  resetPasswordForEmail: vi.fn().mockResolvedValue({ error: null }),
+  resetPasswordForEmail: vi.fn().mockResolvedValue({ error: null as Error | null }),
   updateUser: vi.fn().mockResolvedValue({
-    data: { user: null },
-    error: null,
+    data: { user: null as unknown },
+    error: null as Error | null,
   }),
 };
 
@@ -101,11 +104,11 @@ export const supabase = {
 // Utility to configure mock responses for specific tables
 export const mockSupabaseTable = (
   tableName: string,
-  data: any[] = [],
-  error: any = null,
+  data: unknown[] = [],
+  error: Error | null = null,
 ) => {
   const builder = createQueryBuilder(data, error);
-  supabase.from.mockImplementation((table: string) => {
+  (supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
     if (table === tableName) return builder;
     return createQueryBuilder();
   });
@@ -113,7 +116,7 @@ export const mockSupabaseTable = (
 };
 
 // Utility to configure auth mock for logged-in user
-export const mockAuthenticatedUser = (user: any = {
+export const mockAuthenticatedUser = (user: Record<string, unknown> = {
   id: "test-user-id",
   email: "test@example.com",
   user_metadata: { full_name: "Test User" },
@@ -125,12 +128,12 @@ export const mockAuthenticatedUser = (user: any = {
   };
 
   mockAuth.getSession.mockResolvedValue({
-    data: { session },
+    data: { session: session as unknown },
     error: null,
   });
 
   mockAuth.getUser.mockResolvedValue({
-    data: { user },
+    data: { user: user as unknown },
     error: null,
   });
 
@@ -140,7 +143,7 @@ export const mockAuthenticatedUser = (user: any = {
 // Reset all mocks
 export const resetSupabaseMocks = () => {
   vi.clearAllMocks();
-  supabase.from.mockReturnValue(createQueryBuilder());
+  (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue(createQueryBuilder());
 };
 
 export default supabase;

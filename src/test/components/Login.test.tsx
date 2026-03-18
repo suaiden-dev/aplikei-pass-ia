@@ -8,7 +8,7 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/presentation/components/atoms/tooltip";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import Login from "@/pages/Login";
 import { supabase } from "@/integrations/supabase/client";
