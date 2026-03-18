@@ -107,6 +107,7 @@ const NavigationMenuIndicator = React.forwardRef<
 ));
 NavigationMenuIndicator.displayName = NavigationMenuPrimitive.Indicator.displayName;
 
+/* eslint-disable react-refresh/only-export-components -- style utility must be co-exported with components (shadcn/ui pattern) */
 export {
   navigationMenuTriggerStyle,
   NavigationMenu,
@@ -118,3 +119,4 @@ export {
   NavigationMenuIndicator,
   NavigationMenuViewport,
 };
+/* eslint-enable react-refresh/only-export-components */

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/presentation/components/atoms/button";
+import { Input } from "@/presentation/components/atoms/input";
+import { Label } from "@/presentation/components/atoms/label";
 import { toast } from "sonner";
 import { ShieldCheck, Lock, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
@@ -48,8 +48,8 @@ const ConfirmPassword = () => {
 
             toast.success("Sua conta foi ativada com sucesso!");
             navigate("/dashboard");
-        } catch (error: any) {
-            toast.error(error.message || "Erro ao definir senha.");
+        } catch (error: unknown) {
+            toast.error((error as Error).message || "Erro ao definir senha.");
         } finally {
             setLoading(false);
         }

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/presentation/components/atoms/button";
 import { Plane, GraduationCap, Clock, Repeat, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 

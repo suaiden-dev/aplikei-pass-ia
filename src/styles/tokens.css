@@ -1,8 +1,8 @@
 @layer base {
   :root {
     /* Primary Colors */
-    --color-primary: #2f7ef7;
-    --color-primary-hover: #1e6ae1;
+    --color-primary: #0047AB;
+    --color-primary-hover: #003685;
 
     /* Status Colors */
     --color-success: #22c55e;

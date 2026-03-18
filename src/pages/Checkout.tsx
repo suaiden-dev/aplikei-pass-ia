@@ -1,9 +1,10 @@
 import { useParams, Navigate, Link, useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/presentation/components/atoms/button";
+import { Input } from "@/presentation/components/atoms/input";
+import { Label } from "@/presentation/components/atoms/label";
+import { PhoneInput } from "@/presentation/components/atoms/phone-input";
 import {
   Card,
   CardContent,
@@ -11,8 +12,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+} from "@/presentation/components/atoms/card";
+import { Checkbox } from "@/presentation/components/atoms/checkbox";
 import {
   CheckCircle2,
   ShieldCheck,
@@ -29,18 +30,17 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  calculateCardAmountWithFees,
-  calculateUSDToPixFinalBRL,
-  getExchangeRate,
-} from "@/lib/stripe/stripeFeeCalculator";
-import { useEffect } from "react";
-import { PhoneInput } from "@/components/ui/phone-input";
-import { ZellePaymentModal } from "@/components/checkout/ZellePaymentModal";
+} from "@/presentation/components/atoms/select";
+import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
 import { useNavigate } from "react-router-dom";
+import { PaymentCalculator } from "@/domain/payment/PaymentCalculator";
+import { StripeExchangeRateService } from "@/infrastructure/services/StripeExchangeRateService";
+import { SupabaseVisaOrderRepository } from "@/infrastructure/repositories/SupabaseVisaOrderRepository";
+import { ProcessZellePayment } from "@/application/use-cases/ProcessZellePayment";
+import { SupabaseAuthService } from "@/infrastructure/services/SupabaseAuthService";
+import { StripePaymentService } from "@/infrastructure/services/StripePaymentService";
+import { supabase } from "@/integrations/supabase/client"; // Ainda necessário para profiles temporariamente até termos IProfileRepository
+import { ZellePaymentModal } from "@/presentation/components/organisms/checkout/ZellePaymentModal";
 
 export default function Checkout() {
   const { slug } = useParams<{ slug: string }>();
@@ -95,24 +95,24 @@ export default function Checkout() {
       }
 
       // 2. Verificar sessão do usuário
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session?.user) {
+      const authService = new SupabaseAuthService();
+      const session = await authService.getSession();
+      
+      if (session.user) {
         setIsLoggedIn(true);
         setFormData((prev) => ({
           ...prev,
-          email: session.user.email || prev.email,
+          email: session.user?.email || prev.email,
         }));
 
         const { data: profile } = await supabase
-          .from("profiles" as any)
+          .from("profiles")
           .select("full_name, phone")
           .eq("id", session.user.id)
           .maybeSingle();
 
         if (profile) {
-          const profileData = profile as any;
+          const profileData = profile as Record<string, string | null>;
           setFormData((prev) => ({
             ...prev,
             name: profileData.full_name || prev.name,
@@ -123,7 +123,8 @@ export default function Checkout() {
     };
 
     const loadExchangeRate = async () => {
-      const rate = await getExchangeRate();
+      const exchangeRateService = new StripeExchangeRateService();
+      const rate = await exchangeRateService.getExchangeRate();
       setExchangeRate(rate);
     };
 
@@ -178,74 +179,50 @@ export default function Checkout() {
           formData,
         );
 
-        const {
-          data: { session: currentSession },
-        } = await supabase.auth.getSession();
+        const authService = new SupabaseAuthService();
+        const session = await authService.getSession();
+        
+        const paymentService = new StripePaymentService();
+        const checkoutData = await paymentService.initiateCheckout({
+          slug: slug!,
+          email: formData.email,
+          fullName: formData.name,
+          phone: formData.phone,
+          dependents: parseInt(formData.dependents) || 0,
+          originUrl: window.location.origin,
+          paymentMethod: formData.paymentMethod === "stripe_pix" ? "pix" : "card",
+          contractSelfieUrl: selfieUrl,
+          termsAcceptedAt: acceptedAt,
+          action,
+          serviceId,
+        }, session.accessToken);
 
-        const { data, error } = await supabase.functions.invoke(
-          "stripe-checkout",
-          {
-            body: {
-              slug,
-              email: formData.email,
-              fullName: formData.name,
-              phone: formData.phone,
-              dependents: parseInt(formData.dependents) || 0,
-              origin_url: window.location.origin,
-              paymentMethod:
-                formData.paymentMethod === "stripe_pix" ? "pix" : "card",
-              contract_selfie_url: selfieUrl,
-              terms_accepted_at: acceptedAt,
-              action,
-              serviceId,
-            },
-            headers: {
-              Authorization: `Bearer ${currentSession?.access_token}`,
-            },
-          },
-        );
-
-        if (error) {
-          console.error("Erro na função stripe-checkout:", error);
-          // Try to get more details if it's a known error format
-          const errorDetails = error.context?.error || error.message;
-          console.error("Detalhes do erro:", errorDetails);
-          throw error;
-        }
-        if (data?.url) {
-          window.location.href = data.url;
+        if (checkoutData?.url) {
+          window.location.href = checkoutData.url;
         } else {
           throw new Error("Não foi possível gerar a sessão de pagamento.");
         }
       } else if (formData.paymentMethod === "zelle") {
-        // Cria a visa_order antes de abrir o modal para garantir o vínculo
-        const { data: zelleOrderData, error: zelleOrderErr } = await supabase
-          .from("visa_orders")
-          .insert({
-            client_name: formData.name,
-            client_email: formData.email,
-            product_slug: slug,
-            total_price_usd: totalPrice,
-            payment_method: "zelle",
-            payment_status: "pending",
-            contract_selfie_url: selfieUrl || null,
-            terms_accepted_at: acceptedAt || null,
-            // Armazenar metadados em jsonb payment_metadata futuramente ou simplesmente aguardar restart ser tratado (Zelle não processa restart automático hoje)
-            payment_metadata: {
-              action,
-              serviceId,
-            },
-          })
-          .select("id")
-          .single();
+        const visaOrderRepository = new SupabaseVisaOrderRepository();
+        const processZellePayment = new ProcessZellePayment(visaOrderRepository);
 
-        if (zelleOrderErr) {
-          console.error(
-            "[Checkout] Erro ao criar visa_order para Zelle:",
-            zelleOrderErr,
-          );
+        const zelleOrderData = await processZellePayment.execute({
+          clientName: formData.name,
+          clientEmail: formData.email,
+          productSlug: slug,
+          totalPriceUsd: totalPrice,
+          contractSelfieUrl: selfieUrl || undefined,
+          termsAcceptedAt: acceptedAt || undefined,
+          metadata: {
+            action,
+            serviceId,
+          },
+        });
+
+        if (!zelleOrderData) {
+          console.error("[Checkout] Erro ao criar visa_order para Zelle");
         } else {
-          setZelleOrderId(zelleOrderData?.id ?? null);
+          setZelleOrderId(zelleOrderData.id);
         }
         setIsZelleModalOpen(true);
       } else if (formData.paymentMethod === "parcelow") {
@@ -305,8 +282,11 @@ export default function Checkout() {
   };
 
   const numDependents = parseInt(formData.dependents) || 0;
-  const basePrice = (service as any).basePrice || 0;
-  const depPrice = (service as any).depPrice || 0;
+  
+  // Cast service for safe access to basePrice/depPrice
+  const serviceData = service as unknown as { basePrice?: number; depPrice?: number; title: Record<string, string>; subtitle: Record<string, string> };
+  const basePrice = serviceData.basePrice || 0;
+  const depPrice = serviceData.depPrice || 0;
   const subtotal = basePrice + numDependents * depPrice;
 
   // Calculate final price with fees if Stripe is selected
@@ -317,9 +297,9 @@ export default function Checkout() {
   const currentExchangeRate = exchangeRate || 5.6;
 
   const totalPrice = isPix
-    ? calculateUSDToPixFinalBRL(subtotal, currentExchangeRate)
+    ? PaymentCalculator.calculateUSDToPixTotal(subtotal, currentExchangeRate)
     : isStripe
-      ? calculateCardAmountWithFees(subtotal)
+      ? PaymentCalculator.calculateCardAmount(subtotal)
       : subtotal;
 
   // Fees calculation

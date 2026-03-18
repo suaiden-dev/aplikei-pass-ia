@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, ArrowLeft, CheckCircle2, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/presentation/components/atoms/button";
+import { Input } from "@/presentation/components/atoms/input";
+import { Label } from "@/presentation/components/atoms/label";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
+import { SupabaseAuthService } from "@/infrastructure/services/SupabaseAuthService";
 
 export default function ResetPassword() {
     const { lang, t } = useLanguage();
@@ -26,8 +26,9 @@ export default function ResetPassword() {
 
     // Verifica se há sessão ativa (vinda do OTP verificado no ForgotPassword)
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
+        const authService = new SupabaseAuthService();
+        authService.getSession().then((session) => {
+            if (!session.user) {
                 setErrorMessage(p.noSession[lang]);
                 setTimeout(() => navigate("/forgot-password"), 4000);
             }
@@ -35,8 +36,8 @@ export default function ResetPassword() {
         });
     }, [lang, navigate, p]);
 
-    const getErrorMessage = (err: any): string => {
-        const msg = err?.message || String(err) || "";
+    const getErrorMessage = (err: unknown): string => {
+        const msg = err instanceof Error ? err.message : String(err) || "";
         const lower = msg.toLowerCase();
         if (lower.includes("same") || lower.includes("igual")) return p.errorSamePassword[lang];
         if (lower.includes("weak") || lower.includes("fraca")) return p.errorWeakPassword[lang];
@@ -51,13 +52,14 @@ export default function ResetPassword() {
         setErrorMessage(null);
 
         try {
-            const { error } = await supabase.auth.updateUser({ password });
-            if (error) throw error;
+            const authService = new SupabaseAuthService();
+            const { error } = await authService.resetPassword(password);
+            if (error) throw new Error(error);
 
             setPasswordUpdated(true);
-            await supabase.auth.signOut();
+            await authService.logout();
             setTimeout(() => navigate("/login"), 3000);
-        } catch (err: any) {
+        } catch (err: unknown) {
             setErrorMessage(getErrorMessage(err));
         } finally {
             setLoading(false);

@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
-import Header from "./Header";
-import Footer from "./Footer";
-import FloatingChat from "./FloatingChat";
+import Header from "@/presentation/components/organisms/Header";
+import Footer from "@/presentation/components/organisms/Footer";
+import FloatingChat from "@/presentation/components/organisms/FloatingChat";
 
 export default function Layout() {
   return (

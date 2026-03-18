@@ -1,203 +1,260 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import {
-  Plane, GraduationCap, Clock, Repeat, BookOpen, Bot, Headphones, FileText, Shield, ChevronRight, CheckCircle2, Quote, Star,
-} from "lucide-react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/presentation/components/atoms/accordion";
 
-import heroIllustration from "@/assets/hero-illustration.png";
-import checklistIllustration from "@/assets/checklist-illustration.png";
-import aiIllustration from "@/assets/ai-illustration.png";
-import supportIllustration from "@/assets/support-illustration.png";
-import pdfIllustration from "@/assets/pdf-illustration.png";
-import servicesBanner from "@/assets/services-banner.png";
-
-const iconMap: Record<string, React.ReactNode> = {
-  plane: <Plane className="h-6 w-6" />,
-  "graduation-cap": <GraduationCap className="h-6 w-6" />,
-  clock: <Clock className="h-6 w-6" />,
-  repeat: <Repeat className="h-6 w-6" />,
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.5 } }),
-};
+const heroImage = "https://lh3.googleusercontent.com/aida-public/AB6AXuCnB1Ui5KR81_ZMuo2jsx-CE2-eEAymcigniK9dSdehjIJcJMpbaGUQSx37FIqHuJxB-b-g-8I9MgmdvUyc5lm6CWEgB6x25jP6fuBOdopIb7Pmy17WSCnKle7MuRB92hOoZ9wctpAcGeEplfRK4A9WS0yh_6LOr2j3QTXUFSjuMlQEXtUPT9ETTQv-iX0O1s8QEcg4w6GdquEsnSh8yPmGnzn7xQoB8c4AAY4IOhpFPwS94-7-0wEpwMiqDBmlCjbpqGG7nurSHVGT";
+const avatar1 = "https://lh3.googleusercontent.com/aida-public/AB6AXuDlnEc1G-SbZB8Y7xp2Hzl3zzkKk70AbFiq_x9irj4jgOeOKkBHNQXydZlfRc05pzsT-xeVCYT2pe53RxnPsRyhFPOlCp4fUsezeATzXX5QZgEhsfTV1Jk8pzGcDXz9IHtMbzyXSRcbNy7evt1Bj5YiMeUOnV0ptnrQxDxIYvM5e3obyR-aOzPywunfU12b9FrIAlq4S6SQ8vQe11gsFbJAJ8j1vciDRzMZG1BCboKCPcx6jkNj_LjNu_hy_CeY90Nrj8yKq2TDhTXO";
+const avatar2 = "https://lh3.googleusercontent.com/aida-public/AB6AXuCWNWOLfmN2ydf_8zptu7AJWO0gYi70DXdQl7aOOxNSmaaaRAZouDTOQu0K91w4hFGBHMrncmyl6-cMIbnJEHCgXMs9TV1qVGzwTswsl7aM7nxdGN0VlNH94dUuQlpfoXup7cUqzZM1Df6Jv-9Gw4wZTr1pjMMsJ5WXj8Dwz59jan0gQK6fhkqIrUy2qZKRjagl2NUkSVrZv6qZPnjrsp9YYa7r1OJ5noAmQ2qEX_xI2Mfja669a0zrNOUqNvgJHa2ZcgkoR_NzVNZD";
+const avatar3 = "https://lh3.googleusercontent.com/aida-public/AB6AXuAD2kCXX_3Jos98rp_p5mVfMiJlGb_AeWmzAbthzXtHXVRVKJSCWxjlybp_t95BLR5od3RVenblwNhGqBKBmJBDh6ZTKpoSXrskVYR1zn9qL5UYfo0NM-C__MBBIT8bpJsQ_2VLSjlKfSIcrYp4Az5pn0FyCXkPfS6JfzTq9o5EQM1Rv9OzARaaDivOYXtw29DlwOQo56dG0S6z1yY9_88xvNuQaO8d9bzCAfOZrWfUKlBItccvvt0mCLg2tpB6nxbbd9gOOin6vEwb";
 
 export default function Index() {
   const { lang, t } = useLanguage();
 
   return (
-    <div>
-      {/* Hero */}
-      <section className="bg-hero relative overflow-hidden py-20 md:py-28">
-        <div className="container relative z-10">
-          <div className="grid items-center gap-6 md:grid-cols-2">
-            <div>
-              <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="font-display text-4xl font-extrabold leading-tight text-primary-foreground md:text-5xl lg:text-6xl">
-                {t.hero.title[lang]}{" "}<span className="text-gradient-accent">{t.hero.titleHighlight[lang]}</span>
-              </motion.h1>
-              <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.6 }} className="mt-4 max-w-lg text-lg text-primary-foreground/75">
-                {t.hero.subtitle[lang]}
-              </motion.p>
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }} className="mt-6 flex flex-col gap-4 sm:flex-row">
-                <Button size="lg" className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark px-5 text-base font-bold" asChild>
-                  <Link to="/servicos">{t.hero.cta[lang]}</Link>
-                </Button>
-                <Button size="lg" variant="outline" className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10" asChild>
-                  <Link to="/como-funciona">{t.hero.ctaSecondary[lang]}</Link>
-                </Button>
-              </motion.div>
+    <div className="bg-background-light font-body text-dark-grey antialiased">
+      {/* Hero Header Section */}
+      <header className="relative bg-highlight overflow-hidden py-32 lg:py-40 px-8 lg:px-16">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-24 items-center">
+          <div className="z-10">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/20 rounded-full text-white font-bold text-sm mb-8">
+              <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
+              TECNOLOGIA + SUPORTE HUMANO
             </div>
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.7 }} className="hidden md:block">
-              <img src={heroIllustration} alt="Passport and checklist" className="mx-auto max-w-md rounded-md" />
-            </motion.div>
+            <h1 className="text-5xl lg:text-7xl font-extrabold leading-[1.1] mb-8 text-white">
+              {t.hero.title[lang]} <span className="text-primary">{t.hero.titleHighlight[lang]}</span>
+            </h1>
+            <p className="text-xl text-slate-300 font-medium max-w-xl mb-12 leading-relaxed">
+              {t.hero.subtitle[lang]}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-5">
+              <Link to="/servicos" className="px-10 py-5 bg-primary text-white font-bold text-lg rounded-full shadow-2xl shadow-primary/30 hover:scale-105 transition-transform flex items-center justify-center gap-2">
+                Começar Agora <span className="material-symbols-outlined">arrow_forward</span>
+              </Link>
+              <Link to="/como-funciona" className="px-10 py-5 bg-white/10 border border-white/20 text-white font-bold text-lg rounded-full hover:bg-white/20 transition-colors flex items-center justify-center">
+                Ver planos
+              </Link>
+            </div>
+            <div className="mt-16 flex items-center gap-4">
+              <div className="flex -space-x-3">
+                <img alt="User" className="w-12 h-12 rounded-full border-4 border-highlight" src={avatar1} />
+                <img alt="User" className="w-12 h-12 rounded-full border-4 border-highlight" src={avatar2} />
+                <img alt="User" className="w-12 h-12 rounded-full border-4 border-highlight" src={avatar3} />
+              </div>
+              <p className="text-sm font-bold text-slate-400 tracking-wide">+1.500 brasileiros já aprovados este ano</p>
+            </div>
+          </div>
+          <div className="relative">
+            <div className="absolute -inset-4 bg-primary/10 rounded-[3.5rem] rotate-2"></div>
+            <img alt="Estudante focada" className="relative z-10 w-full aspect-[4/5] object-cover rounded-[3rem] shadow-3xl" src={heroImage} />
+            <div className="absolute bottom-12 -left-8 z-20 bg-white p-6 rounded-2xl shadow-2xl flex items-center gap-5 border border-slate-50">
+              <div className="w-14 h-14 bg-green-50 rounded-full flex items-center justify-center">
+                <span className="material-symbols-outlined text-green-600 text-3xl font-bold">verified</span>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Taxa de Sucesso</p>
+                <p className="text-2xl font-black text-primary">98.2%</p>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-accent/10 blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-accent/5 blur-3xl" />
-      </section>
+      </header>
 
-      {/* Services */}
-      <section className="py-20">
-        <div className="container">
-          <h2 className="text-center font-display text-title-xl font-bold text-foreground md:text-4xl">{t.servicesSection.title[lang]}</h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">{t.servicesSection.subtitle[lang]}</p>
-          <p className="mx-auto mt-4 text-center font-display text-lg font-bold text-accent animate-pulse">{t.servicesSection.promo[lang]}</p>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {t.servicesData.map((s, i) => (
-              <motion.div key={s.slug} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-                <Link to={`/servicos/${s.slug}`} className="group flex h-full flex-col rounded-md border border-border bg-card p-4 shadow-card transition-all hover:shadow-card-hover hover:border-accent/40">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-accent/10 text-accent">
-                    {iconMap[["plane", "graduation-cap", "clock", "repeat"][i]]}
-                  </div>
-                  <h3 className="font-display text-base font-semibold text-foreground">{s.shortTitle[lang]}</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">{s.subtitle[lang]}</p>
-                  <div className="mt-4">
-                    <span className="text-sm text-muted-foreground line-through">{s.originalPrice[lang]}</span>
-                    <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-xs font-bold text-accent">{t.servicesSection.discount[lang]}</span>
-                  </div>
-                  <p className="mt-1 font-display text-title font-extrabold text-accent">{s.price[lang]}</p>
-                  <span className="mt-auto flex items-center gap-1 pt-4 text-sm font-medium text-accent group-hover:underline">
-                    {t.servicesSection.viewDetails[lang]} <ChevronRight className="h-4 w-4" />
-                  </span>
-                </Link>
-              </motion.div>
-            ))}
+      {/* Services Section */}
+      <section className="py-40 px-8 lg:px-16 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-32">
+            <h2 className="text-4xl lg:text-5xl font-extrabold mb-8 text-primary">Escolha o visto ideal para sua jornada</h2>
+            <p className="text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto">Oferecemos guias passo a passo e suporte de IA para as categorias mais procuradas por brasileiros.</p>
           </div>
-        </div>
-      </section>
-
-      {/* Banner */}
-      <section className="py-0">
-        <div className="container">
-          <div className="overflow-hidden rounded-md">
-            <img src={servicesBanner} alt="Travel and immigration" className="h-48 w-full object-cover md:h-64" />
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="py-20">
-        <div className="container">
-          <h2 className="text-center font-display text-title-xl font-bold text-foreground md:text-4xl">{t.howItWorksSection.title[lang]}</h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">{t.howItWorksSection.subtitle[lang]}</p>
-          <div className="mt-12 grid gap-4 md:grid-cols-3">
-            {[
-              { step: "1", title: t.howItWorksSection.step1Title[lang], desc: t.howItWorksSection.step1Desc[lang], icon: <BookOpen className="h-7 w-7 text-accent" /> },
-              { step: "2", title: t.howItWorksSection.step2Title[lang], desc: t.howItWorksSection.step2Desc[lang], icon: <Shield className="h-7 w-7 text-accent" /> },
-              { step: "3", title: t.howItWorksSection.step3Title[lang], desc: t.howItWorksSection.step3Desc[lang], icon: <FileText className="h-7 w-7 text-accent" /> },
-            ].map((item, i) => (
-              <motion.div key={item.step} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="group rounded-md border border-border bg-card p-4 shadow-card transition-shadow hover:shadow-card-hover">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-accent/10">{item.icon}</div>
-                <h3 className="font-display text-lg font-semibold text-foreground">{item.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* What you get */}
-      <section className="border-t border-border bg-muted/50 py-20">
-        <div className="container">
-          <h2 className="text-center font-display text-title-xl font-bold text-foreground md:text-4xl">{t.whatYouGet.title[lang]}</h2>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { image: checklistIllustration, title: t.whatYouGet.guide[lang], desc: t.whatYouGet.guideDesc[lang] },
-              { image: aiIllustration, title: t.whatYouGet.ai[lang], desc: t.whatYouGet.aiDesc[lang], badge: t.whatYouGet.bonus[lang] },
-              { image: supportIllustration, title: t.whatYouGet.support[lang], desc: t.whatYouGet.supportDesc[lang], badge: t.whatYouGet.bonus[lang] },
-              { image: pdfIllustration, title: t.whatYouGet.pdf[lang], desc: t.whatYouGet.pdfDesc[lang] },
-            ].map((item, i) => (
-              <motion.div key={i} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="relative rounded-md border border-border bg-card p-4 shadow-card transition-shadow hover:shadow-card-hover">
-                {item.badge && <span className="absolute right-4 top-4 rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-semibold text-accent">{item.badge}</span>}
-                <img src={item.image} alt={item.title} className="mb-4 h-20 w-20 object-contain" />
-                <h3 className="font-display text-base font-semibold text-foreground">{item.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-20">
-        <div className="container">
-          <h2 className="text-center font-display text-title-xl font-bold text-foreground md:text-4xl">{t.testimonials.title[lang]}</h2>
-          <div className="mt-12 grid gap-4 md:grid-cols-3">
-            {t.testimonials.items.map((item, i) => (
-              <motion.div key={i} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="flex flex-col rounded-md border border-border bg-card p-4 shadow-card">
-                <Quote className="mb-3 h-8 w-8 text-accent/30" />
-                <div className="mb-4 flex gap-1">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="h-4 w-4 fill-accent text-accent" />
-                  ))}
+          <div className="grid md:grid-cols-3 gap-16">
+            <div className="group p-12 rounded-[2.5rem] bg-white border border-slate-100 hover:border-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/5">
+              <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-primary group-hover:text-white transition-all">
+                <span className="material-symbols-outlined text-primary text-4xl group-hover:text-white transition-colors">flight_takeoff</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-6 text-primary">Visto de Turismo (B1/B2)</h3>
+              <p className="text-slate-600 mb-10 leading-relaxed min-h-[80px]">{t.servicesData[0].subtitle[lang]}</p>
+              <div className="flex items-end justify-between pt-8 border-t border-slate-100">
+                <div>
+                  <p className="text-sm font-bold text-slate-400 line-through mb-1">{t.servicesData[0].originalPrice[lang]}</p>
+                  <p className="text-3xl font-black text-primary">{t.servicesData[0].price[lang]}</p>
                 </div>
-                <p className="flex-1 text-sm italic text-foreground/80">"{item.quote[lang]}"</p>
-                <p className="mt-4 text-sm font-semibold text-foreground">— {item.author}</p>
-              </motion.div>
-            ))}
+                <Link to={`/servicos/${t.servicesData[0].slug}`} className="w-14 h-14 rounded-full border-2 border-primary/20 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </Link>
+              </div>
+            </div>
+            
+            <div className="group p-12 rounded-[2.5rem] bg-white border border-slate-100 hover:border-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/5">
+              <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-primary group-hover:text-white transition-all">
+                <span className="material-symbols-outlined text-primary text-4xl group-hover:text-white transition-colors">school</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-6 text-primary">Visto de Estudante (F-1)</h3>
+              <p className="text-slate-600 mb-10 leading-relaxed min-h-[80px]">{t.servicesData[1].subtitle[lang]}</p>
+              <div className="flex items-end justify-between pt-8 border-t border-slate-100">
+                <div>
+                  <p className="text-sm font-bold text-slate-400 line-through mb-1">{t.servicesData[1].originalPrice[lang]}</p>
+                  <p className="text-3xl font-black text-primary">{t.servicesData[1].price[lang]}</p>
+                </div>
+                <Link to={`/servicos/${t.servicesData[1].slug}`} className="w-14 h-14 rounded-full border-2 border-primary/20 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </Link>
+              </div>
+            </div>
+
+            <div className="group p-12 rounded-[2.5rem] bg-white border border-slate-100 hover:border-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/5">
+              <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-primary group-hover:text-white transition-all">
+                <span className="material-symbols-outlined text-primary text-4xl group-hover:text-white transition-colors">history</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-6 text-primary">Renovação de Visto</h3>
+              <p className="text-slate-600 mb-10 leading-relaxed min-h-[80px]">{t.servicesData[2].subtitle[lang]}</p>
+              <div className="flex items-end justify-between pt-8 border-t border-slate-100">
+                <div>
+                  <p className="text-sm font-bold text-slate-400 line-through mb-1">{t.servicesData[2].originalPrice[lang]}</p>
+                  <p className="text-3xl font-black text-primary">{t.servicesData[2].price[lang]}</p>
+                </div>
+                <Link to={`/servicos/${t.servicesData[2].slug}`} className="w-14 h-14 rounded-full border-2 border-primary/20 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="border-t border-border bg-muted/50 py-20">
-        <div className="container max-w-3xl">
-          <h2 className="text-center font-display text-title-xl font-bold text-foreground md:text-4xl">{t.faq.title[lang]}</h2>
-          <Accordion type="single" collapsible className="mt-6">
-            {t.faq.items.map((item, i) => (
-              <AccordionItem key={i} value={`faq-${i}`}>
-                <AccordionTrigger className="text-left font-medium text-foreground">{item.q[lang]}</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">{item.a[lang]}</AccordionContent>
-              </AccordionItem>
-            ))}
+      {/* Step by Step Section */}
+      <section className="py-40 px-8 lg:px-16 bg-white border-y border-slate-100 text-dark-grey">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-32">
+            <span className="text-primary font-bold uppercase tracking-[0.2em] text-sm">Passo a Passo</span>
+            <h2 className="text-4xl lg:text-5xl font-extrabold mt-6 text-primary">Como funciona a Aplikei</h2>
+          </div>
+          <div className="grid md:grid-cols-4 gap-20 relative">
+            <div className="hidden md:block absolute top-10 left-0 w-full h-px bg-slate-200 -z-10"></div>
+            <div className="relative bg-white pr-6">
+              <div className="w-20 h-20 bg-primary text-white rounded-2xl flex items-center justify-center font-bold text-3xl mb-10 shadow-xl shadow-primary/20">01</div>
+              <h4 className="text-2xl font-bold mb-5 text-primary">Escolha o Visto</h4>
+              <p className="text-slate-600 leading-relaxed text-lg font-medium">Selecione a categoria que melhor se adapta aos seus planos de viagem ou estudo.</p>
+            </div>
+            <div className="relative bg-white pr-6">
+              <div className="w-20 h-20 bg-white text-primary border-4 border-primary rounded-2xl flex items-center justify-center font-bold text-3xl mb-10">02</div>
+              <h4 className="text-2xl font-bold mb-5 text-primary">Análise de IA</h4>
+              <p className="text-slate-600 leading-relaxed text-lg font-medium">Nossa inteligência artificial analisa seus dados para garantir conformidade total.</p>
+            </div>
+            <div className="relative bg-white pr-6">
+              <div className="w-20 h-20 bg-white text-primary border-4 border-primary rounded-2xl flex items-center justify-center font-bold text-3xl mb-10">03</div>
+              <h4 className="text-2xl font-bold mb-5 text-primary">Organização</h4>
+              <p className="text-slate-600 leading-relaxed text-lg font-medium">Organizamos toda a documentação necessária em um kit pronto para impressão.</p>
+            </div>
+            <div className="relative bg-white">
+              <div className="w-20 h-20 bg-white text-primary border-4 border-primary rounded-2xl flex items-center justify-center font-bold text-3xl mb-10">04</div>
+              <h4 className="text-2xl font-bold mb-5 text-primary">Protocolo</h4>
+              <p className="text-slate-600 leading-relaxed text-lg font-medium">Com o pacote completo em mãos, você está pronto para o consulado com confiança.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-40 px-8 lg:px-16 bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-4xl font-extrabold mb-32 text-center text-primary">Quem já aprovou o visto com a gente</h2>
+          <div className="grid md:grid-cols-3 gap-16">
+            <div className="p-12 bg-white border border-slate-100 rounded-[3rem] relative hover:shadow-xl transition-shadow group text-dark-grey">
+              <span className="material-symbols-outlined text-primary text-6xl opacity-10 absolute top-8 right-10">format_quote</span>
+              <div className="flex text-primary mb-6">
+                <span className="material-symbols-outlined">star</span>
+                <span className="material-symbols-outlined">star</span>
+                <span className="material-symbols-outlined">star</span>
+                <span className="material-symbols-outlined">star</span>
+                <span className="material-symbols-outlined">star</span>
+              </div>
+              <p className="text-slate-700 mb-12 italic leading-relaxed text-lg font-medium">"O guia foi super detalhado e a IA me economizou horas de papelada. Finalmente, uma ferramenta que organiza tudo pra você!"</p>
+              <div className="flex items-center gap-5">
+                <img alt="Maria Silva" className="w-14 h-14 rounded-full object-cover ring-4 ring-slate-50" src={avatar1} />
+                <div>
+                  <p className="font-extrabold text-primary text-lg">Maria Silva</p>
+                  <p className="text-sm text-slate-500 font-bold">Visto B1/B2 Aprovado</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-12 bg-white border border-slate-100 rounded-[3rem] relative hover:shadow-xl transition-shadow group text-dark-grey">
+              <span className="material-symbols-outlined text-primary text-6xl opacity-10 absolute top-8 right-10">format_quote</span>
+              <div className="flex text-primary mb-6">
+                <span className="material-symbols-outlined">star</span>
+                <span className="material-symbols-outlined">star</span>
+                <span className="material-symbols-outlined">star</span>
+                <span className="material-symbols-outlined">star</span>
+                <span className="material-symbols-outlined">star</span>
+              </div>
+              <p className="text-slate-700 mb-12 italic leading-relaxed text-lg font-medium">"Eu estava confuso com o processo do F-1, mas o checklist da Aplikei me deu segurança. Não esqueci nada e o PDF gerado ficou impecável."</p>
+              <div className="flex items-center gap-5">
+                <img alt="Carlos Ramos" className="w-14 h-14 rounded-full object-cover ring-4 ring-slate-50" src={avatar2} />
+                <div>
+                  <p className="font-extrabold text-primary text-lg">Carlos Ramos</p>
+                  <p className="text-sm text-slate-500 font-bold">Visto F-1 Aprovado</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-12 bg-white border border-slate-100 rounded-[3rem] relative hover:shadow-xl transition-shadow group text-dark-grey">
+              <span className="material-symbols-outlined text-primary text-6xl opacity-10 absolute top-8 right-10">format_quote</span>
+              <div className="flex text-primary mb-6">
+                <span className="material-symbols-outlined">star</span>
+                <span className="material-symbols-outlined">star</span>
+                <span className="material-symbols-outlined">star</span>
+                <span className="material-symbols-outlined">star</span>
+                <span className="material-symbols-outlined">star</span>
+              </div>
+              <p className="text-slate-700 mb-12 italic leading-relaxed text-lg font-medium">"Atendimento rápido e suporte nota 10. Ter todos os documentos organizados me deu muita clareza na entrevista consular."</p>
+              <div className="flex items-center gap-5">
+                <img alt="Daniela Klein" className="w-14 h-14 rounded-full object-cover ring-4 ring-slate-50" src={avatar3} />
+                <div>
+                  <p className="font-extrabold text-primary text-lg">Daniela Klein</p>
+                  <p className="text-sm text-slate-500 font-bold">Visto B1/B2 Renovado</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-40 px-8 lg:px-16 bg-cloud-grey">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-4xl font-extrabold text-center mb-32 text-primary">Dúvidas Frequentes</h2>
+          <Accordion type="single" collapsible className="space-y-8">
+            <AccordionItem value="faq-1" className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <AccordionTrigger className="w-full flex items-center justify-between p-10 text-left hover:bg-slate-50 transition-colors font-bold text-xl text-primary hover:no-underline group">
+                <span>Quanto tempo tenho acesso à ferramenta de IA?</span>
+                <span className="material-symbols-outlined text-primary transition-transform group-data-[state=open]:rotate-45">add</span>
+              </AccordionTrigger>
+              <AccordionContent className="px-10 pb-10 text-slate-600 leading-relaxed text-lg font-medium">
+                Você mantém acesso à nossa plataforma durante todo o seu processo, até a conclusão da sua aplicação para o visto.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="faq-2" className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <AccordionTrigger className="w-full flex items-center justify-between p-10 text-left hover:bg-slate-50 transition-colors font-bold text-xl text-primary hover:no-underline group">
+                <span>Quais tipos de visto vocês cobrem hoje?</span>
+                <span className="material-symbols-outlined text-primary transition-transform group-data-[state=open]:rotate-45">add</span>
+              </AccordionTrigger>
+              <AccordionContent className="px-10 pb-10 text-slate-600 leading-relaxed text-lg font-medium">
+                Atualmente focamos em Vistos de Turismo (B1/B2), Vistos de Estudante (F-1) e Renovação de Vistos.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="faq-3" className="bg-white rounded-2xl border-2 border-primary/20 overflow-hidden shadow-md">
+              <AccordionTrigger className="w-full flex items-center justify-between p-10 text-left bg-slate-50 hover:bg-slate-100 transition-colors font-bold text-xl text-primary hover:no-underline group">
+                <span>A Aplikei é um escritório de advocacia?</span>
+                <span className="material-symbols-outlined text-primary transition-transform group-data-[state=open]:rotate-45">add</span>
+              </AccordionTrigger>
+              <AccordionContent className="px-10 pb-10 text-slate-600 leading-relaxed text-lg font-medium bg-slate-50">
+                Não, a Aplikei é uma plataforma tecnológica que facilita o preenchimento e organização de documentos. Não prestamos consultoria jurídica.
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
-        </div>
-      </section>
-
-      {/* Disclaimers */}
-      <section className="py-16">
-        <div className="container max-w-3xl">
-          <div className="rounded-md border-2 border-amber-300/50 bg-amber-50/60 p-4 md:p-5">
-            <h3 className="flex items-center gap-2 font-display text-lg font-bold text-foreground">
-              <Shield className="h-5 w-5 text-amber-600" />
-              {t.disclaimers.title[lang]}
-            </h3>
-            <ul className="mt-4 space-y-2 text-sm text-foreground/80">
-              {t.disclaimers.items[lang].map((d, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                  {d}
-                </li>
-              ))}
-            </ul>
-            <Link to="/disclaimers" className="mt-4 inline-block text-sm font-medium text-accent hover:underline">
-              {t.disclaimers.viewAll[lang]}
-            </Link>
-          </div>
         </div>
       </section>
     </div>

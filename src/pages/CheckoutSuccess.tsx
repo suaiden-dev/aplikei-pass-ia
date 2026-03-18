@@ -1,12 +1,13 @@
 import { useSearchParams, Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { CheckCircle2, Mail, ArrowRight, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/presentation/components/atoms/button";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { submitZellePayment } from "@/lib/zelle/ZelleService";
 import { toast } from "sonner";
+import { SupabaseAuthService } from "@/infrastructure/services/SupabaseAuthService";
 
 const CheckoutSuccess = () => {
     const [searchParams] = useSearchParams();
@@ -33,8 +34,9 @@ const CheckoutSuccess = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setIsLoggedIn(!!session);
+        const authService = new SupabaseAuthService();
+        authService.getSession().then((session) => {
+            setIsLoggedIn(!!session.user);
         });
 
         const handleBackgroundUpload = async () => {
@@ -122,8 +124,9 @@ const CheckoutSuccess = () => {
             .on(
                 "postgres_changes",
                 { event: "UPDATE", schema: "public", table: "zelle_payments", filter: `id=eq.${paymentId}` },
-                (payload: any) => {
-                    if (isMounted && payload.new.status === "approved") {
+                (payload) => {
+                    const newStatus = (payload.new as { status: string }).status;
+                    if (isMounted && newStatus === "approved") {
                         console.log("[CheckoutSuccess] Zelle aprovado via Realtime.");
                         setStatus("success");
                     }
@@ -137,10 +140,11 @@ const CheckoutSuccess = () => {
             .on(
                 "postgres_changes",
                 { event: "UPDATE", schema: "public", table: "visa_orders", filter: `id=eq.${paymentId}` },
-                (payload: any) => {
+                (payload) => {
                     if (isMounted) {
-                        if (payload.new.client_email) setClientEmail(payload.new.client_email);
-                        if (payload.new.payment_status === "approved" || payload.new.payment_status === "paid") {
+                        const newData = payload.new as { client_email?: string; payment_status?: string };
+                        if (newData.client_email) setClientEmail(newData.client_email);
+                        if (newData.payment_status === "approved" || newData.payment_status === "paid") {
                             console.log("[CheckoutSuccess] Ordem Visa aprovada via Realtime.");
                             setStatus("success");
                         }

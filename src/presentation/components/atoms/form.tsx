@@ -4,7 +4,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { Controller, ControllerProps, FieldPath, FieldValues, FormProvider, useFormContext } from "react-hook-form";
 
 import { cn } from "@/lib/utils";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/presentation/components/atoms/label";
 
 const Form = FormProvider;
 
@@ -126,4 +126,5 @@ const FormMessage = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<
 );
 FormMessage.displayName = "FormMessage";
 
+// eslint-disable-next-line react-refresh/only-export-components -- useFormField hook must be co-exported with form components (shadcn/ui pattern)
 export { useFormField, Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField };

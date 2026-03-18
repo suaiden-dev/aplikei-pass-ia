@@ -9,7 +9,8 @@ interface AdminState {
 }
 
 export function useAdmin(): AdminState {
-    const { user, loading: authLoading } = useAuth();
+    const { session, loading: authLoading } = useAuth();
+    const user = session?.user;
     const [state, setState] = useState<AdminState>({
         isAdmin: false,
         loading: true,

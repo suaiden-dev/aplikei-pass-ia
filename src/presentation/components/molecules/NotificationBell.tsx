@@ -1,24 +1,25 @@
 import { useState } from "react";
 import { Bell, Check, BellRing } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/presentation/components/atoms/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@/presentation/components/atoms/popover";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useNotifications } from "@/contexts/NotificationContext";
+import { useNotifications, Notification } from "@/contexts/NotificationContext";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function NotificationBell() {
-  const { user } = useAuth();
+  const { session } = useAuth();
+  const user = session?.user;
   const navigate = useNavigate();
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
     useNotifications();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleNotificationClick = (notification: any) => {
+  const handleNotificationClick = (notification: Notification) => {
     if (!notification.is_read) {
       markAsRead(notification.id);
     }

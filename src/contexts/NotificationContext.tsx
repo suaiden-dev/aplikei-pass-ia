@@ -7,9 +7,9 @@ import React, {
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/presentation/components/atoms/use-toast";
 
-interface Notification {
+export interface Notification {
   id: string;
   title: string;
   message: string;
@@ -36,7 +36,8 @@ const NOTIFICATION_BEEP = "/notification.mp3";
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user } = useAuth();
+  const { session } = useAuth();
+  const user = session?.user;
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -59,7 +60,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user]);
 
   const playNotificationSound = useCallback(() => {
     try {
@@ -168,6 +169,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook and provider are intentionally co-located
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (context === undefined) {

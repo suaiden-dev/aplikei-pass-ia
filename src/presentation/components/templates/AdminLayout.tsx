@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { NotificationBell } from "@/presentation/components/molecules/NotificationBell";
 import { useAdmin } from "@/hooks/useAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import {

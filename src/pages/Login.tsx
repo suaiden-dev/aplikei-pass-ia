@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/presentation/components/atoms/button";
+import { Input } from "@/presentation/components/atoms/input";
+import { Label } from "@/presentation/components/atoms/label";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { checkIsAdmin } from "@/lib/admin";
+import { LoginUser } from "@/application/use-cases/auth/LoginUser";
+import { SupabaseAuthService } from "@/infrastructure/services/SupabaseAuthService";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -24,20 +25,19 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const authService = new SupabaseAuthService();
+      const loginUser = new LoginUser(authService);
+      const { user, error } = await loginUser.execute(email, password);
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
-      if (data.user && checkIsAdmin(data.user.email)) {
+      if (user && checkIsAdmin(user.email)) {
         navigate("/admin");
       } else {
         navigate("/dashboard");
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : String(error));
     } finally {
       setLoading(false);
     }

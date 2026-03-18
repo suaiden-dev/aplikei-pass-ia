@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/presentation/components/atoms/button";
+import { Input } from "@/presentation/components/atoms/input";
+import { Label } from "@/presentation/components/atoms/label";
+import { Checkbox } from "@/presentation/components/atoms/checkbox";
 import { motion } from "framer-motion";
 import { Shield, Loader2 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { PhoneInput } from "@/components/ui/phone-input";
+import { PhoneInput } from "@/presentation/components/atoms/phone-input";
+import { SignUpUser } from "@/application/use-cases/auth/SignUpUser";
+import { SupabaseAuthService } from "@/infrastructure/services/SupabaseAuthService";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -29,23 +30,21 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const authService = new SupabaseAuthService();
+      const signUpUser = new SignUpUser(authService);
+      const { error } = await signUpUser.execute({
         email,
         password,
-        options: {
-          data: {
-            full_name: name,
-            phone: phone,
-          },
-        },
+        fullName: name,
+        phone,
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error);
 
       toast.success(p.signupSuccess[lang]);
       navigate("/login");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     } finally {
       setLoading(false);
     }

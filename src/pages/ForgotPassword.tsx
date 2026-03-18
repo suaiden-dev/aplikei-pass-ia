@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, ArrowLeft, Loader2, AlertCircle, RefreshCw, KeyRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/presentation/components/atoms/button";
+import { Input } from "@/presentation/components/atoms/input";
+import { Label } from "@/presentation/components/atoms/label";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
+import { SupabaseAuthService } from "@/infrastructure/services/SupabaseAuthService";
+import { toast } from "sonner";
 
 /** Componente de 6 boxes de OTP com auto-avanço */
 function OtpBoxes({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -119,15 +120,13 @@ export default function ForgotPassword() {
         setError(null);
 
         try {
-            const { error: otpError } = await supabase.auth.signInWithOtp({
-                email: email.trim(),
-                options: { shouldCreateUser: false },
-            });
-            if (otpError) throw otpError;
+            const authService = new SupabaseAuthService();
+            const { error: otpError } = await authService.signInWithOtp(email.trim());
+            if (otpError) throw new Error(otpError);
             setStep("otp");
             startCooldown();
-        } catch (err: any) {
-            setError(err.message || p.errorGeneric[lang]);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : p.errorGeneric[lang]);
         } finally {
             setLoading(false);
         }
@@ -140,16 +139,17 @@ export default function ForgotPassword() {
         setError(null);
 
         try {
-            const { error: verifyError } = await supabase.auth.verifyOtp({
-                email: email.trim(),
-                token: otp.trim(),
-                type: "email",
-            });
-            if (verifyError) throw verifyError;
+            const authService = new SupabaseAuthService();
+            const { user, error: verifyError } = await authService.verifyOtp(
+                email.trim(),
+                otp.trim(),
+                "email"
+            );
+            if (verifyError) throw new Error(verifyError);
             // Sessão ativa — agora vai para a tela de nova senha
             navigate("/reset-password");
-        } catch (err: any) {
-            setError(err.message || p.errorGeneric[lang]);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : p.errorGeneric[lang]);
         } finally {
             setLoading(false);
         }

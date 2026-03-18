@@ -24,4 +24,5 @@ const Toaster = ({ ...props }: ToasterProps) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- toast function must be co-exported with the Toaster component
 export { Toaster, toast };
