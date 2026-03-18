@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -56,6 +57,9 @@ export default {
         warning: "var(--color-warning)",
         danger: "var(--color-danger)",
         info: "var(--color-info)",
+        highlight: "#0F172A",
+        "cloud-grey": "#F4F7F9",
+        "dark-grey": "#2A2D30",
       },
       spacing: {
         1: "var(--space-1)",
@@ -109,5 +113,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindAnimate],
 } satisfies Config;

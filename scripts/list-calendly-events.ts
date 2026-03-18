@@ -41,9 +41,9 @@ async function listEvents() {
 
     if (collection && collection.length > 0) {
       console.log("\n✅ Found available Event Types:");
-      collection.forEach((ev: any) => {
-        if (ev.active) {
-          console.log(`- ${ev.name}: ${ev.scheduling_url}`);
+      collection.forEach((ev: Record<string, unknown>) => {
+        if (ev.active as boolean) {
+          console.log(`- ${ev.name as string}: ${ev.scheduling_url as string}`);
         }
       });
     } else {
