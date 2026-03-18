@@ -54,8 +54,8 @@ export async function getExchangeRate(): Promise<number> {
 
         // Arredondamento para 3 casas decimais
         return Math.round(exchangeRateWithMarkup * 1000) / 1000;
-    } catch (error) {
-        console.error("Error fetching exchange rate, using fallback:", error);
+    } catch (error: unknown) {
+        console.error("Error fetching exchange rate, using fallback:", (error as Error).message);
         return 5.60; // Fallback de segurança
     }
 }

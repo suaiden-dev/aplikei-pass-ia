@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 
 const corsHeaders = {
@@ -23,7 +24,7 @@ interface ZelleWebhookPayload {
     reason?: string;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
     // 1. Tratamento de CORS
     if (req.method === "OPTIONS") {
         return new Response("ok", { headers: corsHeaders });
@@ -45,11 +46,11 @@ Deno.serve(async (req) => {
         }
 
         // 4. Buscar informações do pagamento
-        const { data: payment, error: fetchError } = await supabase
+        const { data: payment, error: fetchError } = await (supabase
             .from("zelle_payments")
             .select("*")
             .eq("id", payload.payment_id)
-            .single();
+            .single() as any);
 
         if (fetchError || !payment) {
             throw new Error(`Pagamento não encontrado: ${fetchError?.message}`);
@@ -97,7 +98,7 @@ Deno.serve(async (req) => {
                 const { data: users, error: listUserError } = await supabase.auth.admin.listUsers();
                 let existingUser = null;
                 if (!listUserError && users?.users) {
-                    existingUser = users.users.find(u => u.email === payment.guest_email);
+                    existingUser = users.users.find((u: { email?: string }) => u.email === payment.guest_email);
                 }
 
                 if (existingUser) {
@@ -125,8 +126,8 @@ Deno.serve(async (req) => {
                         console.log(`[zelle-webhook] Novo usuário criado via convite. UID: ${finalUserId}`);
                     }
                 }
-            } catch (authError: any) {
-                console.error(`[zelle-webhook] Erro no fluxo de Auth:`, authError.message);
+            } catch (authError: unknown) {
+                console.error(`[zelle-webhook] Erro no fluxo de Auth:`, (authError as Error).message);
             }
         }
 
@@ -182,8 +183,8 @@ Deno.serve(async (req) => {
             } else {
                 console.log(`[zelle-webhook] visa_order_id nao vinculado ao pagamento ${payload.payment_id}. PDF nao gerado automaticamente.`);
             }
-        } catch (pdfErr: any) {
-            console.error(`[zelle-webhook] Erro inesperado ao gerar PDF:`, pdfErr.message);
+        } catch (pdfErr: unknown) {
+            console.error(`[zelle-webhook] Erro inesperado ao gerar PDF:`, (pdfErr as Error).message);
         }
 
 
@@ -192,10 +193,10 @@ Deno.serve(async (req) => {
             { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
         );
 
-    } catch (err: any) {
-        console.error(`[zelle-webhook] Erro inesperado:`, err.message);
+    } catch (err: unknown) {
+        console.error(`[zelle-webhook] Erro inesperado:`, (err as Error).message);
         return new Response(
-            JSON.stringify({ error: err.message }),
+            JSON.stringify({ error: (err as Error).message }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
         );
     }

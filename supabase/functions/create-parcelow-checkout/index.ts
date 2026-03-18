@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 
 const corsHeaders = {
@@ -18,7 +18,7 @@ function cleanDocumentNumber(doc: string | null | undefined): string | null {
     return doc.replace(/\D/g, '');
 }
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
     // 1. CORS
     if (req.method === "OPTIONS") {
         return new Response("ok", { headers: corsHeaders });
@@ -49,11 +49,11 @@ serve(async (req) => {
         let basePriceUSD: number;
         let depPriceUSD: number;
 
-        const { data: product } = await supabase
+        const { data: product } = await (supabase
             .from("visa_products")
             .select("*")
             .eq("slug", slug)
-            .single();
+            .single() as any);
 
         if (product) {
             serviceName = product.name;
@@ -223,7 +223,7 @@ serve(async (req) => {
                     throw new Error(orderData.message || "Erro ao gerar link na Parcelow.");
                 }
 
-            } catch (apiErr: any) {
+            } catch (apiErr: unknown) {
                 console.error("Parcelow API Error", apiErr);
                 throw apiErr;
             }
@@ -240,9 +240,10 @@ serve(async (req) => {
             status: 200,
         });
 
-    } catch (err: any) {
-        console.error(`[create-parcelow-checkout] Erro:`, err.message);
-        return new Response(JSON.stringify({ error: err.message }), {
+    } catch (err: unknown) {
+        const error = err as Error;
+        console.error(`[create-parcelow-checkout] Erro:`, error.message);
+        return new Response(JSON.stringify({ error: error.message }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 400,
         });

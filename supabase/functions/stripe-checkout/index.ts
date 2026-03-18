@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 import Stripe from "https://esm.sh/stripe@14.16.0";
 import { calculateCardAmountWithFees, calculateUSDToPixFinalBRL, getExchangeRate } from "../_shared/stripe-fee-calculator.ts";
@@ -16,7 +17,7 @@ const STRIPE_PRICES = {
     'troca-status': { usd: 350, name: 'Guia Troca de Status', dependentPrice: 100 },
 };
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
     try {
@@ -44,13 +45,11 @@ Deno.serve(async (req) => {
 
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // Fetch product from database
-        console.log("Fetching product for slug:", slug);
-        const { data: product, error: productError } = await supabase
+        const { data: product, error: productError } = await (supabase
             .from("visa_products")
             .select("*")
             .eq("slug", slug)
-            .single();
+            .single() as any);
 
         if (productError) {
           console.log("Product not found in database or error occurred:", productError.message);
@@ -133,7 +132,7 @@ Deno.serve(async (req) => {
         // Create Checkout Session
         console.log("Creating Stripe Checkout Session...");
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: payment_method_types as any,
+            payment_method_types: payment_method_types as unknown as Stripe.Checkout.SessionCreateParams.PaymentMethodType[],
             line_items: [
                 {
                     price_data: {
@@ -178,22 +177,23 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 200,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Stripe Checkout Error Implementation Details:", error);
         
-        let errorMessage = error.message;
-        let errorStack = error.stack;
+        const err = error as Error & { raw?: { message: string } };
+        let errorMessage = err.message;
+        const errorStack = err.stack;
         
         // If it's a Stripe error, it might have more details
-        if (error.raw) {
-          console.error("Stripe Raw Error:", JSON.stringify(error.raw, null, 2));
-          errorMessage = error.raw.message || errorMessage;
+        if (err.raw) {
+          console.error("Stripe Raw Error:", JSON.stringify(err.raw, null, 2));
+          errorMessage = err.raw.message || errorMessage;
         }
 
         return new Response(JSON.stringify({ 
             error: errorMessage,
             stack: errorStack,
-            raw: error.raw || null,
+            raw: err.raw || null,
             details: "Error in stripe-checkout edge function"
         }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },

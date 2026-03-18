@@ -8,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS")
     return new Response("ok", { headers: corsHeaders, status: 200 });
 
@@ -37,14 +37,18 @@ Deno.serve(async (req) => {
 
     let host = "";
     try {
-      host = new URL(origin_url || req.headers.get("referer") || "").hostname;
-    } catch (e) {
-      console.warn("Could not determine host from origin_url or referer");
+      const url = new URL(origin_url || req.headers.get("referer") || "");
+      host = url.hostname;
+    } catch (e: unknown) {
+      console.warn("Could not determine host from origin_url or referer:", (e as Error).message);
     }
 
     let env = "TEST";
-    if (host === "aplikei.com" || host === "www.aplikei.com") env = "PROD";
-    else if (host.includes("netlify.app")) env = "STAGING";
+    if (host === "aplikei.com" || host === "www.aplikei.com") {
+      env = "PROD";
+    } else if (host.includes("netlify.app")) {
+      env = "STAGING";
+    }
 
     const stripeSecret =
       Deno.env.get(`STRIPE_SECRET_KEY_${env}`) ||
@@ -93,9 +97,10 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-  } catch (error) {
-    console.error("Stripe error:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("Stripe error:", err.message);
+    return new Response(JSON.stringify({ error: err.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
     });

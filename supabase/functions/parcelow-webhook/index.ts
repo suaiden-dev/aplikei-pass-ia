@@ -5,7 +5,7 @@ const corsHeaders = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
         return new Response("ok", { headers: corsHeaders });
     }
@@ -14,8 +14,10 @@ Deno.serve(async (req) => {
         const payload = await req.json();
         console.log(`[parcelow-webhook] Payload recebido:`, JSON.stringify(payload));
 
-        const eventType = payload.event || "";
-        const parcelowOrder = payload.order;
+        const eventType = (payload.event as string) || "";
+        // Justification: Usando 'any' tático para facilitar o acesso a propriedades dinâmicas do webhook do Parcelow.
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        const parcelowOrder = payload.order as any;
 
         if (!parcelowOrder || !parcelowOrder.id) {
             throw new Error("Payload inválido. ID da ordem do Parcelow ausente.");
@@ -33,25 +35,38 @@ Deno.serve(async (req) => {
             },
         });
 
+        interface VisaOrderRecord {
+            id: string;
+            user_id: string | null;
+            order_number: string | null;
+            payment_status: string;
+            client_email: string | null;
+            client_name: string | null;
+            product_slug: string | null;
+            payment_metadata: Record<string, unknown> | null;
+        }
+
         // 1. Buscar a ordem atrelada (Tenta por ID remoto, depois por Number/UUID interno)
-        let { data: orderData, error: orderError } = await supabase
+        const { data: maybeOrderData, error: orderError } = await (supabase
             .from("visa_orders")
             .select("*")
             .eq("parcelow_order_id", parcelowOrderId)
-            .maybeSingle();
+            .maybeSingle() as any);
+        
+        let orderData = maybeOrderData;
 
         // Fallback: Buscar por reference (order_number ou ID extraído do APK_)
         if (!orderData) {
-            const reference = parcelowOrder.reference || "";
+            const reference = parcelowOrder.reference as string || "";
             console.log(`[parcelow-webhook] Fallback: buscando por reference ${reference}`);
 
             const uuidOnly = reference.startsWith("APK_") ? reference.replace("APK_", "") : reference;
 
-            const { data: fallbackData } = await supabase
+            const { data: fallbackData } = await (supabase
                 .from("visa_orders")
                 .select("*")
                 .or(`id.eq.${uuidOnly},order_number.eq.${reference}`)
-                .maybeSingle();
+                .maybeSingle() as any);
 
             if (fallbackData) {
                 orderData = fallbackData;
@@ -74,19 +89,19 @@ Deno.serve(async (req) => {
             eventType.includes("order_paid") ||
             parcelowOrder.status_text === "Paid" ||
             parcelowOrder.status === 2 ||
-            payload.status === "paid" ||
+            (payload.status as string) === "paid" ||
             parcelowOrder.status === "paid";
 
         const isDeclined =
             eventType.includes("order_declined") ||
             parcelowOrder.status === 3 ||
-            payload.status === "declined" ||
+            (payload.status as string) === "declined" ||
             parcelowOrder.status === "declined";
 
         const isCanceled =
             eventType.includes("order_canceled") ||
             parcelowOrder.status === 4 ||
-            payload.status === "canceled" ||
+            (payload.status as string) === "canceled" ||
             parcelowOrder.status === "canceled";
 
         if (isPaid) {
@@ -95,6 +110,7 @@ Deno.serve(async (req) => {
             newStatus = "failed";
         } else {
             console.log(`[parcelow-webhook] Evento ignorado ou informativo: ${eventType} | Status: ${parcelowOrder.status_text}`);
+            /* eslint-enable @typescript-eslint/no-explicit-any */
             return new Response("OK", { status: 200, headers: corsHeaders });
         }
 
@@ -118,7 +134,8 @@ Deno.serve(async (req) => {
 
                     try {
                         const { data: users } = await supabase.auth.admin.listUsers();
-                        let existingUser = users?.users?.find((u: any) => u.email === orderData.client_email);
+                        const userList = (users as unknown as { users: { id: string, email?: string }[] })?.users || [];
+                        const existingUser = userList.find((u: { email?: string }) => u.email === orderData!.client_email);
 
                         if (existingUser) {
                             finalUserId = existingUser.id;
@@ -136,7 +153,9 @@ Deno.serve(async (req) => {
                                 finalUserId = authUser.user.id;
                             }
                         }
-                    } catch (e) { console.error("Erro Auth:", e); }
+                    } catch (e: unknown) { 
+                        console.error("Erro Auth:", (e as Error).message); 
+                    }
                 }
 
                 if (finalUserId) {
@@ -145,7 +164,9 @@ Deno.serve(async (req) => {
 
                     // Ativa o serviço
                     if (orderData.product_slug) {
-                        const metadata = orderData.payment_metadata || {};
+                        // Justification: Usando 'any' tático para facilitar o acesso a propriedades dinâmicas do metadata.
+                        /* eslint-disable @typescript-eslint/no-explicit-any */
+                        const metadata = (orderData.payment_metadata as any) || {};
                         if (metadata.action === 'restart' && metadata.serviceId) {
                             console.log(`[parcelow-webhook] Restarting service ${metadata.serviceId}`);
                             await supabase.from("user_services").update({
@@ -159,6 +180,7 @@ Deno.serve(async (req) => {
                             });
                             console.log(`[parcelow-webhook] Serviço ${orderData.product_slug} ativado.`);
                         }
+                        /* eslint-enable @typescript-eslint/no-explicit-any */
                     }
 
                     // Gera o PDF do contrato após pagamento confirmado
@@ -168,8 +190,8 @@ Deno.serve(async (req) => {
                         });
                         if (pdfError) console.error(`[parcelow-webhook] Erro ao gerar PDF:`, pdfError);
                         else console.log(`[parcelow-webhook] PDF enfileirado para ordem ${orderData.id}`);
-                    } catch (pdfErr: any) {
-                        console.error(`[parcelow-webhook] Erro inesperado ao gerar PDF:`, pdfErr.message);
+                    } catch (pdfErr: unknown) {
+                        console.error(`[parcelow-webhook] Erro inesperado ao gerar PDF:`, (pdfErr as Error).message);
                     }
                 }
             }
@@ -180,9 +202,9 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
 
-    } catch (err: any) {
-        console.error(`[parcelow-webhook] Erro crítico:`, err.message);
-        return new Response(JSON.stringify({ error: err.message }), {
+    } catch (err: unknown) {
+        console.error(`[parcelow-webhook] Erro crítico:`, (err as Error).message);
+        return new Response(JSON.stringify({ error: (err as Error).message }), {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" }
         });

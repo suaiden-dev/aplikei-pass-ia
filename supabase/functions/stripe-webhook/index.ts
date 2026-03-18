@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 import Stripe from "https://esm.sh/stripe@14.16.0";
 
@@ -6,7 +7,7 @@ const corsHeaders = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
     console.log("--- WEBHOOK REQUEST RECEIVED ---");
     console.log("Method:", req.method);
 
@@ -22,7 +23,7 @@ Deno.serve(async (req) => {
         // Detect environment to use correct secret key
         // In local/staging we usually have a fallback or specific env vars
         const host = req.headers.get("host") || "";
-        let env = 'TEST';
+        const env = 'TEST';
 
         const webhookSecret = Deno.env.get(`STRIPE_WEBHOOK_SECRET_TEST`) || Deno.env.get("STRIPE_WEBHOOK_SECRET");
         const stripeSecret = Deno.env.get(`STRIPE_SECRET_KEY_TEST`) || Deno.env.get("STRIPE_SECRET_KEY");
@@ -64,12 +65,11 @@ Deno.serve(async (req) => {
                 Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
             );
 
-            // Redundancy check
-            const { data: existingOrder } = await supabaseAdmin
+            const { data: existingOrder } = await (supabaseAdmin
                 .from('visa_orders')
                 .select('id, payment_status')
                 .eq('stripe_session_id', session.id)
-                .maybeSingle();
+                .maybeSingle() as any);
 
             if (existingOrder && existingOrder.payment_status === 'paid') {
                 console.log(`Order already processed for session: ${session.id}`);
@@ -107,11 +107,11 @@ Deno.serve(async (req) => {
 
             // 1. Find or Create User
             let userId: string | null = null;
-            const { data: profile } = await supabaseAdmin
+            const { data: profile } = await (supabaseAdmin
                 .from('profiles')
                 .select('id')
                 .eq('email', email)
-                .maybeSingle();
+                .maybeSingle() as any);
 
             if (profile) {
                 userId = profile.id;
@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
             const appliedExchangeRate = exchange_rate ? parseFloat(exchange_rate) : null;
             const totalBRL = appliedExchangeRate ? totalUSD * appliedExchangeRate : null;
 
-            const { data: order, error: orderError } = await supabaseAdmin
+            const { data: order, error: orderError } = await (supabaseAdmin
                 .from('visa_orders')
                 .upsert({
                     stripe_session_id: session.id,
@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
                     client_ip
                 }, { onConflict: 'stripe_session_id' })
                 .select()
-                .single();
+                .single() as any);
 
             if (orderError) throw orderError;
 
@@ -257,8 +257,9 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 200,
         });
-    } catch (err) {
-        console.error(`Webhook Error: ${err.message}`);
-        return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+    } catch (err: unknown) {
+        const error = err as Error;
+        console.error(`Webhook Error: ${error.message}`);
+        return new Response(`Webhook Error: ${error.message}`, { status: 400 });
     }
 });

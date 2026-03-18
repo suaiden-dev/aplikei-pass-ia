@@ -1,9 +1,7 @@
-// supabase/functions/send-notification-email/index.ts
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import nodemailer from "npm:nodemailer@6.9.7";
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   // We only handle POST requests (Webhooks)
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
@@ -114,9 +112,9 @@ serve(async (req) => {
       status: 200,
     });
 
-  } catch (err: any) {
-    console.error("Error sending notification email:", err.message);
-    return new Response(JSON.stringify({ error: err.message }), {
+  } catch (err: unknown) {
+    console.error("Error sending notification email:", (err as Error).message);
+    return new Response(JSON.stringify({ error: (err as Error).message }), {
       headers: { "Content-Type": "application/json" },
       status: 500,
     });

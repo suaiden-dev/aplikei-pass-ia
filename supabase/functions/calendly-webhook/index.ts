@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 
 const corsHeaders = {
@@ -5,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
@@ -26,25 +27,25 @@ Deno.serve(async (req) => {
       );
 
       // Find user profile
-      const { data: profile } = await supabaseAdmin
+      const { data: profile } = await (supabaseAdmin
         .from("profiles")
         .select("id")
         .eq("email", email)
-        .maybeSingle();
+        .maybeSingle() as any);
 
       if (profile) {
         // Find the service that was recently paid for specialist training
-        const { data: service } = await supabaseAdmin
+        const { data: service } = await (supabaseAdmin
           .from("user_services")
           .select("id, specialist_training_data")
           .eq("user_id", profile.id)
           .not("specialist_training_data", "is", null)
           .order("id", { ascending: false }) // Fallback to last updated or highest ID
           .limit(1)
-          .maybeSingle();
+          .maybeSingle() as any);
 
         if (service) {
-          const currentData = (service.specialist_training_data as any) || {};
+          const currentData = (service.specialist_training_data as Record<string, unknown>) || {};
           
           await supabaseAdmin
             .from("user_services")
@@ -73,9 +74,10 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-  } catch (error) {
-    console.error("Calendly Webhook Error:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("Calendly Webhook Error:", err.message);
+    return new Response(JSON.stringify({ error: err.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
     });

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 
 const corsHeaders = {
@@ -5,7 +6,7 @@ const corsHeaders = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
     try {
@@ -50,7 +51,7 @@ Deno.serve(async (req) => {
         const imageUrl = `${supabaseUrl}/storage/v1/object/public/zelle_comprovantes/${proof_path}`;
 
         // 1. Insert into zelle_payments
-        const { data: payment, error: dbError } = await supabase
+        const { data: payment, error: dbError } = await (supabase
             .from("zelle_payments")
             .insert({
                 user_id: user.id,
@@ -65,7 +66,7 @@ Deno.serve(async (req) => {
                 status: 'pending_verification'
             })
             .select()
-            .single();
+            .single() as any);
 
         if (dbError) throw dbError;
         if (n8nWebhookUrl) {
@@ -96,9 +97,9 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Zelle Payment Error:", err);
-        return new Response(JSON.stringify({ error: err.message }), {
+        return new Response(JSON.stringify({ error: (err as Error).message }), {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

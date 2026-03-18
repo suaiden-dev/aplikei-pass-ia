@@ -1,12 +1,12 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
     try {
@@ -28,11 +28,11 @@ serve(async (req) => {
         }
 
         // 1. Fetch current payment info
-        const { data: payment, error: fetchError } = await supabase
+        const { data: payment, error: fetchError } = await (supabase
             .from("zelle_payments")
             .select("*")
             .eq("id", payment_id)
-            .single();
+            .single() as any);
 
         if (fetchError || !payment) throw new Error("Payment not found");
 
@@ -57,7 +57,7 @@ serve(async (req) => {
                     service_slug: payment.service_slug,
                     status: 'active',
                     current_step: 0
-                }, { onConflict: 'user_id,service_slug' });
+                }, { onConflict: 'user_id,service_slug' } as any);
 
             if (serviceError) throw serviceError;
         }
@@ -66,9 +66,9 @@ serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Zelle Callback Error:", err);
-        return new Response(JSON.stringify({ error: err.message }), {
+        return new Response(JSON.stringify({ error: (err as Error).message }), {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
