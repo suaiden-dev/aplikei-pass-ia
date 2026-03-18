@@ -5,14 +5,14 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+} from "@/presentation/components/atoms/card";
+import { Button } from "@/presentation/components/atoms/button";
+import { Alert, AlertDescription, AlertTitle } from "@/presentation/components/atoms/alert";
 import {
   Dialog,
   DialogContent,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/presentation/components/atoms/dialog";
 import {
   Mail,
   ShieldCheck,
@@ -25,7 +25,7 @@ import {
 import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/presentation/components/atoms/badge";
 import confirmationEmailImg from "@/assets/email/confirmation_email.png";
 
 interface FeeProcessingStepProps {

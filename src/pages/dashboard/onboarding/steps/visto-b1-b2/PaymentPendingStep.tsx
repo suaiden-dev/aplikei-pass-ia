@@ -5,21 +5,21 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+} from "@/presentation/components/atoms/card";
+import { Button } from "@/presentation/components/atoms/button";
+import { Badge } from "@/presentation/components/atoms/badge";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel";
+} from "@/presentation/components/atoms/carousel";
 import {
   Dialog,
   DialogContent,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/presentation/components/atoms/dialog";
 import {
   CreditCard,
   Wallet,

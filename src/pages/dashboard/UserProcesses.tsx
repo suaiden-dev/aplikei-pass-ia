@@ -9,136 +9,53 @@ import {
   Loader2,
   CheckSquare,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/presentation/components/atoms/badge";
+import { Progress } from "@/presentation/components/atoms/progress";
+import { Skeleton } from "@/presentation/components/atoms/skeleton";
+import { Button } from "@/presentation/components/atoms/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
+} from "@/presentation/components/atoms/dialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { SupabaseUserProcessRepository } from "@/infrastructure/repositories/SupabaseUserProcessRepository";
+import { SupabaseVisaOrderRepository } from "@/infrastructure/repositories/SupabaseVisaOrderRepository";
+import { SupabaseStorageService } from "@/infrastructure/services/SupabaseStorageService";
+import { GetUserProcesses } from "@/application/use-cases/user/GetUserProcesses";
+import { getStatusDisplay, TOTAL_STEPS } from "@/domain/user/UserProcessStatus";
 
-const TOTAL_STEPS = 9;
-
-const getStatusDisplay = (
-  status: string,
-  lang: string,
-  tStatus: any,
-) => {
-  if (!status) return { stepText: "", label: "" };
-
-  // Legacy support
-  if (status === "active") status = "ds160InProgress";
-  if (status === "review_pending") status = "ds160Processing";
-  if (status === "review_assign") status = "ds160AwaitingReviewAndSignature";
-  if (status === "completed") status = "approved";
-
-  let step = 0;
-  let label = "";
-
-  switch (status) {
-    case "ds160InProgress":
-      step = 1;
-      label = tStatus.ds160InProgress[lang];
-      break;
-    case "ds160Processing":
-      step = 2;
-      label = tStatus.ds160Processing[lang];
-      break;
-    case "ds160upload_documents":
-      step = 3;
-      label = tStatus.ds160uploadDocuments[lang];
-      break;
-    case "ds160AwaitingReviewAndSignature":
-      step = 4;
-      label = tStatus.ds160AwaitingReviewAndSignature[lang];
-      break;
-    case "uploadsUnderReview":
-      step = 4;
-      label = tStatus.uploadsUnderReview[lang];
-      break;
-    case "casvSchedulingPending":
-      step = 5;
-      label = tStatus.casvSchedulingPending[lang];
-      break;
-    case "casvFeeProcessing":
-      step = 6;
-      label = tStatus.casvFeeProcessing[lang];
-      break;
-    case "casvPaymentPending":
-      step = 7;
-      label = tStatus.casvPaymentPending[lang];
-      break;
-    case "awaitingInterview":
-      step = 8;
-      label = tStatus.awaitingInterview[lang];
-      break;
-    case "rejected":
-      return {
-        stepText: tStatus.rejectedText[lang],
-        label: tStatus.rejectedLabel[lang],
-        step: 0,
-        totalSteps: TOTAL_STEPS,
-      };
-    case "approved":
-    case "completed":
-      return {
-        stepText: tStatus.approved[lang],
-        label: tStatus.approved[lang],
-        step: TOTAL_STEPS,
-        totalSteps: TOTAL_STEPS,
-      };
-    default:
-      return { stepText: "", label: status };
-  }
-
-  const stepText = tStatus.stepOf[lang]
-    .replace("[step]", String(step))
-    .replace("[total]", String(TOTAL_STEPS));
-
-  return { stepText, label, step, totalSteps: TOTAL_STEPS };
-};
+// ... (getStatusDisplay centralizado sendo usado)
 
 export default function UserProcesses() {
   const navigate = useNavigate();
   const { lang, t } = useLanguage();
   const d = t.dashboard;
-  const { user, loading: authLoading } = useAuth();
-  const [services, setServices] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const { session, loading: authLoading } = useAuth();
+  const user = session?.user;
+  const [services, setServices] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSelfieModalOpen, setIsSelfieModalOpen] = useState(false);
   const [uploadingSelfie, setUploadingSelfie] = useState(false);
   const [checkingSelfie, setCheckingSelfie] = useState<string | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
-  const [pendingServiceToNavigate, setPendingServiceToNavigate] = useState<
-    any | null
-  >(null);
+  const [pendingServiceToNavigate, setPendingServiceToNavigate] = useState<Record<string, unknown> | null>(null);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading || !user) return;
 
     const fetchServices = async () => {
-      const { data: servicesData, error } = await supabase
-        .from("user_services")
-        .select("id, status, current_step, service_slug, created_at, is_second_attempt")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+      try {
+        const repo = new SupabaseUserProcessRepository();
+        const getUserProcesses = new GetUserProcesses(repo);
+        const processes = await getUserProcesses.execute(user.id);
 
-      if (error) {
-        setLoading(false);
-        return;
-      }
-
-      if (servicesData) {
-        const processedServices = (servicesData as any[]).map((s) => {
+        const processedServices = processes.map((s) => {
           const statusInfo = getStatusDisplay(s.status, lang as string, d.status);
           let p = 0;
 
@@ -147,7 +64,7 @@ export default function UserProcesses() {
           } else if (statusInfo.step > 1) {
             p = Math.round(((statusInfo.step - 1) / TOTAL_STEPS) * 100);
           } else if (statusInfo.step === 1) {
-            p = Math.min(Math.round(((s.current_step || 0) / 13) * 10), 10);
+            p = Math.min(Math.round(((s.currentStep || 0) / 13) * 10), 10);
           }
 
           return {
@@ -159,27 +76,22 @@ export default function UserProcesses() {
         });
 
         setServices(processedServices);
+      } catch (error) {
+        console.error("Erro ao buscar serviços:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchServices();
   }, [user, authLoading, lang, d.status]);
 
-  const handleServiceClick = async (service: any) => {
+  const handleServiceClick = async (service: Record<string, unknown>) => {
     if (checkingSelfie || !user) return;
 
-    setCheckingSelfie(service.id);
+    setCheckingSelfie(service.id as string);
     try {
-      const { data: order, error } = await supabase
-        .from("visa_orders")
-        .select("id, contract_selfie_url")
-        .eq("product_slug", service.service_slug)
-        .or(`user_id.eq.${user.id},client_email.eq.${user.email}`)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
+      const visaOrderRepo = new SupabaseVisaOrderRepository();
+      const order = await visaOrderRepo.findLatestByProductAndUser(service.serviceSlug as string, user.id, user.email || "");
 
       if (order && !order.contract_selfie_url) {
         setPendingServiceToNavigate(service);
@@ -205,25 +117,18 @@ export default function UserProcesses() {
       const fileName = `selfie_${Date.now()}.${fileExt}`;
       const filePath = `contracts/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("visa-documents")
-        .upload(filePath, selfieFile);
+      const storageService = new SupabaseStorageService();
+      const { error: uploadError } = await storageService.uploadFile("visa-documents", filePath, selfieFile);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) throw new Error(uploadError);
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("visa-documents").getPublicUrl(filePath);
+      const publicUrl = storageService.getPublicUrl("visa-documents", filePath);
 
-      const { error: updateError } = await supabase
-        .from("visa_orders")
-        .update({
-          contract_selfie_url: publicUrl,
-          user_id: user.id,
-        })
-        .eq("id", pendingOrderId);
-
-      if (updateError) throw updateError;
+      const visaOrderRepo = new SupabaseVisaOrderRepository();
+      await visaOrderRepo.updateOrder(pendingOrderId, {
+        contract_selfie_url: publicUrl,
+        user_id: user.id,
+      });
 
       setIsSelfieModalOpen(false);
       setSelfieFile(null);
@@ -232,7 +137,7 @@ export default function UserProcesses() {
           `/dashboard/onboarding?service_id=${pendingServiceToNavigate.id}`,
         );
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error uploading selfie:", err);
       alert(d.errorUploadingSelfie[lang]);
     } finally {
@@ -275,7 +180,7 @@ export default function UserProcesses() {
           ) : (
             services.map((s) => (
               <motion.button
-                key={s.id}
+                key={s.id as string}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 onClick={() => handleServiceClick(s)}
@@ -287,7 +192,7 @@ export default function UserProcesses() {
                     <FileText className="w-6 h-6" />
                   </div>
                   <div className="flex gap-2">
-                    {s.is_second_attempt && (
+                    {s.isSecondAttempt && (
                       <Badge className="bg-amber-500 text-white border-none text-[10px] font-bold">
                         2ª TENTATIVA
                       </Badge>
@@ -296,17 +201,17 @@ export default function UserProcesses() {
                       variant="secondary"
                       className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                     >
-                      {s.statusLabel}
+                      {s.statusLabel as string}
                     </Badge>
                   </div>
                 </div>
 
                 <h3 className="font-bold text-subtitle text-foreground mb-1 uppercase tracking-tight">
-                  {s.service_slug?.replace("-", " ")}
+                  {(s.serviceSlug as string)?.replace("-", " ")}
                 </h3>
 
                 <p className="text-xs text-accent font-bold uppercase tracking-widest mb-4">
-                  {s.stepText}
+                  {s.stepText as string}
                 </p>
 
                 <div className="mt-auto">
@@ -315,10 +220,10 @@ export default function UserProcesses() {
                       {d.progress[lang]}
                     </span>
                     <span className="text-sm font-black text-primary">
-                      {s.calculatedProgress}%
+                      {s.calculatedProgress as number}%
                     </span>
                   </div>
-                  <Progress value={s.calculatedProgress} className="h-2" />
+                  <Progress value={s.calculatedProgress as number} className="h-2" />
                 </div>
 
                 <div className="mt-4 flex items-center gap-1 text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0">

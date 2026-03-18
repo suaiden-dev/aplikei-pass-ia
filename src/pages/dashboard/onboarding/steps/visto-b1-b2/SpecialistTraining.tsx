@@ -5,8 +5,8 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@/presentation/components/atoms/card";
+import { Button } from "@/presentation/components/atoms/button";
 import {
   Calendar,
   Clock,
@@ -15,7 +15,7 @@ import {
   ArrowRight,
   ShieldCheck,
 } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { Progress } from "@/presentation/components/atoms/progress";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -39,7 +39,8 @@ export function SpecialistTraining({
   const { lang, t } = useLanguage();
   const st = t.onboardingPage.specialistTraining;
   const ig = t.onboardingPage.interviewGuide;
-  const { user, loading: authLoading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
+  const user = session?.user;
 
   const trainingPackages = [
     {
@@ -175,7 +176,7 @@ export function SpecialistTraining({
     const fetchUserProfile = async () => {
       if (user) {
         setUserProfile({
-          name: user.user_metadata?.full_name || user.email?.split("@")[0],
+          name: (user.user_metadata?.full_name as string) || user.email?.split("@")[0],
           email: user.email,
         });
       }

@@ -1,8 +1,8 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Input } from "@/presentation/components/atoms/input";
+import { Label } from "@/presentation/components/atoms/label";
+import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
 import { StepProps } from "../../types";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Checkbox } from "@/presentation/components/atoms/checkbox";
 
 export const PersonalInfo2Step = ({
   register,

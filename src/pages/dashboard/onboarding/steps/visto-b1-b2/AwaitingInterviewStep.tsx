@@ -5,9 +5,9 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+} from "@/presentation/components/atoms/card";
+import { Button } from "@/presentation/components/atoms/button";
+import { Badge } from "@/presentation/components/atoms/badge";
 import {
   Calendar,
   Clock,

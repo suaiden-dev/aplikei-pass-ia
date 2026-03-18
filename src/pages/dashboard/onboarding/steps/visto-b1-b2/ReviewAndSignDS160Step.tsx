@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { UploadedDocument } from "../../types";
+import { translations } from "@/i18n/translations";
 import {
   Upload,
   X,
@@ -18,8 +19,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/presentation/components/atoms/badge";
+import { Button } from "@/presentation/components/atoms/button";
 import firstPhaseImg from "@/assets/application_tutorial/first_phase.png";
 import secondPhaseImg from "@/assets/application_tutorial/second_phase.png";
 import thirdPhaseImg from "@/assets/application_tutorial/three_phase.png";
@@ -40,7 +41,7 @@ interface ReviewAndSignDS160StepProps {
     grandma: string | null;
   } | null;
   lang: string;
-  t: any;
+  t: typeof translations;
   serviceSlug?: string;
 }
 

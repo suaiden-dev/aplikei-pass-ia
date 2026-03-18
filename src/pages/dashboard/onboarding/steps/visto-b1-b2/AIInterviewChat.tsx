@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/presentation/components/atoms/button";
+import { Input } from "@/presentation/components/atoms/input";
 import {
   ChevronLeft,
   Bot,
@@ -31,7 +31,8 @@ interface AIInterviewChatProps {
 export function AIInterviewChat({ onBack, serviceId }: AIInterviewChatProps) {
   const { lang, t } = useLanguage();
   const aic = t.onboardingPage.aiInterviewChat;
-  const { user, loading: authLoading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
+  const user = session?.user;
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { StepProps } from "../types";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/presentation/components/atoms/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export const ReviewStep = ({
@@ -111,7 +111,7 @@ export const ReviewStep = ({
           title: ds?.personal2?.title?.[lang] || "Informações Pessoais 2",
           fields: [
             {
-              label: ds?.personal2?.nationalityInfo?.[lang] || "Nacionalidade",
+              label: ds?.personal2?.nationality?.[lang] || "Nacionalidade",
               value: formData.nationalityInfo,
             },
             {
@@ -126,7 +126,7 @@ export const ReviewStep = ({
             },
             {
               label:
-                ds?.personal2?.hasNationalityPassport?.[lang] ||
+                ds?.personal2?.hasPassportOtherCountry?.[lang] ||
                 "Passaporte de outra nacionalidade?",
               value: translateYesNo(formData.hasNationalityPassport),
             },
@@ -136,7 +136,7 @@ export const ReviewStep = ({
             },
             {
               label:
-                ds?.personal2?.isPermanentResidentOtherCountry?.[lang] ||
+                ds?.personal2?.permanentResidentOther?.[lang] ||
                 "Residente permanente de outro país?",
               value: translateYesNo(formData.isPermanentResidentOtherCountry),
             },
@@ -170,7 +170,7 @@ export const ReviewStep = ({
           fields: [
             {
               label:
-                ds?.travel?.hasSpecificTravelPlan?.[lang] ||
+                ds?.travel?.specificPlan?.[lang] ||
                 "Plano de viagem específico?",
               value: translateYesNo(formData.hasSpecificTravelPlan),
             },
@@ -196,7 +196,7 @@ export const ReviewStep = ({
             { label: "Estado de estadia", value: formData.stayState },
             { label: "CEP de estadia", value: formData.stayZip },
             {
-              label: ds?.travel?.travelPayer?.[lang] || "Quem pagará a viagem?",
+              label: ds?.travel?.payer?.[lang] || "Quem pagará a viagem?",
               value: formData.travelPayer,
             },
             { label: "Nome do pagador", value: formData.payerName },
@@ -208,7 +208,7 @@ export const ReviewStep = ({
           fields: [
             {
               label:
-                ds?.companions?.hasTravelCompanions?.[lang] ||
+                ds?.companions?.hasCompanions?.[lang] ||
                 "Viajando com outras pessoas?",
               value: translateYesNo(formData.hasTravelCompanions),
             },
@@ -219,7 +219,7 @@ export const ReviewStep = ({
             },
             {
               label:
-                ds?.companions?.isTravelingWithGroup?.[lang] ||
+                ds?.companions?.isGrpup?.[lang] ||
                 "Parte de um grupo?",
               value: translateYesNo(formData.isTravelingWithGroup),
             },
@@ -231,7 +231,7 @@ export const ReviewStep = ({
             ds?.previousTravel?.title?.[lang] || "Viagens Anteriores aos EUA",
           fields: [
             {
-              label: "Já esteve nos EUA?",
+              label: ds?.previousTravel?.beenToUS?.[lang] || "Já esteve nos EUA?",
               value: translateYesNo(formData.hasBeenToUS),
             },
             {
@@ -250,7 +250,7 @@ export const ReviewStep = ({
             },
             { label: "Motivo da viagem", value: formData.lastUSTravelPurpose },
             {
-              label: "Carteira de motorista dos EUA?",
+              label: ds?.previousTravel?.hasUSLicense?.[lang] || "Carteira de motorista dos EUA?",
               value: translateYesNo(formData.hasUSDriverLicense),
             },
             {
@@ -259,7 +259,7 @@ export const ReviewStep = ({
             },
             { label: "Estado Emissor", value: formData.usDriverLicenseState },
             {
-              label: "Já teve um visto dos EUA?",
+              label: ds?.previousTravel?.hasUSVisa?.[lang] || "Já teve um visto dos EUA?",
               value: translateYesNo(formData.hasHadUSVisa),
             },
             {
@@ -276,12 +276,12 @@ export const ReviewStep = ({
               value: formData.visaCancellationDetails,
             },
             {
-              label: "Já teve visto negado?",
+              label: ds?.previousTravel?.visaRefused?.[lang] || "Já teve visto negado?",
               value: translateYesNo(formData.hasBeenDeniedVisa),
             },
             { label: "Detalhes da recusa", value: formData.visaRefusalDetails },
             {
-              label: "Alguém já preencheu petição de imigração para você?",
+              label: ds?.previousTravel?.immigrationPetition?.[lang] || "Alguém já preencheu petição de imigração para você?",
               value: translateYesNo(formData.hasImmigrationPetition),
             },
             {
@@ -411,32 +411,32 @@ export const ReviewStep = ({
           ],
         },
         {
-          title: ds?.usContact?.title?.[lang] || "Contato nos EUA",
+          title: ds?.contact?.title?.[lang] || "Contato nos EUA",
           fields: [
             {
-              label: "Possui Contato nos EUA?",
+              label: ds?.contact?.hasContact?.[lang] || "Possui Contato nos EUA?",
               value: translateYesNo(formData.hasUSContact),
             },
             {
-              label: "Nome do Contato",
+              label: ds?.contact?.nameLabel?.[lang] || "Nome do Contato",
               value: formData.contactNameDoesNotApply
                 ? "Não sabe (Do Not Know)"
                 : formData.contactName,
             },
             {
-              label: "Organização do Contato",
+              label: ds?.contact?.orgName?.[lang] || "Organização do Contato",
               value: formData.contactOrganizationDoesNotApply
                 ? "Não sabe (Do Not Know)"
                 : formData.contactOrganization,
             },
-            { label: "Relação com você", value: formData.contactRelationship },
-            { label: "Endereço nos EUA", value: formData.contactAddress },
-            { label: "Cidade nos EUA", value: formData.contactCity },
-            { label: "Estado nos EUA", value: formData.contactState },
-            { label: "CEP nos EUA", value: formData.contactZip },
-            { label: "Telefone do Contato", value: formData.contactPhone },
+            { label: ds?.contact?.relationship?.[lang] || "Relação com você", value: formData.contactRelationship },
+            { label: ds?.contact?.address?.[lang] || "Endereço nos EUA", value: formData.contactAddress },
+            { label: ds?.contact?.city?.[lang] || "Cidade nos EUA", value: formData.contactCity },
+            { label: ds?.contact?.state?.[lang] || "Estado nos EUA", value: formData.contactState },
+            { label: ds?.contact?.zip?.[lang] || "CEP nos EUA", value: formData.contactZip },
+            { label: ds?.contact?.phone?.[lang] || "Telefone do Contato", value: formData.contactPhone },
             {
-              label: "Email do Contato",
+              label: ds?.contact?.email?.[lang] || "Email do Contato",
               value: formData.contactEmailDoesNotApply
                 ? "Não sabe (Do Not Know)"
                 : formData.contactEmail,
@@ -446,40 +446,37 @@ export const ReviewStep = ({
         {
           title: ds?.family?.title?.[lang] || "Informações Familiares",
           fields: [
-            { label: "Sobrenome do Pai", value: formData.fatherLastName },
-            { label: "Nome do Pai", value: formData.fatherFirstName },
+            { label: ds?.family?.fatherLast?.[lang] || "Sobrenome do Pai", value: formData.fatherLastName },
+            { label: ds?.family?.fatherFirst?.[lang] || "Nome do Pai", value: formData.fatherFirstName },
             {
-              label: "Data de Nascimento do Pai",
+              label: ds?.family?.fatherDOB?.[lang] || "Data de Nascimento do Pai",
               value: formData.fatherBirthDate,
             },
             {
-              label: "Pai está nos EUA?",
+              label: ds?.family?.isFatherInUS?.[lang] || "Pai está nos EUA?",
               value: translateYesNo(formData.isFatherInUS),
             },
-            { label: "Status do Pai nos EUA", value: formData.fatherUSStatus },
-            { label: "Sobrenome da Mãe", value: formData.motherLastName },
-            { label: "Nome da Mãe", value: formData.motherFirstName },
+            { label: ds?.family?.fatherStatus?.[lang] || "Status do Pai nos EUA", value: formData.fatherUSStatus },
+            { label: ds?.family?.motherLast?.[lang] || "Sobrenome da Mãe", value: formData.motherLastName },
+            { label: ds?.family?.motherFirst?.[lang] || "Nome da Mãe", value: formData.motherFirstName },
             {
-              label: "Data de Nascimento da Mãe",
+              label: ds?.family?.motherDOB?.[lang] || "Data de Nascimento da Mãe",
               value: formData.motherBirthDate,
             },
             {
-              label: "Mãe está nos EUA?",
+              label: ds?.family?.isMotherInUS?.[lang] || "Mãe está nos EUA?",
               value: translateYesNo(formData.isMotherInUS),
             },
-            { label: "Status da Mãe nos EUA", value: formData.motherUSStatus },
+            { label: ds?.family?.motherStatus?.[lang] || "Status da Mãe nos EUA", value: formData.motherUSStatus },
             {
-              label: "Tem parentes imediatos nos EUA?",
+              label: ds?.family?.hasImmediateRelInUS?.[lang] || "Tem parentes imediatos nos EUA?",
               value: translateYesNo(formData.hasImmediateRelativesInUS),
             },
             { label: "Nome do Parente", value: formData.immediateRelativeName },
             { label: "Relação", value: formData.immediateRelativeRelationship },
+            { label: "Status do Parente nos EUA", value: formData.immediateRelativeStatus },
             {
-              label: "Status do Parente nos EUA",
-              value: formData.immediateRelativeStatus,
-            },
-            {
-              label: "Outros parentes nos EUA?",
+              label: ds?.family?.hasOtherRelInUS?.[lang] || "Outros parentes nos EUA?",
               value: translateYesNo(formData.hasOtherRelativesInUS),
             },
           ],
@@ -493,16 +490,16 @@ export const ReviewStep = ({
               value: formData.employerName,
             },
             { label: "Endereço de emprego", value: formData.employerAddress },
-            { label: "Cidade", value: formData.employerCity },
-            { label: "Estado/Província", value: formData.employerState },
-            { label: "CEP/Código Postal", value: formData.employerZip },
-            { label: "Telefone de emprego", value: formData.employerPhone },
-            { label: "País de emprego", value: formData.employerCountry },
+            { label: ds?.workEducation?.city?.[lang] || "Cidade", value: formData.employerCity },
+            { label: ds?.workEducation?.state?.[lang] || "Estado/Província", value: formData.employerState },
+            { label: ds?.workEducation?.zip?.[lang] || "CEP/Código Postal", value: formData.employerZip },
+            { label: ds?.workEducation?.phone?.[lang] || "Telefone de emprego", value: formData.employerPhone },
+            { label: ds?.workEducation?.country?.[lang] || "País de emprego", value: formData.employerCountry },
             { label: "Data de Início", value: formData.jobStartDate },
             { label: "Renda Mensal", value: formData.monthlyIncome },
-            { label: "Descrição das funções", value: formData.jobDescription },
+            { label: ds?.workEducation?.duties?.[lang] || "Descrição das funções", value: formData.jobDescription },
             {
-              label: "Foi previamente empregado?",
+              label: ds?.workEducation?.prevEmployed?.[lang] || "Foi previamente empregado?",
               value: translateYesNo(formData.wasPreviouslyEmployed),
             },
             { label: "Empregador Anterior", value: formData.prevEmployerName },
@@ -511,7 +508,7 @@ export const ReviewStep = ({
             { label: "Motivo da Saída", value: formData.prevJobReasonLeft },
             { label: "Supervisor", value: formData.prevEmployerSupervisor },
             {
-              label: "Possui Ensino Médio/Superior?",
+              label: ds?.workEducation?.educationLevel?.[lang] || "Possui Ensino Médio/Superior?",
               value: translateYesNo(formData.hasSecondaryEducation),
             },
             { label: "Instituição", value: formData.educationInstitutionName },
@@ -526,17 +523,17 @@ export const ReviewStep = ({
           title: ds?.additional?.title?.[lang] || "Informações Adicionais",
           fields: [
             {
-              label: "Pertence a Clã/Tribo?",
+              label: ds?.additional?.clanTribue?.[lang] || "Pertence a Clã/Tribo?",
               value: translateYesNo(formData.belongsToClan),
             },
-            { label: "Nome do Clã/Tribo", value: formData.clanName },
-            { label: "Idiomas falados", value: formData.languagesSpoken },
+            { label: ds?.additional?.clanNameLabel?.[lang] || "Nome do Clã/Tribo", value: formData.clanName },
+            { label: ds?.additional?.languages?.[lang] || "Idiomas falados", value: formData.languagesSpoken },
             {
-              label: "Viajou a outros países nos últimos 5 anos?",
+              label: ds?.additional?.countries5Years?.[lang] || "Viajou a outros países nos últimos 5 anos?",
               value: translateYesNo(formData.hasVisitedOtherCountries),
             },
             {
-              label: "Países Visitados",
+              label: ds?.additional?.listCountriesLabel?.[lang] || "Países Visitados",
               value: formData.countriesVisitedLast5Years,
             },
             {

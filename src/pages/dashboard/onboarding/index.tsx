@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/presentation/components/atoms/button";
+import { Progress } from "@/presentation/components/atoms/progress";
+import { Skeleton } from "@/presentation/components/atoms/skeleton";
 import {
   CheckCircle2,
   Circle,
@@ -24,7 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
+} from "@/presentation/components/atoms/dialog";
 import { useState } from "react";
 import { useOnboardingLogic } from "./useOnboardingLogic";
 import { PersonalInfoStep } from "./steps/PersonalInfoStep";
@@ -53,8 +53,9 @@ import { CASVSchedulingStep } from "./steps/visto-b1-b2/CASVSchedulingStep";
 import { FeeProcessingStep } from "./steps/visto-b1-b2/FeeProcessingStep";
 import { PaymentPendingStep } from "./steps/visto-b1-b2/PaymentPendingStep";
 import { AwaitingInterviewStep } from "./steps/visto-b1-b2/AwaitingInterviewStep";
-import { DS160ReviewModal } from "./components/DS160ReviewModal";
+import { DS160ReviewModal } from "@/presentation/components/organisms/DS160ReviewModal";
 import { ProcessingStatusStep } from "./steps/visto-b1-b2/ProcessingStatusStep";
+import { SupabaseStorageService } from "@/infrastructure/services/SupabaseStorageService";
 
 import { F1F2Personal1Step } from "./steps/F1F2/F1F2Personal1Step";
 import { F1F2Personal2Step } from "./steps/F1F2/F1F2Personal2Step";
@@ -64,6 +65,9 @@ import { F1F2AddressPhoneStep } from "./steps/F1F2/F1F2AddressPhoneStep";
 import { F1F2SocialMediaStep } from "./steps/F1F2/F1F2SocialMediaStep";
 import { F1F2PassportStep } from "./steps/F1F2/F1F2PassportStep";
 import { F1F2UploadDocumentsStep } from "./steps/F1F2/F1F2UploadDocumentsStep";
+import { ChangeOfStatusFormStep } from "./steps/ChangeOfStatus/ChangeOfStatusFormStep";
+import { ChangeOfStatusDocumentsStep } from "./steps/ChangeOfStatus/ChangeOfStatusDocumentsStep";
+
 export default function Onboarding() {
   const {
     lang,
@@ -113,13 +117,11 @@ export default function Onboarding() {
   }) => {
     if (doc.path === "pending...") return;
     try {
-      const { data, error } = await supabase.storage
-        .from(doc.bucket_id || "process-documents")
-        .createSignedUrl(doc.path, 3600);
+      const storageService = new SupabaseStorageService();
+      const signedUrl = await storageService.createSignedUrl(doc.bucket_id || "process-documents", doc.path, 3600);
 
-      if (error) throw error;
-      if (data?.signedUrl) {
-        window.open(data.signedUrl, "_blank");
+      if (signedUrl) {
+        window.open(signedUrl, "_blank");
       }
     } catch (error) {
       console.error("Error opening document:", error);
@@ -310,6 +312,39 @@ export default function Onboarding() {
               o={o}
             />
           );
+        default:
+          return null;
+      }
+    }
+
+    if (serviceSlug === "changeofstatus") {
+      switch (currentStep) {
+        case 0:
+          return (
+            <ChangeOfStatusFormStep
+              {...commonProps}
+              uploadedDocs={uploadedDocs}
+              handleUpload={handleUpload}
+              handleRemove={handleRemoveDoc}
+              uploading={uploading}
+              fileInputRef={fileInputRef}
+              setSelectedDoc={setSelectedDoc}
+            />
+          );
+        case 1:
+          return (
+            <ChangeOfStatusDocumentsStep
+              {...commonProps}
+              uploadedDocs={uploadedDocs}
+              handleUpload={handleUpload}
+              handleRemove={handleRemoveDoc}
+              uploading={uploading}
+              fileInputRef={fileInputRef}
+              setSelectedDoc={setSelectedDoc}
+            />
+          );
+        case 2:
+          return <ReviewStep {...commonProps} />;
         default:
           return null;
       }

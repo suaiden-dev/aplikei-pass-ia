@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/presentation/components/atoms/button";
+import { Input } from "@/presentation/components/atoms/input";
+import { Skeleton } from "@/presentation/components/atoms/skeleton";
 import { Send, Bot, User } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +21,8 @@ interface Message {
 
 export default function Chat() {
   const { lang, t } = useLanguage();
-  const { user, loading: authLoading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
+  const user = session?.user;
   const c = t.chat;
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -48,7 +49,7 @@ export default function Chat() {
     };
     loadChat();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang, user?.id, authLoading]);
+  }, [lang, user?.id, authLoading, session]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -99,7 +100,7 @@ export default function Chat() {
         role: "assistant",
         content: assistantMessage.content,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Chat error:", error);
       toast.error(c.aiError[lang]);
     } finally {

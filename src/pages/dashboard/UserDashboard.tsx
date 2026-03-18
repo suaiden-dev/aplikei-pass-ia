@@ -28,125 +28,36 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/presentation/components/atoms/dialog";
+import { Progress } from "@/presentation/components/atoms/progress";
+import { Skeleton } from "@/presentation/components/atoms/skeleton";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/presentation/components/atoms/badge";
+import { Button } from "@/presentation/components/atoms/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { GetUserProcesses } from "@/application/use-cases/user/GetUserProcesses";
+import { SupabaseUserProcessRepository } from "@/infrastructure/repositories/SupabaseUserProcessRepository";
+import { SupabaseDocumentRepository } from "@/infrastructure/repositories/SupabaseDocumentRepository";
+import { SupabaseVisaOrderRepository } from "@/infrastructure/repositories/SupabaseVisaOrderRepository";
+import { SupabaseStorageService } from "@/infrastructure/services/SupabaseStorageService";
+import { UserProcess } from "@/domain/user/UserEntities";
+import { getStatusDisplay, TOTAL_STEPS } from "@/domain/user/UserProcessStatus";
 
-interface UserServiceRaw {
-  id: string;
-  status: string;
-  current_step: number | null;
-  service_slug: string;
-  created_at: string;
-  application_id?: string | null;
-  date_of_birth?: string | null;
-  grandmother_name?: string | null;
-  is_second_attempt?: boolean | null;
-}
-
-const TOTAL_STEPS = 9;
-
-interface ServiceWithProgress extends UserServiceRaw {
+interface ServiceWithProgress extends UserProcess {
   calculatedProgress: number;
   label: string;
   stepText: string;
 }
-
-const getStatusDisplay = (
-  status: string,
-  lang: string,
-  tStatus: any,
-  serviceSlug?: string,
-) => {
-  if (!status) return { stepText: "", label: "" };
-
-  // Legacy support
-  if (status === "active") status = "ds160InProgress";
-  if (status === "review_pending") status = "ds160Processing";
-  if (status === "review_assign") status = "ds160AwaitingReviewAndSignature";
-  if (status === "completed") status = "approved";
-
-  let step = 0;
-  let label = "";
-
-  switch (status) {
-    case "ds160InProgress":
-      step = 1;
-      label = tStatus.ds160InProgress[lang];
-      break;
-    case "ds160Processing":
-      step = 2;
-      label = tStatus.ds160Processing[lang];
-      break;
-    case "ds160upload_documents":
-      step = 3;
-      label = tStatus.ds160uploadDocuments[lang];
-      break;
-    case "ds160AwaitingReviewAndSignature":
-      step = 4;
-      label = tStatus.ds160AwaitingReviewAndSignature[lang];
-      break;
-    case "uploadsUnderReview": // Legacy/Alternative
-      step = 4;
-      label = tStatus.uploadsUnderReview[lang];
-      break;
-    case "casvSchedulingPending":
-      step = 5;
-      label = tStatus.casvSchedulingPending[lang];
-      break;
-    case "casvFeeProcessing":
-      step = 6;
-      label = tStatus.casvFeeProcessing[lang];
-      break;
-    case "casvPaymentPending":
-      step = 7;
-      label = tStatus.casvPaymentPending[lang];
-      break;
-    case "awaitingInterview":
-      step = 8;
-      label = tStatus.awaitingInterview[lang];
-      break;
-    case "approved":
-      step = 9;
-      label = tStatus.approved[lang];
-      break;
-    case "rejected":
-      return {
-        stepText: tStatus.rejectedText[lang],
-        label: tStatus.rejectedLabel[lang],
-        step: TOTAL_STEPS,
-        totalSteps: TOTAL_STEPS,
-      };
-    case "completed":
-      return {
-        stepText: tStatus.approved[lang],
-        label: tStatus.approved[lang],
-        step: TOTAL_STEPS,
-        totalSteps: TOTAL_STEPS,
-      };
-    default:
-      return { stepText: "", label: status };
-  }
-
-  const stepText = tStatus.stepOf[lang]
-    .replace("[step]", String(step))
-    .replace("[total]", String(TOTAL_STEPS));
-
-  return { stepText, label, step, totalSteps: TOTAL_STEPS };
-};
 
 export default function UserDashboard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isAfterCheckout = !!searchParams.get("session_id");
   const { lang, t } = useLanguage();
-  const { user, loading: authLoading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
+  const user = session?.user;
   const d = t.dashboard;
 
   const [services, setServices] = useState<ServiceWithProgress[]>([]);
@@ -170,106 +81,69 @@ export default function UserDashboard() {
     if (authLoading || !userId) return;
 
     const fetchServices = async () => {
-      const { data: servicesData, error } = await supabase
-        .from("user_services")
-        .select(
-          "id, status, current_step, service_slug, created_at, application_id, date_of_birth, grandmother_name, is_second_attempt",
-        )
-        .eq("user_id", userId)
-        .in("status", [
-          "active",
-          "review_pending",
-          "review_assign",
-          "ds160InProgress",
-          "ds160Processing",
-          "ds160upload_documents",
-          "ds160AwaitingReviewAndSignature",
-          "uploadsUnderReview",
-          "casvSchedulingPending",
-          "casvFeeProcessing",
-          "casvPaymentPending",
-          "awaitingInterview",
-          "approved",
-          "rejected",
-          "completed",
-        ])
-        .order("created_at", { ascending: false });
+      try {
+        const repo = new SupabaseUserProcessRepository();
+        const getUserProcesses = new GetUserProcesses(repo);
+        const processes = await getUserProcesses.execute(userId);
 
-      if (error) {
-        setLoading(false);
-        return;
-      }
+        if (processes && processes.length > 0) {
+          const uniqueServicesMap = new Map<string, ServiceWithProgress>();
 
-      const servicesDataTyped = (servicesData || []) as unknown as UserServiceRaw[];
+          processes.forEach((p) => {
+            const process = { ...p, serviceSlug: p.serviceSlug === "visto-f1" ? "visa-f1f2" : p.serviceSlug };
+            
+            const groupingKey = process.status === 'rejected' ? `${process.serviceSlug}_rejected` : process.serviceSlug;
+            const existing = uniqueServicesMap.get(groupingKey);
 
-      if (servicesDataTyped && servicesDataTyped.length > 0) {
-        // Group by slug to keep only the most recent entry for each unique guide
-        const uniqueServicesMap = new Map<string, ServiceWithProgress>();
+            const isNewAdvanced =
+              (process.status === "review_pending" || process.status === "completed") &&
+              existing?.status === "active";
 
-        servicesDataTyped.forEach((rawS) => {
-          // Normalize legacy slug
-          const s = { ...rawS, service_slug: rawS.service_slug === "visto-f1" ? "visa-f1f2" : rawS.service_slug };
-          
-          // Grouping key: slug + status (to show rejected and active separately if they exist)
-          const groupingKey = s.status === 'rejected' ? `${s.service_slug}_rejected` : s.service_slug;
-          const existing = uniqueServicesMap.get(groupingKey);
+            if (!existing || isNewAdvanced) {
+              const statusInfo = getStatusDisplay(process.status, lang as string, d.status);
+              let prog = 0;
 
-          // Logic: Keep the service if:
-          // 1. We don't have one for this key yet
-          // 2. OR the new one is more "advanced" (review_pending/completed) than the currently stored one (active)
-          const isNewAdvanced =
-            (s.status === "review_pending" || s.status === "completed") &&
-            existing?.status === "active";
-
-          if (!existing || isNewAdvanced) {
-            const statusInfo = getStatusDisplay(s.status, lang as string, d.status);
-            let p = 0;
-
-            if (s.status === "approved" || s.status === "completed" || s.status === "rejected") {
-              p = 100;
-            } else if (statusInfo.step > 0) {
-              // 100% divided by 9 steps. Each completed step gives roughly 11%
-              // Plus progress within step 1 (onboarding) if it's the current step
-              if (statusInfo.step === 1) {
-                p = Math.min(Math.round(((s.current_step || 0) / 13) * 10), 10);
-              } else {
-                p = Math.round(((statusInfo.step - 1) / TOTAL_STEPS) * 100);
+              if (process.status === "approved" || process.status === "completed" || process.status === "rejected") {
+                prog = 100;
+              } else if (statusInfo.step > 0) {
+                if (statusInfo.step === 1) {
+                  prog = Math.min(Math.round(((process.currentStep || 0) / 13) * 10), 10);
+                } else {
+                  prog = Math.round(((statusInfo.step - 1) / TOTAL_STEPS) * 100);
+                }
               }
+
+              uniqueServicesMap.set(groupingKey, {
+                ...process,
+                calculatedProgress: prog,
+                label: statusInfo.label,
+                stepText: statusInfo.stepText,
+              });
             }
+          });
 
-            uniqueServicesMap.set(groupingKey, {
-              ...s,
-              calculatedProgress: p,
-              label: statusInfo.label,
-              stepText: statusInfo.stepText,
-            });
+          const servicesWithProgress = Array.from(uniqueServicesMap.values());
+          setServices(servicesWithProgress);
+
+          const savedServiceId = localStorage.getItem("last_selected_service");
+          const urlServiceId = serviceIdParam;
+
+          if (urlServiceId) {
+            setCurrentServiceId(urlServiceId);
+          } else if (
+            savedServiceId &&
+            servicesWithProgress.find((s) => s.id === savedServiceId)
+          ) {
+            setCurrentServiceId(savedServiceId);
+          } else {
+            setCurrentServiceId(servicesWithProgress[0].id);
           }
-        });
-
-        const servicesWithProgress = Array.from(uniqueServicesMap.values());
-        console.log(
-          "DEBUG: Serviços únicos processados:",
-          servicesWithProgress,
-        );
-
-        setServices(servicesWithProgress);
-
-        // Pick the service from URL or the last one saved or the most recent
-        const savedServiceId = localStorage.getItem("last_selected_service");
-        const urlServiceId = serviceIdParam;
-
-        if (urlServiceId) {
-          setCurrentServiceId(urlServiceId);
-        } else if (
-          savedServiceId &&
-          servicesWithProgress.find((s) => s.id === savedServiceId)
-        ) {
-          setCurrentServiceId(savedServiceId);
-        } else {
-          setCurrentServiceId(servicesWithProgress[0].id);
         }
+      } catch (error) {
+        console.error("Erro ao buscar serviços:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchServices();
   }, [userId, authLoading, serviceIdParam, lang, d.status]);
@@ -286,11 +160,9 @@ export default function UserDashboard() {
     setProgress(currentService.calculatedProgress);
 
     const fetchDocs = async () => {
-      const { count } = await supabase
-        .from("documents")
-        .select("*", { count: "exact", head: true })
-        .eq("user_service_id", currentServiceIdForEffect);
-      setDocsUploaded(count || 0);
+      const docRepo = new SupabaseDocumentRepository();
+      const count = await docRepo.countByProcessId(currentServiceIdForEffect);
+      setDocsUploaded(count);
     };
     fetchDocs();
   }, [
@@ -306,30 +178,19 @@ export default function UserDashboard() {
 
     setCheckingSelfie(service.id);
     try {
-      // 2. Fetch latest visa_order for this product and user (check by user_id OR email)
-      const { data: order, error } = await supabase
-        .from("visa_orders")
-        .select("id, contract_selfie_url")
-        .eq("product_slug", service.service_slug)
-        .or(`user_id.eq.${user.id},client_email.eq.${user.email}`)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
+      const visaOrderRepo = new SupabaseVisaOrderRepository();
+      const order = await visaOrderRepo.findLatestByProductAndUser(service.serviceSlug, user.id, user.email || "");
 
       if (order && !order.contract_selfie_url) {
         setPendingServiceToNavigate(service);
         setPendingOrderId(order.id);
         setIsSelfieModalOpen(true);
       } else {
-        // Already has selfie or no order found
         setCurrentServiceId(service.id);
         navigate(`/dashboard/onboarding?service_id=${service.id}`);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error checking selfie:", err);
-      // Fallback: navigate anyway or show error?
       setCurrentServiceId(service.id);
       navigate(`/dashboard/onboarding?service_id=${service.id}`);
     } finally {
@@ -346,26 +207,18 @@ export default function UserDashboard() {
       const fileName = `selfie_${Date.now()}.${fileExt}`;
       const filePath = `contracts/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("visa-documents")
-        .upload(filePath, selfieFile);
+      const storageService = new SupabaseStorageService();
+      const { error: uploadError } = await storageService.uploadFile("visa-documents", filePath, selfieFile);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) throw new Error(uploadError);
 
-      // Get public URL
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("visa-documents").getPublicUrl(filePath);
+      const publicUrl = storageService.getPublicUrl("visa-documents", filePath);
 
-      const { error: updateError } = await supabase
-        .from("visa_orders")
-        .update({
-          contract_selfie_url: publicUrl,
-          user_id: user.id, // Ensure order is linked to user
-        })
-        .eq("id", pendingOrderId);
-
-      if (updateError) throw updateError;
+      const visaOrderRepo = new SupabaseVisaOrderRepository();
+      await visaOrderRepo.updateOrder(pendingOrderId, {
+        contract_selfie_url: publicUrl,
+        user_id: user.id,
+      });
 
       setIsSelfieModalOpen(false);
       setSelfieFile(null);
@@ -392,7 +245,7 @@ export default function UserDashboard() {
         currentService?.status,
         lang as string,
         d.status,
-        currentService?.service_slug,
+        currentService?.serviceSlug,
       ).label,
       to: `/dashboard/onboarding?service_id=${currentServiceId}`,
       actionText:
@@ -521,20 +374,20 @@ export default function UserDashboard() {
               </div>
 
               <h3 className="font-bold text-foreground mb-1">
-                {s.service_slug?.toUpperCase().replace("-", " ")}
+                {s.serviceSlug?.toUpperCase().replace("-", " ")}
               </h3>
 
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
                 <div className="flex flex-col gap-0.5">
                   <span className="font-bold text-[10px] text-accent uppercase tracking-wider">
                     {
-                      getStatusDisplay(s.status, lang as string, d.status, s.service_slug)
+                      getStatusDisplay(s.status, lang as string, d.status, s.serviceSlug)
                         .stepText
                     }
                   </span>
                   <span className="text-foreground font-medium">
                     {
-                      getStatusDisplay(s.status, lang as string, d.status, s.service_slug)
+                      getStatusDisplay(s.status, lang as string, d.status, s.serviceSlug)
                         .label
                     }
                   </span>
@@ -628,7 +481,7 @@ export default function UserDashboard() {
           },
         ];
 
-        const userServiceSlugs = services.map((s) => s.service_slug);
+        const userServiceSlugs = services.map((s) => s.serviceSlug);
         const products = availableProducts.filter(
           (p) => !userServiceSlugs.includes(p.slug),
         );
@@ -665,7 +518,7 @@ export default function UserDashboard() {
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
                         <div className="relative">
-                          {services.some(s => (s.service_slug === product.slug || (s.service_slug === "visto-f1" && product.slug === "visa-f1f2")) && s.is_second_attempt) && (
+                          {services.some(s => (s.serviceSlug === product.slug || (s.serviceSlug === "visto-f1" && product.slug === "visa-f1f2")) && s.isSecondAttempt) && (
                             <Badge className="absolute -top-2 -right-1 z-10 bg-amber-500 text-white border-none text-[8px] font-bold px-1 py-0 h-4 uppercase">
                               2ª Tentativa
                             </Badge>

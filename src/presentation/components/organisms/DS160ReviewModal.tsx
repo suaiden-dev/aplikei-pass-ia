@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { OnboardingData } from "../types";
+import { OnboardingData } from "@/domain/onboarding/OnboardingEntities";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from "@/presentation/components/atoms/dialog";
+import { Button } from "@/presentation/components/atoms/button";
 import { Loader2, FileText, AlertCircle, Shield } from "lucide-react";
 
 interface DS160ReviewModalProps {

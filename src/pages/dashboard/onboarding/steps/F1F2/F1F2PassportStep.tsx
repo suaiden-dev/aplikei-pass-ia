@@ -1,6 +1,6 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Input } from "@/presentation/components/atoms/input";
+import { Label } from "@/presentation/components/atoms/label";
+import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
 import { StepProps } from "../../types";
 
 export const F1F2PassportStep = ({

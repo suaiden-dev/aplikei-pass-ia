@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/presentation/components/atoms/button";
+import { Label } from "@/presentation/components/atoms/label";
+import { Textarea } from "@/presentation/components/atoms/textarea";
 import { Shield, Send, CheckCircle2, XCircle } from "lucide-react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/presentation/components/atoms/accordion";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 export default function HelpCenter() {

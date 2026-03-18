@@ -1,6 +1,6 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Input } from "@/presentation/components/atoms/input";
+import { Label } from "@/presentation/components/atoms/label";
+import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
 import { StepProps } from "../../types";
 import { AlertCircle } from "lucide-react";
 import {
@@ -9,7 +9,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/presentation/components/atoms/select";
 import { toast } from "sonner";
 
 export const F1F2Personal1Step = ({

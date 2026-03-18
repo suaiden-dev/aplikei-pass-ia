@@ -1,6 +1,7 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/presentation/components/atoms/button";
 import { CheckCircle2, Upload, Loader2, Trash2, AlertCircle } from "lucide-react";
+import { translations } from "@/i18n/translations";
 import { UploadedDocument } from "../../types";
 
 interface F1F2UploadDocumentsStepProps {
@@ -11,8 +12,8 @@ interface F1F2UploadDocumentsStepProps {
   fileInputRef: React.RefObject<HTMLInputElement>;
   setSelectedDoc: (doc: string) => void;
   lang: "pt" | "en" | "es";
-  t: Record<string, any>;
-  o: Record<string, any>;
+  t: typeof translations;
+  o: typeof translations.onboardingPage;
 }
 
 export const F1F2UploadDocumentsStep = ({

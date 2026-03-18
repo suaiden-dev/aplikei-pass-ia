@@ -1,5 +1,5 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/presentation/components/atoms/input";
+import { Label } from "@/presentation/components/atoms/label";
 import { StepProps } from "../../types";
 
 export const F1F2SocialMediaStep = ({ register, lang, t }: StepProps) => {

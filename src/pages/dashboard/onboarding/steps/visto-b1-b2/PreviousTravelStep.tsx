@@ -1,7 +1,7 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { StepProps } from "../../types";
+import { Input } from "@/presentation/components/atoms/input";
+import { Label } from "@/presentation/components/atoms/label";
+import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
+import { StepProps, OnboardingData } from "../../types";
 
 export const PreviousTravelStep = ({
   register,
@@ -26,22 +26,22 @@ export const PreviousTravelStep = ({
       <div className="space-y-4">
         {[
           {
-            id: "hasBeenToUS",
+            id: "hasBeenToUS" as Extract<keyof OnboardingData, string>,
             label: ds.previousTravel.beenToUS[lang],
             value: hasBeenToUS,
           },
           {
-            id: "hasUSDriverLicense",
+            id: "hasUSDriverLicense" as Extract<keyof OnboardingData, string>,
             label: ds.previousTravel.hasUSLicense[lang],
             value: hasUSLicense,
           },
           {
-            id: "hasHadUSVisa",
+            id: "hasHadUSVisa" as Extract<keyof OnboardingData, string>,
             label: ds.previousTravel.hasUSVisa[lang],
             value: hasHadUSVisa,
           },
           {
-            id: "hasVisaBeenCancelled",
+            id: "hasVisaBeenCancelled" as Extract<keyof OnboardingData, string>,
             label:
               lang === "pt"
                 ? "Seu visto já foi cancelado ou revogado?"
@@ -49,12 +49,12 @@ export const PreviousTravelStep = ({
             value: watch("hasVisaBeenCancelled"),
           },
           {
-            id: "hasBeenDeniedVisa",
+            id: "hasBeenDeniedVisa" as Extract<keyof OnboardingData, string>,
             label: ds.previousTravel.visaRefused[lang],
             value: hasBeenDeniedVisa,
           },
           {
-            id: "hasImmigrationPetition",
+            id: "hasImmigrationPetition" as Extract<keyof OnboardingData, string>,
             label: ds.previousTravel.immigrationPetition[lang],
             value: hasImmigrationPetition,
             helper: ds.previousTravel.petitionHelper[lang],

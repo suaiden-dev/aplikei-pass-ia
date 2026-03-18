@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/presentation/components/atoms/button";
 import { CheckCircle2, Upload, Loader2, Trash2 } from "lucide-react";
 import { DocumentStepProps } from "../types";
 

@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar } from "@/presentation/components/atoms/calendar";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+} from "@/presentation/components/atoms/card";
+import { Button } from "@/presentation/components/atoms/button";
+import { Badge } from "@/presentation/components/atoms/badge";
+import { Alert, AlertDescription } from "@/presentation/components/atoms/alert";
 import {
   Calendar as CalendarIcon,
   Info,
@@ -72,7 +72,7 @@ export function CASVSchedulingStep({
 
       // Reload to reflect changes
       window.location.reload();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving schedule:", error);
       toast.error(o.errorSavingSchedule[lang]);
     } finally {

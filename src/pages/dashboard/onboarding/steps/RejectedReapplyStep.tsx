@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, ArrowRight, Loader2, ThumbsDown, MessageSquare } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/presentation/components/atoms/button";
+import { Badge } from "@/presentation/components/atoms/badge";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,7 +22,8 @@ export function RejectedReapplyStep({
   const { lang, t } = useLanguage();
   const navigate = useNavigate();
   const aw = t.onboardingPage.awaitingInterview;
-  const { user } = useAuth();
+  const { session } = useAuth();
+  const user = session?.user;
   const [loading, setLoading] = useState(false);
 
   const handleReapply = async () => {

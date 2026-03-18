@@ -1,8 +1,8 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Input } from "@/presentation/components/atoms/input";
+import { Label } from "@/presentation/components/atoms/label";
+import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
 import { StepProps } from "../../types";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/presentation/components/atoms/alert";
 import {
   AlertCircle,
   Shield,
@@ -17,9 +17,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/presentation/components/atoms/select";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/presentation/components/atoms/button";
 
 export const PersonalInfo1Step = ({
   register,

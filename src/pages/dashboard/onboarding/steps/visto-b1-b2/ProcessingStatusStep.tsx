@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/presentation/components/atoms/card";
 import { Loader2, CheckCircle2, Clock, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 

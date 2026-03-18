@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/presentation/components/atoms/button";
 import {
   Upload as UploadIcon,
   File,
@@ -6,7 +6,7 @@ import {
   Clock,
   AlertTriangle,
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/presentation/components/atoms/skeleton";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect, useRef } from "react";
@@ -18,9 +18,10 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function Uploads() {
   const { lang, t } = useLanguage();
-  const { user, loading: authLoading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
+  const user = session?.user;
   const u = t.uploads;
-  const [dbDocs, setDbDocs] = useState<any[]>([]);
+  const [dbDocs, setDbDocs] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,8 +106,8 @@ export default function Uploads() {
 
       toast.success(u.successMsg[lang]);
       fetchDocs();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     } finally {
       setUploading(null);
     }
@@ -215,8 +216,8 @@ export default function Uploads() {
                     </span>
                     {doc?.storage_path && !isUploading && (
                       <span className="truncate text-xs text-muted-foreground">
-                        — {doc.storage_path.split("/").pop()?.split("_")[0]}.
-                        {doc.storage_path.split(".").pop()}
+                        — {(doc.storage_path as unknown as string).split("/").pop()?.split("_")[0]}.
+                        {(doc.storage_path as unknown as string).split(".").pop()}
                       </span>
                     )}
                   </div>
