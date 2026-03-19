@@ -182,35 +182,33 @@ export default function AdminProcessDetail() {
   const fetchProcessData = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch the order
-      // Justification: Usando 'any' tático para evitar recursão profunda de tipos do Supabase.
-      /* eslint-disable @typescript-eslint/no-explicit-any */
-      const { data: orderData, error: orderError } = await ((supabase as any)
+      const { data: orderData, error: orderError } = await supabase
         .from("visa_orders")
         .select("*")
         .eq("id", id)
-        .single() as Promise<{ data: any | null; error: Error | null }>);
+        .single();
 
       if (orderError) throw orderError;
+      if (!orderData) throw new Error("Order not found");
 
       // Fetch user profile for fallback data (like phone)
       let profileData = null;
       if (orderData.user_id) {
-        const { data: profile } = await ((supabase as any)
+        const { data: profile } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", orderData.user_id)
-          .single() as Promise<{ data: any | null; error: Error | null }>);
+          .single();
         profileData = profile;
       }
 
       // Fetch service statuses for this user
-      const { data: services, error: servicesError } = await ((supabase as any)
+      const { data: services, error: servicesError } = await supabase
         .from("user_services")
         .select("*")
-        .eq("user_id", orderData.user_id)
+        .eq("user_id", orderData.user_id as string)
         .eq("service_slug", orderData.product_slug)
-        .order("created_at", { ascending: true }) as Promise<{ data: any[] | null; error: Error | null }>);
+        .order("created_at", { ascending: true });
 
       if (servicesError) {
         console.error("Error fetching services:", servicesError);
@@ -250,9 +248,8 @@ export default function AdminProcessDetail() {
         specialist_review_data: s?.specialist_review_data || null,
         consular_login: serviceData?.consular_login || null,
         consular_password: serviceData?.consular_password || null,
-        client_whatsapp: profileData?.phone || orderData.payment_metadata?.phone || orderData.client_whatsapp || null,
+        client_whatsapp: profileData?.phone || (orderData.payment_metadata as Record<string, unknown>)?.phone || orderData.client_email || null,
       };
-      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       setOrder(combined);
       setAppId(combined.application_id || "");
@@ -277,13 +274,10 @@ export default function AdminProcessDetail() {
 
       // Fetch documents for this user
       if (orderData.user_id) {
-        // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
-        /* eslint-disable @typescript-eslint/no-explicit-any */
-        const { data: docs } = await ((supabase as any)
+        const { data: docs } = await supabase
           .from("documents")
           .select("*")
-          .eq("user_id", orderData.user_id) as Promise<{ data: any[] | null; error: Error | null }>);
-        /* eslint-enable @typescript-eslint/no-explicit-any */
+          .eq("user_id", orderData.user_id);
 
         // Filter documents belonging to this service or the special DS-160 upload names
         const relevantDocs =
@@ -321,18 +315,18 @@ export default function AdminProcessDetail() {
 
         setProcessDocs(relevantDocs);
 
-
-        /* eslint-disable @typescript-eslint/no-explicit-any */
-        const { data: responses } = serviceData?.id 
-          ? await ((supabase as any)
+        const { data: onboardingResponsesData } = serviceData?.id
+          ? await supabase
               .from("onboarding_responses")
               .select("*")
-              .eq("user_service_id", serviceData.id) as Promise<{ data: any[] | null; error: Error | null }>)
+              .eq("user_service_id", serviceData.id)
           : { data: null };
-        /* eslint-enable @typescript-eslint/no-explicit-any */
-
-        if (responses) {
-          const typedResponses = responses as unknown as OnboardingResponse[];
+        
+        if (onboardingResponsesData) {
+          const typedResponses = onboardingResponsesData.map((r) => ({
+            ...r,
+            data: r.data as Record<string, unknown>,
+          })) as OnboardingResponse[];
           setOnboardingResponses(typedResponses);
           // Find interview location in personal1 or legacy steps
           const personal1 = typedResponses.find((r) => r.step_slug === "personal1");

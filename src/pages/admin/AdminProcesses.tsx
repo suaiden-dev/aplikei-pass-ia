@@ -48,9 +48,7 @@ export default function AdminContracts() {
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      // Justification: Usando 'any' tático para quebrar a recursão excessiva de tipos do Supabase (deep instantiation).
-      /* eslint-disable @typescript-eslint/no-explicit-any */
-      const { data, error } = await ((supabase as any)
+      const { data, error } = await supabase
         .from("visa_orders")
         .select(
           "id, order_number, user_id, client_name, client_email, product_slug, total_price_usd, payment_method, payment_status, contract_pdf_url, contract_selfie_url, terms_accepted_at, client_ip, created_at",
@@ -63,23 +61,19 @@ export default function AdminContracts() {
           "troca-status",
           "guia-visto-consular-b1b2",
         ])
-        .order("created_at", { ascending: false }) as Promise<{ data: ContractOrder[] | null; error: Error | null }>);
-      /* eslint-enable @typescript-eslint/no-explicit-any */
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      const allOrders = data || [];
+      const allOrders = (data || []) as ContractOrder[];
 
       // Fetch ALL service statuses for all users in orders
-      // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
-      /* eslint-disable @typescript-eslint/no-explicit-any */
-      const { data: services, error: servicesError } = await ((supabase as any)
+      const { data: services, error: servicesError } = await supabase
         .from("user_services")
         .select(
           "id, user_id, status, service_slug, application_id, date_of_birth, grandmother_name, created_at, is_second_attempt",
         )
-        .in("user_id", allOrders.map((o) => o.user_id).filter(Boolean))
-        .order("created_at", { ascending: true }) as Promise<{ data: any[] | null; error: Error | null }>);
-      /* eslint-enable @typescript-eslint/no-explicit-any */
+        .in("user_id", allOrders.map((o) => o.user_id).filter((id): id is string => id !== null))
+        .order("created_at", { ascending: true });
 
       if (servicesError) {
         console.error("Erro ao buscar status dos serviços:", servicesError);

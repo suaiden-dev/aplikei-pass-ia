@@ -61,33 +61,31 @@ export default function AdminOrderDetail() {
   const fetchOrderDetail = useCallback(async () => {
     setLoading(true);
     try {
-      // Justification: Usando 'any' tático para quebrar a recursão excessiva de tipos do Supabase (deep instantiation).
-      /* eslint-disable @typescript-eslint/no-explicit-any */
-      const { data, error } = await ((supabase as any)
+      const { data, error } = await supabase
         .from("visa_orders")
         .select("*")
         .eq("id", id)
-        .single() as Promise<{ data: any | null; error: Error | null }>);
+        .single();
 
-      if (error) throw error;
-      const orderData = data as any;
-      const combinedOrder = {
-        ...orderData,
-        client_whatsapp: orderData.client_whatsapp || orderData.payment_metadata?.phone || null,
+      const orderData = data as unknown as Record<string, unknown>;
+      const metadata = orderData.payment_metadata as Record<string, unknown> | null;
+      
+      const combinedOrder: OrderDetail = {
+        ...(data as unknown as OrderDetail),
+        client_whatsapp: (orderData.client_whatsapp as string) || (metadata?.phone as string) || null,
       };
-      setOrder(combinedOrder as unknown as OrderDetail);
-      /* eslint-enable @typescript-eslint/no-explicit-any */
+      
+      setOrder(combinedOrder);
 
-      if ((data as Record<string, unknown>).seller_id) {
-        // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
-        /* eslint-disable @typescript-eslint/no-explicit-any */
-        const { data: seller } = await ((supabase as any)
+      if (orderData.seller_id) {
+        // Safe escape for missing table in types
+        const sb = supabase as unknown as { from: (t: string) => any };
+        const { data: seller } = await sb
           .from("sellers")
           .select("full_name")
-          .eq("id", (data as Record<string, unknown>).seller_id as string)
-          .single() as Promise<{ data: any | null; error: Error | null }>);
-        /* eslint-enable @typescript-eslint/no-explicit-any */
-        if (seller) setSellerName((seller as unknown as { full_name: string }).full_name);
+          .eq("id", orderData.seller_id as string)
+          .single();
+        if (seller) setSellerName((seller as { full_name: string }).full_name);
       }
     } catch (error) {
       console.error("Erro ao buscar detalhes:", error);

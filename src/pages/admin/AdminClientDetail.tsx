@@ -69,51 +69,62 @@ export default function AdminClientDetail() {
     if (!id) return;
     setLoading(true);
     try {
-      // 1. Fetch Client
-      // Justification: Usando 'any' tático para quebrar a recursão excessiva de tipos do Supabase (deep instantiation) nesse componente específico.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: clientData, error: clientError } = await ((supabase as any)
-        .from("clients")
+      // 1. Fetch Profile (formerly Client)
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
         .select("*")
         .eq("id", id)
-        .single() as Promise<{ data: ClientDetail | null; error: Error | null }>);
+        .single();
 
-      if (clientError) throw clientError;
-      setClient(clientData);
+      if (profileError) throw profileError;
+      
+      const profile = profileData as unknown as Record<string, unknown>;
+      const normalizedClient: ClientDetail = {
+        id: profileData.id,
+        full_name: profileData.full_name || "Sem nome",
+        email: profileData.email || "",
+        phone: profileData.phone || "",
+        country: (profile.country as string) || null,
+        nationality: (profile.nationality as string) || null,
+        date_of_birth: (profile.date_of_birth as string) || null,
+        document_number: (profile.document_number as string) || null,
+        document_type: (profile.document_type as string) || null,
+        marital_status: (profile.marital_status as string) || null,
+        address_line: (profile.address_line as string) || null,
+        city: (profile.city as string) || null,
+        state: (profile.state as string) || null,
+        postal_code: (profile.postal_code as string) || null,
+        created_at: profileData.updated_at || new Date().toISOString(),
+      };
+      setClient(normalizedClient);
 
-      // 2. Fetch Orders (linked via client_id in service_requests)
-      // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: serviceRequests } = await ((supabase as any)
-        .from("service_requests")
-        .select("id")
-        .eq("client_id", id) as Promise<{ data: { id: string }[] | null; error: Error | null }>);
+      // 2. Fetch Orders directly via user_id
+      const { data: ordersData } = await supabase
+        .from("visa_orders")
+        .select(
+          "id, order_number, product_slug, total_price_usd, payment_status, created_at",
+        )
+        .eq("user_id", id)
+        .order("created_at", { ascending: false });
 
-      const srIds = serviceRequests?.map((sr) => sr.id) || [];
+      setOrders((ordersData as unknown as Order[]) || []);
 
-      if (srIds.length > 0) {
-        // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: ordersData } = await ((supabase as any)
-          .from("visa_orders")
-          .select(
-            "id, order_number, product_slug, total_price_usd, payment_status, created_at",
-          )
-          .in("service_request_id", srIds)
-          .order("created_at", { ascending: false }) as Promise<{ data: Order[] | null; error: Error | null }>);
+      // 3. Fetch Documents (formerly Identity Files)
+      const { data: docsData } = await supabase
+        .from("documents")
+        .select("*")
+        .eq("user_id", id)
+        .order("created_at", { ascending: false });
 
-        setOrders((ordersData as Order[]) || []);
-
-        // 3. Fetch Identity Files
-        // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: filesData } = await ((supabase as any)
-          .from("identity_files")
-          .select("*")
-          .in("service_request_id", srIds)
-          .order("created_at", { ascending: false }) as Promise<{ data: IdentityFile[] | null; error: Error | null }>);
-
-        setFiles(filesData || []);
+      if (docsData) {
+        setFiles(docsData.map(d => ({
+          id: d.id,
+          file_name: d.name,
+          file_path: d.storage_path,
+          file_type: d.name,
+          created_at: d.created_at || new Date().toISOString(),
+          service_request_id: d.user_service_id
+        })));
       }
     } catch (error) {
       console.error("Erro ao carregar dados do cliente:", error);

@@ -84,26 +84,20 @@ export default function AdminPayments() {
 
             if (activeTab === "approved") {
                 // 1. Fetch from visa_orders (Stripe, Parcelow, Zelle paid)
-                // Justification: Usando 'any' tático para quebrar a recursão excessiva de tipos do Supabase (deep instantiation).
-                /* eslint-disable @typescript-eslint/no-explicit-any */
-                const { data: visaOrders, error: visaError } = await ((supabase as any)
+                const { data: visaOrders, error: visaError } = await supabase
                     .from("visa_orders")
                     .select("*")
                     .eq("payment_status", "paid")
-                    .order("created_at", { ascending: false }) as Promise<{ data: any[] | null; error: Error | null }>);
-                /* eslint-enable @typescript-eslint/no-explicit-any */
+                    .order("created_at", { ascending: false });
 
                 if (visaError) throw visaError;
 
                 // 2. Fetch from zelle_payments (Already approved Zelle)
-                // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
-                /* eslint-disable @typescript-eslint/no-explicit-any */
-                const { data: zelleData, error: zelleError } = await ((supabase as any)
+                const { data: zelleData, error: zelleError } = await supabase
                     .from("zelle_payments")
                     .select("*, profiles:user_id(full_name)")
                     .eq("status", "approved")
-                    .order("created_at", { ascending: false }) as Promise<{ data: any[] | null; error: Error | null }>);
-                /* eslint-enable @typescript-eslint/no-explicit-any */
+                    .order("created_at", { ascending: false });
 
                 if (zelleError) throw zelleError;
 
@@ -133,14 +127,11 @@ export default function AdminPayments() {
                 combinedData.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
             } else {
                 // Somente Zelle para Pendentes e Rejeitados
-                // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
-                /* eslint-disable @typescript-eslint/no-explicit-any */
-                const { data, error } = await ((supabase as any)
+                const { data, error } = await supabase
                     .from("zelle_payments")
                     .select("*, profiles:user_id(full_name)")
                     .eq("status", activeTab)
-                    .order("created_at", { ascending: false }) as Promise<{ data: any[] | null; error: Error | null }>);
-                /* eslint-enable @typescript-eslint/no-explicit-any */
+                    .order("created_at", { ascending: false });
 
                 if (error) throw error;
                 combinedData = data as ZellePayment[];
