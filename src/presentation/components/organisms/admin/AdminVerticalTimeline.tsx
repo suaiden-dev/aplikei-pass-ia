@@ -86,6 +86,7 @@ export function AdminVerticalTimeline({
     if (currentStatus === "active") effectiveIndex = 0;
     else if (currentStatus === "review_pending") effectiveIndex = 1;
     else if (currentStatus === "review_assign") effectiveIndex = 2;
+    else if (currentStatus === "uploadsUnderReview") effectiveIndex = 3;
     else if (currentStatus === "completed") effectiveIndex = 8;
   }
 

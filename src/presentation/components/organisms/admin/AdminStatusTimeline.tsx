@@ -49,6 +49,7 @@ export function AdminStatusTimeline({ status }: { status?: string }) {
     if (status === "active") effectiveIndex = 0;
     if (status === "review_pending") effectiveIndex = 1;
     if (status === "review_assign") effectiveIndex = 2;
+    if (status === "uploadsUnderReview") effectiveIndex = 3;
     if (status === "completed") effectiveIndex = 8; // approved
   }
 
