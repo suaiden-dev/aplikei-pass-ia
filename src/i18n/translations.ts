@@ -1307,6 +1307,11 @@ export const translations = {
       pt: "Faltam documentos:",
       es: "Faltan documentos:",
     },
+    missingPhoto: {
+      en: "Please upload your photo before proceeding.",
+      pt: "Por favor, envie sua foto antes de prosseguir.",
+      es: "Por favor, suba sua foto antes de continuar.",
+    },
     selfieUploaded: {
       en: "Selfie uploaded successfully!",
       pt: "Selfie enviada com sucesso!",
