@@ -22,8 +22,17 @@ export const translations = {
     getStarted: { en: "Get started", pt: "Começar agora", es: "Empezar ahora" },
     dashboard: { en: "Dashboard", pt: "Painel", es: "Panel" },
     adminPanel: { en: "Admin Panel", pt: "Painel Admin", es: "Panel de Admin" },
+    payments: { en: "Payments", pt: "Pagamentos", es: "Pagos" },
+    customers: { en: "Customers", pt: "Clientes", es: "Clientes" },
+    processes: { en: "Processes", pt: "Processos", es: "Procesos" },
+    settings: { en: "Settings", pt: "Configurações", es: "Configuraciones" },
     logout: { en: "Logout", pt: "Sair", es: "Salir" },
+
+
+    myProcesses: { en: "My Processes", pt: "Meus Processos", es: "Mis Procesos" },
+    overview: { en: "Overview", pt: "Visão Geral", es: "Visión General" },
     goToDashboard: {
+
       en: "Go to Dashboard",
       pt: "Ir para o Painel",
       es: "Ir al Panel",
@@ -4777,191 +4786,6 @@ export const translations = {
             en: "Yes, our guide covers common pitfalls and how to prepare better for a subsequent application.",
             pt: "Sim, nosso guia aborda armadilhas comuns e como se preparar melhor para uma aplicação subsequente.",
             es: "Sí, nuestra guía cubre errores comunes y cómo prepararse mejor para una solicitud posterior.",
-          },
-        },
-      ],
-    },
-    {
-      slug: "changeofstatus",
-      title: {
-        en: "Visa Change/Extension Guide (I-539)",
-        pt: "Guia Troca/Extensão de Visto (I-539)",
-        es: "Guía Cambio/Extensión de Visa (I-539)",
-      },
-      shortTitle: { en: "I-539 Visa", pt: "Visto I-539", es: "Visa I-539" },
-      subtitle: {
-        en: "Student Visa Change or Extension — for those already in the US",
-        pt: "Troca ou Extensão de Visto de Estudante — para quem já está nos EUA",
-        es: "Cambio o Extensión de Visa de Estudiante — para quienes ya están en EE.UU.",
-      },
-      dependentPrice: { en: "US$ 100.00", pt: "US$ 100,00", es: "US$ 100,00" },
-      price: { en: "US$ 400.00", pt: "US$ 400,00", es: "US$ 400,00" },
-      basePrice: 400,
-      depPrice: 100,
-      originalPrice: { en: "US$ 800.00", pt: "US$ 800,00", es: "US$ 800,00" },
-      description: {
-        en: "Complete guide for I-539 application to change or extend your student status in the US. Includes documentation guidance, cover letter templates, and form instructions.",
-        pt: "Guia completo para aplicação do I-539 para trocar ou estender seu status de estudante nos EUA. Inclui orientação de documentação, modelos de cover letter e instruções de formulário.",
-        es: "Guía completa para la solicitud I-539 para cambiar o extender su estatus de estudiante en EE.UU. Incluye orientación sobre documentación, plantillas de cartas de presentación e instrucciones de formularios.",
-      },
-      forWhom: {
-        en: [
-          "Students already in the US with a valid visa",
-          "Those wanting to change to F-1 status",
-          "Those wanting to extend their current F-1 status",
-        ],
-        pt: [
-          "Estudantes que já estão nos EUA com visto válido",
-          "Quem deseja trocar o status para F-1",
-          "Quem deseja estender seu status F-1 atual",
-        ],
-        es: [
-          "Estudiantes que ya están en EE.UU. con visa válida",
-          "Quienes desean cambiar al estatus F-1",
-          "Quienes desean extender su estatus F-1 actual",
-        ],
-      },
-      notForWhom: {
-        en: [
-          "Those with expired status (overstay)",
-          "Those applying from outside the US",
-          "Those needing legal representation before USCIS",
-        ],
-        pt: [
-          "Quem já está com status vencido (overstay)",
-          "Quem está aplicando de fora dos EUA",
-          "Quem precisa de representação legal perante o USCIS",
-        ],
-        es: [
-          "Quienes tienen estatus vencido (overstay)",
-          "Quienes aplican desde fuera de EE.UU.",
-          "Quienes necesitan representación legal ante USCIS",
-        ],
-      },
-      included: {
-        en: [
-          "Lifetime access digital step-by-step I-539 guide",
-          "Complete document checklist for status change",
-          "I-539 and I-539A filling guidance",
-          "Cover letter models",
-          "Bonus: AI during the process to organize data and documents",
-          "Final package in PDF (checklist + summary + instructions)",
-        ],
-        pt: [
-          "Guia digital passo a passo (acesso vitalício)",
-          "Checklist completo de documentos para troca de status",
-          "Orientação para preenchimento do I-539 e I-539A",
-          "Modelos de cover letter",
-          "Bônus: IA durante o processo para organizar dados e documentos",
-          "Pacote final em PDF (checklist + resumo + instruções)",
-        ],
-        es: [
-          "Guía digital passo a passo (acceso vitalicio)",
-          "Checklist completo de documentos para cambio de estatus",
-          "Orientación para el llenado de I-539 e I-539A",
-          "Modelos de carta de presentación",
-          "Bonus: IA durante el proceso para organizar data y documentos",
-          "Paquete final en PDF (checklist + resumen + instrucciones)",
-        ],
-      },
-      notIncluded: {
-        en: [
-          "Legal advice or eligibility analysis",
-          "USCIS fee payment (must be paid directly)",
-          "Visa/Extension approval guarantee",
-          "Representation before USCIS",
-        ],
-        pt: [
-          "Aconselhamento jurídico ou análise de elegibilidade",
-          "Pagamento de taxas do USCIS (deve ser pago diretamente)",
-          "Garantia de aprovação do visto/extensão",
-          "Representação perante o USCIS",
-        ],
-        es: [
-          "Asesoría legal o análisis de elegibilidad",
-          "Pago de tarifas de USCIS (debe pagarse directamente)",
-          "Garantía de aprobación de visa/extensión",
-          "Representación ante USCIS",
-        ],
-      },
-      requirements: {
-        en: [
-          "Valid passport and current visa",
-          "Form I-20 issued by the educational institution",
-          "Financial proof for the stay and course",
-          "Current I-94",
-        ],
-        pt: [
-          "Passaporte válido e visto atual",
-          "Formulário I-20 emitido pela instituição de ensino",
-          "Comprovante financeiro para a estadia e curso",
-          "I-94 atual",
-        ],
-        es: [
-          "Pasaporte válido y visa actual",
-          "Formulario I-20 emitido por la institución educativa",
-          "Comprobantes financieros para la estancia y el curso",
-          "I-94 actual",
-        ],
-      },
-      steps: {
-        en: [
-          "Access the guide and review requirements",
-          "Gather necessary documentation",
-          "Fill out the onboarding form",
-          "Review and generate the final package",
-          "Follow instructions to submit to USCIS",
-        ],
-        pt: [
-          "Acesse o guia e revise os requisitos",
-          "Reúna a documentação necessária",
-          "Preencha o formulário de onboarding",
-          "Revise e gere o pacote final",
-          "Siga as instruções para submissão ao USCIS",
-        ],
-        es: [
-          "Acceda a la guía y revise los requisitos",
-          "Reúna la documentación necesaria",
-          "Complete el formulario de onboarding",
-          "Revisar y generar el paquete final",
-          "Siga las instrucciones para enviar a USCIS",
-        ],
-      },
-      faq: [
-        {
-          q: {
-            en: "How long do I have access to the AI tool?",
-            pt: "Por quanto tempo tenho acesso à ferramenta de IA?",
-            es: "¿Por cuánto tiempo tengo acceso a la herramienta de IA?",
-          },
-          a: {
-            en: "You get access for 90 days from purchase—plenty of time to gather your documents and build your package.",
-            pt: "Você tem acesso por 90 dias a partir da compra — tempo suficiente para reunir seus documentos e montar seu pacote.",
-            es: "Tienes acceso por 90 días desde la compra — tiempo suficiente para reunir tus documentos y armar tu paquete.",
-          },
-        },
-        {
-          q: {
-            en: "Which visa types do you cover?",
-            pt: "Quais tipos de visto vocês cobrem?",
-            es: "¿Qué tipos de visa cubren?",
-          },
-          a: {
-            en: "We currently have guides for US Tourist (B1/B2), Student (F-1), and Exchange Visitor (J-1) visas. We are working on adding more!",
-            pt: "Atualmente temos guias para vistos americanos de Turismo (B1/B2), Estudante (F-1) e Visitante de Intercâmbio (J-1). Estamos trabalhando para adicionar mais!",
-            es: "Actualmente tenemos guías para visas de Turismo (B1/B2), Estudiante (F-1) y Visitante de Intercambio (J-1) de EE.UU. ¡Estamos trabajando para agregar más!",
-          },
-        },
-        {
-          q: {
-            en: "Is Aplikei a law firm?",
-            pt: "A Aplikei é um escritório de advocacia?",
-            es: "¿Es Aplikei un despacho de abogados?",
-          },
-          a: {
-            en: "No, Aplikei is a technology platform that facilitates the filling and organization of documents. We do not provide legal advice or representation.",
-            pt: "Não. A Aplikei é uma plataforma tecnológica que facilita o preenchimento e organização de documentos. Não oferecemos aconselhamento ou representação jurídica.",
-            es: "No. Aplikei es una plataforma tecnológica que facilita el llenado y la organización de documentos. No brindamos asesoría ni representación legal.",
           },
         },
       ],

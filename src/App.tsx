@@ -19,8 +19,8 @@ import B1B2ServiceDetail from "./pages/B1B2ServiceDetail";
 import F1ServiceDetail from "./pages/F1ServiceDetail";
 import StatusExtensionDetail from "./pages/StatusExtensionDetail";
 import ChangeOfStatusDetail from "./pages/ChangeOfStatusDetail";
-import I539VisaDetail from "./pages/I539VisaDetail";
 import Login from "./pages/Login";
+
 import Signup from "./pages/Signup";
 import ConfirmPassword from "./pages/ConfirmPassword";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -93,7 +93,7 @@ const App = () => (
                   <Route path="/servicos/visto-f1" element={<F1ServiceDetail />} />
                   <Route path="/servicos/extensao-status" element={<StatusExtensionDetail />} />
                   <Route path="/servicos/troca-status" element={<ChangeOfStatusDetail />} />
-                  <Route path="/servicos/changeofstatus" element={<I539VisaDetail />} />
+
                   <Route path="/servicos/status-extension" element={<StatusExtensionDetail />} />
                   <Route path="/servicos/extension" element={<StatusExtensionDetail />} />
                   <Route path="/servicos/:slug" element={<ServiceDetail />} />

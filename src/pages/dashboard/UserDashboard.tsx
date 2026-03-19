@@ -417,29 +417,7 @@ export default function UserDashboard() {
 
       {/* GET PROCESSES SECTION */}
       {(() => {        const availableProducts = [
-          {
-            slug: "changeofstatus",
-            icon: <FileText className="h-5 w-5" />,
-            color: "bg-blue-500",
-            gradientFrom: "from-blue-500",
-            gradientTo: "to-indigo-600",
-            badgeLabel: lang === "pt" ? "Em breve" : "Coming soon",
-            titlePt: "Visto I-539",
-            titleEn: "I-539 Visa",
-            subtitlePt: "Troca ou Extensão de Visto de Estudante",
-            subtitleEn: "Student Visa Change or Extension",
-            descPt:
-              "Guia completo para aplicação do I-539 para trocar ou estender seu status de estudante nos EUA.",
-            descEn:
-              "Complete guide for I-539 application to change or extend your student status in the US.",
-            features: [
-              { pt: "Guia digital passo a passo", en: "Digital step-by-step guide" },
-              { pt: "Checklist de documentos", en: "Documents checklist" },
-              { pt: "Modelos de cover letter", en: "Cover letter models" },
-            ],
-            available: false,
-            checkoutUrl: "/checkout/changeofstatus",
-          },
+
           {
             slug: "extensao-status",
             icon: <Clock className="h-5 w-5" />,
