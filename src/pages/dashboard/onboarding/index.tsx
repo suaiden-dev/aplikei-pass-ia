@@ -119,7 +119,9 @@ export default function Onboarding() {
     if (doc.path === "pending...") return;
     try {
       const storageService = new SupabaseStorageService();
-      const signedUrl = await storageService.createSignedUrl(doc.bucket_id || "process-documents", doc.path, 3600);
+      const bucket = doc.bucket_id || (doc.path.startsWith("contracts/") ? "visa-documents" : "process-documents");
+      const signedUrl = await storageService.createSignedUrl(bucket, doc.path, 3600);
+
 
       if (signedUrl) {
         window.open(signedUrl, "_blank");

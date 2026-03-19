@@ -138,6 +138,8 @@ export default function AdminProcessDetail() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<Order | null>(null);
+  const [signedSelfieUrl, setSignedSelfieUrl] = useState<string | null>(null);
+
   const [appId, setAppId] = useState("");
   const [dob, setDob] = useState("");
   const [grandmaName, setGrandmaName] = useState("");
@@ -242,7 +244,8 @@ export default function AdminProcessDetail() {
         interview_location_casv: s?.interview_location_casv || null,
         interview_location_consulate: s?.interview_location_consulate || null,
         contract_pdf_url: orderData.contract_pdf_url || null,
-        contract_selfie_url: s?.contract_selfie_url || null,
+        contract_selfie_url: orderData.contract_selfie_url || s?.contract_selfie_url || null,
+
         specialist_training_data: s?.specialist_training_data || null,
         specialist_review_data: s?.specialist_review_data || null,
         consular_login: serviceData?.consular_login || null,
@@ -289,7 +292,10 @@ export default function AdminProcessDetail() {
               d.name === "ds160_assinada" ||
               d.name === "ds160_comprovante" ||
               d.name === "ds160_comprovante_sevis" ||
-              d.name === "ds160_boleto",
+              d.name === "ds160_boleto" ||
+              d.name === "selfie" ||
+              d.name === "Foto (Selfie)",
+
           ) || [];
 
         // Custom sort: 1. assinada, 2. comprovante, 3. boleto
@@ -305,8 +311,15 @@ export default function AdminProcessDetail() {
         });
 
         console.log("DEBUG: Documentos filtrados e ordenados:", relevantDocs);
+        
+        // Fallback: If no selfie URL in order, check if we have it in documents
+        const selfieDoc = docs?.find(d => d.name === "selfie" || d.name === "Foto (Selfie)");
+        if (selfieDoc && !combined.contract_selfie_url) {
+          combined.contract_selfie_url = selfieDoc.storage_path;
+        }
 
         setProcessDocs(relevantDocs);
+
 
         /* eslint-disable @typescript-eslint/no-explicit-any */
         const { data: responses } = serviceData?.id 
@@ -590,7 +603,38 @@ export default function AdminProcessDetail() {
     }
   };
 
+  useEffect(() => {
+    const signSelfieUrl = async () => {
+      if (order?.contract_selfie_url && !order.contract_selfie_url.startsWith("http")) {
+        try {
+          // Heuristic to decide bucket: contracts/ prefix belongs to visa-documents, 
+          // direct userId/ prefix usually belongs to process-documents
+          const bucket = order.contract_selfie_url.startsWith("contracts/") ? "visa-documents" : "process-documents";
+          
+          const { data, error } = await supabase.storage
+            .from(bucket)
+            .createSignedUrl(order.contract_selfie_url, 3600);
+
+          
+          if (error) throw error;
+          if (data?.signedUrl) {
+            setSignedSelfieUrl(data.signedUrl);
+          }
+        } catch (err) {
+          console.error("Error signing selfie URL:", err);
+        }
+      } else if (order?.contract_selfie_url) {
+        setSignedSelfieUrl(order.contract_selfie_url);
+      } else {
+        setSignedSelfieUrl(null);
+      }
+    };
+
+    signSelfieUrl();
+  }, [order?.contract_selfie_url]);
+
   const handleRegeneratePdf = async () => {
+
     if (!order) return;
     setRegeneratingId(order.id);
     try {
@@ -1806,7 +1850,7 @@ export default function AdminProcessDetail() {
                   </div>
                   <div className="relative group rounded-2xl overflow-hidden aspect-[4/3] bg-slate-200">
                     <img
-                      src={order.contract_selfie_url}
+                      src={signedSelfieUrl || order.contract_selfie_url}
                       alt="Selfie do cliente"
                       className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500"
                     />
@@ -1815,8 +1859,9 @@ export default function AdminProcessDetail() {
                         variant="secondary"
                         size="sm"
                         className="w-full h-8 text-[10px] font-bold rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20"
-                        onClick={() => window.open(order.contract_selfie_url, '_blank')}
+                        onClick={() => window.open(signedSelfieUrl || order.contract_selfie_url, '_blank')}
                       >
+
                         ABRIR ORIGINAL
                       </Button>
                     </div>
