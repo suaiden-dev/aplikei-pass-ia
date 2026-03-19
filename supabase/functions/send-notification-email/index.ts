@@ -66,7 +66,7 @@ Deno.serve(async (req: Request) => {
       </div>
     `;
 
-    const TEST_MODE = true; // Set to false to actually send emails
+    const TEST_MODE = false; // Set to false to actually send emails
 
     if (TEST_MODE) {
       console.log("------- TEST_MODE: EMAIL INTERCEPTED -------");

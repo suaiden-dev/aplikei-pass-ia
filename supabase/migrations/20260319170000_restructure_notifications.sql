@@ -71,13 +71,15 @@ BEGIN
       target_type,
       title,
       message,
-      link
+      link,
+      send_email
     ) VALUES (
       NEW.user_id,
       'user',
       'Atualização: ' || v_service_name,
       'Seu processo teve uma atualização de status: ' || v_new_status,
-      '/dashboard/onboarding'
+      '/dashboard/onboarding',
+      true
     );
   END IF;
 
