@@ -14,6 +14,8 @@ import {
   Calendar,
   User,
   ChevronRight,
+  Repeat,
+  Clock,
   Camera,
   Loader2,
   ShoppingBag,
@@ -28,7 +30,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/presentation/components/atoms/dialog";
+import { toast } from "sonner";
 import { Progress } from "@/presentation/components/atoms/progress";
 import { Skeleton } from "@/presentation/components/atoms/skeleton";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -66,9 +70,10 @@ export default function UserDashboard() {
   const [progress, setProgress] = useState(0);
   const [docsUploaded, setDocsUploaded] = useState(0);
   const [isSelfieModalOpen, setIsSelfieModalOpen] = useState(false);
+  const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [selfieStep, setSelfieStep] = useState<1 | 2>(1);
   const [uploadingSelfie, setUploadingSelfie] = useState(false);
   const [checkingSelfie, setCheckingSelfie] = useState<string | null>(null);
-  const [selfieFile, setSelfieFile] = useState<File | null>(null);
   const [pendingServiceToNavigate, setPendingServiceToNavigate] =
     useState<ServiceWithProgress | null>(null);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
@@ -181,9 +186,11 @@ export default function UserDashboard() {
       const visaOrderRepo = new SupabaseVisaOrderRepository();
       const order = await visaOrderRepo.findLatestByProductAndUser(service.serviceSlug, user.id, user.email || "");
 
-      if (order && !order.contract_selfie_url) {
+      const needsSelfie = order && !order.contract_selfie_url;
+
+      if (needsSelfie) {
         setPendingServiceToNavigate(service);
-        setPendingOrderId(order.id);
+        setPendingOrderId(order?.id || null);
         setIsSelfieModalOpen(true);
       } else {
         setCurrentServiceId(service.id);
@@ -199,42 +206,39 @@ export default function UserDashboard() {
   };
 
   const handleSelfieUpload = async () => {
-    if (!selfieFile || !pendingOrderId || !user) return;
-
+    if (!user) return;
     setUploadingSelfie(true);
     try {
-      const fileExt = selfieFile.name.split(".").pop();
-      const fileName = `selfie_${Date.now()}.${fileExt}`;
-      const filePath = `contracts/${fileName}`;
-
       const storageService = new SupabaseStorageService();
-      const { error: uploadError } = await storageService.uploadFile("visa-documents", filePath, selfieFile);
+      
+      if (selfieFile && pendingOrderId) {
+        const fileExt = selfieFile.name.split(".").pop();
+        const fileName = `selfie_${Date.now()}.${fileExt}`;
+        const filePath = `contracts/${fileName}`;
+        const { error: uploadError } = await storageService.uploadFile("visa-documents", filePath, selfieFile);
+        if (uploadError) throw new Error(uploadError);
+        
+        const publicUrl = storageService.getPublicUrl("visa-documents", filePath);
+        const visaOrderRepo = new SupabaseVisaOrderRepository();
+        await visaOrderRepo.updateOrder(pendingOrderId, { contract_selfie_url: publicUrl, user_id: user.id });
+      }
 
-      if (uploadError) throw new Error(uploadError);
-
-      const publicUrl = storageService.getPublicUrl("visa-documents", filePath);
-
-      const visaOrderRepo = new SupabaseVisaOrderRepository();
-      await visaOrderRepo.updateOrder(pendingOrderId, {
-        contract_selfie_url: publicUrl,
-        user_id: user.id,
-      });
-
+      toast.success(t.dashboard.selfieModal.success[lang]);
       setIsSelfieModalOpen(false);
       setSelfieFile(null);
+      
       if (pendingServiceToNavigate) {
         setCurrentServiceId(pendingServiceToNavigate.id);
-        navigate(
-          `/dashboard/onboarding?service_id=${pendingServiceToNavigate.id}`,
-        );
+        navigate(`/dashboard/onboarding?service_id=${pendingServiceToNavigate.id}`);
       }
     } catch (err: unknown) {
-      console.error("Error uploading selfie:", err);
-      alert(d.errorUploadingSelfie[lang]);
+      console.error("Error uploading photo:", err);
+      toast.error(lang === "pt" ? "Erro ao enviar fotos" : "Error uploading photos");
     } finally {
       setUploadingSelfie(false);
     }
   };
+
 
   const cards = [
     {
@@ -412,11 +416,79 @@ export default function UserDashboard() {
       </section>
 
       {/* GET PROCESSES SECTION */}
-      {(() => {
-        const availableProducts = [
+      {(() => {        const availableProducts = [
+          {
+            slug: "changeofstatus",
+            icon: <FileText className="h-5 w-5" />,
+            color: "bg-blue-500",
+            gradientFrom: "from-blue-500",
+            gradientTo: "to-indigo-600",
+            badgeLabel: lang === "pt" ? "Em breve" : "Coming soon",
+            titlePt: "Visto I-539",
+            titleEn: "I-539 Visa",
+            subtitlePt: "Troca ou Extensão de Visto de Estudante",
+            subtitleEn: "Student Visa Change or Extension",
+            descPt:
+              "Guia completo para aplicação do I-539 para trocar ou estender seu status de estudante nos EUA.",
+            descEn:
+              "Complete guide for I-539 application to change or extend your student status in the US.",
+            features: [
+              { pt: "Guia digital passo a passo", en: "Digital step-by-step guide" },
+              { pt: "Checklist de documentos", en: "Documents checklist" },
+              { pt: "Modelos de cover letter", en: "Cover letter models" },
+            ],
+            available: false,
+            checkoutUrl: "/checkout/changeofstatus",
+          },
+          {
+            slug: "extensao-status",
+            icon: <Clock className="h-5 w-5" />,
+            color: "bg-blue-500",
+            gradientFrom: "from-blue-500",
+            gradientTo: "to-indigo-600",
+            badgeLabel: lang === "pt" ? "Em breve" : "Coming soon",
+            titlePt: "Extensão de Status (I-539)",
+            titleEn: "Status Extension (I-539)",
+            subtitlePt: "Para quem já está nos EUA e precisa estender",
+            subtitleEn: "Extend your stay while in the US",
+            descPt:
+              "Guia para solicitar extensão de status junto ao USCIS usando o formulário I-539.",
+            descEn:
+              "Guide to request a status extension with USCIS using Form I-539.",
+            features: [
+              { pt: "Guia digital para I-539", en: "Digital guide for I-539" },
+              { pt: "Checklist de documentos", en: "Documents checklist" },
+              { pt: "Orientação sobre preenchimento", en: "Filing orientation" },
+            ],
+            available: false,
+            checkoutUrl: "/checkout/extensao-status",
+          },
+          {
+            slug: "troca-status",
+            icon: <Repeat className="h-5 w-5" />,
+            color: "bg-blue-500",
+            gradientFrom: "from-blue-500",
+            gradientTo: "to-indigo-600",
+            badgeLabel: lang === "pt" ? "Disponível" : "Available",
+            titlePt: "Troca de Status (Change of Status)",
+            titleEn: "Change of Status",
+            subtitlePt: "Mudança de categoria de visto dentro dos EUA",
+            subtitleEn: "Change your visa category while staying in the US",
+            descPt:
+              "Guia passo a passo para solicitar troca de status dentro dos EUA via formulário I-539 ou equivalente.",
+            descEn:
+              "Step-by-step guide to request a Change of Status within the US using Form I-539 or equivalent.",
+            features: [
+              { pt: "Guia digital passo a passo", en: "Digital step-by-step guide" },
+              { pt: "Checklist de documentos", en: "Documents checklist" },
+              { pt: "Orientação sobre formulários", en: "Forms orientation" },
+            ],
+            available: true,
+            checkoutUrl: "/checkout/troca-status",
+          },
           {
             slug: "visto-b1-b2",
-            icon: <Plane className="h-6 w-6" />,
+            icon: <Plane className="h-5 w-5" />,
             color: "bg-blue-500",
             gradientFrom: "from-blue-500",
             gradientTo: "to-indigo-600",
@@ -430,50 +502,32 @@ export default function UserDashboard() {
             descEn:
               "Complete step-by-step guide to apply for a tourist/business visa. Includes DS-160 guidance and interview preparation.",
             features: [
-              {
-                pt: "Guia digital com acesso vitalício",
-                en: "Digital guide with lifetime access",
-              },
-              {
-                pt: "Checklist completo de documentos",
-                en: "Complete documents checklist",
-              },
-              {
-                pt: "Simulado de entrevista com IA",
-                en: "AI-powered interview simulator",
-              },
-              {
-                pt: "Suporte humano operacional",
-                en: "Human operational support",
-              },
+              { pt: "Guia digital", en: "Digital guide" },
+              { pt: "Checklist de documentos", en: "Complete documents checklist" },
+              { pt: "Simulado com IA", en: "AI interview simulator" },
+              { pt: "Suporte operacional", en: "Operational support" },
             ],
             available: true,
             checkoutUrl: "/checkout/visto-b1-b2",
           },
           {
             slug: "visa-f1f2",
-            icon: <GraduationCap className="h-6 w-6" />,
+            icon: <GraduationCap className="h-5 w-5" />,
             color: "bg-purple-500",
             gradientFrom: "from-purple-500",
             gradientTo: "to-violet-600",
             badgeLabel: lang === "pt" ? "Disponível" : "Available",
             titlePt: "Visto de Estudante F-1/F-2",
             titleEn: "F-1/F-2 Student Visa",
-            subtitlePt: "Para estudantes aceitos em instituições americanas",
+            subtitlePt: "Estudantes em instituições americanas",
             subtitleEn: "For students accepted by US institutions",
             descPt:
-              "Guia passo a passo para aplicar ao visto F-1 ou dependentes F-2. Orientação sobre I-20, DS-160, SEVIS e preparação para entrevista.",
+              "Guia passo a passo para aplicar ao visto F-1 ou dependentes F-2. Orientação sobre I-20, DS-160, SEVIS.",
             descEn:
-              "Step-by-step guide for the F-1 visa or F-2 dependents. Guidance on I-20, DS-160, SEVIS and interview preparation.",
+              "Step-by-step guide for the F-1 visa or F-2 dependents. Guidance on I-20, DS-160, SEVIS.",
             features: [
-              {
-                pt: "Orientação sobre I-20 e SEVIS",
-                en: "I-20 and SEVIS guidance",
-              },
-              {
-                pt: "Guia para pagamento da taxa SEVIS",
-                en: "SEVIS fee payment guide",
-              },
+              { pt: "I-20 e SEVIS", en: "I-20 and SEVIS guidance" },
+              { pt: "Guia taxa SEVIS", en: "SEVIS fee payment guide" },
               { pt: "Preparação para entrevista", en: "Interview preparation" },
             ],
             available: true,
@@ -507,14 +561,14 @@ export default function UserDashboard() {
               {products.map((product) => (
                 <div
                   key={product.slug}
-                  className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md group"
+                  className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md group flex flex-col h-full"
                 >
                   {/* Top gradient bar */}
                   <div
-                    className={`h-1.5 w-full bg-gradient-to-r ${product.gradientFrom} ${product.gradientTo}`}
+                    className={`h-1.5 w-full shrink-0 bg-gradient-to-r ${product.gradientFrom} ${product.gradientTo}`}
                   />
 
-                  <div className="p-4 space-y-5">
+                  <div className="p-4 space-y-5 flex flex-col flex-1">
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
                         <div className="relative">
@@ -559,7 +613,7 @@ export default function UserDashboard() {
                       {lang === "pt" ? product.descPt : product.descEn}
                     </p>
 
-                    <ul className="space-y-2">
+                    <ul className="space-y-2 flex-grow">
                       {product.features.map((f, i) => (
                         <li key={i} className="flex items-center gap-2 text-sm">
                           <CheckSquare className="h-4 w-4 text-accent shrink-0" />
@@ -571,7 +625,7 @@ export default function UserDashboard() {
                     </ul>
 
                     {product.available ? (
-                      <Link to={product.checkoutUrl}>
+                      <Link to={product.checkoutUrl} className="mt-auto block">
                         <Button className="w-full bg-primary font-bold h-11 rounded-md gap-2 hover:bg-primary/90 shadow-sm">
                           {d.getStarted[lang]}
                           <ArrowRight className="h-4 w-4" />
@@ -580,7 +634,7 @@ export default function UserDashboard() {
                     ) : (
                       <Button
                         disabled
-                        className="w-full h-11 rounded-md gap-2 opacity-60 cursor-not-allowed"
+                        className="w-full h-11 rounded-md gap-2 opacity-60 cursor-not-allowed mt-auto shrink-0"
                       >
                         <Lock className="h-4 w-4" />
                         {d.comingSoon[lang]}
@@ -601,7 +655,7 @@ export default function UserDashboard() {
               {t.dashboard.selfieModal.title[lang]}
             </DialogTitle>
             <DialogDescription>
-              {t.dashboard.selfieModal.desc[lang]}
+              {t.dashboard.selfieModal.step1Desc[lang]}
             </DialogDescription>
           </DialogHeader>
 
@@ -638,31 +692,33 @@ export default function UserDashboard() {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => setSelfieFile(e.target.files?.[0] || null)}
+                    capture="user"
                     className="absolute inset-0 opacity-0 cursor-pointer"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        setSelfieFile(e.target.files[0]);
+                      }
+                    }}
                   />
                 </div>
               )}
             </div>
+          </div>
 
+          <DialogFooter>
             <Button
-              className="w-full bg-primary text-white hover:bg-primary/90 font-bold h-12 rounded-md shadow-lg shadow-primary/20"
+              className="w-full bg-primary font-bold h-11 rounded-md"
               disabled={!selfieFile || uploadingSelfie}
               onClick={handleSelfieUpload}
             >
               {uploadingSelfie ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t.dashboard.selfieModal.submitting[lang]}
-                </>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
-                <>
-                  <Camera className="mr-2 h-4 w-4" />
-                  {t.dashboard.selfieModal.uploadBtn[lang]}
-                </>
+                <CheckSquare className="w-4 h-4 mr-2" />
               )}
+              {t.dashboard.selfieModal.finish[lang]}
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

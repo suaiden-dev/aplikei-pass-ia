@@ -711,7 +711,7 @@ export default function Onboarding() {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="flex flex-col items-center justify-center p-5 bg-slate-50 dark:bg-slate-900 rounded-md border border-dashed border-border group relative overflow-hidden">
+            <div className="flex flex-col items-center justify-center p-5 bg-slate-50 dark:bg-slate-900 rounded-md border border-dashed border-border group relative overflow-hidden h-40">
               {selfieFile ? (
                 <div className="flex flex-col items-center space-y-3">
                   <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
@@ -750,23 +750,25 @@ export default function Onboarding() {
               )}
             </div>
 
-            <Button
-              className="w-full bg-primary text-white hover:bg-primary/90 font-bold h-12 rounded-md shadow-lg shadow-primary/20"
-              disabled={!selfieFile || uploadingSelfie}
-              onClick={handleSelfieUpload}
-            >
-              {uploadingSelfie ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {o.uploading[lang]}
-                </>
-              ) : (
-                <>
-                  <Camera className="mr-2 h-4 w-4" />
-                  {o.uploadSelfie[lang]}
-                </>
-              )}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                className="flex-1 bg-primary text-white hover:bg-primary/90 font-bold h-12 rounded-md shadow-lg shadow-primary/20"
+                disabled={!selfieFile || uploadingSelfie}
+                onClick={handleSelfieUpload}
+              >
+                {uploadingSelfie ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {o.uploading[lang]}
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    {lang === "pt" ? "Concluir" : "Finish"}
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

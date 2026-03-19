@@ -69,6 +69,10 @@ export const ChangeOfStatusFormStep = ({
           <Label htmlFor="birthDate">{lang === "pt" ? "Data de Nascimento" : "Date of Birth"} *</Label>
           <Input id="birthDate" type="date" {...register("birthDate")} />
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="maternalGrandmotherName">{lang === "pt" ? "Nome da avó materna" : "Maternal Grandmother's Name"} *</Label>
+          <Input id="maternalGrandmotherName" {...register("maternalGrandmotherName")} placeholder={lang === "pt" ? "Ex: Maria" : "E.g. Mary"} />
+        </div>
       </div>
 
       {/* Specific Questions */}
