@@ -289,6 +289,7 @@ export default function AdminProcessDetail() {
         const relevantDocs =
           docs?.filter(
             (d) =>
+              d.user_service_id === serviceData?.id ||
               d.name === "ds160_assinada" ||
               d.name === "ds160_comprovante" ||
               d.name === "ds160_comprovante_sevis" ||
@@ -1908,9 +1909,9 @@ export default function AdminProcessDetail() {
                             {doc.name === "ds160_assinada"
                               ? "ASSINADA"
                               : doc.name === "ds160_comprovante"
-                                ? "COMPROVANTE MRV"
-                                : doc.name === "ds160_comprovante_sevis"
-                                  ? "COMPROVANTE DS-160"
+                                ? "COMPROVANTE"
+                              : doc.name === "ds160_comprovante_sevis"
+                                ? "COMPROVANTE SEVIS"
                                   : doc.name === "ds160_boleto"
                                     ? "BOLETO"
                                     : doc.name

@@ -184,7 +184,7 @@ export const useOnboardingLogic = () => {
             }
         };
         loadData();
-    }, [userId, user?.email, authLoading, urlServiceId, lang]);
+    }, [userId, user?.email, authLoading, urlServiceId, lang, o.docPhoto, reset]);
 
     const normalizeFileName = (str: string) => {
         return str
@@ -198,22 +198,11 @@ export const useOnboardingLogic = () => {
         const file = e.target.files?.[0];
         if (!file || !user || !serviceId) return;
 
-        const isProcessSpecialDoc = docName === "ds160_assinada" || docName === "ds160_comprovante" || docName === "ds160_comprovante_sevis";
-
-        if (isProcessSpecialDoc) {
-            setPendingFiles(prev => ({ ...prev, [docName]: file }));
-            setUploadedDocs(prev => {
-                if (prev.some(d => d.name === docName)) return prev;
-                return [...prev, { name: docName, path: "pending..." }];
-            });
-            return;
-        }
-
         setUploading(docName);
         try {
             const storageService = new SupabaseStorageService();
             const bucketName = "process-documents";
-            const folderPath = userId;
+            const folderPath = serviceId;
             const fileExt = file.name.split(".").pop();
             const safeDocName = normalizeFileName(docName);
             const filePath = `${folderPath}/${safeDocName}_${Date.now()}.${fileExt}`;
@@ -243,18 +232,6 @@ export const useOnboardingLogic = () => {
     };
 
     const handleRemoveDoc = async (docName: string) => {
-        const isProcessSpecialDoc = docName === "ds160_assinada" || docName === "ds160_comprovante" || docName === "ds160_comprovante_sevis";
-        
-        if (isProcessSpecialDoc && pendingFiles[docName]) {
-            setPendingFiles(prev => {
-                const next = { ...prev };
-                delete next[docName];
-                return next;
-            });
-            setUploadedDocs(prev => prev.filter(d => d.name !== docName));
-            return;
-        }
-
         if (!user || !serviceId) return;
 
         setUploading(docName);
@@ -438,27 +415,13 @@ export const useOnboardingLogic = () => {
             const processRepo = new SupabaseUserProcessRepository();
             const docRepo = new SupabaseDocumentRepository();
 
+            setPendingFiles({});
+
             const isSignatureSubmit = 
                 serviceStatus === "ds160upload_documents" || 
                 serviceStatus === "ds160AwaitingReviewAndSignature" || 
                 serviceStatus === "review_assign" ||
                 serviceStatus === "uploadsUnderReview";
-
-            for (const [docName, file] of Object.entries(pendingFiles)) {
-                const bucketName = "process-documents";
-                const folderPath = serviceId;
-                const fileExt = file.name.split(".").pop();
-                const safeDocName = normalizeFileName(docName);
-                const filePath = `${folderPath}/${safeDocName}_${Date.now()}.${fileExt}`;
-
-                await storageService.uploadFile(bucketName, filePath, file);
-                await docRepo.save(user.id, serviceId, {
-                    name: docName,
-                    path: filePath,
-                    bucket_id: bucketName
-                });
-            }
-            setPendingFiles({});
 
             const nextStatus = isSignatureSubmit ? "uploadsUnderReview" : "review_pending";
             const finalStep = serviceSlug === "visto-b1-b2" ? 11 : serviceSlug === "visa-f1f2" ? 9 : 4;
