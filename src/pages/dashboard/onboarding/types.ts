@@ -16,6 +16,7 @@ export interface StepProps {
     errors?: FieldErrors<OnboardingData>;
     setValue?: UseFormSetValue<OnboardingData>;
     watch?: UseFormWatch<OnboardingData>;
+    trigger?: (name?: any, options?: any) => Promise<boolean>;
     lang: "pt" | "en" | "es";
     t: typeof translations; 
     o: typeof translations.onboardingPage; 

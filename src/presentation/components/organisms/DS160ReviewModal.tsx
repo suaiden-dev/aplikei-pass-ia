@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from "@/presentation/components/atoms/dialog";
 import { Button } from "@/presentation/components/atoms/button";
-import { Loader2, FileText, AlertCircle, Shield } from "lucide-react";
+import { Loader2, FileText, AlertCircle, Shield, X } from "lucide-react";
 
 interface DS160ReviewModalProps {
   isOpen: boolean;
@@ -760,10 +760,10 @@ export function DS160ReviewModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border-none p-0 bg-white dark:bg-slate-950 shadow-2xl">
-        <div className="relative">
+      <DialogContent showClose={false} className="max-w-4xl rounded-3xl border-none p-0 bg-white dark:bg-slate-950 shadow-2xl overflow-hidden">
+        <div className="flex flex-col max-h-[90vh]">
           {/* Header Section */}
-          <div className="sticky top-0 z-10 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md px-4 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 z-20">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-md bg-accent/10 flex items-center justify-center">
                 <FileText className="w-6 h-6 text-accent" />
@@ -779,7 +779,18 @@ export function DS160ReviewModal({
                 </DialogDescription>
               </div>
             </div>
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onClose}
+              className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-5 h-5 text-slate-500" />
+            </Button>
           </div>
+
+          <div className="overflow-y-auto p-4 md:p-8">
 
           <div className="p-4">
             {loading ? (
@@ -864,6 +875,7 @@ export function DS160ReviewModal({
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
       </DialogContent>

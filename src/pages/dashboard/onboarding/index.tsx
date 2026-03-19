@@ -105,6 +105,7 @@ export default function Onboarding() {
     selfieFile,
     setSelfieFile,
     handleSelfieUpload,
+    trigger,
   } = useOnboardingLogic();
 
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -140,6 +141,7 @@ export default function Onboarding() {
       t,
       setValue,
       watch,
+      trigger,
       errors,
       serviceSlug,
       serviceStatus,

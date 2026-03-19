@@ -160,7 +160,12 @@ export const useOnboardingLogic = () => {
                     if (order.order_number) setOrderNumber(order.order_number);
                     
                     const hasSelfie = !!order.contract_selfie_url;
-                    const hasVisaPhoto = docs.some(d => d.name === o.docPhoto[lang]);
+                    // Check if photo exists in any translated name to avoid language mismatch issues
+                    const hasVisaPhoto = docs.some(d => 
+                        d.name === o.docPhoto['en'] || 
+                        d.name === o.docPhoto['pt'] || 
+                        d.name === o.docPhoto['es']
+                    );
                     
                     if (!hasSelfie || !hasVisaPhoto) {
                         setRequiresSelfie(true);
@@ -207,7 +212,7 @@ export const useOnboardingLogic = () => {
         setUploading(docName);
         try {
             const storageService = new SupabaseStorageService();
-            const bucketName = "documents";
+            const bucketName = "process-documents";
             const folderPath = userId;
             const fileExt = file.name.split(".").pop();
             const safeDocName = normalizeFileName(docName);
@@ -285,15 +290,27 @@ export const useOnboardingLogic = () => {
                 case "address-phone":
                     return await trigger(["homeAddress", "homeCity", "mobilePhone", "hasOtherPhoneLast5Years", "hasOtherEmailLast5Years"]);
                 case "social-media":
-                    return await trigger(["socialMedia1"]);
+                    return await trigger(["socialMedia1", "socialMediaPlatforms"]);
                 case "passport":
                     return await trigger(["passportType", "passportNumberDS", "passportIssuanceCountry", "passportIssuanceDate", "passportExpirationDate", "hasPassportBeenLostStolen"]);
                 case "us-contact":
                     return await trigger(["hasUSContact", "contactName", "contactRelationship", "contactPhone"]);
                 case "family":
-                    return await trigger(["fatherLastName", "fatherFirstName", "motherLastName", "motherFirstName"]);
+                    return await trigger([
+                        "fatherLastName", "fatherFirstName", "isFatherInUS", "fatherUSStatus",
+                        "motherLastName", "motherFirstName", "isMotherInUS", "motherUSStatus",
+                        "maternalGrandmotherName", "hasImmediateRelativesInUS", 
+                        "immediateRelativeName", "immediateRelativeRelationship", "immediateRelativeStatus",
+                        "hasOtherRelativesInUS"
+                    ]);
                 case "work-education":
-                    return await trigger(["primaryOccupation", "employerName", "jobStartDate"]);
+                    return await trigger([
+                        "primaryOccupation", "employerName", "employerPhone", "employerAddress", 
+                        "employerCity", "employerCountry", "jobStartDate", "monthlyIncome", "jobDescription",
+                        "wasPreviouslyEmployed", "prevEmployerName", "prevJobTitle", "prevJobPeriod", 
+                        "prevEmployerSupervisor", "prevJobReasonLeft", "hasSecondaryEducation", 
+                        "educationInstitutionName", "educationCompletionDate", "educationDegree"
+                    ]);
                 case "additional":
                     return await trigger(["belongsToClan", "clanName", "languagesSpoken", "hasVisitedOtherCountries", "countriesVisitedDetails"]);
                 case "documents": {
@@ -363,9 +380,19 @@ export const useOnboardingLogic = () => {
             if (selfieFile && pendingOrderId) {
                 const fileExt = selfieFile.name.split(".").pop();
                 const fileName = `selfie_${Date.now()}.${fileExt}`;
-                const filePath = `contracts/${fileName}`;
-                await storageService.uploadFile("contracts", filePath, selfieFile);
+                const filePath = `${userId}/${fileName}`;
+                await storageService.uploadFile("process-documents", filePath, selfieFile);
                 await visaOrderRepo.updateOrder(pendingOrderId, { contract_selfie_url: filePath });
+
+                // Also save as "Photo (Selfie)" in documents if no visa photo is provided
+                if (!visaPhotoFile) {
+                    const docName = o.docPhoto[lang];
+                    await docRepo.save(userId, serviceId, {
+                        name: docName,
+                        path: filePath,
+                        bucket_id: "process-documents"
+                    });
+                }
             }
 
             if (visaPhotoFile) {
@@ -374,11 +401,11 @@ export const useOnboardingLogic = () => {
                 const safeDocName = normalizeFileName(docName);
                 const filePath = `${userId}/${safeDocName}_${Date.now()}.${fileExt}`;
                 
-                await storageService.uploadFile("documents", filePath, visaPhotoFile);
+                await storageService.uploadFile("process-documents", filePath, visaPhotoFile);
                 await docRepo.save(userId, serviceId, {
                     name: docName,
                     path: filePath,
-                    bucket_id: "documents"
+                    bucket_id: "process-documents"
                 });
             }
 
@@ -465,6 +492,7 @@ export const useOnboardingLogic = () => {
         formData,
         setValue,
         watch,
+        trigger,
         errors,
         handleNext,
         handleFinish,
@@ -479,6 +507,7 @@ export const useOnboardingLogic = () => {
         pendingFiles,
         serviceId,
         securityData,
+        hasConsularCredentials,
         requiresSelfie,
         setRequiresSelfie,
         selfieStep,
@@ -488,6 +517,6 @@ export const useOnboardingLogic = () => {
         setSelfieFile,
         visaPhotoFile,
         setVisaPhotoFile,
-        handleSelfieUpload
+        handleSelfieUpload,
     };
 };
