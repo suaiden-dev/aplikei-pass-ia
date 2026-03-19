@@ -55,7 +55,7 @@ import { PaymentPendingStep } from "./steps/visto-b1-b2/PaymentPendingStep";
 import { AwaitingInterviewStep } from "./steps/visto-b1-b2/AwaitingInterviewStep";
 import { DS160ReviewModal } from "@/presentation/components/organisms/DS160ReviewModal";
 import { ProcessingStatusStep } from "./steps/visto-b1-b2/ProcessingStatusStep";
-import { SupabaseStorageService } from "@/infrastructure/services/SupabaseStorageService";
+import { getStorageService } from "@/infrastructure/factories/documentFactory";
 
 import { F1F2Personal1Step } from "./steps/F1F2/F1F2Personal1Step";
 import { F1F2Personal2Step } from "./steps/F1F2/F1F2Personal2Step";
@@ -118,7 +118,7 @@ export default function Onboarding() {
   }) => {
     if (doc.path === "pending...") return;
     try {
-      const storageService = new SupabaseStorageService();
+      const storageService = getStorageService();
       const bucket = doc.bucket_id || (doc.path.startsWith("contracts/") ? "visa-documents" : "process-documents");
       const signedUrl = await storageService.createSignedUrl(bucket, doc.path, 3600);
 

@@ -11,12 +11,11 @@ import { SaveOnboardingStep } from "@/application/use-cases/onboarding/SaveOnboa
 import { GetServiceDocuments } from "@/application/use-cases/onboarding/GetServiceDocuments";
 import { SaveDocument } from "@/application/use-cases/onboarding/SaveDocument";
 import { DeleteDocument } from "@/application/use-cases/onboarding/DeleteDocument";
-import { SupabaseOnboardingRepository } from "@/infrastructure/repositories/SupabaseOnboardingRepository";
-import { SupabaseProfileRepository } from "@/infrastructure/repositories/SupabaseProfileRepository";
-import { SupabaseUserProcessRepository } from "@/infrastructure/repositories/SupabaseUserProcessRepository";
-import { SupabaseVisaOrderRepository } from "@/infrastructure/repositories/SupabaseVisaOrderRepository";
-import { SupabaseDocumentRepository } from "@/infrastructure/repositories/SupabaseDocumentRepository";
-import { SupabaseStorageService } from "@/infrastructure/services/SupabaseStorageService";
+import { getOnboardingRepository, getProfileRepository } from "@/infrastructure/factories/onboardingFactory";
+import { getUserProcessRepository } from "@/infrastructure/factories/processFactory";
+import { getDocumentRepository, getStorageService } from "@/infrastructure/factories/documentFactory";
+import { getVisaOrderRepository } from "@/infrastructure/factories/paymentFactory";
+import { translations as translationsObj } from "@/i18n/translations";
 
 export const useOnboardingLogic = () => {
     const navigate = useNavigate();
@@ -48,16 +47,16 @@ export const useOnboardingLogic = () => {
     });
     const [pendingFiles, setPendingFiles] = useState<Record<string, File>>({});
 
-    const o = (t as any).onboardingPage;
-    const ds = (t as any).ds160;
+    const o = t.onboardingPage;
+    const ds = t.ds160;
 
     // Dynamically determine steps based on service
     const steps = serviceSlug === "visto-b1-b2" 
         ? ds.steps[lang] 
         : serviceSlug === "visa-f1f2" 
-        ? (t as any).f1f2.steps[lang] 
+        ? t.f1f2.steps[lang] 
         : serviceSlug === "changeofstatus"
-        ? (t as any).changeOfStatus.steps[lang]
+        ? t.changeOfStatus.steps[lang]
         : o.steps[lang];
     const totalSteps = steps.length;
 
@@ -102,10 +101,10 @@ export const useOnboardingLogic = () => {
         const loadData = async () => {
             setLoading(true);
             try {
-                const onboardingRepo = new SupabaseOnboardingRepository();
-                const profileRepo = new SupabaseProfileRepository();
-                const processRepo = new SupabaseUserProcessRepository();
-                const visaOrderRepo = new SupabaseVisaOrderRepository();
+                const onboardingRepo = getOnboardingRepository();
+                const profileRepo = getProfileRepository();
+                const processRepo = getUserProcessRepository();
+                const visaOrderRepo = getVisaOrderRepository();
 
                 const onboardingUseCase = new GetOnboardingData(onboardingRepo, profileRepo, processRepo);
                 
@@ -148,7 +147,7 @@ export const useOnboardingLogic = () => {
                 }
 
                 // Load Documents
-                const docRepo = new SupabaseDocumentRepository();
+                const docRepo = getDocumentRepository();
                 const getDocsUseCase = new GetServiceDocuments(docRepo);
                 const docs = await getDocsUseCase.execute(sId, userId);
                 setUploadedDocs(docs);
@@ -200,7 +199,7 @@ export const useOnboardingLogic = () => {
 
         setUploading(docName);
         try {
-            const storageService = new SupabaseStorageService();
+            const storageService = getStorageService();
             const bucketName = "process-documents";
             const folderPath = serviceId;
             const fileExt = file.name.split(".").pop();
@@ -209,7 +208,7 @@ export const useOnboardingLogic = () => {
 
             await storageService.uploadFile(bucketName, filePath, file);
 
-            const docRepo = new SupabaseDocumentRepository();
+            const docRepo = getDocumentRepository();
             await docRepo.save(userId!, serviceId, {
                 name: docName,
                 path: filePath,
@@ -236,7 +235,7 @@ export const useOnboardingLogic = () => {
 
         setUploading(docName);
         try {
-            const docRepo = new SupabaseDocumentRepository();
+            const docRepo = getDocumentRepository();
             const deleteDocUseCase = new DeleteDocument(docRepo);
             
             await deleteDocUseCase.execute(serviceId, docName, user.id);
@@ -317,8 +316,8 @@ export const useOnboardingLogic = () => {
         if (currentSlug === "documents" || currentSlug === "review" || currentSlug.includes("documents")) return;
 
         try {
-            const onboardingRepo = new SupabaseOnboardingRepository();
-            const processRepo = new SupabaseUserProcessRepository();
+            const onboardingRepo = getOnboardingRepository();
+            const processRepo = getUserProcessRepository();
             const saveUseCase = new SaveOnboardingStep(onboardingRepo, processRepo);
             
             await saveUseCase.execute(serviceId, currentSlug, currentStep, formData);
@@ -340,7 +339,7 @@ export const useOnboardingLogic = () => {
         await saveCurrentStep();
         if (serviceId) {
             try {
-                const processRepo = new SupabaseUserProcessRepository();
+                const processRepo = getUserProcessRepository();
                 await processRepo.updateStep(serviceId, currentStep + 1);
             } catch (error) {
                 console.error("Error updating step:", error);
@@ -354,43 +353,52 @@ export const useOnboardingLogic = () => {
 
         setUploadingSelfie(true);
         try {
-            const storageService = new SupabaseStorageService();
-            const visaOrderRepo = new SupabaseVisaOrderRepository();
-            const docRepo = new SupabaseDocumentRepository();
+            const storage = getStorageService();
+            const visaOrderRepo = getVisaOrderRepository();
+            const docRepo = getDocumentRepository();
+            const saveDocUseCase = new SaveDocument(docRepo);
 
             if (selfieFile && pendingOrderId) {
-                const fileExt = selfieFile.name.split(".").pop();
-                const fileName = `selfie_${Date.now()}.${fileExt}`;
-                const filePath = `${userId}/${fileName}`;
-                await storageService.uploadFile("process-documents", filePath, selfieFile);
-                await visaOrderRepo.updateOrder(pendingOrderId, { contract_selfie_url: filePath });
+                const selfiePath = `selfies/${userId}/${Date.now()}_selfie.jpg`;
+                const { path: uploadedPath, error: uploadError } = await storage.uploadFile("administrative_docs", selfiePath, selfieFile);
+                
+                if (uploadError) throw new Error(uploadError);
 
-                // Also save as "Photo (Selfie)" in documents if no visa photo is provided
+                // Update order with selfie
+                await visaOrderRepo.updateOrder(pendingOrderId, { contract_selfie_url: uploadedPath });
+                
+                // Also save as visa photo if needed
                 if (!visaPhotoFile) {
-                    const docName = o.docPhoto[lang];
+                    const docName = o.docPhoto[lang as keyof typeof o.docPhoto];
                     await docRepo.save(userId, serviceId, {
                         name: docName,
-                        path: filePath,
-                        bucket_id: "process-documents"
+                        path: uploadedPath,
+                        bucket_id: "administrative_docs"
                     });
                 }
+
+                const selfieModalSuccess = t.dashboard.selfieModal.success;
+                toast.success(selfieModalSuccess[lang as keyof typeof selfieModalSuccess]);
             }
 
             if (visaPhotoFile) {
                 const fileExt = visaPhotoFile.name.split(".").pop();
-                const docName = o.docPhoto[lang];
-                const safeDocName = normalizeFileName(docName);
+                const docName = o.docPhoto[lang as keyof typeof o.docPhoto];
+                const safeDocName = docName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
                 const filePath = `${userId}/${safeDocName}_${Date.now()}.${fileExt}`;
                 
-                await storageService.uploadFile("process-documents", filePath, visaPhotoFile);
+                const { path: uploadedPath, error: uploadError } = await storage.uploadFile("process_documents", filePath, visaPhotoFile);
+                if (uploadError) throw new Error(uploadError);
+
                 await docRepo.save(userId, serviceId, {
                     name: docName,
-                    path: filePath,
-                    bucket_id: "process-documents"
+                    path: uploadedPath,
+                    bucket_id: "process_documents"
                 });
             }
 
-            toast.success((t as any).dashboard.selfieModal.success[lang]);
+            const successMsg = t.dashboard.selfieModal.success;
+            toast.success(successMsg[lang as keyof typeof successMsg]);
             setRequiresSelfie(false);
             setSelfieFile(null);
             setVisaPhotoFile(null);
@@ -415,9 +423,9 @@ export const useOnboardingLogic = () => {
 
         try {
             setLoading(true);
-            const storageService = new SupabaseStorageService();
-            const processRepo = new SupabaseUserProcessRepository();
-            const docRepo = new SupabaseDocumentRepository();
+            const storageService = getStorageService();
+            const processRepo = getUserProcessRepository();
+            const docRepo = getDocumentRepository();
 
             setPendingFiles({});
 
