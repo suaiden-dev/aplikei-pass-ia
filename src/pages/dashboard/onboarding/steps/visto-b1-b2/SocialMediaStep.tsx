@@ -5,6 +5,7 @@ import { StepProps } from "../../types";
 export function SocialMediaStep({
   register,
   formData,
+  errors,
   lang,
   t,
 }: StepProps) {
@@ -24,12 +25,14 @@ export function SocialMediaStep({
           <Label htmlFor="socialMedia1">
             {sm.platformLabel1[lang]}
           </Label>
-          <Input
+           <Input
             id="socialMedia1"
-            {...register("socialMedia1")}
+            {...register("socialMedia1", { required: true })}
             defaultValue={formData.socialMedia1 || ""}
             placeholder="Ex: Instagram - @joãosilva"
+            className={errors?.socialMedia1 ? "border-destructive" : ""}
           />
+          {errors?.socialMedia1 && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
 
         <div className="space-y-2">

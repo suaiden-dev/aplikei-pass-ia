@@ -9,6 +9,7 @@ export const PreviousTravelStep = ({
   setValue,
   lang,
   t,
+  errors,
 }: StepProps) => {
   const ds = t.ds160;
   const hasBeenToUS = watch("hasBeenToUS");
@@ -95,19 +96,22 @@ export const PreviousTravelStep = ({
                   <Label htmlFor="lastUSTravelDate">
                     {lang === "pt" ? "Data de entrada:" : "Date of Entry:"} *
                   </Label>
-                  <Input
+                   <Input
                     id="lastUSTravelDate"
                     type="date"
-                    {...register("lastUSTravelDate")}
+                    {...register("lastUSTravelDate", { required: true })}
+                    className={errors?.lastUSTravelDate ? "border-destructive" : ""}
                   />
+                  {errors?.lastUSTravelDate && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastUSTravelPortOfEntry">
                     {lang === "pt" ? "Porta de entrada:" : "Port of Entry:"} *
                   </Label>
-                  <Input
+                   <Input
                     id="lastUSTravelPortOfEntry"
-                    {...register("lastUSTravelPortOfEntry")}
+                    {...register("lastUSTravelPortOfEntry", { required: true })}
+                    className={errors?.lastUSTravelPortOfEntry ? "border-destructive" : ""}
                     onChange={(e) =>
                       setValue(
                         "lastUSTravelPortOfEntry",
@@ -118,20 +122,21 @@ export const PreviousTravelStep = ({
                       )
                     }
                   />
+                  {errors?.lastUSTravelPortOfEntry && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>
                     {lang === "pt" ? "Duração da estadia:" : "Stay Duration:"} *
                   </Label>
                   <div className="flex gap-2">
-                    <Input
+                     <Input
                       type="number"
-                      {...register("lastUSTravelDurationValue")}
-                      className="w-24"
+                      {...register("lastUSTravelDurationValue", { required: true })}
+                      className={`w-24 ${errors?.lastUSTravelDurationValue ? "border-destructive" : ""}`}
                     />
-                    <select
-                      {...register("lastUSTravelDurationUnit")}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                     <select
+                      {...register("lastUSTravelDurationUnit", { required: true })}
+                      className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${errors?.lastUSTravelDurationUnit ? "border-destructive" : ""}`}
                     >
                       <option value="days">
                         {lang === "pt" ? "Dias" : "Days"}
@@ -147,15 +152,17 @@ export const PreviousTravelStep = ({
                       </option>
                     </select>
                   </div>
+                  {(errors?.lastUSTravelDurationValue || errors?.lastUSTravelDurationUnit) && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastUSTravelPurpose">
                     {lang === "pt" ? "Motivo da visita:" : "Purpose of Visit:"}{" "}
                     *
                   </Label>
-                  <Input
+                   <Input
                     id="lastUSTravelPurpose"
-                    {...register("lastUSTravelPurpose")}
+                    {...register("lastUSTravelPurpose", { required: true })}
+                    className={errors?.lastUSTravelPurpose ? "border-destructive" : ""}
                     onChange={(e) =>
                       setValue(
                         "lastUSTravelPurpose",
@@ -166,6 +173,7 @@ export const PreviousTravelStep = ({
                       )
                     }
                   />
+                  {errors?.lastUSTravelPurpose && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                 </div>
               </div>
             )}
@@ -179,9 +187,10 @@ export const PreviousTravelStep = ({
                       : "US Driver License Number:"}{" "}
                     *
                   </Label>
-                  <Input
+                   <Input
                     id="usDriverLicenseNumber"
-                    {...register("usDriverLicenseNumber")}
+                    {...register("usDriverLicenseNumber", { required: true })}
+                    className={errors?.usDriverLicenseNumber ? "border-destructive" : ""}
                     onChange={(e) =>
                       setValue(
                         "usDriverLicenseNumber",
@@ -189,6 +198,7 @@ export const PreviousTravelStep = ({
                       )
                     }
                   />
+                  {errors?.usDriverLicenseNumber && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="usDriverLicenseState">
@@ -197,9 +207,10 @@ export const PreviousTravelStep = ({
                       : "Issuing State:"}{" "}
                     *
                   </Label>
-                  <Input
+                   <Input
                     id="usDriverLicenseState"
-                    {...register("usDriverLicenseState")}
+                    {...register("usDriverLicenseState", { required: true })}
+                    className={errors?.usDriverLicenseState ? "border-destructive" : ""}
                     onChange={(e) =>
                       setValue(
                         "usDriverLicenseState",
@@ -210,6 +221,7 @@ export const PreviousTravelStep = ({
                       )
                     }
                   />
+                  {errors?.usDriverLicenseState && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                 </div>
               </div>
             )}
@@ -223,11 +235,13 @@ export const PreviousTravelStep = ({
                       : "Last Visa Issuance Date:"}{" "}
                     *
                   </Label>
-                  <Input
+                   <Input
                     id="lastVisaIssuanceDate"
                     type="date"
-                    {...register("lastVisaIssuanceDate")}
+                    {...register("lastVisaIssuanceDate", { required: true })}
+                    className={errors?.lastVisaIssuanceDate ? "border-destructive" : ""}
                   />
+                  {errors?.lastVisaIssuanceDate && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastVisaNumber">
@@ -236,9 +250,10 @@ export const PreviousTravelStep = ({
                       : "Last Visa Number:"}{" "}
                     *
                   </Label>
-                  <Input
+                   <Input
                     id="lastVisaNumber"
-                    {...register("lastVisaNumber")}
+                    {...register("lastVisaNumber", { required: true })}
+                    className={errors?.lastVisaNumber ? "border-destructive" : ""}
                     onChange={(e) =>
                       setValue(
                         "lastVisaNumber",
@@ -246,6 +261,7 @@ export const PreviousTravelStep = ({
                       )
                     }
                   />
+                  {errors?.lastVisaNumber && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                 </div>
                 <div className="space-y-3 mt-4">
                   <Label>
@@ -274,6 +290,7 @@ export const PreviousTravelStep = ({
                       </Label>
                     </div>
                   </RadioGroup>
+                  {errors?.isSolicitingSameTypeVisa && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
                 </div>
 
                 <div className="space-y-3 mt-4">
@@ -303,6 +320,7 @@ export const PreviousTravelStep = ({
                       </Label>
                     </div>
                   </RadioGroup>
+                  {errors?.isApplyingInSameCountry && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
                 </div>
 
                 <div className="space-y-3 mt-4">
@@ -332,6 +350,7 @@ export const PreviousTravelStep = ({
                       </Label>
                     </div>
                   </RadioGroup>
+                  {errors?.haveBeenFingerprintedBefore && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
                 </div>
 
                 <div className="space-y-3 mt-4">
@@ -361,16 +380,18 @@ export const PreviousTravelStep = ({
                       </Label>
                     </div>
                   </RadioGroup>
+                  {errors?.hasVisaBeenLostStolen && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
                   {watch("hasVisaBeenLostStolen") === "yes" && (
                     <div className="mt-2 space-y-4 scale-in-center border-l-2 border-border pl-4">
                       <div className="space-y-2">
                         <Label htmlFor="visaLostStolenYear">
                           {lang === "pt" ? "Escolha o ano:" : "Choose year:"} *
                         </Label>
-                        <Input
+                         <Input
                           id="visaLostStolenYear"
-                          {...register("visaLostStolenYear")}
+                          {...register("visaLostStolenYear", { required: true })}
                           maxLength={4}
+                          className={errors?.visaLostStolenYear ? "border-destructive" : ""}
                           onChange={(e) =>
                             setValue(
                               "visaLostStolenYear",
@@ -378,6 +399,7 @@ export const PreviousTravelStep = ({
                             )
                           }
                         />
+                        {errors?.visaLostStolenYear && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="visaLostStolenExplanation">
@@ -386,11 +408,12 @@ export const PreviousTravelStep = ({
                             : "Explain lost visa details:"}{" "}
                           *
                         </Label>
-                        <textarea
+                         <textarea
                           id="visaLostStolenExplanation"
-                          {...register("visaLostStolenExplanation")}
-                          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          {...register("visaLostStolenExplanation", { required: true })}
+                          className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors?.visaLostStolenExplanation ? "border-destructive" : ""}`}
                         />
+                        {errors?.visaLostStolenExplanation && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                       </div>
                     </div>
                   )}
@@ -407,11 +430,12 @@ export const PreviousTravelStep = ({
                       : "Explain cancellation details:"}{" "}
                     *
                   </Label>
-                  <textarea
+                   <textarea
                     id="visaCancellationDetails"
-                    {...register("visaCancellationDetails")}
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    {...register("visaCancellationDetails", { required: true })}
+                    className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors?.visaCancellationDetails ? "border-destructive" : ""}`}
                   />
+                  {errors?.visaCancellationDetails && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                 </div>
               </div>
             )}
@@ -425,11 +449,12 @@ export const PreviousTravelStep = ({
                       : "Explain denial details:"}{" "}
                     *
                   </Label>
-                  <textarea
+                   <textarea
                     id="visaRefusalDetails"
-                    {...register("visaRefusalDetails")}
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    {...register("visaRefusalDetails", { required: true })}
+                    className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors?.visaRefusalDetails ? "border-destructive" : ""}`}
                   />
+                  {errors?.visaRefusalDetails && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                 </div>
               </div>
             )}
@@ -443,11 +468,12 @@ export const PreviousTravelStep = ({
                       : "Explain petition details:"}{" "}
                     *
                   </Label>
-                  <textarea
+                   <textarea
                     id="immigrationPetitionDetails"
-                    {...register("immigrationPetitionDetails")}
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    {...register("immigrationPetitionDetails", { required: true })}
+                    className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors?.immigrationPetitionDetails ? "border-destructive" : ""}`}
                   />
+                  {errors?.immigrationPetitionDetails && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                 </div>
               </div>
             )}

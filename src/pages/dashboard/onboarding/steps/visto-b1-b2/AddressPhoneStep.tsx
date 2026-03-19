@@ -9,6 +9,7 @@ export const AddressPhoneStep = ({
   setValue,
   lang,
   t,
+  errors,
 }: StepProps) => {
   const ds = t.ds160;
   const ap = ds.addressPhone;
@@ -31,13 +32,19 @@ export const AddressPhoneStep = ({
             <Label htmlFor="homeAddress">
               {ap.addressLabel[lang]} *
             </Label>
-            <Input id="homeAddress" {...register("homeAddress")} />
+            <Input 
+              id="homeAddress" 
+              {...register("homeAddress", { required: true })} 
+              className={errors?.homeAddress ? "border-destructive" : ""}
+            />
+            {errors?.homeAddress && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="homeCity">{ap.city[lang]} *</Label>
-            <Input
+             <Input
               id="homeCity"
-              {...register("homeCity")}
+              {...register("homeCity", { required: true })}
+              className={errors?.homeCity ? "border-destructive" : ""}
               onChange={(e) =>
                 setValue(
                   "homeCity",
@@ -48,12 +55,14 @@ export const AddressPhoneStep = ({
                 )
               }
             />
+            {errors?.homeCity && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="homeState">{ap.state[lang]} *</Label>
-            <Input
+             <Input
               id="homeState"
-              {...register("homeState")}
+              {...register("homeState", { required: true })}
+              className={errors?.homeState ? "border-destructive" : ""}
               onChange={(e) =>
                 setValue(
                   "homeState",
@@ -64,26 +73,30 @@ export const AddressPhoneStep = ({
                 )
               }
             />
+            {errors?.homeState && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="homeZip">{ap.zip[lang]} *</Label>
-            <Input
+             <Input
               id="homeZip"
-              {...register("homeZip")}
+              {...register("homeZip", { required: true })}
+              className={errors?.homeZip ? "border-destructive" : ""}
               maxLength={10}
               onChange={(e) => {
                 const value = e.target.value.replace(/[^0-9-]/g, "");
                 setValue("homeZip", value);
               }}
             />
+            {errors?.homeZip && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="homeCountry">
               {ap.country[lang]} *
             </Label>
-            <Input
+             <Input
               id="homeCountry"
-              {...register("homeCountry")}
+              {...register("homeCountry", { required: true })}
+              className={errors?.homeCountry ? "border-destructive" : ""}
               onChange={(e) =>
                 setValue(
                   "homeCountry",
@@ -94,6 +107,7 @@ export const AddressPhoneStep = ({
                 )
               }
             />
+            {errors?.homeCountry && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
           </div>
         </div>
       </div>
@@ -114,22 +128,29 @@ export const AddressPhoneStep = ({
             <Label htmlFor="mailing-no">{ap.no[lang]}</Label>
           </div>
         </RadioGroup>
+        {errors?.isMailingSameAsHome && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
         {isMailingSameAsHome === "no" && (
           <div className="mt-2 space-y-4 bg-muted/20 p-4 rounded-md border border-dashed border-border scale-in-center">
             <div className="space-y-2">
               <Label htmlFor="mailingAddress">
                 {ap.mailingAddressLabel[lang]} *
               </Label>
-              <Input id="mailingAddress" {...register("mailingAddress")} />
+               <Input 
+                id="mailingAddress" 
+                {...register("mailingAddress", { required: true })} 
+                className={errors?.mailingAddress ? "border-destructive" : ""}
+              />
+              {errors?.mailingAddress && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="mailingCity">
                   {ap.city[lang]} *
                 </Label>
-                <Input
+                 <Input
                   id="mailingCity"
-                  {...register("mailingCity")}
+                  {...register("mailingCity", { required: true })}
+                  className={errors?.mailingCity ? "border-destructive" : ""}
                   onChange={(e) =>
                     setValue(
                       "mailingCity",
@@ -140,14 +161,16 @@ export const AddressPhoneStep = ({
                     )
                   }
                 />
+                {errors?.mailingCity && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="mailingState">
                   {ap.state[lang]} *
                 </Label>
-                <Input
+                 <Input
                   id="mailingState"
-                  {...register("mailingState")}
+                  {...register("mailingState", { required: true })}
+                  className={errors?.mailingState ? "border-destructive" : ""}
                   onChange={(e) =>
                     setValue(
                       "mailingState",
@@ -158,12 +181,18 @@ export const AddressPhoneStep = ({
                     )
                   }
                 />
+                {errors?.mailingState && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="mailingZip">
                   {ap.zip[lang]} *
                 </Label>
-                <Input id="mailingZip" {...register("mailingZip")} />
+                 <Input 
+                  id="mailingZip" 
+                  {...register("mailingZip", { required: true })} 
+                  className={errors?.mailingZip ? "border-destructive" : ""}
+                />
+                {errors?.mailingZip && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
               </div>
             </div>
           </div>
@@ -175,33 +204,39 @@ export const AddressPhoneStep = ({
           <Label htmlFor="mobilePhone">
             {ap.mobilePhone[lang]} *
           </Label>
-          <Input
+           <Input
             id="mobilePhone"
-            {...register("mobilePhone")}
+            {...register("mobilePhone", { required: true })}
+            className={errors?.mobilePhone ? "border-destructive" : ""}
             onChange={(e) =>
               setValue("mobilePhone", e.target.value.replace(/[^0-9+\s-]/g, ""))
             }
           />
+          {errors?.mobilePhone && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="homePhone">{ap.homePhone[lang]}</Label>
-          <Input
+           <Input
             id="homePhone"
-            {...register("homePhone")}
+            {...register("homePhone", { required: true })}
+            className={errors?.homePhone ? "border-destructive" : ""}
             onChange={(e) =>
               setValue("homePhone", e.target.value.replace(/[^0-9+\s-]/g, ""))
             }
           />
+          {errors?.homePhone && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="workPhone">{ap.workPhone[lang]}</Label>
-          <Input
+           <Input
             id="workPhone"
-            {...register("workPhone")}
+            {...register("workPhone", { required: true })}
+            className={errors?.workPhone ? "border-destructive" : ""}
             onChange={(e) =>
               setValue("workPhone", e.target.value.replace(/[^0-9+\s-]/g, ""))
             }
           />
+          {errors?.workPhone && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
       </div>
 
@@ -226,14 +261,16 @@ export const AddressPhoneStep = ({
               </Label>
             </div>
           </RadioGroup>
+          {errors?.hasOtherPhoneLast5Years && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
           {hasOtherPhoneLast5Years === "yes" && (
             <div className="mt-2 space-y-2 scale-in-center">
               <Label htmlFor="otherPhonesDetails">
                 {ap.otherPhonesLabel[lang]} *
               </Label>
-              <Input
+               <Input
                 id="otherPhonesDetails"
-                {...register("otherPhonesDetails")}
+                {...register("otherPhonesDetails", { required: true })}
+                className={errors?.otherPhonesDetails ? "border-destructive" : ""}
                 onChange={(e) =>
                   setValue(
                     "otherPhonesDetails",
@@ -241,6 +278,7 @@ export const AddressPhoneStep = ({
                   )
                 }
               />
+              {errors?.otherPhonesDetails && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             </div>
           )}
         </div>
@@ -265,15 +303,18 @@ export const AddressPhoneStep = ({
               </Label>
             </div>
           </RadioGroup>
+          {errors?.hasOtherEmailLast5Years && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
           {hasOtherEmailLast5Years === "yes" && (
             <div className="mt-2 space-y-2 scale-in-center">
               <Label htmlFor="otherEmailsDetails">
                 {ap.otherEmailsLabel[lang]} *
               </Label>
-              <Input
+               <Input
                 id="otherEmailsDetails"
-                {...register("otherEmailsDetails")}
+                {...register("otherEmailsDetails", { required: true })}
+                className={errors?.otherEmailsDetails ? "border-destructive" : ""}
               />
+              {errors?.otherEmailsDetails && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             </div>
           )}
         </div>

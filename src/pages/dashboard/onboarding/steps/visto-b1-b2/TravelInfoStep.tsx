@@ -9,6 +9,7 @@ export const TravelInfoStep = ({
   setValue,
   lang,
   t,
+  errors,
 }: StepProps) => {
   const ds = t.ds160;
   const hasSpecificTravelPlan = watch("hasSpecificTravelPlan");
@@ -36,6 +37,7 @@ export const TravelInfoStep = ({
             <Label htmlFor="plan-no">{lang === "pt" ? "Não" : "No"}</Label>
           </div>
         </RadioGroup>
+        {errors?.hasSpecificTravelPlan && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
       </div>
 
       {hasSpecificTravelPlan === "yes" && (
@@ -50,11 +52,13 @@ export const TravelInfoStep = ({
               <Label htmlFor="arrivalDate">
                 {ds.travel.arrivalDate[lang]} *
               </Label>
-              <Input
+               <Input
                 id="arrivalDate"
                 type="date"
-                {...register("arrivalDate")}
+                {...register("arrivalDate", { required: true })}
+                className={errors?.arrivalDate ? "border-destructive" : ""}
               />
+              {errors?.arrivalDate && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="arrivalFlightNumber">
@@ -62,10 +66,12 @@ export const TravelInfoStep = ({
                   ? "Número do voo de chegada (se tiver):"
                   : "Arrival Flight Number (if any):"}
               </Label>
-              <Input
+               <Input
                 id="arrivalFlightNumber"
-                {...register("arrivalFlightNumber")}
+                {...register("arrivalFlightNumber", { required: true })}
+                className={errors?.arrivalFlightNumber ? "border-destructive" : ""}
               />
+              {errors?.arrivalFlightNumber && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="arrivalCity">
@@ -73,9 +79,10 @@ export const TravelInfoStep = ({
                   ? "Cidade que pretende chegar:"
                   : "Arrival City:"}
               </Label>
-              <Input
+               <Input
                 id="arrivalCity"
-                {...register("arrivalCity")}
+                {...register("arrivalCity", { required: true })}
+                className={errors?.arrivalCity ? "border-destructive" : ""}
                 onChange={(e) =>
                   setValue(
                     "arrivalCity",
@@ -86,6 +93,7 @@ export const TravelInfoStep = ({
                   )
                 }
               />
+              {errors?.arrivalCity && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="departureDate">
@@ -93,11 +101,13 @@ export const TravelInfoStep = ({
                   ? "Data que pretende sair dos EUA:"
                   : "Date of Departure from US:"}
               </Label>
-              <Input
+               <Input
                 id="departureDate"
                 type="date"
-                {...register("departureDate")}
+                {...register("departureDate", { required: true })}
+                className={errors?.departureDate ? "border-destructive" : ""}
               />
+              {errors?.departureDate && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="departureFlightNumber">
@@ -105,10 +115,12 @@ export const TravelInfoStep = ({
                   ? "Número do voo de saída (se tiver):"
                   : "Departure Flight Number (if any):"}
               </Label>
-              <Input
+               <Input
                 id="departureFlightNumber"
-                {...register("departureFlightNumber")}
+                {...register("departureFlightNumber", { required: true })}
+                className={errors?.departureFlightNumber ? "border-destructive" : ""}
               />
+              {errors?.departureFlightNumber && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="departureCity">
@@ -116,9 +128,10 @@ export const TravelInfoStep = ({
                   ? "Cidade que pretende sair:"
                   : "Departure City:"}
               </Label>
-              <Input
+               <Input
                 id="departureCity"
-                {...register("departureCity")}
+                {...register("departureCity", { required: true })}
+                className={errors?.departureCity ? "border-destructive" : ""}
                 onChange={(e) =>
                   setValue(
                     "departureCity",
@@ -129,6 +142,7 @@ export const TravelInfoStep = ({
                   )
                 }
               />
+              {errors?.departureCity && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             </div>
           </div>
         </div>
@@ -149,11 +163,13 @@ export const TravelInfoStep = ({
                   : "Intended Arrival Date:"}{" "}
                 *
               </Label>
-              <Input
+               <Input
                 id="arrivalDate"
                 type="date"
-                {...register("arrivalDate")}
+                {...register("arrivalDate", { required: true })}
+                className={errors?.arrivalDate ? "border-destructive" : ""}
               />
+              {errors?.arrivalDate && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="stayDurationValue">
@@ -163,15 +179,15 @@ export const TravelInfoStep = ({
                 *
               </Label>
               <div className="flex gap-2">
-                <Input
+                 <Input
                   id="stayDurationValue"
                   type="number"
-                  {...register("stayDurationValue")}
-                  className="w-24"
+                  {...register("stayDurationValue", { required: true })}
+                  className={`w-24 ${errors?.stayDurationValue ? "border-destructive" : ""}`}
                 />
                 <select
-                  {...register("stayDurationUnit")}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  {...register("stayDurationUnit", { required: true })}
+                  className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${errors?.stayDurationUnit ? "border-destructive" : ""}`}
                 >
                   <option value="days">
                     {lang === "pt" ? "Dias" : "Days"}
@@ -201,7 +217,12 @@ export const TravelInfoStep = ({
             <Label htmlFor="visitLocations">
               {ds.travel.visitLocations[lang]} *
             </Label>
-            <Input id="visitLocations" {...register("visitLocations")} />
+             <Input 
+              id="visitLocations" 
+              {...register("visitLocations", { required: true })} 
+              className={errors?.visitLocations ? "border-destructive" : ""}
+            />
+            {errors?.visitLocations && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             <p className="text-xs text-muted-foreground mt-1">
               {lang === "pt"
                 ? "Mencione aqui os locais que você planeja visitar, ponha todos que tem vontade de visitar."
@@ -221,15 +242,21 @@ export const TravelInfoStep = ({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="md:col-span-2 space-y-2">
                 <Label htmlFor="stayAddress">
-                  {lang === "pt" ? "Endereço:" : "Address:"}
+                   {lang === "pt" ? "Endereço:" : "Address:"} *
                 </Label>
-                <Input id="stayAddress" {...register("stayAddress")} />
+                <Input 
+                  id="stayAddress" 
+                  {...register("stayAddress", { required: true })} 
+                  className={errors?.stayAddress ? "border-destructive" : ""}
+                />
+                {errors?.stayAddress && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="stayCity">{ds.travel.stayCity[lang]}</Label>
+                 <Label htmlFor="stayCity">{ds.travel.stayCity[lang]} *</Label>
                 <Input
                   id="stayCity"
-                  {...register("stayCity")}
+                  {...register("stayCity", { required: true })}
+                  className={errors?.stayCity ? "border-destructive" : ""}
                   onChange={(e) =>
                     setValue(
                       "stayCity",
@@ -240,12 +267,14 @@ export const TravelInfoStep = ({
                     )
                   }
                 />
+                {errors?.stayCity && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="stayState">{ds.travel.stayState[lang]}</Label>
+                 <Label htmlFor="stayState">{ds.travel.stayState[lang]} *</Label>
                 <Input
                   id="stayState"
-                  {...register("stayState")}
+                  {...register("stayState", { required: true })}
+                  className={errors?.stayState ? "border-destructive" : ""}
                   onChange={(e) =>
                     setValue(
                       "stayState",
@@ -256,27 +285,30 @@ export const TravelInfoStep = ({
                     )
                   }
                 />
+                {errors?.stayState && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="stayZip">{ds.travel.stayZip[lang]}</Label>
+                 <Label htmlFor="stayZip">{ds.travel.stayZip[lang]} *</Label>
                 <Input
                   id="stayZip"
-                  {...register("stayZip")}
+                  {...register("stayZip", { required: true })}
+                  className={errors?.stayZip ? "border-destructive" : ""}
                   maxLength={10}
                   onChange={(e) => {
                     const value = e.target.value.replace(/[^0-9-]/g, "");
                     setValue("stayZip", value);
                   }}
                 />
+                {errors?.stayZip && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
               </div>
             </div>
           </div>
 
           <div className="space-y-3 border-t border-border pt-4">
             <Label>{ds.travel.payer[lang]} *</Label>
-            <select
-              {...register("travelPayer")}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+             <select
+              {...register("travelPayer", { required: true })}
+              className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${errors?.travelPayer ? "border-destructive" : ""}`}
             >
               <option value="">
                 {lang === "pt" ? "Selecione..." : "Select..."}
@@ -302,11 +334,12 @@ export const TravelInfoStep = ({
             {travelPayer === "other" && (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-2 bg-muted/20 p-4 rounded-md border border-dashed border-border scale-in-center">
                 <div className="space-y-2">
-                  <Label>
-                    {lang === "pt" ? "Nome do pagador:" : "Payer Name:"}
+                   <Label>
+                    {lang === "pt" ? "Nome do pagador:" : "Payer Name:"} *
                   </Label>
                   <Input
-                    {...register("payerName")}
+                    {...register("payerName", { required: true })}
+                    className={errors?.payerName ? "border-destructive" : ""}
                     onChange={(e) =>
                       setValue(
                         "payerName",
@@ -317,13 +350,15 @@ export const TravelInfoStep = ({
                       )
                     }
                   />
+                  {errors?.payerName && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label>
-                    {lang === "pt" ? "Parentesco/Relação:" : "Relationship:"}
+                   <Label>
+                    {lang === "pt" ? "Parentesco/Relação:" : "Relationship:"} *
                   </Label>
                   <Input
-                    {...register("payerRelationship")}
+                    {...register("payerRelationship", { required: true })}
+                    className={errors?.payerRelationship ? "border-destructive" : ""}
                     onChange={(e) =>
                       setValue(
                         "payerRelationship",
@@ -334,6 +369,7 @@ export const TravelInfoStep = ({
                       )
                     }
                   />
+                  {errors?.payerRelationship && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                 </div>
               </div>
             )}

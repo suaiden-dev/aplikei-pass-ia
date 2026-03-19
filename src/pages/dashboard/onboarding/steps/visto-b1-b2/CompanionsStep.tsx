@@ -9,6 +9,7 @@ export const CompanionsStep = ({
   setValue,
   lang,
   t,
+  errors,
 }: StepProps) => {
   const ds = t.ds160;
   const hasTravelCompanions = watch("hasTravelCompanions");
@@ -36,6 +37,7 @@ export const CompanionsStep = ({
             <Label htmlFor="comp-no">{lang === "pt" ? "Não" : "No"}</Label>
           </div>
         </RadioGroup>
+        {errors?.hasTravelCompanions && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
         <p className="text-xs text-muted-foreground mt-1">
           {ds.companions.companionHelper[lang]}
         </p>
@@ -43,11 +45,12 @@ export const CompanionsStep = ({
         {hasTravelCompanions === "yes" && (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-2 bg-muted/20 p-4 rounded-md border border-dashed border-border scale-in-center">
             <div className="space-y-2">
-              <Label>
-                {lang === "pt" ? "Nome do acompanhante:" : "Companion Name:"}
+               <Label>
+                {lang === "pt" ? "Nome do acompanhante:" : "Companion Name:"} *
               </Label>
               <Input
-                {...register("companionName")}
+                {...register("companionName", { required: true })}
+                className={errors?.companionName ? "border-destructive" : ""}
                 onChange={(e) =>
                   setValue(
                     "companionName",
@@ -58,13 +61,15 @@ export const CompanionsStep = ({
                   )
                 }
               />
+              {errors?.companionName && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             </div>
             <div className="space-y-2">
-              <Label>
-                {lang === "pt" ? "Parentesco/Relação:" : "Relationship:"}
+               <Label>
+                {lang === "pt" ? "Parentesco/Relação:" : "Relationship:"} *
               </Label>
               <Input
-                {...register("companionRelationship")}
+                {...register("companionRelationship", { required: true })}
+                className={errors?.companionRelationship ? "border-destructive" : ""}
                 onChange={(e) =>
                   setValue(
                     "companionRelationship",
@@ -75,6 +80,7 @@ export const CompanionsStep = ({
                   )
                 }
               />
+              {errors?.companionRelationship && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             </div>
           </div>
         )}
@@ -96,13 +102,19 @@ export const CompanionsStep = ({
             <Label htmlFor="group-no">{lang === "pt" ? "Não" : "No"}</Label>
           </div>
         </RadioGroup>
+        {errors?.isTravelingWithGroup && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
 
         {isTravelingWithGroup === "yes" && (
           <div className="mt-4 space-y-2 scale-in-center">
             <Label htmlFor="groupName">
               {lang === "pt" ? "Nome do grupo:" : "Group Name:"} *
             </Label>
-            <Input id="groupName" {...register("groupName")} />
+             <Input 
+              id="groupName" 
+              {...register("groupName", { required: true })} 
+              className={errors?.groupName ? "border-destructive" : ""}
+            />
+            {errors?.groupName && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
           </div>
         )}
       </div>

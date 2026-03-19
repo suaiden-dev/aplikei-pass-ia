@@ -28,6 +28,7 @@ export const PersonalInfo1Step = ({
   lang,
   t,
   securityData,
+  errors,
 }: StepProps) => {
   const ds = t.ds160;
   const hasOtherNames = watch("hasOtherNames");
@@ -70,8 +71,9 @@ export const PersonalInfo1Step = ({
         <Select
           onValueChange={(value) => setValue("interviewLocation", value)}
           value={watch("interviewLocation")}
+          required
         >
-          <SelectTrigger id="interviewLocation" className="w-full mt-1">
+          <SelectTrigger id="interviewLocation" className={`w-full mt-1 ${errors?.interviewLocation ? "border-destructive" : ""}`}>
             <SelectValue
               placeholder={
                 lang === "pt" ? "Selecione o local..." : "Select location..."
@@ -96,7 +98,13 @@ export const PersonalInfo1Step = ({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="email">{ds.personal1.email[lang]} *</Label>
-          <Input id="email" {...register("email")} autoComplete="email" />
+          <Input 
+            id="email" 
+            {...register("email", { required: true })} 
+            autoComplete="email" 
+            className={errors?.email ? "border-destructive" : ""}
+          />
+          {errors?.email && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
       </div>
 
@@ -106,8 +114,9 @@ export const PersonalInfo1Step = ({
             <Label htmlFor="lastName">{ds.personal1.lastName[lang]} *</Label>
             <Input
               id="lastName"
-              {...register("lastName")}
+              {...register("lastName", { required: true })}
               autoComplete="family-name"
+              className={errors?.lastName ? "border-destructive" : ""}
               onChange={(e) =>
                 setValue(
                   "lastName",
@@ -118,13 +127,15 @@ export const PersonalInfo1Step = ({
                 )
               }
             />
+            {errors?.lastName && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="firstName">{ds.personal1.firstName[lang]} *</Label>
             <Input
               id="firstName"
-              {...register("firstName")}
+              {...register("firstName", { required: true })}
               autoComplete="given-name"
+              className={errors?.firstName ? "border-destructive" : ""}
               onChange={(e) =>
                 setValue(
                   "firstName",
@@ -135,6 +146,7 @@ export const PersonalInfo1Step = ({
                 )
               }
             />
+            {errors?.firstName && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             <p className="text-xs text-muted-foreground mt-1">
               {ds.personal1.fullNameHelper[lang]}
             </p>
@@ -142,9 +154,14 @@ export const PersonalInfo1Step = ({
         </div>
         <div className="space-y-2 mt-2">
           <Label htmlFor="fullNamePassport">
-            {ds.personal1.fullNamePassport[lang]}
+            {ds.personal1.fullNamePassport[lang]} *
           </Label>
-          <Input id="fullNamePassport" {...register("fullNamePassport")} />
+          <Input 
+            id="fullNamePassport" 
+            {...register("fullNamePassport", { required: true })} 
+            className={errors?.fullNamePassport ? "border-destructive" : ""}
+          />
+          {errors?.fullNamePassport && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
       </div>
 
@@ -164,8 +181,16 @@ export const PersonalInfo1Step = ({
             <Label htmlFor="names-no">{lang === "pt" ? "Não" : "No"}</Label>
           </div>
         </RadioGroup>
+        {errors?.hasOtherNames && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
         {hasOtherNames === "yes" && (
-          <Input {...register("otherNames")} className="mt-2" />
+          <div className="space-y-2">
+            <Input 
+              {...register("otherNames", { required: true })} 
+              className={`mt-2 ${errors?.otherNames ? "border-destructive" : ""}`} 
+              placeholder={lang === 'pt' ? 'Informe os outros nomes' : 'Enter other names'}
+            />
+            {errors?.otherNames && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
+          </div>
         )}
       </div>
 
@@ -187,6 +212,7 @@ export const PersonalInfo1Step = ({
             <Label htmlFor="telecode-no">{lang === "pt" ? "Não" : "No"}</Label>
           </div>
         </RadioGroup>
+        {errors?.hasTelecode && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
         {hasTelecode === "yes" && (
           <div className="mt-2 space-y-2 scale-in-center">
             <Label htmlFor="telecodeValue">
@@ -194,11 +220,13 @@ export const PersonalInfo1Step = ({
             </Label>
             <Input
               id="telecodeValue"
-              {...register("telecodeValue")}
+              {...register("telecodeValue", { required: true })}
+              className={errors?.telecodeValue ? "border-destructive" : ""}
               onChange={(e) =>
                 setValue("telecodeValue", e.target.value.replace(/[^0-9]/g, ""))
               }
             />
+            {errors?.telecodeValue && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
           </div>
         )}
       </div>
@@ -224,13 +252,14 @@ export const PersonalInfo1Step = ({
               </Label>
             </div>
           </RadioGroup>
+          {errors?.gender && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
         </div>
 
         <div className="space-y-2">
           <Label>{ds.personal1.maritalStatus[lang]} *</Label>
           <select
-            {...register("maritalStatus")}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            {...register("maritalStatus", { required: true })}
+            className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors?.maritalStatus ? "border-destructive" : ""}`}
           >
             <option value="">
               {lang === "pt" ? "Selecione..." : "Select..."}
@@ -251,39 +280,58 @@ export const PersonalInfo1Step = ({
               {ds.personal1.maritalOptions.separated[lang]}
             </option>
           </select>
+          {errors?.maritalStatus && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t border-border pt-4">
         <div className="space-y-2">
           <Label htmlFor="birthDate">{ds.personal1.dob[lang]} *</Label>
-          <Input id="birthDate" type="date" {...register("birthDate")} />
+          <Input 
+            id="birthDate" 
+            type="date" 
+            {...register("birthDate", { required: true })} 
+            className={errors?.birthDate ? "border-destructive" : ""}
+          />
+          {errors?.birthDate && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="birthCity">{ds.personal1.cityBirth[lang]} *</Label>
-          <Input
-            id="birthCity"
-            {...register("birthCity")}
-            onChange={(e) =>
-              setValue(
-                "birthCity",
-                e.target.value.replace(
-                  /[^a-zA-ZáéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ\s]/g,
-                  "",
-                ),
-              )
-            }
-          />
+            <Input
+              id="birthCity"
+              {...register("birthCity", { required: true })}
+              className={errors?.birthCity ? "border-destructive" : ""}
+              onChange={(e) =>
+                setValue(
+                  "birthCity",
+                  e.target.value.replace(
+                    /[^a-zA-ZáéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ\s]/g,
+                    "",
+                  ),
+                )
+              }
+            />
+            {errors?.birthCity && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="birthState">{ds.personal1.stateBirth[lang]}</Label>
-          <Input id="birthState" {...register("birthState")} />
+          <Label htmlFor="birthState">{ds.personal1.stateBirth[lang]} *</Label>
+          <Input 
+            id="birthState" 
+            {...register("birthState", { required: true })} 
+            className={errors?.birthState ? "border-destructive" : ""}
+          />
+          {errors?.birthState && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="birthCountry">
             {ds.personal1.countryBirth[lang]} *
           </Label>
-          <Input id="birthCountry" {...register("birthCountry")} />
+          <Input 
+            id="birthCountry" 
+            {...register("birthCountry", { required: true })} 
+            className={errors?.birthCountry ? "border-destructive" : ""}
+          />
+          {errors?.birthCountry && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
       </div>
     </div>

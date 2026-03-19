@@ -4,7 +4,7 @@ import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radi
 import { StepProps } from "../../types";
 import { Checkbox } from "@/presentation/components/atoms/checkbox";
 
-export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps) => {
+export const USContactStep = ({ register, watch, setValue, lang, t, trigger, errors }: StepProps) => {
     const ds = t.ds160;
     const hasUSContact = watch("hasUSContact");
 
@@ -121,35 +121,51 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="md:col-span-2 space-y-2">
                         <Label htmlFor="contactAddress">{ds.contact.address[lang]} *</Label>
-                        <Input id="contactAddress" {...register("contactAddress")} />
+                        <Input 
+                            id="contactAddress" 
+                            {...register("contactAddress", { required: true })} 
+                            className={errors?.contactAddress ? "border-destructive" : ""}
+                        />
+                        {errors?.contactAddress && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="contactCity">{ds.contact.city[lang]} *</Label>
                         <Input
                             id="contactCity"
-                            {...register("contactCity")}
+                            {...register("contactCity", { required: true })}
+                            className={errors?.contactCity ? "border-destructive" : ""}
                             onChange={(e) => setValue("contactCity", e.target.value.replace(/[^a-zA-ZáéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ\s]/g, ""))}
                         />
+                        {errors?.contactCity && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="contactState">{ds.contact.state[lang]} *</Label>
                         <Input
                             id="contactState"
-                            {...register("contactState")}
+                            {...register("contactState", { required: true })}
+                            className={errors?.contactState ? "border-destructive" : ""}
                             onChange={(e) => setValue("contactState", e.target.value.replace(/[^a-zA-ZáéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ\s]/g, ""))}
                         />
+                        {errors?.contactState && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="contactZip">{ds.contact.zip[lang]}</Label>
-                        <Input id="contactZip" {...register("contactZip")} />
+                        <Label htmlFor="contactZip">{ds.contact.zip[lang]} *</Label>
+                        <Input 
+                            id="contactZip" 
+                            {...register("contactZip", { required: true })} 
+                            className={errors?.contactZip ? "border-destructive" : ""}
+                        />
+                        {errors?.contactZip && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="contactPhone">{ds.contact.phone[lang]} *</Label>
                         <Input
                             id="contactPhone"
-                            {...register("contactPhone")}
+                            {...register("contactPhone", { required: true })}
+                            className={errors?.contactPhone ? "border-destructive" : ""}
                             onChange={(e) => setValue("contactPhone", e.target.value.replace(/[^0-9+\s-]/g, ""))}
                         />
+                        {errors?.contactPhone && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                     </div>
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
@@ -158,7 +174,13 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
                                 <Checkbox
                                     id="contactEmailDoesNotApply"
                                     checked={watch("contactEmailDoesNotApply")}
-                                    onCheckedChange={(checked) => setValue("contactEmailDoesNotApply", checked === true)}
+                                    onCheckedChange={(checked) => {
+                                        setValue("contactEmailDoesNotApply", checked === true);
+                                        if (checked) {
+                                            setValue("contactEmail", "");
+                                            trigger("contactEmail");
+                                        }
+                                    }}
                                 />
                                 <label htmlFor="contactEmailDoesNotApply" className="text-xs text-muted-foreground cursor-pointer">
                                     {t.common.doesNotApply[lang]}
@@ -167,9 +189,11 @@ export const USContactStep = ({ register, watch, setValue, lang, t }: StepProps)
                         </div>
                         <Input
                             id="contactEmail"
-                            {...register("contactEmail")}
+                            {...register("contactEmail", { required: !watch("contactEmailDoesNotApply") })}
                             disabled={watch("contactEmailDoesNotApply")}
+                            className={errors?.contactEmail ? "border-destructive" : ""}
                         />
+                        {errors?.contactEmail && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
                         <p className="text-xs text-muted-foreground mt-1">{ds.contact.emailHelper[lang]}</p>
                     </div>
                 </div>

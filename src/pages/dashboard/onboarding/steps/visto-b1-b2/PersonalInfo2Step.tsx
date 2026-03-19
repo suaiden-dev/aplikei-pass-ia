@@ -32,7 +32,8 @@ export const PersonalInfo2Step = ({
           </Label>
           <Input
             id="nationalityInfo"
-            {...register("nationalityInfo")}
+            {...register("nationalityInfo", { required: true })}
+            className={errors?.nationalityInfo ? "border-destructive" : ""}
             onChange={(e) =>
               setValue(
                 "nationalityInfo",
@@ -43,6 +44,7 @@ export const PersonalInfo2Step = ({
               )
             }
           />
+          {errors?.nationalityInfo && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
 
         <div className="space-y-3">
@@ -65,8 +67,16 @@ export const PersonalInfo2Step = ({
               </Label>
             </div>
           </RadioGroup>
+          {errors?.hasOtherNationality && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
           {hasOtherNationality === "yes" && (
-            <Input {...register("otherNationalities")} className="mt-2" />
+            <div className="space-y-2">
+              <Input 
+                {...register("otherNationalities", { required: true })} 
+                className={`mt-2 ${errors?.otherNationalities ? "border-destructive" : ""}`} 
+                placeholder={lang === 'pt' ? 'Informe as outras nacionalidades' : 'Enter other nationalities'}
+              />
+              {errors?.otherNationalities && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
+            </div>
           )}
         </div>
 
@@ -90,11 +100,16 @@ export const PersonalInfo2Step = ({
               </Label>
             </div>
           </RadioGroup>
+          {errors?.hasNationalityPassport && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
           {hasNationalityPassport === "yes" && (
-            <Input
-              {...register("nationalityPassportNumber")}
-              className="mt-2"
-            />
+            <div className="space-y-2">
+              <Input
+                {...register("nationalityPassportNumber", { required: true })}
+                className={`mt-2 ${errors?.nationalityPassportNumber ? "border-destructive" : ""}`}
+                placeholder={lang === 'pt' ? 'Número do passaporte' : 'Passport number'}
+              />
+              {errors?.nationalityPassportNumber && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
+            </div>
           )}
         </div>
 
@@ -120,6 +135,7 @@ export const PersonalInfo2Step = ({
               </Label>
             </div>
           </RadioGroup>
+          {errors?.isPermanentResidentOtherCountry && <p className="text-xs text-destructive">{lang === 'pt' ? 'Selecione uma opção' : 'Select an option'}</p>}
           {isPermanentResidentOtherCountry === "yes" && (
             <div className="mt-2 space-y-2 scale-in-center">
               <Label htmlFor="permResCountryDetails">
@@ -130,41 +146,16 @@ export const PersonalInfo2Step = ({
               </Label>
               <Input
                 id="permResCountryDetails"
-                {...register("permResCountryDetails")}
+                {...register("permResCountryDetails", { required: true })}
+                className={errors?.permResCountryDetails ? "border-destructive" : ""}
               />
+              {errors?.permResCountryDetails && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
             </div>
           )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t border-border pt-4">
-        <div className="space-y-2">
-          <Label htmlFor="nationalID">{ds.personal2.nationalID[lang]} *</Label>
-          <Input
-            id="nationalID"
-            {...register("nationalID", {
-              required: true,
-              pattern: {
-                value: /^[0-9]{11}$/,
-                message:
-                  lang === "pt"
-                    ? "CPF deve ter exatamente 11 números"
-                    : "CPF must be exactly 11 digits",
-              },
-            })}
-            maxLength={11}
-            onChange={(e) => {
-              const value = e.target.value.replace(/\D/g, "");
-              setValue("nationalID", value);
-            }}
-          />
-          {errors?.nationalID && (
-            <p className="text-xs text-destructive mt-1">
-              {errors.nationalID.message ||
-                (lang === "pt" ? "Campo obrigatório" : "Required field")}
-            </p>
-          )}
-        </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="nationalID">
@@ -202,12 +193,13 @@ export const PersonalInfo2Step = ({
             })}
             maxLength={11}
             disabled={watch("nationalIDDoesNotApply")}
+            className={!watch("nationalIDDoesNotApply") && errors?.nationalID ? "border-destructive" : ""}
             onChange={(e) => {
               const value = e.target.value.replace(/\D/g, "");
               setValue("nationalID", value);
             }}
           />
-          {errors?.nationalID && (
+          {errors?.nationalID && !watch("nationalIDDoesNotApply") && (
             <p className="text-xs text-destructive mt-1">
               {errors.nationalID.message ||
                 (lang === "pt" ? "Campo obrigatório" : "Required field")}
@@ -216,7 +208,7 @@ export const PersonalInfo2Step = ({
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="ssn">{ds.personal2.ssn[lang]}</Label>
+            <Label htmlFor="ssn">{ds.personal2.ssn[lang]} *</Label>
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="ssnDoesNotApply"
@@ -235,17 +227,19 @@ export const PersonalInfo2Step = ({
           </div>
           <Input
             id="ssn"
-            {...register("ssn")}
+            {...register("ssn", { required: !watch("ssnDoesNotApply") })}
             maxLength={11}
             disabled={watch("ssnDoesNotApply")}
+            className={!watch("ssnDoesNotApply") && errors?.ssn ? "border-destructive" : ""}
             onChange={(e) =>
               setValue("ssn", e.target.value.replace(/[^0-9-]/g, ""))
             }
           />
+          {errors?.ssn && !watch("ssnDoesNotApply") && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="taxID">{ds.personal2.taxID[lang]}</Label>
+            <Label htmlFor="taxID">{ds.personal2.taxID[lang]} *</Label>
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="taxIDDoesNotApply"
@@ -264,9 +258,11 @@ export const PersonalInfo2Step = ({
           </div>
           <Input
             id="taxID"
-            {...register("taxID")}
+            {...register("taxID", { required: !watch("taxIDDoesNotApply") })}
             disabled={watch("taxIDDoesNotApply")}
+            className={!watch("taxIDDoesNotApply") && errors?.taxID ? "border-destructive" : ""}
           />
+          {errors?.taxID && !watch("taxIDDoesNotApply") && <p className="text-xs text-destructive">{lang === 'pt' ? 'Campo obrigatório' : 'Required field'}</p>}
         </div>
       </div>
     </div>
