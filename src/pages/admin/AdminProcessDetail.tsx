@@ -289,13 +289,13 @@ export default function AdminProcessDetail() {
         const relevantDocs =
           docs?.filter(
             (d) =>
-              d.user_service_id === serviceData?.id ||
+              (d.user_service_id === serviceData?.id ||
               d.name === "ds160_assinada" ||
               d.name === "ds160_comprovante" ||
               d.name === "ds160_comprovante_sevis" ||
-              d.name === "ds160_boleto" ||
-              d.name === "selfie" ||
-              d.name === "Foto (Selfie)",
+              d.name === "ds160_boleto") &&
+              d.name !== "selfie" &&
+              d.name !== "Foto (Selfie)",
 
           ) || [];
 
@@ -869,10 +869,47 @@ export default function AdminProcessDetail() {
               </div>
             </div>
 
-            <div className="text-center py-6 border-2 border-dashed border-border rounded-md bg-muted/10">
-              <p className="text-sm text-muted-foreground italic">
-                Verifique todos os arquivos na coluna à direita para aprovar ou
-                rejeitar o processo.
+            <div className="space-y-3">
+              <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                Documentos Enviados
+              </p>
+              <div className="grid gap-2">
+                {processDocs.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="group flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-accent/40 hover:bg-accent/[0.02] transition-all cursor-pointer shadow-sm"
+                    onClick={() => {
+                      const { data } = supabase.storage
+                        .from(doc.bucket_id || "documents")
+                        .getPublicUrl(doc.storage_path);
+                      window.open(data.publicUrl, "_blank");
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500">
+                        <FileText className="h-4 w-4" />
+                      </div>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                        {doc.name === "ds160_assinada"
+                          ? "DS-160 ASSINADA"
+                          : doc.name === "ds160_comprovante"
+                            ? "COMPROVANTE DE TAXA"
+                            : doc.name === "ds160_comprovante_sevis"
+                              ? "COMPROVANTE SEVIS"
+                              : doc.name === "ds160_boleto"
+                                ? "BOLETO"
+                                : doc.name.toUpperCase().replace(/_/g, " ")}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-accent font-bold text-[10px] uppercase">
+                      <span>Visualizar</span>
+                      <Eye className="h-4 w-4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground italic text-center pt-2">
+                Clique nos arquivos acima para revisar antes de aprovar ou rejeitar.
               </p>
             </div>
 
@@ -1840,7 +1877,9 @@ export default function AdminProcessDetail() {
             </div>
 
             {/* Selfie & Identify Section */}
-            {order.contract_selfie_url && (
+            {order.contract_selfie_url && 
+             order.service_status !== "uploadsUnderReview" && 
+             order.service_status !== "ds160AwaitingReviewAndSignature" && (
               <div className="pt-2">
                 <div className="relative p-2 rounded-[2rem] border border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/40">
                   <div className="flex items-center gap-3 mb-3 px-3 pt-2">
