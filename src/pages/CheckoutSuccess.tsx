@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { submitZellePayment } from "@/lib/zelle/ZelleService";
 import { toast } from "sonner";
-import { SupabaseAuthService } from "@/infrastructure/services/SupabaseAuthService";
+import { getAuthService } from "@/infrastructure/factories/authFactory";
 
 const CheckoutSuccess = () => {
     const [searchParams] = useSearchParams();
@@ -34,7 +34,7 @@ const CheckoutSuccess = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
-        const authService = new SupabaseAuthService();
+        const authService = getAuthService();
         authService.getSession().then((session) => {
             setIsLoggedIn(!!session.user);
         });

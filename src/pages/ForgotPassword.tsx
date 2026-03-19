@@ -6,7 +6,7 @@ import { Button } from "@/presentation/components/atoms/button";
 import { Input } from "@/presentation/components/atoms/input";
 import { Label } from "@/presentation/components/atoms/label";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { SupabaseAuthService } from "@/infrastructure/services/SupabaseAuthService";
+import { getAuthService } from "@/infrastructure/factories/authFactory";
 import { toast } from "sonner";
 
 /** Componente de 6 boxes de OTP com auto-avanço */
@@ -120,7 +120,7 @@ export default function ForgotPassword() {
         setError(null);
 
         try {
-            const authService = new SupabaseAuthService();
+            const authService = getAuthService();
             const { error: otpError } = await authService.signInWithOtp(email.trim());
             if (otpError) throw new Error(otpError);
             setStep("otp");
@@ -139,7 +139,7 @@ export default function ForgotPassword() {
         setError(null);
 
         try {
-            const authService = new SupabaseAuthService();
+            const authService = getAuthService();
             const { user, error: verifyError } = await authService.verifyOtp(
                 email.trim(),
                 otp.trim(),

@@ -34,11 +34,9 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
 import { useNavigate } from "react-router-dom";
 import { PaymentCalculator } from "@/domain/payment/PaymentCalculator";
-import { StripeExchangeRateService } from "@/infrastructure/services/StripeExchangeRateService";
-import { SupabaseVisaOrderRepository } from "@/infrastructure/repositories/SupabaseVisaOrderRepository";
 import { ProcessZellePayment } from "@/application/use-cases/ProcessZellePayment";
-import { SupabaseAuthService } from "@/infrastructure/services/SupabaseAuthService";
-import { StripePaymentService } from "@/infrastructure/services/StripePaymentService";
+import { getAuthService } from "@/infrastructure/factories/authFactory";
+import { getPaymentService, getExchangeRateService, getVisaOrderRepository } from "@/infrastructure/factories/paymentFactory";
 import { supabase } from "@/integrations/supabase/client"; // Ainda necessário para profiles temporariamente até termos IProfileRepository
 import { ZellePaymentModal } from "@/presentation/components/organisms/checkout/ZellePaymentModal";
 import UrgencyBanner from "@/presentation/components/molecules/UrgencyBanner";
@@ -96,7 +94,7 @@ export default function Checkout() {
       }
 
       // 2. Verificar sessão do usuário
-      const authService = new SupabaseAuthService();
+      const authService = getAuthService();
       const session = await authService.getSession();
       
       if (session.user) {
@@ -124,7 +122,7 @@ export default function Checkout() {
     };
 
     const loadExchangeRate = async () => {
-      const exchangeRateService = new StripeExchangeRateService();
+      const exchangeRateService = getExchangeRateService();
       const rate = await exchangeRateService.getExchangeRate();
       setExchangeRate(rate);
     };
@@ -180,10 +178,10 @@ export default function Checkout() {
           formData,
         );
 
-        const authService = new SupabaseAuthService();
+        const authService = getAuthService();
         const session = await authService.getSession();
         
-        const paymentService = new StripePaymentService();
+        const paymentService = getPaymentService();
         const checkoutData = await paymentService.initiateCheckout({
           slug: slug!,
           email: formData.email,
@@ -204,7 +202,7 @@ export default function Checkout() {
           throw new Error("Não foi possível gerar a sessão de pagamento.");
         }
       } else if (formData.paymentMethod === "zelle") {
-        const visaOrderRepository = new SupabaseVisaOrderRepository();
+        const visaOrderRepository = getVisaOrderRepository();
         const processZellePayment = new ProcessZellePayment(visaOrderRepository);
 
         const zelleOrderData = await processZellePayment.execute({

@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { checkIsAdmin } from "@/lib/admin";
 import { LoginUser } from "@/application/use-cases/auth/LoginUser";
-import { SupabaseAuthService } from "@/infrastructure/services/SupabaseAuthService";
+import { getAuthService } from "@/infrastructure/factories/authFactory";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -25,7 +25,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const authService = new SupabaseAuthService();
+      const authService = getAuthService();
       const loginUser = new LoginUser(authService);
       const { user, error } = await loginUser.execute(email, password);
 

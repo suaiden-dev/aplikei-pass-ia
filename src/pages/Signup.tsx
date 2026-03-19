@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { PhoneInput } from "@/presentation/components/atoms/phone-input";
 import { SignUpUser } from "@/application/use-cases/auth/SignUpUser";
-import { SupabaseAuthService } from "@/infrastructure/services/SupabaseAuthService";
+import { getAuthService } from "@/infrastructure/factories/authFactory";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -30,7 +30,7 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      const authService = new SupabaseAuthService();
+      const authService = getAuthService();
       const signUpUser = new SignUpUser(authService);
       const { error } = await signUpUser.execute({
         email,

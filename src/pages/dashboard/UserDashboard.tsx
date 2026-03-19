@@ -42,10 +42,9 @@ import { Badge } from "@/presentation/components/atoms/badge";
 import { Button } from "@/presentation/components/atoms/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { GetUserProcesses } from "@/application/use-cases/user/GetUserProcesses";
-import { SupabaseUserProcessRepository } from "@/infrastructure/repositories/SupabaseUserProcessRepository";
-import { SupabaseDocumentRepository } from "@/infrastructure/repositories/SupabaseDocumentRepository";
-import { SupabaseVisaOrderRepository } from "@/infrastructure/repositories/SupabaseVisaOrderRepository";
-import { SupabaseStorageService } from "@/infrastructure/services/SupabaseStorageService";
+import { getUserProcessRepository } from "@/infrastructure/factories/processFactory";
+import { getDocumentRepository, getStorageService } from "@/infrastructure/factories/documentFactory";
+import { getVisaOrderRepository } from "@/infrastructure/factories/paymentFactory";
 import { UserProcess } from "@/domain/user/UserEntities";
 import { getStatusDisplay, TOTAL_STEPS } from "@/domain/user/UserProcessStatus";
 
@@ -87,7 +86,7 @@ export default function UserDashboard() {
 
     const fetchServices = async () => {
       try {
-        const repo = new SupabaseUserProcessRepository();
+        const repo = getUserProcessRepository();
         const getUserProcesses = new GetUserProcesses(repo);
         const processes = await getUserProcesses.execute(userId);
 
@@ -165,7 +164,7 @@ export default function UserDashboard() {
     setProgress(currentService.calculatedProgress);
 
     const fetchDocs = async () => {
-      const docRepo = new SupabaseDocumentRepository();
+      const docRepo = getDocumentRepository();
       const count = await docRepo.countByProcessId(currentServiceIdForEffect);
       setDocsUploaded(count);
     };
@@ -183,7 +182,7 @@ export default function UserDashboard() {
 
     setCheckingSelfie(service.id);
     try {
-      const visaOrderRepo = new SupabaseVisaOrderRepository();
+      const visaOrderRepo = getVisaOrderRepository();
       const order = await visaOrderRepo.findLatestByProductAndUser(service.serviceSlug, user.id, user.email || "");
 
       const needsSelfie = order && !order.contract_selfie_url;
@@ -209,7 +208,7 @@ export default function UserDashboard() {
     if (!user) return;
     setUploadingSelfie(true);
     try {
-      const storageService = new SupabaseStorageService();
+      const storageService = getStorageService();
       
       if (selfieFile && pendingOrderId) {
         const fileExt = selfieFile.name.split(".").pop();
@@ -219,7 +218,7 @@ export default function UserDashboard() {
         if (uploadError) throw new Error(uploadError);
         
         const publicUrl = storageService.getPublicUrl("visa-documents", filePath);
-        const visaOrderRepo = new SupabaseVisaOrderRepository();
+        const visaOrderRepo = getVisaOrderRepository();
         await visaOrderRepo.updateOrder(pendingOrderId, { contract_selfie_url: publicUrl, user_id: user.id });
       }
 

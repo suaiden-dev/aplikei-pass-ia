@@ -23,9 +23,9 @@ import {
   DialogDescription,
 } from "@/presentation/components/atoms/dialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { SupabaseUserProcessRepository } from "@/infrastructure/repositories/SupabaseUserProcessRepository";
-import { SupabaseVisaOrderRepository } from "@/infrastructure/repositories/SupabaseVisaOrderRepository";
-import { SupabaseStorageService } from "@/infrastructure/services/SupabaseStorageService";
+import { getUserProcessRepository } from "@/infrastructure/factories/processFactory";
+import { getStorageService } from "@/infrastructure/factories/documentFactory";
+import { getVisaOrderRepository } from "@/infrastructure/factories/paymentFactory";
 import { GetUserProcesses } from "@/application/use-cases/user/GetUserProcesses";
 import { getStatusDisplay, TOTAL_STEPS } from "@/domain/user/UserProcessStatus";
 
@@ -51,7 +51,7 @@ export default function UserProcesses() {
 
     const fetchServices = async () => {
       try {
-        const repo = new SupabaseUserProcessRepository();
+        const repo = getUserProcessRepository();
         const getUserProcesses = new GetUserProcesses(repo);
         const processes = await getUserProcesses.execute(user.id);
 
@@ -90,7 +90,7 @@ export default function UserProcesses() {
 
     setCheckingSelfie(service.id as string);
     try {
-      const visaOrderRepo = new SupabaseVisaOrderRepository();
+      const visaOrderRepo = getVisaOrderRepository();
       const order = await visaOrderRepo.findLatestByProductAndUser(service.serviceSlug as string, user.id, user.email || "");
 
       if (order && !order.contract_selfie_url) {
@@ -117,14 +117,14 @@ export default function UserProcesses() {
       const fileName = `selfie_${Date.now()}.${fileExt}`;
       const filePath = `contracts/${fileName}`;
 
-      const storageService = new SupabaseStorageService();
+      const storageService = getStorageService();
       const { error: uploadError } = await storageService.uploadFile("visa-documents", filePath, selfieFile);
 
       if (uploadError) throw new Error(uploadError);
 
       const publicUrl = storageService.getPublicUrl("visa-documents", filePath);
 
-      const visaOrderRepo = new SupabaseVisaOrderRepository();
+      const visaOrderRepo = getVisaOrderRepository();
       await visaOrderRepo.updateOrder(pendingOrderId, {
         contract_selfie_url: publicUrl,
         user_id: user.id,

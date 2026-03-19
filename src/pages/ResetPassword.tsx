@@ -6,7 +6,7 @@ import { Button } from "@/presentation/components/atoms/button";
 import { Input } from "@/presentation/components/atoms/input";
 import { Label } from "@/presentation/components/atoms/label";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { SupabaseAuthService } from "@/infrastructure/services/SupabaseAuthService";
+import { getAuthService } from "@/infrastructure/factories/authFactory";
 
 export default function ResetPassword() {
     const { lang, t } = useLanguage();
@@ -26,7 +26,7 @@ export default function ResetPassword() {
 
     // Verifica se há sessão ativa (vinda do OTP verificado no ForgotPassword)
     useEffect(() => {
-        const authService = new SupabaseAuthService();
+        const authService = getAuthService();
         authService.getSession().then((session) => {
             if (!session.user) {
                 setErrorMessage(p.noSession[lang]);
@@ -52,7 +52,7 @@ export default function ResetPassword() {
         setErrorMessage(null);
 
         try {
-            const authService = new SupabaseAuthService();
+            const authService = getAuthService();
             const { error } = await authService.resetPassword(password);
             if (error) throw new Error(error);
 
