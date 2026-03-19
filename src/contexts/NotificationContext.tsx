@@ -16,6 +16,8 @@ export interface Notification {
   link: string | null;
   is_read: boolean;
   created_at: string;
+  target_type: "admin" | "user";
+  user_id: string | null;
 }
 
 interface NotificationContextType {
@@ -47,11 +49,32 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!user) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Check if user is admin based on email
+      const isAdmin = user.email ? [
+        "info@thefutureofenglish.com",
+        "admin@suaiden.com",
+        "suaiden@suaiden.com",
+        "fernanda@suaiden.com",
+        "victuribdev@gmail.com",
+        "newvicturibdev@gmail.com",
+        "dev01@suaiden.com",
+      ].includes(user.email.toLowerCase()) : false;
+
+      let query = supabase
         .from("notifications")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(20);
+
+      if (isAdmin) {
+        // Admins see notifications where target_type is 'admin'
+        query = query.eq("target_type", "admin");
+      } else {
+        // Customers see notifications where user_id is their own and target_type is 'user'
+        query = query.eq("user_id", user.id).eq("target_type", "user");
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setNotifications(data || []);
@@ -82,21 +105,43 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
 
     fetchNotifications();
 
+    const isAdmin = user.email ? [
+      "info@thefutureofenglish.com",
+      "admin@suaiden.com",
+      "suaiden@suaiden.com",
+      "fernanda@suaiden.com",
+      "victuribdev@gmail.com",
+      "newvicturibdev@gmail.com",
+      "dev01@suaiden.com",
+    ].includes(user.email.toLowerCase()) : false;
+
     const uniqueChannel = `notifications-global-${user.id}`;
     const channel = supabase
       .channel(uniqueChannel)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications" },
+        { 
+          event: "INSERT", 
+          schema: "public", 
+          table: "notifications" 
+        },
         (payload) => {
           const newNotif = payload.new as Notification;
-          setNotifications((prev) => [newNotif, ...prev]);
-          playNotificationSound();
-          toast({
-            title: newNotif.title,
-            description: newNotif.message,
-            duration: 3000,
-          });
+          
+          // Only show/add notification if it's meant for the current user's role
+          const isTargetedToMe = isAdmin 
+            ? newNotif.target_type === 'admin'
+            : (newNotif.target_type === 'user' && newNotif.user_id === user.id);
+
+          if (isTargetedToMe) {
+            setNotifications((prev) => [newNotif, ...prev]);
+            playNotificationSound();
+            toast({
+              title: newNotif.title,
+              description: newNotif.message,
+              duration: 3000,
+            });
+          }
         },
       )
       .on(
@@ -114,7 +159,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, fetchNotifications, playNotificationSound, toast]);
+  }, [user?.id, user?.email, fetchNotifications, playNotificationSound, toast]);
 
   useEffect(() => {
     setUnreadCount(notifications.filter((n) => !n.is_read).length);
