@@ -188,34 +188,27 @@ export default function AdminProcessDetail() {
         .select("*")
         .eq("id", id)
         .single() as Promise<{ data: any | null; error: Error | null }>);
-      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       if (orderError) throw orderError;
 
       // Fetch user profile for fallback data (like phone)
       let profileData = null;
       if (orderData.user_id) {
-        // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
-        /* eslint-disable @typescript-eslint/no-explicit-any */
         const { data: profile } = await ((supabase as any)
           .from("profiles")
           .select("*")
           .eq("id", orderData.user_id)
           .single() as Promise<{ data: any | null; error: Error | null }>);
-        /* eslint-enable @typescript-eslint/no-explicit-any */
         profileData = profile;
       }
 
       // Fetch service statuses for this user
-      // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
-      /* eslint-disable @typescript-eslint/no-explicit-any */
       const { data: services, error: servicesError } = await ((supabase as any)
         .from("user_services")
         .select("*")
         .eq("user_id", orderData.user_id)
         .eq("service_slug", orderData.product_slug)
         .order("created_at", { ascending: true }) as Promise<{ data: any[] | null; error: Error | null }>);
-      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       if (servicesError) {
         console.error("Error fetching services:", servicesError);
@@ -232,7 +225,6 @@ export default function AdminProcessDetail() {
 
       if (!serviceData) {
         console.warn("No matching service found for this order");
-        // Fallback or early exit if service is crucial
       }
 
       const s = serviceData as unknown as ServiceData;
@@ -249,11 +241,15 @@ export default function AdminProcessDetail() {
         consulate_interview_time: s?.consulate_interview_time || null,
         interview_location_casv: s?.interview_location_casv || null,
         interview_location_consulate: s?.interview_location_consulate || null,
+        contract_pdf_url: orderData.contract_pdf_url || null,
         contract_selfie_url: s?.contract_selfie_url || null,
         specialist_training_data: s?.specialist_training_data || null,
         specialist_review_data: s?.specialist_review_data || null,
-        client_whatsapp: profileData?.phone || null,
+        consular_login: serviceData?.consular_login || null,
+        consular_password: serviceData?.consular_password || null,
+        client_whatsapp: profileData?.phone || orderData.payment_metadata?.phone || orderData.client_whatsapp || null,
       };
+      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       setOrder(combined);
       setAppId(combined.application_id || "");
@@ -1565,6 +1561,14 @@ export default function AdminProcessDetail() {
               Informações do Pedido
             </h3>
             <div className="space-y-4">
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase text-accent">
+                  Nome do Cliente
+                </p>
+                <p className="text-sm font-bold break-all leading-tight">
+                  {order.client_name}
+                </p>
+              </div>
               <div>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase">
                   Pedido

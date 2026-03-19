@@ -68,10 +68,15 @@ export default function AdminOrderDetail() {
         .select("*")
         .eq("id", id)
         .single() as Promise<{ data: any | null; error: Error | null }>);
-      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       if (error) throw error;
-      setOrder(data as unknown as OrderDetail);
+      const orderData = data as any;
+      const combinedOrder = {
+        ...orderData,
+        client_whatsapp: orderData.client_whatsapp || orderData.payment_metadata?.phone || null,
+      };
+      setOrder(combinedOrder as unknown as OrderDetail);
+      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       if ((data as Record<string, unknown>).seller_id) {
         // Justification: Usando 'any' tático para evitar recursão profunda de tipos.
