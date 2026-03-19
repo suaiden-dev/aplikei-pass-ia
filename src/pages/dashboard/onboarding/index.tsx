@@ -316,6 +316,8 @@ export default function Onboarding() {
               o={o}
             />
           );
+        case 8:
+          return <ReviewStep {...commonProps} />;
         default:
           return null;
       }

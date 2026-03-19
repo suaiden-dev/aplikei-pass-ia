@@ -68,13 +68,13 @@ export const useOnboardingLogic = () => {
             "personal1", "personal2", "travel",
             "companions", "previous-travel", "address-phone",
             "social-media", "passport", "us-contact", "family",
-            "work-education", "additional"
+            "work-education", "additional", "documents", "review"
         ]
         : serviceSlug === "visa-f1f2"
         ? [
             "f1f2-personal1", "f1f2-personal2", "f1f2-travel", 
             "f1f2-history", "f1f2-address-phone", "f1f2-social-media", 
-            "f1f2-passport", "f1f2-documents"
+            "f1f2-passport", "f1f2-documents", "review"
         ]
         : serviceSlug === "changeofstatus"
         ? ["cos-form", "cos-documents", "cos-review"]
@@ -140,7 +140,7 @@ export const useOnboardingLogic = () => {
                 setHasConsularCredentials(!!(service.consularLogin && service.consularLogin.trim()));
 
                 if (service.currentStep !== undefined && service.currentStep !== null) {
-                    const maxStep = slug === "visto-b1-b2" ? 11 : slug === "visa-f1f2" ? 7 : slug === "changeofstatus" ? 2 : 4;
+                    const maxStep = slug === "visto-b1-b2" ? 13 : slug === "visa-f1f2" ? 8 : slug === "changeofstatus" ? 2 : 4;
                     const stepToIndex = Math.min(service.currentStep, maxStep);
                     setCurrentStep(stepToIndex);
                 } else {
@@ -291,8 +291,12 @@ export const useOnboardingLogic = () => {
                 case "additional":
                     return await trigger(["belongsToClan", "clanName", "languagesSpoken", "hasVisitedOtherCountries", "countriesVisitedDetails"]);
                 case "documents": {
-                    // Photo was collected at the start, so we only check if it exists in uploadedDocs
-                    const hasPhoto = uploadedDocs.some(d => d.name === o.docPhoto[lang]);
+                    // Photo was collected at the start, so we check using language-agnostic names
+                    const hasPhoto = uploadedDocs.some(d => 
+                        d.name === o.docPhoto['en'] || 
+                        d.name === o.docPhoto['pt'] || 
+                        d.name === o.docPhoto['es']
+                    );
                     if (!hasPhoto) {
                         toast.error(o.missingPhoto[lang] || "Missing photo");
                         return false;

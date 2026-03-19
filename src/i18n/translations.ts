@@ -5378,6 +5378,7 @@ export const translations = {
         "Social Media",
         "Passport Info",
         "Upload Documents",
+        "Final Review",
       ],
       pt: [
         "Info Pessoal 1",
@@ -5388,6 +5389,7 @@ export const translations = {
         "Mídias Sociais",
         "Info do Passaporte",
         "Upload de Docs",
+        "Revisão Final",
       ],
       es: [
         "Info Personal 1",
@@ -5398,6 +5400,7 @@ export const translations = {
         "Redes Sociales",
         "Info del Pasaporte",
         "Carga de Docs",
+        "Revisión Final",
       ],
     },
     schoolName: {
