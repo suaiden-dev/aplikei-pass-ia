@@ -44,7 +44,7 @@ export default function Index() {
               <div className="flex flex-col sm:flex-row gap-5">
                 {user ? (
                   <Link to="/dashboard" className="px-10 py-5 bg-primary text-white font-bold text-lg rounded-xl shadow-2xl shadow-primary/30 hover:scale-105 transition-transform flex items-center justify-center gap-2">
-                    Ir para o Dashboard <span className="material-symbols-outlined">dashboard</span>
+                    Ir para o Dashboard
                   </Link>
                 ) : (
                   <Link to="/servicos" className="px-10 py-5 bg-primary text-white font-bold text-lg rounded-xl shadow-2xl shadow-primary/30 hover:scale-105 transition-transform flex items-center justify-center gap-2">

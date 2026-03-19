@@ -67,9 +67,9 @@ export const PromoModal = () => {
   ];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-sm bg-slate-900/60 transition-all duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center sm:p-6 backdrop-blur-sm bg-slate-900/60 transition-all duration-300">
       <div 
-        className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-500"
+        className="w-full h-full sm:h-auto sm:max-w-lg bg-white dark:bg-slate-900 sm:rounded-3xl shadow-2xl overflow-y-auto sm:overflow-hidden relative animate-in fade-in sm:zoom-in-95 duration-500"
         role="dialog"
         aria-modal="true"
       >
@@ -82,7 +82,7 @@ export const PromoModal = () => {
         </button>
 
         {/* Header Ribbon */}
-        <div className="bg-primary px-6 py-4 text-center relative overflow-hidden">
+        <div className="bg-primary px-6 py-6 sm:py-4 text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl" />
           <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl" />
           
@@ -91,7 +91,7 @@ export const PromoModal = () => {
             <span className="text-white font-bold text-xs uppercase tracking-wider">Oferta Exclusiva</span>
           </div>
           
-          <h2 className="text-xl sm:text-2xl font-black text-white leading-tight uppercase tracking-tight">
+          <h2 className="text-2xl sm:text-2xl font-black text-white leading-tight uppercase tracking-tight">
             Oportunidade Única: <br/>Últimas vagas com desconto
           </h2>
         </div>
@@ -136,14 +136,14 @@ export const PromoModal = () => {
           </div>
 
           {/* Services Grid */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {services.map((service, idx) => (
-              <div key={idx} className="flex items-center p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
-                <div className="bg-white dark:bg-slate-700 p-2 rounded-md shadow-sm mr-3 shrink-0">
+              <div key={idx} className="flex items-center p-4 sm:p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+                <div className="bg-white dark:bg-slate-700 p-2 rounded-lg shadow-sm mr-4 sm:mr-3 shrink-0">
                   {service.icon}
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="font-bold text-sm text-slate-800 dark:text-slate-200 truncate">{service.name}</span>
+                  <span className="font-bold text-base sm:text-sm text-slate-800 dark:text-slate-200">{service.name}</span>
                   <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 w-fit px-1.5 py-0.5 rounded uppercase mt-0.5">
                     {service.discount}
                   </span>
