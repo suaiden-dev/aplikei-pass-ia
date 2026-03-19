@@ -23,16 +23,16 @@ export default function HowItWorks() {
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-3xl"
+            className="max-w-3xl mx-auto lg:mx-0 text-center lg:text-left"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-bold mb-8">
               <span className="material-symbols-outlined text-lg">info</span>
               {t.nav.howItWorks[lang]}
             </div>
-            <h1 className="text-5xl lg:text-7xl font-extrabold text-dark-grey tracking-tight mb-8 leading-[1.1]">
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-dark-grey tracking-tight mb-8 leading-[1.1]">
               {p.title[lang]}
             </h1>
-            <p className="text-xl text-slate-500 leading-relaxed font-medium max-w-2xl">
+            <p className="text-lg sm:text-xl text-slate-500 leading-relaxed font-medium max-w-2xl mx-auto lg:mx-0">
               {p.subtitle[lang]}
             </p>
           </motion.div>
@@ -51,7 +51,7 @@ export default function HowItWorks() {
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="relative flex flex-col lg:flex-row gap-12 lg:items-center"
+                className="relative flex flex-col lg:flex-row gap-10 lg:gap-12 items-center lg:items-start text-center lg:text-left"
               >
                 {/* Number/Icon indicator */}
                 <div className="relative z-10 flex-shrink-0">
@@ -66,7 +66,13 @@ export default function HowItWorks() {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 bg-white p-10 lg:p-12 rounded-[2.5rem] border-4 border-slate-50 hover:border-primary/10 transition-colors shadow-sm">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
+                  className="flex-1 bg-white p-10 lg:p-12 rounded-[2.5rem] border-4 border-slate-50 hover:border-primary/10 transition-all hover:shadow-xl hover:-translate-y-2 duration-300 shadow-sm"
+                >
                   <span className="text-primary font-black text-sm uppercase tracking-[0.2em] mb-4 block">
                     {p.step[lang]} 0{i+1}
                   </span>
@@ -76,7 +82,7 @@ export default function HowItWorks() {
                   <p className="text-lg text-slate-500 leading-relaxed font-medium max-w-2xl">
                     {step.desc[lang]}
                   </p>
-                </div>
+                </motion.div>
               </motion.div>
             ))}
           </div>
@@ -87,22 +93,27 @@ export default function HowItWorks() {
       <section className="py-24 lg:py-40 bg-dark-grey text-white rounded-[4rem] lg:rounded-[6rem] mx-4 lg:mx-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-primary/10 -skew-x-12 translate-x-1/2" />
         <div className="container max-w-7xl px-6 lg:px-12 relative z-10">
-          <div className="max-w-3xl mb-16 lg:mb-24">
-            <h2 className="text-4xl lg:text-6xl font-extrabold mb-8">
+          <div className="max-w-3xl mb-16 lg:mb-24 text-center lg:text-left mx-auto lg:mx-0">
+            <h2 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold mb-8">
               {p.aiDoesTitle[lang]}
             </h2>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-24">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-24">
             {/* Capabilities */}
-            <div className="bg-white/5 backdrop-blur-sm p-12 rounded-[3rem] border border-white/10">
-              <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mb-8">
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-white/5 backdrop-blur-sm p-8 lg:p-12 rounded-[2.5rem] lg:rounded-[3rem] border border-white/10 hover:bg-white/10 transition-colors duration-300"
+            >
+              <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mb-8 mx-auto lg:mx-0">
                 <span className="material-symbols-outlined text-white">check_circle</span>
               </div>
-              <h4 className="text-2xl font-bold mb-8 flex items-center gap-3">
+              <h4 className="text-xl sm:text-2xl font-bold mb-8 flex items-center justify-center lg:justify-start gap-3">
                 {p.aiHelps[lang]}
               </h4>
-              <ul className="grid gap-6">
+              <ul className="grid gap-6 text-left">
                 {p.aiDoes[lang].map((item, i) => (
                   <li key={i} className="flex gap-4 text-slate-300 font-medium leading-relaxed">
                     <span className="material-symbols-outlined text-primary font-bold">check</span>
@@ -110,17 +121,22 @@ export default function HowItWorks() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
 
             {/* Limitations */}
-            <div className="bg-white/5 backdrop-blur-sm p-12 rounded-[3rem] border border-white/10">
-              <div className="w-12 h-12 bg-highlight rounded-xl flex items-center justify-center mb-8">
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-white/5 backdrop-blur-sm p-8 lg:p-12 rounded-[2.5rem] lg:rounded-[3rem] border border-white/10 hover:bg-white/10 transition-colors duration-300"
+            >
+              <div className="w-12 h-12 bg-highlight rounded-xl flex items-center justify-center mb-8 mx-auto lg:mx-0">
                 <span className="material-symbols-outlined text-white">cancel</span>
               </div>
-              <h4 className="text-2xl font-bold mb-8 flex items-center gap-3">
+              <h4 className="text-xl sm:text-2xl font-bold mb-8 flex items-center justify-center lg:justify-start gap-3">
                 {p.aiDoesNotLabel[lang]}
               </h4>
-              <ul className="grid gap-6">
+              <ul className="grid gap-6 text-left">
                 {p.aiDoesNot[lang].map((item, i) => (
                   <li key={i} className="flex gap-4 text-slate-300 font-medium leading-relaxed">
                     <span className="material-symbols-outlined text-highlight font-bold">close</span>
@@ -128,7 +144,7 @@ export default function HowItWorks() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -161,7 +177,7 @@ export default function HowItWorks() {
           <div className="mt-24 lg:mt-32">
             <Link 
               to="/servicos" 
-              className="inline-flex items-center gap-4 px-12 py-6 bg-highlight text-white font-black text-xl rounded-full hover:shadow-2xl hover:shadow-highlight/40 transition-all hover:-translate-y-1"
+              className="inline-flex items-center gap-4 px-12 py-6 bg-highlight text-white font-black text-xl rounded-xl hover:shadow-2xl hover:shadow-highlight/40 transition-all hover:-translate-y-1"
             >
               {p.viewServices[lang]}
               <span className="material-symbols-outlined">arrow_forward</span>
