@@ -132,7 +132,7 @@ export default function Onboarding() {
     }
   };
 
-  const progress = ((currentStep + 1) / steps.length) * 100;
+  const progress = (steps && steps.length > 0) ? ((currentStep + 1) / (steps.length || 1)) * 100 : 0;
 
   const renderStep = () => {
     const commonProps = {
