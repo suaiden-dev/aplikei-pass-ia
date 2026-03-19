@@ -41,6 +41,7 @@ import { SupabaseAuthService } from "@/infrastructure/services/SupabaseAuthServi
 import { StripePaymentService } from "@/infrastructure/services/StripePaymentService";
 import { supabase } from "@/integrations/supabase/client"; // Ainda necessário para profiles temporariamente até termos IProfileRepository
 import { ZellePaymentModal } from "@/presentation/components/organisms/checkout/ZellePaymentModal";
+import UrgencyBanner from "@/presentation/components/molecules/UrgencyBanner";
 
 export default function Checkout() {
   const { slug } = useParams<{ slug: string }>();
@@ -317,8 +318,9 @@ export default function Checkout() {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30 py-12 md:py-20">
-      <div className="container max-w-5xl">
+    <div className="min-h-screen bg-muted/30 pb-12 md:pb-20">
+      <UrgencyBanner />
+      <div className="container max-w-5xl pt-12 md:pt-20">
         <div className="grid gap-5 lg:grid-cols-3">
           {/* Form Side */}
           <div className="lg:col-span-2 space-y-4">
