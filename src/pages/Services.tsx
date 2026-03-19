@@ -11,7 +11,7 @@ const iconMap: Record<string, React.ReactNode> = {
   repeat: <Repeat className="h-7 w-7" />,
 };
 
-const iconKeys = ["plane", "graduation-cap", "clock", "repeat"];
+const iconKeys = ["plane", "graduation-cap", "clock", "repeat", "plane", "graduation-cap"];
 
 export default function Services() {
   const { lang, t } = useLanguage();
@@ -31,7 +31,7 @@ export default function Services() {
               <div className="flex flex-col md:flex-row">
                 <div className="border-b border-border p-4 md:w-1/3 md:border-b-0 md:border-r">
                   <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-md bg-accent/10 text-accent">
-                    {iconMap[iconKeys[i]]}
+                    {iconMap[iconKeys[i]] || <CheckCircle2 className="h-7 w-7" />}
                   </div>
                   <h2 className="font-display text-subtitle font-bold text-foreground">{s.shortTitle[lang]}</h2>
                   <p className="mt-1 text-sm text-muted-foreground">{s.subtitle[lang]}</p>
@@ -75,7 +75,7 @@ export default function Services() {
                     </div>
                   </div>
                   <div className="mt-4">
-                    <Button className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark" asChild>
+                    <Button className="bg-accent text-accent-foreground shadow-button hover:bg-green-dark rounded-xl" asChild>
                       <Link to={`/servicos/${s.slug}`}>
                         {p.viewFull[lang]} <ChevronRight className="ml-1 h-4 w-4" />
                       </Link>

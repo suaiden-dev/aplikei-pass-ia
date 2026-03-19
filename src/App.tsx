@@ -8,12 +8,18 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
 import Layout from "@/presentation/components/templates/Layout";
 import UserDashboardLayout from "@/presentation/components/templates/UserDashboardLayout";
+import ScrollToTop from "@/presentation/components/atoms/ScrollToTop";
 
 // ... (todas as importações continuam aqui)
 import Index from "./pages/Index";
 import HowItWorks from "./pages/HowItWorks";
 import Services from "./pages/Services";
 import ServiceDetail from "./pages/ServiceDetail";
+import B1B2ServiceDetail from "./pages/B1B2ServiceDetail";
+import F1ServiceDetail from "./pages/F1ServiceDetail";
+import StatusExtensionDetail from "./pages/StatusExtensionDetail";
+import ChangeOfStatusDetail from "./pages/ChangeOfStatusDetail";
+import I539VisaDetail from "./pages/I539VisaDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ConfirmPassword from "./pages/ConfirmPassword";
@@ -54,6 +60,7 @@ import NotFound from "./pages/NotFound";
 import { Navigate, Outlet } from "react-router-dom";
 
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { PromoModal } from "@/presentation/components/organisms/PromoModal";
 
 const ProtectedRoute = () => {
   const { session, loading } = useAuth();
@@ -75,12 +82,20 @@ const App = () => (
             <BrowserRouter
               future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
             >
+              <ScrollToTop />
               <Routes>
                 {/* Public pages */}
                 <Route element={<Layout />}>
                   <Route path="/" element={<Index />} />
                   <Route path="/como-funciona" element={<HowItWorks />} />
                   <Route path="/servicos" element={<Services />} />
+                  <Route path="/servicos/visto-b1-b2" element={<B1B2ServiceDetail />} />
+                  <Route path="/servicos/visto-f1" element={<F1ServiceDetail />} />
+                  <Route path="/servicos/extensao-status" element={<StatusExtensionDetail />} />
+                  <Route path="/servicos/troca-status" element={<ChangeOfStatusDetail />} />
+                  <Route path="/servicos/changeofstatus" element={<I539VisaDetail />} />
+                  <Route path="/servicos/status-extension" element={<StatusExtensionDetail />} />
+                  <Route path="/servicos/extension" element={<StatusExtensionDetail />} />
                   <Route path="/servicos/:slug" element={<ServiceDetail />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/cadastro" element={<Signup />} />
@@ -185,6 +200,7 @@ const App = () => (
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <PromoModal />
             </BrowserRouter>
           </TooltipProvider>
         </NotificationProvider>
