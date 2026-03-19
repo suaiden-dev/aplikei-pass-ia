@@ -34,9 +34,10 @@ export default function UserDashboardLayout() {
     { to: "/dashboard", label: s.dashboard[lang], icon: LayoutDashboard },
     {
       to: "/dashboard/processos",
-      label: lang === "pt" ? "Meus Processos" : "My Processes",
+      label: t.nav.myProcesses[lang],
       icon: Briefcase,
     },
+
     { to: "/dashboard/chat", label: s.chatAI[lang], icon: MessageSquare },
     { to: "/dashboard/ajuda", label: s.help[lang], icon: HelpCircle },
   ];

@@ -3,36 +3,30 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { NotificationBell } from "@/presentation/components/molecules/NotificationBell";
 import { useAdmin } from "@/hooks/useAdmin";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
   LayoutDashboard,
-  ShoppingCart,
   CreditCard,
   Users,
-  FileText,
-  UserCheck,
-  Handshake,
   ScrollText,
-  RefreshCw,
-  Package,
-  HeadphonesIcon,
-  BarChart3,
   LogOut,
   Menu,
   X,
   ShieldCheck,
 } from "lucide-react";
 
-const navItems = [
-  { to: "/admin", icon: LayoutDashboard, label: "Overview", end: true },
-  { to: "/admin/pagamentos", icon: CreditCard, label: "Pagamentos" },
-  { to: "/admin/clientes", icon: Users, label: "Clientes" },
-  { to: "/admin/contratos", icon: ScrollText, label: "Processos" },
-];
-
 export default function AdminLayout() {
   const { user } = useAdmin();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { lang, t } = useLanguage();
+
+  const navItems = [
+    { to: "/admin", icon: LayoutDashboard, label: t.nav.overview[lang], end: true },
+    { to: "/admin/pagamentos", icon: CreditCard, label: t.nav.payments[lang] },
+    { to: "/admin/clientes", icon: Users, label: t.nav.customers[lang] },
+    { to: "/admin/contratos", icon: ScrollText, label: t.nav.processes[lang] },
+  ];
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -106,7 +100,7 @@ export default function AdminLayout() {
             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
           >
             <LogOut className="h-4 w-4" />
-            Sair
+            {t.nav.logout[lang]}
           </button>
         </div>
       </aside>
@@ -123,11 +117,12 @@ export default function AdminLayout() {
               <Menu className="h-5 w-5" />
             </button>
             <h1 className="font-display text-lg font-semibold text-foreground">
-              Painel Administrativo
+              {t.nav.adminPanel[lang]}
             </h1>
           </div>
           <NotificationBell />
         </header>
+
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-4">

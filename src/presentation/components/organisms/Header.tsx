@@ -61,10 +61,12 @@ export default function Header() {
                   onClick={() => signOut()}
                   className="hidden min-[1100px]:block font-bold text-slate-500 hover:text-primary transition-colors whitespace-nowrap text-sm xl:text-base mr-2 px-2"
                 >
-                  {lang === 'pt' ? 'Sair' : 'Logout'}
+                  {t.nav.logout[lang]}
+
                 </button>
                 <Link to="/dashboard" className="hidden sm:block px-6 xl:px-9 py-3.5 bg-highlight text-white font-bold rounded-full hover:shadow-2xl hover:shadow-highlight/30 transition-all whitespace-nowrap text-sm xl:text-base border-b-4 border-black/10 active:border-b-0 active:translate-y-1 hover:-translate-y-0.5 shadow-lg shadow-highlight/10">
-                  Dashboard
+                  {t.nav.dashboard[lang]}
+
                 </Link>
               </>
             ) : (
@@ -102,7 +104,8 @@ export default function Header() {
           </div>
 
           <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <span className="font-bold text-slate-400 text-[10px] uppercase tracking-widest italic">{lang === 'pt' ? 'Configurações' : 'Settings'}</span>
+            <span className="font-bold text-slate-400 text-[10px] uppercase tracking-widest italic">{t.nav.settings[lang]}</span>
+
             <LanguageToggle />
           </div>
           
@@ -125,7 +128,8 @@ export default function Header() {
             {user ? (
               <>
                 <Link to="/dashboard" onClick={() => setOpen(false)} className="w-full py-5 text-lg text-center font-bold text-white bg-primary rounded-3xl shadow-xl shadow-primary/20 border-b-4 border-black/10">
-                  Dashboard
+                  {t.nav.dashboard[lang]}
+
                 </Link>
                 <button 
                   onClick={() => {
@@ -134,7 +138,8 @@ export default function Header() {
                   }} 
                   className="w-full py-5 text-lg text-center font-bold text-slate-700 bg-slate-100 rounded-3xl border border-slate-200"
                 >
-                  {lang === 'pt' ? 'Sair' : 'Logout'}
+                  {t.nav.logout[lang]}
+
                 </button>
               </>
             ) : (
