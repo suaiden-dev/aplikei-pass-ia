@@ -5,12 +5,11 @@ import { Lock, ArrowLeft, CheckCircle2, Loader2, AlertCircle, Eye, EyeOff } from
 import { Button } from "@/presentation/components/atoms/button";
 import { Input } from "@/presentation/components/atoms/input";
 import { Label } from "@/presentation/components/atoms/label";
-import { useLanguage } from "@/i18n/LanguageContext";
 import { getAuthService } from "@/infrastructure/factories/authFactory";
+import { useT } from "@/i18n/useT";
 
 export default function ResetPassword() {
-    const { lang, t } = useLanguage();
-    const p = t.resetPassword;
+    const { t } = useT("auth");
     const navigate = useNavigate();
 
     const [password, setPassword] = useState("");
@@ -24,24 +23,24 @@ export default function ResetPassword() {
 
     const passwordMismatch = password.length > 0 && confirmPassword.length > 0 && password !== confirmPassword;
 
-    // Verifica se há sessão ativa (vinda do OTP verificado no ForgotPassword)
     useEffect(() => {
         const authService = getAuthService();
         authService.getSession().then((session) => {
             if (!session.user) {
-                setErrorMessage(p.noSession[lang]);
+                setErrorMessage(t("auth.resetPassword.noSession"));
                 setTimeout(() => navigate("/forgot-password"), 4000);
             }
             setCheckingSession(false);
         });
-    }, [lang, navigate, p]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [navigate]);
 
     const getErrorMessage = (err: unknown): string => {
         const msg = err instanceof Error ? err.message : String(err) || "";
         const lower = msg.toLowerCase();
-        if (lower.includes("same") || lower.includes("igual")) return p.errorSamePassword[lang];
-        if (lower.includes("weak") || lower.includes("fraca")) return p.errorWeakPassword[lang];
-        return msg || p.errorGeneric[lang];
+        if (lower.includes("same") || lower.includes("igual")) return t("auth.resetPassword.errorSamePassword");
+        if (lower.includes("weak") || lower.includes("fraca")) return t("auth.resetPassword.errorWeakPassword");
+        return msg || t("auth.resetPassword.errorGeneric");
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -75,22 +74,22 @@ export default function ResetPassword() {
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-md rounded-md border border-border bg-card p-5 shadow-card"
             >
-                {/* Logo + Voltar */}
+                {/* Logo + Back */}
                 <div className="flex items-center justify-between mb-4">
                     <Link to="/forgot-password" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                         <ArrowLeft className="h-4 w-4" />
-                        {p.backToLogin[lang]}
+                        {t("auth.resetPassword.backToLogin")}
                     </Link>
                     <Link to="/" className="font-display text-subtitle font-bold text-primary">Aplikei</Link>
                 </div>
 
-                {/* Ícone */}
+                {/* Icon */}
                 <div className="mb-4 flex flex-col items-center text-center">
                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 border border-accent/20">
                         <Lock className="h-8 w-8 text-accent" />
                     </div>
-                    <h1 className="font-display text-title font-bold text-foreground">{p.title[lang]}</h1>
-                    <p className="mt-2 text-sm text-muted-foreground">{p.subtitle[lang]}</p>
+                    <h1 className="font-display text-title font-bold text-foreground">{t("auth.resetPassword.title")}</h1>
+                    <p className="mt-2 text-sm text-muted-foreground">{t("auth.resetPassword.subtitle")}</p>
                 </div>
 
                 <AnimatePresence mode="wait">
@@ -98,11 +97,11 @@ export default function ResetPassword() {
                         <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
                             <div className="rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-5 text-center">
                                 <CheckCircle2 className="mx-auto mb-3 h-8 w-8 text-green-600 dark:text-green-400" />
-                                <p className="font-semibold text-green-800 dark:text-green-300">{p.successTitle[lang]}</p>
-                                <p className="mt-1 text-sm text-green-700 dark:text-green-400">{p.successDesc[lang]}</p>
+                                <p className="font-semibold text-green-800 dark:text-green-300">{t("auth.resetPassword.successTitle")}</p>
+                                <p className="mt-1 text-sm text-green-700 dark:text-green-400">{t("auth.resetPassword.successDesc")}</p>
                             </div>
                             <Button className="mt-4 w-full bg-accent text-accent-foreground hover:bg-green-dark" onClick={() => navigate("/login")}>
-                                {p.goToLogin[lang]}
+                                {t("auth.resetPassword.goToLogin")}
                             </Button>
                         </motion.div>
                     ) : errorMessage ? (
@@ -110,14 +109,14 @@ export default function ResetPassword() {
                             <div className="rounded-md bg-destructive/10 border border-destructive/20 p-5 text-center">
                                 <AlertCircle className="mx-auto mb-3 h-8 w-8 text-destructive" />
                                 <p className="font-semibold text-destructive">{errorMessage}</p>
-                                <p className="mt-1 text-sm text-muted-foreground">{p.redirecting[lang]}</p>
+                                <p className="mt-1 text-sm text-muted-foreground">{t("auth.resetPassword.redirecting")}</p>
                             </div>
                         </motion.div>
                     ) : (
                         <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
-                                    <Label htmlFor="password">{p.newPassword[lang]}</Label>
+                                    <Label htmlFor="password">{t("auth.resetPassword.newPassword")}</Label>
                                     <div className="relative mt-1">
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -140,7 +139,7 @@ export default function ResetPassword() {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="confirmPassword">{p.confirmPassword[lang]}</Label>
+                                    <Label htmlFor="confirmPassword">{t("auth.resetPassword.confirmPassword")}</Label>
                                     <div className="relative mt-1">
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -159,7 +158,7 @@ export default function ResetPassword() {
                                         </button>
                                     </div>
                                     {passwordMismatch && (
-                                        <p className="mt-1 text-xs text-destructive">{p.mismatch[lang]}</p>
+                                        <p className="mt-1 text-xs text-destructive">{t("auth.resetPassword.mismatch")}</p>
                                     )}
                                 </div>
 
@@ -169,8 +168,8 @@ export default function ResetPassword() {
                                     className="w-full bg-accent text-accent-foreground hover:bg-green-dark shadow-button"
                                 >
                                     {loading
-                                        ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{p.submitting[lang]}</>
-                                        : p.submit[lang]}
+                                        ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("auth.resetPassword.submitting")}</>
+                                        : t("auth.resetPassword.submit")}
                                 </Button>
                             </form>
                         </motion.div>

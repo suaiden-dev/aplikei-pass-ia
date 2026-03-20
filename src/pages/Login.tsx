@@ -5,20 +5,19 @@ import { Input } from "@/presentation/components/atoms/input";
 import { Label } from "@/presentation/components/atoms/label";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
-import { useLanguage } from "@/i18n/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { checkIsAdmin } from "@/lib/admin";
 import { LoginUser } from "@/application/use-cases/auth/LoginUser";
 import { getAuthService } from "@/infrastructure/factories/authFactory";
+import { useT } from "@/i18n/useT";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { lang, t } = useLanguage();
+  const { t } = useT("auth");
   const navigate = useNavigate();
-  const p = t.login;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,31 +47,31 @@ export default function Login() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md rounded-md border border-border bg-card p-5 shadow-card">
         <div className="text-center">
           <Link to="/" className="font-display text-title font-bold text-primary">Aplikei</Link>
-          <h1 className="mt-4 font-display text-title font-bold text-foreground">{p.title[lang]}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{p.subtitle[lang]}</p>
+          <h1 className="mt-4 font-display text-title font-bold text-foreground">{t(`auth.login.title`)}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t(`auth.login.subtitle`)}</p>
         </div>
         <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
           <div>
-            <Label htmlFor="email">{p.email[lang]}</Label>
+            <Label htmlFor="email">{t(`auth.login.email`)}</Label>
             <Input id="email" type="email" onChange={(e) => setEmail(e.target.value)} className="mt-1" />
           </div>
           <div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">{p.password[lang]}</Label>
+              <Label htmlFor="password">{t(`auth.login.password`)}</Label>
               <Link to="/forgot-password" className="text-xs text-accent hover:underline">
-                {p.forgotPassword[lang]}
+                {t(`auth.login.forgotPassword`)}
               </Link>
             </div>
             <Input id="password" type="password" onChange={(e) => setPassword(e.target.value)} className="mt-1" />
           </div>
           <Button type="submit" disabled={loading} className="w-full bg-accent text-accent-foreground shadow-button hover:bg-green-dark">
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {p.submit[lang]}
+            {t(`auth.login.submit`)}
           </Button>
         </form>
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          {p.noAccount[lang]}{" "}
-          <Link to="/cadastro" className="font-medium text-accent hover:underline">{p.createAccount[lang]}</Link>
+          {t(`auth.login.noAccount`)}{" "}
+          <Link to="/cadastro" className="font-medium text-accent hover:underline">{t(`auth.login.createAccount`)}</Link>
         </p>
       </motion.div>
     </div>

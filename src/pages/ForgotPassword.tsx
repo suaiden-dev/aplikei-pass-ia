@@ -5,11 +5,11 @@ import { Mail, ArrowLeft, Loader2, AlertCircle, RefreshCw, KeyRound } from "luci
 import { Button } from "@/presentation/components/atoms/button";
 import { Input } from "@/presentation/components/atoms/input";
 import { Label } from "@/presentation/components/atoms/label";
-import { useLanguage } from "@/i18n/LanguageContext";
 import { getAuthService } from "@/infrastructure/factories/authFactory";
+import { useT } from "@/i18n/useT";
 import { toast } from "sonner";
 
-/** Componente de 6 boxes de OTP com auto-avanço */
+/** 6-digit OTP input with auto-advance and keyboard navigation. */
 function OtpBoxes({ value, onChange }: { value: string; onChange: (v: string) => void }) {
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const digits = value.split("").concat(Array(6).fill("")).slice(0, 6);
@@ -45,9 +45,7 @@ function OtpBoxes({ value, onChange }: { value: string; onChange: (v: string) =>
         e.preventDefault();
         const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
         onChange(pasted.padEnd(6, "").slice(0, 6).replace(/\s/g, ""));
-        // Foca no último dígito colado ou no último box
-        const lastIdx = Math.min(pasted.length, 5);
-        focus(lastIdx);
+        focus(Math.min(pasted.length, 5));
     };
 
     return (
@@ -80,8 +78,7 @@ function OtpBoxes({ value, onChange }: { value: string; onChange: (v: string) =>
 type Step = "email" | "otp";
 
 export default function ForgotPassword() {
-    const { lang, t } = useLanguage();
-    const p = t.forgotPassword;
+    const { t } = useT("auth");
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
@@ -126,7 +123,7 @@ export default function ForgotPassword() {
             setStep("otp");
             startCooldown();
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : p.errorGeneric[lang]);
+            setError(err instanceof Error ? err.message : t("auth.forgotPassword.errorGeneric"));
         } finally {
             setLoading(false);
         }
@@ -140,20 +137,22 @@ export default function ForgotPassword() {
 
         try {
             const authService = getAuthService();
-            const { user, error: verifyError } = await authService.verifyOtp(
+            const { error: verifyError } = await authService.verifyOtp(
                 email.trim(),
                 otp.trim(),
                 "email"
             );
             if (verifyError) throw new Error(verifyError);
-            // Sessão ativa — agora vai para a tela de nova senha
             navigate("/reset-password");
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : p.errorGeneric[lang]);
+            setError(err instanceof Error ? err.message : t("auth.forgotPassword.errorGeneric"));
         } finally {
             setLoading(false);
         }
     };
+
+    // Suppress unused toast import warning
+    void toast;
 
     return (
         <div className="flex min-h-[85vh] items-center justify-center py-12 px-4">
@@ -162,7 +161,7 @@ export default function ForgotPassword() {
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-md rounded-md border border-border bg-card p-5 shadow-card"
             >
-                {/* Logo + Voltar */}
+                {/* Logo + Back */}
                 <div className="flex items-center justify-between mb-4">
                     {step === "otp" ? (
                         <button
@@ -170,12 +169,12 @@ export default function ForgotPassword() {
                             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
                         >
                             <ArrowLeft className="h-4 w-4" />
-                            {p.back[lang]}
+                            {t("auth.forgotPassword.back")}
                         </button>
                     ) : (
                         <Link to="/login" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                             <ArrowLeft className="h-4 w-4" />
-                            {p.backToLogin[lang]}
+                            {t("auth.forgotPassword.backToLogin")}
                         </Link>
                     )}
                     <Link to="/" className="font-display text-subtitle font-bold text-primary">Aplikei</Link>
@@ -184,13 +183,12 @@ export default function ForgotPassword() {
                 <AnimatePresence mode="wait">
                     {step === "email" ? (
                         <motion.div key="email" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                            {/* Ícone */}
                             <div className="mb-4 flex flex-col items-center text-center">
                                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 border border-accent/20">
                                     <Mail className="h-8 w-8 text-accent" />
                                 </div>
-                                <h1 className="font-display text-title font-bold text-foreground">{p.title[lang]}</h1>
-                                <p className="mt-2 text-sm text-muted-foreground">{p.subtitle[lang]}</p>
+                                <h1 className="font-display text-title font-bold text-foreground">{t("auth.forgotPassword.title")}</h1>
+                                <p className="mt-2 text-sm text-muted-foreground">{t("auth.forgotPassword.subtitle")}</p>
                             </div>
 
                             {error && (
@@ -202,7 +200,7 @@ export default function ForgotPassword() {
 
                             <form onSubmit={handleSendOtp} className="space-y-4">
                                 <div>
-                                    <Label htmlFor="email">{p.email[lang]}</Label>
+                                    <Label htmlFor="email">{t("auth.forgotPassword.email")}</Label>
                                     <div className="relative mt-1">
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -221,20 +219,21 @@ export default function ForgotPassword() {
                                     disabled={loading || !email.trim()}
                                     className="w-full bg-accent text-accent-foreground hover:bg-green-dark shadow-button"
                                 >
-                                    {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{p.sending[lang]}</> : p.send[lang]}
+                                    {loading
+                                        ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("auth.forgotPassword.sending")}</>
+                                        : t("auth.forgotPassword.send")}
                                 </Button>
                             </form>
                         </motion.div>
                     ) : (
                         <motion.div key="otp" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                            {/* Ícone */}
                             <div className="mb-4 flex flex-col items-center text-center">
                                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 border border-accent/20">
                                     <KeyRound className="h-8 w-8 text-accent" />
                                 </div>
-                                <h1 className="font-display text-title font-bold text-foreground">{p.otpTitle[lang]}</h1>
+                                <h1 className="font-display text-title font-bold text-foreground">{t("auth.forgotPassword.otpTitle")}</h1>
                                 <p className="mt-2 text-sm text-muted-foreground">
-                                    {p.otpSubtitle[lang]} <strong className="text-foreground">{email}</strong>
+                                    {t("auth.forgotPassword.otpSubtitle")} <strong className="text-foreground">{email}</strong>
                                 </p>
                             </div>
 
@@ -247,7 +246,7 @@ export default function ForgotPassword() {
 
                             <form onSubmit={handleVerifyOtp} className="space-y-4">
                                 <div>
-                                    <Label className="mb-3 block text-center">{p.otpLabel[lang]}</Label>
+                                    <Label className="mb-3 block text-center">{t("auth.forgotPassword.otpLabel")}</Label>
                                     <OtpBoxes value={otp} onChange={setOtp} />
                                 </div>
                                 <Button
@@ -255,13 +254,15 @@ export default function ForgotPassword() {
                                     disabled={loading || otp.replace(/\s/g, "").length !== 6}
                                     className="w-full bg-accent text-accent-foreground hover:bg-green-dark shadow-button"
                                 >
-                                    {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{p.verifying[lang]}</> : p.verify[lang]}
+                                    {loading
+                                        ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("auth.forgotPassword.verifying")}</>
+                                        : t("auth.forgotPassword.verify")}
                                 </Button>
                             </form>
 
-                            {/* Reenviar */}
+                            {/* Resend */}
                             <div className="mt-5 text-center">
-                                <p className="text-sm text-muted-foreground mb-2">{p.notReceived[lang]}</p>
+                                <p className="text-sm text-muted-foreground mb-2">{t("auth.forgotPassword.notReceived")}</p>
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -271,8 +272,8 @@ export default function ForgotPassword() {
                                 >
                                     <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
                                     {resendCooldown > 0
-                                        ? p.resendIn[lang].replace("{s}", String(resendCooldown))
-                                        : p.resend[lang]}
+                                        ? t("auth.forgotPassword.resendIn", { s: resendCooldown })
+                                        : t("auth.forgotPassword.resend")}
                                 </Button>
                             </div>
                         </motion.div>
