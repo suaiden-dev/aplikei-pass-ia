@@ -13,9 +13,11 @@ import { SaveDocument } from "@/application/use-cases/onboarding/SaveDocument";
 import { DeleteDocument } from "@/application/use-cases/onboarding/DeleteDocument";
 import { getOnboardingRepository, getProfileRepository } from "@/infrastructure/factories/onboardingFactory";
 import { getUserProcessRepository } from "@/infrastructure/factories/processFactory";
+import { getStatusEngine } from "@/infrastructure/factories/statusEngineFactory";
 import { getDocumentRepository, getStorageService } from "@/infrastructure/factories/documentFactory";
 import { getVisaOrderRepository } from "@/infrastructure/factories/paymentFactory";
 import { translations as translationsObj } from "@/i18n/translations";
+import { slugToServiceId } from "@/domain/services/VisaServiceTypes";
 
 export const useOnboardingLogic = () => {
     const navigate = useNavigate();
@@ -51,11 +53,11 @@ export const useOnboardingLogic = () => {
     const ds = t.ds160;
 
     // Dynamically determine steps based on service
-    const steps = serviceSlug === "visto-b1-b2" 
-        ? ds.steps[lang] 
-        : serviceSlug === "visa-f1f2" 
-        ? t.f1f2.steps[lang] 
-        : serviceSlug === "changeofstatus"
+    const steps = serviceSlug === "visto-b1-b2"
+        ? ds.steps[lang]
+        : serviceSlug === "visa-f1f2"
+        ? t.f1f2.steps[lang]
+        : serviceSlug === "troca-status"
         ? t.changeOfStatus.steps[lang]
         : o.steps[lang];
     const totalSteps = steps.length;
@@ -75,8 +77,8 @@ export const useOnboardingLogic = () => {
             "f1f2-history", "f1f2-address-phone", "f1f2-social-media", 
             "f1f2-passport", "f1f2-documents", "review"
         ]
-        : serviceSlug === "changeofstatus"
-        ? ["cos-form", "cos-documents", "cos-review"]
+        : serviceSlug === "troca-status"
+        ? ["cos-form", "documents", "review"]
         : ["personal", "history", "process", "documents", "review"];
 
     useEffect(() => {
@@ -91,7 +93,7 @@ export const useOnboardingLogic = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Form Handling
-    const { register, handleSubmit, setValue, watch, reset, trigger, formState: { errors } } = useForm<OnboardingData>();
+    const { register, handleSubmit, setValue, watch, reset, trigger, control, formState: { errors } } = useForm<OnboardingData>();
     const formData = watch();
 
     // Load User Data & Service
@@ -125,7 +127,7 @@ export const useOnboardingLogic = () => {
                 setServiceStatus(status);
                 let slug = service.serviceSlug || "visto-b1-b2";
                 if (slug === "visto-f1") slug = "visa-f1f2";
-                if (slug === "troca-status" || slug === "extensao-status") slug = "changeofstatus";
+                if (slug === "extensao-status") slug = "troca-status";
                 setServiceSlug(slug);
 
                 if (service.applicationId) {
@@ -139,7 +141,7 @@ export const useOnboardingLogic = () => {
                 setHasConsularCredentials(!!(service.consularLogin && service.consularLogin.trim()));
 
                 if (service.currentStep !== undefined && service.currentStep !== null) {
-                    const maxStep = slug === "visto-b1-b2" ? 13 : slug === "visa-f1f2" ? 8 : slug === "changeofstatus" ? 2 : 4;
+                    const maxStep = slug === "visto-b1-b2" ? 13 : slug === "visa-f1f2" ? 8 : 4;
                     const stepToIndex = Math.min(service.currentStep, maxStep);
                     setCurrentStep(stepToIndex);
                 } else {
@@ -158,15 +160,14 @@ export const useOnboardingLogic = () => {
                     if (order.id) setPendingOrderId(order.id);
                     if (order.order_number) setOrderNumber(order.order_number);
                     
-                    const hasSelfie = !!order.contract_selfie_url;
-                    // Check if photo exists in any translated name to avoid language mismatch issues
                     const hasVisaPhoto = docs.some(d => 
                         d.name === o.docPhoto['en'] || 
                         d.name === o.docPhoto['pt'] || 
                         d.name === o.docPhoto['es']
                     );
                     
-                    if (!hasSelfie || !hasVisaPhoto) {
+                    const isCOS = slug === "troca-status";
+                    if (!hasSelfie || (!hasVisaPhoto && !isCOS)) {
                         setRequiresSelfie(true);
                         setSelfieStep(!hasSelfie ? 1 : 2);
                     }
@@ -429,16 +430,39 @@ export const useOnboardingLogic = () => {
 
             setPendingFiles({});
 
-            const isSignatureSubmit = 
-                serviceStatus === "ds160upload_documents" || 
-                serviceStatus === "ds160AwaitingReviewAndSignature" || 
+            const isSignatureSubmit =
+                serviceStatus === "ds160upload_documents" ||
+                serviceStatus === "ds160AwaitingReviewAndSignature" ||
                 serviceStatus === "review_assign" ||
                 serviceStatus === "uploadsUnderReview";
 
-            const nextStatus = isSignatureSubmit ? "uploadsUnderReview" : "review_pending";
             const finalStep = serviceSlug === "visto-b1-b2" ? 11 : serviceSlug === "visa-f1f2" ? 9 : 4;
-            
-            await processRepo.updateStatus(serviceId, nextStatus, finalStep);
+            const action = isSignatureSubmit ? "SUBMIT_DOCUMENTS" : "SUBMIT_FORM";
+
+            // Build service-specific metadata for validation + audit
+            const fd = formData;
+            const serviceMetadata: Record<string, unknown> = {
+                travelPurpose:      fd.travelPurpose,
+                i94ExpirationDate:  fd.i94ExpirationDate,
+                sevisId:            fd.sevisId,
+                schoolName:         fd.schoolName,
+                courseStartDate:    fd.courseStartDate,
+                visaOrigin:         fd.visaOrigin,
+                visaDestination:    fd.visaDestination,
+                dependentCount:     fd.cosDependentsList?.length || 0,
+                // bankBalance derived from monthlyIncome × 6 months (used for extension/COS checks)
+                bankBalance: fd.monthlyIncome ? Number(fd.monthlyIncome) * 6 : undefined,
+            };
+
+            const engine = getStatusEngine();
+            await engine.transition(
+                serviceId,
+                slugToServiceId(serviceSlug),
+                action,
+                'UNDER_REVIEW',
+                serviceMetadata,
+                { step: finalStep },
+            );
 
             toast.success(isSignatureSubmit ? o.docsSubmitted[lang] : o.packageGenerated[lang]);
             window.location.reload();
@@ -493,5 +517,6 @@ export const useOnboardingLogic = () => {
         visaPhotoFile,
         setVisaPhotoFile,
         handleSelfieUpload,
+        control,
     };
 };

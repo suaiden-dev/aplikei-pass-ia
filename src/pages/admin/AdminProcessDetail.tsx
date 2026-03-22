@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/presentation/components/atoms/button";
+import { cn } from "@/lib/utils";
+import { Label } from "@/presentation/components/atoms/label";
 import {
   ClipboardList,
   Upload,
@@ -27,6 +29,7 @@ import {
   MapPin,
   Trophy,
   Phone,
+  CheckSquare,
 } from "lucide-react";
 import {
   Dialog,
@@ -34,7 +37,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogTrigger,
 } from "@/presentation/components/atoms/dialog";
+
 import { Badge } from "@/presentation/components/atoms/badge";
 import { Input } from "@/presentation/components/atoms/input";
 import { AdminStatusTimeline } from "@/presentation/components/organisms/admin/AdminStatusTimeline";
@@ -48,7 +53,27 @@ import {
   CardTitle,
   CardDescription,
 } from "@/presentation/components/atoms/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/presentation/components/atoms/tabs";
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/presentation/components/atoms/accordion";
+import { Textarea } from "@/presentation/components/atoms/textarea";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/presentation/components/atoms/tabs";
+
+interface Dependent {
+  id: string;
+  name: string;
+  relationship: "Cônjuge" | "Filho" | "";
+  birthDate: string;
+  marriageDate?: string;
+}
 
 interface Order {
   id: string;
@@ -71,6 +96,7 @@ interface Order {
   interview_location_consulate?: string | null;
   specialist_training_data?: Record<string, unknown> | null;
   specialist_review_data?: Record<string, unknown> | null;
+  admin_notes?: string | null;
   client_name?: string | null;
   client_email?: string | null;
   client_whatsapp?: string | null;
@@ -121,6 +147,7 @@ interface ServiceData {
   contract_selfie_url: string | null;
   specialist_training_data: Record<string, unknown> | null;
   specialist_review_data: Record<string, unknown> | null;
+  admin_notes: string | null;
 }
 
 interface RegistrationData {
@@ -161,8 +188,19 @@ export default function AdminProcessDetail() {
   const [consulateInterviewDate, setConsulateInterviewDate] = useState("");
   const [consulateInterviewTime, setConsulateInterviewTime] = useState("");
   const [sameLocation, setSameLocation] = useState(true);
-  const [isViewDocsModalOpen, setIsViewDocsModalOpen] = useState(false);
+   const [isViewDocsModalOpen, setIsViewDocsModalOpen] = useState(false);
+   const [reviewChecklist, setReviewChecklist] = useState<Record<string, boolean>>({
+    visa_info: false,
+    i94_info: false,
+    dependents_info: false,
+    financial_info: false,
+  });
+  const [correctionNotes, setCorrectionNotes] = useState("");
   const { lang } = useLanguage();
+
+  const toggleChecklist = (key: string) => {
+    setReviewChecklist((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const handleOpenDocAdmin = async (doc: ProcessDocument) => {
     try {
@@ -221,7 +259,7 @@ export default function AdminProcessDetail() {
         return diffA - diffB;
       });
 
-      const serviceData = matchingServices[0] || null;
+      const serviceData = (matchingServices[0] as unknown as ServiceData) || null;
 
       if (!serviceData) {
         console.warn("No matching service found for this order");
@@ -246,8 +284,9 @@ export default function AdminProcessDetail() {
 
         specialist_training_data: s?.specialist_training_data || null,
         specialist_review_data: s?.specialist_review_data || null,
-        consular_login: serviceData?.consular_login || null,
-        consular_password: serviceData?.consular_password || null,
+        admin_notes: s?.admin_notes || null,
+        consular_login: s?.consular_login || null,
+        consular_password: s?.consular_password || null,
         client_whatsapp: profileData?.phone || (orderData.payment_metadata as Record<string, unknown>)?.phone || orderData.client_email || null,
       };
 
@@ -255,13 +294,14 @@ export default function AdminProcessDetail() {
       setAppId(combined.application_id || "");
       setDob(combined.date_of_birth || "");
       setGrandmaName(combined.grandmother_name || "");
-      setConsularLogin(serviceData?.consular_login || "");
-      setConsularPassword(serviceData?.consular_password || "");
-      setInterviewDate(serviceData?.interview_date || "");
-      setInterviewTime(serviceData?.interview_time || "");
-      setInterviewLocationCasv(serviceData?.interview_location_casv || "");
+      setCorrectionNotes(combined.admin_notes || "");
+      setConsularLogin(s?.consular_login || "");
+      setConsularPassword(s?.consular_password || "");
+      setInterviewDate(s?.interview_date || "");
+      setInterviewTime(s?.interview_time || "");
+      setInterviewLocationCasv(s?.interview_location_casv || "");
       setInterviewLocationConsulate(
-        serviceData?.interview_location_consulate || "",
+        s?.interview_location_consulate || "",
       );
       const svcAny = serviceData as typeof serviceData & {
         consulate_interview_date?: string;
@@ -360,7 +400,7 @@ export default function AdminProcessDetail() {
     } finally {
       setLoading(false);
     }
-  }, [id, navigate, toast]);
+  }, [id, navigate, toast, setCorrectionNotes]);
 
   useEffect(() => {
     if (id) {
@@ -479,27 +519,86 @@ export default function AdminProcessDetail() {
     }
   };
 
+  const handleUpdateDocStatus = async (docId: string, status: string, reason?: string) => {
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("documents")
+        .update({ 
+          status,
+          feedback: reason || null
+        })
+        .eq("id", docId);
+
+      if (error) throw error;
+
+      toast({
+        title: status === "approved" ? "Documento aprovado" : "Documento rejeitado",
+        description: status === "approved" ? "O status foi atualizado." : "O cliente será notificado.",
+      });
+      fetchProcessData();
+    } catch (err) {
+      const error = err as Error;
+      toast({
+        title: "Erro ao atualizar documento",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRequestCorrections = async () => {
+    if (!order?.user_service_id) return;
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_services")
+        .update({ 
+           status: "Action Required",
+           admin_notes: correctionNotes.trim()
+        })
+        .eq("id", order.user_service_id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Correções solicitadas",
+        description: "O cliente foi notificado e o status alterado para 'Action Required'.",
+      });
+      fetchProcessData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleApproveDocuments = async () => {
     if (!order?.user_service_id) return;
     setIsSaving(true);
     try {
       const { error } = await supabase
         .from("user_services")
-        .update({ status: "casvSchedulingPending" })
+        .update({ 
+          status: "Waiting Signature",
+          admin_notes: correctionNotes.trim() || null
+        })
         .eq("id", order.user_service_id);
 
       if (error) throw error;
 
-      // Update all documents status to approved if desired,
-      // but the requirement just says change process status
+      // Update ALL related documents to approved
       await supabase
         .from("documents")
         .update({ status: "approved" })
-        .eq("user_service_id", order.user_service_id);
+        .eq("user_service_id", order.user_service_id)
+        .in("status", ["pending", "received"]);
 
       toast({
-        title: "Documentos aprovados",
-        description: "Status alterado para 'CASV: Agendamento Pendente'.",
+        title: "Processo Aprovado",
+        description: "O status foi alterado para 'Waiting Signature' e o cliente poderá assinar.",
       });
       fetchProcessData();
     } catch (err) {
@@ -686,6 +785,165 @@ export default function AdminProcessDetail() {
     order.grandmother_name
   );
 
+  const isCOSEOS =
+    order.product_slug === "troca-status" ||
+    order.product_slug === "extensao-status" ||
+    order.product_slug === "troca-de-status" ||
+    order.product_slug === "extensao-de-status" ||
+    order.product_slug === "changeofstatus";
+
+  const renderReviewUI = () => {
+    if (isCOSEOS) {
+      return (
+        <div className="space-y-6">
+          <div className="flex items-center gap-3 p-4 bg-accent/5 rounded-md border border-accent/20">
+            <ClipboardList className="h-5 w-5 text-accent" />
+            <div>
+              <p className="text-sm font-bold text-accent uppercase tracking-widest">
+                Revisão de Dados (COS/EOS)
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Revise as informações coletadas do cliente antes de prosseguir.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-6">
+            {onboardingResponses.length > 0 ? (
+              onboardingResponses
+                .filter((r) =>
+                  ["personal", "history", "process"].includes(r.step_slug),
+                )
+                .map((resp) => {
+                  const data = resp.data as Record<string, unknown>;
+                  return (
+                    <Card key={resp.id} className="p-6 border-border bg-card">
+                      <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 border-b pb-2">
+                        {resp.step_slug.toUpperCase()} - DADOS DO FORMULÁRIO
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                        {Object.entries(data).map(([key, value]) => {
+                          if (
+                            value === null ||
+                            value === undefined ||
+                            typeof value === "object" ||
+                            Array.isArray(value)
+                          )
+                            return null;
+                          return (
+                            <div key={key} className="space-y-1">
+                              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">
+                                {key.replace(/([A-Z])/g, " $1").toUpperCase()}
+                              </p>
+                              <p className="text-sm font-bold text-foreground">
+                                {String(value) || "-"}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </Card>
+                  );
+                })
+            ) : (
+              <div className="p-8 border-2 border-dashed border-muted rounded-xl text-center">
+                <p className="text-sm text-muted-foreground italic">
+                  Nenhuma resposta de formulário encontrada.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4 pt-4 border-t">
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                Observações para o Cliente
+              </label>
+              <textarea
+                value={correctionNotes}
+                onChange={(e) => setCorrectionNotes(e.target.value)}
+                placeholder="Ex: Por favor, verifique a data de validade do seu passaporte..."
+                className="w-full min-h-[100px] p-3 rounded-md border border-border bg-card text-sm focus:ring-1 focus:ring-accent outline-none transition-all"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                variant="outline"
+                className="h-12 gap-2 font-bold text-xs uppercase tracking-widest border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+                onClick={handleRequestCorrections}
+                disabled={isSaving}
+              >
+                <Clock className="h-4 w-4" />
+                SOLICITAR CORREÇÕES
+              </Button>
+              <Button
+                className="h-12 gap-2 font-bold text-xs uppercase tracking-widest bg-accent hover:bg-green-dark shadow-lg shadow-accent/10"
+                onClick={handleApproveDocuments}
+                disabled={isSaving}
+              >
+                <CheckSquare className="h-4 w-4" />
+                APROVAR E AVANÇAR
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Default DS-160 Review UI (Simplified since original was lost)
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-3 p-4 bg-accent/5 rounded-md border border-accent/20">
+          <ShieldCheck className="h-5 w-5 text-accent" />
+          <div>
+            <p className="text-sm font-bold text-accent uppercase tracking-widest">
+              Revisão de Documentos (DS-160)
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Verifique os documentos assinados e comprovantes enviados pelo
+              cliente.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4 pt-4 border-t">
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+              Observações / Feedback
+            </label>
+            <textarea
+              value={correctionNotes}
+              onChange={(e) => setCorrectionNotes(e.target.value)}
+              placeholder="Notas internas ou feedback para o cliente..."
+              className="w-full min-h-[100px] p-3 rounded-md border border-border bg-card text-sm focus:ring-1 focus:ring-accent outline-none transition-all"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              variant="outline"
+              className="h-12 gap-2 font-bold text-xs uppercase tracking-widest border-red-200 text-red-600 hover:bg-red-50"
+              onClick={handleRejectDocuments}
+              disabled={isSaving}
+            >
+              <Save className="h-4 w-4" />
+              REJEITAR
+            </Button>
+            <Button
+              className="h-12 gap-2 font-bold text-xs uppercase tracking-widest bg-accent hover:bg-green-dark"
+              onClick={handleApproveDocuments}
+              disabled={isSaving}
+            >
+              <CheckSquare className="h-4 w-4" />
+              APROVAR
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderStatusContent = () => {
     switch (status) {
       case "ds160InProgress":
@@ -709,6 +967,9 @@ export default function AdminProcessDetail() {
       case "ds160Processing":
       case "review_pending":
       case "review_assign":
+        if (isCOSEOS) {
+          return renderReviewUI();
+        }
         return (
           <div className="space-y-4 max-w-xl">
             <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-md border border-yellow-200 dark:border-yellow-900/30">
@@ -847,93 +1108,9 @@ export default function AdminProcessDetail() {
         );
 
       case "ds160AwaitingReviewAndSignature":
-      case "uploadsUnderReview":
-        return (
-          <div className="space-y-4 max-w-xl">
-            <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-900/30">
-              <Upload className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-sm font-bold text-blue-700">
-                  Validação de Documentos
-                </p>
-                <p className="text-xs text-blue-600">
-                  O cliente enviou os documentos. Por favor, revise os anexos
-                  abaixo para prosseguir com o agendamento.
-                </p>
-              </div>
-            </div>
+      case "uploadsUnderReview": 
+        return renderReviewUI();
 
-            <div className="space-y-3">
-              <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                Documentos Enviados
-              </p>
-              <div className="grid gap-2">
-                {processDocs.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="group flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-accent/40 hover:bg-accent/[0.02] transition-all cursor-pointer shadow-sm"
-                    onClick={() => {
-                      const { data } = supabase.storage
-                        .from(doc.bucket_id || "documents")
-                        .getPublicUrl(doc.storage_path);
-                      window.open(data.publicUrl, "_blank");
-                    }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500">
-                        <FileText className="h-4 w-4" />
-                      </div>
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                        {doc.name === "ds160_assinada"
-                          ? "DS-160 ASSINADA"
-                          : doc.name === "ds160_comprovante"
-                            ? "COMPROVANTE DE TAXA"
-                            : doc.name === "ds160_comprovante_sevis"
-                              ? "COMPROVANTE SEVIS"
-                              : doc.name === "ds160_boleto"
-                                ? "BOLETO"
-                                : doc.name.toUpperCase().replace(/_/g, " ")}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-accent font-bold text-[10px] uppercase">
-                      <span>Visualizar</span>
-                      <Eye className="h-4 w-4" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="text-[10px] text-muted-foreground italic text-center pt-2">
-                Clique nos arquivos acima para revisar antes de aprovar ou rejeitar.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <Button
-                variant="outline"
-                className="h-12 border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold text-xs tracking-wide"
-                onClick={handleRejectDocuments}
-                disabled={isSaving}
-              >
-                <XCircle className="h-4 w-4 mr-2" />
-                REJEITAR / PEDIR RECORREÇÃO
-              </Button>
-              <Button
-                className="h-12 bg-accent hover:bg-green-dark text-white font-bold text-xs tracking-wide shadow-lg shadow-accent/20"
-                onClick={handleApproveDocuments}
-                disabled={isSaving || processDocs.length === 0}
-              >
-                {isSaving ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                )}
-                APROVAR DOCUMENTOS
-              </Button>
-            </div>
-          </div>
-        );
-
-      case "approved":
       case "completed": {
         return (
           <div className="space-y-4">
@@ -1591,11 +1768,11 @@ export default function AdminProcessDetail() {
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
               Resumo do Status
             </h3>
-            <AdminVerticalTimeline currentStatus={status} />
+            <AdminVerticalTimeline currentStatus={status} productSlug={order.product_slug ?? undefined} />
           </div>
 
-          {/* Security Data Card — shown after saving */}
-          {isAlreadySaved && (
+          {/* Security Data Card — shown after saving, but ONLY for DS-160 */}
+          {isAlreadySaved && !isCOSEOS && (
             <div className="bg-card border border-accent/20 rounded-md p-4 shadow-sm space-y-4">
               <div className="flex items-center gap-2 border-b border-accent/10 pb-3">
                 <ShieldCheck className="h-4 w-4 text-accent" />

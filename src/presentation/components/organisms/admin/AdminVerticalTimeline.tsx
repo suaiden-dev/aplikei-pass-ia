@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-const statuses = [
+const ds160Statuses = [
   {
     id: "ds160InProgress",
     label: "1. DS-160: Preenchimento",
@@ -70,19 +70,64 @@ const statuses = [
   },
 ];
 
+const cosStatuses = [
+  {
+    id: "active",
+    label: "1. Formulário enviado",
+    description:
+      "O cliente concluiu o preenchimento do formulário de Change of Status.",
+  },
+  {
+    id: "review_pending",
+    label: "2. Análise de documentos",
+    description:
+      "A equipe está revisando os documentos enviados pelo cliente.",
+  },
+  {
+    id: "Waiting Signature",
+    label: "3. Aguardando assinatura",
+    description:
+      "O pacote foi aprovado. O cliente deve assinar e enviar os formulários.",
+  },
+  {
+    id: "approved",
+    label: "4. Concluído",
+    description: "Change of Status concluído com sucesso.",
+  },
+];
+
+// Statuses that map to the "Análise de documentos" step for COS
+const cosReviewStatuses = new Set([
+  "review_pending",
+  "uploadsUnderReview",
+  "Action Required",
+]);
+
 interface AdminVerticalTimelineProps {
   currentStatus?: string;
+  productSlug?: string;
 }
 
 export function AdminVerticalTimeline({
   currentStatus,
+  productSlug,
 }: AdminVerticalTimelineProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const currentIndex = statuses.findIndex((s) => s.id === currentStatus);
+  const isCOS = productSlug === "changeofstatus" || productSlug === "troca-de-status";
+  const statuses = isCOS ? cosStatuses : ds160Statuses;
 
-  // Map legacy statuses if needed
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Normalise COS statuses that share a timeline step
+  const normalisedStatus =
+    isCOS && currentStatus && cosReviewStatuses.has(currentStatus)
+      ? "review_pending"
+      : currentStatus;
+
+  const currentIndex = statuses.findIndex((s) => s.id === normalisedStatus);
+
+  // Map legacy statuses if needed (DS-160 only)
   let effectiveIndex = currentIndex;
-  if (currentIndex === -1) {
+  if (!isCOS && currentIndex === -1) {
     if (currentStatus === "active") effectiveIndex = 0;
     else if (currentStatus === "review_pending") effectiveIndex = 1;
     else if (currentStatus === "review_assign") effectiveIndex = 2;

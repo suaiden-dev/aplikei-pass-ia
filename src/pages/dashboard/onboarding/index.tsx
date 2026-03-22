@@ -65,8 +65,8 @@ import { F1F2AddressPhoneStep } from "./steps/F1F2/F1F2AddressPhoneStep";
 import { F1F2SocialMediaStep } from "./steps/F1F2/F1F2SocialMediaStep";
 import { F1F2PassportStep } from "./steps/F1F2/F1F2PassportStep";
 import { F1F2UploadDocumentsStep } from "./steps/F1F2/F1F2UploadDocumentsStep";
-import { ChangeOfStatusFormStep } from "./steps/ChangeOfStatus/ChangeOfStatusFormStep";
-import { ChangeOfStatusDocumentsStep } from "./steps/ChangeOfStatus/ChangeOfStatusDocumentsStep";
+import { ChangeOfStatusFormStep } from "./steps/change-of-status/ChangeOfStatusFormStep";
+
 
 export default function Onboarding() {
   const {
@@ -323,32 +323,22 @@ export default function Onboarding() {
       }
     }
 
-    if (serviceSlug === "changeofstatus") {
+    if (serviceSlug === "troca-status") {
       switch (currentStep) {
         case 0:
-          return (
-            <ChangeOfStatusFormStep
-              {...commonProps}
-              uploadedDocs={uploadedDocs}
-              handleUpload={handleUpload}
-              handleRemove={handleRemoveDoc}
-              uploading={uploading}
-              fileInputRef={fileInputRef}
-              setSelectedDoc={setSelectedDoc}
-            />
-          );
+          return <ChangeOfStatusFormStep {...commonProps} />;
         case 1:
-          return (
-            <ChangeOfStatusDocumentsStep
-              {...commonProps}
-              uploadedDocs={uploadedDocs}
-              handleUpload={handleUpload}
-              handleRemove={handleRemoveDoc}
-              uploading={uploading}
-              fileInputRef={fileInputRef}
-              setSelectedDoc={setSelectedDoc}
-            />
-          );
+          return <DocumentsStep 
+            {...commonProps} 
+            uploadedDocs={uploadedDocs}
+            handleUpload={handleUpload}
+            handleRemove={handleRemoveDoc}
+            uploading={uploading}
+            fileInputRef={fileInputRef}
+            setSelectedDoc={setSelectedDoc}
+            handleSkip={handleSkip}
+            serviceSlug={serviceSlug}
+          />;
         case 2:
           return <ReviewStep {...commonProps} />;
         default:
@@ -476,8 +466,9 @@ export default function Onboarding() {
           >
             {renderStep()}
 
-            {/* Desktop Buttons - Hide if in post-scheduling stages */}
-            {serviceStatus !== "casvSchedulingPending" &&
+            {/* Desktop Buttons - Hide if in post-scheduling stages or COS */}
+            {serviceSlug !== "troca-status" &&
+              serviceStatus !== "casvSchedulingPending" &&
               serviceStatus !== "casvFeeProcessing" &&
               serviceStatus !== "casvPaymentPending" &&
               serviceStatus !== "awaitingInterview" &&
@@ -561,6 +552,7 @@ export default function Onboarding() {
           {/* Progress & Steps Indicator */}
           <div className="rounded-md border border-border bg-card p-4 shadow-card md:p-4">
             {serviceSlug !== "visto-b1-b2" &&
+              serviceSlug !== "troca-status" &&
               !(serviceSlug === "visa-f1f2" && serviceStatus && serviceStatus !== "ds160InProgress" && serviceStatus !== "active") && (
               <>
                 <div className="flex items-center justify-between text-sm">
@@ -712,7 +704,11 @@ export default function Onboarding() {
               {o.identityVerification[lang]}
             </DialogTitle>
             <DialogDescription>
-              {o.selfieInstructions[lang]}
+              {selfieStep === 1 
+                ? o.selfieInstructions[lang]
+                : lang === "pt" 
+                  ? "Agora, envie uma foto digital (padrão visto americano 5x5) com fundo branco."
+                  : "Now, upload a digital photo (US visa 5x5 standard) with a white background."}
             </DialogDescription>
           </DialogHeader>
 
@@ -779,8 +775,9 @@ export default function Onboarding() {
         </DialogContent>
       </Dialog>
 
-      {/* Mobile Sticky Buttons - Hide if in post-scheduling stages */}
-      {serviceStatus !== "casvSchedulingPending" &&
+      {/* Mobile Sticky Buttons - Hide if in post-scheduling stages or COS */}
+      {serviceSlug !== "troca-status" &&
+        serviceStatus !== "casvSchedulingPending" &&
         serviceStatus !== "casvFeeProcessing" &&
         serviceStatus !== "casvPaymentPending" &&
         serviceStatus !== "awaitingInterview" &&

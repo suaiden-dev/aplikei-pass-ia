@@ -224,4 +224,19 @@ export interface OnboardingData {
     agreedSevisFees?: boolean;
     agreedMailingAddress?: boolean;
     agreedAcknowledgement?: boolean;
+    visaOrigin?: string;
+    visaOriginOther?: string;
+    visaDestination?: string;
+    i94ExpirationDate?: string;
+    cosDependentsList?: COSDependent[];
+    docsTFOE?: string; // Stringified JSON map of document names to TFOE status
+}
+
+export interface COSDependent {
+    id?: string;
+    fullName: string;
+    relationship: "spouse" | "child";
+    birthDate: string;
+    weddingDate?: string;
+    isBiologicalLegalChild?: boolean;
 }

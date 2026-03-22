@@ -72,6 +72,33 @@ export class SupabaseUserProcessRepository implements IUserProcessRepository {
     if (error) throw error;
   }
 
+  async updateServiceStatus(
+    id: string,
+    legacyStatus: string,
+    metadata?: Record<string, unknown>,
+    step?: number,
+  ): Promise<void> {
+    const updateData: {
+      status: string;
+      service_metadata?: Record<string, unknown>;
+      current_step?: number;
+    } = { status: legacyStatus };
+
+    if (metadata && Object.keys(metadata).length > 0) {
+      updateData.service_metadata = metadata;
+    }
+    if (step !== undefined) {
+      updateData.current_step = step;
+    }
+
+    const { error } = await supabase
+      .from("user_services")
+      .update(updateData)
+      .eq("id", id);
+
+    if (error) throw error;
+  }
+
   private mapToDomain(raw: RawUserProcess): UserProcess {
     return {
       id: raw.id,

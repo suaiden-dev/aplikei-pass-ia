@@ -6,11 +6,12 @@ const corsHeaders = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const STRIPE_PRICES: Record<string, { usd: number; name: string; dependentPrice: number }> = {
-    'visto-b1-b2': { usd: 200, name: 'Guia Visto Americano B1/B2', dependentPrice: 50 },
-    'visto-f1': { usd: 350, name: 'Guia Visto Americano F-1', dependentPrice: 100 },
-    'extensao-status': { usd: 200, name: 'Guia Extensão de Status', dependentPrice: 100 },
-    'troca-status': { usd: 350, name: 'Guia Troca de Status', dependentPrice: 100 },
+// Mapeamento de dependentes por serviço
+const DEPENDENT_SERVICE_MAP: Record<string, string> = {
+    'visto-b1-b2': 'dependente-b1-b2',
+    'visto-f1': 'dependente-estudante',
+    'extensao-status': 'dependente-estudante',
+    'troca-status': 'dependente-estudante',
 };
 
 function cleanDocumentNumber(doc: string | null | undefined): string | null {
@@ -44,29 +45,36 @@ Deno.serve(async (req: Request) => {
             },
         });
 
-        // 2. Extrair preços baseando-se no slug fornecido
-        let serviceName: string;
-        let basePriceUSD: number;
-        let depPriceUSD: number;
+        // 2. Buscar preços na nova tabela services_prices
+        const dependentId = DEPENDENT_SERVICE_MAP[slug] || 'dependente-b1-b2';
+        
+        console.log(`[parcelow-checkout] Buscando preços para: ${slug} e ${dependentId}`);
+        const { data: dbPrices, error: dbError } = await supabase
+            .from("services_prices")
+            .select("service_id, name, price")
+            .in("service_id", [slug, dependentId]);
 
-        const { data: product } = await (supabase
-            .from("visa_products")
-            .select("*")
-            .eq("slug", slug)
-            .single() as any);
-
-        if (product) {
-            serviceName = product.name;
-            basePriceUSD = parseFloat(product.base_price_usd);
-            depPriceUSD = parseFloat(product.price_per_dependent_usd);
-        } else if (STRIPE_PRICES[slug]) {
-            const service = STRIPE_PRICES[slug];
-            serviceName = service.name;
-            basePriceUSD = service.usd;
-            depPriceUSD = service.dependentPrice;
-        } else {
-            throw new Error(`Serviço não catalogado: ${slug}`);
+        if (dbError) {
+            console.error("[parcelow-checkout] Erro ao buscar preços no banco:", dbError);
+            throw new Error("Erro interno ao validar preços.");
         }
+
+        if (!dbPrices || dbPrices.length === 0) {
+            console.error("[parcelow-checkout] Serviço não encontrado:", slug);
+            throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
+        }
+
+        const mainPriceInfo = dbPrices.find(p => p.service_id === slug);
+        const depPriceInfo = dbPrices.find(p => p.service_id === dependentId);
+
+        if (!mainPriceInfo) {
+            console.error("[parcelow-checkout] Preço base não encontrado para slug:", slug);
+            throw new Error(`Preço base não encontrado para o serviço: ${slug}`);
+        }
+
+        const serviceName = mainPriceInfo.name;
+        const basePriceUSD = Number(mainPriceInfo.price);
+        const depPriceUSD = depPriceInfo ? Number(depPriceInfo.price) : 0;
 
         const subtotalUSD = basePriceUSD + (dependents * depPriceUSD);
 

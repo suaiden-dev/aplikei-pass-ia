@@ -63,45 +63,81 @@ export const translations = {
       pt: "Como funciona",
       es: "Cómo funciona",
     },
+    imageAlt: {
+      en: "Focused student",
+      pt: "Estudante focada",
+      es: "Estudiante enfocada",
+    },
+    approvedCount: {
+      en: "+1,500 applicants already approved this year",
+      pt: "+1.500 brasileiros já aprovados este ano",
+      es: "+1.500 solicitantes ya aprobados este año",
+    },
+    badge: {
+      en: "TECHNOLOGY + HUMAN SUPPORT",
+      pt: "TECNOLOGIA + SUPORTE HUMANO",
+      es: "TECNOLOGÍA + SOPORTE HUMANO",
+    },
+    getStarted: {
+      en: "Get started",
+      pt: "Começar Agora",
+      es: "Empezar ahora",
+    },
+    viewPlans: {
+      en: "View plans",
+      pt: "Ver planos",
+      es: "Ver planes",
+    },
   },
 
   // ──── How it works (landing) ────
   howItWorksSection: {
-    title: { en: "How it works", pt: "Como funciona", es: "Cómo funciona" },
+    tagline: { en: "Step by Step", pt: "Passo a Passo", es: "Paso a Paso" },
+    title: { en: "How Aplikei works", pt: "Como funciona a Aplikei", es: "Cómo funciona Aplikei" },
     subtitle: {
       en: "Three simple steps to organize your immigration process.",
       pt: "Três passos simples para organizar seu processo imigratório.",
       es: "Tres pasos simples para organizar tu proceso migratorio.",
     },
     step1Title: {
-      en: "Choose your service",
-      pt: "Escolha seu serviço",
-      es: "Elige tu servicio",
+      en: "Choose the Visa",
+      pt: "Escolha o Visto",
+      es: "Elige la Visa",
     },
     step1Desc: {
-      en: "Select the guide for your specific visa type. We clearly list what's included (like the AI tool) and what's not (like legal advice).",
-      pt: "Selecione o guia para seu tipo de visto específico. Listamos claramente o que está incluso (como a ferramenta de IA) e o que não está (como assessoria jurídica).",
-      es: "Selecciona la guía para tu tipo de visa específico. Listamos claramente qué está incluido (como la herramienta de IA) y qué no (como asesoría legal).",
+      en: "Select the category that best fits your travel or study plans.",
+      pt: "Selecione a categoria que melhor se adapta aos seus planos de viagem ou estudo.",
+      es: "Selecciona la categoría que mejor se adapte a tus planes de viaje o estudio.",
     },
     step2Title: {
-      en: "Read before you buy",
-      pt: "Leia antes de comprar",
-      es: "Lee antes de comprar",
+      en: "AI Analysis",
+      pt: "Análise de IA",
+      es: "Análisis de IA",
     },
     step2Desc: {
-      en: "Preview the guide's table of contents and checklist. Full transparency so you know exactly what you're getting.",
-      pt: "Veja o índice e o checklist do guia antes de comprar. Transparência total para você saber exatamente o que está adquirindo.",
-      es: "Ve el índice y el checklist de la guía antes de comprar. Transparencia total para que sepas exactamente lo que obtienes.",
+      en: "Our artificial intelligence analyzes your data to ensure full compliance.",
+      pt: "Nossa inteligência artificial analisa seus dados para garantir conformidade total.",
+      es: "Nuestra inteligencia artificial analiza tus datos para garantizar el cumplimiento total.",
     },
     step3Title: {
-      en: "Build your final package",
-      pt: "Monte seu pacote final",
-      es: "Arma tu paquete final",
+      en: "Organization",
+      pt: "Organização",
+      es: "Organización",
     },
     step3Desc: {
-      en: "Use our AI assistant to organize your uploaded documents, auto-fill forms, and compile everything into a final, organized PDF.",
-      pt: "Use nosso assistente de IA para organizar seus documentos enviados, preencher formulários automaticamente e compilar tudo em um PDF final e organizado.",
-      es: "Usa nuestro asistente de IA para organizar tus documentos subidos, auto-completar formularios y compilar todo en un PDF final y organizado.",
+      en: "We organize all the necessary documentation in a ready-to-print kit.",
+      pt: "Organizamos toda a documentação necessária em um kit pronto para impressão.",
+      es: "Organizamos toda la documentación necesaria en un kit listo para imprimir.",
+    },
+    step4Title: {
+      en: "Protocol",
+      pt: "Protocolo",
+      es: "Protocolo",
+    },
+    step4Desc: {
+      en: "With the full package in hand, you're ready for the consulate with confidence.",
+      pt: "Com o pacote completo em mãos, você está pronto para o consulado com confiança.",
+      es: "Con el paquete completo en mano, estás listo para el consulado con confianza.",
     },
   },
 
@@ -150,14 +186,14 @@ export const translations = {
   // ──── Services section ────
   servicesSection: {
     title: {
-      en: "Our services",
-      pt: "Nossos serviços",
-      es: "Nuestros servicios",
+      en: "Choose the ideal visa for your journey",
+      pt: "Escolha o visto ideal para sua jornada",
+      es: "Elige la visa ideal para tu viaje",
     },
     subtitle: {
-      en: "Choose the ideal guide for your immigration process.",
-      pt: "Escolha o guia ideal para o seu processo imigratório.",
-      es: "Elige la guía ideal para tu proceso migratorio.",
+      en: "We offer step-by-step guides and AI support for the most requested categories by Brazilians.",
+      pt: "Oferecemos guias passo a passo e suporte de IA para as categorias mais procuradas por brasileiros.",
+      es: "Ofrecemos guías paso a paso y soporte de IA para las categorías más solicitadas por brasileños.",
     },
     viewDetails: { en: "View details", pt: "Ver detalhes", es: "Ver detalles" },
     promo: {
@@ -172,34 +208,49 @@ export const translations = {
   // ──── Testimonials ────
   testimonials: {
     title: {
-      en: "Trusted by Applicants Like You",
-      pt: "Confiado por Aplicantes Como Você",
-      es: "Confiado por Solicitantes Como Tú",
+      en: "Who has already approved their visa with us",
+      pt: "Quem já aprovou o visto com a gente",
+      es: "Quién ya ha aprobado su visa con nosotros",
     },
     items: [
       {
         quote: {
-          en: "The guide was super detailed and the AI saved me hours of sorting through paperwork. Finally, a tool that just organizes everything for you.",
-          pt: "O guia foi super detalhado e a IA me economizou horas organizando papelada. Finalmente, uma ferramenta que organiza tudo para você.",
-          es: "La guía fue super detallada y la IA me ahorró horas organizando papeleo. Finalmente, una herramienta que organiza todo por ti.",
+          en: "The guide was super detailed and the AI saved me hours of paperwork. Finally, a tool that organizes everything for you!",
+          pt: "O guia foi super detalhado e a IA me economizou horas de papelada. Finalmente, uma ferramenta que organiza tudo pra você!",
+          es: "La guía fue super detallada y la IA me ahorró horas de papeleo. ¡Finalmente, una herramienta que organiza todo para ti!",
         },
-        author: "Maria S.",
+        author: "Maria Silva",
+        role: {
+          en: "B1/B2 Visa Approved",
+          pt: "Visto B1/B2 Aprovado",
+          es: "Visa B1/B2 Aprobada",
+        },
       },
       {
         quote: {
-          en: "I was so confused about the F-1 visa documents. Aplikei's checklist made sure I didn't forget anything. The final PDF package was so professional.",
-          pt: "Eu estava tão confusa sobre os documentos do visto F-1. O checklist da Aplikei garantiu que eu não esquecesse nada. O pacote final em PDF ficou muito profissional.",
-          es: "Estaba muy confundida sobre los documentos de la visa F-1. El checklist de Aplikei se aseguró de que no olvidara nada. El paquete final en PDF fue muy profesional.",
+          en: "I was confused with the F-1 process, but Aplikei's checklist gave me security. I didn't forget anything and the generated PDF was impeccable.",
+          pt: "Eu estava confuso com o processo do F-1, mas o checklist da Aplikei me deu segurança. Não esqueci nada e o PDF gerado ficou impecável.",
+          es: "Estaba confundido con el proceso F-1, pero el checklist de Aplikei me dio seguridad. No olvidé nada y el PDF generado quedó impecable.",
         },
-        author: "Carlos R.",
+        author: "Carlos Ramos",
+        role: {
+          en: "F-1 Visa Approved",
+          pt: "Visto F-1 Aprovado",
+          es: "Visa F-1 Aprobada",
+        },
       },
       {
         quote: {
-          en: "Great value. It's not a lawyer, but it gave me the clarity I needed to prepare my own B1/B2 application with confidence.",
-          pt: "Ótimo custo-benefício. Não é um advogado, mas me deu a clareza que eu precisava para preparar minha própria aplicação B1/B2 com confiança.",
-          es: "Gran valor. No es un abogado, pero me dio la claridad que necesitaba para preparar mi propia solicitud B1/B2 con confianza.",
+          en: "Quick service and top-notch support. Having all documents organized gave me a lot of clarity in the consular interview.",
+          pt: "Atendimento rápido e suporte nota 10. Ter todos os documentos organizados me deu muita clareza na entrevista consular.",
+          es: "Servicio rápido y soporte de primera. Tener todos los documentos organizados me dio mucha claridad en la entrevista consular.",
         },
-        author: "David K.",
+        author: "Daniela Klein",
+        role: {
+          en: "B1/B2 Visa Renewed",
+          pt: "Visto B1/B2 Renovado",
+          es: "Visa B1/B2 Renovada",
+        },
       },
     ],
   },
@@ -640,6 +691,7 @@ export const translations = {
 
   // ──── Homepage FAQ ────
   homeFaq: {
+    title: { en: "Frequently Asked Questions", pt: "Dúvidas Frequentes", es: "Preguntas Frecuentes" },
     q1: {
       en: "How long do I have access to the AI tool?",
       pt: "Quanto tempo tenho acesso à ferramenta de IA?",
@@ -973,8 +1025,8 @@ export const translations = {
       },
       desc: {
         en: "To proceed, we need two photos: one holding your passport for identity verification, and one digital photo (5x5) for the application.",
-        pt: "Para prosseguir, precisamos de duas fotos: uma segurando seu passaporte para verificação de identidade, e uma foto digital (5x5) para a aplicação.",
-        es: "Para continuar, necesitamos dos fotos: una sosteniendo su pasaporte para verificado de identidad, y una foto digital (5x5) para la solicitud.",
+        pt: "Para prosseguir, precisamos de duas fotos: uma segurando seu passaporte para verificação de identidade, e uma foto digital (5x5) para o seu processo.",
+        es: "Para continuar, necesitamos dos fotos: una sosteniendo su pasaporte para verificado de identidad, y una foto digital (5x5) para su proceso.",
       },
       step1Title: {
         en: "Step 1: Identity Verification",
@@ -1263,9 +1315,9 @@ export const translations = {
       es: "Verificación de Identidad Requerida",
     },
     selfieInstructions: {
-      en: "To proceed with your DS-160 application, you must upload a selfie holding your passport (open at the identification page).",
-      pt: "Para prosseguir com sua solicitação de DS-160, você precisa realizar o upload de uma selfie segurando seu passaporte (aberto na página de identificação).",
-      es: "Para continuar con su solicitud de DS-160, debe cargar una selfie sosteniendo su pasaporte (abierto en la página de identificación).",
+      en: "To proceed with your application, you must upload a selfie holding your passport (open at the identification page).",
+      pt: "Para prosseguir com seu processo, você precisa realizar o upload de uma selfie segurando seu passaporte (aberto na página de identificação).",
+      es: "Para continuar con su proceso, debe cargar una selfie sosteniendo su pasaporte (abierto en la página de identificación).",
     },
     remove: { en: "Remove", pt: "Remover", es: "Eliminar" },
     selectSelfie: {
@@ -5451,9 +5503,9 @@ export const translations = {
   },
   changeOfStatus: {
     steps: {
-      en: ["Application Form", "Documents", "Review"],
-      pt: ["Formulário de Aplicação", "Documentos", "Revisão"],
-      es: ["Formulario de Aplicación", "Documentos", "Revisión"],
+      en: ["Data Collection", "Documents", "Review"],
+      pt: ["Coleta de Dados", "Documentos", "Revisão"],
+      es: ["Recolección de Datos", "Documentos", "Revisión"],
     },
     formTitle: {
       en: "i-539 Application",
