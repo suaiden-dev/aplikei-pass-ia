@@ -1492,7 +1492,10 @@ export default function AdminProcessDetail() {
               className="mt-0 focus-visible:outline-none focus-visible:ring-0"
             >
               <div className="bg-card border border-border rounded-md p-4 shadow-sm">
-                <AdminProcessLogs userServiceId={order.user_service_id} />
+                <AdminProcessLogs 
+                  userServiceId={order.user_service_id as string} 
+                  productSlug={order.product_slug as string} 
+                />
               </div>
             </TabsContent>
 
@@ -1620,7 +1623,10 @@ export default function AdminProcessDetail() {
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
               Resumo do Status
             </h3>
-            <AdminVerticalTimeline currentStatus={status} />
+            <AdminVerticalTimeline 
+              currentStatus={status} 
+              productSlug={order?.product_slug || "visto-b1-b2"} 
+            />
           </div>
 
           {/* Security Data Card — shown after saving */}

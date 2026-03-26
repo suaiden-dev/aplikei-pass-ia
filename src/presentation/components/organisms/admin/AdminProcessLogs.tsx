@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/presentation/components/atoms/button";
 import { Textarea } from "@/presentation/components/atoms/textarea";
 import { Loader2, Plus } from "lucide-react";
-import { statusLabels } from "./AdminStatusTimeline";
+import { FlowFactory } from "@/domain/flows/FlowFactory";
 
 interface ProcessLog {
   id: string;
@@ -21,9 +21,28 @@ interface ProcessLog {
 
 interface AdminProcessLogsProps {
   userServiceId: string;
+  productSlug?: string;
 }
 
-export function AdminProcessLogs({ userServiceId }: AdminProcessLogsProps) {
+export function AdminProcessLogs({ 
+  userServiceId, 
+  productSlug = "visto-b1-b2" 
+}: AdminProcessLogsProps) {
+  const flow = FlowFactory.getFlow(productSlug);
+  const flowSteps = flow.getSteps();
+  const statusLabels: Record<string, string> = flowSteps.reduce((acc, s) => ({
+    ...acc,
+    [s.id]: s.label
+  }), {});
+
+  // Legacy mappings for B1/B2
+  if (productSlug === "visto-b1-b2") {
+    statusLabels.active = "DS-160: Preenchimento";
+    statusLabels.review_pending = "DS-160: Processando";
+    statusLabels.review_assign = "DS-160: Anexar Documentos";
+    statusLabels.uploadsUnderReview = "DS-160: Revisão e Assinatura";
+    statusLabels.completed = "Aprovado";
+  }
   const [logs, setLogs] = useState<ProcessLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [noteText, setNoteText] = useState("");

@@ -91,7 +91,7 @@ export const useOnboardingLogic = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Form Handling
-    const { register, handleSubmit, setValue, watch, reset, trigger, formState: { errors } } = useForm<OnboardingData>();
+    const { register, control, handleSubmit, setValue, watch, reset, trigger, formState: { errors } } = useForm<OnboardingData>();
     const formData = watch();
 
     // Load User Data & Service
@@ -320,7 +320,38 @@ export const useOnboardingLogic = () => {
             const processRepo = getUserProcessRepository();
             const saveUseCase = new SaveOnboardingStep(onboardingRepo, processRepo);
             
-            await saveUseCase.execute(serviceId, currentSlug, currentStep, formData);
+            // Map of fields to save for each step slug to avoid data pollution
+            const fieldMapping: Record<string, string[]> = {
+                // DS-160 B1/B2 steps
+                "personal1": ["email", "firstName", "lastName", "gender", "maritalStatus", "birthDate", "birthCity", "birthState", "birthCountry", "fullName", "fullNamePassport", "hasOtherNames", "otherNamesDetails", "hasTelecode", "telecodeValue", "interviewLocation"],
+                "personal2": ["nationality", "hasOtherNationality", "otherNationalities", "hasPassportOtherCountry", "otherPassportNumber", "isPermanentResidentOtherCountry", "permanentResidentDetails", "nationalID", "ssn", "taxpayerID"],
+                "travel": ["travelPurpose", "hasSpecificTravelPlan", "arrivalDate", "arrivalCity", "intendedLengthOfStay", "travelPayer", "travelPayerDetails", "consulateCity"],
+                "companions": ["hasTravelCompanions", "isTravelingWithGroup", "travelCompanionsList"],
+                "previous-travel": ["hasBeenToUS", "previousTravelList", "hasUSDriverLicense", "driverLicenseList", "hasHadUSVisa", "lastVisaDate", "lastVisaNumber", "isSameVisaType", "hasBeenTenPrinted", "hasBeenLostStolen", "hasBeenCancelledRevoked", "hasBeenDeniedVisa", "denialDetails", "hasImmigrationPetition", "petitionDetails"],
+                "address-phone": ["homeAddress", "homeCity", "homeState", "homeZip", "homeCountry", "isMailingSameAsHome", "mailingAddress", "mailingCity", "mailingState", "mailingZip", "mailingCountry", "primaryPhone", "secondaryPhone", "workPhone", "hasOtherPhoneLast5Years", "otherPhoneDetails", "hasOtherEmailLast5Years", "otherEmailDetails"],
+                "social-media": ["socialMediaPlatforms"],
+                "passport": ["passportType", "passportNumberDS", "passportBookNumber", "passportIssuanceCountry", "passportIssuanceCity", "passportIssuanceState", "passportIssuanceDate", "passportExpirationDate", "hasPassportBeenLostStolen", "lostStolenDetails"],
+                "us-contact": ["contactName", "contactOrganization", "contactRelationship", "contactAddress", "contactCity", "contactState", "contactZip", "contactPhone", "contactEmail"],
+                "family": ["fatherLastName", "fatherFirstName", "fatherBirthDate", "isFatherInUS", "fatherUSStatus", "motherLastName", "motherFirstName", "motherBirthDate", "isMotherInUS", "motherUSStatus", "hasImmediateRelativesInUS", "immediateRelativesList", "hasOtherRelativesInUS", "maternalGrandmotherName"],
+                "work-education": ["primaryOccupation", "employerName", "employerAddress", "employerCity", "employerState", "employerZip", "employerCountry", "employerPhone", "jobStartDate", "monthlyIncome", "jobDescription", "wasPreviouslyEmployed", "previousEmployersList", "hasSecondaryEducation", "secondaryEducationList"],
+                "additional": ["belongsToClan", "clanName", "languagesSpoken", "hasVisitedOtherCountries", "countriesVisitedDetails", "hasWorkContract", "contractDetails", "hasServedInMilitary", "militaryDetails", "hasBeenToWarZone", "warZoneDetails", "hasSpecialSkills", "skillsDetails"],
+                
+                // F1/F2 Student steps
+                "f1f2-personal1": ["email", "firstName", "lastName", "fullName", "birthDate", "gender", "maritalStatus", "birthCity", "birthCountry", "interviewLocation"],
+                "f1f2-personal2": ["ssn", "taxpayerID", "nationality", "nationalID"],
+                "f1f2-travel": ["travelPurpose", "sevisId", "schoolName", "courseStartDate", "courseEndDate", "arrivalDate", "intendedLengthOfStay", "travelPayer"],
+                "f1f2-history": ["hasBeenToUS", "hasHadUSVisa", "hasBeenDeniedVisa", "hasImmigrationPetition"],
+                "f1f2-address-phone": ["homeAddress", "homeCity", "homeState", "homeZip", "homeCountry", "primaryPhone", "socialMediaPlatforms"],
+                "f1f2-passport": ["passportNumberDS", "passportIssuanceCountry", "passportIssuanceDate", "passportExpirationDate"]
+            };
+
+            const fieldsToSave = fieldMapping[currentSlug] || Object.keys(formData);
+            const scopedData = fieldsToSave.reduce((acc, key) => {
+                if (formData[key] !== undefined) acc[key] = formData[key];
+                return acc;
+            }, {} as Record<string, unknown>);
+
+            await saveUseCase.execute(serviceId, currentSlug, currentStep, scopedData);
         } catch (error) {
             console.error("Error saving step:", error);
             toast.error(o.errorSavingStep[lang]);
@@ -360,7 +391,7 @@ export const useOnboardingLogic = () => {
 
             if (selfieFile && pendingOrderId) {
                 const selfiePath = `selfies/${userId}/${Date.now()}_selfie.jpg`;
-                const { path: uploadedPath, error: uploadError } = await storage.uploadFile("administrative_docs", selfiePath, selfieFile);
+                const { path: uploadedPath, error: uploadError } = await storage.uploadFile("process-documents", selfiePath, selfieFile);
                 
                 if (uploadError) throw new Error(uploadError);
 
@@ -373,7 +404,7 @@ export const useOnboardingLogic = () => {
                     await docRepo.save(userId, serviceId, {
                         name: docName,
                         path: uploadedPath,
-                        bucket_id: "administrative_docs"
+                        bucket_id: "process-documents"
                     });
                 }
 
@@ -387,13 +418,13 @@ export const useOnboardingLogic = () => {
                 const safeDocName = docName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
                 const filePath = `${userId}/${safeDocName}_${Date.now()}.${fileExt}`;
                 
-                const { path: uploadedPath, error: uploadError } = await storage.uploadFile("process_documents", filePath, visaPhotoFile);
+                const { path: uploadedPath, error: uploadError } = await storage.uploadFile("process-documents", filePath, visaPhotoFile);
                 if (uploadError) throw new Error(uploadError);
 
                 await docRepo.save(userId, serviceId, {
                     name: docName,
                     path: uploadedPath,
-                    bucket_id: "process_documents"
+                    bucket_id: "process-documents"
                 });
             }
 
@@ -464,6 +495,7 @@ export const useOnboardingLogic = () => {
         serviceStatus,
         orderNumber,
         register,
+        control,
         formData,
         setValue,
         watch,

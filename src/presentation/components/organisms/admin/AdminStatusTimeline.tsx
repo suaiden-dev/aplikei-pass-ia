@@ -6,40 +6,31 @@ import {
 } from "@/presentation/components/atoms/tooltip";
 import { cn } from "@/lib/utils";
 
-const statuses = [
-  "ds160InProgress",
-  "ds160Processing",
-  "ds160upload_documents",
-  "ds160AwaitingReviewAndSignature",
-  "casvSchedulingPending",
-  "casvFeeProcessing",
-  "casvPaymentPending",
-  "awaitingInterview",
-  "approved",
-  "rejected",
-];
+import { FlowFactory } from "@/domain/flows/FlowFactory";
 
-// eslint-disable-next-line react-refresh/only-export-components -- statusLabels constant is tightly coupled to this component and consumed by sibling components
-export const statusLabels: Record<string, string> = {
-  ds160InProgress: "1. DS-160: Preenchimento",
-  ds160Processing: "2. DS-160: Processando",
-  ds160upload_documents: "3. DS-160: Anexar Documentos",
-  ds160AwaitingReviewAndSignature: "4. DS-160: Revisão e Assinatura",
-  casvSchedulingPending: "5. CASV: Agendamento Pendente",
-  casvFeeProcessing: "6. CASV: Taxa em Processamento",
-  casvPaymentPending: "7. CASV: Pagamento Pendente",
-  awaitingInterview: "8. Aguardando Entrevista",
-  approved: "9. Aprovado",
-  rejected: "Rejeitado",
-  // Legacy mappings
-  active: "DS-160: Preenchimento",
-  review_pending: "DS-160: Processando",
-  review_assign: "DS-160: Anexar Documentos",
-  uploadsUnderReview: "DS-160: Revisão e Assinatura",
-  completed: "Aprovado",
-};
+export function AdminStatusTimeline({ 
+  status, 
+  productSlug = "visto-b1-b2" 
+}: { 
+  status?: string;
+  productSlug?: string;
+}) {
+  const flow = FlowFactory.getFlow(productSlug);
+  const flowSteps = flow.getSteps();
+  const statuses = flowSteps.map(s => s.id);
+  const statusLabels: Record<string, string> = flowSteps.reduce((acc, s) => ({
+    ...acc,
+    [s.id]: s.label
+  }), {});
 
-export function AdminStatusTimeline({ status }: { status?: string }) {
+  // Legacy mappings for B1/B2
+  if (productSlug === "visto-b1-b2") {
+    statusLabels.active = "DS-160: Preenchimento";
+    statusLabels.review_pending = "DS-160: Processando";
+    statusLabels.review_assign = "DS-160: Anexar Documentos";
+    statusLabels.uploadsUnderReview = "DS-160: Revisão e Assinatura";
+    statusLabels.completed = "Aprovado";
+  }
   const currentIndex = statuses.indexOf(status || "");
   const isLegacy = currentIndex === -1 && status;
 

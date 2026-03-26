@@ -281,7 +281,10 @@ export default function AdminContracts() {
               header: "Fluxo",
               render: (item) => {
                 const order = item as ContractOrder;
-                return <AdminStatusTimeline status={order.service_status as string} />;
+                return <AdminStatusTimeline 
+                  status={order.service_status as string} 
+                  productSlug={order.product_slug as string}
+                />;
               },
             },
           ]}
