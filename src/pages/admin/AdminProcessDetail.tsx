@@ -940,6 +940,25 @@ export default function AdminProcessDetail() {
       case "ds160upload_documents":
       case "ds160AwaitingReviewAndSignature":
       case "Waiting Signature":
+        // For F1, if it's in Awaiting Review/Signature, it might mean the client is doing it.
+        // The user specifically asked for a screen informing that the client is in the process.
+        if (order.product_slug === "visa-f1f2" && status === "ds160AwaitingReviewAndSignature") {
+          return (
+            <div className="space-y-4 max-w-xl">
+              <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-accent rounded-3xl bg-accent/5 text-center">
+                <Clock className="h-12 w-12 text-accent mb-4 animate-pulse" />
+                <h3 className="text-lg font-bold text-foreground mb-2">
+                  Cliente em Revisão e Assinatura
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-[320px] leading-relaxed">
+                  O cliente está revisando as respostas e assinando a DS-160 do visto F1. 
+                  Aguarde a conclusão deste processo para prosseguir com a revisão final.
+                </p>
+              </div>
+            </div>
+          );
+        }
+
         if (processDocs.length === 0) {
           return (
             <div className="space-y-4 max-w-xl">

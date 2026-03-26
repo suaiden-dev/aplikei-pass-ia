@@ -12,6 +12,17 @@ export class F1ProductFlow extends BaseProductFlow {
       id: "ds160Processing",
       label: "2. F1: Processando Admin",
       description: "O administrador está processando os dados do formulário F1.",
+      isAutomated: true,
+    },
+    {
+      id: "ds160upload_documents",
+      label: "3. F1: Anexar Documentos",
+      description: "O cliente deve anexar o formulário assinado e o comprovante de envio.",
+    },
+    {
+      id: "ds160AwaitingReviewAndSignature",
+      label: "4. F1: Revisão e Assinatura",
+      description: "O administrador está revisando ou aguardando assinatura do cliente.",
     },
     {
       id: "approved",
@@ -24,4 +35,9 @@ export class F1ProductFlow extends BaseProductFlow {
       description: "Visto F1 rejeitado.",
     },
   ];
+
+  canTransitionTo(from: string, to: string): boolean {
+    if (from === "ds160Processing" && to === "ds160upload_documents") return true;
+    return super.canTransitionTo(from, to);
+  }
 }
