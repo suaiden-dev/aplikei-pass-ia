@@ -942,7 +942,11 @@ export default function AdminProcessDetail() {
       case "Waiting Signature":
         // For F1, if it's in Awaiting Review/Signature, it might mean the client is doing it.
         // The user specifically asked for a screen informing that the client is in the process.
-        if (order.product_slug === "visa-f1f2" && status === "ds160AwaitingReviewAndSignature") {
+        const isF1 = order.product_slug === "visa-f1f2" || order.product_slug === "visto-f1";
+        
+        if (isF1 && (status === "ds160AwaitingReviewAndSignature" || status === "ds160upload_documents")) {
+          // If we have documents, we still show the "Waiting for Client" status for F1 
+          // as per user request to inform then that the client is reviewing and signing.
           return (
             <div className="space-y-4 max-w-xl">
               <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-accent rounded-3xl bg-accent/5 text-center">
@@ -952,8 +956,11 @@ export default function AdminProcessDetail() {
                 </h3>
                 <p className="text-sm text-muted-foreground max-w-[320px] leading-relaxed">
                   O cliente está revisando as respostas e assinando a DS-160 do visto F1. 
-                  Aguarde a conclusão deste processo para prosseguir com a revisão final.
+                  Aguarde a conclusão deste processo pelo cliente para prosseguir com a revisão final.
                 </p>
+                <div className="mt-4 p-3 bg-muted/50 rounded-lg text-[10px] text-muted-foreground uppercase tracking-wider">
+                  Documentos anexados: {processDocs.length}
+                </div>
               </div>
             </div>
           );
