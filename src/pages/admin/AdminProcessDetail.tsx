@@ -27,6 +27,7 @@ import {
   MapPin,
   Trophy,
   Phone,
+  CheckSquare,
 } from "lucide-react";
 import {
   Dialog,
@@ -49,6 +50,12 @@ import {
   CardDescription,
 } from "@/presentation/components/atoms/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/presentation/components/atoms/tabs";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/presentation/components/atoms/accordion";
 
 interface Order {
   id: string;
@@ -162,6 +169,7 @@ export default function AdminProcessDetail() {
   const [consulateInterviewTime, setConsulateInterviewTime] = useState("");
   const [sameLocation, setSameLocation] = useState(true);
   const [isViewDocsModalOpen, setIsViewDocsModalOpen] = useState(false);
+  const [correctionNotes, setCorrectionNotes] = useState("");
   const { lang } = useLanguage();
 
   const handleOpenDocAdmin = async (doc: ProcessDocument) => {
@@ -456,6 +464,7 @@ export default function AdminProcessDetail() {
           consulate_interview_time: sameLocation
             ? null
             : consulateInterviewTime || null,
+          status: "awaitingConsularInterview",
         })
         .eq("id", order.user_service_id);
 
@@ -516,13 +525,18 @@ export default function AdminProcessDetail() {
 
   const handleRejectDocuments = async () => {
     if (!order?.user_service_id) return;
-    // For rejection, we might want to move back to a state where they can re-upload
-    // or just leave it in current state and ask for re-upload
     setIsSaving(true);
     try {
+      // B1/B2: Step 12, F1/F2: Step 7
+      const isF1F2 = order.product_slug === "visa-f1f2" || order.product_slug === "visto-f1";
+      const resetStep = isF1F2 ? 7 : 12;
+
       const { error } = await supabase
         .from("user_services")
-        .update({ status: "ds160upload_documents" })
+        .update({ 
+          status: "ds160upload_documents",
+          current_step: resetStep
+        })
         .eq("id", order.user_service_id);
 
       if (error) throw error;
@@ -686,7 +700,218 @@ export default function AdminProcessDetail() {
     order.grandmother_name
   );
 
+  const renderReviewUI = () => {
+    const ds160StepTitles: Record<string, string> = {
+      personal1: "11. Personal Information 1",
+      personal2: "12. Personal Information 2",
+      travel: "13. Address & Phone",
+      companions: "14. Travel Companions",
+      "previous-travel": "15. Previous US Travel",
+      "address-phone": "16. Address & Phone",
+      "social-media": "17. Social Media",
+      passport: "18. Passport Information",
+      "us-contact": "19. US Contact",
+      family: "22. Family Information",
+      "work-education": "33. Work / Education",
+      additional: "34. Additional Information",
+      "f1f2-personal1": "1. Personal Information 1",
+      "f1f2-personal2": "2. Personal Information 2",
+      "f1f2-travel": "3. Travel Information",
+      "f1f2-history": "4. US Travel History",
+      "f1f2-address-phone": "5. Address & Phone",
+      "f1f2-social-media": "6. Social Media",
+      "f1f2-passport": "7. Passport Information",
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-3 p-4 bg-accent/5 rounded-md border border-accent/20">
+          <ShieldCheck className="h-5 w-5 text-accent" />
+          <div>
+            <p className="text-sm font-bold text-accent uppercase tracking-widest">
+              Revisão Final (DS-160)
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Verifique todas as respostas do formulário e documentos anexados.
+            </p>
+          </div>
+        </div>
+
+        {/* responses removed per user request */}
+
+        <div className="space-y-4 pt-4 border-t border-border">
+          <div className="flex items-center justify-between px-1">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              Documentos Anexados
+            </h4>
+            <Badge variant="outline" className="text-[9px] h-5 px-2 bg-accent/5 border-accent/20 text-accent font-bold">
+              {processDocs.length} ARQUIVOS
+            </Badge>
+          </div>
+
+          <div className="grid gap-2">
+            {processDocs.length > 0 ? (
+              processDocs.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="group flex items-center justify-between p-3 bg-white dark:bg-slate-900 border border-border rounded-xl hover:border-accent/30 hover:bg-accent/[0.02] transition-all cursor-pointer shadow-sm"
+                  onClick={() => handleOpenDocAdmin(doc)}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-8 w-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-accent/10 group-hover:text-accent transition-colors">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate tracking-tight uppercase">
+                        {doc.name === "ds160_assinada"
+                          ? "ASSINADA"
+                          : doc.name === "ds160_comprovante"
+                            ? "COMPROVANTE"
+                          : doc.name === "ds160_comprovante_sevis"
+                            ? "COMPROVANTE SEVIS"
+                              : doc.name === "ds160_boleto"
+                                ? "BOLETO"
+                                : doc.name
+                                    .replace(/ds160_?|DS160_?/gi, "")
+                                    .replace(/_/g, " ")
+                                    .toUpperCase()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground group-hover:text-accent group-hover:bg-accent/5 transition-all">
+                    <Eye className="h-3.5 w-3.5" />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-8 border border-dashed border-muted rounded-xl text-center bg-muted/5">
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+                  Nenhum arquivo enviado pelo cliente ainda
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-4 pt-4 border-t border-border">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+              Feedback para o Cliente
+            </label>
+            <textarea
+              value={correctionNotes}
+              onChange={(e) => setCorrectionNotes(e.target.value)}
+              placeholder="Notas internas ou feedback para o cliente..."
+              className="w-full min-h-[100px] p-3 rounded-md border border-border bg-card text-sm focus:ring-1 focus:ring-accent outline-none transition-all"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              variant="outline"
+              className="h-12 gap-2 font-bold text-[10px] uppercase tracking-widest border-red-200 text-red-600 hover:bg-red-50"
+              onClick={handleRejectDocuments}
+              disabled={isSaving}
+            >
+              <XCircle className="h-3.5 w-3.5" />
+              REJEITAR
+            </Button>
+            <Button
+              className="h-12 gap-2 font-bold text-[10px] uppercase tracking-widest bg-accent hover:bg-green-dark"
+              onClick={handleApproveDocuments}
+              disabled={isSaving}
+            >
+              <CheckSquare className="h-3.5 w-3.5" />
+              APROVAR
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderProcessingUI = () => {
+    return (
+      <div className="space-y-6 max-w-xl">
+        <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-md border border-yellow-200 dark:border-yellow-900/30">
+          <Clock className="h-5 w-5 text-yellow-600" />
+          <div>
+            <p className="text-sm font-bold text-yellow-700">
+              Processamento DS-160 (Admin)
+            </p>
+            <p className="text-xs text-yellow-600">
+              O formulário foi preenchido. Agora você deve processar na CEAC e informar o ID da Application e data de nascimento.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+          <Card className="p-4 border-border bg-card shadow-sm">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 block">
+              Dados de Processamento
+            </h4>
+            
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                  Application ID (AA00...)
+                </label>
+                <Input
+                  value={appId}
+                  onChange={(e) => setAppId(e.target.value)}
+                  placeholder="AA00..."
+                  className="h-10 font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                    Data de Nascimento (YYYY-MM-DD)
+                  </label>
+                  <Input
+                    type="text"
+                    value={dob}
+                    onChange={(e) => setDob(e.target.value)}
+                    placeholder="Ex: 1990-05-20"
+                    className="h-10"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">
+                    Nome da Avó Materna (DS-160)
+                  </label>
+                  <Input
+                    value={grandmaName}
+                    onChange={(e) => setGrandmaName(e.target.value)}
+                    placeholder="Nome da Avó"
+                    className="h-10"
+                  />
+                </div>
+              </div>
+
+              <Button
+                className="w-full h-10 gap-2 font-bold text-[10px] uppercase tracking-widest bg-accent hover:bg-green-dark"
+                onClick={handleSaveFields}
+                disabled={isSaving || !appId || !dob}
+              >
+                {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                SALVAR E SOLICITAR ASSINATURA
+              </Button>
+            </div>
+          </Card>
+
+          {/* responses shortcut removed per user request */}
+        </div>
+      </div>
+    );
+  };
+
   const renderStatusContent = () => {
+    const sched = onboardingResponses.find((r) => r.step_slug === "casv_scheduling");
+    const schedData = sched?.data as any;
+    const preferredDate = schedData?.preferred_date;
+
     switch (status) {
       case "ds160InProgress":
       case "active":
@@ -709,229 +934,34 @@ export default function AdminProcessDetail() {
       case "ds160Processing":
       case "review_pending":
       case "review_assign":
-        return (
-          <div className="space-y-4 max-w-xl">
-            <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-md border border-yellow-200 dark:border-yellow-900/30">
-              <ClipboardList className="h-5 w-5 text-yellow-600" />
-              <div>
-                <p className="text-sm font-bold text-yellow-700">
-                  Fluxo DS-160
-                </p>
-                <p className="text-xs text-yellow-600">
-                  Preencha os dados de segurança para liberar o upload dos
-                  documentos pelo cliente.
-                </p>
-              </div>
-            </div>
+        return renderProcessingUI();
 
-            <div className="space-y-4 p-4 bg-accent/5 rounded-md border border-accent/20 shadow-sm">
-              <div className="flex items-center gap-2 border-b border-accent/10 pb-3 mb-4">
-                <ShieldCheck className="h-5 w-5 text-accent" />
-                <h4 className="text-sm font-bold uppercase tracking-widest text-accent">
-                  Dados de Segurança
-                </h4>
-              </div>
-
-              <div className="grid gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Application ID
-                  </label>
-                  <Input
-                    placeholder="Ex: AA00..."
-                    value={appId}
-                    onChange={(e) => setAppId(e.target.value.toUpperCase())}
-                    className="font-mono h-11 uppercase"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      Nascimento
-                    </label>
-                    <Input
-                      placeholder="DD/MM/AAAA"
-                      value={dob}
-                      onChange={(e) => setDob(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      Nome da Avó
-                    </label>
-                    <Input
-                      placeholder="Nome Completo"
-                      value={grandmaName}
-                      onChange={(e) => setGrandmaName(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                className="w-full gap-2 mt-4 h-12 shadow-lg bg-accent hover:bg-green-dark"
-                onClick={handleSaveFields}
-                disabled={
-                  isSaving ||
-                  !appId.trim() ||
-                  !dob.trim() ||
-                  !grandmaName.trim()
-                }
-              >
-                {isSaving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                SALVAR E PEDIR UPLOADS
-              </Button>
-            </div>
-          </div>
-        );
-
-      case "ds160upload_documents":
-        return (
-          <div className="space-y-4 max-w-xl">
-            <div className="flex items-center gap-3 p-4 bg-orange-50 dark:bg-orange-950/20 rounded-md border border-orange-200 dark:border-orange-900/30">
-              <Clock className="h-5 w-5 text-orange-600" />
-              <div>
-                <p className="text-sm font-bold text-orange-700">
-                  Aguardando Cliente
-                </p>
-                <p className="text-xs text-orange-600">
-                  Os dados de segurança foram salvos. O cliente agora precisa
-                  anexar os documentos assinados e a confirmação de envio.
-                </p>
-              </div>
-            </div>
-
-            <div className="p-4 bg-muted/20 rounded-md border border-border space-y-4">
-              <div className="flex items-center justify-between border-b border-border pb-3">
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  Dados Salvos
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 text-[10px] font-bold"
-                  onClick={() => {
-                    // Permite editar se precisar
-                  }}
-                >
-                  EDITAR
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">
-                    Application ID
-                  </label>
-                  <p className="font-mono font-bold text-lg">{appId}</p>
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">
-                    Nascimento
-                  </label>
-                  <p className="font-bold text-lg">{dob}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 border border-dashed border-border rounded-md text-center">
-              <p className="text-xs text-muted-foreground italic">
-                O fluxo avançará automaticamente assim que o cliente clicar em
-                "Enviar Documentos" no portal dele.
-              </p>
-            </div>
-          </div>
-        );
-
-      case "ds160AwaitingReviewAndSignature":
       case "uploadsUnderReview":
-        return (
-          <div className="space-y-4 max-w-xl">
-            <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-900/30">
-              <Upload className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-sm font-bold text-blue-700">
-                  Validação de Documentos
+      case "ds160upload_documents":
+      case "ds160AwaitingReviewAndSignature":
+      case "Waiting Signature":
+        if (processDocs.length === 0) {
+          return (
+            <div className="space-y-4 max-w-xl">
+              <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-muted rounded-3xl bg-muted/5 text-center">
+                <Clock className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
+                <h3 className="text-lg font-bold text-foreground mb-2">
+                  Aguardando Documentos
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-[320px] leading-relaxed">
+                  O cliente foi solicitado a assinar a DS-160 e realizar o upload dos documentos necessários. 
+                  Assim que ele enviar, os arquivos aparecerão aqui para sua revisão.
                 </p>
-                <p className="text-xs text-blue-600">
-                  O cliente enviou os documentos. Por favor, revise os anexos
-                  abaixo para prosseguir com o agendamento.
-                </p>
+                <div className="mt-6 px-4 py-2 bg-yellow-50 dark:bg-yellow-950/20 rounded-full border border-yellow-100 dark:border-yellow-900/30">
+                   <p className="text-[10px] font-black uppercase tracking-widest text-yellow-700">
+                     Status atual: {status}
+                   </p>
+                </div>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                Documentos Enviados
-              </p>
-              <div className="grid gap-2">
-                {processDocs.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="group flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-accent/40 hover:bg-accent/[0.02] transition-all cursor-pointer shadow-sm"
-                    onClick={() => {
-                      const { data } = supabase.storage
-                        .from(doc.bucket_id || "documents")
-                        .getPublicUrl(doc.storage_path);
-                      window.open(data.publicUrl, "_blank");
-                    }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500">
-                        <FileText className="h-4 w-4" />
-                      </div>
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                        {doc.name === "ds160_assinada"
-                          ? "DS-160 ASSINADA"
-                          : doc.name === "ds160_comprovante"
-                            ? "COMPROVANTE DE TAXA"
-                            : doc.name === "ds160_comprovante_sevis"
-                              ? "COMPROVANTE SEVIS"
-                              : doc.name === "ds160_boleto"
-                                ? "BOLETO"
-                                : doc.name.toUpperCase().replace(/_/g, " ")}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-accent font-bold text-[10px] uppercase">
-                      <span>Visualizar</span>
-                      <Eye className="h-4 w-4" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="text-[10px] text-muted-foreground italic text-center pt-2">
-                Clique nos arquivos acima para revisar antes de aprovar ou rejeitar.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <Button
-                variant="outline"
-                className="h-12 border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold text-xs tracking-wide"
-                onClick={handleRejectDocuments}
-                disabled={isSaving}
-              >
-                <XCircle className="h-4 w-4 mr-2" />
-                REJEITAR / PEDIR RECORREÇÃO
-              </Button>
-              <Button
-                className="h-12 bg-accent hover:bg-green-dark text-white font-bold text-xs tracking-wide shadow-lg shadow-accent/20"
-                onClick={handleApproveDocuments}
-                disabled={isSaving || processDocs.length === 0}
-              >
-                {isSaving ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                )}
-                APROVAR DOCUMENTOS
-              </Button>
-            </div>
-          </div>
-        );
+          );
+        }
+        return renderReviewUI();
 
       case "approved":
       case "completed": {
@@ -1305,68 +1335,67 @@ export default function AdminProcessDetail() {
                         <p className="text-sm font-bold text-foreground">
                           Boleto Disponibilizado
                         </p>
-                        <p className="text-[10px] text-muted-foreground uppercase">
-                          Enviado em{" "}
-                          {new Date(
-                            processDocs.find((d) => d.name === "ds160_boleto")
-                              .created_at,
-                          ).toLocaleDateString("pt-BR")}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 text-[10px] font-bold"
-                        onClick={() => {
-                          const doc = processDocs.find(
-                            (d) => d.name === "ds160_boleto",
-                          );
-                          const { data } = supabase.storage
-                            .from(doc.bucket_id || "documents")
-                            .getPublicUrl(doc.storage_path);
-                          window.open(data.publicUrl, "_blank");
-                        }}
-                      >
-                        ABRIR
-                      </Button>
-                      <div className="relative">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 text-[10px] font-bold text-accent"
-                        >
-                          SUBSTITUIR
-                        </Button>
-                        <input
-                          type="file"
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                          onChange={handleBoletoUpload}
-                          accept=".pdf,.jpg,.jpeg,.png"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="relative group">
-                    <div className="flex flex-col items-center justify-center p-5 border-2 border-dashed border-accent/20 rounded-3xl bg-accent/5 hover:bg-accent/10 transition-colors group-hover:border-accent/40 cursor-pointer text-center">
-                      <Upload className="h-8 w-8 text-accent mb-2" />
-                      <p className="text-sm font-bold text-accent">
-                        UPLOAD DO BOLETO
-                      </p>
-                      <p className="text-[10px] text-muted-foreground uppercase mt-1">
-                        PDF, JPG ou PNG
-                      </p>
-                    </div>
-                    <input
-                      type="file"
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      onChange={handleBoletoUpload}
-                      accept=".pdf,.jpg,.jpeg,.png"
-                    />
-                  </div>
-                )}
+                <p className="text-[10px] text-muted-foreground uppercase">
+                  Enviado em{" "}
+                  {processDocs.find((d) => d.name === "ds160_boleto")?.created_at
+                    ? new Date(processDocs.find((d) => d.name === "ds160_boleto")!.created_at).toLocaleDateString("pt-BR")
+                    : "-"}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-[10px] font-bold"
+                onClick={() => {
+                  const doc = processDocs.find((d) => d.name === "ds160_boleto");
+                  if (doc) {
+                    const { data } = supabase.storage
+                      .from(doc.bucket_id || "process-documents")
+                      .getPublicUrl(doc.storage_path);
+                    window.open(data.publicUrl, "_blank");
+                  }
+                }}
+              >
+                ABRIR
+              </Button>
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-[10px] font-bold text-accent"
+                >
+                  SUBSTITUIR
+                </Button>
+                <input
+                  type="file"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={handleBoletoUpload}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="relative group">
+            <div className="flex flex-col items-center justify-center p-5 border-2 border-dashed border-accent/20 rounded-3xl bg-accent/5 hover:bg-accent/10 transition-colors group-hover:border-accent/40 cursor-pointer text-center">
+              <Upload className="h-8 w-8 text-accent mb-2" />
+              <p className="text-sm font-bold text-accent">
+                UPLOAD DO BOLETO
+              </p>
+              <p className="text-[10px] text-muted-foreground uppercase mt-1">
+                PDF, JPG ou PNG
+              </p>
+            </div>
+            <input
+              type="file"
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              onChange={handleBoletoUpload}
+              accept=".pdf,.jpg,.jpeg,.png"
+            />
+          </div>
+        )}
               </div>
             )}
 

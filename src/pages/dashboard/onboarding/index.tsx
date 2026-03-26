@@ -101,11 +101,16 @@ export default function Onboarding() {
     hasConsularCredentials,
     requiresSelfie,
     setRequiresSelfie,
+    selfieStep,
+    setSelfieStep,
     uploadingSelfie,
     selfieFile,
     setSelfieFile,
+    visaPhotoFile,
+    setVisaPhotoFile,
     handleSelfieUpload,
     trigger,
+    control,
   } = useOnboardingLogic();
 
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
