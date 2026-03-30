@@ -49,8 +49,10 @@ const dashboard = {
     selectSelfie: "Selecciona tu selfie",
     or: "o",
     status: {
-      ds160InProgress: "Llenando DS-160",
       ds160Processing: "Procesando DS-160",
+      cosInProgress: "Onboarding: Información y Foto",
+      cosProcessing: "Revisando Solicitud",
+      cosOfficialForms: "3. Formularios Oficiales",
       ds160uploadDocuments: "3. Adjuntar Documentos",
       ds160AwaitingReviewAndSignature: "4. Revisión y Firma",
       uploadsUnderReview: "4. Revisión de Documentos",

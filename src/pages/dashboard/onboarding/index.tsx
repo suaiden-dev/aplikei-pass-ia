@@ -67,6 +67,12 @@ import { F1F2PassportStep } from "./steps/F1F2/F1F2PassportStep";
 import { F1F2UploadDocumentsStep } from "./steps/F1F2/F1F2UploadDocumentsStep";
 import { ChangeOfStatusFormStep } from "./steps/ChangeOfStatus/ChangeOfStatusFormStep";
 import { ChangeOfStatusDocumentsStep } from "./steps/ChangeOfStatus/ChangeOfStatusDocumentsStep";
+import { ChangeOfStatusOfficialFormsStep } from "./steps/ChangeOfStatus/ChangeOfStatusOfficialFormsStep";
+import { ChangeOfStatusCoverLetterStep } from "./steps/ChangeOfStatus/ChangeOfStatusCoverLetterStep";
+import { ChangeOfStatusI20Step } from "./steps/ChangeOfStatus/ChangeOfStatusI20Step";
+import { ChangeOfStatusSevisStep } from "./steps/ChangeOfStatus/ChangeOfStatusSevisStep";
+import { ChangeOfStatusFinalFormsStep } from "./steps/ChangeOfStatus/ChangeOfStatusFinalFormsStep";
+import { ChangeOfStatusFinalPackageStep } from "./steps/ChangeOfStatus/ChangeOfStatusFinalPackageStep";
 
 export default function Onboarding() {
   const {
@@ -111,6 +117,9 @@ export default function Onboarding() {
     handleSelfieUpload,
     trigger,
     control,
+    handleStepClick,
+    stepSlugs,
+    effectiveStep,
   } = useOnboardingLogic();
 
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -127,7 +136,6 @@ export default function Onboarding() {
       const bucket = doc.bucket_id || (doc.path.startsWith("contracts/") ? "visa-documents" : "process-documents");
       const signedUrl = await storageService.createSignedUrl(bucket, doc.path, 3600);
 
-
       if (signedUrl) {
         window.open(signedUrl, "_blank");
       }
@@ -136,8 +144,8 @@ export default function Onboarding() {
       toast.error(o.errorOpeningDoc[lang]);
     }
   };
-
-  const progress = (steps && steps.length > 0) ? ((currentStep + 1) / (steps.length || 1)) * 100 : 0;
+  const totalSteps = steps?.length || 1;
+  const progress = (steps && steps.length > 0) ? ((effectiveStep + 1) / totalSteps) * 100 : 0;
 
   const renderStep = () => {
     const commonProps = {
@@ -198,13 +206,39 @@ export default function Onboarding() {
       );
     }
 
+    const hasRejections = uploadedDocs.some((d) => d.status === "resubmit");
+
     if (
       (serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") &&
       (serviceStatus === "review_pending" ||
         serviceStatus === "ds160Processing" ||
-        serviceStatus === "uploadsUnderReview")
+        serviceStatus === "uploadsUnderReview") &&
+      !hasRejections
     ) {
-      return <ProcessingStatusStep status={serviceStatus} />;
+      return <ProcessingStatusStep status={serviceStatus} serviceSlug={serviceSlug} />;
+    }
+
+    if (serviceSlug === "changeofstatus" && serviceStatus === "COS_OFFICIAL_FORMS") {
+      return (
+        <ChangeOfStatusOfficialFormsStep
+          {...commonProps}
+          serviceId={serviceId}
+          uploadedDocs={uploadedDocs}
+          handleUpload={handleUpload}
+          handleRemove={handleRemoveDoc}
+          uploading={uploading}
+          fileInputRef={fileInputRef}
+          setSelectedDoc={setSelectedDoc}
+        />
+      );
+    }
+
+    if (serviceSlug === "changeofstatus" && serviceStatus === "COS_COVER_LETTER_FORM") {
+      return (
+        <ChangeOfStatusCoverLetterStep
+          {...commonProps}
+        />
+      );
     }
 
     if (
@@ -245,8 +279,18 @@ export default function Onboarding() {
       );
     }
 
+    if (
+      (serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") &&
+      (serviceStatus === "review_pending" ||
+        serviceStatus === "ds160Processing" ||
+        serviceStatus === "uploadsUnderReview") &&
+      !hasRejections
+    ) {
+      return <ProcessingStatusStep status={serviceStatus} serviceSlug={serviceSlug} />;
+    }
+
     if (serviceSlug === "visto-b1-b2") {
-      switch (currentStep) {
+      switch (effectiveStep) {
         case 0:
           return <PersonalInfo1Step {...commonProps} />;
         case 1:
@@ -292,7 +336,7 @@ export default function Onboarding() {
       }
     }
     if (serviceSlug === "visa-f1f2") {
-      switch (currentStep) {
+      switch (effectiveStep) {
         case 0:
           return <F1F2Personal1Step {...commonProps} />;
         case 1:
@@ -329,11 +373,15 @@ export default function Onboarding() {
     }
 
     if (serviceSlug === "changeofstatus") {
-      switch (currentStep) {
-        case 0:
+      const stepSlugsForCOS = ["cos-form", "cos-documents", "cos-official-forms", "cos-cover-letter-form", "cos-i20", "cos-sevis", "cos-final-forms", "cos-review"];
+      const currentSlug = stepSlugsForCOS[effectiveStep];
+
+      switch (currentSlug) {
+        case "cos-form":
           return (
             <ChangeOfStatusFormStep
               {...commonProps}
+              control={control}
               uploadedDocs={uploadedDocs}
               handleUpload={handleUpload}
               handleRemove={handleRemoveDoc}
@@ -342,7 +390,7 @@ export default function Onboarding() {
               setSelectedDoc={setSelectedDoc}
             />
           );
-        case 1:
+        case "cos-documents":
           return (
             <ChangeOfStatusDocumentsStep
               {...commonProps}
@@ -354,8 +402,64 @@ export default function Onboarding() {
               setSelectedDoc={setSelectedDoc}
             />
           );
-        case 2:
-          return <ReviewStep {...commonProps} />;
+        case "cos-official-forms":
+          return (
+            <ChangeOfStatusOfficialFormsStep
+              {...commonProps}
+              serviceId={serviceId}
+              uploadedDocs={uploadedDocs}
+              handleUpload={handleUpload}
+              handleRemove={handleRemoveDoc}
+              uploading={uploading}
+              fileInputRef={fileInputRef}
+              setSelectedDoc={setSelectedDoc}
+            />
+          );
+        case "cos-cover-letter-form":
+          return <ChangeOfStatusCoverLetterStep {...commonProps} />;
+        case "cos-i20":
+          return (
+            <ChangeOfStatusI20Step
+              {...commonProps}
+              uploadedDocs={uploadedDocs}
+              handleUpload={handleUpload}
+              handleRemove={handleRemoveDoc}
+              uploading={uploading}
+              fileInputRef={fileInputRef}
+              setSelectedDoc={setSelectedDoc}
+            />
+          );
+        case "cos-sevis":
+          return (
+            <ChangeOfStatusSevisStep
+              {...commonProps}
+              uploadedDocs={uploadedDocs}
+              handleUpload={handleUpload}
+              handleRemove={handleRemoveDoc}
+              uploading={uploading}
+              fileInputRef={fileInputRef}
+              setSelectedDoc={setSelectedDoc}
+            />
+          );
+        case "cos-final-forms":
+          return (
+            <ChangeOfStatusFinalFormsStep
+              {...commonProps}
+              serviceId={serviceId}
+            />
+          );
+        case "cos-review":
+          return (
+            <ChangeOfStatusFinalPackageStep 
+              {...commonProps} 
+              uploadedDocs={uploadedDocs} 
+              handleUpload={handleUpload}
+              handleRemove={handleRemoveDoc}
+              uploading={uploading}
+              fileInputRef={fileInputRef}
+              setSelectedDoc={setSelectedDoc}
+            />
+          );
         default:
           return null;
       }
@@ -490,12 +594,18 @@ export default function Onboarding() {
               serviceStatus !== "ds160Processing" &&
               serviceStatus !== "approved" &&
               serviceStatus !== "rejected" &&
-              serviceStatus !== "completed" && (
+              serviceStatus !== "completed" &&
+              serviceStatus !== "COS_ADMIN_SCREENING" &&
+              serviceStatus !== "COS_OFFICIAL_FORMS_REVIEW" &&
+              serviceStatus !== "COS_COVER_LETTER_ADMIN_REVIEW" &&
+              serviceStatus !== "COS_F1_I20_REVIEW" &&
+              serviceStatus !== "COS_SEVIS_FEE_REVIEW" &&
+              serviceStatus !== "COS_FINAL_FORMS_REVIEW" && (
                 <div className="mt-5 hidden justify-between md:flex">
                   <Button
                     variant="outline"
                     disabled={
-                      currentStep === 0 ||
+                    effectiveStep === 0 ||
                       serviceStatus === "ds160AwaitingReviewAndSignature" ||
                       serviceStatus === "ds160upload_documents" ||
                       serviceStatus === "review_assign" ||
@@ -571,34 +681,32 @@ export default function Onboarding() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-foreground">
                     {o.stepLabel[lang]}{" "}
-                    {currentStep + 1} {o.stepOf[lang]} {steps.length}
+                    {effectiveStep + 1} {o.stepOf[lang]} {steps.length}
                   </span>
                   <span className="text-muted-foreground">
-                    {Math.round(progress)}%
+                    {Math.round((effectiveStep / totalSteps) * 100)}%
                   </span>
                 </div>
-                <Progress value={progress} className="mt-3 h-2" />
+                <Progress value={(effectiveStep / totalSteps) * 100} className="mt-3 h-2" />
 
                 <div className="mt-4 flex flex-wrap gap-2 lg:flex-nowrap lg:flex-col lg:items-stretch lg:gap-3">
                   {steps.map((step: string, i: number) => (
                     <button
                       key={i}
-                      onClick={() =>
-                        i <= currentStep ? setCurrentStep(i) : null
-                      }
-                      disabled={i > currentStep}
+                      onClick={() => handleStepClick(i)}
+                      disabled={i > effectiveStep}
                       className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-medium transition-all ring-1 ${
-                        i === currentStep
+                        i === effectiveStep
                           ? "bg-accent/10 text-accent ring-accent/20"
-                          : i < currentStep
+                          : i < effectiveStep
                             ? "text-foreground ring-transparent hover:bg-muted"
                             : "cursor-not-allowed text-muted-foreground opacity-50 ring-transparent"
                       }`}
                     >
                       <div className="flex h-5 w-5 shrink-0 items-center justify-center">
-                        {i < currentStep ? (
+                        {i < effectiveStep ? (
                           <CheckCircle2 className="h-4 w-4 text-accent" />
-                        ) : i === currentStep ? (
+                        ) : i === effectiveStep ? (
                           <div className="h-2 w-2 rounded-full bg-accent animate-pulse" />
                         ) : (
                           <Circle className="h-4 w-4 text-muted-foreground/30" />
@@ -793,7 +901,13 @@ export default function Onboarding() {
         serviceStatus !== "ds160Processing" &&
         serviceStatus !== "approved" &&
         serviceStatus !== "rejected" &&
-        serviceStatus !== "completed" && (
+        serviceStatus !== "completed" &&
+        serviceStatus !== "COS_ADMIN_SCREENING" &&
+        serviceStatus !== "COS_OFFICIAL_FORMS_REVIEW" &&
+        serviceStatus !== "COS_COVER_LETTER_ADMIN_REVIEW" &&
+        serviceStatus !== "COS_F1_I20_REVIEW" &&
+        serviceStatus !== "COS_SEVIS_FEE_REVIEW" &&
+        serviceStatus !== "COS_FINAL_FORMS_REVIEW" && (
           <div className="fixed bottom-16 left-0 right-0 border-t border-border bg-background p-4 md:hidden">
             <div className="flex gap-3">
               {!(
@@ -805,13 +919,13 @@ export default function Onboarding() {
                 <Button
                   variant="outline"
                   className="flex-1 whitespace-normal h-auto py-2 min-h-10"
-                  disabled={currentStep === 0}
+                  disabled={effectiveStep === 0}
                   onClick={() => setCurrentStep((s) => s - 1)}
                 >
                   <ChevronLeft className="mr-2 h-4 w-4 shrink-0" /> {o.previous[lang]}
                 </Button>
               )}
-              {currentStep < steps.length - 1 &&
+              {effectiveStep < steps.length - 1 &&
               !(
                 serviceStatus === "ds160AwaitingReviewAndSignature" ||
                 serviceStatus === "ds160upload_documents" ||

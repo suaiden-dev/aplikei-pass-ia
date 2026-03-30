@@ -51,6 +51,9 @@ const dashboard = {
     status: {
       ds160InProgress: "Preenchendo DS-160",
       ds160Processing: "Processando DS-160",
+      cosInProgress: "Onboarding: Informações e Foto",
+      cosProcessing: "Revisando Solicitação",
+      cosOfficialForms: "3. Formulários Oficiais",
       ds160uploadDocuments: "3. Anexar Documentos",
       ds160AwaitingReviewAndSignature: "4. Revisão e Assinatura",
       uploadsUnderReview: "4. Revisão de Documentos",

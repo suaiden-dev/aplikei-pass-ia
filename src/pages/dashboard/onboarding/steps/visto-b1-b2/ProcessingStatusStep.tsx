@@ -5,27 +5,45 @@ import { useLanguage } from "@/i18n/LanguageContext";
 
 interface ProcessingStatusStepProps {
   status: string;
+  serviceSlug?: string;
 }
 
-export function ProcessingStatusStep({ status }: ProcessingStatusStepProps) {
+export function ProcessingStatusStep({ status, serviceSlug }: ProcessingStatusStepProps) {
   const { lang, t } = useLanguage();
   const ps = t.onboardingPage.processingStatus;
+  const isCOS = serviceSlug === "changeofstatus";
 
-  const isPending = status === "review_pending" || status === "ds160Processing";
+  const isPending = status === "review_pending" || status === "ds160Processing" || status === "COS_ADMIN_SCREENING";
   const isAwaitingReview =
     status === "ds160AwaitingReviewAndSignature" ||
-    status === "uploadsUnderReview";
+    status === "uploadsUnderReview" ||
+    status === "COS_OFFICIAL_FORMS_REVIEW" ||
+    status === "COS_COVER_LETTER_ADMIN_REVIEW" ||
+    status === "COS_F1_I20_REVIEW" ||
+    status === "COS_SEVIS_FEE_REVIEW" ||
+    status === "COS_FINAL_FORMS_REVIEW";
 
   const getFriendlyStatus = (rawStatus: string) => {
     switch (rawStatus) {
       case "review_pending":
       case "ds160Processing":
-        return ps.processingDS160[lang];
+      case "COS_ADMIN_SCREENING":
+        return isCOS ? ps.processingCOS[lang] : ps.processingDS160[lang];
       case "ds160AwaitingReviewAndSignature":
       case "review_assign":
         return ps.awaitingReview[lang];
       case "uploadsUnderReview":
         return ps.reviewingDocs[lang];
+      case "COS_OFFICIAL_FORMS_REVIEW":
+        return ps.awaitingReview[lang];
+      case "COS_COVER_LETTER_ADMIN_REVIEW":
+        return ps.reviewingDocs[lang];
+      case "COS_F1_I20_REVIEW":
+        return ps.reviewingI20[lang];
+      case "COS_SEVIS_FEE_REVIEW":
+        return ps.reviewingSevis[lang];
+      case "COS_FINAL_FORMS_REVIEW":
+        return ps.awaitingReview[lang];
       case "casvSchedulingPending":
         return ps.awaitingScheduling[lang];
       case "ds160upload_documents":
@@ -51,7 +69,13 @@ export function ProcessingStatusStep({ status }: ProcessingStatusStepProps) {
         </h2>
 
         <p className="text-body md:text-subtitle text-muted-foreground max-w-md mx-auto leading-relaxed">
-          {isPending ? ps.processingDataDesc[lang] : ps.documentsReceivedDesc[lang]}
+          {isPending 
+            ? (isCOS ? ps.processingDataDescCOS[lang] : ps.processingDataDesc[lang]) 
+            : status === "COS_F1_I20_REVIEW"
+              ? ps.processingDataDescI20[lang]
+              : status === "COS_SEVIS_FEE_REVIEW"
+                ? ps.processingDataDescSevis[lang]
+                : ps.documentsReceivedDesc[lang]}
         </p>
       </div>
 

@@ -26,12 +26,20 @@ export function AdminVerticalTimeline({
 
   // Map legacy statuses if needed
   let effectiveIndex = currentIndex;
+  const isCOSProduct = productSlug === "troca-status" || productSlug === "extensao-status";
+
   if (currentIndex === -1) {
-    if (currentStatus === "active") effectiveIndex = 0;
-    else if (currentStatus === "review_pending") effectiveIndex = 1;
-    else if (currentStatus === "review_assign") effectiveIndex = 2;
-    else if (currentStatus === "uploadsUnderReview") effectiveIndex = 3;
-    else if (currentStatus === "completed") effectiveIndex = 8;
+    if (isCOSProduct) {
+      if (currentStatus === "active") effectiveIndex = 0;
+      else if (currentStatus === "review_pending" || currentStatus === "review_assign") effectiveIndex = 4; // Map to COS_ADMIN_SCREENING
+      else if (currentStatus === "COS_ADMIN_SCREENING") effectiveIndex = 4;
+    } else {
+      if (currentStatus === "active") effectiveIndex = 0;
+      else if (currentStatus === "review_pending") effectiveIndex = 1;
+      else if (currentStatus === "review_assign") effectiveIndex = 2;
+      else if (currentStatus === "uploadsUnderReview") effectiveIndex = 3;
+      else if (currentStatus === "completed") effectiveIndex = 8;
+    }
   }
 
   const visibleStatuses = isExpanded

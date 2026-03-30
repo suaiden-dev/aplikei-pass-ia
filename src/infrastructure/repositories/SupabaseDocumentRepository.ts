@@ -16,7 +16,7 @@ export class SupabaseDocumentRepository implements IDocumentRepository {
   async findByServiceId(serviceId: string, userId: string): Promise<UploadedDocument[]> {
     const { data, error } = await supabase
       .from("documents")
-      .select("name, storage_path, bucket_id")
+      .select("name, storage_path, bucket_id, status, feedback")
       .eq("user_id", userId)
       .eq("user_service_id", serviceId);
 
@@ -25,7 +25,9 @@ export class SupabaseDocumentRepository implements IDocumentRepository {
     return (data || []).map(d => ({
       name: d.name,
       path: d.storage_path,
-      bucket_id: d.bucket_id
+      bucket_id: d.bucket_id,
+      status: d.status,
+      feedback: d.feedback
     }));
   }
 

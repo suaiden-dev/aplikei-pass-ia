@@ -39,6 +39,10 @@ export const useOnboardingLogic = () => {
     const [selfieFile, setSelfieFile] = useState<File | null>(null);
     const [visaPhotoFile, setVisaPhotoFile] = useState<File | null>(null);
     const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+    
+    // Form Handling - Moved up to avoid ReferenceError in getSteps/getStepSlugs
+    const { register, control, handleSubmit, setValue, watch, reset, trigger, formState: { errors } } = useForm<OnboardingData>();
+    const formData = watch();
 
     const [currentStep, setCurrentStep] = useState(() => {
         const key = urlServiceId ? `onboarding_step_${urlServiceId}` : "onboarding_step_default";
@@ -51,33 +55,51 @@ export const useOnboardingLogic = () => {
     const ds = t.ds160;
 
     // Dynamically determine steps based on service
-    const steps = serviceSlug === "visto-b1-b2" 
-        ? ds.steps[lang] 
-        : serviceSlug === "visa-f1f2" 
-        ? t.f1f2.steps[lang] 
-        : serviceSlug === "changeofstatus"
-        ? t.changeOfStatus.steps[lang]
-        : o.steps[lang];
+    const getSteps = () => {
+        if (serviceSlug === "visto-b1-b2") return ds.steps[lang];
+        if (serviceSlug === "visa-f1f2") return (t as any).f1f2.steps[lang];
+        if (serviceSlug === "changeofstatus") {
+            const allSteps = (t.changeOfStatus as any).steps[lang];
+            // Only filter if we know for sure it's NOT F1/F2. Default to full list during load.
+            if (formData?.targetVisa && formData.targetVisa !== "f1/f2") {
+                // Remove I-20 (4) and SEVIS Fee (5) — only needed for F1/F2
+                return allSteps.filter((_: any, i: number) => i !== 4 && i !== 5);
+            }
+            return allSteps;
+        }
+        return o.steps[lang];
+    };
+
+    const steps = getSteps();
     const totalSteps = steps.length;
 
     const userId = user?.id;
 
-    const stepSlugs = serviceSlug === "visto-b1-b2"
-        ? [
+    const getStepSlugs = () => {
+        if (serviceSlug === "visto-b1-b2") return [
             "personal1", "personal2", "travel",
             "companions", "previous-travel", "address-phone",
             "social-media", "passport", "us-contact", "family",
             "work-education", "additional", "documents", "review"
-        ]
-        : serviceSlug === "visa-f1f2"
-        ? [
+        ];
+        if (serviceSlug === "visa-f1f2") return [
             "f1f2-personal1", "f1f2-personal2", "f1f2-travel", 
             "f1f2-history", "f1f2-address-phone", "f1f2-social-media", 
             "f1f2-passport", "f1f2-documents", "review"
-        ]
-        : serviceSlug === "changeofstatus"
-        ? ["cos-form", "cos-documents", "cos-review"]
-        : ["personal", "history", "process", "documents", "review"];
+        ];
+        if (serviceSlug === "changeofstatus") {
+            const allSlugs = ["cos-form", "cos-documents", "cos-official-forms", "cos-cover-letter-form", "cos-i20", "cos-sevis", "cos-final-forms", "cos-review"];
+            // Only filter if we know for sure it's NOT F1/F2. Default to full list during load.
+            if (formData?.targetVisa && formData.targetVisa !== "f1/f2") {
+                // Remove I-20 (4) and SEVIS Fee (5) — only needed for F1/F2
+                return allSlugs.filter((_: any, i: number) => i !== 4 && i !== 5);
+            }
+            return allSlugs;
+        }
+        return ["personal", "history", "process", "documents", "review"];
+    };
+
+    const stepSlugs = getStepSlugs();
 
     useEffect(() => {
         const key = serviceId ? `onboarding_step_${serviceId}` : "onboarding_step_default";
@@ -90,16 +112,44 @@ export const useOnboardingLogic = () => {
     const [uploadedDocs, setUploadedDocs] = useState<UploadedDocument[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Form Handling
-    const { register, control, handleSubmit, setValue, watch, reset, trigger, formState: { errors } } = useForm<OnboardingData>();
-    const formData = watch();
+
+    // Real-time status sync
+    useEffect(() => {
+        if (!serviceId) return;
+        
+        const channel = supabase
+            .channel(`service_status_${serviceId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'user_services',
+                    filter: `id=eq.${serviceId}`
+                },
+                (payload) => {
+                    const newStatus = payload.new.status;
+                    const newStep = payload.new.current_step;
+                    if (newStatus !== serviceStatus || newStep !== currentStep) {
+                        setServiceStatus(newStatus);
+                        if (newStep !== undefined && newStep !== null) setCurrentStep(newStep);
+                        // Refresh data (including documents) when status/step changes
+                        setLoading(true);
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [serviceId, serviceStatus, currentStep]);
 
     // Load User Data & Service
     useEffect(() => {
-        if (authLoading || !userId) return;
-
+        if (authLoading || !userId || !loading) return;
         const loadData = async () => {
-            setLoading(true);
+            // ... loadData logic stays same
             try {
                 const onboardingRepo = getOnboardingRepository();
                 const profileRepo = getProfileRepository();
@@ -139,7 +189,7 @@ export const useOnboardingLogic = () => {
                 setHasConsularCredentials(!!(service.consularLogin && service.consularLogin.trim()));
 
                 if (service.currentStep !== undefined && service.currentStep !== null) {
-                    const maxStep = slug === "visto-b1-b2" ? 13 : slug === "visa-f1f2" ? 8 : slug === "changeofstatus" ? 2 : 4;
+                    const maxStep = stepSlugs.length - 1;
                     const stepToIndex = Math.min(service.currentStep, maxStep);
                     setCurrentStep(stepToIndex);
                 } else {
@@ -150,6 +200,7 @@ export const useOnboardingLogic = () => {
                 const docRepo = getDocumentRepository();
                 const getDocsUseCase = new GetServiceDocuments(docRepo);
                 const docs = await getDocsUseCase.execute(sId, userId);
+                console.log("DEBUG: Documents fetched on Client:", docs);
                 setUploadedDocs(docs);
 
                 // Load Order Data
@@ -183,7 +234,7 @@ export const useOnboardingLogic = () => {
             }
         };
         loadData();
-    }, [userId, user?.email, authLoading, urlServiceId, lang, o.docPhoto, reset]);
+    }, [userId, user?.email, authLoading, urlServiceId, lang, o.docPhoto, reset, loading]);
 
     const normalizeFileName = (str: string) => {
         return str
@@ -248,8 +299,46 @@ export const useOnboardingLogic = () => {
         }
     };
 
+    const getEffectiveStep = () => {
+        const rejectedDocNames = uploadedDocs.filter((d) => d.status === "resubmit").map((d) => d.name);
+        const hasRejections = rejectedDocNames.length > 0;
+        
+        if (serviceSlug === "changeofstatus") {
+            const slugs = stepSlugs;
+            
+            // PRIORITY 1: Explicit Rejections (Fix first)
+            const phase1DocPrefixes = ["cos_i94", "cos_passport", "cos_visa", "cos_proof", "cos_bank", "cos_marriage", "cos_birth"];
+            if (rejectedDocNames.some((name) => phase1DocPrefixes.some((prefix) => name.startsWith(prefix)))) {
+                return slugs.indexOf("cos-documents");
+            }
+            if (rejectedDocNames.some((name) => name.includes("i539"))) return slugs.indexOf("cos-official-forms");
+            if (rejectedDocNames.some((name) => name.includes("i20"))) return slugs.indexOf("cos-i20");
+            if (rejectedDocNames.some((name) => name.includes("sevis"))) return slugs.indexOf("cos-sevis");
+            if (rejectedDocNames.some((name) => name.includes("g1145") || name.includes("g1450"))) return slugs.indexOf("cos-final-forms");
+
+            // PRIORITY 2: Active client-action statuses (navigate to correct step)
+            if (serviceStatus === "COS_F1_I20") return slugs.indexOf("cos-i20");
+            if (serviceStatus === "COS_F1_SEVIS") return slugs.indexOf("cos-sevis");
+            if (serviceStatus === "COS_FINAL_FORMS") return slugs.indexOf("cos-final-forms");
+
+            // PRIORITY 3: Admin Review Status (Show what's being reviewed)
+            if (serviceStatus === "COS_ADMIN_SCREENING") return slugs.indexOf("cos-documents");
+            if (serviceStatus === "COS_OFFICIAL_FORMS_REVIEW") return slugs.indexOf("cos-official-forms");
+            if (serviceStatus === "COS_COVER_LETTER_ADMIN_REVIEW") return slugs.indexOf("cos-cover-letter-form");
+            if (serviceStatus === "COS_F1_I20_REVIEW") return slugs.indexOf("cos-i20");
+            if (serviceStatus === "COS_SEVIS_FEE_REVIEW") return slugs.indexOf("cos-sevis");
+            if (serviceStatus === "COS_FINAL_FORMS_REVIEW") return slugs.indexOf("cos-final-forms");
+        }
+        
+        if (!hasRejections) return currentStep;
+        return currentStep;
+    };
+
+    const effectiveStep = getEffectiveStep();
+
     const validateCurrentStep = async () => {
-        const currentSlug = stepSlugs[currentStep];
+        const currentSlug = stepSlugs[effectiveStep];
+        if (!currentSlug) return false;
 
         if (serviceSlug === "visto-b1-b2") {
             switch (currentSlug) {
@@ -312,8 +401,8 @@ export const useOnboardingLogic = () => {
     const saveCurrentStep = async () => {
         if (!serviceId) return;
 
-        const currentSlug = stepSlugs[currentStep];
-        if (currentSlug === "documents" || currentSlug === "review" || currentSlug.includes("documents")) return;
+        const currentSlug = stepSlugs[effectiveStep];
+        if (!currentSlug || currentSlug === "documents" || currentSlug === "review" || (currentSlug && currentSlug.includes("documents"))) return;
 
         try {
             const onboardingRepo = getOnboardingRepository();
@@ -342,7 +431,11 @@ export const useOnboardingLogic = () => {
                 "f1f2-travel": ["travelPurpose", "sevisId", "schoolName", "courseStartDate", "courseEndDate", "arrivalDate", "intendedLengthOfStay", "travelPayer"],
                 "f1f2-history": ["hasBeenToUS", "hasHadUSVisa", "hasBeenDeniedVisa", "hasImmigrationPetition"],
                 "f1f2-address-phone": ["homeAddress", "homeCity", "homeState", "homeZip", "homeCountry", "primaryPhone", "socialMediaPlatforms"],
-                "f1f2-passport": ["passportNumberDS", "passportIssuanceCountry", "passportIssuanceDate", "passportExpirationDate"]
+                "f1f2-passport": ["passportNumberDS", "passportIssuanceCountry", "passportIssuanceDate", "passportExpirationDate"],
+                
+                // Change of Status pieces
+                "cos-form": ["currentVisa", "currentVisaOther", "targetVisa", "i94AuthorizedStayDate", "dependents", "appliedBy"],
+                "cos-cover-letter-form": ["coverLetterData"]
             };
 
             const fieldsToSave = fieldMapping[currentSlug] || Object.keys(formData);
@@ -351,7 +444,7 @@ export const useOnboardingLogic = () => {
                 return acc;
             }, {} as Record<string, unknown>);
 
-            await saveUseCase.execute(serviceId, currentSlug, currentStep, scopedData);
+            await saveUseCase.execute(serviceId, currentSlug, effectiveStep, scopedData);
         } catch (error) {
             console.error("Error saving step:", error);
             toast.error(o.errorSavingStep[lang]);
@@ -359,11 +452,88 @@ export const useOnboardingLogic = () => {
     };
 
     const handleNext = async () => {
+        // Prevent proceeding if a manual review is pending
+        const reviewStatuses = [
+            "COS_ADMIN_SCREENING", 
+            "COS_OFFICIAL_FORMS_REVIEW", 
+            "COS_COVER_LETTER_ADMIN_REVIEW", 
+            "COS_F1_I20_REVIEW", 
+            "COS_SEVIS_FEE_REVIEW", 
+            "COS_FINAL_FORMS_REVIEW"
+        ];
+        if (reviewStatuses.includes(serviceStatus || "")) {
+            toast.error(lang === "pt" ? "Aguarde a revisão do administrador." : "Please wait for administrator review.");
+            return;
+        }
+
         const isValid = await validateCurrentStep();
         if (!isValid) return;
 
         await saveCurrentStep();
-        setCurrentStep((s) => s + 1);
+
+        // Custom transition for COS after documents are submitted
+        if (serviceSlug === "changeofstatus" && stepSlugs[effectiveStep] === "cos-documents") {
+            try {
+                const processRepo = getUserProcessRepository();
+                await processRepo.updateStatus(serviceId!, "COS_ADMIN_SCREENING", effectiveStep + 1);
+                toast.success(lang === "pt" ? "Documentos enviados para triagem!" : "Documents sent for screening!");
+                window.location.reload(); 
+                return;
+            } catch (error) {
+                console.error("Error transitioning to COS screening:", error);
+            }
+        }
+        if (serviceSlug === "changeofstatus" && stepSlugs[effectiveStep] === "cos-i20") {
+            try {
+                const processRepo = getUserProcessRepository();
+                await processRepo.updateStatus(serviceId!, "COS_F1_I20_REVIEW", effectiveStep + 1);
+                toast.success(lang === "pt" ? "Documento I-20 enviado para triagem!" : "I-20 document sent for screening!");
+                window.location.reload(); 
+                return;
+            } catch (error) {
+                console.error("Error transitioning to I-20 review:", error);
+            }
+        }
+
+        if (serviceSlug === "changeofstatus" && stepSlugs[effectiveStep] === "cos-cover-letter-form") {
+            try {
+                const processRepo = getUserProcessRepository();
+                // When submitting cover letter data, we move to review status but stay on same step visually
+                // The step component will then show "Under Review" based on this status
+                await processRepo.updateStatus(serviceId!, "COS_COVER_LETTER_ADMIN_REVIEW", effectiveStep); 
+                toast.success(lang === "pt" ? "Respostas enviadas para revisão do especialista!" : "Responses sent for specialist review!");
+                window.location.reload(); 
+                return;
+            } catch (error) {
+                console.error("Error transitioning to cover letter review:", error);
+            }
+        }
+
+        if (serviceSlug === "changeofstatus" && stepSlugs[effectiveStep] === "cos-sevis") {
+            try {
+                const processRepo = getUserProcessRepository();
+                await processRepo.updateStatus(serviceId!, "COS_SEVIS_FEE_REVIEW", effectiveStep + 1);
+                toast.success(lang === "pt" ? "Comprovante SEVIS enviado para triagem!" : "SEVIS proof sent for screening!");
+                window.location.reload(); 
+                return;
+            } catch (error) {
+                console.error("Error transitioning to SEVIS review:", error);
+            }
+        }
+
+        if (serviceSlug === "changeofstatus" && stepSlugs[effectiveStep] === "cos-final-forms") {
+            try {
+                const processRepo = getUserProcessRepository();
+                await processRepo.updateStatus(serviceId!, "COS_FINAL_FORMS_REVIEW", effectiveStep + 1);
+                toast.success(lang === "pt" ? "Formulários finais enviados para revisão!" : "Final forms sent for review!");
+                window.location.reload(); 
+                return;
+            } catch (error) {
+                console.error("Error transitioning to final forms review:", error);
+            }
+        }
+
+        setCurrentStep(effectiveStep + 1);
     };
 
     const handleSkip = async () => {
@@ -377,6 +547,38 @@ export const useOnboardingLogic = () => {
             }
         }
         setCurrentStep((s) => s + 1);
+    };
+
+    const handleStepClick = async (index: number) => {
+        if (!serviceId) return;
+        
+        // Prevent going forward via click (only backward or current)
+        if (index > currentStep) return;
+        
+        try {
+            const processRepo = getUserProcessRepository();
+            
+            // Revert status to allow editing when clicking back
+            let revertStatus = serviceStatus;
+            if (serviceSlug === "changeofstatus") {
+                revertStatus = "active";
+            } else if (serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") {
+                revertStatus = "ds160InProgress";
+            }
+            
+            await processRepo.updateStatus(serviceId, revertStatus!, index);
+            setCurrentStep(index);
+            setServiceStatus(revertStatus);
+            
+            // If it's a significant status change, a reload might be needed to refresh UI components 
+            // that depend on the specific status (like review screens)
+            if (revertStatus !== serviceStatus) {
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error("Error updating step via timeline:", error);
+            toast.error(lang === "pt" ? "Erro ao navegar entre os passos." : "Error navigating between steps.");
+        }
     };
 
     const handleSelfieUpload = async () => {
@@ -466,8 +668,22 @@ export const useOnboardingLogic = () => {
                 serviceStatus === "review_assign" ||
                 serviceStatus === "uploadsUnderReview";
 
-            const nextStatus = isSignatureSubmit ? "uploadsUnderReview" : "review_pending";
-            const finalStep = serviceSlug === "visto-b1-b2" ? 11 : serviceSlug === "visa-f1f2" ? 9 : 4;
+            let nextStatus = isSignatureSubmit ? "uploadsUnderReview" : "review_pending";
+
+            if (serviceSlug === "changeofstatus") {
+                if (serviceStatus === "COS_OFFICIAL_FORMS") {
+                    nextStatus = "COS_OFFICIAL_FORMS_REVIEW";
+                } else if (serviceStatus === "COS_COVER_LETTER_FORM") {
+                    nextStatus = "COS_COVER_LETTER_ADMIN_REVIEW";
+                } else if (serviceStatus && serviceStatus.startsWith("COS_")) {
+                    // Keep existing COS status if not finishing forms
+                    nextStatus = serviceStatus;
+                } else {
+                    nextStatus = "COS_ADMIN_SCREENING";
+                }
+            }
+
+            const finalStep = serviceSlug === "visto-b1-b2" ? 11 : serviceSlug === "visa-f1f2" ? 9 : 5;
             
             await processRepo.updateStatus(serviceId, nextStatus, finalStep);
 
@@ -488,9 +704,11 @@ export const useOnboardingLogic = () => {
         t,
         o,
         steps,
+        stepSlugs: getStepSlugs(),
         serviceSlug,
         currentStep,
         setCurrentStep,
+        effectiveStep,
         loading,
         serviceStatus,
         orderNumber,
@@ -504,6 +722,7 @@ export const useOnboardingLogic = () => {
         handleNext,
         handleFinish,
         handleSkip,
+        handleStepClick,
         uploading,
         uploadedDocs,
         fileInputRef,

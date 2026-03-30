@@ -20,6 +20,7 @@ export class COSProductFlow extends BaseProductFlow {
     
     // Phase 3: Official Forms
     COS_OFFICIAL_FORMS: "COS_OFFICIAL_FORMS",
+    COS_OFFICIAL_FORMS_REVIEW: "COS_OFFICIAL_FORMS_REVIEW",
     
     // Phase 4: Cover Letter
     COS_COVER_LETTER_FORM: "COS_COVER_LETTER_FORM",
@@ -28,9 +29,13 @@ export class COSProductFlow extends BaseProductFlow {
     
     // Phase 5: F1 Specific Rules (Optional Phase based on target visa)
     COS_F1_I20: "COS_F1_I20",
+    COS_F1_I20_REVIEW: "COS_F1_I20_REVIEW",
     COS_F1_SEVIS: "COS_F1_SEVIS",
+    COS_SEVIS_FEE_REVIEW: "COS_SEVIS_FEE_REVIEW",
     
     // Phase 6: Consolidation
+    COS_FINAL_FORMS: "COS_FINAL_FORMS",
+    COS_FINAL_FORMS_REVIEW: "COS_FINAL_FORMS_REVIEW",
     COS_PACKAGE_READY: "COS_PACKAGE_READY",
     COS_COMPLETED: "COS_COMPLETED",
     COS_REJECTED: "COS_REJECTED",
@@ -62,13 +67,18 @@ export class COSProductFlow extends BaseProductFlow {
     {
       id: COSProductFlow.STATUSS.COS_ADMIN_SCREENING,
       label: "Triagem: Revisão de Documentos",
-      description: "Revisão manual dos 6 itens obrigatórios pelo administrador.",
+      description: "Revisão manual dos itens obrigatórios pelo administrador.",
     },
     // Phase 3
     {
       id: COSProductFlow.STATUSS.COS_OFFICIAL_FORMS,
       label: "Formulários: I-539 / I-539A",
       description: "Preenchimento e upload dos formulários oficiais da USCIS.",
+    },
+    {
+      id: COSProductFlow.STATUSS.COS_OFFICIAL_FORMS_REVIEW,
+      label: "Revisão: I-539 / I-539A",
+      description: "Revisão administrativa dos formulários oficiais assinados.",
     },
     // Phase 4
     {
@@ -94,14 +104,34 @@ export class COSProductFlow extends BaseProductFlow {
       description: "Upload do formulário I-20 para vistos de estudante.",
     },
     {
+      id: COSProductFlow.STATUSS.COS_F1_I20_REVIEW,
+      label: "F1: Revisão I-20",
+      description: "Revisão administrativa do formulário I-20.",
+    },
+    {
       id: COSProductFlow.STATUSS.COS_F1_SEVIS,
       label: "F1: Taxa SEVIS",
       description: "Pagamento e comprovante da taxa SEVIS ($350).",
     },
+    {
+      id: COSProductFlow.STATUSS.COS_SEVIS_FEE_REVIEW,
+      label: "F1: Revisão SEVIS",
+      description: "Revisão administrativa do comprovante SEVIS.",
+    },
     // Phase 6
     {
+      id: COSProductFlow.STATUSS.COS_FINAL_FORMS,
+      label: "Consolidação: G-1145 / G-1450",
+      description: "Preenchimento e upload dos formulários de notificação e pagamento.",
+    },
+    {
+      id: COSProductFlow.STATUSS.COS_FINAL_FORMS_REVIEW,
+      label: "Revisão: Formulários Finais",
+      description: "Revisão administrativa dos formulários finais.",
+    },
+    {
       id: COSProductFlow.STATUSS.COS_PACKAGE_READY,
-      label: "Consolidação: Package Final",
+      label: "Pronto: Pacote Finalizado",
       description: "Geração do pacote único (PDF) seguindo a ordem da USCIS.",
     },
     {
@@ -126,6 +156,14 @@ export class COSProductFlow extends BaseProductFlow {
     // Phase 4 loop: Webhook -> Admin Review
     if (from === COSProductFlow.STATUSS.COS_COVER_LETTER_WEBHOOK && to === COSProductFlow.STATUSS.COS_COVER_LETTER_ADMIN_REVIEW) return true;
     
+    // Phase 5 review transitions
+    if (from === COSProductFlow.STATUSS.COS_F1_I20 && to === COSProductFlow.STATUSS.COS_F1_I20_REVIEW) return true;
+    if (from === COSProductFlow.STATUSS.COS_F1_I20_REVIEW && to === COSProductFlow.STATUSS.COS_F1_SEVIS) return true;
+    if (from === COSProductFlow.STATUSS.COS_F1_SEVIS && to === COSProductFlow.STATUSS.COS_SEVIS_FEE_REVIEW) return true;
+    if (from === COSProductFlow.STATUSS.COS_SEVIS_FEE_REVIEW && to === COSProductFlow.STATUSS.COS_FINAL_FORMS) return true;
+    if (from === COSProductFlow.STATUSS.COS_FINAL_FORMS && to === COSProductFlow.STATUSS.COS_FINAL_FORMS_REVIEW) return true;
+    if (from === COSProductFlow.STATUSS.COS_FINAL_FORMS_REVIEW && to === COSProductFlow.STATUSS.COS_PACKAGE_READY) return true;
+    
     // Ensure sequential flow for initial onboarding tasks
     const fromIndex = this.steps.findIndex(s => s.id === from);
     const toIndex = this.steps.findIndex(s => s.id === to);
@@ -139,26 +177,39 @@ export class COSProductFlow extends BaseProductFlow {
   }
 
   // Helper for dependent validation as requested in business logic
-  public static validateDependent(birthDate: string, marriageDate?: string): { isEligible: boolean; alerts: string[] } {
-    const alerts: string[] = [];
+  public static validateDependent(birthDate: string, relationship: string, marriageDate?: string): { alerts: ("marriageAge" | "agingOut")[] } {
+    const alerts: ("marriageAge" | "agingOut")[] = [];
+    if (!birthDate) return { alerts };
+
     const birth = new Date(birthDate);
     const now = new Date();
-    const age = now.getFullYear() - birth.getFullYear();
-
-    // Lógica 1: Filhos a menos de 1 ano de fazer 21 anos
-    if (age >= 20 && age < 21) {
-      alerts.push("Alerta: Dependente próximo de completar 21 anos (necessita nova aplicação em breve).");
+    
+    // Exact age calculation
+    let age = now.getFullYear() - birth.getFullYear();
+    const m = now.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) {
+        age--;
     }
 
-    // Lógica 2: Casamento após 18 anos
+    // Logic 1: Children nearing 21 (aging out)
+    if (relationship === "child" && age >= 20) {
+      alerts.push("agingOut");
+    }
+
+    // Logic 2: Marriage after 18 (potential ineligibility for step-children or specific cases)
     if (marriageDate) {
       const marriage = new Date(marriageDate);
-      const ageAtMarriage = marriage.getFullYear() - birth.getFullYear();
-      if (ageAtMarriage < 18) {
-        alerts.push("Alerta de Elegibilidade: Casamento realizado antes dos 18 anos do dependente.");
+      let ageAtMarriage = marriage.getFullYear() - birth.getFullYear();
+      const mm = marriage.getMonth() - birth.getMonth();
+      if (mm < 0 || (mm === 0 && marriage.getDate() < birth.getDate())) {
+          ageAtMarriage--;
+      }
+      
+      if (ageAtMarriage >= 18) {
+        alerts.push("marriageAge");
       }
     }
 
-    return { isEligible: true, alerts };
+    return { alerts };
   }
 }

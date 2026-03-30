@@ -28,6 +28,8 @@ import {
   Trophy,
   Phone,
   CheckSquare,
+  Wand2,
+  PenLine,
 } from "lucide-react";
 import {
   Dialog,
@@ -56,6 +58,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/presentation/components/atoms/accordion";
+import { cn } from "@/lib/utils";
 
 interface Order {
   id: string;
@@ -95,6 +98,7 @@ interface ProcessDocument {
   storage_path: string;
   bucket_id: string | null;
   status: string | null;
+  feedback?: string | null;
   created_at: string;
 }
 
@@ -171,6 +175,12 @@ export default function AdminProcessDetail() {
   const [isViewDocsModalOpen, setIsViewDocsModalOpen] = useState(false);
   const [correctionNotes, setCorrectionNotes] = useState("");
   const { lang } = useLanguage();
+
+  // COS-specific state
+  const [cosRejectionNote, setCosRejectionNote] = useState("");
+  const [individualRejectionNotes, setIndividualRejectionNotes] = useState<Record<string, string>>({});
+  const [cosGeneratingCoverLetter, setCosGeneratingCoverLetter] = useState(false);
+  const [cosCoverLetterHtml, setCosCoverLetterHtml] = useState<string | null>(null);
 
   const handleOpenDocAdmin = async (doc: ProcessDocument) => {
     try {
@@ -741,48 +751,138 @@ export default function AdminProcessDetail() {
 
         <div className="space-y-4 pt-4 border-t border-border">
           <div className="flex items-center justify-between px-1">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-              Documentos Anexados
-            </h4>
-            <Badge variant="outline" className="text-[9px] h-5 px-2 bg-accent/5 border-accent/20 text-accent font-bold">
-              {processDocs.length} ARQUIVOS
-            </Badge>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-accent" />
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Documentos Anexados
+              </h4>
+            </div>
+            {processDocs.filter(d => d.status !== "approved").length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-3 text-[9px] font-bold uppercase tracking-tighter border-accent/30 text-accent hover:bg-accent/5"
+                onClick={() => handleApproveAllDocs(processDocs.filter(d => d.status !== "approved").map(d => d.id))}
+                disabled={isSaving}
+              >
+                {isSaving ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <CheckSquare className="h-3 w-3 mr-1" />}
+                Aprovar Todos
+              </Button>
+            )}
           </div>
 
-          <div className="grid gap-2">
+          <div className="grid gap-3">
             {processDocs.length > 0 ? (
-              processDocs.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="group flex items-center justify-between p-3 bg-white dark:bg-slate-900 border border-border rounded-xl hover:border-accent/30 hover:bg-accent/[0.02] transition-all cursor-pointer shadow-sm"
-                  onClick={() => handleOpenDocAdmin(doc)}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-8 w-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-accent/10 group-hover:text-accent transition-colors">
-                      <FileText className="h-4 w-4" />
+              processDocs.map((doc) => {
+                 const isApproved = doc.status === "approved";
+                 const isRejected = doc.status === "resubmit";
+                 const currentNote = individualRejectionNotes[doc.id] || "";
+
+                 return (
+                  <Card key={doc.id} className="p-3 bg-white dark:bg-slate-900 border border-border shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={cn(
+                          "h-8 w-8 rounded-lg flex items-center justify-center",
+                          isApproved ? "bg-green-100 text-green-600" :
+                          isRejected ? "bg-red-100 text-red-600" :
+                          "bg-blue-100 text-blue-600"
+                        )}>
+                          <FileText className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate tracking-tight uppercase">
+                            {doc.name === "ds160_assinada"
+                              ? "ASSINADA"
+                              : doc.name === "ds160_comprovante"
+                                ? "COMPROVANTE"
+                              : doc.name === "ds160_comprovante_sevis"
+                                ? "COMPROVANTE SEVIS"
+                                  : doc.name === "ds160_boleto"
+                                    ? "BOLETO"
+                                    : doc.name
+                                        .replace(/ds160_?|DS160_?/gi, "")
+                                        .replace(/_/g, " ")
+                                        .toUpperCase()}
+                          </p>
+                          <p className="text-[8px] text-muted-foreground uppercase font-bold">
+                            Status: {isApproved ? "Aprovado" : isRejected ? "Rejeitado" : "Pendente"}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-[9px] font-bold uppercase text-blue-600 hover:text-blue-700 hover:bg-blue-50 flex gap-1"
+                          onClick={() => handleOpenDocAdmin(doc)}
+                        >
+                          <Eye className="h-3 w-3" />
+                          Visualizar
+                        </Button>
+                        {!isApproved && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-[9px] font-bold uppercase text-green-600 hover:text-green-700 hover:bg-green-50 flex gap-1"
+                            onClick={() => handleApproveIndividualDoc(doc)}
+                          >
+                            <CheckCircle2 className="h-3 w-3" />
+                            Aprovar
+                          </Button>
+                        )}
+                        {!isApproved && !isRejected && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-[9px] font-bold uppercase text-red-600 hover:text-red-700 hover:bg-red-50 flex gap-1"
+                            onClick={() => {
+                              const input = document.getElementById(`reject-input-main-${doc.id}`);
+                              input?.focus();
+                            }}
+                          >
+                            <XCircle className="h-3 w-3" />
+                            Reprovar
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate tracking-tight uppercase">
-                        {doc.name === "ds160_assinada"
-                          ? "ASSINADA"
-                          : doc.name === "ds160_comprovante"
-                            ? "COMPROVANTE"
-                          : doc.name === "ds160_comprovante_sevis"
-                            ? "COMPROVANTE SEVIS"
-                              : doc.name === "ds160_boleto"
-                                ? "BOLETO"
-                                : doc.name
-                                    .replace(/ds160_?|DS160_?/gi, "")
-                                    .replace(/_/g, " ")
-                                    .toUpperCase()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground group-hover:text-accent group-hover:bg-accent/5 transition-all">
-                    <Eye className="h-3.5 w-3.5" />
-                  </div>
-                </div>
-              ))
+
+                    {!isApproved && (
+                      <div className="mt-2 space-y-2 border-t border-slate-50 pt-2 pb-1">
+                        <label className="text-[9px] font-bold uppercase text-muted-foreground ml-1">
+                          Motivo da Reprova
+                        </label>
+                        <div className="flex gap-2">
+                          <Input
+                            id={`reject-input-main-${doc.id}`}
+                            placeholder="Descreva o motivo da recusa..."
+                            className="h-8 text-[10px] bg-background"
+                            value={currentNote}
+                            onChange={(e) => setIndividualRejectionNotes(prev => ({ ...prev, [doc.id]: e.target.value }))}
+                          />
+                          <Button
+                            size="sm"
+                            className="h-8 px-3 bg-red-600 hover:bg-red-700 text-[10px] font-bold uppercase"
+                            onClick={() => handleRejectIndividualDoc(doc)}
+                            disabled={!currentNote}
+                          >
+                            CONFIRMAR REPROVA
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {doc.feedback && isRejected && (
+                      <div className="mt-2 px-2 py-1 bg-red-50 border border-red-100 rounded-md">
+                        <p className="text-[8px] text-red-700 font-bold uppercase">Feedback Ativo:</p>
+                        <p className="text-[9px] text-red-600 italic">{doc.feedback}</p>
+                      </div>
+                    )}
+                  </Card>
+                );
+              })
             ) : (
               <div className="p-8 border border-dashed border-muted rounded-xl text-center bg-muted/5">
                 <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
@@ -907,10 +1007,716 @@ export default function AdminProcessDetail() {
     );
   };
 
+  // ─────────────────────────────────────────────
+  // COS Admin Handlers
+  // ─────────────────────────────────────────────
+
+  const handleCOSApprove = async (nextStatus: string) => {
+    if (!order?.user_service_id) return;
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_services")
+        .update({ status: nextStatus })
+        .eq("id", order.user_service_id);
+      if (error) throw error;
+      toast({ title: "Aprovado!", description: `Status atualizado para ${nextStatus}.` });
+      fetchProcessData();
+    } catch (err) {
+      const e = err as Error;
+      toast({ title: "Erro ao aprovar", description: e.message, variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCOSReject = async () => {
+    if (!order?.user_service_id) return;
+    setIsSaving(true);
+    try {
+      const currentStatus = order.service_status || "";
+      // Determine the previous client-facing step based on current admin review status
+      let rejectToStatus = "COS_ADMIN_SCREENING";
+      if (currentStatus === "COS_OFFICIAL_FORMS_REVIEW") rejectToStatus = "COS_OFFICIAL_FORMS";
+      if (currentStatus === "COS_COVER_LETTER_ADMIN_REVIEW") rejectToStatus = "COS_COVER_LETTER_FORM";
+      if (currentStatus === "COS_F1_I20_REVIEW") rejectToStatus = "COS_F1_I20";
+      if (currentStatus === "COS_SEVIS_FEE_REVIEW") rejectToStatus = "COS_F1_SEVIS";
+      if (currentStatus === "COS_FINAL_FORMS_REVIEW") rejectToStatus = "COS_FINAL_FORMS";
+
+      const { error } = await supabase
+        .from("user_services")
+        .update({ status: rejectToStatus })
+        .eq("id", order.user_service_id);
+      if (error) throw error;
+      toast({ title: "Rejeitado", description: "O cliente será solicitado a reenviar." });
+      setCosRejectionNote("");
+      fetchProcessData();
+    } catch (err) {
+      const e = err as Error;
+      toast({ title: "Erro ao rejeitar", description: e.message, variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleGenerateCoverLetter = async (coverLetterData: Record<string, unknown>) => {
+    if (!order?.user_service_id) return;
+    setCosGeneratingCoverLetter(true);
+    try {
+      const webhookUrl = import.meta.env.VITE_N8N_BOT_COVERLATTER;
+      if (!webhookUrl) throw new Error("URL do webhook n8n não configurada (VITE_N8N_BOT_COVERLATTER).");
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userServiceId: order.user_service_id, formData: coverLetterData }),
+      });
+      if (!response.ok) throw new Error(`Erro do n8n: ${response.status} ${response.statusText}`);
+      const result = await response.json();
+      const html: string = result.html ?? result.content ?? result.text ?? "";
+      if (!html) throw new Error("n8n não retornou conteúdo HTML.");
+      setCosCoverLetterHtml(html);
+    } catch (err) {
+      const e = err as Error;
+      toast({ title: "Erro ao gerar cover letter", description: e.message, variant: "destructive" });
+    } finally {
+      setCosGeneratingCoverLetter(false);
+    }
+  };
+
+  const handleApproveCoverLetter = async (html: string, nextStatus: string) => {
+    if (!order?.user_service_id) return;
+    setIsSaving(true);
+    try {
+      const existingMeta = (order.specialist_review_data as Record<string, unknown>) ?? {};
+
+      // 1. Save status + HTML to user_services
+      const { error } = await supabase
+        .from("user_services")
+        .update({
+          status: nextStatus,
+          specialist_review_data: { ...existingMeta, cover_letter_html: html },
+        })
+        .eq("id", order.user_service_id);
+      if (error) throw error;
+
+      // 2. Generate PDF from HTML and save to documents table
+      try {
+        const { error: fnErr } = await supabase.functions.invoke("cover-letter-pdf", {
+          body: {
+            html,
+            userServiceId: order.user_service_id,
+            clientUserId: order.user_id,
+          },
+        });
+        if (fnErr) {
+          console.warn("Cover letter PDF generation failed (non-blocking):", fnErr.message);
+        }
+      } catch (fnCatchErr) {
+        console.warn("Cover letter PDF function error (non-blocking):", fnCatchErr);
+      }
+
+      toast({ title: "Cover Letter aprovada!", description: "Conteúdo salvo, PDF gerado e etapa avançada." });
+      setCosCoverLetterHtml(null);
+      fetchProcessData();
+    } catch (err) {
+      const e = err as Error;
+      toast({ title: "Erro ao aprovar", description: e.message, variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
+  const handleApproveIndividualDoc = async (doc: ProcessDocument) => {
+    try {
+      await supabase.from("documents").update({ status: "approved" }).eq("id", doc.id);
+      toast({ title: "Documento aprovado" });
+      fetchProcessData();
+    } catch (err) {
+      const e = err as Error;
+      toast({ title: "Erro", description: e.message, variant: "destructive" });
+    }
+  };
+
+  const handleRejectIndividualDoc = async (doc: ProcessDocument) => {
+    const note = individualRejectionNotes[doc.id] || individualRejectionNotes[doc.name] || "";
+    if (!note) {
+      toast({ title: "Informe o motivo", description: "É necessário informar o motivo da recusa.", variant: "destructive" });
+      return;
+    }
+    try {
+      await supabase.from("documents").update({ status: "resubmit", feedback: note }).eq("id", doc.id);
+      toast({ title: "Documento rejeitado" });
+      setIndividualRejectionNotes(prev => { 
+        const n = { ...prev }; 
+        delete n[doc.id]; 
+        delete n[doc.name]; 
+        return n; 
+      });
+      fetchProcessData();
+    } catch (err) {
+      const e = err as Error;
+      toast({ title: "Erro", description: e.message, variant: "destructive" });
+    }
+  };
+
+  const handleApproveAllDocs = async (docIds: string[]) => {
+    if (docIds.length === 0) return;
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("documents")
+        .update({ status: "approved" })
+        .in("id", docIds);
+      
+      if (error) throw error;
+      toast({ title: "Sucesso", description: "Todos os documentos foram aprovados." });
+      fetchProcessData();
+    } catch (err) {
+      const e = err as Error;
+      toast({ title: "Erro ao aprovar todos", description: e.message, variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // ─────────────────────────────────────────────
+  // COS Admin UI Render Functions
+  // ─────────────────────────────────────────────
+
+  const renderCOSDocumentChecklist = (
+    docTypes: { id: string; label: string; required?: boolean }[],
+    approveNextStatus: string
+  ) => {
+    const uploadedDocsInChecklist = docTypes.filter(dt => processDocs.find(d => d.name === dt.id));
+    const allApproved = uploadedDocsInChecklist.length > 0 && uploadedDocsInChecklist.every(dt => {
+      const doc = processDocs.find(d => d.name === dt.id);
+      return doc?.status === "approved";
+    });
+
+    const pendingDocIds = docTypes
+      .map(dt => processDocs.find(d => d.name === dt.id))
+      .filter(d => d && d.status !== "approved")
+      .map(d => d!.id);
+
+    return (
+      <div className="space-y-4">
+        <Card className="border-border bg-card shadow-sm">
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-accent" />
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-accent">
+                Checklist de Documentos
+              </h4>
+            </div>
+            {pendingDocIds.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-3 text-[9px] font-bold uppercase tracking-tighter border-accent/30 text-accent hover:bg-accent/5"
+                onClick={() => handleApproveAllDocs(pendingDocIds)}
+                disabled={isSaving}
+              >
+                {isSaving ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <CheckSquare className="h-3 w-3 mr-1" />}
+                Aprovar Todos
+              </Button>
+            )}
+          </div>
+          <div className="divide-y divide-border">
+            {docTypes.map(docType => {
+              const doc = processDocs.find(d => d.name === docType.id);
+              const isApproved = doc?.status === "approved";
+              const isRejected = doc?.status === "resubmit";
+              const currentNote = individualRejectionNotes[doc?.id || docType.id] || "";
+
+              return (
+                <div key={docType.id} className="p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "h-8 w-8 rounded-lg flex items-center justify-center",
+                        isApproved ? "bg-green-100 text-green-600" :
+                        isRejected ? "bg-red-100 text-red-600" :
+                        doc ? "bg-blue-100 text-blue-600" : "bg-slate-100 text-slate-400"
+                      )}>
+                        {isApproved ? <CheckCircle2 className="h-4 w-4" /> :
+                         isRejected ? <XCircle className="h-4 w-4" /> :
+                         doc ? <Clock className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+                      </div>
+                      <div>
+                  <p className="text-[11px] font-bold uppercase tracking-tight">{docType.label}</p>
+                  <p className="text-[9px] text-muted-foreground uppercase font-medium">
+                    {isApproved ? "Aprovado" : isRejected ? "Rejeitado" : doc ? "Aguardando Revisão" : "Pendente de Upload"}
+                  </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      {doc && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-[9px] font-bold uppercase text-blue-600 hover:text-blue-700 hover:bg-blue-50 flex gap-1"
+                            onClick={() => handleOpenDocAdmin(doc)}
+                          >
+                            <Eye className="h-3 w-3" />
+                            Visualizar
+                          </Button>
+                          {!isApproved && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-[9px] font-bold uppercase text-green-600 hover:text-green-700 hover:bg-green-50 flex gap-1"
+                              onClick={() => handleApproveIndividualDoc(doc)}
+                            >
+                              <CheckCircle2 className="h-3 w-3" />
+                              Aprovar
+                            </Button>
+                          )}
+                          {!isApproved && !isRejected && (
+                             <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-[9px] font-bold uppercase text-red-600 hover:text-red-700 hover:bg-red-50 flex gap-1"
+                              onClick={() => {
+                                const input = document.getElementById(`reject-input-${docType.id}`);
+                                input?.focus();
+                              }}
+                            >
+                              <XCircle className="h-3 w-3" />
+                              Reprovar
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Rejection Note Input */}
+                  {doc && !isApproved && (
+                    <div className="px-1 flex flex-col gap-2">
+                       <label className="text-[9px] font-bold uppercase text-muted-foreground ml-1">
+                        Motivo da Reprova
+                      </label>
+                      <div className="flex gap-2">
+                        <Input
+                          id={`reject-input-${docType.id}`}
+                          placeholder="Descreva o problema com este documento..."
+                          className="h-8 text-[10px] bg-background"
+                          value={currentNote}
+                          onChange={(e) => setIndividualRejectionNotes(prev => ({ ...prev, [doc.id || docType.id]: e.target.value }))}
+                        />
+                        <Button
+                          size="sm"
+                          className="h-8 px-3 bg-red-600 hover:bg-red-700 text-[10px] font-bold uppercase"
+                          onClick={() => handleRejectIndividualDoc(doc)}
+                          disabled={!currentNote}
+                        >
+                          CONFIRMAR REPROVA
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {doc?.feedback && isRejected && (
+                    <div className="px-3 py-1.5 bg-red-50 border border-red-100 rounded-lg">
+                      <p className="text-[9px] text-red-700 font-bold uppercase">Feedback Ativo:</p>
+                      <p className="text-[10px] text-red-600 italic">{doc.feedback}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+
+        <div className="flex gap-4 pt-4 border-t border-border">
+          <Button
+            className="flex-1 h-12 gap-2 font-bold text-[10px] uppercase tracking-widest bg-accent hover:bg-green-dark"
+            onClick={() => handleCOSApprove(approveNextStatus)}
+            disabled={isSaving || !allApproved}
+          >
+            {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+            APROVAR E AVANÇAR
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderCOSScreeningUI = () => {
+    const formStep = onboardingResponses.find(r => r.step_slug === "cos-form");
+    const formData = formStep?.data as Record<string, unknown> | undefined;
+
+    // Define all possible documents according to ChangeOfStatusDocumentsStep
+    const docTypes: { id: string; label: string }[] = [
+      { id: "cos_photo", label: "Foto Inicial (Principal)" },
+      { id: "cos_i94", label: "Documento I-94 (Principal)" },
+      { id: "cos_passport_visa_principal", label: "Passaporte e Visto (Principal)" },
+      { id: "cos_proof_of_residence_brazil", label: "Comprovante de Residência (Brasil)" },
+      { id: "cos_bank_statement", label: "Extrato Bancário / Prova de Fundos" },
+    ];
+
+    // Add family ties if dependents exist
+    if (formData?.dependents && Array.isArray(formData.dependents) && formData.dependents.length > 0) {
+      docTypes.push({ id: "cos_marriage_certificate", label: "Certidão de Casamento" });
+      docTypes.push({ id: "cos_birth_certificate", label: "Certidões de Nascimento dos Filhos" });
+
+      // Add dependent-specific documents
+      formData.dependents.forEach((dep: any, idx: number) => {
+        const depName = dep.name || `Dependente ${idx + 1}`;
+        docTypes.push({ id: `cos_i94_dependent_${idx}`, label: `I-94 de ${depName}` });
+        docTypes.push({ id: `cos_passport_visa_dependent_${idx}`, label: `Passaporte/Visto de ${depName}` });
+      });
+    }
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-3 p-4 bg-accent/5 rounded-md border border-accent/20">
+          <ShieldCheck className="h-5 w-5 text-accent" />
+          <div>
+            <p className="text-sm font-bold text-accent uppercase tracking-widest">Triagem Inicial (COS)</p>
+            <p className="text-xs text-muted-foreground">Revise os dados e todos os documentos enviados.</p>
+          </div>
+        </div>
+
+        {/* Form Data Summary */}
+        {formData && (
+          <div className="space-y-3">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Dados do Formulário</h4>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: "Visto Atual", value: formData.currentVisa },
+                { label: "Visto Destino", value: formData.targetVisa },
+                { label: "Status I-94", value: formData.i94Status },
+                { label: "Dependentes", value: Array.isArray(formData.dependents) ? `${(formData.dependents as unknown[]).length} pessoa(s)` : "Nenhum" },
+              ].map(item => (
+                <div key={item.label} className="p-3 bg-muted/30 rounded-lg">
+                  <p className="text-[9px] font-black uppercase text-muted-foreground">{item.label}</p>
+                  <p className="text-[11px] font-bold text-foreground mt-0.5">{String(item.value || "—")}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Dependents */}
+        {formData?.dependents && Array.isArray(formData.dependents) && (formData.dependents as unknown[]).length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Dependentes Cadastrados</h4>
+            {(formData.dependents as Array<Record<string, unknown>>).map((dep, idx) => (
+              <div key={idx} className="p-3 bg-muted/20 rounded-lg border border-border text-xs space-y-1">
+                <p className="font-bold">{String(dep.name || "—")}</p>
+                <p className="text-muted-foreground">Relação: {String(dep.relationship || "—")} · Nascimento: {String(dep.birthDate || "—")}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Standardized Checklist (Full List) */}
+        <div className="space-y-3">
+          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Revisão de Documentos</h4>
+          {renderCOSDocumentChecklist(docTypes, "COS_OFFICIAL_FORMS")}
+        </div>
+      </div>
+    );
+  };
+
+  const renderCOSOfficialFormsReviewUI = () => {
+    return renderCOSDocumentChecklist(
+      [{ id: "cos_i539", label: "Formulário I-539 Assinado" }],
+      "COS_COVER_LETTER_FORM"
+    );
+  };
+
+  const renderCOSCoverLetterReviewUI = () => {
+    const formStep = onboardingResponses.find(r => r.step_slug === "cos-cover-letter");
+    const coverLetterData = formStep?.data as Record<string, unknown> | undefined;
+
+    const visaInfoStep = onboardingResponses.find(r => r.step_slug === "cos-form");
+    const targetVisa = String((visaInfoStep?.data as Record<string, unknown>)?.targetVisa || "");
+    const isF1F2 = targetVisa.toLowerCase().includes("f1") || targetVisa.toLowerCase().includes("f2");
+    const approveNextStatus = isF1F2 ? "COS_F1_I20" : "COS_FINAL_FORMS";
+
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-3 p-4 bg-accent/5 rounded-md border border-accent/20">
+          <FileText className="h-5 w-5 text-accent" />
+          <div>
+            <p className="text-sm font-bold text-accent uppercase tracking-widest">Revisão da Cover Letter</p>
+            <p className="text-xs text-muted-foreground">
+              Visto destino: <strong>{targetVisa || "não identificado"}</strong>
+              {isF1F2 ? " → Próxima: I-20 + SEVIS" : " → Próxima: Formulários Finais"}
+            </p>
+          </div>
+        </div>
+
+        <Tabs defaultValue="responses" className="w-full">
+          <TabsList className="w-full grid grid-cols-2">
+            <TabsTrigger value="responses">Respostas do Questionário</TabsTrigger>
+            <TabsTrigger value="editor" disabled={!cosCoverLetterHtml}>
+              <PenLine className="h-3.5 w-3.5 mr-1.5" />
+              Editar Cover Letter
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Tab 1 – Respostas + botão gerar */}
+          <TabsContent value="responses" className="mt-4 space-y-4">
+            {coverLetterData && Object.keys(coverLetterData).length > 0 ? (
+              <div className="max-h-64 overflow-y-auto space-y-1 pr-1 border border-border rounded-xl p-2 bg-muted/5">
+                {Object.entries(coverLetterData).map(([key, value]) => (
+                  <div key={key} className="flex gap-2 p-2 bg-white dark:bg-slate-900 border border-slate-100 rounded-lg text-[10px]">
+                    <span className="font-bold uppercase text-muted-foreground min-w-[140px]">{key.replace(/_/g, " ")}:</span>
+                    <span className="text-foreground">{String(value)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhuma resposta do questionário encontrada.</p>
+            )}
+
+            <Button
+              className="w-full gap-2"
+              onClick={() => handleGenerateCoverLetter(coverLetterData ?? {})}
+              disabled={cosGeneratingCoverLetter}
+            >
+              {cosGeneratingCoverLetter
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> Gerando via IA...</>
+                : <><Wand2 className="h-4 w-4" /> Gerar Cover Letter</>
+              }
+            </Button>
+
+            {cosCoverLetterHtml && (
+              <p className="text-xs text-center text-green-600 font-medium">
+                ✓ Cover letter gerada — acesse a aba "Editar Cover Letter" para revisar e aprovar.
+              </p>
+            )}
+          </TabsContent>
+
+          {/* Tab 2 – Editor visual + aprovar */}
+          <TabsContent value="editor" className="mt-4 space-y-4">
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Conteúdo gerado — clique para editar
+              </p>
+              {/* Editor WYSIWYG via contentEditable */}
+              <div
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={(e) => setCosCoverLetterHtml(e.currentTarget.innerHTML)}
+                dangerouslySetInnerHTML={{ __html: cosCoverLetterHtml ?? "" }}
+                className={cn(
+                  "min-h-[400px] rounded-xl border border-border bg-white dark:bg-slate-950 p-6 text-sm",
+                  "focus:outline-none focus:ring-2 focus:ring-primary/40",
+                  "overflow-y-auto",
+                  // Prose-like styling for the rendered HTML
+                  "[&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4",
+                  "[&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-3 [&_h2]:mt-4",
+                  "[&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:mt-3",
+                  "[&_p]:mb-3 [&_p]:leading-relaxed",
+                  "[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-3",
+                  "[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-3",
+                  "[&_li]:mb-1",
+                  "[&_strong]:font-semibold",
+                  "[&_em]:italic",
+                  "[&_br]:block",
+                )}
+              />
+              <p className="text-[10px] text-muted-foreground">
+                Edições são salvas ao sair do campo (onBlur). Formatação HTML é renderizada visualmente.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 border-t pt-4">
+              <Button
+                className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => handleApproveCoverLetter(cosCoverLetterHtml!, approveNextStatus)}
+                disabled={isSaving || !cosCoverLetterHtml}
+              >
+                {isSaving
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Salvando...</>
+                  : <><CheckCircle2 className="h-4 w-4" /> Aprovar e Salvar</>
+                }
+              </Button>
+              <p className="text-[10px] text-muted-foreground text-center">
+                Salva o conteúdo e avança para: <strong>{approveNextStatus}</strong>
+              </p>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  };
+
+  const renderCOSI20ReviewUI = () => {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-md border border-blue-200">
+          <Info className="h-5 w-5 text-blue-600" />
+          <div>
+            <p className="text-sm font-bold text-blue-800 uppercase tracking-widest">Revisão do I-20 (F1)</p>
+            <p className="text-xs text-blue-600">Verifique o formulário I-20 enviado pelo cliente.</p>
+          </div>
+        </div>
+        {renderCOSDocumentChecklist(
+          [{ id: "cos_i20_official", label: "Formulário I-20" }],
+          "COS_F1_SEVIS"
+        )}
+      </div>
+    );
+  };
+
+  const renderCOSSEVISReviewUI = () => {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-md border border-blue-200">
+          <CreditCard className="h-5 w-5 text-blue-600" />
+          <div>
+            <p className="text-sm font-bold text-blue-800 uppercase tracking-widest">Revisão da Taxa SEVIS (F1)</p>
+            <p className="text-xs text-blue-600">Comprovante de pagamento da taxa SEVIS ($350).</p>
+          </div>
+        </div>
+
+        {renderCOSDocumentChecklist(
+          [{ id: "cos_sevis_voucher", label: "Comprovante SEVIS" }],
+          "COS_FINAL_FORMS"
+        )}
+      </div>
+    );
+  };
+
+  const renderCOSFinalFormsReviewUI = () => {
+    const g1145Doc = processDocs.find(d => d.name === "cos_g1145");
+    const g1450Doc = processDocs.find(d => d.name === "cos_g1450");
+    const packageDoc = processDocs.find(d => d.name === "cos_package");
+
+    const allUploaded = !!(g1145Doc && g1450Doc);
+
+    // Determine final step index based on visa type
+    const visaInfoStep = onboardingResponses.find(r => r.step_slug === "cos-form");
+    const targetVisa = String((visaInfoStep?.data as Record<string, unknown>)?.targetVisa || "");
+    const isF1F2 = targetVisa.toLowerCase().includes("f1") || targetVisa.toLowerCase().includes("f2");
+    const finalStepIndex = isF1F2 ? 7 : 5;
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-3 p-4 bg-accent/5 rounded-md border border-accent/20">
+          <CheckSquare className="h-5 w-5 text-accent" />
+          <div>
+            <p className="text-sm font-bold text-accent uppercase tracking-widest">Revisão dos Formulários Finais</p>
+            <p className="text-xs text-muted-foreground">G-1145 (notificação) e G-1450 (autorização de pagamento).</p>
+          </div>
+        </div>
+
+        {renderCOSDocumentChecklist(
+          [
+            { id: "cos_g1145", label: "Formulário G-1145" },
+            { id: "cos_g1450", label: "Formulário G-1450" },
+          ],
+          "COS_PACKAGE_READY"
+        )}
+
+        {/* Package ready section */}
+        {allUploaded && (
+          <div className="space-y-3 pt-4 border-t border-border">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Pacote Final (PDF Unificado)</h4>
+            <div className="flex items-center justify-between p-3 bg-card border border-border rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center",
+                  packageDoc ? "bg-green-100 text-green-600" : "bg-slate-100 text-slate-400")}>
+                  {packageDoc ? <CheckCircle2 className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold uppercase">Pacote USCIS</p>
+                  <p className="text-[9px] text-muted-foreground uppercase">
+                    {packageDoc ? "Gerado e disponível" : "Aguardando geração"}
+                  </p>
+                </div>
+              </div>
+              {packageDoc && (
+                <Button variant="ghost" size="sm" className="h-7 gap-1 text-[10px] text-blue-600"
+                  onClick={() => handleOpenDocAdmin(packageDoc)}>
+                  <Eye className="h-3.5 w-3.5" /> Ver
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Main COS router
+  const renderCOSReviewUI = () => {
+    const currentStatus = order?.service_status || "";
+
+    const statusMap: Record<string, () => JSX.Element> = {
+      COS_ADMIN_SCREENING: renderCOSScreeningUI,
+      COS_OFFICIAL_FORMS_REVIEW: renderCOSOfficialFormsReviewUI,
+      COS_COVER_LETTER_ADMIN_REVIEW: renderCOSCoverLetterReviewUI,
+      COS_F1_I20_REVIEW: renderCOSI20ReviewUI,
+      COS_SEVIS_FEE_REVIEW: renderCOSSEVISReviewUI,
+      COS_FINAL_FORMS_REVIEW: renderCOSFinalFormsReviewUI,
+    };
+
+    // Client-facing waiting states
+    const waitingStates: Record<string, { title: string; desc: string }> = {
+      COS_INITIAL_PHOTO: { title: "Aguardando: Foto Inicial", desc: "O cliente precisa fazer o upload da foto inicial." },
+      COS_VISA_INFO: { title: "Aguardando: Informações do Visto", desc: "O cliente está preenchendo as informações sobre o visto atual e destino." },
+      COS_DEPENDENTS: { title: "Aguardando: Gestão de Dependentes", desc: "O cliente está cadastrando seus dependentes." },
+      COS_I94_COLLECTION: { title: "Aguardando: Coleta do I-94", desc: "O cliente está fazendo o upload do documento I-94." },
+      COS_OFFICIAL_FORMS: { title: "Aguardando: Formulário I-539", desc: "O cliente está preenchendo e assinando o formulário I-539." },
+      COS_COVER_LETTER_FORM: { title: "Aguardando: Questionário Cover Letter", desc: "O cliente está respondendo ao questionário para geração da carta." },
+      COS_COVER_LETTER_WEBHOOK: { title: "Processando: Gerando Cover Letter", desc: "O sistema está gerando a cover letter via IA. Aguarde." },
+      COS_F1_I20: { title: "Aguardando: Upload do I-20", desc: "O cliente precisa fazer o upload do formulário I-20." },
+      COS_F1_SEVIS: { title: "Aguardando: Comprovante SEVIS", desc: "O cliente precisa pagar e enviar o comprovante da taxa SEVIS." },
+      COS_FINAL_FORMS: { title: "Aguardando: Formulários G-1145 / G-1450", desc: "O cliente está fazendo upload dos formulários finais." },
+      COS_PACKAGE_READY: { title: "Pacote Finalizado", desc: "O pacote final foi gerado e está disponível para o cliente." },
+      COS_COMPLETED: { title: "Processo Concluído", desc: "O processo de Mudança de Status foi finalizado com sucesso." },
+      COS_REJECTED: { title: "Processo Rejeitado", desc: "Este processo foi encerrado por negativa ou cancelamento." },
+    };
+
+    if (statusMap[currentStatus]) {
+      return statusMap[currentStatus]();
+    }
+
+    if (waitingStates[currentStatus]) {
+      const { title, desc } = waitingStates[currentStatus];
+      const isCompleted = currentStatus === "COS_COMPLETED" || currentStatus === "COS_PACKAGE_READY";
+      const isRejected = currentStatus === "COS_REJECTED";
+      return (
+        <div className="space-y-4">
+          <div className={cn(
+            "flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-3xl text-center",
+            isCompleted ? "border-green-200 bg-green-50" :
+            isRejected ? "border-red-200 bg-red-50" :
+            "border-accent rounded-3xl bg-accent/5"
+          )}>
+            <Clock className={cn("h-12 w-12 mb-4",
+              isCompleted ? "text-green-500" :
+              isRejected ? "text-red-500" :
+              "text-accent animate-pulse")} />
+            <h3 className="text-lg font-bold text-foreground mb-2">{title}</h3>
+            <p className="text-sm text-muted-foreground max-w-[320px] leading-relaxed">{desc}</p>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   const renderStatusContent = () => {
     const sched = onboardingResponses.find((r) => r.step_slug === "casv_scheduling");
     const schedData = sched?.data as any;
     const preferredDate = schedData?.preferred_date;
+
+    // COS product routing
+    if (status.startsWith("COS_")) {
+      return renderCOSReviewUI();
+    }
 
     switch (status) {
       case "ds160InProgress":

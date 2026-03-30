@@ -1,1 +1,7 @@
 project_id = "nkhblkilekfpqhyuhrrj"
+[functions.fill-i539]
+enabled = true
+verify_jwt = false
+import_map = "./functions/fill-i539/deno.json"
+entrypoint = "./functions/fill-i539/index.ts"
+static_files = [ "./functions/fill-i539/i-539.pdf", "./functions/fill-i539/i-539a.pdf" ]

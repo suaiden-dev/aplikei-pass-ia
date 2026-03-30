@@ -8,6 +8,8 @@ export interface UploadedDocument {
     path: string;
     id?: string;
     bucket_id?: string;
+    status?: string | null;
+    feedback?: string | null;
 }
 
 export interface StepProps {

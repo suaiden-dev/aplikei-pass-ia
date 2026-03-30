@@ -1073,6 +1073,16 @@ export const translations = {
         pt: "Processando DS-160",
         es: "Procesando DS-160",
       },
+      cosInProgress: {
+        en: "Onboarding: Info & Photo",
+        pt: "Onboarding: Informações e Foto",
+        es: "Onboarding: Información y Foto",
+      },
+      cosProcessing: {
+        en: "Reviewing Application",
+        pt: "Revisando Solicitação",
+        es: "Revisando Solicitud",
+      },
       ds160uploadDocuments: {
         en: "3. Upload Documents",
         pt: "3. Anexar Documentos",
@@ -1704,6 +1714,11 @@ export const translations = {
         pt: "Processando DS-160",
         es: "Procesando DS-160",
       },
+      processingCOS: {
+        en: "Processing COS Application",
+        pt: "Processando Solicitação de COS",
+        es: "Procesando Solicitud de COS",
+      },
       awaitingReview: {
         en: "Awaiting Review",
         pt: "Aguardando Revisão",
@@ -1713,6 +1728,16 @@ export const translations = {
         en: "Reviewing Documents",
         pt: "Revisando Documentos",
         es: "Revisando Documentos",
+      },
+      reviewingI20: {
+        en: "Reviewing I-20",
+        pt: "Revisando I-20",
+        es: "Revisando I-20",
+      },
+      reviewingSevis: {
+        en: "Reviewing SEVIS Proof",
+        pt: "Revisando Comprovante SEVIS",
+        es: "Revisando Comprobante SEVIS",
       },
       awaitingScheduling: {
         en: "Awaiting Scheduling",
@@ -1733,6 +1758,21 @@ export const translations = {
         en: "Our specialists are reviewing your information and preparing the official DS-160 form.",
         pt: "Nossos especialistas estão revisando suas informações e preparando o formulário DS-160 oficial.",
         es: "Nuestros especialistas están revisando su información y preparando el formulario DS-160 oficial.",
+      },
+      processingDataDescCOS: {
+        en: "Our specialists are reviewing your information and preparing the official USCIS package.",
+        pt: "Nossos especialistas estão revisando suas informações e preparando o pacote oficial do USCIS.",
+        es: "Nuestros especialistas estão revisando su informação e preparando o pacote oficial de USCIS.",
+      },
+      processingDataDescI20: {
+        en: "Our specialists are reviewing your I-20 document. This is required before we proceed to the SEVIS fee payment.",
+        pt: "Nossos especialistas estão revisando seu documento I-20. Esta revisão é necessária antes de prosseguirmos para o pagamento da taxa SEVIS.",
+        es: "Nuestros especialistas estão revisando su documento I-20. Esta revisão é necessária antes de proceder ao pago de la tarifa SEVIS.",
+      },
+      processingDataDescSevis: {
+        en: "Our specialists are reviewing your SEVIS fee payment proof. Once approved, we will prepare the Final forms (G-1145 and G-1450).",
+        pt: "Nossos especialistas estão revisando seu comprovante de pagamento da taxa SEVIS. Após a aprovação, prepararemos os formulários finais (G-1145 e G-1450).",
+        es: "Nuestros especialistas estão revisando su comprovante de pago de la tarifa SEVIS. Una vez aprobado, prepararemos los formularios finales (G-1145 e G-1450).",
       },
       documentsReceivedTitle: {
         en: "Documents Received",
@@ -5448,52 +5488,106 @@ export const translations = {
       pt: "Faça o upload de uma cópia do seu formulário I-20 assinado, emitido pela instituição de ensino.",
       es: "Cargue una copia de su formulario I-20 firmado, emitido por la institución educativa.",
     },
+    terms: {
+      visaExtension: {
+        en: "I understand that the USCIS review takes time...",
+        pt: "Eu entendo que a revisão do USCIS leva tempo...",
+        es: "Entiendo que la revisión de USCIS toma tiempo...",
+      },
+      sevisFees: {
+        en: "The filing fee for form I-901 is $350 - Internal process $400 - Online process.",
+        pt: "A taxa de arquivamento para o formulário I-901 é de US$ 350 - Processo interno US$ 400 - Processo online.",
+        es: "La tarifa de presentación para el formulario I-901 es de $350 - Proceso interno $400 - Proceso en línea.",
+      },
+      mailingAddress: {
+        en: "The prepared packet can be mailed to the address below. We recommend that you use a courier company that has a tracking system, USPS, Fedex, DHL or United States Highway 121, Lewisville, with tracking number.",
+        pt: "O pacote preparado pode ser enviado para o endereço abaixo. Recomendamos que você use uma empresa de transporte que tenha sistema de rastreamento, USPS, Fedex, DHL ou United States Highway 121, Lewisville, com número de rastreamento.",
+        es: "El paquete preparado puede enviarse a la siguiente dirección. Recomendamos que utilice una empresa de mensajería que tenga un sistema de seguimiento, USPS, Fedex, DHL o United States Highway 121, Lewisville, con número de seguimiento.",
+      },
+      acknowledgement: {
+        en: "I understand that the scope of this service is limited to providing applicable forms and checklists. I will verify that all applicable documents are complete and included for submittal. For additional assistance, I acknowledge that I was advised to consult an immigration lawyer. Furthermore, I acknowledge that the applying for the F-1 status is solely my responsibility and that the school makes no guarantees nor assumes any liability.",
+        pt: "Entendo que o escopo deste serviço se limita ao fornecimento de formulários e checklists aplicáveis. Verificarei se todos os documentos aplicáveis estão completos e incluídos para submissão. Para assistência adicional, reconheço que fui aconselhado a consultar um advogado de imigração. Além disso, reconheço que a aplicação para o status F-1 é de minha inteira responsabilidade e que a escola não oferece garantias nem assume qualquer responsabilidade.",
+        es: "Entiendo que el alcance de este servicio se limita a proporcionar los formularios y listas de verificación aplicables. Verificaré que todos los documentos aplicables estén completos e incluidos para su envío. Para asistencia adicional, reconozco que se me recomendó consultar a un abogado de inmigración. Además, reconozco que solicitar el estatus F-1 es responsabilidad exclusiva mía y que la escuela no ofrece garantías ni asume ninguna responsabilidad.",
+      },
+    },
+    // Onboarding Form Labels
+    labels: {
+      currentVisa: { en: "What is your current visa?", pt: "Qual seu visto atual?", es: "¿Cuál é sua visa atual?" },
+      targetVisa: { en: "Which visa do you want to switch to?", pt: "Para qual visto deseja realizar a troca?", es: "¿Para qué visa desea realizar el cambio?" },
+      i94Date: { en: "Authorized stay date from I-94", pt: "Data de permanência autorizada do I-94", es: "Data de permanencia autorizada del I-94" },
+      i94Instruction: { 
+        en: "Instructions to search for stay date:", 
+        pt: "Instrução para pesquisar data de permanência:", 
+        es: "Instrucciones para buscar la fecha de permanencia:" 
+      },
+      addDependent: { en: "Add Dependents", pt: "Adicionar dependentes", es: "Agregar dependientes" },
+      dependentName: { en: "Name", pt: "Nome", es: "Nombre" },
+      relationship: { en: "Relationship", pt: "Parentesco", es: "Parentesco" },
+      birthDate: { en: "Date of Birth", pt: "Data de Nascimento", es: "Fecha de Nacimiento" },
+      marriageDate: { en: "Marriage Date", pt: "Data do Casamento", es: "Fecha de Matrimonio" },
+      placeholderOther: { en: "Specify other visa...", pt: "Especifique outro visto...", es: "Especifique otra visa..." },
+    },
+    alerts: {
+      marriageAge: {
+        en: "If the marriage date occurs after the dependent's 18th birthday, they may become ineligible if they are not the child of the main applicant.",
+        pt: "Se a data do casamento ocorrer após o 18º aniversário do dependente, ele poderá se tornar inelegível, caso não seja filho do aplicante principal.",
+        es: "Si la fecha del matrimonio ocurre después del 18º cumpleaños del dependiente, puede volverse inelegible si no es el hijo del solicitante principal."
+      },
+      agingOut: {
+        en: "If the child is within 1 year of turning 21, the most correct approach is for the dependent to make a new visa application.",
+        pt: "Se o filho estiver a menos de 01 ano de fazer 21 anos, o mais correto é o dependente fazer uma nova aplicação de visto.",
+        es: "Si el hijo está a menos de 1 año de cumplir 21 años, lo más correcto es que el dependiente realice una nueva solicitud de visa."
+      }
+    },
   },
   changeOfStatus: {
     steps: {
-      en: ["Application Form", "Documents", "Review"],
-      pt: ["Formulário de Aplicação", "Documentos", "Revisão"],
-      es: ["Formulario de Aplicación", "Documentos", "Revisión"],
+      en: ["Application Form", "Documents", "Official Forms", "Presentation Letter", "I-20 Upload", "SEVIS Fee", "Final Forms", "Final Package"],
+      pt: ["Formulário de Aplicação", "Documentos", "Formulários Oficiais", "Carta de Apresentação", "Upload do I-20", "Taxa SEVIS", "Formulários Finais", "Pacote Completo"],
+      es: ["Formulario de Aplicación", "Documentos", "Formularios Oficiales", "Carta de Presentación", "Carga de I-20", "Tasa SEVIS", "Formularios Finales", "Paquete Completo"],
     },
     formTitle: {
       en: "i-539 Application",
       pt: "Aplicação i-539",
       es: "Solicitud i-539",
     },
-    fieldCourse: {
-      en: "Which course are you applying in?",
-      pt: "Qual curso você está se inscrevendo?",
-      es: "¿En qué curso se está inscribiendo?",
+    labels: {
+      currentVisa: { en: "What is your current visa?", pt: "Qual seu visto atual?", es: "¿Cuál es su visa atual?" },
+      targetVisa: { en: "Which visa do you want to switch to?", pt: "Para qual visto deseja realizar a troca?", es: "¿Para qué visa desea realizar el cambio?" },
+      i94Date: { en: "Authorized stay date from I-94", pt: "Data de permanência autorizada do I-94", es: "Data de permanencia autorizada del I-94" },
+      i94Instruction: { 
+        en: "Instructions to search for stay date:", 
+        pt: "Instrução para pesquisar data de permanência:", 
+        es: "Instrucciones para buscar la fecha de permanencia:" 
+      },
+      addDependent: { en: "Add Dependents", pt: "Adicionar dependentes", es: "Agregar dependientes" },
+      dependentName: { en: "Name", pt: "Nome", es: "Nombre" },
+      relationship: { en: "Relationship", pt: "Parentesco", es: "Parentesco" },
+      birthDate: { en: "Date of Birth", pt: "Data de Nascimento", es: "Fecha de Nacimiento" },
+      marriageDate: { en: "Marriage Date", pt: "Data do Casamento", es: "Fecha de Matrimonio" },
+      placeholderOther: { en: "Specify other visa...", pt: "Especifique outro visto...", es: "Especifique otra visa..." },
+      fieldAppliedBy: {
+        en: "Applied by (Optional)",
+        pt: "Aplicado por (Opcional)",
+        es: "Aplicado por (Opcional)",
+      },
+      fieldAppliedByDesc: {
+        en: "Enter the name of the advisor who assisted you in completing this form.",
+        pt: "Insira o nome do consultor que o ajudou a preencher este formulário.",
+        es: "Ingrese el nombre del asesor que lo ayudó a completar este formulario.",
+      },
     },
-    fieldExtensionReview: {
-      en: "Visa Extension Application Review Request",
-      pt: "Solicitação de Revisão de Aplicação de Extensão de Visto",
-      es: "Solicitud de Revisión de Aplicación de Extensión de Visa",
-    },
-    extensionReviewNotice: {
-      en: "I understand that the USCIS takes about 8 to 11 months. I understand that I only need to immediately complete the Visa Extension Application Review Request once submitted to USCIS, but my current visa may be expired. Otherwise, I understand that my COS Application will be denied.",
-      pt: "Entendo que o USCIS leva cerca de 8 a 11 meses. Entendo que só preciso concluir imediatamente a Solicitação de Revisão de Aplicação de Extensão de Visto uma vez enviada ao USCIS, mas meu visto atual pode estar expirado. Caso contrário, entendo que minha aplicação de COS será negada.",
-      es: "Entiendo que el USCIS tarda de 8 a 11 meses. Entiendo que solo necesito completar inmediatamente la Solicitud de Revisión de Aplicación de Extensión de Visa una vez enviada al USCIS, pero mi visa actual puede estar vencida. De lo contrario, entendo que mi aplicación de COS será negada.",
-    },
-    fieldPaidSevis: {
-      en: "Did you make the required fee payment for your Form I-531?",
-      pt: "Você realizou o pagamento da taxa exigida para o formulário I-531?",
-      es: "¿Realizó el pago de la tarifa requerida para su formulario I-531?",
-    },
-    fieldHasSponsor: {
-      en: "Do you have a sponsor?",
-      pt: "Você tem um patrocinador (sponsor)?",
-      es: "¿Tiene un patrocinador (sponsor)?",
-    },
-    fieldAppliedBy: {
-      en: "Applied by (Optional)",
-      pt: "Aplicado por (Opcional)",
-      es: "Aplicado por (Opcional)",
-    },
-    fieldAppliedByDesc: {
-      en: "Enter the name of the advisor who assisted you in completing this form.",
-      pt: "Insira o nome do consultor que o ajudou a preencher este formulário.",
-      es: "Ingrese el nombre del asesor que lo ayudó a completar este formulario.",
+    alerts: {
+      marriageAge: {
+        en: "If the marriage date occurs after the dependent's 18th birthday, they may become ineligible if they are not the child of the main applicant.",
+        pt: "Se a data do casamento ocorrer após o 18º aniversário do dependente, ele poderá se tornar inelegível, caso não seja filho do aplicante principal.",
+        es: "Si la fecha del matrimonio ocurre después del 18º cumpleaños del dependente, puede volverse inelegible si no es el hijo del solicitante principal."
+      },
+      agingOut: {
+        en: "If the child is within 1 year of turning 21, the most correct approach is for the dependent to make a new visa application.",
+        pt: "Se o filho estiver a menos de 01 ano de fazer 21 anos, o mais correto é o dependente fazer uma nova aplicação de visto.",
+        es: "Si el hijo está a menos de 1 año de cumplir 21 años, lo más correcto es que el dependiente realice una nueva solicitud de visa."
+      }
     },
     terms: {
       visaExtension: {
@@ -5524,7 +5618,138 @@ export const translations = {
       coverLetter: "Cover Letter",
       bankStatement: "Bank Statement",
       supportingDocs: "Supporting Documents",
+      i539Official: "Form I-539 (Official Signed)",
+      i539AOfficial: "Form I-539A (Official Signed)",
     },
+    officialForms: {
+        title: { en: "Form I-539 Completion", pt: "Preenchimento do I-539", es: "Llenado del I-539" },
+        description: { 
+            en: "Download and fill out the official USCIS forms. After signing, upload them below.", 
+            pt: "Baixe e preencha os formulários oficiais da USCIS. Após assinar, faça o upload abaixo.", 
+            es: "Descargue y complete los formularios oficiales de USCIS. Después de firmar, súbalos a continuación." 
+        },
+        instructionLink: { en: "Form Instructions Link", pt: "Link Instruções Formulário", es: "Enlace Instrucciones Formulario" },
+        formLink: { en: "Form I-539 Link", pt: "Link Formulário I-539", es: "Enlace Formulario I-539" },
+        formALink: { en: "Form I-539A Link (Dependents)", pt: "Link Formulário I-539A (Dependentes)", es: "Enlace Formulario I-539A (Dependientes)" },
+        helperText: { 
+            en: "If you have dependents (spouse or children), you must also fill out Form I-539A for each one.", 
+            pt: "Se você tiver dependentes (cônjuge ou filhos), também deve preencher o Formulário I-539A para cada um.", 
+            es: "Si tiene dependientes (cónyuge o hijos), también debe completar el Formulario I-539A para cada uno." 
+        }
+    },
+    coverLetterForm: {
+        title: { en: "Cover Letter Questionnaire", pt: "Questionário para Carta de Apresentação", es: "Cuestionario para la Carta de Presentación" },
+        description: { 
+            en: "Please answer the questions below to help us generate your presentation letter for USCIS.", 
+            pt: "Por favor, responda as perguntas abaixo para nos ajudar a gerar sua carta de apresentação para a USCIS.", 
+            es: "Por favor, responda las preguntas a continuación para ajudarnos a generar su carta de presentación para USCIS." 
+        },
+        questions: {
+            decidedToGoUS: {
+                label: { en: "Why did you decide to go to the US?", pt: "Explique brevemente como e por que você decidiu ir para os EUA (planos, objetivos, sonhos).", es: "¿Por qué decidió ir a los EE. UU.?" }
+            },
+            locationsVisited: {
+                label: { en: "Summary of locations visited in the US", pt: "Faça um breve resumo dos locais que visitou (cidade/estado e data) durante este período nos EUA. (Mencione apenas os locais dos quais você tem fotos para comprovação).", es: "Resumen de los lugares visitados en los EE. UU." }
+            },
+            whyB1B2: {
+                label: { en: "Why did you request B1/B2 visa in your country?", pt: "Por que você solicitou o visto B1/B2 (turismo) no seu país?", es: "¿Por qué solicitó la visa B1/B2 en su país?" }
+            },
+            whyNotF1Home: {
+                label: { en: "Why tip not request F1 directly in your home country?", pt: "Por que não solicitou o visto F1 diretamente no seu país de origem?", es: "¿Por qué no solicitó la visa F1 directamente en su país de origen?" }
+            },
+            whyChangeStatus: {
+                label: { en: "Why request status change instead of returning to your country?", pt: "Por que deseja pedir a mudança de status em vez de retornar ao seu país para solicitar o visto?", es: "¿Por qué solicita el cambio de estatus en lugar de regresar a su país?" }
+            },
+            chosenCourse: {
+                label: { en: "Why this specific course and what are your academic plans?", pt: "Por que escolheu esse curso específico? Quais são seus planos acadêmicos nos EUA?", es: "¿Por qué este curso específico y cuáles son sus planes académicos?" }
+            },
+            whyNotCourseBrazil: {
+                label: { en: "Why not take this course in Brazil?", pt: "Por que não realizar esse curso no Brasil?", es: "¿Por qué no realizar este curso en Brasil?" }
+            },
+            jobInBrazil: {
+                label: { en: "What is your job in Brazil and what happens to it during your stay?", pt: "Com o que você trabalha no Brasil? O que acontece com seu trabalho durante esse período nos EUA?", es: "¿Cuál es su trabajo en Brasil y qué sucede con él durante su estadía?" }
+            },
+            careerBenefit: {
+                label: { en: "How will this course benefit your career in Brazil?", pt: "Como esse curso beneficiará sua carreira ao retornar ao Brasil? Relacione os benefícios do curso com sua área de atuação ou planos profissionais futuros.", es: "¿Cómo beneficiará este curso su carrera en Brasil?" }
+            },
+            residenceBrazil: {
+                label: { en: "What happens to your residence in Brazil during this period?", pt: "O que acontece com sua residência no Brasil durante esse período?", es: "¿Qué sucede con su residencia en Brasil durante este período?" }
+            },
+            financialSupport: {
+                label: { en: "How will you support yourself financially in the US?", pt: "Como você se manterá financeiramente nos EUA?", es: "¿Cómo se mantendrá financieramente en los EE. UU.?" }
+            },
+            sponsorInfo: {
+                label: { en: "Do you have a sponsor? What is your relationship?", pt: "Você tem um sponsor? Qual é a sua relação com ele e por que ele decidiu te patrocinar?", es: "¿Tiene un patrocinador? ¿Cuál es su relación?" }
+            }
+        }
+    },
+    phase5: {
+      i20Title: { en: "I-20 Upload", pt: "Upload do I-20", es: "Carga de I-20" },
+      i20Description: { 
+        en: "Upload your I-20 form received from your educational institution.", 
+        pt: "Faça o upload do seu formulário I-20 recebido da instituição de ensino.", 
+        es: "Cargue su formulario I-20 recibido de su institución educativa." 
+      },
+      sevisTitle: { en: "SEVIS I-901 Fee", pt: "Taxa SEVIS I-901", es: "Tasa SEVIS I-901" },
+      sevisQuestion: { 
+        en: "Have you already paid the SEVIS Fee?", 
+        pt: "Você já realizou o pagamento da Taxa SEVIS?", 
+        es: "¿Ya ha realizado el pago de la Tasa SEVIS?" 
+      },
+      sevisInstructionTitle: { 
+        en: "Instructions for SEVIS Fee Payment", 
+        pt: "Instruções para Pagamento da Taxa SEVIS", 
+        es: "Instrucciones para el Pago de la Tasa SEVIS" 
+      },
+      sevisInstructionBody: {
+        en: "The SEVIS Fee costs $350 and aims to register the student as a foreign student in the American education system. To pay your SEVIS fee you will need your passport and your I-20. This document is attached.",
+        pt: "A Taxa SEVIS custa $350 e tem o objetivo de registrar o estudante como um aluno estrangeiro no sistema de ensino americano. Para realizar o pagamento da sua taxa SEVIS você precisará ter em mãos o seu passaporte e o seu I-20. Esse documento segue em anexo.",
+        es: "La Tasa SEVIS cuesta $350 y tiene como objetivo registrar al estudiante como estudiante extranjero en el sistema educativo estadounidense. Para pagar su tasa SEVIS necesitará su pasaporte y su I-20. Este documento se adjunta."
+      },
+      sevisAddressTip: {
+        en: "Register the SEVIS fee with your Brazil address. Remember to change the country first before adding the address.",
+        pt: "Registre a taxa SEVIS com o endereço do Brasil. Lembre-se de alterar primeiro o país para depois adicionar o endereço.",
+        es: "Registre la tasa SEVIS con su dirección de Brasil. Recuerde cambiar primero el país antes de agregar la dirección."
+      },
+      sevisLinkText: { 
+        en: "Access the official I-901 Fee Link", 
+        pt: "Acesse o Link oficial do I-901 Fee", 
+        es: "Acceda al enlace oficial de la Tasa I-901" 
+      },
+      sevisStep1: { en: "Click the 'Pay I-901 Fee' button", pt: "Clique no botão \"Pay I-901 Fee\"", es: "Haga clic en el botón 'Pay I-901 Fee'" },
+      sevisStep2: { en: "SEVIS ID: This number is in the upper left corner of your I-20.", pt: "SEVIS ID: Esse número está no canto esquerdo superior do seu I-20.", es: "ID de SEVIS: Este número está en la esquina superior izquierda de su I-20." },
+      sevisStep3: { en: "Application Form: Select 'Form I-20 (F-1/M-1, F-3/M-3)'", pt: "Application Form: Selecione a opção \"Form I-20 (F-1/M-1, F-3/M-3)\"", es: "Formulario de solicitud: Seleccione 'Form I-20 (F-1/M-1, F-3/M-3)'" },
+      sevisStep4: { en: "SCHOOL CODE: The school code is also on the I-20 (School Information).", pt: "SCHOOL CODE: O código da escola também se encontra no I-20 (School Information).", es: "CÓDIGO DE LA ESCUELA: El código de la escuela también está en el I-20 (Información de la escuela)." },
+      sevisStep5: { en: "Format: AAA 214F 11111 111. Enter only the numbers after the F.", pt: "Formato: AAA 214F 11111 111. Insira apenas os números após o F.", es: "Formato: AAA 214F 11111 111. Ingrese solo los números después de la F." },
+      sevisUploadLabel: { 
+        en: "Upload SEVIS Fee Payment Voucher", 
+        pt: "Upload do Comprovante de Pagamento da Taxa SEVIS", 
+        es: "Carga del comprobante de pago de la Tasa SEVIS" 
+      },
+    },
+    phase6: {
+      title: { en: "Final Forms (G-1145 & G-1450)", pt: "Formulários Finais (G-1145 e G-1450)", es: "Formularios Finales (G-1145 y G-1450)" },
+      description: { 
+        en: "Review and complete the final forms required for your USCIS packet.", 
+        pt: "Revise e complete os formulários finais necessários para o seu pacote USCIS.", 
+        es: "Revise y complete los formularios finales requeridos para su paquete USCIS." 
+      },
+      g1145Title: { en: "Form G-1145 (Electronic Notification)", pt: "Formulário G-1145 (Notificação Eletrônica)", es: "Formulario G-1145 (Notificación Electrónica)" },
+      g1145Description: { 
+        en: "This form allows USCIS to send you electronic notifications. Since we already have your data, this form will be automatically generated and included in your packet.", 
+        pt: "Este formulário permite que a USCIS envie notificações eletrônicas. Como já possuímos seus dados, este formulário será gerado automaticamente e incluído no seu pacote.", 
+        es: "Este formulario permite que el USCIS le envíe notificaciones electrónicas. Como ya tenemos sus datos, este formulario se generará automáticamente y se incluirá en su paquete." 
+      },
+      g1450Title: { en: "Form G-1450 (Credit Card Authorization)", pt: "Formulário G-1450 (Autorização de Cartão de Crédito)", es: "Formulario G-1450 (Autorización de Tarjeta de Crédito)" },
+      g1450Instruction: { 
+        en: "Download the G-1450 form below and fill it out manually with a pen. Enter the amount of $470.00.", 
+        pt: "Baixe o formulário G-1450 abaixo e preencha-o manualmente com caneta (letra de forma). Insira o valor de US$ 470,00.", 
+        es: "Descargue el formulario G-1450 a continuación y complételo manualmente con bolígrafo. Ingrese el monto de $470.00." 
+      },
+      g1145LinkText: { en: "View G-1145 Reference", pt: "Ver Referência G-1145", es: "Ver Referencia G-1145" },
+      g1450LinkText: { en: "Download G-1450 Form", pt: "Baixar Formulário G-1450", es: "Descargar Formulario G-1450" },
+      uploadLabel: { en: "Upload Scanned G-1450", pt: "Upload do G-1450 Digitalizado", es: "Cargar G-1450 Escaneado" }
+    }
   },
 
   // ──── 404 ────

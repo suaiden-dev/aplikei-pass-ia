@@ -15,11 +15,21 @@ export const getStatusDisplay = (
 ): StatusDisplay => {
   if (!status) return { stepText: "", label: "", step: 0, totalSteps: TOTAL_STEPS };
 
-  // Normalização de status legados
+  const isCOS = serviceSlug === "troca-status" || serviceSlug === "extensao-status";
+  const totalSteps = isCOS ? 6 : TOTAL_STEPS;
+
+  // Normalização de status
   let normalizedStatus = status;
-  if (status === "active") normalizedStatus = "ds160InProgress";
-  if (status === "review_pending") normalizedStatus = "ds160Processing";
-  if (status === "review_assign") normalizedStatus = "ds160AwaitingReviewAndSignature";
+  if (isCOS) {
+    if (status === "active") normalizedStatus = "cosInProgress";
+    else if (status === "review_pending") normalizedStatus = "cosProcessing";
+    else if (status === "COS_OFFICIAL_FORMS") normalizedStatus = "cosOfficialForms";
+  } else {
+    if (status === "active") normalizedStatus = "ds160InProgress";
+    if (status === "review_pending") normalizedStatus = "ds160Processing";
+    if (status === "review_assign") normalizedStatus = "ds160AwaitingReviewAndSignature";
+  }
+  
   if (status === "completed") normalizedStatus = "approved";
 
   let step = 0;
@@ -27,16 +37,19 @@ export const getStatusDisplay = (
 
   switch (normalizedStatus) {
     case "ds160InProgress":
+    case "cosInProgress":
       step = 1;
-      label = tStatus.ds160InProgress[lang];
+      label = isCOS ? (tStatus.cosInProgress?.[lang] || "1. Onboarding") : tStatus.ds160InProgress[lang];
       break;
     case "ds160Processing":
+    case "cosProcessing":
       step = 2;
-      label = tStatus.ds160Processing[lang];
+      label = isCOS ? (tStatus.cosProcessing?.[lang] || "2. Revisão") : tStatus.ds160Processing[lang];
       break;
     case "ds160upload_documents":
+    case "cosOfficialForms":
       step = 3;
-      label = tStatus.ds160uploadDocuments[lang];
+      label = isCOS ? (tStatus.cosOfficialForms?.[lang] || "3. Formulários Oficiais") : tStatus.ds160uploadDocuments[lang];
       break;
     case "ds160AwaitingReviewAndSignature":
     case "uploadsUnderReview":
@@ -64,22 +77,22 @@ export const getStatusDisplay = (
         stepText: tStatus.rejectedText[lang],
         label: tStatus.rejectedLabel[lang],
         step: 0,
-        totalSteps: TOTAL_STEPS,
+        totalSteps: totalSteps,
       };
     case "approved":
       return {
         stepText: tStatus.approved[lang],
         label: tStatus.approved[lang],
-        step: TOTAL_STEPS,
-        totalSteps: TOTAL_STEPS,
+        step: totalSteps,
+        totalSteps: totalSteps,
       };
     default:
-      return { stepText: "", label: status, step: 0, totalSteps: TOTAL_STEPS };
+      return { stepText: "", label: status, step: 0, totalSteps: totalSteps };
   }
 
-  const stepText = tStatus.stepOf[lang]
+  const stepText = (tStatus.stepOf?.[lang] || "Etapa [step] de [total]")
     .replace("[step]", String(step))
-    .replace("[total]", String(TOTAL_STEPS));
+    .replace("[total]", String(totalSteps));
 
-  return { stepText, label, step, totalSteps: TOTAL_STEPS };
+  return { stepText, label, step, totalSteps: totalSteps };
 };

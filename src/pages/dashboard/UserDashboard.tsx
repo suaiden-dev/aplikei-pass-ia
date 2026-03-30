@@ -104,16 +104,17 @@ export default function UserDashboard() {
               existing?.status === "active";
 
             if (!existing || isNewAdvanced) {
-              const statusInfo = getStatusDisplay(process.status, lang as string, d.status);
+              const statusInfo = getStatusDisplay(process.status, lang as string, d.status, process.serviceSlug);
               let prog = 0;
 
               if (process.status === "approved" || process.status === "completed" || process.status === "rejected") {
                 prog = 100;
               } else if (statusInfo.step > 0) {
                 if (statusInfo.step === 1) {
-                  prog = Math.min(Math.round(((process.currentStep || 0) / 13) * 10), 10);
+                  const onboardingTotal = process.serviceSlug?.includes("status") ? 4 : 13;
+                  prog = Math.min(Math.round(((process.currentStep || 0) / onboardingTotal) * 10), 15);
                 } else {
-                  prog = Math.round(((statusInfo.step - 1) / TOTAL_STEPS) * 100);
+                  prog = Math.round(((statusInfo.step - 1) / statusInfo.totalSteps) * 100);
                 }
               }
 

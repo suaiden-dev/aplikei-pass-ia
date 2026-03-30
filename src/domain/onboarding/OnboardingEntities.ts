@@ -224,4 +224,31 @@ export interface OnboardingData {
     agreedSevisFees?: boolean;
     agreedMailingAddress?: boolean;
     agreedAcknowledgement?: boolean;
+
+    // Change of Status (COS) - New Fields
+    currentVisa?: string;
+    currentVisaOther?: string;
+    targetVisa?: string;
+    i94AuthorizedStayDate?: string;
+    dependents?: {
+        name: string;
+        relationship: string;
+        birthDate: string;
+        marriageDate?: string;
+    }[];
+    coverLetterData?: {
+        decidedToGoUS?: string;
+        locationsVisited?: string;
+        whyB1B2?: string;
+        whyNotF1Home?: string;
+        whyChangeStatus?: string;
+        chosenCourse?: string;
+        whyNotCourseBrazil?: string;
+        jobInBrazil?: string;
+        careerBenefit?: string;
+        residenceBrazil?: string;
+        financialSupport?: string;
+        sponsorInfo?: string;
+    };
+    sevisPaid?: string;
 }

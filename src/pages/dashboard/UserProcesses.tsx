@@ -56,15 +56,16 @@ export default function UserProcesses() {
         const processes = await getUserProcesses.execute(user.id);
 
         const processedServices = processes.map((s) => {
-          const statusInfo = getStatusDisplay(s.status, lang as string, d.status);
+          const statusInfo = getStatusDisplay(s.status, lang as string, d.status, s.serviceSlug as string);
           let p = 0;
 
           if (s.status === "approved" || s.status === "completed") {
             p = 100;
           } else if (statusInfo.step > 1) {
-            p = Math.round(((statusInfo.step - 1) / TOTAL_STEPS) * 100);
+            p = Math.round(((statusInfo.step - 1) / statusInfo.totalSteps) * 100);
           } else if (statusInfo.step === 1) {
-            p = Math.min(Math.round(((s.currentStep || 0) / 13) * 10), 10);
+            const onboardingTotal = (s.serviceSlug as string)?.includes("status") ? 4 : 13;
+            p = Math.min(Math.round(((s.currentStep || 0) / onboardingTotal) * 10), 15);
           }
 
           return {

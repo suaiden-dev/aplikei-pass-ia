@@ -36,12 +36,19 @@ export function AdminStatusTimeline({
 
   // If legacy, we might want to map to a logical step
   let effectiveIndex = currentIndex;
+  const isCOSProduct = productSlug === "troca-status" || productSlug === "extensao-status";
+  
   if (isLegacy) {
-    if (status === "active") effectiveIndex = 0;
-    if (status === "review_pending") effectiveIndex = 1;
-    if (status === "review_assign") effectiveIndex = 2;
-    if (status === "uploadsUnderReview") effectiveIndex = 3;
-    if (status === "completed") effectiveIndex = 8; // approved
+    if (isCOSProduct) {
+      if (status === "active") effectiveIndex = 0;
+      if (status === "review_pending" || status === "review_assign") effectiveIndex = 4; // Map to COS_ADMIN_SCREENING
+    } else {
+      if (status === "active") effectiveIndex = 0;
+      if (status === "review_pending") effectiveIndex = 1;
+      if (status === "review_assign") effectiveIndex = 2;
+      if (status === "uploadsUnderReview") effectiveIndex = 3;
+      if (status === "completed") effectiveIndex = 8; // approved
+    }
   }
 
   const label = statusLabels[status || ""] || "Status Desconhecido";
