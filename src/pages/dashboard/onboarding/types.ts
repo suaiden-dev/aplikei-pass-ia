@@ -1,5 +1,5 @@
 import { OnboardingData } from "@/domain/onboarding/OnboardingEntities";
-import { UseFormRegister, FieldErrors, UseFormSetValue, UseFormWatch } from "react-hook-form";
+import { UseFormRegister, FieldErrors, UseFormSetValue, UseFormWatch, Control } from "react-hook-form";
 import { translations } from "@/i18n/translations";
 export type { OnboardingData };
 
@@ -18,7 +18,8 @@ export interface StepProps {
     errors?: FieldErrors<OnboardingData>;
     setValue?: UseFormSetValue<OnboardingData>;
     watch?: UseFormWatch<OnboardingData>;
-    trigger?: (name?: any, options?: any) => Promise<boolean>;
+    control?: Control<OnboardingData>;
+    trigger?: (name?: keyof OnboardingData | (keyof OnboardingData)[], options?: unknown) => Promise<boolean>;
     lang: "pt" | "en" | "es";
     t: typeof translations; 
     o: typeof translations.onboardingPage; 

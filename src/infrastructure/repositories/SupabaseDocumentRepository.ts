@@ -40,7 +40,7 @@ export class SupabaseDocumentRepository implements IDocumentRepository {
         name: doc.name,
         storage_path: doc.path,
         bucket_id: doc.bucket_id,
-        status: "received",
+        status: "pending",
         created_at: new Date().toISOString()
       }, { onConflict: "user_id,name" });
 

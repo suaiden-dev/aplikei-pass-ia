@@ -40,6 +40,7 @@ import { getPaymentService, getExchangeRateService, getVisaOrderRepository } fro
 import { supabase } from "@/integrations/supabase/client"; // Ainda necessário para profiles temporariamente até termos IProfileRepository
 import { ZellePaymentModal } from "@/presentation/components/organisms/checkout/ZellePaymentModal";
 import UrgencyBanner from "@/presentation/components/molecules/UrgencyBanner";
+import CheckoutSummary from "@/presentation/components/molecules/CheckoutSummary";
 
 export default function Checkout() {
   const { slug } = useParams<{ slug: string }>();
@@ -67,6 +68,7 @@ export default function Checkout() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+  const [totalPrice, setTotalPrice] = useState<number>(0);
   const [isZelleModalOpen, setIsZelleModalOpen] = useState(false);
   const [zelleOrderId, setZelleOrderId] = useState<string | null>(null);
 
@@ -295,11 +297,7 @@ export default function Checkout() {
   // Use dynamic exchange rate or fallback 5.60
   const currentExchangeRate = exchangeRate || 5.6;
 
-  const totalPrice = isPix
-    ? PaymentCalculator.calculateUSDToPixTotal(subtotal, currentExchangeRate)
-    : isStripe
-      ? PaymentCalculator.calculateCardAmount(subtotal)
-      : subtotal;
+  // totalPrice agora é gerenciado pelo estado via CheckoutSummary
 
   // Fees calculation
   // If it's PIX, fees = total - (subtotal_in_brl_without_markup?)
@@ -739,110 +737,17 @@ export default function Checkout() {
           </div>
 
           {/* Sidebar / Summary */}
-          <div className="space-y-4">
-            <Card className="border-accent/30 shadow-md">
-              <CardHeader className="bg-accent/5">
-                <CardTitle className="text-lg">Resumo do Pedido</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4 space-y-4">
-                <div className="flex justify-between items-start gap-4">
-                  <div>
-                    <p className="font-bold text-foreground">
-                      {service.title[lang]}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {service.subtitle[lang]}
-                    </p>
-                  </div>
-                  <p className="font-display font-bold text-accent">
-                    {formatCurrency(basePrice, isPix ? "BRL" : "USD")}
-                  </p>
-                </div>
-
-                <div className="border-t border-border pt-4">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Plano Base</span>
-                    <span className="font-medium">
-                      {formatCurrency(
-                        isPix
-                          ? basePrice * currentExchangeRate * 1.04
-                          : basePrice,
-                        isPix ? "BRL" : "USD",
-                      )}
-                    </span>
-                  </div>
-
-                  {numDependents > 0 && (
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">
-                        Dependentes ({numDependents}x{" "}
-                        {formatCurrency(depPrice, isPix ? "BRL" : "USD")})
-                      </span>
-                      <span className="font-medium">
-                        +
-                        {formatCurrency(
-                          numDependents *
-                            (isPix
-                              ? depPrice * currentExchangeRate * 1.04
-                              : depPrice),
-                          isPix ? "BRL" : "USD",
-                        )}
-                      </span>
-                    </div>
-                  )}
-
-                  {isStripe && (
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">
-                        Taxas de Processamento
-                      </span>
-                      <span className="font-medium">
-                        +{formatCurrency(fees, isPix ? "BRL" : "USD")}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between text-sm text-green-600 font-medium border-t border-border mt-2 pt-2">
-                    <span>Desconto Aplicado (50%)</span>
-                    <span>-{service.originalPrice[lang]}</span>
-                  </div>
-                </div>
-
-                <div className="border-t border-border pt-4 flex justify-between items-baseline">
-                  <span className="font-display font-bold text-lg">Total</span>
-                  <div className="text-right">
-                    <span className="font-display font-bold text-title text-accent block">
-                      {formatCurrency(totalPrice, isPix ? "BRL" : "USD")}
-                    </span>
-                    {isPix && (
-                      <span className="text-[10px] text-muted-foreground">
-                        Câmbio: {formatCurrency(currentExchangeRate, "BRL")}{" "}
-                        (incl. spread)
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="bg-muted/30 pt-4 flex-col items-start gap-3">
-                <p className="text-xs font-semibold text-foreground uppercase tracking-tight">
-                  O que você recebe:
-                </p>
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <CheckCircle2 className="h-3 w-3 text-accent" /> Guia
-                    Digital Passo a Passo
-                  </li>
-                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <CheckCircle2 className="h-3 w-3 text-accent" /> Organizador
-                    de Documentos com IA
-                  </li>
-                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <CheckCircle2 className="h-3 w-3 text-accent" /> Suporte
-                    Operacional Plataforma
-                  </li>
-                </ul>
-              </CardFooter>
-            </Card>
+          <div className="lg:col-span-1 space-y-4">
+            <CheckoutSummary 
+              selectedIds={[
+                slug || '',
+                ...Array(Number(formData.dependents)).fill(
+                  slug === 'visto-b1-b2' ? 'dependente-b1-b2' : 'dependente-estudante'
+                )
+              ]}
+              lang={lang}
+              onPriceVerified={setTotalPrice}
+            />
 
             <div className="p-4 rounded-md bg-amber-50 border border-amber-200 text-xs text-amber-800">
               <p className="leading-relaxed">
