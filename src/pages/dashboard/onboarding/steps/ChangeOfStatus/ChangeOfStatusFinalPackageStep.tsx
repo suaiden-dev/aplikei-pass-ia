@@ -82,6 +82,11 @@ export const ChangeOfStatusFinalPackageStep = ({
       if (configId === "cos_i20_official" && d.name.startsWith("cos_i20_f2")) return false;
       return true;
     }
+    // Priority mappings — map new generated names first
+    if (configId === "cos_i539"           && d.name === "i539_oficial") return true;
+    if (configId === "cos_g1145"          && d.name === "g1145_oficial") return true;
+    if (configId === "cos_g1450"          && d.name === "g1450_oficial") return true;
+
     // Legacy/Alias mappings — map old names to new config IDs
     if (configId === "cos_i539"           && d.name === "cos_applicant_form") return true;
     if (configId === "cos_i539"           && d.name === "cos_i539_official") return true;
@@ -90,6 +95,24 @@ export const ChangeOfStatusFinalPackageStep = ({
     if (configId === "cos_g1145"          && d.name === "cos_g1145_voucher") return true;
     if (configId === "cos_g1450"          && d.name === "cos_g1450_voucher") return true;
     return false;
+  };
+
+  // Helper to prioritize 'oficial' documents if multiple matches exist
+  const getPrioritizedMatches = (matches: any[]) => {
+    if (matches.length <= 1) return matches;
+    
+    const oficialMatches = matches.filter(m => m.name.endsWith("_oficial") || m.name.includes("_oficial_"));
+    if (oficialMatches.length > 0) {
+      // If we have 'oficial' versions, take only the most recent 'oficial' ones
+      return oficialMatches.sort((a, b) => {
+        const dateA = new Date(a.created_at || 0).getTime();
+        const dateB = new Date(b.created_at || 0).getTime();
+        return dateB - dateA;
+      }).slice(0, 1);
+    }
+    
+    // Default: Sort by name and return all (standard behavior)
+    return matches.sort((a, b) => a.name.localeCompare(b.name));
   };
 
   const handleDownload = async () => {
@@ -105,13 +128,12 @@ export const ChangeOfStatusFinalPackageStep = ({
 
       // Filter and sort docs based on DOCS_CONFIG
       for (const config of DOCS_CONFIG) {
-        const matches = uploadedDocs.filter(d => matchDoc(d, config.id));
+        let matches = uploadedDocs.filter(d => matchDoc(d, config.id));
+        matches = getPrioritizedMatches(matches);
 
         if (matches.length > 0) {
           console.log(`[PackageStep] Found ${matches.length} matches for ${config.id}:`, matches.map(m => m.name));
         }
-
-        matches.sort((a, b) => a.name.localeCompare(b.name));
 
         for (const doc of matches) {
           try {

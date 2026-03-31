@@ -4,7 +4,7 @@ import { Label } from "@/presentation/components/atoms/label";
 import { Input } from "@/presentation/components/atoms/input";
 import { Button } from "@/presentation/components/atoms/button";
 import {
-  FileCheck, Bell, CreditCard, Send, Loader2, CheckCircle2, Info,
+  FileCheck, Bell, CreditCard, Send, Loader2, CheckCircle2, Info, Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -22,45 +22,107 @@ import {
 } from "@/presentation/components/atoms/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { fillG1145G1450Forms } from "@/application/use-cases/FillG1145G1450Forms";
+
+const G1145_URL = import.meta.env.VITE_G1145_TEMPLATE_URL as string;
+const G1450_URL = import.meta.env.VITE_G1450_TEMPLATE_URL as string;
+
+async function uploadBytes(bucket: string, storagePath: string, bytes: Uint8Array): Promise<void> {
+  const blob = new Blob([bytes], { type: "application/pdf" });
+  const { error } = await supabase.storage.from(bucket).upload(storagePath, blob, {
+    contentType: "application/pdf",
+    upsert: true,
+  });
+  if (error) throw new Error(`Upload falhou: ${error.message}`);
+}
 
 export const ChangeOfStatusFinalFormsStep = ({
   lang,
   register,
   setValue,
-  formData,
+  watch,
   serviceId,
 }: Partial<DocumentStepProps> & { serviceId?: string }) => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGenerated, setIsGenerated] = useState(false);
+  const [pdfUrls, setPdfUrls] = useState<{ g1145: string; g1450: string } | null>(null);
 
   const handleGenerate = async () => {
     if (!serviceId) {
       toast({ title: "Erro", description: "ID do serviço não encontrado.", variant: "destructive" });
       return;
     }
+    if (!G1145_URL || !G1450_URL) {
+      toast({ title: "Erro de Configuração", description: "URLs dos templates não definidas no .env.", variant: "destructive" });
+      return;
+    }
 
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke("fill-g1145-g1450", {
-        body: { formData, userServiceId: serviceId },
-      });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado.");
 
-      if (error) throw new Error(error.message);
-      if (data?.error) throw new Error(data.error);
+      const v = (watch?.() ?? {}) as Record<string, string | undefined>;
 
+      const result = await fillG1145G1450Forms(
+        {
+          lastName:    v.g1145_last_name,
+          firstName:   v.g1145_first_name,
+          middleName:  v.g1145_middle_name,
+          email:       v.g1145_email,
+          mobilePhone: v.g1145_mobile_phone,
+        },
+        {
+          familyName:    v.g1450_last_name,
+          givenName:     v.g1450_first_name,
+          middleName:    v.g1450_middle_name,
+          streetAddress: v.g1450_billing_street,
+          city:          v.g1450_billing_city,
+          state:         v.g1450_billing_state,
+          zipCode:       v.g1450_billing_zip,
+          cardType:      v.g1450_card_type,
+          cardNumber:    v.g1450_card_number,
+          expirationDate: v.g1450_expiration_date,
+          email:         v.g1145_email,  // reusar email do G-1145
+          signature:     `${v.g1450_first_name ?? ""} ${v.g1450_last_name ?? ""}`.trim(),
+        },
+        serviceId,
+        { g1145TemplateUrl: G1145_URL, g1450TemplateUrl: G1450_URL, bucket: "process-documents", uploadBytes },
+      );
+
+      // Salva registros na tabela documents
+      await Promise.all([
+        supabase.from("documents").upsert({
+          user_id: user.id, user_service_id: serviceId,
+          name: "g1145_oficial", storage_path: result.g1145Path,
+          bucket_id: "process-documents", status: "pending",
+          created_at: new Date().toISOString(),
+        }, { onConflict: "user_id,name" }),
+        supabase.from("documents").upsert({
+          user_id: user.id, user_service_id: serviceId,
+          name: "g1450_oficial", storage_path: result.g1450Path,
+          bucket_id: "process-documents", status: "pending",
+          created_at: new Date().toISOString(),
+        }, { onConflict: "user_id,name" }),
+      ]);
+
+      // Signed URLs para download imediato
+      const [{ data: s1 }, { data: s2 }] = await Promise.all([
+        supabase.storage.from("process-documents").createSignedUrl(result.g1145Path, 3600),
+        supabase.storage.from("process-documents").createSignedUrl(result.g1450Path, 3600),
+      ]);
+
+      setPdfUrls({ g1145: s1?.signedUrl ?? "", g1450: s2?.signedUrl ?? "" });
       setIsGenerated(true);
       toast({
         title: "Formulários Gerados com Sucesso!",
-        description: "G-1145 e G-1450 foram preenchidos e estão disponíveis para o especialista.",
+        description: "G-1145 e G-1450 foram preenchidos e estão prontos para download.",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Não foi possível gerar os PDFs.";
       console.error("Error generating G-1145/G-1450:", err);
-      toast({
-        title: "Erro na Geração",
-        description: err.message || "Não foi possível gerar os PDFs.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro na Geração", description: msg, variant: "destructive" });
     } finally {
       setIsGenerating(false);
     }
@@ -281,9 +343,21 @@ export const ChangeOfStatusFinalFormsStep = ({
                 </div>
                 <p className="text-sm text-green-600">
                   {lang === "pt"
-                    ? "G-1145 e G-1450 foram enviados para revisão do especialista. Clique em Próximo para concluir."
-                    : "G-1145 and G-1450 have been sent for specialist review. Click Next to continue."}
+                    ? "G-1145 e G-1450 foram gerados com sucesso. Clique em Próximo para concluir."
+                    : "G-1145 and G-1450 were generated successfully. Click Next to continue."}
                 </p>
+                {pdfUrls && (
+                  <div className="flex gap-3 mt-2 flex-wrap">
+                    <a href={pdfUrls.g1145} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm font-semibold text-green-700 underline underline-offset-2">
+                      <Download className="h-4 w-4" /> Baixar G-1145
+                    </a>
+                    <a href={pdfUrls.g1450} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm font-semibold text-green-700 underline underline-offset-2">
+                      <Download className="h-4 w-4" /> Baixar G-1450
+                    </a>
+                  </div>
+                )}
               </>
             ) : (
               <>

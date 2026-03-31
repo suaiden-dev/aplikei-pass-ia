@@ -28,7 +28,7 @@ export default function Index() {
           <div className="z-10">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/20 rounded-full text-white font-bold text-sm mb-8">
               <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
-              {t.hero.badge[lang]}
+              {t.hero?.badge?.[lang] || (lang === "pt" ? "Prévia da Plataforma Aplikei" : lang === "es" ? "Vista Previa de la Plataforma Aplikei" : "Aplikei Platform Preview")}
             </div>
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -36,23 +36,23 @@ export default function Index() {
               transition={{ duration: 0.8, ease: "easeOut" }}
             >
               <h1 className="text-5xl lg:text-7xl font-extrabold leading-[1.1] mb-8 text-white">
-                {t.hero.title[lang]} <span className="text-primary">{t.hero.titleHighlight[lang]}</span>
+                {t.hero?.title?.[lang] || "Aplikei: your American Visa with"} <span className="text-primary">{t.hero?.titleHighlight?.[lang] || "clarity"}</span>
               </h1>
               <p className="text-xl text-slate-300 font-medium max-w-xl mb-12 leading-relaxed">
-                {t.hero.subtitle[lang]}
+                {t.hero?.subtitle?.[lang] || ""}
               </p>
               <div className="flex flex-col sm:flex-row gap-5">
                 {user ? (
                   <Link to="/dashboard" className="px-10 py-5 bg-primary text-white font-bold text-lg rounded-xl shadow-2xl shadow-primary/30 hover:scale-105 transition-transform flex items-center justify-center gap-2">
-                    {t.nav.goToDashboard[lang]}
+                    {t.nav?.goToDashboard?.[lang] || "Dashboard"}
                   </Link>
                 ) : (
                   <Link to="/servicos" className="px-10 py-5 bg-primary text-white font-bold text-lg rounded-xl shadow-2xl shadow-primary/30 hover:scale-105 transition-transform flex items-center justify-center gap-2">
-                    {t.hero.getStarted[lang]} <span className="material-symbols-outlined">arrow_forward</span>
+                    {t.hero?.getStarted?.[lang] || "Start now"} <span className="material-symbols-outlined">arrow_forward</span>
                   </Link>
                 )}
                 <Link to="/como-funciona" className="px-10 py-5 bg-white/10 border border-white/20 text-white font-bold text-lg rounded-xl hover:bg-white/20 transition-colors flex items-center justify-center">
-                  {t.hero.viewPlans[lang]}
+                  {t.hero?.viewPlans?.[lang] || "How it works"}
                 </Link>
               </div>
             </motion.div>
@@ -62,7 +62,7 @@ export default function Index() {
                 <img alt="User" className="w-12 h-12 rounded-full bg-cover border-4 border-highlight" src={avatar2} />
                 <img alt="User" className="w-12 h-12 rounded-full bg-cover border-4 border-highlight" src={avatar3} />
               </div>
-              <p className="text-sm font-bold text-slate-400 tracking-wide">{t.hero.approvedCount[lang]}</p>
+              <p className="text-sm font-bold text-slate-400 tracking-wide">{t.hero?.approvedCount?.[lang] || ""}</p>
             </div>
           </div>
           <motion.div 
@@ -72,7 +72,7 @@ export default function Index() {
             className="relative"
           >
             <div className="absolute -inset-4 bg-primary/10 rounded-[3.5rem] rotate-2"></div>
-            <img alt={t.hero.imageAlt[lang]} className="relative z-10 w-full aspect-[4/5] object-cover rounded-[3rem] shadow-3xl" src={heroImage} />
+            <img alt={t.hero?.imageAlt?.[lang] || "Hero"} className="relative z-10 w-full aspect-[4/5] object-cover rounded-[3rem] shadow-3xl" src={heroImage} />
             <motion.div 
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -95,20 +95,20 @@ export default function Index() {
       <section className="py-40 px-8 lg:px-16 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-32">
-            <h2 className="text-4xl lg:text-5xl font-extrabold mb-8 text-primary">{t.servicesSection.title[lang]}</h2>
-            <p className="text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto">{t.servicesSection.subtitle[lang]}</p>
+            <h2 className="text-4xl lg:text-5xl font-extrabold mb-8 text-primary">{t.servicesSection?.title?.[lang] || "Our Services"}</h2>
+            <p className="text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto">{t.servicesSection?.subtitle?.[lang] || ""}</p>
           </div>
           <div className="grid md:grid-cols-3 gap-16">
             <div className="group p-12 rounded-[2.5rem] bg-white border border-slate-100 hover:border-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 duration-300">
               <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-primary group-hover:text-white transition-all">
                 <span className="material-symbols-outlined text-primary text-4xl group-hover:text-white transition-colors">flight_takeoff</span>
               </div>
-              <h3 className="text-2xl font-bold mb-6 text-primary">{b1b2.title[lang]}</h3>
-              <p className="text-slate-600 mb-10 leading-relaxed min-h-[80px]">{b1b2.subtitle[lang]}</p>
+              <h3 className="text-2xl font-bold mb-6 text-primary">{b1b2.title?.[lang] || "B1/B2 Visa"}</h3>
+              <p className="text-slate-600 mb-10 leading-relaxed min-h-[80px]">{b1b2.subtitle?.[lang] || ""}</p>
               <div className="flex items-end justify-between pt-8 border-t border-slate-100">
                 <div>
-                  <p className="text-sm font-bold text-slate-400 line-through mb-1">{b1b2.originalPrice[lang]}</p>
-                  <p className="text-3xl font-black text-primary">{b1b2.price[lang]}</p>
+                  <p className="text-sm font-bold text-slate-400 line-through mb-1">{b1b2.originalPrice?.[lang] || ""}</p>
+                  <p className="text-3xl font-black text-primary">{b1b2.price?.[lang] || ""}</p>
                 </div>
                 <Link to={`/servicos/${b1b2.slug}`} className="w-14 h-14 rounded-full border-2 border-primary/20 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
                   <span className="material-symbols-outlined">chevron_right</span>
@@ -120,12 +120,12 @@ export default function Index() {
               <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-primary group-hover:text-white transition-all">
                 <span className="material-symbols-outlined text-primary text-4xl group-hover:text-white transition-colors">school</span>
               </div>
-              <h3 className="text-2xl font-bold mb-6 text-primary">{f1.title[lang]}</h3>
-              <p className="text-slate-600 mb-10 leading-relaxed min-h-[80px]">{f1.subtitle[lang]}</p>
+              <h3 className="text-2xl font-bold mb-6 text-primary">{f1.title?.[lang] || "F-1 Visa"}</h3>
+              <p className="text-slate-600 mb-10 leading-relaxed min-h-[80px]">{f1.subtitle?.[lang] || ""}</p>
               <div className="flex items-end justify-between pt-8 border-t border-slate-100">
                 <div>
-                  <p className="text-sm font-bold text-slate-400 line-through mb-1">{f1.originalPrice[lang]}</p>
-                  <p className="text-3xl font-black text-primary">{f1.price[lang]}</p>
+                  <p className="text-sm font-bold text-slate-400 line-through mb-1">{f1.originalPrice?.[lang] || ""}</p>
+                  <p className="text-3xl font-black text-primary">{f1.price?.[lang] || ""}</p>
                 </div>
                 <Link to={`/servicos/${f1.slug}`} className="w-14 h-14 rounded-full border-2 border-primary/20 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
                   <span className="material-symbols-outlined">chevron_right</span>
@@ -137,12 +137,12 @@ export default function Index() {
               <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-primary group-hover:text-white transition-all">
                 <span className="material-symbols-outlined text-primary text-4xl group-hover:text-white transition-colors">history</span>
               </div>
-              <h3 className="text-2xl font-bold mb-6 text-primary">{renewal.title[lang]}</h3>
-              <p className="text-slate-600 mb-10 leading-relaxed min-h-[80px]">{renewal.subtitle[lang]}</p>
+              <h3 className="text-2xl font-bold mb-6 text-primary">{renewal.title?.[lang] || "Visa Renewal"}</h3>
+              <p className="text-slate-600 mb-10 leading-relaxed min-h-[80px]">{renewal.subtitle?.[lang] || ""}</p>
               <div className="flex items-end justify-between pt-8 border-t border-slate-100">
                 <div>
-                  <p className="text-sm font-bold text-slate-400 line-through mb-1">{renewal.originalPrice[lang]}</p>
-                  <p className="text-3xl font-black text-primary">{renewal.price[lang]}</p>
+                  <p className="text-sm font-bold text-slate-400 line-through mb-1">{renewal.originalPrice?.[lang] || ""}</p>
+                  <p className="text-3xl font-black text-primary">{renewal.price?.[lang] || ""}</p>
                 </div>
                 <Link to={`/servicos/${renewal.slug}`} className="w-14 h-14 rounded-full border-2 border-primary/20 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
                   <span className="material-symbols-outlined">chevron_right</span>

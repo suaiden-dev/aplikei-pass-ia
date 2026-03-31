@@ -39,9 +39,12 @@ export const translations = {
     },
     goToAdmin: { en: "Go to Admin", pt: "Ir para o Admin", es: "Ir al Admin" },
   },
-
-  // ──── Hero ────
   hero: {
+    badge: {
+      en: "Aplikei Platform Preview",
+      pt: "Prévia da Plataforma Aplikei",
+      es: "Vista Previa de la Plataforma Aplikei",
+    },
     title: {
       en: "Aplikei: your American Visa with",
       pt: "Aplikei: seu visto americano com",
@@ -52,6 +55,26 @@ export const translations = {
       en: "Get a step-by-step digital guide for US Tourist (B1/B2), Student (F-1), and Exchange Visitor (J-1) visas, plus AI-powered tools to organize your documents and generate a ready-to-print application package.",
       pt: "Obtenha um guia digital passo a passo para vistos americanos de Turismo (B1/B2), Estudante (F-1) e Visitante de Intercâmbio (J-1), além de ferramentas com IA para organizar seus documentos e gerar um pacote de aplicação pronto para imprimir.",
       es: "Obtén una guía digital paso a paso para visas de Turismo (B1/B2), Estudiante (F-1) y Visitante de Intercambio (J-1) de EE.UU., además de herramientas con IA para organizar tus documentos y generar un paquete de aplicación listo para imprimir.",
+    },
+    getStarted: {
+      en: "Start now",
+      pt: "Começar agora",
+      es: "Empezar ahora",
+    },
+    viewPlans: {
+      en: "See Plans & Pricing",
+      pt: "Ver Planos e Preços",
+      es: "Ver Planes y Precios",
+    },
+    approvedCount: {
+      en: "More than 12,000 applicants served",
+      pt: "Mais de 12.000 aplicantes atendidos",
+      es: "Más de 12.000 solicitantes atendidos",
+    },
+    imageAlt: {
+      en: "International students together",
+      pt: "Estudantes internacionais juntos",
+      es: "Estudiantes internacionales juntos",
     },
     cta: {
       en: "See Plans & Pricing →",
@@ -67,6 +90,11 @@ export const translations = {
 
   // ──── How it works (landing) ────
   howItWorksSection: {
+    tagline: {
+      en: "Simple, Fast, and Secure",
+      pt: "Simples, Rápido e Seguro",
+      es: "Simple, Rápido y Seguro",
+    },
     title: { en: "How it works", pt: "Como funciona", es: "Cómo funciona" },
     subtitle: {
       en: "Three simple steps to organize your immigration process.",
@@ -102,6 +130,16 @@ export const translations = {
       en: "Use our AI assistant to organize your uploaded documents, auto-fill forms, and compile everything into a final, organized PDF.",
       pt: "Use nosso assistente de IA para organizar seus documentos enviados, preencher formulários automaticamente e compilar tudo em um PDF final e organizado.",
       es: "Usa nuestro asistente de IA para organizar tus documentos subidos, auto-completar formularios y compilar todo en un PDF final y organizado.",
+    },
+    step4Title: {
+      en: "Your Ready-to-Print Package",
+      pt: "Seu Pacote Pronto para Imprimir",
+      es: "Tu Paquete Listo para Imprimir",
+    },
+    step4Desc: {
+      en: "Receive a professional, organized PDF that contains your completed forms, case summary, and clear instructions on what to do next.",
+      pt: "Receba um PDF profissional e organizado contendo seus formulários preenchidos, resumo do caso e instruções claras sobre o que fazer a seguir.",
+      es: "Recibe un PDF profesional y organizado que contiene tus formularios completos, resumen del caso e instrucciones claras sobre qué hacer después.",
     },
   },
 
@@ -184,6 +222,7 @@ export const translations = {
           es: "La guía fue super detallada y la IA me ahorró horas organizando papeleo. Finalmente, una herramienta que organiza todo por ti.",
         },
         author: "Maria S.",
+        role: { en: "F-1 Student", pt: "Estudante F-1", es: "Estudiante F-1" },
       },
       {
         quote: {
@@ -192,6 +231,7 @@ export const translations = {
           es: "Estaba muy confundida sobre los documentos de la visa F-1. El checklist de Aplikei se aseguró de que no olvidara nada. El paquete final en PDF fue muy profesional.",
         },
         author: "Carlos R.",
+        role: { en: "B1/B2 Visitor", pt: "Visitante B1/B2", es: "Visitante B1/B2" },
       },
       {
         quote: {
@@ -200,6 +240,7 @@ export const translations = {
           es: "Gran valor. No es un abogado, pero me dio la claridad que necesitaba para preparar mi propia solicitud B1/B2 con confianza.",
         },
         author: "David K.",
+        role: { en: "J-1 Exchange", pt: "Intercambista J-1", es: "Intercambista J-1" },
       },
     ],
   },
@@ -5764,7 +5805,7 @@ export const translations = {
       pt: "Voltar ao início",
       es: "Volver al inicio",
     },
-    },
+  },
 } as const;
 
 // Helper type

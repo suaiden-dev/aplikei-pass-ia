@@ -5,11 +5,10 @@ import { Input } from "@/presentation/components/atoms/input";
 import { Button } from "@/presentation/components/atoms/button";
 import { Checkbox } from "@/presentation/components/atoms/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
-import { 
+import {
   FileEdit, CheckCircle2, Loader2, Download, Send, Globe, ShieldAlert, Contact
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/presentation/components/atoms/card";
+import { Card } from "@/presentation/components/atoms/card";
 import {
   Accordion,
   AccordionContent,
@@ -18,6 +17,31 @@ import {
 } from "@/presentation/components/atoms/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { fillI539Form } from "@/application/use-cases/FillI539Form";
+import { I539FormData } from "@/domain/entities/I539FormData";
+
+const TEMPLATE_URL = import.meta.env.VITE_I539_TEMPLATE_URL as string;
+
+/** Converte YYYY-MM-DD (input type=date) para MM/DD/YYYY (USCIS PDF) */
+function toUSDate(v: string | undefined): string | undefined {
+  if (!v) return undefined;
+  const [y, m, d] = v.split("-");
+  if (!y || !m || !d) return v;
+  return `${m}/${d}/${y}`;
+}
+
+function yesNo(v: string | undefined): { yes: boolean; no: boolean } {
+  return { yes: v === "yes", no: v === "no" };
+}
+
+async function uploadBytes(bucket: string, storagePath: string, bytes: Uint8Array): Promise<void> {
+  const blob = new Blob([bytes], { type: "application/pdf" });
+  const { error } = await supabase.storage.from(bucket).upload(storagePath, blob, {
+    contentType: "application/pdf",
+    upsert: true,
+  });
+  if (error) throw new Error(`Upload falhou: ${error.message}`);
+}
 
 export const ChangeOfStatusOfficialFormsStep = ({
   formData,
@@ -28,36 +52,141 @@ export const ChangeOfStatusOfficialFormsStep = ({
 }: DocumentStepProps & { serviceId?: string }) => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const handleGenerateI539 = async () => {
     if (!serviceId) {
       toast({ title: "Erro", description: "ID do serviço não encontrado.", variant: "destructive" });
       return;
     }
+    if (!TEMPLATE_URL) {
+      toast({ title: "Erro de Configuração", description: "VITE_I539_TEMPLATE_URL não está definido no .env.", variant: "destructive" });
+      return;
+    }
 
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('fill-i539', {
-        body: { formData, userServiceId: serviceId }
+      // Captura todos os valores atuais do formulário (inclui i539_* via 'as any')
+      const v = (watch!() as unknown) as Record<string, string | boolean | undefined>;
+
+      const i539Data: I539FormData = {
+        // Part 1 — Identifiers
+        familyName:              v.i539_family_name as string,
+        givenName:               v.i539_given_name as string,
+        middleName:              v.i539_middle_name as string,
+        alienNumber:             v.i539_alien_reg_number as string,
+        uscisOnlineAccountNumber: v.i539_uscis_online_account_number as string,
+        ssn:                     v.i539_ssn as string,
+
+        // Part 1 — Mailing address
+        inCareOf:                v.i539_mailing_in_care_of as string,
+        streetName:              v.i539_mailing_street as string,
+        aptNumber:               v.i539_mailing_apt_ste_flr as string,
+        city:                    v.i539_mailing_city as string,
+        state:                   v.i539_mailing_state as string,
+        zipCode:                 v.i539_mailing_zip as string,
+        hasSeparateMailingAddress: !(v.i539_is_mailing_same_as_physical as boolean),
+
+        // Part 1 — Personal info
+        dateOfBirth:             toUSDate(v.i539_date_of_birth as string),
+        countryOfBirth:          v.i539_country_of_birth as string,
+        countryOfCitizenship:    v.i539_country_of_citizenship as string,
+
+        // Part 1 — Travel & status
+        dateOfLastArrival:       toUSDate(v.i539_last_arrival_date as string),
+        i94Number:               v.i539_i94_number as string,
+        passportNumber:          v.i539_passport_number as string,
+        passportCountry:         v.i539_travel_document_number as string,
+        passportIssuingCountry:  v.i539_country_passport_issuance as string,
+        passportExpirationDate:  toUSDate(v.i539_passport_expiration_date as string),
+        currentImmigrationStatus: v.i539_current_nonimmigrant_status as string,
+        statusExpirationDate:    toUSDate(v.i539_status_expiration_date as string),
+        statusExpiresDS:         !!(v.i539_granted_duration_of_status as boolean),
+
+        // Part 2 — Application type
+        applicationType:
+          (v.i539_application_type as string) === "extension" ? "extend"
+          : (v.i539_application_type as string) === "change"    ? "change"
+          : undefined,
+        newStatusRequested:      v.i539_change_status_to as string,
+        requestedEffectiveDate:  toUSDate(v.i539_effective_date_requested as string),
+        includeSelf:             true,
+        includeSpouse:           (v.i539_number_of_applicants as string) === "family",
+        includeChildren:         (v.i539_number_of_applicants as string) === "family",
+        totalCoApplicants:       v.i539_total_people as string,
+        previouslyExtended:      !!(v.i539_is_based_on_prior_approval as boolean),
+
+        // Part 4 — Security questions (mapped in form order)
+        q6Yes:  yesNo(v.i539_immigrant_visa_applicant  as string).yes,
+        q6No:   yesNo(v.i539_immigrant_visa_applicant  as string).no,
+        q7Yes:  yesNo(v.i539_immigrant_petition_filed  as string).yes,
+        q7No:   yesNo(v.i539_immigrant_petition_filed  as string).no,
+        q8Yes:  yesNo(v.i539_filed_i485                as string).yes,
+        q8No:   yesNo(v.i539_filed_i485                as string).no,
+        q9Yes:  yesNo(v.i539_criminal_history           as string).yes,
+        q9No:   yesNo(v.i539_criminal_history           as string).no,
+        q10Yes: yesNo(v.i539_q7a  as string).yes,
+        q10No:  yesNo(v.i539_q7a  as string).no,
+        q11Yes: yesNo(v.i539_q7b  as string).yes,
+        q11No:  yesNo(v.i539_q7b  as string).no,
+        q12Yes: yesNo(v.i539_q8a  as string).yes,
+        q12No:  yesNo(v.i539_q8a  as string).no,
+        q13Yes: yesNo(v.i539_q8b  as string).yes,
+        q13No:  yesNo(v.i539_q8b  as string).no,
+        q14Yes: yesNo(v.i539_q10  as string).yes,
+        q14No:  yesNo(v.i539_q10  as string).no,
+        q15Yes: yesNo(v.i539_q11  as string).yes,
+        q15No:  yesNo(v.i539_q11  as string).no,
+        q16Yes: yesNo(v.i539_q12  as string).yes,
+        q16No:  yesNo(v.i539_q12  as string).no,
+        q17Yes: yesNo(v.i539_q13  as string).yes,
+        q17No:  yesNo(v.i539_q13  as string).no,
+        q18Yes: yesNo(v.i539_q14  as string).yes,
+        q18No:  yesNo(v.i539_q14  as string).no,
+
+        // Part 5 — Contact
+        daytimePhone:     v.i539_applicant_phone  as string,
+        mobilePhone:      v.i539_applicant_mobile as string,
+        email:            v.i539_applicant_email  as string,
+        signatureDate:    new Date().toLocaleDateString("en-US"),
+      };
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado.");
+
+      const result = await fillI539Form(i539Data, serviceId, {
+        templateUrl: TEMPLATE_URL,
+        bucket: "process-documents",
+        uploadBytes,
       });
 
-      if (error) throw new Error(error.message);
-      if (data?.error) throw new Error(data.error);
+      // Salva registro na tabela documents (mesmo padrão dos outros uploads)
+      await supabase.from("documents").upsert({
+        user_id: user.id,
+        user_service_id: serviceId,
+        name: "i539_oficial",
+        storage_path: result.storagePath,
+        bucket_id: "process-documents",
+        status: "pending",
+        created_at: new Date().toISOString(),
+      }, { onConflict: "user_id,name" });
 
+      // Cria URL assinada válida por 1 hora para download imediato
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from("process-documents")
+        .createSignedUrl(result.storagePath, 60 * 60);
+      if (signedError) throw signedError;
+
+      setPdfUrl(signedData.signedUrl);
       toast({
         title: "I-539 Gerado com Sucesso!",
-        description: "O formulário preenchido já está disponível na sua lista de documentos.",
+        description: "O PDF preenchido está pronto para download.",
       });
 
-      console.log("PDF Gerado:", data?.fileName);
-      
-    } catch (error: any) {
-      console.error("Error generating I-539:", error);
-      toast({
-        title: "Erro na Geração",
-        description: error.message || "Não foi possível gerar o PDF.",
-        variant: "destructive"
-      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Não foi possível gerar o PDF.";
+      console.error("Error generating I-539:", err);
+      toast({ title: "Erro na Geração", description: msg, variant: "destructive" });
     } finally {
       setIsGenerating(false);
     }
@@ -346,18 +475,39 @@ export const ChangeOfStatusOfficialFormsStep = ({
             <p className="text-sm text-foreground/80">
               Confira todos os dados antes de prosseguir. Ao "Gerar", nosso sistema preencherá o formulário I-539 da USCIS automaticamente com as informações acima, poupando horas de digitação.
             </p>
-          </div>
-          <Button 
-            className="w-full md:w-auto h-14 px-8 gap-3 font-bold text-sm uppercase tracking-widest shadow-lg shadow-accent/20"
-            onClick={handleGenerateI539}
-            disabled={isGenerating}
-          >
-            {isGenerating ? (
-              <><Loader2 className="h-5 w-5 animate-spin" /> Processando...</>
-            ) : (
-              <><Send className="h-5 w-5" /> Gerar I-539 Oficial</>
+            {pdfUrl && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-green-600 font-medium">
+                <CheckCircle2 className="h-4 w-4" />
+                PDF gerado com sucesso!
+              </div>
             )}
-          </Button>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            {pdfUrl && (
+              <Button
+                variant="outline"
+                className="h-14 px-6 gap-3 font-bold text-sm uppercase tracking-widest"
+                asChild
+              >
+                <a href={pdfUrl} target="_blank" rel="noopener noreferrer">
+                  <Download className="h-5 w-5" /> Baixar PDF
+                </a>
+              </Button>
+            )}
+            <Button
+              className="h-14 px-8 gap-3 font-bold text-sm uppercase tracking-widest shadow-lg shadow-accent/20"
+              onClick={handleGenerateI539}
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <><Loader2 className="h-5 w-5 animate-spin" /> Processando...</>
+              ) : pdfUrl ? (
+                <><Send className="h-5 w-5" /> Regerar I-539</>
+              ) : (
+                <><Send className="h-5 w-5" /> Gerar I-539 Oficial</>
+              )}
+            </Button>
+          </div>
         </div>
       </Card>
       
