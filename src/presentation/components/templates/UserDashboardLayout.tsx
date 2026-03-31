@@ -12,14 +12,14 @@ import {
   Truck,
 } from "lucide-react";
 import LanguageToggle from "@/presentation/components/molecules/LanguageToggle";
-import { useLanguage } from "@/i18n/LanguageContext";
+import { useT } from "@/i18n/LanguageContext";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useEffect } from "react";
 
 export default function UserDashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { lang, t } = useLanguage();
+  const t = useT("dashboard");
   const { isAdmin, loading } = useAdmin();
   const s = t.sidebar;
 
@@ -32,15 +32,15 @@ export default function UserDashboardLayout() {
   if (loading) return null;
 
   const sidebarLinks = [
-    { to: "/dashboard", label: s.dashboard[lang], icon: LayoutDashboard },
+    { to: "/dashboard", label: s.dashboard, icon: LayoutDashboard },
     {
       to: "/dashboard/processos",
-      label: t.nav.myProcesses[lang],
+      label: t.myProcesses,
       icon: Briefcase,
     },
-    { to: "/dashboard/acompanhamento", label: s.tracking[lang], icon: Truck },
-    { to: "/dashboard/chat", label: s.chatAI[lang], icon: MessageSquare },
-    { to: "/dashboard/ajuda", label: s.help[lang], icon: HelpCircle },
+    { to: "/dashboard/acompanhamento", label: t.status?.trackStatus || "Status", icon: Truck },
+    { to: "/dashboard/chat", label: s.chatAI, icon: MessageSquare },
+    { to: "/dashboard/ajuda", label: s.help, icon: HelpCircle },
   ];
 
   return (
@@ -76,7 +76,7 @@ export default function UserDashboardLayout() {
             className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <LogOut className="h-4 w-4" />
-            {s.logout[lang]}
+            {s.logout}
           </Link>
         </div>
       </aside>

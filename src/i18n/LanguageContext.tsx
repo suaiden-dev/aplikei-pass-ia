@@ -35,7 +35,12 @@ import {
 } from "react";
 
 import { translations } from "./translations"; // backward-compat — removed when migration is complete
-import type { Language, LocaleTranslations, LanguageContextType } from "./types";
+import {
+  Language,
+  LocaleTranslations,
+  LanguageContextType,
+  TranslationNamespace,
+} from "./types";
 
 // ─────────────────────────────────────────
 // Context object (exported for useT)
@@ -94,24 +99,49 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setIsLanguageLoading(true);
 
     try {
-      /**
-       * Explicit per-language imports are required for Vite/Rollup to emit
-       * separate chunks. A template literal with a variable would cause all
-       * locales to land in a single chunk, defeating lazy loading.
-       */
-      const moduleMap: Record<Language, () => Promise<Record<string, unknown>>> = {
-        en: () => import("./locales/en/index"),
-        pt: () => import("./locales/pt/index"),
-        es: () => import("./locales/es/index"),
-      };
-      const module = await moduleMap[targetLang]();
+      const l = targetLang;
+      const [
+        common,
+        auth,
+        dashboard,
+        visas,
+        nav,
+        landing,
+        checkout,
+        admin,
+        tracking,
+        services,
+        howItWorks,
+        footer,
+      ] = await Promise.all([
+        import(`./locales/${l}/common`).then((m) => m.default),
+        import(`./locales/${l}/auth`).then((m) => m.default),
+        import(`./locales/${l}/dashboard`).then((m) => m.default),
+        import(`./locales/${l}/visas`).then((m) => m.default),
+        import(`./locales/${l}/nav`).then((m) => m.default),
+        import(`./locales/${l}/landing`).then((m) => m.default),
+        import(`./locales/${l}/checkout`).then((m) => m.default),
+        import(`./locales/${l}/admin`).then((m) => m.default),
+        import(`./locales/${l}/tracking`).then((m) => m.default),
+        import(`./locales/${l}/services`).then((m) => m.default),
+        import(`./locales/${l}/howItWorks`).then((m) => m.default),
+        import(`./locales/${l}/footer`).then((m) => m.default),
+      ]);
 
       const loaded: LocaleTranslations = {
-        _lang: targetLang,
-        common: module.common as Record<string, unknown>,
-        auth: module.auth as Record<string, unknown>,
-        dashboard: module.dashboard as Record<string, unknown>,
-        visas: module.visas as Record<string, unknown>,
+        _lang: l,
+        common,
+        auth,
+        dashboard,
+        visas,
+        nav,
+        landing,
+        checkout,
+        admin,
+        tracking,
+        services,
+        howItWorks,
+        footer,
       };
 
       localeCache.set(targetLang, loaded);
@@ -175,6 +205,35 @@ export function useLanguage() {
   return {
     lang: context.lang,
     setLang: context.setLang,
-    t: context.t as typeof translations,
+    t: context.t as typeof translations, // cast to existing translations type for compat
+    locale: context.locale,
+    isLanguageLoading: context.isLanguageLoading,
   };
+}
+
+/**
+ * Modern hook for accessing lazy-loaded translation namespaces.
+ *
+ * Use this to fetch specific sections like 'auth', 'dashboard', or 'visas'.
+ * The hook returns the subset of the currently loaded locale for that namespace.
+ *
+ * @example
+ *   const t = useT("auth");
+ *   return <h1>{t.login.title}</h1>;
+ */
+export function useT<N extends TranslationNamespace>(namespace: N): LocaleTranslations[N] {
+  const context = useContext(LanguageContext);
+  if (!context) {
+    throw new Error("useT must be used within <LanguageProvider>");
+  }
+
+  // If the locale is not yet loaded, we return an empty object or handle it.
+  // In most cases, the app should be behind a loading spinner if isLanguageLoading is true.
+  // We cast to any here to allow partial state before first load finishes,
+  // but the return type remains type-safe for the caller.
+  if (!context.locale) {
+    return {} as any;
+  }
+
+  return context.locale[namespace];
 }

@@ -14,7 +14,19 @@
 
 export type Language = "en" | "pt" | "es";
 
-export type TranslationNamespace = "common" | "auth" | "dashboard" | "visas";
+export type TranslationNamespace =
+  | "common"
+  | "auth"
+  | "dashboard"
+  | "visas"
+  | "nav"
+  | "landing"
+  | "checkout"
+  | "admin"
+  | "tracking"
+  | "services"
+  | "howItWorks"
+  | "footer";
 
 // ─────────────────────────────────────────
 // Locale structure
@@ -25,20 +37,62 @@ export type TranslationNamespace = "common" | "auth" | "dashboard" | "visas";
  * (or primitive) leaf values. Arrays of objects are also allowed for
  * sections like faq.items or testimonials.items.
  */
-export type LocaleNamespace = Record<string, unknown>;
+export type LocaleNamespace = Record<string, any>;
 
-/**
- * The fully loaded locale for one language, organised by namespace.
- * The `_lang` tag lets the context detect stale cache entries after
- * a language switch.
- */
 export interface LocaleTranslations {
-  /** The language this object was built for. */
   _lang: Language;
-  common: LocaleNamespace;
-  auth: LocaleNamespace;
-  dashboard: LocaleNamespace;
-  visas: LocaleNamespace;
+  common: Record<string, any>;
+  auth: Record<string, any>;
+  dashboard: Record<string, any>;
+  visas: Record<string, any>;
+  nav: Record<string, any>;
+  landing: Record<string, any>;
+  checkout: Record<string, any>;
+  admin: {
+    analysisPanel: {
+      title: string;
+      subtitle: string;
+      clientExplanation: string;
+      clientDocuments: string;
+      noDocuments: string;
+      internalNotes: string;
+      internalNotesPlaceholder: string;
+      finalMessage: string;
+      finalMessagePlaceholder: string;
+      actions: {
+        completeReview: string;
+        sendProposal: string;
+        requestMoreInfo: string;
+        uploadFinalDocs: string;
+      };
+      status: {
+        pending: string;
+        reviewing: string;
+        proposalSent: string;
+        completed: string;
+        rfeRequested: string;
+        motionStarted: string;
+      };
+      labels: {
+        caseComplexity: string;
+        low: string;
+        medium: string;
+        high: string;
+        estimatedHours: string;
+        expertAssigned: string;
+      };
+      messages: {
+        successSave: string;
+        errorSave: string;
+        missingFields: string;
+        proposalSent: string;
+      };
+    };
+  };
+  tracking: Record<string, any>;
+  services: Record<string, any>;
+  howItWorks: Record<string, any>;
+  footer: Record<string, any>;
 }
 
 // ─────────────────────────────────────────

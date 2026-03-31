@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
-import { useLanguage } from "@/i18n/LanguageContext";
+import { useLanguage, useT } from "@/i18n/LanguageContext";
 
 export default function Footer() {
-  const { lang, t } = useLanguage();
+  const { lang } = useLanguage();
+  const t = useT("footer");
+  const commonT = useT("services"); // for servicesData
 
   return (
     <footer className="bg-highlight text-white pt-40 pb-20 px-8 lg:px-16">
@@ -13,7 +15,7 @@ export default function Footer() {
             <span className="text-2xl font-extrabold tracking-tight">Aplikei</span>
           </div>
           <p className="text-white/70 leading-relaxed mb-10 text-lg">
-            {t.footer.tagline[lang]}
+            {t.tagline}
           </p>
           <div className="flex gap-5">
             <a className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-highlight transition-all" href="#">
@@ -25,10 +27,10 @@ export default function Footer() {
           </div>
         </div>
         <div>
-          <h4 className="font-bold text-sm mb-10 uppercase tracking-[0.2em] text-white">{t.footer.servicesHeader[lang]}</h4>
+          <h4 className="font-bold text-sm mb-10 uppercase tracking-[0.2em] text-white">{t.servicesHeader}</h4>
           <ul className="space-y-5 text-white/70 font-medium">
-            {t.servicesData.map((s) => (
-              <li key={s.slug}><Link to={`/servicos/${s.slug}`} className="hover:text-white transition-colors">{s.shortTitle[lang]}</Link></li>
+            {commonT.data.map((s) => (
+              <li key={s.slug}><Link to={`/servicos/${s.slug}`} className="hover:text-white transition-colors">{s.shortTitle}</Link></li>
             ))}
           </ul>
         </div>
@@ -55,7 +57,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 text-sm text-white/50 font-medium">
-        <p>© {new Date().getFullYear()} Aplikei Tecnologia. {t.footer.copyright[lang]}</p>
+        <p>© {new Date().getFullYear()} Aplikei Tecnologia. {t.copyright}</p>
         <div className="flex gap-10">
           <Link to="/termos" className="hover:text-white transition-colors">Termos de Uso</Link>
           <Link to="/privacidade" className="hover:text-white transition-colors">Privacidade</Link>

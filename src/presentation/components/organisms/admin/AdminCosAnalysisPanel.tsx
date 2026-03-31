@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/presentation/components/atoms/button";
 import { Input } from "@/presentation/components/atoms/input";
 import { Badge } from "@/presentation/components/atoms/badge";
@@ -17,20 +16,8 @@ import {
   User,
 } from "lucide-react";
 import { motion } from "framer-motion";
-
-interface RecoveryCase {
-  id: string;
-  user_service_id: string;
-  user_id: string;
-  explanation: string | null;
-  document_urls: string[];
-  submitted_at: string;
-  admin_analysis: string | null;
-  proposal_value_usd: number | null;
-  proposal_sent_at: string | null;
-  admin_notes: string | null;
-  status: string;
-}
+import { AdminAnalysisService, type RecoveryCase } from "@/application/services/admin/AdminAnalysisService";
+import { useT } from "@/i18n/LanguageContext";
 
 interface Props {
   userServiceId: string | null;
@@ -38,6 +25,7 @@ interface Props {
 }
 
 export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
+  const t = useT("admin");
   const [recoveryCase, setRecoveryCase] = useState<RecoveryCase | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -61,20 +49,15 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
   }, [userServiceId]);
 
   const getStatusPrefix = () => serviceSlug === "extensao-status" ? "EOS_" : "COS_";
+  const getLabel = () => recoveryType === "rfe" ? "RFE" : "Motion";
 
   const fetchCase = async () => {
     setLoading(true);
     try {
-      // 1. Fetch recovery case details
-      const { data: rc, error: rcError } = await (supabase as any)
-        .from("cos_recovery_cases")
-        .select("*")
-        .eq("user_service_id", userServiceId!)
-        .maybeSingle();
+      const { recoveryCase: rc, userService: us } = await AdminAnalysisService.fetchCase(userServiceId!);
 
-      if (rcError) throw rcError;
       if (rc) {
-        setRecoveryCase(rc as RecoveryCase);
+        setRecoveryCase(rc);
         setAdminAnalysis(rc.admin_analysis || "");
         setProposalValue(rc.proposal_value_usd?.toString() || "");
         setAdminNotes(rc.admin_notes || "");
@@ -82,14 +65,6 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
         setFinalDocumentUrls(rc.final_document_urls || []);
       }
 
-      // 2. Fetch user_service to get recovery_type and current status
-      const { data: us, error: usError } = await (supabase as any)
-        .from("user_services")
-        .select("status, data, service_slug")
-        .eq("id", userServiceId!)
-        .single();
-
-      if (usError) throw usError;
       setUserServiceStatus(us.status || "");
       setServiceSlug(us.service_slug || "");
       const dataObj = us.data as any;
@@ -98,60 +73,64 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
       } else {
         setRecoveryType("motion");
       }
-
-    } catch (err) {
-      console.error("Error fetching recovery case or user service:", err);
+    } catch (error: any) {
+      console.error("Error saving case:", error);
+      toast.error(t.analysisPanel.messages.errorSave);
     } finally {
       setLoading(false);
     }
   };
 
-  const getLabel = () => recoveryType === "rfe" ? "RFE" : "Motion";
+  const saveCase = async () => {
+    setSaving(true);
+    try {
+      const updatedCase = await AdminAnalysisService.saveAnalysis(
+        recoveryCase?.id,
+        userServiceId!,
+        recoveryCase?.user_id,
+        {
+          admin_analysis: adminAnalysis,
+          admin_notes: adminNotes,
+          admin_final_message: adminFinalMessage,
+          final_document_urls: finalDocumentUrls,
+        }
+      );
 
-  const handleSendProposal = async () => {
-    if (!recoveryCase) return;
-    if (!adminAnalysis.trim()) {
-      toast.error("Preencha o campo de análise antes de enviar.");
+      setRecoveryCase(updatedCase);
+      toast.success(t.analysisPanel.messages.proposalSent);
+    } catch (error: any) {
+      console.error("Error saving analysis:", error);
+      toast.error(error.message || "Failed to save analysis");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleProposedValue = async () => {
+    if (!recoveryCase?.id) return;
+    const value = parseFloat(proposalValue);
+    if (isNaN(value)) {
+      toast.error("Please enter a valid number for the proposal value");
       return;
     }
 
     setSaving(true);
     try {
-      const valueNumeric = proposalValue ? parseFloat(proposalValue) : null;
+      await AdminAnalysisService.sendProposal(recoveryCase.id, value);
+      
+      const newStatus = getStatusPrefix() + "RECOVERY_PAYMENT_PENDING";
+      await AdminAnalysisService.updateUserServiceStatus(userServiceId!, newStatus);
 
-      // 1. Update cos_recovery_cases with admin response
-      const { error: updateError } = await (supabase as any)
-        .from("cos_recovery_cases")
-        .update({
-          admin_analysis: adminAnalysis.trim(),
-          proposal_value_usd: valueNumeric,
-          admin_notes: adminNotes.trim() || null,
-          proposal_sent_at: new Date().toISOString(),
-          status: "proposal_sent",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", recoveryCase.id);
-
-      if (updateError) throw updateError;
-
-      // 2. Update user_services status to ANALISE_CONCLUIDA
-      const { error: statusError } = await supabase
-        .from("user_services")
-        .update({ status: "ANALISE_CONCLUIDA" })
-        .eq("id", userServiceId!);
-
-      if (statusError) throw statusError;
-
-      toast.success("Proposta enviada com sucesso! O cliente foi notificado.");
-      await fetchCase();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      toast.error(`Erro ao enviar proposta: ${msg}`);
+      toast.success("Proposal sent and status updated");
+      fetchCase();
+    } catch (error: any) {
+      console.error("Error sending proposal:", error);
+      toast.error(error.message || "Failed to send proposal");
     } finally {
       setSaving(false);
     }
   };
-  
+
   const handleDeliver = async () => {
     if (!recoveryCase) return;
     if (!adminFinalMessage.trim() && finalDocumentUrls.length === 0) {
@@ -161,32 +140,18 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
 
     setSaving(true);
     try {
-      // 1. Update cos_recovery_cases
-      const { error: updateError } = await (supabase as any)
-        .from("cos_recovery_cases")
-        .update({
-          admin_final_message: adminFinalMessage.trim(),
-          final_document_urls: finalDocumentUrls,
-          status: "completed",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", recoveryCase.id);
-
-      if (updateError) throw updateError;
-
-      // 2. Update user_services status
-      const { error: statusError } = await supabase
-        .from("user_services")
-        .update({ status: `${getStatusPrefix()}MOTION_COMPLETED` })
-        .eq("id", userServiceId!);
-
-      if (statusError) throw statusError;
+      await AdminAnalysisService.completeRecovery(
+        recoveryCase.id,
+        userServiceId!,
+        adminFinalMessage,
+        finalDocumentUrls,
+        getStatusPrefix()
+      );
 
       toast.success(`${getLabel()} entregue com sucesso! O cliente receberá as instruções imediatamente.`);
       await fetchCase();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      toast.error(`Erro ao entregar ${getLabel().toLowerCase()}: ${msg}`);
+    } catch (err: any) {
+      toast.error(`Erro ao entregar ${getLabel().toLowerCase()}: ${err.message || "Erro desconhecido"}`);
     } finally {
       setSaving(false);
     }
@@ -200,23 +165,8 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
     
     try {
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const safeFilename = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const filePath = `recovery_fulfillment/${recoveryCase.id}/${Date.now()}_${safeFilename}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('process-documents')
-          .upload(filePath, file);
-          
-        if (uploadError) throw uploadError;
-        
-        const { data: signedData, error: signError } = await supabase.storage
-          .from('process-documents')
-          .createSignedUrl(filePath, 31536000); // 1 year expiry
-          
-        if (signError) throw signError;
-          
-        newUrls.push(signedData.signedUrl);
+        const signedUrl = await AdminAnalysisService.uploadFile(recoveryCase.id, files[i]);
+        newUrls.push(signedUrl);
       }
       
       setFinalDocumentUrls(newUrls);
@@ -331,6 +281,9 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-primary" />
+                <Badge variant="outline" className="text-xs uppercase tracking-wider font-semibold bg-blue-50 text-blue-700 border-blue-200">
+                  {t.analysisPanel.labels.caseComplexity}
+                </Badge>
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Documentos enviados ({recoveryCase.document_urls.length})
                 </p>
@@ -349,7 +302,7 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
                       <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
                         <FileText className="w-4 h-4 text-primary" />
                       </div>
-                      <span className="text-xs font-medium truncate flex-1 text-foreground">{filename}</span>
+                      <span className="text-sm font-semibold text-slate-700">{t.analysisPanel.finalMessage}</span>
                       <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary flex-shrink-0" />
                     </a>
                   );
@@ -364,25 +317,31 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
       {!isAccepted && !isCompleted && (
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           <div className="bg-primary/5 dark:bg-primary/10 px-5 py-3 border-b border-border flex items-center gap-2">
-            <Send className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-bold uppercase tracking-widest text-primary">
-              Resposta do Especialista
-            </h3>
+            <div className="flex items-center gap-4 mb-2">
+              <FileText className="w-6 h-6 text-highlight" />
+              <h2 className="text-2xl font-bold tracking-tight text-slate-800">
+                {t.analysisPanel.title}
+              </h2>
+            </div>
+            <p className="text-slate-500 mb-8 max-w-2xl">
+              {t.analysisPanel.subtitle}
+            </p>
           </div>
 
           <div className="p-5 space-y-5">
             {/* Analysis text */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                <MessageSquare className="w-4 h-4 text-primary" />
-                Análise do Especialista <span className="text-red-500">*</span>
+                <MessageSquare className="w-5 h-5 text-highlight" />
+                {t.analysisPanel.clientExplanation}
+                <span className="text-red-500">*</span>
               </label>
               <p className="text-xs text-muted-foreground">
                 Descreva a avaliação jurídica do caso, os fundamentos para o {getLabel()} e a estratégia recomendada.
               </p>
               <textarea
                 className="w-full min-h-[180px] p-4 rounded-xl border border-border bg-background focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all resize-none text-sm leading-relaxed"
-                placeholder="Ex: Após análise da decisão do USCIS, identificamos que a negativa foi fundamentada em deficiência documental no formulário I-539A do dependente. Recomendamos a interposição de Motion to Reopen (I-290B) com os seguintes argumentos..."
+                placeholder={t.analysisPanel.finalMessagePlaceholder}
                 value={adminAnalysis}
                 onChange={(e) => setAdminAnalysis(e.target.value)}
               />
@@ -419,7 +378,7 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
               </label>
               <textarea
                 className="w-full min-h-[80px] p-3 rounded-xl border border-border bg-muted/20 focus:border-primary focus:outline-none transition-all resize-none text-sm leading-relaxed text-muted-foreground"
-                placeholder="Observações internas sobre o caso (não será exibido ao cliente)..."
+                placeholder={t.analysisPanel.internalNotesPlaceholder}
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
               />
@@ -433,7 +392,7 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
                   : "Ao enviar, o status do cliente será atualizado para ANALISE_CONCLUIDA."}
               </p>
               <Button
-                onClick={handleSendProposal}
+                onClick={handleProposedValue}
                 disabled={saving || !adminAnalysis.trim()}
                 className="min-w-[160px] gap-2 font-bold"
               >
@@ -484,8 +443,8 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
             {/* Document Upload / Delivery */}
             <div className="space-y-3">
               <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                <FileText className="w-4 h-4 text-indigo-600" />
-                Documentos Finais ({getLabel()})
+                <FileText className="w-5 h-5 text-highlight" />
+                {t.analysisPanel.clientDocuments}
               </label>
               
               {!isCompleted && (
@@ -519,7 +478,7 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
                       return (
                         <div key={idx} className="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900 rounded-lg">
                           <FileText className="w-4 h-4 text-indigo-600 flex-shrink-0" />
-                          <span className="text-xs font-medium truncate flex-1">{filename}</span>
+                          <span className="text-sm font-semibold text-slate-700">{t.analysisPanel.internalNotes}</span>
                           <div className="flex items-center gap-2">
                             <a href={url} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-indigo-50 rounded-md transition-colors">
                               <ExternalLink className="w-3.5 h-3.5 text-indigo-600" />
@@ -529,7 +488,7 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
                                 onClick={() => setFinalDocumentUrls(prev => prev.filter((_, i) => i !== idx))}
                                 className="p-1.5 hover:bg-red-50 text-red-500 rounded-md transition-colors"
                               >
-                                <AlertCircle className="w-3.5 h-3.5" />
+                                {t.analysisPanel.actions.completeReview}
                               </button>
                             )}
                           </div>
@@ -538,7 +497,7 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground py-3 italic">Nenhum documento anexado à entrega.</p>
+                  <span className="text-slate-400 text-sm italic">{t.analysisPanel.noDocuments}</span>
                 )}
               </div>
             </div>
