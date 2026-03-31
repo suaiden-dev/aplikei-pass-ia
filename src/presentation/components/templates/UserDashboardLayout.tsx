@@ -9,6 +9,7 @@ import {
   LogOut,
   CheckSquare,
   Briefcase,
+  Truck,
 } from "lucide-react";
 import LanguageToggle from "@/presentation/components/molecules/LanguageToggle";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -37,7 +38,7 @@ export default function UserDashboardLayout() {
       label: t.nav.myProcesses[lang],
       icon: Briefcase,
     },
-
+    { to: "/dashboard/acompanhamento", label: s.tracking[lang], icon: Truck },
     { to: "/dashboard/chat", label: s.chatAI[lang], icon: MessageSquare },
     { to: "/dashboard/ajuda", label: s.help[lang], icon: HelpCircle },
   ];

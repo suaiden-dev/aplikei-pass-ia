@@ -39,6 +39,7 @@ export const useOnboardingLogic = () => {
     const [selfieFile, setSelfieFile] = useState<File | null>(null);
     const [visaPhotoFile, setVisaPhotoFile] = useState<File | null>(null);
     const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+    const [isFinishing, setIsFinishing] = useState<boolean>(false);
     
     // Form Handling - Moved up to avoid ReferenceError in getSteps/getStepSlugs
     const { register, control, handleSubmit, setValue, watch, reset, trigger, formState: { errors } } = useForm<OnboardingData>();
@@ -88,7 +89,7 @@ export const useOnboardingLogic = () => {
             "f1f2-passport", "f1f2-documents", "review"
         ];
         if (serviceSlug === "changeofstatus") {
-            const allSlugs = ["cos-form", "cos-documents", "cos-official-forms", "cos-cover-letter-form", "cos-i20", "cos-sevis", "cos-final-forms", "cos-review"];
+            const allSlugs = ["cos-form", "cos-documents", "cos-official-forms", "cos-cover-letter-form", "cos-i20", "cos-sevis", "cos-final-forms", "cos-review", "cos-tracking"];
             // Only filter if we know for sure it's NOT F1/F2. Default to full list during load.
             if (formData?.targetVisa && formData.targetVisa !== "f1/f2") {
                 // Remove I-20 (4) and SEVIS Fee (5) — only needed for F1/F2
@@ -115,7 +116,7 @@ export const useOnboardingLogic = () => {
 
     // Real-time status sync
     useEffect(() => {
-        if (!serviceId) return;
+        if (!serviceId || isFinishing) return;
         
         const channel = supabase
             .channel(`service_status_${serviceId}`)
@@ -143,7 +144,7 @@ export const useOnboardingLogic = () => {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [serviceId, serviceStatus, currentStep]);
+    }, [serviceId, serviceStatus, currentStep, isFinishing]);
 
     // Load User Data & Service
     useEffect(() => {
@@ -435,7 +436,8 @@ export const useOnboardingLogic = () => {
                 
                 // Change of Status pieces
                 "cos-form": ["currentVisa", "currentVisaOther", "targetVisa", "i94AuthorizedStayDate", "dependents", "appliedBy"],
-                "cos-cover-letter-form": ["coverLetterData"]
+                "cos-cover-letter-form": ["coverLetterData"],
+                "cos-tracking": ["trackingCode"]
             };
 
             const fieldsToSave = fieldMapping[currentSlug] || Object.keys(formData);
@@ -452,6 +454,7 @@ export const useOnboardingLogic = () => {
     };
 
     const handleNext = async () => {
+        console.log("DEBUG: handleNext started", { effectiveStep, serviceSlug, serviceStatus });
         // Prevent proceeding if a manual review is pending
         const reviewStatuses = [
             "COS_ADMIN_SCREENING", 
@@ -650,7 +653,12 @@ export const useOnboardingLogic = () => {
     };
 
     const handleFinish = async () => {
-        if (!user || !serviceId) return;
+        setIsFinishing(true);
+        console.log("DEBUG: handleFinish started", { effectiveStep, serviceSlug, serviceStatus, formData });
+        if (!user || !serviceId) {
+            console.warn("DEBUG: handleFinish aborted - missing user or serviceId", { userId, serviceId });
+            return;
+        }
 
         await saveCurrentStep();
 
@@ -671,7 +679,19 @@ export const useOnboardingLogic = () => {
             let nextStatus = isSignatureSubmit ? "uploadsUnderReview" : "review_pending";
 
             if (serviceSlug === "changeofstatus") {
-                if (serviceStatus === "COS_OFFICIAL_FORMS") {
+                const currentSlug = stepSlugs[effectiveStep];
+                if (currentSlug === "cos-tracking") {
+                    nextStatus = "COS_TRACKING";
+                    // Save tracking code if present in formData
+                    if (formData.trackingCode) {
+                        try {
+                            const repo = getUserProcessRepository();
+                            await repo.updateData(serviceId, { trackingCode: String(formData.trackingCode).toUpperCase() });
+                        } catch (e) {
+                            console.error("Error saving tracking code on finish:", e);
+                        }
+                    }
+                } else if (serviceStatus === "COS_OFFICIAL_FORMS") {
                     nextStatus = "COS_OFFICIAL_FORMS_REVIEW";
                 } else if (serviceStatus === "COS_COVER_LETTER_FORM") {
                     nextStatus = "COS_COVER_LETTER_ADMIN_REVIEW";
@@ -683,12 +703,18 @@ export const useOnboardingLogic = () => {
                 }
             }
 
-            const finalStep = serviceSlug === "visto-b1-b2" ? 11 : serviceSlug === "visa-f1f2" ? 9 : 5;
+            const finalStep = steps.length - 1;
             
+            console.log("DEBUG: Updating status to", nextStatus, "at step", finalStep);
             await processRepo.updateStatus(serviceId, nextStatus, finalStep);
 
-            toast.success(isSignatureSubmit ? o.docsSubmitted[lang] : o.packageGenerated[lang]);
-            window.location.reload();
+            if (serviceSlug === "changeofstatus" && stepSlugs[effectiveStep] === "cos-tracking") {
+                toast.success(lang === "pt" ? "Código de rastreio registrado! Acompanhe agora." : "Tracking code registered! Track it now.");
+                navigate("/dashboard/acompanhamento");
+            } else {
+                toast.success(isSignatureSubmit ? o.docsSubmitted[lang] : o.packageGenerated[lang]);
+                window.location.reload();
+            }
 
         } catch (error: unknown) {
             console.error("Error finishing:", error);

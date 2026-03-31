@@ -55,28 +55,52 @@ export default function UserProcesses() {
         const getUserProcesses = new GetUserProcesses(repo);
         const processes = await getUserProcesses.execute(user.id);
 
-        const processedServices = processes.map((s) => {
-          const statusInfo = getStatusDisplay(s.status, lang as string, d.status, s.serviceSlug as string);
-          let p = 0;
+        if (processes && processes.length > 0) {
+          const uniqueServicesMap = new Map<string, any>();
+          const EXCLUDED_SUB_SERVICES = ["analise-especialista-cos", "motion-reconsideracao-cos"];
 
-          if (s.status === "approved" || s.status === "completed") {
-            p = 100;
-          } else if (statusInfo.step > 1) {
-            p = Math.round(((statusInfo.step - 1) / statusInfo.totalSteps) * 100);
-          } else if (statusInfo.step === 1) {
-            const onboardingTotal = (s.serviceSlug as string)?.includes("status") ? 4 : 13;
-            p = Math.min(Math.round(((s.currentStep || 0) / onboardingTotal) * 10), 15);
-          }
+          processes.forEach((p) => {
+            if (EXCLUDED_SUB_SERVICES.includes(p.serviceSlug)) return;
 
-          return {
-            ...s,
-            calculatedProgress: p,
-            statusLabel: statusInfo.label,
-            stepText: statusInfo.stepText,
-          };
-        });
+            // Normalizar slugs para evitar duplicatas por variações de nome
+            let normalizedSlug = p.serviceSlug;
+            if (normalizedSlug === "visto-f1") normalizedSlug = "visa-f1f2";
+            if (normalizedSlug === "changeofstatus") normalizedSlug = "troca-status";
 
-        setServices(processedServices);
+            const pWithNormalized = { ...p, serviceSlug: normalizedSlug };
+            const groupingKey = p.status === 'rejected' ? `${normalizedSlug}_rejected` : normalizedSlug;
+            const existing = uniqueServicesMap.get(groupingKey);
+
+            // Regra de prioridade: Manter o mais avançado ou o que não for 'active' genérico se houver outro
+            const isNewAdvanced = 
+              (p.status === "review_pending" || p.status === "completed") && existing?.status === "active";
+
+            if (!existing || isNewAdvanced) {
+              const statusInfo = getStatusDisplay(p.status, lang as string, d.status, normalizedSlug);
+              let prog = 0;
+
+              if (p.status === "approved" || p.status === "completed" || p.status === "rejected") {
+                prog = 100;
+              } else if (statusInfo.step > 0) {
+                if (statusInfo.step === 1) {
+                  const onboardingTotal = normalizedSlug.includes("status") ? 4 : 13;
+                  prog = Math.min(Math.round(((p.currentStep || 0) / onboardingTotal) * 10), 15);
+                } else {
+                  prog = Math.round(((statusInfo.step - 1) / statusInfo.totalSteps) * 100);
+                }
+              }
+
+              uniqueServicesMap.set(groupingKey, {
+                ...pWithNormalized,
+                calculatedProgress: prog,
+                statusLabel: statusInfo.label,
+                stepText: statusInfo.stepText,
+              });
+            }
+          });
+
+          setServices(Array.from(uniqueServicesMap.values()));
+        }
       } catch (error) {
         console.error("Erro ao buscar serviços:", error);
       } finally {
@@ -179,9 +203,9 @@ export default function UserProcesses() {
               </p>
             </div>
           ) : (
-            services.map((s) => (
+            services.map((s: any) => (
               <motion.button
-                key={s.id as string}
+                key={s.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 onClick={() => handleServiceClick(s)}

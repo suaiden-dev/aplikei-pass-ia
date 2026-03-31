@@ -93,10 +93,20 @@ export default function UserDashboard() {
         if (processes && processes.length > 0) {
           const uniqueServicesMap = new Map<string, ServiceWithProgress>();
 
+          const EXCLUDED_SUB_SERVICES = ["analise-especialista-cos", "motion-reconsideracao-cos"];
+          
           processes.forEach((p) => {
-            const process = { ...p, serviceSlug: p.serviceSlug === "visto-f1" ? "visa-f1f2" : p.serviceSlug };
+            // Excluir serviços que não são processos "raiz" da lista de cards
+            if (EXCLUDED_SUB_SERVICES.includes(p.serviceSlug)) return;
+
+            // Normalizar slugs para evitar duplicatas por variações de nome
+            let normalizedSlug = p.serviceSlug;
+            if (normalizedSlug === "visto-f1") normalizedSlug = "visa-f1f2";
+            if (normalizedSlug === "changeofstatus") normalizedSlug = "troca-status";
+
+            const process = { ...p, serviceSlug: normalizedSlug };
             
-            const groupingKey = process.status === 'rejected' ? `${process.serviceSlug}_rejected` : process.serviceSlug;
+            const groupingKey = process.status === 'rejected' ? `${normalizedSlug}_rejected` : normalizedSlug;
             const existing = uniqueServicesMap.get(groupingKey);
 
             const isNewAdvanced =
@@ -104,14 +114,14 @@ export default function UserDashboard() {
               existing?.status === "active";
 
             if (!existing || isNewAdvanced) {
-              const statusInfo = getStatusDisplay(process.status, lang as string, d.status, process.serviceSlug);
+              const statusInfo = getStatusDisplay(process.status, lang as string, d.status, normalizedSlug);
               let prog = 0;
 
               if (process.status === "approved" || process.status === "completed" || process.status === "rejected") {
                 prog = 100;
               } else if (statusInfo.step > 0) {
                 if (statusInfo.step === 1) {
-                  const onboardingTotal = process.serviceSlug?.includes("status") ? 4 : 13;
+                  const onboardingTotal = normalizedSlug.includes("status") ? 4 : 13;
                   prog = Math.min(Math.round(((process.currentStep || 0) / onboardingTotal) * 10), 15);
                 } else {
                   prog = Math.round(((statusInfo.step - 1) / statusInfo.totalSteps) * 100);
@@ -438,7 +448,7 @@ export default function UserDashboard() {
               { pt: "Checklist de documentos", en: "Documents checklist" },
               { pt: "Orientação sobre preenchimento", en: "Filing orientation" },
             ],
-            available: false,
+            available: true,
             checkoutUrl: "/checkout/extensao-status",
           },
           {
@@ -514,6 +524,7 @@ export default function UserDashboard() {
         ];
 
         const userServiceSlugs = services.map((s) => s.serviceSlug);
+          
         const products = availableProducts.filter(
           (p) => !userServiceSlugs.includes(p.slug),
         );

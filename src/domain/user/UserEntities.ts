@@ -18,4 +18,5 @@ export interface UserProcess {
   grandmotherName?: string;
   isSecondAttempt?: boolean;
   consularLogin?: string;
+  data?: Record<string, any>;
 }

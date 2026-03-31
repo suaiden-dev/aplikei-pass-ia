@@ -46,6 +46,12 @@ Deno.serve(async (req: Request) => {
 
         const supabase = createClient(supabaseUrl, supabaseKey);
 
+        // Fallback catalog for add-on products not yet in services_prices
+        const FALLBACK_PRICES: Record<string, { name: string; price: number }> = {
+            'analise-especialista-cos': { name: 'Análise de Especialista (COS)', price: 50 },
+            'motion-reconsideracao-cos': { name: 'Motion para Reconsideração (COS)', price: 150 },
+        };
+
         // 2. Buscar preços na nova tabela services_prices
         const dependentId = DEPENDENT_SERVICE_MAP[slug] || 'dependente-b1-b2';
         
@@ -60,17 +66,18 @@ Deno.serve(async (req: Request) => {
             throw new Error("Erro interno ao validar preços.");
         }
 
-        if (!dbPrices || dbPrices.length === 0) {
-            console.error("[stripe-checkout] Serviço não encontrado:", slug);
-            throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
+        // Use DB prices if found; otherwise fall back to hardcoded catalog
+        let mainPriceInfo = dbPrices?.find(p => p.service_id === slug);
+        const depPriceInfo = dbPrices?.find(p => p.service_id === dependentId);
+
+        if (!mainPriceInfo && FALLBACK_PRICES[slug]) {
+            console.log(`[stripe-checkout] Usando preço fallback para: ${slug}`);
+            mainPriceInfo = { service_id: slug, ...FALLBACK_PRICES[slug] };
         }
 
-        const mainPriceInfo = dbPrices.find(p => p.service_id === slug);
-        const depPriceInfo = dbPrices.find(p => p.service_id === dependentId);
-
         if (!mainPriceInfo) {
-            console.error("[stripe-checkout] Preço base não encontrado para slug:", slug);
-            throw new Error(`Preço base não encontrado para o serviço: ${slug}`);
+            console.error("[stripe-checkout] Serviço não encontrado:", slug);
+            throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
         }
 
         const serviceName = mainPriceInfo.name;
@@ -150,7 +157,7 @@ Deno.serve(async (req: Request) => {
             ],
             mode: "payment",
             customer_email: email,
-            success_url: `${origin_url}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${origin_url}/checkout-success?session_id={CHECKOUT_SESSION_ID}&slug=${normalizedSlug}`,
             cancel_url: `${origin_url}/servicos/${slug}`,
             metadata: {
                 slug: normalizedSlug,

@@ -14,6 +14,7 @@ interface RawUserProcess {
   grandmother_name?: string | null;
   is_second_attempt?: boolean | null;
   consular_login?: string | null;
+  service_metadata?: any;
 }
 
 export class SupabaseUserProcessRepository implements IUserProcessRepository {
@@ -26,7 +27,7 @@ export class SupabaseUserProcessRepository implements IUserProcessRepository {
 
     if (error) throw error;
 
-    return (data as RawUserProcess[] || []).map((raw) => this.mapToDomain(raw));
+    return (data as any[] || []).map((raw) => this.mapToDomain(raw as RawUserProcess));
   }
 
   async findById(id: string): Promise<UserProcess | null> {
@@ -99,6 +100,50 @@ export class SupabaseUserProcessRepository implements IUserProcessRepository {
     if (error) throw error;
   }
 
+  async updateData(id: string, data: Record<string, any>): Promise<void> {
+    // 1. Fetch current metadata to avoid overwriting everything
+    const { data: current, error: fetchError } = await supabase
+      .from("user_services")
+      .select("service_metadata")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+
+    // 2. Merge and update
+    const mergedMetadata = { ...((current as any)?.service_metadata || {}), ...data };
+    
+    const updateObj = {
+      service_metadata: mergedMetadata
+    };
+
+    const { error } = await supabase
+      .from("user_services")
+      .update(updateObj as any)
+      .eq("id", id);
+
+    if (error) throw error;
+  }
+
+  async getRecoveryCase(userServiceId: string): Promise<any | null> {
+    const { data, error } = await supabase
+      .from("cos_recovery_cases")
+      .select("*")
+      .eq("user_service_id", userServiceId)
+      .maybeSingle();
+ 
+    if (error) throw error;
+    return data;
+  }
+ 
+  async saveRecoveryCase(userServiceId: string, data: any): Promise<void> {
+    const { error } = await supabase
+      .from("cos_recovery_cases")
+      .upsert({ user_service_id: userServiceId, ...data }, { onConflict: "user_service_id" });
+ 
+    if (error) throw error;
+  }
+
   private mapToDomain(raw: RawUserProcess): UserProcess {
     return {
       id: raw.id,
@@ -111,7 +156,8 @@ export class SupabaseUserProcessRepository implements IUserProcessRepository {
       dateOfBirth: raw.date_of_birth || undefined,
       grandmotherName: raw.grandmother_name || undefined,
       isSecondAttempt: raw.is_second_attempt || undefined,
-      consularLogin: raw.consular_login || undefined
+      consularLogin: raw.consular_login || undefined,
+      data: raw.service_metadata || undefined
     };
   }
 }

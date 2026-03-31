@@ -251,4 +251,6 @@ export interface OnboardingData {
         sponsorInfo?: string;
     };
     sevisPaid?: string;
+    trackingCode?: string;
+    feedback?: string | null;
 }

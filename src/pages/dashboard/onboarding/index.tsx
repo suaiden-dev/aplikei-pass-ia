@@ -73,6 +73,7 @@ import { ChangeOfStatusI20Step } from "./steps/ChangeOfStatus/ChangeOfStatusI20S
 import { ChangeOfStatusSevisStep } from "./steps/ChangeOfStatus/ChangeOfStatusSevisStep";
 import { ChangeOfStatusFinalFormsStep } from "./steps/ChangeOfStatus/ChangeOfStatusFinalFormsStep";
 import { ChangeOfStatusFinalPackageStep } from "./steps/ChangeOfStatus/ChangeOfStatusFinalPackageStep";
+import { ChangeOfStatusTrackingStep } from "./steps/ChangeOfStatus/ChangeOfStatusTrackingStep";
 
 export default function Onboarding() {
   const {
@@ -145,7 +146,7 @@ export default function Onboarding() {
     }
   };
   const totalSteps = steps?.length || 1;
-  const progress = (steps && steps.length > 0) ? ((effectiveStep + 1) / totalSteps) * 100 : 0;
+  const progress = (steps && steps.length > 0) ? Math.min(((effectiveStep + 1) / totalSteps) * 100, 100) : 0;
 
   const renderStep = () => {
     const commonProps = {
@@ -373,8 +374,24 @@ export default function Onboarding() {
     }
 
     if (serviceSlug === "changeofstatus") {
-      const stepSlugsForCOS = ["cos-form", "cos-documents", "cos-official-forms", "cos-cover-letter-form", "cos-i20", "cos-sevis", "cos-final-forms", "cos-review"];
-      const currentSlug = stepSlugsForCOS[effectiveStep];
+      // — Post-decision: redirect to TrackingTab which handles these states —
+      const postDecisionStatuses = [
+        "COS_APPROVED", "COS_REJECTED", "COS_CASE_FORM",
+        "ANALISE_PENDENTE", "ANALISE_CONCLUIDA",
+        "MOTION_IN_PROGRESS", "MOTION_COMPLETED",
+        "COS_REJECTED_ANALYSIS_PENDING", "COS_REJECTED_PROPOSAL_READY",
+        "COS_MOTION_IN_PROGRESS", "COS_MOTION_COMPLETED",
+        "COS_TRACKING",
+      ];
+      if (postDecisionStatuses.includes(serviceStatus)) {
+        // Use window.location for hard redirect to ensure fresh data load
+        if (typeof window !== "undefined" && !window.location.pathname.includes("acompanhamento")) {
+          window.location.replace("/dashboard/acompanhamento");
+        }
+        return null;
+      }
+
+      const currentSlug = stepSlugs[effectiveStep];
 
       switch (currentSlug) {
         case "cos-form":
@@ -460,6 +477,8 @@ export default function Onboarding() {
               setSelectedDoc={setSelectedDoc}
             />
           );
+        case "cos-tracking":
+          return <ChangeOfStatusTrackingStep {...commonProps} />;
         default:
           return null;
       }
@@ -663,7 +682,9 @@ export default function Onboarding() {
                                 serviceStatus === "approved" ||
                                 serviceStatus === "rejected"
                               ? o.completed[lang]
-                              : o.confirmGenerate[lang]}
+                              : serviceSlug === "changeofstatus" && stepSlugs[effectiveStep] === "cos-tracking"
+                                ? (lang === "pt" ? "Concluir" : "Finish")
+                                : o.confirmGenerate[lang]}
                     </Button>
                   )}
                 </div>
@@ -684,10 +705,10 @@ export default function Onboarding() {
                     {effectiveStep + 1} {o.stepOf[lang]} {steps.length}
                   </span>
                   <span className="text-muted-foreground">
-                    {Math.round((effectiveStep / totalSteps) * 100)}%
+                    {Math.round(((effectiveStep + 1) / totalSteps) * 100)}%
                   </span>
                 </div>
-                <Progress value={(effectiveStep / totalSteps) * 100} className="mt-3 h-2" />
+                <Progress value={((effectiveStep + 1) / totalSteps) * 100} className="mt-3 h-2" />
 
                 <div className="mt-4 flex flex-wrap gap-2 lg:flex-nowrap lg:flex-col lg:items-stretch lg:gap-3">
                   {steps.map((step: string, i: number) => (
@@ -965,8 +986,8 @@ export default function Onboarding() {
                       ? o.submitDocs[lang]
                       : serviceStatus === "uploadsUnderReview"
                         ? o.docsUnderReview[lang]
-                        : serviceStatus === "completed"
-                          ? o.completed[lang]
+                        : serviceSlug === "changeofstatus" && stepSlugs[effectiveStep] === "cos-tracking"
+                          ? (lang === "pt" ? "Concluir" : "Finish")
                           : o.confirmGenerate[lang]}
                 </Button>
               )}

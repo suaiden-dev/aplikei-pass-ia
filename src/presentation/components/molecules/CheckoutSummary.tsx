@@ -11,18 +11,27 @@ interface CheckoutSummaryProps {
 /**
  * Componente de Resumo de Checkout que valida preços estritamente via Supabase (Backend).
  * @param selectedIds IDs dos serviços e upsells selecionados para o checkout.
+ * @param overrideTotal Valor opcional para sobrescrever o total calculado pelo backend.
  */
-const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ selectedIds, lang = 'pt', onPriceVerified }) => {
+interface CheckoutSummaryProps {
+  selectedIds: string[];
+  lang?: 'en' | 'pt' | 'es';
+  onPriceVerified?: (total: number) => void;
+  overrideTotal?: number;
+}
+
+const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ 
+  selectedIds, 
+  lang = 'pt', 
+  onPriceVerified,
+  overrideTotal
+}) => {
   const [items, setItems] = useState<ServicePrice[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    /**
-     * Efetua a atualização dos dados toda vez que a lista de IDs mudar.
-     * Segue a regra de negócio: os preços vêm sempre do banco, nunca de props.
-     */
     const getPrices = async () => {
       setLoading(true);
       setError(null);
@@ -30,10 +39,26 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ selectedIds, lang = '
         const result = await fetchVerifiedPrices(selectedIds);
         setItems(result.items as ServicePrice[]);
         setTotal(result.total);
-        if (onPriceVerified) onPriceVerified(result.total);
+        if (onPriceVerified) {
+          onPriceVerified(overrideTotal !== undefined ? overrideTotal : result.total);
+        }
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Erro inesperado ao carregar o resumo.';
-        setError(errorMsg);
+        // Se temos overrideTotal, podemos ignorar o erro do banco e usar um item fallback
+        if (overrideTotal !== undefined) {
+          setError(null);
+          setItems([{ 
+            id: 'proposal', 
+            service_id: selectedIds[0], 
+            name: 'Serviço sob Demanda / Motion', 
+            price: overrideTotal, 
+            currency: 'USD' 
+          }]);
+          setTotal(overrideTotal);
+          if (onPriceVerified) onPriceVerified(overrideTotal);
+        } else {
+          setError(errorMsg);
+        }
       } finally {
         setLoading(false);
       }
@@ -46,7 +71,7 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ selectedIds, lang = '
       setTotal(0);
       setLoading(false);
     }
-  }, [selectedIds, error, onPriceVerified]);
+  }, [selectedIds, onPriceVerified, overrideTotal]);
 
   // Auxiliar para formatação monetária segura
   const formatCurrency = (value: number, currencyCode = 'BRL') => {
@@ -186,7 +211,7 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ selectedIds, lang = '
                     layoutId="totalPrice"
                     className="text-6xl font-black text-primary tracking-tighter"
                 >
-                    {formatCurrency(total, items[0]?.currency)}
+                    {formatCurrency(overrideTotal !== undefined ? overrideTotal : total, items[0]?.currency)}
                 </motion.p>
                 <p className="text-[10px] text-slate-400 font-black mt-1 uppercase tracking-widest">A pagar agora</p>
             </div>

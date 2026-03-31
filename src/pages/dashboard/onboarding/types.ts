@@ -10,6 +10,7 @@ export interface UploadedDocument {
     bucket_id?: string;
     status?: string | null;
     feedback?: string | null;
+    trackingCode?: string;
 }
 
 export interface StepProps {

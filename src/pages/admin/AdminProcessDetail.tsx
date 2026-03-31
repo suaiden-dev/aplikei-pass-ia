@@ -59,6 +59,8 @@ import {
   AccordionTrigger,
 } from "@/presentation/components/atoms/accordion";
 import { cn } from "@/lib/utils";
+import { AdminCosAnalysisPanel } from "@/presentation/components/organisms/admin/AdminCosAnalysisPanel";
+
 
 interface Order {
   id: string;
@@ -2250,6 +2252,34 @@ export default function AdminProcessDetail() {
           </div>
         );
       }
+
+      // ── COS Post-decision: Specialist Analysis ──
+      case "ANALISE_PENDENTE":
+      case "ANALISE_CONCLUIDA":
+      case "COS_CASE_FORM":
+      case "COS_REJECTED":
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-border">
+              <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                <FileText className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-bold uppercase tracking-widest text-primary">Análise do Especialista — COS</p>
+                <p className="text-xs text-muted-foreground">Formulário enviado pelo cliente após pagamento da análise.</p>
+              </div>
+              <Badge className="ml-auto" variant={status === "ANALISE_PENDENTE" ? "destructive" : status === "ANALISE_CONCLUIDA" ? "default" : "secondary"}>
+                {status === "ANALISE_PENDENTE" ? "Pendente" :
+                 status === "ANALISE_CONCLUIDA" ? "Concluída" :
+                 status === "COS_CASE_FORM" ? "Formulário Recebido" : "Negado"}
+              </Badge>
+            </div>
+            <AdminCosAnalysisPanel
+              userServiceId={order.user_service_id}
+              clientName={order.client_name}
+            />
+          </div>
+        );
 
       default:
         return (

@@ -17,6 +17,7 @@ export class StripePaymentService implements IPaymentService {
         terms_accepted_at: request.termsAcceptedAt,
         action: request.action,
         serviceId: request.serviceId,
+        amount: request.amount,
       },
       headers: {
         Authorization: accessToken ? `Bearer ${accessToken}` : undefined,

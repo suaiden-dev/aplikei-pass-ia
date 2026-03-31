@@ -11,6 +11,7 @@ export interface CheckoutRequest {
   termsAcceptedAt?: string;
   action?: string | null;
   serviceId?: string | null;
+  amount?: number | null;
 }
 
 export interface IPaymentService {

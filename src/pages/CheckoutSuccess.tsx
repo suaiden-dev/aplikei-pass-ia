@@ -204,7 +204,37 @@ const CheckoutSuccess = () => {
 
                 {(!isUploading && !isPending) && (
                     <>
-                        {!isLoggedIn ? (
+                        {searchParams.get("slug") === "analise-especialista-cos" ? (
+                            <div className="bg-primary/5 rounded-xl p-5 mb-5 text-center border border-primary/20 space-y-3">
+                                <p className="text-primary font-semibold text-lg">
+                                    Análise desbloqueada com sucesso!
+                                </p>
+                                <p className="text-muted-foreground text-sm">
+                                    Agora você pode descrever o seu caso e enviar os documentos diretamente no painel.
+                                </p>
+                                <Button
+                                    className="mt-2 rounded-xl font-bold"
+                                    onClick={() => window.location.href = "/dashboard/acompanhamento?from=checkout"}
+                                >
+                                    Preencher Formulário do Caso <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </div>
+                        ) : searchParams.get("slug") === "motion-reconsideracao-cos" ? (
+                            <div className="bg-primary/5 rounded-xl p-5 mb-5 text-center border border-primary/20 space-y-3">
+                                <p className="text-primary font-semibold text-lg">
+                                    Pagamento Confirmado!
+                                </p>
+                                <p className="text-muted-foreground text-sm">
+                                    O especialista já foi notificado e começará a produzir o seu Motion.
+                                </p>
+                                <Button
+                                    className="mt-2 rounded-xl font-bold"
+                                    onClick={() => window.location.href = "/dashboard/acompanhamento?from=checkout"}
+                                >
+                                    Ver Acompanhamento do Motion <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </div>
+                        ) : !isLoggedIn ? (
                             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-md p-4 mb-5 text-left border border-slate-100 dark:border-slate-800">
                                 <h2 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
                                     <Mail className="w-5 h-5 text-primary" />

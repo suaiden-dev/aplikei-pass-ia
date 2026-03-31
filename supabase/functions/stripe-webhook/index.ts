@@ -210,6 +210,18 @@ Deno.serve(async (req: Request) => {
                         .eq('user_id', userId);
 
                     if (reviewError) console.error("Error updating specialist review data:", reviewError.message);
+                } else if (metadata.action === 'cos_analyst' && metadata.serviceId) {
+                    const serviceId = metadata.serviceId;
+                    
+                    console.log(`Processing COS specialist analysis payment for user ${userId}, service ${serviceId}`);
+                    
+                    const { error: cosError } = await supabaseAdmin
+                        .from('user_services')
+                        .update({ status: 'COS_CASE_FORM' })
+                        .eq('id', serviceId)
+                        .eq('user_id', userId);
+
+                    if (cosError) console.error("Error updating COS case form status:", cosError.message);
                 } else if (metadata.action === 'restart' && metadata.serviceId) {
                     console.log(`Processing restart for user ${userId}, service ${metadata.serviceId}`);
                     

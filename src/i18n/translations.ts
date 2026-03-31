@@ -681,6 +681,11 @@ export const translations = {
 
   // ──── Homepage FAQ ────
   homeFaq: {
+    title: {
+      en: "Frequently asked questions",
+      pt: "Perguntas frequentes",
+      es: "Preguntas frecuentes",
+    },
     q1: {
       en: "How long do I have access to the AI tool?",
       pt: "Quanto tempo tenho acesso à ferramenta de IA?",
@@ -934,6 +939,7 @@ export const translations = {
     },
     loginLink: { en: "Log in", pt: "Entrar", es: "Iniciar sesión" },
   },
+
 
   // ──── Dashboard ────
   dashboard: {
@@ -1206,6 +1212,7 @@ export const translations = {
       pt: "Pacote Final",
       es: "Paquete Final",
     },
+    tracking: { en: "Tracking", pt: "Acompanhamento", es: "Seguimiento" },
     help: { en: "Support", pt: "Suporte", es: "Soporte" },
     logout: { en: "Log out", pt: "Sair", es: "Salir" },
   },
@@ -5451,6 +5458,90 @@ export const translations = {
         },
       ],
     },
+    {
+      slug: "analise-especialista-cos",
+      title: {
+        en: "Specialist Case Analysis (COS)",
+        pt: "Análise de Especialista (COS)",
+        es: "Análisis de Especialista (COS)",
+      },
+      shortTitle: { en: "Specialist Analysis", pt: "Análise Especialista", es: "Análisis Especialista" },
+      subtitle: {
+        en: "Technical review of your rejected case by a specialist",
+        pt: "Revisão técnica do seu caso negado por um especialista",
+        es: "Revisión técnica de su caso denegado por un especialista",
+      },
+      price: { en: "US$ 50.00", pt: "US$ 50,00", es: "US$ 50,00" },
+      originalPrice: { en: "US$ 150.00", pt: "US$ 150,00", es: "US$ 150,00" },
+      basePrice: 50,
+      description: {
+        en: "In-depth review of your USCIS rejection. Our specialist will analyze the denial reason, check for procedural errors, and propose a specific recovery strategy (Motion).",
+        pt: "Revisão profunda da sua negativa do USCIS. Nosso especialista analisará o motivo da rejeição, verificará erros processuais e proporá uma estratégia de recuperação (Motion).",
+        es: "Revisión profunda de su negativa de USCIS. Nuestro especialista analizará el motivo del rechazo, verificará errores procesales y propondrá una estrategia de recuperación (Motion).",
+      },
+      forWhom: {
+        en: ["Denied Change of Status applicants", "Those within the 33-day appeal window"],
+        pt: ["Aplicantes de Change of Status negados", "Quem está dentro do prazo de 33 dias para recurso"],
+        es: ["Solicitantes de Cambio de Estatus denegados", "Quienes están dentro del plazo de 33 días para apelar"],
+      },
+      included: {
+        en: ["Technical case review", "Analysis of denial reasons", "Draft of recovery strategy", "Specialist feedback report"],
+        pt: ["Revisão técnica do caso", "Análise dos motivos de negativa", "Draft da estratégia de recuperação", "Relatório de feedback do especialista"],
+        es: ["Revisión técnica del caso", "Análisis de motivos de denegación", "Draft de estrategia de recuperación", "Informe de feedback del especialista"],
+      },
+      notIncluded: {
+        en: ["Legal representation", "Filing of the motion", "USCIS fees", "Guarantee of approval"],
+        pt: ["Representação legal", "Protocolo da moção", "Taxas do USCIS", "Garantia de aprovação"],
+        es: ["Representación legal", "Presentación de la moción", "Tasas de USCIS", "Garantía de aprobación"],
+      },
+      requirements: {
+        en: ["Copy of the denial letter from USCIS", "Complete explanation of the case"],
+        pt: ["Cópia da carta de negativa do USCIS", "Explicação completa do caso"],
+        es: ["Copia de la carta de denegación de USCIS", "Explicación completa del caso"],
+      },
+    },
+    {
+      slug: "motion-reconsideracao-cos",
+      title: {
+        en: "Motion for Reconsideration / Reopening",
+        pt: "Motion para Reconsideração / Reabertura",
+        es: "Motion para Reconsideración / Reapertura",
+      },
+      shortTitle: { en: "Motion", pt: "Motion", es: "Motion" },
+      subtitle: {
+        en: "Official response to USCIS to reverse a denial",
+        pt: "Resposta oficial ao USCIS para reverter uma negativa",
+        es: "Respuesta oficial a USCIS para revertir una denegación",
+      },
+      price: { en: "Dynamic", pt: "Variável", es: "Variable" },
+      originalPrice: { en: "US$ 0.00", pt: "US$ 0,00", es: "US$ 0,00" },
+      basePrice: 0,
+      description: {
+        en: "Full preparation of a Motion to Reconsider or Reopen your case. Price set based on case complexity after specialist analysis.",
+        pt: "Preparação completa de uma Moção para Reconsiderar ou Reabrir seu caso. Preço definido com base na complexidade do caso após análise inicial.",
+        es: "Preparación completa de una Moción para Reconsiderar o Reabrir su caso. Precio definido según la complejidad del caso tras el análisis inicial.",
+      },
+      forWhom: {
+        en: ["Applicants with a specialist-vetted case", "Cases with identified procedural or factual errors"],
+        pt: ["Aplicantes com caso validado por especialista", "Casos com erro processual ou de fato identificado"],
+        es: ["Solicitantes con caso validado por especialista", "Casos con error procesal o de hecho identificado"],
+      },
+      included: {
+        en: ["Full I-290B preparation", "Legal argument draft", "Evidence organization", "Filing instructions"],
+        pt: ["Preparação completa do I-290B", "Draft de argumentos legais", "Organização de evidências", "Instruções de envio"],
+        es: ["Preparación completa del I-290B", "Borrador de argumentos legales", "Organización de evidencias", "Instrucciones de envío"],
+      },
+      notIncluded: {
+        en: ["USCIS filing fee ($675)", "Shipping costs", "Guarantee of success"],
+        pt: ["Taxa de protocolo do USCIS (US$ 675)", "Custos de envio", "Garantia de sucesso"],
+        es: ["Tasa de presentación de USCIS ($675)", "Costos de envío", "Garantía de éxito"],
+      },
+      requirements: {
+        en: ["Positive specialist analysis", "Payment of the dynamic fee"],
+        pt: ["Análise positiva do especialista", "Pagamento da taxa variável"],
+        es: ["Análisis positivo del especialista", "Pago de la tasa variable"],
+      },
+    },
   ],
 
   f1f2: {
@@ -5790,6 +5881,42 @@ export const translations = {
       g1145LinkText: { en: "View G-1145 Reference", pt: "Ver Referência G-1145", es: "Ver Referencia G-1145" },
       g1450LinkText: { en: "Download G-1450 Form", pt: "Baixar Formulário G-1450", es: "Descargar Formulario G-1450" },
       uploadLabel: { en: "Upload Scanned G-1450", pt: "Upload do G-1450 Digitalizado", es: "Cargar G-1450 Escaneado" }
+    },
+    tracking: {
+      title: { en: "Package Tracking", pt: "Acompanhamento do Pacote", es: "Seguimiento del Paquete" },
+      trackingLabel: { en: "Tracking Code", pt: "Código de Rastreio", es: "Código de Seguimiento" },
+      trackingPlaceholder: { en: "E.g: USPS-123456789", pt: "Ex: USPS-123456789", es: "Ej: USPS-123456789" },
+      description: {
+        en: "USCIS processing times vary. Use your tracking code to follow the physical delivery.",
+        pt: "Os tempos de processamento do USCIS variam. Use seu código de rastreio para acompanhar a entrega física.",
+        es: "Los tiempos de procesamiento de USCIS varían. Use su código de seguimiento para seguir la entrega física."
+      },
+      letterInfo: {
+        en: "The Receipt Notice (Form I-797) will arrive at your address within 2-4 weeks after receipt.",
+        pt: "A Carta de Recebimento (Form I-797) chegará em seu endereço em 2 a 4 semanas após o recebimento.",
+        es: "El Aviso de Recibo (Formulario I-797) llegará a su dirección en 2-4 semanas después del recibo."
+      },
+      supportInfo: {
+        en: "For official status updates, visit the USCIS Case Status Online tool.",
+        pt: "Para atualizações de status oficiais, visite a ferramenta USCIS Case Status Online.",
+        es: "Para actualizaciones de estatus oficiales, visite la herramienta de Estatus de Caso en Línea de USCIS."
+      },
+      outcomes: {
+        title: { en: "USCIS Decision Outcome", pt: "Resultado da Decisão USCIS", es: "Resultado de la Decisión USCIS" },
+        btnApproved: { en: "Approved", pt: "Aprovado", es: "Aprobado" },
+        btnRejected: { en: "Rejected / Denied", pt: "Negado / Rejeitado", es: "Denegado / Rechazado" },
+        btnRfe: { en: "Request for Evidence (RFE)", pt: "Pedido de Evidência (RFE)", es: "Solicitud de Evidencia (RFE)" }
+      },
+      confirmation: {
+        title: { en: "Confirm Status Change?", pt: "Confirmar Mudança de Status?", es: "¿Confirmar Cambio de Estatus?" },
+        description: { 
+          en: "Are you sure you want to update your process status? This will unlock the corresponding next steps.",
+          pt: "Tem certeza que deseja atualizar o status do seu processo? Isso desbloqueará as próximas etapas correspondentes.",
+          es: "¿Está seguro de que desea actualizar el estatus de su proceso? Esto desbloqueará los siguientes pasos correspondientes."
+        },
+        cancel: { en: "Cancel", pt: "Cancelar", es: "Cancelar" },
+        action: { en: "Update Status", pt: "Atualizar Status", es: "Actualizar Estatus" }
+      }
     }
   },
 
@@ -5804,6 +5931,71 @@ export const translations = {
       en: "Return to Home",
       pt: "Voltar ao início",
       es: "Volver al inicio",
+    },
+  },
+  cosOutcome: {
+    approvedTitle: { en: "Congratulations!", pt: "Parabéns!", es: "¡Felicidades!" },
+    approvedDesc: { 
+      en: "Your Change of Status has been approved by USCIS. You are now officially in your new status.",
+      pt: "Sua Troca de Status foi aprovada pelo USCIS. Você agora está oficialmente em seu novo status.",
+      es: "Su Cambio de Estatus ha sido aprobado por USCIS. Ahora se encuentra oficialmente en su nuevo estatus." 
+    },
+    rejectedTitle: { en: "Important Notice regarding your Case", pt: "Aviso Importante sobre seu Caso", es: "Aviso Importante sobre su Caso" },
+    rejectedDesc: { 
+      en: "Unfortunately, your request was not approved this time. However, there is still a way to recover your case.",
+      pt: "Infelizmente, seu pedido não foi aprovado desta vez. No entanto, ainda existe um caminho para recuperar seu caso.",
+      es: "Lamentablemente, su solicitud no fue aprobada esta vez. Sin embargo, todavía hay una manera de recuperar su caso." 
+    },
+    deadlineNotice: { 
+      en: "You have 33 days from the date of the notice to file a Motion.",
+      pt: "Você tem um prazo de 33 dias a partir da data da carta para protocolar um Motion.",
+      es: "Tiene un plazo de 33 días a partir de la fecha de la carta para presentar una Moción." 
+    },
+    specialistUpsellTitle: { en: "Expert Case Recovery", pt: "Recuperação Especializada de Caso", es: "Recuperación Especializada de Caso" },
+    specialistUpsellDesc: { 
+      en: "Our specialists can analyze your denial letter and prepare a Motion for Reconsideration to reverse the decision.",
+      pt: "Nossos especialistas podem analisar sua carta de negativa e preparar um Motion de Reconsideração para reverter a decisão.",
+      es: "Nuestros especialistas pueden analizar su carta de denegación y preparar una Moción de Reconsideración para revertir la decisión." 
+    },
+    technicalAnalysis: {
+      title: { en: "Specialist Case Analysis", pt: "Análise Técnica do Especialista", es: "Análisis Técnico del Especialista" },
+      description: { 
+        en: "Please provide the details below so our specialist can start the analysis of your case.",
+        pt: "Por favor, forneça os detalhes abaixo para que nosso especialista possa iniciar a análise do seu caso.",
+        es: "Por favor, proporcione los detalles a continuación para que nuestro especialista pueda comenzar el análisis de su caso." 
+      },
+      explanationLabel: { en: "Explain your case", pt: "Explique o seu caso", es: "Explique su caso" },
+      explanationPlaceholder: { en: "Provide as much detail as possible about your situation...", pt: "Forneça o máximo de detalhes possível sobre sua situação...", es: "Proporcione tantos detalles como sea posible sobre su situación..." },
+      uploadLabel: { en: "Upload Case Documents", pt: "Upload de Documentos do Caso", es: "Carga de Documentos del Caso" },
+      uploadDesc: { en: "Upload the denial letter and any other relevant documents.", pt: "Faça upload da carta de negativa e quaisquer outros documentos relevantes.", es: "Cargue la carta de denegación y cualquier otro documento relevante." },
+      submitButton: { en: "Submit for Analysis", pt: "Enviar para Análise", es: "Enviar para Análisis" },
+    },
+    motionStatus: {
+      pendingTitle: { en: "Analysis in Progress", pt: "Análise em Andamento", es: "Análisis en Progreso" },
+      pendingDesc: { 
+        en: "Our specialist is reviewing your case. We will notify you once the recovery proposal is ready.",
+        pt: "Nosso especialista está revisando seu caso. Notificaremos você assim que a proposta de recuperação estiver pronta.",
+        es: "Nuestro especialista está revisando su caso. Le notificaremos una vez que la propuesta de recuperación esté lista." 
+    },
+      proposalTitle: { en: "Recovery Proposal Ready", pt: "Proposta de Recuperação Pronta", es: "Propuesta de Recuperación Lista" },
+      proposalDesc: { 
+        en: "The specialist has completed the evaluation. High complexity case detected.",
+        pt: "O especialista concluiu a avaliação. Caso de alta complexidade detectado.",
+        es: "El especialista ha completado la evaluación. Caso de alta complejidad detectado." 
+      },
+      payMotionButton: { en: "Pay Motion Fee:", pt: "Pagar Taxa do Motion:", es: "Pagar Tasa de Moción:" },
+      inProgressTitle: { en: "Motion in Progress", pt: "Motion em Execução", es: "Moción en Progreso" },
+      inProgressDesc: { 
+        en: "Our team is preparing your Motion documents. This process usually takes 5-10 business days.",
+        pt: "Nossa equipe está preparando os documentos do seu Motion. Este processo geralmente leva de 5 a 10 dias úteis.",
+        es: "Nuestro equipo está preparando los documentos de su Moción. Este proceso suele tardar de 5 a 10 días hábiles." 
+      },
+      completedTitle: { en: "Motion Documents Ready", pt: "Documentos do Motion Prontos", es: "Documentos de la Moción Listos" },
+      completedDesc: { 
+        en: "Your Motion package is ready for download. Please follow the instructions to submit it to USCIS.",
+        pt: "Seu pacote do Motion está pronto para download. Siga as instruções para enviá-lo ao USCIS.",
+        es: "Su paquete de Moción está listo para descargar. Siga las instrucciones para enviarlo a USCIS." 
+      },
     },
   },
 } as const;

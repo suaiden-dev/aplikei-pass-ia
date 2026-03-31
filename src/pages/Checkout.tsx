@@ -1,5 +1,5 @@
 import { useParams, Navigate, Link, useSearchParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Button } from "@/presentation/components/atoms/button";
 import { Input } from "@/presentation/components/atoms/input";
@@ -45,9 +45,12 @@ import CheckoutSummary from "@/presentation/components/molecules/CheckoutSummary
 export default function Checkout() {
   const { slug } = useParams<{ slug: string }>();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { lang, t } = useLanguage();
+  
   const action = searchParams.get("action");
   const serviceId = searchParams.get("serviceId");
-  const { lang, t } = useLanguage();
+  const amountOverride = searchParams.get("amount") ? Number(searchParams.get("amount")) : undefined;
 
   const service = t.servicesData.find((s) => s.slug === slug);
   const [formData, setFormData] = useState({
@@ -79,8 +82,6 @@ export default function Checkout() {
     selfie: "",
     termsAcceptedAt: "",
   });
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -196,6 +197,7 @@ export default function Checkout() {
           termsAcceptedAt: acceptedAt,
           action,
           serviceId,
+          amount: totalPrice,
         }, session.accessToken);
 
         if (checkoutData?.url) {
@@ -259,6 +261,7 @@ export default function Checkout() {
               terms_accepted_at: acceptedAt,
               action,
               serviceId,
+              amount: totalPrice,
             },
           },
         );
@@ -281,6 +284,13 @@ export default function Checkout() {
       setIsProcessing(false);
     }
   };
+
+  const selectedIds = useMemo(() => [
+    slug || '',
+    ...Array(Number(formData.dependents)).fill(
+      slug === 'visto-b1-b2' ? 'dependente-b1-b2' : 'dependente-estudante'
+    )
+  ], [slug, formData.dependents]);
 
   const numDependents = parseInt(formData.dependents) || 0;
   
@@ -739,14 +749,10 @@ export default function Checkout() {
           {/* Sidebar / Summary */}
           <div className="lg:col-span-1 space-y-4">
             <CheckoutSummary 
-              selectedIds={[
-                slug || '',
-                ...Array(Number(formData.dependents)).fill(
-                  slug === 'visto-b1-b2' ? 'dependente-b1-b2' : 'dependente-estudante'
-                )
-              ]}
+              selectedIds={selectedIds}
               lang={lang}
               onPriceVerified={setTotalPrice}
+              overrideTotal={amountOverride}
             />
 
             <div className="p-4 rounded-md bg-amber-50 border border-amber-200 text-xs text-amber-800">

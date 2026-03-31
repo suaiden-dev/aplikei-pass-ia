@@ -40,6 +40,8 @@ import Chat from "./pages/dashboard/Chat";
 import Uploads from "./pages/dashboard/Uploads";
 import PackagePDF from "./pages/dashboard/PackagePDF";
 import HelpCenter from "./pages/dashboard/HelpCenter";
+import TrackingTab from "./pages/dashboard/TrackingTab";
+
 
 import AdminRoute from "@/presentation/components/molecules/AdminRoute";
 import AdminLayout from "@/presentation/components/templates/AdminLayout";
@@ -134,6 +136,7 @@ const App = () => (
                     <Route path="/dashboard/uploads" element={<Uploads />} />
                     <Route path="/dashboard/pacote" element={<PackagePDF />} />
                     <Route path="/dashboard/ajuda" element={<HelpCenter />} />
+                    <Route path="/dashboard/acompanhamento" element={<TrackingTab />} />
                   </Route>
                 </Route>
 

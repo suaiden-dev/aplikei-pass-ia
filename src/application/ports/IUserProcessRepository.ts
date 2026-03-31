@@ -17,4 +17,7 @@ export interface IUserProcessRepository {
     metadata?: Record<string, unknown>,
     step?: number,
   ): Promise<void>;
+  updateData(id: string, data: Record<string, any>): Promise<void>;
+  getRecoveryCase(userServiceId: string): Promise<any | null>;
+  saveRecoveryCase(userServiceId: string, data: any): Promise<void>;
 }
