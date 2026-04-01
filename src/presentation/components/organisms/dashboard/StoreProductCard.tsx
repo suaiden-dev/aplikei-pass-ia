@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { Badge } from "@/presentation/components/atoms/badge";
 import { Button } from "@/presentation/components/atoms/button";
-import { ArrowRight, Lock, Sparkles, CheckSquare } from "lucide-react";
+import { ArrowRight, Lock, Sparkles, CheckSquare, Star, Zap } from "lucide-react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface StoreProductCardProps {
   product: any;
@@ -11,89 +13,115 @@ interface StoreProductCardProps {
 }
 
 export const StoreProductCard = ({ product, lang, t, hasPreviousAttempt }: StoreProductCardProps) => {
-  const d = t.dashboard;
+  const d = t?.dashboard;
+
+  if (!d) return null;
 
   return (
-    <div
-      key={product.slug}
-      className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md group flex flex-col h-full"
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.3 }}
+      className="relative overflow-hidden rounded-[1.5rem] border border-border/50 bg-card/10 backdrop-blur-sm shadow-md hover:shadow-xl hover:shadow-primary/5 transition-all group flex flex-col h-full"
     >
-      {/* Top gradient bar */}
       <div
-        className={`h-1.5 w-full shrink-0 bg-gradient-to-r ${product.gradientFrom} ${product.gradientTo}`}
+        className={cn(
+          "h-1.5 w-full shrink-0 bg-gradient-to-r",
+          product.gradientFrom,
+          product.gradientTo
+        )}
       />
 
-      <div className="p-4 space-y-5 flex flex-col flex-1">
-        <div className="flex justify-between items-start">
-          <div className="flex items-center gap-3">
+      <div className="p-5 space-y-5 flex flex-col flex-1">
+        <div className="flex justify-between items-start gap-4">
+          <div className="flex items-center gap-4">
             <div className="relative">
               {hasPreviousAttempt && (
-                <Badge className="absolute -top-2 -right-1 z-10 bg-amber-500 text-white border-none text-[8px] font-bold px-1 py-0 h-4 uppercase">
-                  {lang === "pt" ? "2ª Tentativa" : "2nd Attempt"}
-                </Badge>
+                <div className="absolute -top-3 -right-2 z-10">
+                  <Badge className="bg-amber-500 text-white border-none text-[8px] font-black px-2 py-1 h-auto uppercase tracking-tighter shadow-lg rounded-full">
+                    {lang === "pt" ? "2ª TENTATIVA" : "2nd ATTEMPT"}
+                  </Badge>
+                </div>
               )}
               <div
-                className={`h-11 w-11 rounded-md ${product.color} text-white flex items-center justify-center shadow-sm`}
+                className={cn(
+                  "h-11 w-11 rounded-xl flex items-center justify-center shadow-lg text-white transform group-hover:rotate-3 transition-all duration-300",
+                  product.color
+                )}
               >
-                {product.icon}
+                {product.icon && <span className="[&_svg]:w-5 [&_svg]:h-5">{product.icon}</span>}
               </div>
             </div>
-            <div>
-              <h3 className="font-bold text-foreground text-base">
+            <div className="space-y-0.5">
+              <h3 className="font-display text-base font-black text-foreground tracking-tight leading-none group-hover:text-primary transition-colors">
                 {lang === "pt" ? product.titlePt : product.titleEn}
               </h3>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[9px] font-black text-primary uppercase tracking-[0.1em] opacity-60">
                 {lang === "pt" ? product.subtitlePt : product.subtitleEn}
               </p>
             </div>
           </div>
           <Badge
-            className={`shrink-0 ${
+            className={cn(
+              "shrink-0 rounded-full h-6 px-2.5 font-black text-[8px] uppercase tracking-widest border transition-colors",
               product.available
-                ? "bg-accent/10 text-accent border-accent/20"
-                : "bg-muted text-muted-foreground"
-            }`}
+                ? "bg-accent/5 text-accent border-accent/10"
+                : "bg-muted/50 text-muted-foreground border-transparent"
+            )}
             variant="outline"
           >
-            {product.available && (
-              <Sparkles className="h-3 w-3 mr-1" />
+            {product.available ? (
+              <Zap className="h-2.5 w-2.5 mr-1.5 fill-accent" />
+            ) : (
+              <Lock className="h-2.5 w-2.5 mr-1.5" />
             )}
             {product.badgeLabel}
           </Badge>
         </div>
 
-        <p className="text-sm text-muted-foreground leading-relaxed">
+        <p className="text-[11px] text-muted-foreground leading-relaxed font-medium line-clamp-2">
           {lang === "pt" ? product.descPt : product.descEn}
         </p>
 
-        <ul className="space-y-2 flex-grow">
-          {product.features.map((f: any, i: number) => (
-            <li key={i} className="flex items-center gap-2 text-sm">
-              <CheckSquare className="h-4 w-4 text-accent shrink-0" />
-              <span className="text-foreground">
-                {lang === "pt" ? f.pt : f.en}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <div className="space-y-2.5 flex-grow bg-muted/20 p-4 rounded-xl border border-border/40 group-hover:bg-muted/40 transition-colors">
+          <p className="text-[8.5px] font-black text-muted-foreground/60 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+            <Sparkles className="h-2.5 w-2.5 text-primary" /> {lang === 'pt' ? 'Recursos inclusos' : 'Features included'}
+          </p>
+          <ul className="grid gap-2">
+            {product.features.map((f: any, i: number) => (
+              <li key={i} className="flex items-center gap-2.5 group/item">
+                <div className="h-5 w-5 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+                  <CheckSquare className="h-2.5 w-2.5 text-accent" />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-tight text-foreground/70 transition-colors">
+                  {lang === 'pt' ? f.pt : f.en}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-        {product.available ? (
-          <Link to={product.checkoutUrl} className="mt-auto block">
-            <Button className="w-full bg-primary font-bold h-11 rounded-md gap-2 hover:bg-primary/90 shadow-sm">
-              {d.getStarted[lang]}
-              <ArrowRight className="h-4 w-4" />
+        <div className="pt-1">
+          {product.available ? (
+            <Link to={product.checkoutUrl} className="block group/link">
+              <Button className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-black uppercase text-[11px] tracking-[0.15em] rounded-xl shadow-xl shadow-primary/10 gap-3 relative overflow-hidden transition-all active:scale-[0.98]">
+                {d.getStarted}
+                <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1.5 transition-transform" />
+              </Button>
+            </Link>
+          ) : (
+            <Button
+              disabled
+              className="w-full h-12 rounded-xl gap-2 bg-muted/50 text-muted-foreground/40 border border-border/20 font-black uppercase text-[9px] tracking-widest"
+            >
+              <Lock className="h-3.5 w-3.5" />
+              {d.comingSoon}
             </Button>
-          </Link>
-        ) : (
-          <Button
-            disabled
-            className="w-full h-11 rounded-md gap-2 opacity-60 cursor-not-allowed mt-auto shrink-0"
-          >
-            <Lock className="h-4 w-4" />
-            {d.comingSoon[lang]}
-          </Button>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

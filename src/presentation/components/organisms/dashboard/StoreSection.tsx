@@ -1,6 +1,8 @@
-import { ShoppingBag, Clock, Repeat, Plane, GraduationCap } from "lucide-react";
+import { ShoppingBag, Clock, Repeat, Plane, GraduationCap, Sparkles } from "lucide-react";
 import { StoreProductCard } from "./StoreProductCard";
 import { useT } from "@/i18n/LanguageContext";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface StoreSectionProps {
   userServicesSlugs: string[];
@@ -10,67 +12,67 @@ interface StoreSectionProps {
 
 export const StoreSection = ({ userServicesSlugs, lang, services }: StoreSectionProps) => {
   const t = useT("dashboard");
+  const d = t?.dashboard;
   
   const availableProducts = [
     {
       slug: "extensao-status",
-      icon: <Clock className="h-5 w-5" />,
+      icon: <Clock />,
       color: "bg-blue-500",
       gradientFrom: "from-blue-500",
       gradientTo: "to-indigo-600",
       badgeLabel: lang === "pt" ? "Em breve" : "Coming soon",
       titlePt: "Extensão de Status (I-539)",
       titleEn: "Status Extension (I-539)",
-      subtitlePt: "Para quem já está nos EUA e precisa estender",
-      subtitleEn: "Extend your stay while in the US",
-      descPt: "Guia para solicitar extensão de status junto ao USCIS usando o formulário I-539.",
-      descEn: "Guide to request a status extension with USCIS using Form I-539.",
+      subtitlePt: "Estender Estadia",
+      subtitleEn: "Extend Stay",
+      descPt: "Para quem já está nos EUA e precisa estender o tempo legal.",
+      descEn: "For those already in the US needing to extend their legal stay.",
       features: [
-        { pt: "Guia digital para I-539", en: "Digital guide for I-539" },
-        { pt: "Checklist de documentos", en: "Documents checklist" },
-        { pt: "Orientação sobre preenchimento", en: "Filing orientation" },
+        { pt: "Guia digital I-539", en: "Digital I-539 Guide" },
+        { pt: "Checklist de documentos", en: "Document checklist" },
+        { pt: "Instruções de envio", en: "Filing instructions" },
       ],
       available: true,
       checkoutUrl: "/checkout/extensao-status",
     },
     {
       slug: "troca-status",
-      icon: <Repeat className="h-5 w-5" />,
+      icon: <Repeat />,
       color: "bg-blue-500",
       gradientFrom: "from-blue-500",
       gradientTo: "to-indigo-600",
       badgeLabel: lang === "pt" ? "Disponível" : "Available",
-      titlePt: "Troca de Status (Change of Status)",
-      titleEn: "Change of Status",
-      subtitlePt: "Mudança de categoria de visto dentro dos EUA",
-      subtitleEn: "Change your visa category while staying in the US",
-      descPt: "Guia passo a passo para solicitar troca de status dentro dos EUA via formulário I-539 ou equivalente.",
-      descEn: "Step-by-step guide to request a Change of Status within the US using Form I-539 or equivalent.",
+      titlePt: "Troca de Status (COS)",
+      titleEn: "Change of Status (COS)",
+      subtitlePt: "Mudança de Categoria",
+      subtitleEn: "New Category",
+      descPt: "Mudança de categoria de visto dentro dos Estados Unidos.",
+      descEn: "Change your visa category while staying in the US.",
       features: [
-        { pt: "Guia digital passo a passo", en: "Digital step-by-step guide" },
-        { pt: "Checklist de documentos", en: "Documents checklist" },
-        { pt: "Orientação sobre formulários", en: "Forms orientation" },
+        { pt: "Guia passo a passo", en: "Step-by-step guide" },
+        { pt: "Checklist documentos", en: "Document checklist" },
+        { pt: "Apoio formulários", en: "Form support" },
       ],
       available: true,
       checkoutUrl: "/checkout/troca-status",
     },
     {
       slug: "visto-b1-b2",
-      icon: <Plane className="h-5 w-5" />,
+      icon: <Plane />,
       color: "bg-blue-500",
       gradientFrom: "from-blue-500",
       gradientTo: "to-indigo-600",
       badgeLabel: lang === "pt" ? "Disponível" : "Available",
-      titlePt: "Visto Turismo B1/B2",
+      titlePt: "Visto B1/B2 Turismo",
       titleEn: "B1/B2 Tourist Visa",
-      subtitlePt: "Para brasileiros aplicando do Brasil",
-      subtitleEn: "For Brazilians applying from Brazil",
-      descPt: "Guia completo passo a passo para aplicar ao visto de turismo/negócios. Inclui orientação para DS-160 e preparação para entrevista.",
-      descEn: "Complete step-by-step guide to apply for a tourist/business visa. Includes DS-160 guidance and interview preparation.",
+      subtitlePt: "Turismo/Negócios",
+      subtitleEn: "Tourism/Business",
+      descPt: "Guia completo passo a passo para aplicar ao visto americano.",
+      descEn: "Complete step-by-step guide to apply for a US visa.",
       features: [
-        { pt: "Guia digital", en: "Digital guide" },
-        { pt: "Checklist de documentos", en: "Complete documents checklist" },
-        { pt: "Simulado com IA", en: "AI interview simulator" },
+        { pt: "DS-160 e Entrevista", en: "DS-160 & Interview" },
+        { pt: "Checklist completo", en: "Full checklist" },
         { pt: "Suporte operacional", en: "Operational support" },
       ],
       available: true,
@@ -78,21 +80,21 @@ export const StoreSection = ({ userServicesSlugs, lang, services }: StoreSection
     },
     {
       slug: "visa-f1f2",
-      icon: <GraduationCap className="h-5 w-5" />,
+      icon: <GraduationCap />,
       color: "bg-purple-500",
       gradientFrom: "from-purple-500",
       gradientTo: "to-violet-600",
       badgeLabel: lang === "pt" ? "Disponível" : "Available",
-      titlePt: "Visto de Estudante F-1/F-2",
-      titleEn: "F-1/F-2 Student Visa",
-      subtitlePt: "Estudantes em instituições americanas",
-      subtitleEn: "For students accepted by US institutions",
-      descPt: "Guia passo a passo para aplicar ao visto F-1 ou dependentes F-2. Orientação sobre I-20, DS-160, SEVIS.",
-      descEn: "Step-by-step guide for the F-1 visa or F-2 dependents. Guidance on I-20, DS-160, SEVIS.",
+      titlePt: "Visto de Estudante F-1",
+      titleEn: "F-1 Student Visa",
+      subtitlePt: "Estudante/Acadêmico",
+      subtitleEn: "Student/Academic",
+      descPt: "Guia detalhado para visto em instituições americanas.",
+      descEn: "Detailed guide for student visas in US institutions.",
       features: [
-        { pt: "I-20 e SEVIS", en: "I-20 and SEVIS guidance" },
-        { pt: "Guia taxa SEVIS", en: "SEVIS fee payment guide" },
-        { pt: "Preparação para entrevista", en: "Interview preparation" },
+        { pt: "I-20 e Taxa SEVIS", en: "I-20 & SEVIS Fee" },
+        { pt: "Preparação entrevista", en: "Interview preparation" },
+        { pt: "Documentação F-2", en: "F-2 documentation" },
       ],
       available: true,
       checkoutUrl: "/checkout/visa-f1f2",
@@ -103,23 +105,37 @@ export const StoreSection = ({ userServicesSlugs, lang, services }: StoreSection
     (p) => !userServicesSlugs.includes(p.slug)
   );
 
-  if (products.length === 0) return null;
+  if (products.length === 0 || !d) return null;
 
   return (
-    <section>
-      <div className="flex items-center gap-2 mb-4">
-        <ShoppingBag className="w-5 h-5 text-primary" />
-        <h2 className="font-bold text-lg text-foreground">
-          {t.getProcesses}
-        </h2>
+    <motion.section 
+      initial={{ opacity: 0, y: 15 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="mt-8"
+    >
+      <div className="flex flex-col space-y-1 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <ShoppingBag className="w-5 h-5 text-primary" />
+          </div>
+          <h2 className="font-display text-xl font-black uppercase tracking-tight text-foreground">
+            {d.getProcesses}
+          </h2>
+        </div>
+        <p className="text-xs text-muted-foreground font-medium pl-1 gap-2 flex items-center">
+          <Sparkles className="h-3 w-3 text-primary" />
+          {lang === "pt" ? "Melhore sua jornada com guias especializados." : "Enhance your journey with specialized guides."}
+        </p>
       </div>
 
       <div
-        className={`grid gap-4 ${
-          products.length === 1
-            ? "grid-cols-1 max-w-2xl"
-            : "grid-cols-1 lg:grid-cols-2"
-        }`}
+        className={cn(
+          "grid gap-6",
+          products.length === 1 ? "grid-cols-1 max-w-md" : 
+          products.length === 2 ? "grid-cols-1 sm:grid-cols-2 max-w-2xl" :
+          "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+        )}
       >
         {products.map((product) => (
           <StoreProductCard 
@@ -131,6 +147,6 @@ export const StoreSection = ({ userServicesSlugs, lang, services }: StoreSection
           />
         ))}
       </div>
-    </section>
+    </motion.section>
   );
 };
