@@ -1,16 +1,6 @@
-import { Input } from "@/presentation/components/atoms/input";
-import { Label } from "@/presentation/components/atoms/label";
-import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
+import { FormInput, FormRadioGroup, FormNativeSelect } from "@/presentation/components/atoms/form/FormFields";
 import { StepProps } from "../../types";
-import { AlertCircle } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/presentation/components/atoms/select";
-import { toast } from "sonner";
+import { AlertCircle, User, MapPin, Mail, Calendar } from "lucide-react";
 
 export const F1F2Personal1Step = ({
   register,
@@ -22,258 +12,174 @@ export const F1F2Personal1Step = ({
   const ds = t.ds160;
   const hasOtherNames = watch("hasOtherNames");
   const gender = watch("gender");
-  const maritalStatus = watch("maritalStatus");
   const hasTelecode = watch("hasTelecode");
 
-  const handleCopy = (text: string | null | undefined) => {
-    if (!text) return;
-    navigator.clipboard.writeText(text);
-    toast.success(lang === "pt" ? "Copiado!" : "Copied!");
-  };
-
   return (
-    <div className="space-y-4 fade-in">
-      <div className="rounded-md border border-primary/20 bg-primary/5 p-5 shadow-sm">
-        <div className="flex items-start gap-4">
-          <div className="rounded-full bg-primary/10 p-2 text-primary">
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="rounded-3xl border border-primary/20 bg-primary/5 p-6 shadow-sm relative overflow-hidden group">
+        <div className="absolute right-0 top-0 h-24 w-24 bg-primary/10 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110" />
+        <div className="flex items-start gap-4 relative z-10">
+          <div className="rounded-2xl bg-primary/10 p-3 text-primary shrink-0">
             <AlertCircle className="h-5 w-5" />
           </div>
           <div className="space-y-1">
-            <h4 className="font-display font-bold text-primary text-sm uppercase tracking-wider">
-              {lang === "pt" ? "Instrução da Etapa" : "Stage Instruction"}
+            <h4 className="font-display font-black text-primary text-[10px] uppercase tracking-[0.2em]">
+              {lang === "pt" ? "Instrução Importante" : "Important Instruction"}
             </h4>
-            <p className="text-primary/95 text-sm leading-relaxed font-medium">
+            <p className="text-primary/90 text-sm leading-relaxed font-semibold">
               {ds.interview.fillNotice[lang]}
             </p>
           </div>
         </div>
       </div>
 
-      <h2 className="font-display text-lg font-semibold text-foreground">
-        {t.f1f2.steps[lang][0]}
-      </h2>
-
-      <div className="space-y-3 pb-4 border-b border-border">
-        <Label htmlFor="interviewLocation">
-          {ds.interview.location[lang]} *
-        </Label>
-        <Select
-          onValueChange={(value) => setValue("interviewLocation", value)}
-          value={watch("interviewLocation")}
-        >
-          <SelectTrigger id="interviewLocation" className="w-full mt-1">
-            <SelectValue
-              placeholder={
-                lang === "pt" ? "Selecione o local..." : "Select location..."
-              }
-            />
-          </SelectTrigger>
-          <SelectContent>
-            {ds.interview.options.map(
-              (
-                option: { en: string; pt: string; es: string },
-                index: number,
-              ) => (
-                <SelectItem key={index} value={option.en}>
-                  {option[lang]}
-                </SelectItem>
-              ),
-            )}
-          </SelectContent>
-        </Select>
+      <div className="flex flex-col space-y-1.5 border-b border-border/50 pb-4">
+        <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <MapPin className="h-6 w-6 text-primary" />
+          {t.f1f2.steps[lang][0]}
+        </h2>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="email">{ds.personal1.email[lang]} *</Label>
-          <Input id="email" {...register("email")} autoComplete="email" />
-        </div>
-      </div>
+      <div className="space-y-6">
+        <FormNativeSelect
+          label={ds.interview.location[lang]}
+          {...register("interviewLocation")}
+          options={ds.interview.options.map((opt: any) => ({
+            label: opt[lang],
+            value: opt.en
+          }))}
+          required
+        />
 
-      <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="lastName">{ds.personal1.lastName[lang]} *</Label>
-            <Input
-              id="lastName"
-              {...register("lastName")}
-              autoComplete="family-name"
-              onChange={(e) =>
-                setValue(
-                  "lastName",
-                  e.target.value.replace(
-                    /[^a-zA-ZáéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ\s]/g,
-                    "",
-                  ),
-                )
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="firstName">{ds.personal1.firstName[lang]} *</Label>
-            <Input
-              id="firstName"
-              {...register("firstName")}
-              autoComplete="given-name"
-              onChange={(e) =>
-                setValue(
-                  "firstName",
-                  e.target.value.replace(
-                    /[^a-zA-ZáéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ\s]/g,
-                    "",
-                  ),
-                )
-              }
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              {ds.personal1.fullNameHelper[lang]}
-            </p>
-          </div>
-        </div>
-        <div className="space-y-2 mt-2">
-          <Label htmlFor="fullNamePassport">
-            {ds.personal1.fullNamePassport[lang]}
-          </Label>
-          <Input id="fullNamePassport" {...register("fullNamePassport")} />
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <Label>{ds.personal1.hasOtherNames[lang]} *</Label>
-        <RadioGroup
-          onValueChange={(val) => setValue("hasOtherNames", val)}
-          value={hasOtherNames}
-          className="flex gap-4"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="yes" id="names-yes" />
-            <Label htmlFor="names-yes">{lang === "pt" ? "Sim" : "Yes"}</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="no" id="names-no" />
-            <Label htmlFor="names-no">{lang === "pt" ? "Não" : "No"}</Label>
-          </div>
-        </RadioGroup>
-        {hasOtherNames === "yes" && (
-          <Input {...register("otherNames")} className="mt-2" />
-        )}
-      </div>
-
-      <div className="space-y-3">
-        <Label>{ds.personal1.hasTelecode[lang]} *</Label>
-        <RadioGroup
-          onValueChange={(val) => setValue("hasTelecode", val)}
-          value={hasTelecode}
-          className="flex gap-4"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="yes" id="telecode-yes" />
-            <Label htmlFor="telecode-yes">
-              {lang === "pt" ? "Sim" : "Yes"}
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="no" id="telecode-no" />
-            <Label htmlFor="telecode-no">{lang === "pt" ? "Não" : "No"}</Label>
-          </div>
-        </RadioGroup>
-        {hasTelecode === "yes" && (
-          <div className="mt-2 space-y-2 scale-in-center">
-            <Label htmlFor="telecodeValue">
-              {lang === "pt" ? "Informe o telecódigo:" : "Enter telecode:"} *
-            </Label>
-            <Input
-              id="telecodeValue"
-              {...register("telecodeValue")}
-              onChange={(e) =>
-                setValue("telecodeValue", e.target.value.replace(/[^0-9]/g, ""))
-              }
-            />
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t border-border pt-4">
-        <div className="space-y-3">
-          <Label>{ds.personal1.gender[lang]} *</Label>
-          <RadioGroup
-            onValueChange={(val) => setValue("gender", val)}
-            value={gender}
-            className="flex gap-4"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="male" id="gender-male" />
-              <Label htmlFor="gender-male">
-                {ds.personal1.genderOptions.male[lang]}
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="female" id="gender-female" />
-              <Label htmlFor="gender-female">
-                {ds.personal1.genderOptions.female[lang]}
-              </Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        <div className="space-y-2">
-          <Label>{ds.personal1.maritalStatus[lang]} *</Label>
-          <select
-            {...register("maritalStatus")}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="">
-              {lang === "pt" ? "Selecione..." : "Select..."}
-            </option>
-            <option value="married">
-              {ds.personal1.maritalOptions.married[lang]}
-            </option>
-            <option value="single">
-              {ds.personal1.maritalOptions.single[lang]}
-            </option>
-            <option value="widowed">
-              {ds.personal1.maritalOptions.widowed[lang]}
-            </option>
-            <option value="divorced">
-              {ds.personal1.maritalOptions.divorced[lang]}
-            </option>
-            <option value="separated">
-              {ds.personal1.maritalOptions.separated[lang]}
-            </option>
-          </select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t border-border pt-4">
-        <div className="space-y-2">
-          <Label htmlFor="birthDate">{ds.personal1.dob[lang]} *</Label>
-          <Input id="birthDate" type="date" {...register("birthDate")} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="birthCity">{ds.personal1.cityBirth[lang]} *</Label>
-          <Input
-            id="birthCity"
-            {...register("birthCity")}
-            onChange={(e) =>
-              setValue(
-                "birthCity",
-                e.target.value.replace(
-                  /[^a-zA-ZáéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ\s]/g,
-                  "",
-                ),
-              )
-            }
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <FormInput 
+            label={ds.personal1.email[lang]} 
+            {...register("email")} 
+            autoComplete="email" 
+            placeholder="exemplo@email.com"
+            icon={<Mail className="h-4 w-4" />}
+            required
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="birthState">{ds.personal1.stateBirth[lang]}</Label>
-          <Input id="birthState" {...register("birthState")} />
+
+        <div className="space-y-6 rounded-3xl border border-border/50 p-6 bg-muted/20 relative overflow-hidden">
+          <div className="absolute left-0 top-0 w-1 h-full bg-primary/30" />
+          <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4 flex items-center gap-2">
+            <User className="h-3 w-3" />
+            Identificação Legal
+          </h4>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <FormInput
+              label={ds.personal1.lastName[lang]}
+              {...register("lastName")}
+              autoComplete="family-name"
+              required
+              onChange={(e) =>
+                setValue("lastName", e.target.value.replace(/[^a-zA-ZáéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ\s]/g, ""))
+              }
+            />
+            <FormInput
+              label={ds.personal1.firstName[lang]}
+              {...register("firstName")}
+              autoComplete="given-name"
+              hint={ds.personal1.fullNameHelper[lang]}
+              required
+              onChange={(e) =>
+                setValue("firstName", e.target.value.replace(/[^a-zA-ZáéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ\s]/g, ""))
+              }
+            />
+          </div>
+          <FormInput 
+            label={ds.personal1.fullNamePassport[lang]} 
+            {...register("fullNamePassport")} 
+            placeholder="Como consta no passaporte"
+          />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="birthCountry">
-            {ds.personal1.countryBirth[lang]} *
-          </Label>
-          <Input id="birthCountry" {...register("birthCountry")} />
+
+        <div className="grid grid-cols-1 gap-8 pt-4">
+          <FormRadioGroup
+            label={ds.personal1.hasOtherNames[lang]}
+            value={hasOtherNames}
+            onValueChange={(val) => setValue("hasOtherNames", val)}
+            options={[
+              { label: lang === "pt" ? "Sim" : "Yes", value: "yes" },
+              { label: lang === "pt" ? "Não" : "No", value: "no" }
+            ]}
+            required
+          />
+          {hasOtherNames === "yes" && (
+            <FormInput 
+              {...register("otherNames")} 
+              placeholder={lang === "pt" ? "Informe os outros nomes" : "Enter other names"}
+              className="animate-in slide-in-from-top-2 duration-300"
+            />
+          )}
+
+          <FormRadioGroup
+            label={ds.personal1.hasTelecode[lang]}
+            value={hasTelecode}
+            onValueChange={(val) => setValue("hasTelecode", val)}
+            options={[
+              { label: lang === "pt" ? "Sim" : "Yes", value: "yes" },
+              { label: lang === "pt" ? "Não" : "No", value: "no" }
+            ]}
+            required
+          />
+          {hasTelecode === "yes" && (
+            <FormInput
+              label={lang === "pt" ? "Informe o telecódigo:" : "Enter telecode:"}
+              {...register("telecodeValue")}
+              onChange={(e) => setValue("telecodeValue", e.target.value.replace(/[^0-9]/g, ""))}
+              className="animate-in slide-in-from-top-2 duration-300"
+              required
+            />
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 border-t border-border/50 pt-8 mt-4">
+          <FormRadioGroup
+            label={ds.personal1.gender[lang]}
+            value={gender}
+            onValueChange={(val) => setValue("gender", val)}
+            options={[
+              { label: ds.personal1.genderOptions.male[lang], value: "male" },
+              { label: ds.personal1.genderOptions.female[lang], value: "female" }
+            ]}
+            required
+          />
+
+          <FormNativeSelect
+            label={ds.personal1.maritalStatus[lang]}
+            {...register("maritalStatus")}
+            options={[
+              { label: ds.personal1.maritalOptions.married[lang], value: "married" },
+              { label: ds.personal1.maritalOptions.single[lang], value: "single" },
+              { label: ds.personal1.maritalOptions.widowed[lang], value: "widowed" },
+              { label: ds.personal1.maritalOptions.divorced[lang], value: "divorced" },
+              { label: ds.personal1.maritalOptions.separated[lang], value: "separated" }
+            ]}
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 border-t border-border/50 pt-8">
+          <FormInput 
+            label={ds.personal1.dob[lang]} 
+            type="date" 
+            {...register("birthDate")} 
+            icon={<Calendar className="h-4 w-4" />}
+            required 
+          />
+          <FormInput
+            label={ds.personal1.cityBirth[lang]}
+            {...register("birthCity")}
+            required
+            onChange={(e) =>
+              setValue("birthCity", e.target.value.replace(/[^a-zA-ZáéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ\s]/g, ""))
+            }
+          />
+          <FormInput label={ds.personal1.stateBirth[lang]} {...register("birthState")} />
+          <FormInput label={ds.personal1.countryBirth[lang]} {...register("birthCountry")} required />
         </div>
       </div>
     </div>

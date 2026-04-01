@@ -36,11 +36,16 @@ import {
   MousePointer2,
   ExternalLink,
   Maximize2,
+  ChevronRight,
+  Zap,
+  Lock,
+  Sparkles
 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 import onePhaseImg from "@/assets/payment/one_phase.jpeg";
 import twoPhaseImg from "@/assets/payment/two_phase.jpeg";
@@ -114,7 +119,6 @@ export function PaymentPendingStep({
     const fetchData = async () => {
       if (!serviceId) return;
       try {
-        // Fetch Service details (credentials)
         const { data: service } = await supabase
           .from("user_services")
           .select("consular_login, consular_password")
@@ -127,7 +131,6 @@ export function PaymentPendingStep({
           setConsularPassword(s.consular_password || "");
         }
 
-        // Fetch Boleto
         const { data: boleto } = await supabase
           .from("documents")
           .select("id, name, storage_path, bucket_id, created_at")
@@ -151,7 +154,6 @@ export function PaymentPendingStep({
 
     setIsSaving(true);
     try {
-      // Advance status to awaitingInterview
       const { error: statusError } = await supabase
         .from("user_services")
         .update({ status: "awaitingInterview" })
@@ -162,7 +164,6 @@ export function PaymentPendingStep({
       toast.success(p.successPaymentMsg[lang]);
       if (onComplete) onComplete();
 
-      // Reload to reflect changes
       window.location.reload();
     } catch (err) {
       const error = err as Error;
@@ -183,374 +184,383 @@ export function PaymentPendingStep({
 
   if (isLoadingDoc) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-accent" />
-        <p className="text-muted-foreground animate-pulse">
+      <div className="flex flex-col items-center justify-center py-32 gap-6">
+        <div className="relative">
+          <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full animate-pulse" />
+          <Loader2 className="h-12 w-12 animate-spin text-primary relative z-10" />
+        </div>
+        <p className="text-muted-foreground font-display font-medium tracking-wide animate-pulse">
           {p.loadingInfo[lang]}
         </p>
       </div>
     );
   }
 
-  // If no boleto is found, show the Processing screen
   if (!boletoDoc) {
     return (
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="space-y-10 max-w-2xl mx-auto py-10"
+      >
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-md mb-2">
-            <Clock className="h-8 w-8 text-accent animate-spin-slow" />
+          <div className="relative inline-flex mb-4">
+             <div className="absolute inset-0 bg-accent/20 rounded-full animate-ping scale-150 duration-[3000ms]" />
+             <div className="relative p-5 bg-card border-4 border-accent shadow-2xl rounded-[2rem]">
+               <Clock className="h-10 w-10 text-accent animate-spin-slow" />
+             </div>
           </div>
-          <h2 className="text-title md:text-title-xl font-black font-display text-foreground tracking-tight uppercase">
+          <h2 className="text-4xl md:text-5xl font-black font-display text-foreground tracking-tight leading-tight">
             {p.feeInProcessing[lang]}
           </h2>
-          <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto leading-relaxed md:px-0 px-4">
+          <p className="text-slate-500 text-lg leading-relaxed font-medium">
             {p.excellentEmailReceived[lang]}
           </p>
         </div>
 
-        <Card className="border-border shadow-2xl rounded-[32px] overflow-hidden bg-card/10 backdrop-blur-md relative p-6 text-center border-dashed">
-          <div className="space-y-4">
-            <div className="flex justify-center">
-              <div className="relative">
-                <div className="absolute inset-0 bg-accent/20 blur-xl rounded-full animate-pulse"></div>
-                <div className="relative bg-card border border-border h-24 w-24 rounded-3xl flex items-center justify-center">
-                  <Receipt className="h-10 w-10 text-accent" />
+        <div className="bg-card/10 backdrop-blur-xl border border-border/50 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden group">
+           <div className="absolute -right-20 -top-20 opacity-[0.05] group-hover:scale-110 transition-transform duration-700">
+             <Receipt className="w-80 h-80" />
+           </div>
+           
+           <div className="relative space-y-8 text-center">
+              <div className="space-y-3">
+                <h3 className="text-2xl font-black font-display tracking-tight">
+                  {p.generatingSlip[lang]}
+                </h3>
+                <p className="text-slate-500 font-semibold text-base leading-relaxed max-w-sm mx-auto">
+                  {p.processMinutes[lang]}
+                </p>
+              </div>
+
+              <div className="pt-4 flex flex-col items-center gap-4">
+                <Button
+                  size="lg"
+                  className="rounded-2xl px-10 h-16 bg-white hover:bg-slate-100 border-2 border-accent/20 text-accent font-black uppercase text-xs tracking-widest gap-2 shadow-xl shadow-accent/5 transition-all active:scale-95"
+                  onClick={() => window.location.reload()}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  {p.refreshStatus[lang]}
+                </Button>
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  <Zap className="h-3 w-3 fill-slate-400" />
+                  Estimated time: ~15 mins
                 </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-subtitle font-bold">
-                {p.generatingSlip[lang]}
-              </h3>
-              <p className="text-muted-foreground max-w-sm mx-auto text-sm">
-                {p.processMinutes[lang]}
-              </p>
-            </div>
-            <div className="pt-4">
-              <Button
-                variant="outline"
-                className="rounded-full px-5 border-accent/20 text-accent hover:bg-accent/5 h-auto py-2 whitespace-normal text-xs sm:text-sm text-center"
-                onClick={() => window.location.reload()}
-              >
-                <RefreshCw className="h-4 w-4 mr-2 shrink-0" />
-                {p.refreshStatus[lang]}
-              </Button>
-            </div>
-          </div>
-        </Card>
-      </div>
+           </div>
+        </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700 w-full max-w-full">
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-md mb-2">
-          <Wallet className="h-8 w-8 text-accent animate-pulse" />
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-10 w-full max-w-4xl mx-auto pb-10"
+    >
+      <div className="text-center space-y-6">
+        <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-[2rem] shadow-inner mb-2">
+          <Wallet className="h-8 w-8 text-primary animate-pulse" />
         </div>
-        <h2 className="text-title md:text-title-xl font-black font-display text-foreground tracking-tight uppercase px-2">
-          {p.title[lang]}
-        </h2>
-        <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto leading-relaxed px-4 md:px-0">
-          {p.desc[lang]}
-        </p>
+        <div className="space-y-2">
+          <h2 className="text-4xl md:text-6xl font-black font-display text-foreground tracking-tighter leading-none uppercase">
+            {p.title[lang]}
+          </h2>
+          <p className="text-slate-500 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed px-4">
+            {p.desc[lang]}
+          </p>
+        </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-3 sm:gap-4 max-w-4xl mx-auto w-full">
+      <div className="grid md:grid-cols-2 gap-6">
         {/* Method Selection: Boleto */}
-        <div
+        <motion.div
+          whileHover={{ y: -5 }}
+          whileTap={{ scale: 0.98 }}
           className={cn(
-            "relative p-4 sm:p-5 rounded-[24px] md:rounded-[32px] border-2 transition-all cursor-pointer group hover:scale-[1.02] active:scale-[0.98]",
+            "relative p-8 rounded-[3rem] border-4 transition-all duration-300 cursor-pointer overflow-hidden group",
             paymentMethod === "boleto"
-              ? "bg-accent/5 border-accent shadow-xl shadow-accent/10"
-              : "bg-card border-border hover:border-accent/40",
+              ? "bg-primary/5 border-primary shadow-2xl shadow-primary/10"
+              : "bg-card border-border/50 hover:border-primary/40 shadow-sm"
           )}
           onClick={() => setPaymentMethod("boleto")}
         >
-          <div className="absolute top-6 right-6">
-            <div
-              className={cn(
-                "h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors",
-                paymentMethod === "boleto"
-                  ? "bg-accent border-accent"
-                  : "border-muted-foreground/30",
-              )}
-            >
-              <CheckCircle2
-                className={cn(
-                  "h-4 w-4 text-white transition-opacity",
-                  paymentMethod === "boleto" ? "opacity-100" : "opacity-0",
-                )}
-              />
-            </div>
-          </div>
+          {paymentMethod === "boleto" && (
+            <motion.div layoutId="payment-active" className="absolute top-8 right-8 z-20">
+               <div className="bg-primary p-2 rounded-full shadow-lg">
+                 <CheckCircle2 className="h-4 w-4 text-white" />
+               </div>
+            </motion.div>
+          )}
 
-          <div className="space-y-4">
-            <div
-              className={cn(
-                "h-14 w-14 rounded-md flex items-center justify-center transition-colors",
-                paymentMethod === "boleto"
-                  ? "bg-accent text-white"
-                  : "bg-muted/50 text-muted-foreground",
-              )}
-            >
-              <FileText className="h-7 w-7" />
+          <div className="relative z-10 space-y-6">
+            <div className={cn(
+              "h-16 w-16 rounded-[1.5rem] flex items-center justify-center transition-all duration-500 shadow-inner",
+              paymentMethod === "boleto" ? "bg-primary text-white scale-110 rotate-3" : "bg-muted/50 text-slate-400"
+            )}>
+              <FileText className="h-8 w-8" />
             </div>
-            <div>
-              <h3 className="text-subtitle font-black uppercase tracking-tight">
+            <div className="space-y-1 text-left">
+              <h3 className="text-2xl font-black font-display uppercase tracking-tight leading-none">
                 {p.bankSlip[lang]}
               </h3>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="font-bold text-slate-500 text-sm leading-relaxed">
                 {p.payAnyBank[lang]}
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Method Selection: Card */}
-        <div
-          className={cn(
-            "relative p-4 sm:p-5 rounded-[24px] md:rounded-[32px] border-2 transition-all cursor-pointer group hover:scale-[1.02] active:scale-[0.98]",
+        <motion.div
+           whileHover={{ y: -5 }}
+           whileTap={{ scale: 0.98 }}
+           className={cn(
+            "relative p-8 rounded-[3rem] border-4 transition-all duration-300 cursor-pointer overflow-hidden group",
             paymentMethod === "card"
-              ? "bg-accent/5 border-accent shadow-xl shadow-accent/10"
-              : "bg-card border-border hover:border-accent/40",
+              ? "bg-primary/5 border-primary shadow-2xl shadow-primary/10"
+              : "bg-card border-border/50 hover:border-primary/40 shadow-sm"
           )}
           onClick={() => setPaymentMethod("card")}
         >
-          <div className="absolute top-6 right-6">
-            <div
-              className={cn(
-                "h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors",
-                paymentMethod === "card"
-                  ? "bg-accent border-accent"
-                  : "border-muted-foreground/30",
-              )}
-            >
-              <CheckCircle2
-                className={cn(
-                  "h-4 w-4 text-white transition-opacity",
-                  paymentMethod === "card" ? "opacity-100" : "opacity-0",
-                )}
-              />
-            </div>
-          </div>
+          {paymentMethod === "card" && (
+            <motion.div layoutId="payment-active" className="absolute top-8 right-8 z-20">
+               <div className="bg-primary p-2 rounded-full shadow-lg">
+                 <CheckCircle2 className="h-4 w-4 text-white" />
+               </div>
+            </motion.div>
+          )}
 
-          <div className="space-y-4">
-            <div
-              className={cn(
-                "h-14 w-14 rounded-md flex items-center justify-center transition-colors",
-                paymentMethod === "card"
-                  ? "bg-accent text-white"
-                  : "bg-muted/50 text-muted-foreground",
-              )}
-            >
-              <CreditCard className="h-7 w-7" />
+          <div className="relative z-10 space-y-6">
+            <div className={cn(
+              "h-16 w-16 rounded-[1.5rem] flex items-center justify-center transition-all duration-500 shadow-inner",
+              paymentMethod === "card" ? "bg-primary text-white scale-110 -rotate-3" : "bg-muted/50 text-slate-400"
+            )}>
+              <CreditCard className="h-8 w-8" />
             </div>
-            <div>
-              <h3 className="text-subtitle font-black uppercase tracking-tight">
+            <div className="space-y-1 text-left">
+              <h3 className="text-2xl font-black font-display uppercase tracking-tight leading-none">
                 {p.creditCard[lang]}
               </h3>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="font-bold text-slate-500 text-sm leading-relaxed">
                 {p.immediatePayment[lang]}
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      <Card className="border-border shadow-2xl rounded-2xl sm:rounded-3xl md:rounded-[40px] overflow-hidden bg-card/10 backdrop-blur-md relative border-dashed max-w-4xl mx-auto w-full">
-        <CardContent className="p-3 sm:p-6 space-y-4 md:space-y-6 text-center">
-          <div className="space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              {paymentMethod === "boleto"
-                ? p.slipDetails[lang]
-                : p.cardDetails[lang]}
-            </span>
-            <div className="flex items-center justify-center gap-1">
-              <span className="text-base sm:text-title font-bold text-muted-foreground self-start mt-1 sm:mt-2">
-                $
-              </span>
-              <span className="text-4xl sm:text-7xl font-black text-foreground tracking-tighter">
+      <div className="bg-card/10 backdrop-blur-xl border border-border/50 shadow-2xl rounded-[3rem] lg:rounded-[4rem] overflow-hidden relative p-8 md:p-12 text-center">
+        <div className="space-y-4 md:space-y-8">
+          <div className="space-y-4">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-none text-[10px] font-black uppercase tracking-widest px-4 py-2 h-auto shadow-inner">
+              {paymentMethod === "boleto" ? p.slipDetails[lang] : p.cardDetails[lang]}
+            </Badge>
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-2xl font-black text-slate-400 self-center mb-6">$</span>
+              <span className="text-7xl md:text-9xl font-black text-foreground tracking-tighter leading-none font-display">
                 {feeAmount}
               </span>
-              <span className="text-xs sm:text-subtitle font-bold text-muted-foreground self-end mb-1 sm:mb-2">
-                USD
-              </span>
+              <span className="text-xl font-black text-slate-400 self-end mb-4">USD</span>
             </div>
           </div>
 
-          <div className="animate-in fade-in zoom-in-95 duration-500">
+          <AnimatePresence mode="wait">
             {paymentMethod === "boleto" ? (
-              <div className="grid gap-4">
-                <div
-                  className="p-3 sm:p-5 bg-accent/5 rounded-2xl md:rounded-[32px] border border-accent/20 text-left flex items-center justify-between group cursor-pointer"
+              <motion.div 
+                key="boleto-view"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="grid gap-6 max-w-2xl mx-auto"
+              >
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="p-8 bg-white dark:bg-card border-4 border-primary rounded-[2.5rem] text-left flex items-center justify-between group cursor-pointer shadow-xl shadow-primary/5 transition-all"
                   onClick={handleDownloadBoleto}
                 >
-                  <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 sm:gap-4 w-full">
-                    <div className="flex-1 min-w-0 text-center sm:text-left order-first sm:order-last">
-                      <h4 className="font-black text-base sm:text-subtitle tracking-tight leading-tight">
+                  <div className="flex items-center gap-6 w-full">
+                    <div className="h-20 w-20 bg-primary rounded-[1.5rem] flex items-center justify-center text-white shadow-2xl shadow-primary/30 group-hover:rotate-6 transition-transform shrink-0">
+                      <Download className="h-10 w-10" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-black font-display text-2xl tracking-tight leading-tight group-hover:text-primary transition-colors">
                         {p.downloadPdfSlip[lang]}
                       </h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed mt-1 sm:mt-1">
+                      <p className="font-bold text-slate-500 leading-relaxed mt-1">
                         {p.officialSlipAvailable[lang]}
                       </p>
                     </div>
-                    <div className="h-16 w-full sm:w-16 bg-accent rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-accent/20 group-hover:scale-105 transition-transform shrink-0 order-last sm:order-first">
-                      <Download className="h-8 w-8 sm:h-8 sm:w-8" />
-                    </div>
+                    <MousePointer2 className="h-8 w-8 text-primary animate-bounce hidden md:block shrink-0" />
                   </div>
-                  <MousePointer2 className="h-6 w-6 text-accent animate-bounce hidden sm:block shrink-0 ml-2" />
-                </div>
+                </motion.div>
 
-                <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border text-left space-y-2">
-                  <div className="flex items-center gap-2 text-blue-500">
-                    <ShieldCheck className="h-4 w-4" />
-                    <span className="text-xs font-black uppercase tracking-widest">
-                      {p.importantInfo[lang]}
-                    </span>
+                <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border/80 text-left flex gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {p.compensationDesc[lang]}
-                  </p>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">
+                      Informação Importante
+                    </p>
+                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 leading-relaxed">
+                      {p.compensationDesc[lang]}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             ) : (
-              <div className="space-y-4 w-full">
-                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-2 sm:p-6 shadow-inner mx-auto relative group w-full">
+              <motion.div 
+                key="card-view"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-8 w-full"
+              >
+                <div className="bg-slate-50 dark:bg-slate-900/50 border border-border/80 rounded-[3rem] p-4 sm:p-10 shadow-inner relative group max-w-3xl mx-auto">
                   <Carousel className="w-full">
                     <CarouselContent>
                       {carouselItems.map((item) => (
                         <CarouselItem key={item.id} className="w-full">
-                          <div className="flex flex-col gap-3 sm:gap-5 p-1 sm:p-2 items-center text-center w-full">
-                            <div className="space-y-2 mt-2 w-full">
-                              <h4 className="text-lg font-bold text-foreground">
+                          <div className="flex flex-col gap-8 p-2 items-center text-center">
+                            <div className="space-y-3">
+                              <h4 className="text-2xl font-black font-display tracking-tight text-foreground leading-none">
                                 {item.title}
                               </h4>
-                              <p className="text-sm text-muted-foreground font-medium leading-relaxed max-w-sm mx-auto">
+                              <p className="text-base text-slate-500 font-bold leading-relaxed max-w-sm mx-auto">
                                 {item.desc}
                               </p>
-                              <Dialog>
+                            </div>
+                            <Dialog>
                                 <DialogTrigger asChild>
-                                  <div className="mt-3 sm:mt-4 rounded-xl overflow-hidden shadow-sm flex justify-center w-full max-w-full sm:max-w-2xl mx-auto relative group cursor-pointer">
+                                  <div className="rounded-[2.5rem] overflow-hidden shadow-2xl flex justify-center w-full relative group/img cursor-pointer border-8 border-white dark:border-card">
                                     <img
                                       src={item.image}
                                       alt={item.title}
-                                      className="w-full h-auto max-h-[600px] object-contain transition-transform duration-300 group-hover:scale-[1.02] rounded-xl border border-border"
+                                      className="w-full h-auto max-h-[500px] object-contain transition-transform duration-500 group-hover/img:scale-110"
                                     />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                                      <div className="bg-white/20 p-3 rounded-full backdrop-blur-md border border-white/30 text-white shadow-lg">
-                                        <Maximize2 className="w-6 h-6" />
+                                    <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                                      <div className="bg-white p-4 rounded-full text-primary shadow-2xl scale-75 group-hover/img:scale-100 transition-transform">
+                                        <Maximize2 className="w-8 h-8" />
                                       </div>
                                     </div>
                                   </div>
                                 </DialogTrigger>
-                                <DialogContent className="max-w-4xl w-[95vw] p-1 sm:p-2 bg-transparent border-none shadow-none mt-4">
+                                <DialogContent className="max-w-4xl w-[95vw] p-2 bg-transparent border-none shadow-none">
                                   <img 
                                     src={item.image} 
                                     alt={item.title} 
-                                    className="w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" 
+                                    className="w-full max-h-[85vh] object-contain rounded-[2rem] shadow-2xl" 
                                   />
                                 </DialogContent>
                               </Dialog>
-                            </div>
                           </div>
                         </CarouselItem>
                       ))}
                     </CarouselContent>
-                    <div className="flex items-center justify-center gap-2 mt-6 relative z-10 w-full">
-                      <CarouselPrevious className="static bg-card border-slate-200 hover:bg-slate-100 shadow-sm transition-all text-foreground h-8 w-8 translate-x-0 translate-y-0" />
-                      <div className="flex px-4 items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                        {lang === "pt"
-                          ? "Deslize"
-                          : lang === "es"
-                            ? "Deslizar"
-                            : "Swipe"}
+                    <div className="flex items-center justify-center gap-4 mt-10">
+                      <CarouselPrevious className="static translate-y-0 h-12 w-12 rounded-2xl bg-white dark:bg-card border-none shadow-xl hover:text-primary transition-all" />
+                      <div className="flex items-center gap-3 px-6 py-2 rounded-full bg-slate-200 dark:bg-slate-800 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                        <Sparkles className="h-3 w-3" />
+                         Swipe for Guide
                       </div>
-                      <CarouselNext className="static bg-card border-slate-200 hover:bg-slate-100 shadow-sm transition-all text-foreground h-8 w-8 translate-x-0 translate-y-0" />
+                      <CarouselNext className="static translate-y-0 h-12 w-12 rounded-2xl bg-white dark:bg-card border-none shadow-xl hover:text-primary transition-all" />
                     </div>
                   </Carousel>
 
+                  {/* Credentials Card */}
                   {(consularLogin || consularPassword) && (
-                    <div className="bg-white dark:bg-slate-800/80 rounded-xl p-3 sm:p-4 border border-blue-200 dark:border-blue-900/50 shadow-inner space-y-2 sm:space-y-3 mt-6">
-                      <div className="flex flex-col text-left">
-                        <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">
-                          Login / E-mail
-                        </span>
-                        <span className="text-sm font-bold font-mono break-all leading-none">
-                          {consularLogin || "---"}
-                        </span>
-                      </div>
-                      <div className="flex flex-col text-left border-t border-slate-100 dark:border-slate-700/50 pt-3">
-                        <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">
-                          {p.password[lang]}
-                        </span>
-                        <span className="text-sm font-bold font-mono leading-none">
-                          {consularPassword || "---"}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="mt-6">
-                    <Button
-                      className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-md gap-2 font-bold uppercase text-xs tracking-widest shadow-lg shadow-blue-500/20"
-                      onClick={() =>
-                        window.open(
-                          "https://ais.usvisa-info.com/pt-br/niv/",
-                          "_blank",
-                        )
-                      }
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-white dark:bg-card rounded-[2.5rem] p-8 border-2 border-primary/20 shadow-2xl space-y-6 mt-10 relative overflow-hidden"
                     >
-                      {p.goToPortal[lang]} <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  </div>
+                      <div className="absolute top-0 right-0 p-8 opacity-[0.03]">
+                        <Lock className="w-32 h-32" />
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-8 relative z-10">
+                        <div className="flex flex-col text-left space-y-2">
+                          <span className="text-[10px] font-black uppercase text-primary tracking-[0.2em] leading-none">
+                             Consular E-mail
+                          </span>
+                          <span className="text-base font-black font-mono break-all text-foreground bg-primary/5 p-4 rounded-xl border border-primary/10">
+                            {consularLogin || "---"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col text-left space-y-2">
+                          <span className="text-[10px] font-black uppercase text-primary tracking-[0.2em] leading-none">
+                            Consular Password
+                          </span>
+                          <span className="text-base font-black font-mono text-foreground bg-primary/5 p-4 rounded-xl border border-primary/10">
+                            {consularPassword || "---"}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <Button
+                        size="lg"
+                        className="w-full h-18 bg-primary hover:bg-primary/90 text-white rounded-2xl gap-3 font-black uppercase text-xs tracking-widest shadow-2xl shadow-primary/20 transition-all active:scale-[0.98] group"
+                        onClick={() => window.open("https://ais.usvisa-info.com/pt-br/niv/", "_blank")}
+                      >
+                        {p.goToPortal[lang]} 
+                        <ExternalLink className="h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                      </Button>
+                    </motion.div>
+                  )}
                 </div>
 
-                <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-border text-left space-y-2">
-                  <div className="flex items-center gap-2 text-accent">
-                    <CheckCircle2 className="h-4 w-4" />
-                    <span className="text-xs font-black uppercase tracking-widest">
+                <div className="p-6 bg-green-50 dark:bg-green-950/20 rounded-3xl border border-green-200 dark:border-green-900/30 text-left flex gap-4 max-w-2xl mx-auto">
+                  <div className="h-10 w-10 rounded-xl bg-green-100 dark:bg-green-900/50 flex items-center justify-center shrink-0">
+                    <Zap className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-green-600 dark:text-green-400">
                       {p.advantage[lang]}
-                    </span>
+                    </p>
+                    <p className="text-sm font-semibold text-green-800 dark:text-green-300 leading-relaxed">
+                      {p.creditCardInstant[lang]}
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {p.creditCardInstant[lang]}
-                  </p>
                 </div>
-              </div>
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
 
-          <div className="pt-4 space-y-4">
+          <div className="pt-10 space-y-8 max-w-2xl mx-auto">
             <Button
-              className="w-full h-auto min-h-14 sm:min-h-20 py-3 sm:py-4 px-4 bg-accent hover:bg-green-dark text-white rounded-2xl sm:rounded-[32px] shadow-2xl shadow-accent/30 font-black text-xs sm:text-base md:text-subtitle whitespace-normal transition-all active:scale-[0.98] group relative overflow-hidden"
+              className="w-full h-24 px-8 bg-accent hover:bg-accent/90 text-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(34,197,94,0.3)] font-black text-xl md:text-2xl font-display whitespace-normal transition-all active:scale-[0.98] group relative overflow-hidden"
               disabled={isSaving}
               onClick={handlePaymentCompleted}
             >
-              <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-700"></div>
               {isSaving ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
+                <Loader2 className="h-8 w-8 animate-spin" />
               ) : (
-                <div className="flex items-center justify-center gap-2 sm:gap-4 relative z-10 w-full">
-                  <div className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 rounded-full bg-white/20 flex items-center justify-center">
-                    <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6" />
+                <div className="flex items-center justify-center gap-6 relative z-10 w-full py-4">
+                  <div className="h-12 w-12 shrink-0 rounded-2xl bg-white/20 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <CheckCircle2 className="h-7 w-7" />
                   </div>
-                  <span className="text-center leading-tight">
+                  <span className="text-center leading-[1.1] tracking-tight">
                     {p.alreadyPaid[lang]}
                   </span>
+                  <ChevronRight className="h-8 w-8 opacity-40 group-hover:translate-x-2 transition-transform" />
                 </div>
               )}
             </Button>
 
-            <div className="flex items-center justify-center gap-2 opacity-40">
-              <ShieldCheck className="h-3 w-3" />
-              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em]">
-                {p.secureEnvironment[lang]}
-              </p>
+            <div className="flex flex-col items-center justify-center gap-4">
+               <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md px-6 py-2 rounded-full border border-white/10 shadow-sm">
+                 <ShieldCheck className="h-4 w-4 text-primary" />
+                 <p className="text-[10px] text-slate-500 uppercase font-black tracking-[0.2em]">
+                   {p.secureEnvironment[lang]}
+                 </p>
+               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }

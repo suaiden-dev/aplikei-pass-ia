@@ -1,7 +1,6 @@
-import { Input } from "@/presentation/components/atoms/input";
-import { Label } from "@/presentation/components/atoms/label";
-import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
+import { FormInput, FormRadioGroup, FormNativeSelect } from "@/presentation/components/atoms/form/FormFields";
 import { StepProps } from "../../types";
+import { Plane, Calendar, MapPin, Users, Landmark, User } from "lucide-react";
 
 export const F1F2TravelInfoStep = ({
   register,
@@ -17,286 +16,205 @@ export const F1F2TravelInfoStep = ({
   const isTravelingWithGroup = watch("isTravelingWithGroup");
 
   return (
-    <div className="space-y-4 fade-in">
-      <h2 className="font-display text-lg font-semibold text-foreground">
-        {t.f1f2.steps[lang][2]}
-      </h2>
-
-      <div className="space-y-3">
-        <Label>{ds.travel.specificPlan[lang]} *</Label>
-        <RadioGroup
-          onValueChange={(val) => setValue("hasSpecificTravelPlan", val)}
-          value={hasSpecificTravelPlan}
-          className="flex gap-4"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="yes" id="plan-yes" />
-            <Label htmlFor="plan-yes">{lang === "pt" ? "Sim" : "Yes"}</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="no" id="plan-no" />
-            <Label htmlFor="plan-no">{lang === "pt" ? "Não" : "No"}</Label>
-          </div>
-        </RadioGroup>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col space-y-1.5 border-b border-border/50 pb-4">
+        <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <Plane className="h-6 w-6 text-primary" />
+          {t.f1f2.steps[lang][2]}
+        </h2>
       </div>
 
-      {hasSpecificTravelPlan === "yes" && (
-        <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30 scale-in-center">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="arrivalDate">
-                {ds.travel.arrivalDate[lang]} *
-              </Label>
-              <Input
-                id="arrivalDate"
+      <div className="space-y-10">
+        <FormRadioGroup
+          label={ds.travel.specificPlan[lang]}
+          value={hasSpecificTravelPlan}
+          onValueChange={(val) => setValue("hasSpecificTravelPlan", val)}
+          options={[
+            { label: lang === "pt" ? "Sim" : "Yes", value: "yes" },
+            { label: lang === "pt" ? "Não" : "No", value: "no" }
+          ]}
+          required
+        />
+
+        {hasSpecificTravelPlan === "yes" && (
+          <div className="space-y-6 rounded-3xl border border-border/50 p-6 bg-muted/20 animate-in slide-in-from-top-2 duration-300">
+            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2 mb-4">
+              <Calendar className="h-3 w-3" />
+              Cronograma de Viagem
+            </h4>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <FormInput
+                label={ds.travel.arrivalDate[lang]}
                 type="date"
                 {...register("arrivalDate")}
+                required
+                icon={<Calendar className="h-4 w-4" />}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="arrivalFlightNumber">
-                {lang === "pt"
-                  ? "Número do voo de chegada (se tiver):"
-                  : "Arrival Flight Number (if any):"}
-              </Label>
-              <Input
-                id="arrivalFlightNumber"
+              <FormInput
+                label={lang === "pt" ? "Número do voo de chegada:" : "Arrival Flight Number:"}
                 {...register("arrivalFlightNumber")}
+                placeholder="Ex: AA123"
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="arrivalCity">
-                {lang === "pt"
-                  ? "Cidade que pretende chegar:"
-                  : "Arrival City:"}
-              </Label>
-              <Input
-                id="arrivalCity"
+              <FormInput
+                label={lang === "pt" ? "Cidade de chegada:" : "Arrival City:"}
                 {...register("arrivalCity")}
+                icon={<MapPin className="h-4 w-4" />}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="departureDate">
-                {lang === "pt"
-                  ? "Data que pretende sair dos EUA:"
-                  : "Date of Departure from US:"}
-              </Label>
-              <Input
-                id="departureDate"
+              <FormInput
+                label={lang === "pt" ? "Data de saída do país:" : "Departure Date:"}
                 type="date"
                 {...register("departureDate")}
+                icon={<Calendar className="h-4 w-4" />}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="departureFlightNumber">
-                {lang === "pt"
-                  ? "Número do voo de saída (se tiver):"
-                  : "Departure Flight Number (if any):"}
-              </Label>
-              <Input
-                id="departureFlightNumber"
+              <FormInput
+                label={lang === "pt" ? "Número do voo de saída:" : "Departure Flight Number:"}
                 {...register("departureFlightNumber")}
+                placeholder="Ex: LH456"
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="departureCity">
-                {lang === "pt"
-                  ? "Cidade que pretende sair:"
-                  : "Departure City:"}
-              </Label>
-              <Input
-                id="departureCity"
+              <FormInput
+                label={lang === "pt" ? "Cidade de saída:" : "Departure City:"}
                 {...register("departureCity")}
+                icon={<MapPin className="h-4 w-4" />}
               />
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {hasSpecificTravelPlan === "no" && (
-        <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30 scale-in-center">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="arrivalDate">
-                {lang === "pt"
-                  ? "Data prevista de chegada:"
-                  : "Intended Arrival Date:"}{" "}
-                *
-              </Label>
-              <Input
-                id="arrivalDate"
+        {hasSpecificTravelPlan === "no" && (
+          <div className="space-y-6 rounded-3xl border border-border/50 p-6 bg-muted/20 animate-in slide-in-from-top-2 duration-300">
+            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2 mb-4">
+              <Calendar className="h-3 w-3" />
+              Previsão de Viagem
+            </h4>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <FormInput
+                label={lang === "pt" ? "Data prevista de chegada:" : "Intended Arrival Date:"}
                 type="date"
                 {...register("arrivalDate")}
+                required
+                icon={<Calendar className="h-4 w-4" />}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="stayDurationValue">
-                {lang === "pt"
-                  ? "Duração prevista da estadia:"
-                  : "Intended Stay Duration:"}{" "}
-                *
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  id="stayDurationValue"
-                  type="number"
-                  {...register("stayDurationValue")}
-                  className="w-24"
-                />
-                <select
-                  {...register("stayDurationUnit")}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  <option value="days">{lang === "pt" ? "Dias" : "Days"}</option>
-                  <option value="weeks">{lang === "pt" ? "Semanas" : "Weeks"}</option>
-                  <option value="months">{lang === "pt" ? "Meses" : "Months"}</option>
-                  <option value="years">{lang === "pt" ? "Anos" : "Years"}</option>
-                </select>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {lang === "pt" ? "Duração prevista da estadia:" : "Intended Stay Duration:"} *
+                </label>
+                <div className="flex gap-2">
+                  <FormInput type="number" {...register("stayDurationValue")} className="flex-1" />
+                  <FormNativeSelect
+                    {...register("stayDurationUnit")}
+                    className="w-1/2"
+                    options={[
+                      { label: lang === "pt" ? "Dias" : "Days", value: "days" },
+                      { label: lang === "pt" ? "Semanas" : "Weeks", value: "weeks" },
+                      { label: lang === "pt" ? "Meses" : "Months", value: "months" },
+                      { label: lang === "pt" ? "Anos" : "Years", value: "years" }
+                    ]}
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {(hasSpecificTravelPlan === "yes" || hasSpecificTravelPlan === "no") && (
-        <>
-          <div className="space-y-2">
-            <Label htmlFor="visitLocations">
-              {ds.travel.visitLocations[lang]} *
-            </Label>
-            <Input id="visitLocations" {...register("visitLocations")} />
-          </div>
+        {(hasSpecificTravelPlan === "yes" || hasSpecificTravelPlan === "no") && (
+          <div className="space-y-10 animate-in fade-in duration-500">
+            <FormInput
+              label={ds.travel.visitLocations[lang]}
+              {...register("visitLocations")}
+              required
+              placeholder={lang === "pt" ? "Cidades, estados que visitará..." : "Cities, states to visit..."}
+              icon={<MapPin className="h-4 w-4 text-primary" />}
+            />
 
-          <div className="space-y-4 border-t border-border pt-4">
-            <h3 className="text-md font-medium">
-              {ds.travel.stayAddress[lang]}
-            </h3>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="md:col-span-2 space-y-2">
-                <Label htmlFor="stayAddress">
-                  {lang === "pt" ? "Endereço:" : "Address:"}
-                </Label>
-                <Input id="stayAddress" {...register("stayAddress")} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="stayCity">{ds.travel.stayCity[lang]}</Label>
-                <Input id="stayCity" {...register("stayCity")} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="stayState">{ds.travel.stayState[lang]}</Label>
-                <Input id="stayState" {...register("stayState")} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="stayZip">{ds.travel.stayZip[lang]}</Label>
-                <Input
-                  id="stayZip"
+            <div className="space-y-6 pt-8 border-t border-border/50">
+              <h3 className="text-sm font-bold flex items-center gap-2 text-foreground mb-4">
+                <Landmark className="h-4 w-4 text-primary" />
+                {ds.travel.stayAddress[lang]}
+              </h3>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <FormInput label={lang === "pt" ? "Endereço:" : "Address:"} {...register("stayAddress")} required />
+                </div>
+                <FormInput label={ds.travel.stayCity[lang]} {...register("stayCity")} required />
+                <FormInput label={ds.travel.stayState[lang]} {...register("stayState")} required />
+                <FormInput
+                  label={ds.travel.stayZip[lang]}
                   {...register("stayZip")}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9-]/g, "");
-                    setValue("stayZip", value);
-                  }}
+                  required
+                  onChange={(e) => setValue("stayZip", e.target.value.replace(/[^0-9-]/g, ""))}
                 />
               </div>
             </div>
-          </div>
 
-          <div className="space-y-3 border-t border-border pt-4">
-            <Label>{ds.travel.payer[lang]} *</Label>
-            <select
-              {...register("travelPayer")}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              <option value="">
-                {lang === "pt" ? "Selecione..." : "Select..."}
-              </option>
-              <option value="self">{ds.travel.payerOptions.self[lang]}</option>
-              <option value="other">{ds.travel.payerOptions.other[lang]}</option>
-              <option value="org">{ds.travel.payerOptions.org[lang]}</option>
-              <option value="employer">{ds.travel.payerOptions.employer[lang]}</option>
-              <option value="usEmployer">{ds.travel.payerOptions.usEmployer[lang]}</option>
-            </select>
+            <div className="space-y-6 pt-8 border-t border-border/50">
+              <FormNativeSelect
+                label={ds.travel.payer[lang]}
+                {...register("travelPayer")}
+                required
+                options={[
+                  { label: lang === "pt" ? "Selecione..." : "Select...", value: "" },
+                  { label: ds.travel.payerOptions.self[lang], value: "self" },
+                  { label: ds.travel.payerOptions.other[lang], value: "other" },
+                  { label: ds.travel.payerOptions.org[lang], value: "org" },
+                  { label: ds.travel.payerOptions.employer[lang], value: "employer" },
+                  { label: ds.travel.payerOptions.usEmployer[lang], value: "usEmployer" }
+                ]}
+              />
 
-            {travelPayer === "other" && (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-2 bg-muted/20 p-4 rounded-md border border-dashed border-border scale-in-center">
-                <div className="space-y-2">
-                  <Label>
-                    {lang === "pt" ? "Nome do pagador:" : "Payer Name:"}
-                  </Label>
-                  <Input {...register("payerName")} />
+              {travelPayer === "other" && (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 p-6 bg-muted/20 rounded-3xl border border-dashed border-primary/30 animate-in zoom-in-95 duration-300">
+                  <FormInput label={lang === "pt" ? "Nome do pagador:" : "Payer Name:"} {...register("payerName")} required icon={<User className="h-4 w-4" />} />
+                  <FormInput label={lang === "pt" ? "Parentesco/Relação:" : "Relationship:"} {...register("payerRelationship")} required />
                 </div>
-                <div className="space-y-2">
-                  <Label>
-                    {lang === "pt" ? "Parentesco/Relação:" : "Relationship:"}
-                  </Label>
-                  <Input {...register("payerRelationship")} />
+              )}
+            </div>
+
+            <div className="space-y-6 pt-8 border-t border-border/50">
+              <FormRadioGroup
+                label={t.ds160.companions.hasCompanions[lang]}
+                value={hasTravelCompanions}
+                onValueChange={(val) => setValue("hasTravelCompanions", val)}
+                options={[
+                  { label: lang === "pt" ? "Sim" : "Yes", value: "yes" },
+                  { label: lang === "pt" ? "Não" : "No", value: "no" }
+                ]}
+                required
+              />
+
+              {hasTravelCompanions === "yes" && (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 p-6 bg-muted/20 rounded-3xl border border-dashed border-primary/30 animate-in zoom-in-95 duration-300">
+                  <FormInput label={lang === "pt" ? "Nome do acompanhante:" : "Companion Name:"} {...register("companionName")} required icon={<User className="h-4 w-4" />} />
+                  <FormInput label={lang === "pt" ? "Parentesco/Relação:" : "Relationship:"} {...register("companionRelationship")} required />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+
+            <div className="space-y-6 pt-8 border-t border-border/50">
+              <FormRadioGroup
+                label={t.ds160.companions.isGrpup[lang]}
+                value={isTravelingWithGroup}
+                onValueChange={(val) => setValue("isTravelingWithGroup", val)}
+                options={[
+                  { label: lang === "pt" ? "Sim" : "Yes", value: "yes" },
+                  { label: lang === "pt" ? "Não" : "No", value: "no" }
+                ]}
+                required
+              />
+
+              {isTravelingWithGroup === "yes" && (
+                <FormInput
+                  label={lang === "pt" ? "Nome do grupo:" : "Group Name:"}
+                  {...register("groupName")}
+                  required
+                  placeholder="Ex: Seleção Brasileira de Judô"
+                  icon={<Users className="h-4 w-4 text-primary" />}
+                  className="animate-in slide-in-from-top-2 duration-300"
+                />
+              )}
+            </div>
           </div>
-
-          <div className="space-y-3 border-t border-border pt-4">
-            <Label>{t.ds160.companions.hasCompanions[lang]} *</Label>
-            <RadioGroup
-              onValueChange={(val) => setValue("hasTravelCompanions", val)}
-              value={hasTravelCompanions}
-              className="flex gap-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="comp-yes" />
-                <Label htmlFor="comp-yes">{lang === "pt" ? "Sim" : "Yes"}</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="comp-no" />
-                <Label htmlFor="comp-no">{lang === "pt" ? "Não" : "No"}</Label>
-              </div>
-            </RadioGroup>
-
-            {hasTravelCompanions === "yes" && (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mt-2 bg-muted/20 p-4 rounded-md border border-dashed border-border scale-in-center">
-                <div className="space-y-2">
-                  <Label>
-                    {lang === "pt" ? "Nome do acompanhante:" : "Companion Name:"}
-                  </Label>
-                  <Input {...register("companionName")} />
-                </div>
-                <div className="space-y-2">
-                  <Label>
-                    {lang === "pt" ? "Parentesco/Relação:" : "Relationship:"}
-                  </Label>
-                  <Input {...register("companionRelationship")} />
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3 border-t border-border pt-4">
-            <Label>{t.ds160.companions.isGrpup[lang]} *</Label>
-            <RadioGroup
-              onValueChange={(val) => setValue("isTravelingWithGroup", val)}
-              value={isTravelingWithGroup}
-              className="flex gap-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="group-yes" />
-                <Label htmlFor="group-yes">{lang === "pt" ? "Sim" : "Yes"}</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="group-no" />
-                <Label htmlFor="group-no">{lang === "pt" ? "Não" : "No"}</Label>
-              </div>
-            </RadioGroup>
-
-            {isTravelingWithGroup === "yes" && (
-              <div className="mt-4 space-y-2 scale-in-center">
-                <Label htmlFor="groupName">
-                  {lang === "pt" ? "Nome do grupo:" : "Group Name:"} *
-                </Label>
-                <Input id="groupName" {...register("groupName")} />
-              </div>
-            )}
-          </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 };

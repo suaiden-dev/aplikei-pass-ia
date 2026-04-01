@@ -1,7 +1,6 @@
-import { Input } from "@/presentation/components/atoms/input";
-import { Label } from "@/presentation/components/atoms/label";
-import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
+import { FormInput, FormRadioGroup, FormPhoneInput } from "@/presentation/components/atoms/form/FormFields";
 import { StepProps } from "../../types";
+import { Home, Mail, Phone, Smartphone, Briefcase, Globe, MapPin } from "lucide-react";
 
 export const F1F2AddressPhoneStep = ({
   register,
@@ -17,184 +16,138 @@ export const F1F2AddressPhoneStep = ({
   const hasOtherEmailLast5Years = watch("hasOtherEmailLast5Years");
 
   return (
-    <div className="space-y-4 fade-in">
-      <h2 className="font-display text-lg font-semibold text-foreground">
-        {t.f1f2.steps[lang][4]}
-      </h2>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col space-y-1.5 border-b border-border/50 pb-4">
+        <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <Home className="h-6 w-6 text-primary" />
+          {t.f1f2.steps[lang][4]}
+        </h2>
+      </div>
 
-      <div className="space-y-4 rounded-md border border-border p-4 bg-muted/30">
-        <h3 className="text-md font-medium">
-          {ap.homeAddress[lang]}
-        </h3>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="md:col-span-2 space-y-2">
-            <Label htmlFor="homeAddress">
-              {ap.addressLabel[lang]} *
-            </Label>
-            <Input id="homeAddress" {...register("homeAddress")} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="homeCity">{ap.city[lang]} *</Label>
-            <Input id="homeCity" {...register("homeCity")} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="homeState">{ap.state[lang]} *</Label>
-            <Input id="homeState" {...register("homeState")} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="homeZip">{ap.zip[lang]} *</Label>
-            <Input
-              id="homeZip"
+      <div className="space-y-10">
+        {/* Home Address Section */}
+        <div className="space-y-6 rounded-3xl border border-border/50 p-6 bg-muted/20 relative overflow-hidden">
+          <div className="absolute left-0 top-0 w-1 h-full bg-primary/30" />
+          <h3 className="text-sm font-bold flex items-center gap-2 text-foreground mb-4">
+            <MapPin className="h-4 w-4 text-primary" />
+            {ap.homeAddress[lang]}
+          </h3>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="md:col-span-2">
+              <FormInput
+                label={ap.addressLabel[lang]}
+                {...register("homeAddress")}
+                required
+              />
+            </div>
+            <FormInput label={ap.city[lang]} {...register("homeCity")} required />
+            <FormInput label={ap.state[lang]} {...register("homeState")} required />
+            <FormInput
+              label={ap.zip[lang]}
               {...register("homeZip")}
-              onChange={(e) => {
-                const value = e.target.value.replace(/[^0-9-]/g, "");
-                setValue("homeZip", value);
-              }}
+              required
+              onChange={(e) => setValue("homeZip", e.target.value.replace(/[^0-9-]/g, ""))}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="homeCountry">
-              {ap.country[lang]} *
-            </Label>
-            <Input id="homeCountry" {...register("homeCountry")} />
+            <FormInput label={ap.country[lang]} {...register("homeCountry")} required icon={<Globe className="h-4 w-4" />} />
           </div>
         </div>
-      </div>
 
-      <div className="space-y-3">
-        <Label>{ap.mailingSame[lang]} *</Label>
-        <RadioGroup
-          onValueChange={(val) => setValue("isMailingSameAsHome", val)}
-          value={isMailingSameAsHome}
-          className="flex gap-4"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="yes" id="mailing-yes" />
-            <Label htmlFor="mailing-yes">{ap.yes[lang]}</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="no" id="mailing-no" />
-            <Label htmlFor="mailing-no">{ap.no[lang]}</Label>
-          </div>
-        </RadioGroup>
-        {isMailingSameAsHome === "no" && (
-          <div className="mt-2 space-y-4 bg-muted/20 p-4 rounded-md border border-dashed border-border scale-in-center">
-            <div className="space-y-2">
-              <Label htmlFor="mailingAddress">
-                {ap.mailingAddressLabel[lang]} *
-              </Label>
-              <Input id="mailingAddress" {...register("mailingAddress")} />
-            </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="mailingCity">{ap.city[lang]} *</Label>
-                <Input id="mailingCity" {...register("mailingCity")} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="mailingState">{ap.state[lang]} *</Label>
-                <Input id="mailingState" {...register("mailingState")} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="mailingZip">{ap.zip[lang]} *</Label>
-                <Input id="mailingZip" {...register("mailingZip")} />
+        {/* Mailing Address Section */}
+        <div className="space-y-6">
+          <FormRadioGroup
+            label={ap.mailingSame[lang]}
+            value={isMailingSameAsHome}
+            onValueChange={(val) => setValue("isMailingSameAsHome", val)}
+            options={[
+              { label: ap.yes[lang], value: "yes" },
+              { label: ap.no[lang], value: "no" }
+            ]}
+            required
+          />
+
+          {isMailingSameAsHome === "no" && (
+            <div className="p-6 bg-muted/20 rounded-3xl border border-border/50 animate-in slide-in-from-top-2 duration-300 space-y-6 relative overflow-hidden">
+              <div className="absolute left-0 top-0 w-1 h-full bg-primary/30" />
+              <h3 className="text-sm font-bold flex items-center gap-2 text-foreground mb-4">
+                <Mail className="h-4 w-4 text-primary" />
+                {ap.mailingAddressLabel[lang]}
+              </h3>
+              <FormInput label={ap.mailingAddressLabel[lang]} {...register("mailingAddress")} required />
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <FormInput label={ap.city[lang]} {...register("mailingCity")} required />
+                <FormInput label={ap.state[lang]} {...register("mailingState")} required />
+                <FormInput label={ap.zip[lang]} {...register("mailingZip")} required />
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 border-t border-border pt-4">
-        <div className="space-y-2">
-          <Label htmlFor="mobilePhone">
-            {ap.mobilePhone[lang]} *
-          </Label>
-          <Input
-            id="mobilePhone"
+        {/* Phone Section */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 pt-8 border-t border-border/50">
+          <FormInput
+            label={ap.mobilePhone[lang]}
             {...register("mobilePhone")}
-            onChange={(e) =>
-              setValue("mobilePhone", e.target.value.replace(/[^0-9+\s-]/g, ""))
-            }
+            required
+            icon={<Smartphone className="h-4 w-4" />}
+            onChange={(e) => setValue("mobilePhone", e.target.value.replace(/[^0-9+\s-]/g, ""))}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="homePhone">{ap.homePhone[lang]}</Label>
-          <Input
-            id="homePhone"
+          <FormInput
+            label={ap.homePhone[lang]}
             {...register("homePhone")}
-            onChange={(e) =>
-              setValue("homePhone", e.target.value.replace(/[^0-9+\s-]/g, ""))
-            }
+            icon={<Phone className="h-4 w-4" />}
+            onChange={(e) => setValue("homePhone", e.target.value.replace(/[^0-9+\s-]/g, ""))}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="workPhone">{ap.workPhone[lang]}</Label>
-          <Input
-            id="workPhone"
+          <FormInput
+            label={ap.workPhone[lang]}
             {...register("workPhone")}
-            onChange={(e) =>
-              setValue("workPhone", e.target.value.replace(/[^0-9+\s-]/g, ""))
-            }
+            icon={<Briefcase className="h-4 w-4" />}
+            onChange={(e) => setValue("workPhone", e.target.value.replace(/[^0-9+\s-]/g, ""))}
           />
         </div>
-      </div>
 
-      <div className="space-y-4 border-t border-border pt-4">
-        <div className="space-y-3">
-          <Label>{ap.otherPhone5Years[lang]} *</Label>
-          <RadioGroup
-            onValueChange={(val) => setValue("hasOtherPhoneLast5Years", val)}
-            value={hasOtherPhoneLast5Years}
-            className="flex gap-4"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="yes" id="other-phone-yes" />
-              <Label htmlFor="other-phone-yes">{ap.yes[lang]}</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="no" id="other-phone-no" />
-              <Label htmlFor="other-phone-no">{ap.no[lang]}</Label>
-            </div>
-          </RadioGroup>
-          {hasOtherPhoneLast5Years === "yes" && (
-            <div className="mt-2 space-y-2 scale-in-center">
-              <Label htmlFor="otherPhonesDetails">
-                {ap.otherPhonesLabel[lang]} *
-              </Label>
-              <Input
-                id="otherPhonesDetails"
+        {/* Other Phone/Email Section */}
+        <div className="space-y-10 pt-8 border-t border-border/50">
+          <div className="space-y-6">
+            <FormRadioGroup
+              label={ap.otherPhone5Years[lang]}
+              value={hasOtherPhoneLast5Years}
+              onValueChange={(val) => setValue("hasOtherPhoneLast5Years", val)}
+              options={[
+                { label: ap.yes[lang], value: "yes" },
+                { label: ap.no[lang], value: "no" }
+              ]}
+              required
+            />
+            {hasOtherPhoneLast5Years === "yes" && (
+              <FormInput
+                label={ap.otherPhonesLabel[lang]}
                 {...register("otherPhonesDetails")}
+                className="animate-in slide-in-from-top-2 duration-300"
+                required
               />
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        <div className="space-y-3">
-          <Label>{ap.otherEmail5Years[lang]} *</Label>
-          <RadioGroup
-            onValueChange={(val) => setValue("hasOtherEmailLast5Years", val)}
-            value={hasOtherEmailLast5Years}
-            className="flex gap-4"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="yes" id="other-email-yes" />
-              <Label htmlFor="other-email-yes">{ap.yes[lang]}</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="no" id="other-email-no" />
-              <Label htmlFor="other-email-no">{ap.no[lang]}</Label>
-            </div>
-          </RadioGroup>
-          {hasOtherEmailLast5Years === "yes" && (
-            <div className="mt-2 space-y-2 scale-in-center">
-              <Label htmlFor="otherEmailsDetails">
-                {ap.otherEmailsLabel[lang]} *
-              </Label>
-              <Input
-                id="otherEmailsDetails"
+          <div className="space-y-6">
+            <FormRadioGroup
+              label={ap.otherEmail5Years[lang]}
+              value={hasOtherEmailLast5Years}
+              onValueChange={(val) => setValue("hasOtherEmailLast5Years", val)}
+              options={[
+                { label: ap.yes[lang], value: "yes" },
+                { label: ap.no[lang], value: "no" }
+              ]}
+              required
+            />
+            {hasOtherEmailLast5Years === "yes" && (
+              <FormInput
+                label={ap.otherEmailsLabel[lang]}
                 {...register("otherEmailsDetails")}
+                className="animate-in slide-in-from-top-2 duration-300"
+                required
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

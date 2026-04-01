@@ -1,13 +1,14 @@
-import React, { useEffect } from "react";
-import { OnboardingData } from "@/domain/onboarding/OnboardingEntities";
-import { Input } from "@/presentation/components/atoms/input";
+import { 
+  FormInput, 
+  FormGroup 
+} from "@/presentation/components/atoms/form/FormFields";
 import { Label } from "@/presentation/components/atoms/label";
 import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
 import { DocumentStepProps } from "../../types";
 import { Button } from "@/presentation/components/atoms/button";
 import { Plus, Trash2, Info, AlertTriangle, ExternalLink, Globe, GraduationCap, Building2, Church, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useFieldArray, Control } from "react-hook-form";
+import { useFieldArray } from "react-hook-form";
 import { COSProductFlow } from "@/domain/flows/strategies/COSProductFlow";
 
 export const ChangeOfStatusFormStep = ({
@@ -59,8 +60,7 @@ export const ChangeOfStatusFormStep = ({
 
       {/* 1. Visa Information */}
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        <div className="space-y-4">
-          <Label className="text-base font-bold">{labels.currentVisa[lang]} *</Label>
+        <FormGroup label={labels.currentVisa[lang]} required className="space-y-4">
           <RadioGroup
             onValueChange={(val) => setValue("currentVisa", val)}
             value={currentVisa}
@@ -90,16 +90,15 @@ export const ChangeOfStatusFormStep = ({
             ))}
           </RadioGroup>
           {currentVisa === "other" && (
-            <Input 
+            <FormInput 
               {...register("currentVisaOther")} 
               placeholder={labels.placeholderOther[lang]}
               className="mt-2"
             />
           )}
-        </div>
+        </FormGroup>
 
-        <div className="space-y-4">
-          <Label className="text-base font-bold">{labels.targetVisa[lang]} *</Label>
+        <FormGroup label={labels.targetVisa[lang]} required className="space-y-4">
           <RadioGroup
             onValueChange={(val) => setValue("targetVisa", val)}
             value={targetVisa}
@@ -128,29 +127,32 @@ export const ChangeOfStatusFormStep = ({
               </div>
             ))}
           </RadioGroup>
-        </div>
+        </FormGroup>
       </div>
 
       {/* 2. I-94 Information */}
-      <div className="rounded-2xl border border-border bg-primary/5 p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="i94Date" className="text-base font-bold">{labels.i94Date[lang]} *</Label>
+      <FormGroup 
+        label={labels.i94Date[lang]} 
+        required 
+        className="rounded-2xl border border-border bg-primary/5 p-6"
+        hint={
           <a 
             href="https://i94.cbp.dhs.gov/I94/#/recent-search" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-xs text-primary flex items-center gap-1 hover:underline"
+            className="text-xs text-primary flex items-center gap-1 hover:underline mt-1"
           >
             {labels.i94Instruction[lang]} <ExternalLink className="h-3 w-3" />
           </a>
-        </div>
-        <Input 
+        }
+      >
+        <FormInput 
           id="i94Date" 
           type="date" 
           {...register("i94AuthorizedStayDate")} 
           className="max-w-xs"
         />
-      </div>
+      </FormGroup>
 
       {/* 3. Dependent Management */}
       <div className="space-y-6">
@@ -168,7 +170,7 @@ export const ChangeOfStatusFormStep = ({
         </div>
 
         <div className="space-y-4">
-          {fields.map((field, index) => {
+          {fields.map((field: any, index: number) => {
             const dep = dependents[index];
             const validation = COSProductFlow.validateDependent(dep?.birthDate || "", dep?.relationship || "child", dep?.marriageDate);
             
@@ -185,13 +187,14 @@ export const ChangeOfStatusFormStep = ({
                 </Button>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold text-muted-foreground uppercase">{labels.dependentName[lang]}</Label>
-                    <Input {...register(`dependents.${index}.name` as const)} placeholder="Name" className="border-border h-11" />
-                  </div>
+                  <FormInput 
+                    label={labels.dependentName[lang]} 
+                    {...register(`dependents.${index}.name` as const)} 
+                    placeholder="Name" 
+                    className="border-border h-11" 
+                  />
                   
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold text-muted-foreground uppercase">{labels.relationship[lang]}</Label>
+                  <FormGroup label={labels.relationship[lang]} className="space-y-2">
                     <RadioGroup 
                       value={dep?.relationship || "child"} 
                       onValueChange={(val) => setValue(`dependents.${index}.relationship` as const, val)}
@@ -206,25 +209,29 @@ export const ChangeOfStatusFormStep = ({
                         <Label htmlFor={`rel-child-${index}`} className="text-xs font-medium">{lang === "pt" ? "Filho" : "Child"}</Label>
                       </div>
                     </RadioGroup>
-                  </div>
+                  </FormGroup>
 
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold text-muted-foreground uppercase">{labels.birthDate[lang]}</Label>
-                    <Input type="date" {...register(`dependents.${index}.birthDate` as const)} className="border-border h-11" />
-                  </div>
+                  <FormInput 
+                    label={labels.birthDate[lang]} 
+                    type="date" 
+                    {...register(`dependents.${index}.birthDate` as const)} 
+                    className="border-border h-11" 
+                  />
 
                   {dep?.relationship === "spouse" && (
-                    <div className="space-y-2 md:col-span-2 lg:col-span-1">
-                      <Label className="text-xs font-bold text-muted-foreground uppercase">{labels.marriageDate[lang]}</Label>
-                      <Input type="date" {...register(`dependents.${index}.marriageDate` as const)} className="border-border h-11" />
-                    </div>
+                    <FormInput 
+                      label={labels.marriageDate[lang]} 
+                      type="date" 
+                      {...register(`dependents.${index}.marriageDate` as const)} 
+                      className="border-border h-11 md:col-span-2 lg:col-span-1" 
+                    />
                   )}
                 </div>
 
                 {/* Alerts */}
                 {validation.alerts.length > 0 && (
                   <div className="mt-4 space-y-2">
-                    {validation.alerts.map((alertKey, i) => (
+                    {validation.alerts.map((alertKey: any, i: number) => (
                       <div key={i} className="flex items-center gap-2 p-3 rounded-lg text-xs font-medium bg-warning/10 text-warning border border-warning/20">
                         <AlertTriangle className="h-4 w-4 shrink-0" />
                         <span>{(cos.alerts as any)[alertKey][lang]}</span>

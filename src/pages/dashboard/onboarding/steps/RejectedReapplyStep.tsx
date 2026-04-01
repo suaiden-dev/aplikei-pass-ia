@@ -7,6 +7,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { getPaymentService } from "@/infrastructure/factories/paymentFactory";
 
 interface RejectedReapplyStepProps {
   serviceId: string | null;
@@ -39,28 +40,24 @@ export function RejectedReapplyStep({
         .single();
 
       const originUrl = window.location.origin;
+      const paymentService = getPaymentService();
+      
+      const result = await paymentService.initiateCheckout({
+        slug: serviceSlug,
+        email: profile?.email || user.email || "",
+        fullName: profile?.full_name || "",
+        phone: profile?.phone || "",
+        dependents: 0,
+        originUrl: originUrl,
+        paymentMethod: "stripe",
+        action: "reapply",
+        serviceId: serviceId,
+        discountPct: 20,
+      });
 
-      const { data, error } = await supabase.functions.invoke(
-        "stripe-checkout",
-        {
-          body: {
-            slug: serviceSlug,
-            email: profile?.email || user.email,
-            fullName: profile?.full_name || "",
-            phone: profile?.phone || "",
-            dependents: 0,
-            origin_url: originUrl,
-            paymentMethod: "card",
-            action: "reapply",
-            serviceId: serviceId,
-            discountPct: 20,
-          },
-        },
-      );
+      if (!result?.url) throw new Error("Checkout error");
 
-      if (error || !data?.url) throw new Error(error?.message || "Checkout error");
-
-      window.location.href = data.url;
+      window.location.href = result.url;
     } catch (err) {
       console.error("Reapply checkout error:", err);
       toast.error("Erro ao abrir checkout. Tente novamente.");

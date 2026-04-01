@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { StepProps } from "../types";
 import { Button } from "@/presentation/components/atoms/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle2 } from "lucide-react";
+import { FormViewField } from "@/presentation/components/atoms/form/FormFields";
+import { Badge } from "@/presentation/components/atoms/badge";
+import { Card } from "@/presentation/components/atoms/card";
 
 export const ReviewStep = ({
   formData,
@@ -653,82 +656,93 @@ export const ReviewStep = ({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border/50 pb-6">
         <div>
-          <h2 className="font-display text-lg font-semibold text-foreground">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <CheckCircle2 className="h-6 w-6 text-primary" />
             {o.finalReview[lang]}
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mt-1 max-w-md">
             {o.finalReviewDesc[lang]}
           </p>
         </div>
-        <div className="bg-accent/10 text-accent font-medium px-3 py-1 rounded-full text-xs">
-          {currentReviewStep + 1} / {maxSteps}
+        <div className="bg-primary/10 text-primary font-black px-4 py-2 rounded-2xl text-[10px] tracking-widest uppercase">
+          {currentReviewStep + 1} / {maxSteps} SECTIONS
         </div>
       </div>
 
-      <div className="rounded-md border border-border bg-card p-4 space-y-4">
-        <h3 className="font-medium text-accent border-b border-border/50 pb-2">
+      <Card className="rounded-3xl border-border/50 bg-card/60 backdrop-blur-sm p-6 space-y-6 shadow-xl shadow-foreground/5 relative overflow-hidden">
+        <div className="absolute right-0 top-0 h-32 w-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
+        
+        <h3 className="font-display text-lg font-black text-primary border-b border-border/50 pb-3 flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-primary" />
           {currentSection.title}
         </h3>
 
         <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
           {currentSection.fields.map((field, fIdx) => (
-            <div
+            <FormViewField 
               key={fIdx}
-              className="flex flex-col bg-muted/30 p-3 rounded-md border border-border/50 transition-all hover:border-accent/40 min-w-0"
-            >
-              <span
-                className="text-xs text-muted-foreground truncate"
-                title={field.label}
-              >
-                {field.label}
-              </span>
-              <span className="font-medium text-foreground mt-1 break-all whitespace-normal leading-tight">
-                {field.value}
-              </span>
-            </div>
+              label={field.label}
+              value={field.value}
+            />
           ))}
         </div>
 
-        <div className="flex justify-between items-center mt-4 pt-4 border-t border-border/50">
+        <div className="flex justify-between items-center mt-8 pt-6 border-t border-border/50">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={prevSection}
             disabled={currentReviewStep === 0}
-            className="gap-1.5 focus:ring-accent"
+            className="h-12 px-6 gap-2 font-bold uppercase tracking-widest text-[10px] hover:bg-primary/5 hover:text-primary transition-all disabled:opacity-30"
             type="button"
           >
-            <ChevronLeft className="h-4 w-4" />{" "}
+            <ChevronLeft className="h-3 w-3" />
             {o.previous?.[lang] || "Anterior"}
           </Button>
+
           <Button
             variant="outline"
             size="sm"
             onClick={nextSection}
             disabled={currentReviewStep === maxSteps - 1}
-            className="gap-1.5 focus:ring-accent"
+            className="h-12 px-8 gap-2 font-black uppercase tracking-widest text-[10px] border-primary/20 text-primary hover:bg-primary hover:text-white transition-all disabled:opacity-30"
             type="button"
           >
-            {o.next?.[lang] || "Próximo"} <ChevronRight className="h-4 w-4" />
+            {o.next?.[lang] || "Próximo"} 
+            <ChevronRight className="h-3 w-3" />
           </Button>
         </div>
-      </div>
+      </Card>
 
       {currentReviewStep === maxSteps - 1 && (
         <div
-          className={`p-4 border rounded-md text-sm mt-4 animate-in fade-in slide-in-from-bottom-2 ${
+          className={`p-6 border rounded-3xl text-sm mt-6 animate-in slide-in-from-bottom-4 duration-500 flex items-start gap-4 ${
             serviceStatus === "review_pending" ||
             serviceStatus === "review_assign"
-              ? "bg-accent/10 border-accent/30 text-accent"
-              : "bg-green-500/10 border-green-500/30 text-green-700 dark:text-green-400"
+              ? "bg-primary/5 border-primary/20 text-foreground"
+              : "bg-emerald-500/5 border-emerald-500/20 text-emerald-900 dark:text-emerald-400"
           }`}
         >
-          {serviceStatus === "review_pending"
-            ? o.reviewPendingMsg[lang]
-            : o.reviewEndMsg[lang]}
+          <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${
+            serviceStatus === "review_pending" || serviceStatus === "review_assign"
+            ? "bg-primary/10 text-primary"
+            : "bg-emerald-500/10 text-emerald-500"
+          }`}>
+            <CheckCircle2 className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="font-bold mb-1">
+              {serviceStatus === "review_pending" ? "Aguardando Revisão" : "Pronto para Enviar"}
+            </p>
+            <p className="opacity-80 leading-relaxed">
+              {serviceStatus === "review_pending"
+                ? o.reviewPendingMsg[lang]
+                : o.reviewEndMsg[lang]}
+            </p>
+          </div>
         </div>
       )}
     </div>

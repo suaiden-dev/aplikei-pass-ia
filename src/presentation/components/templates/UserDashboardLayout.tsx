@@ -3,11 +3,8 @@ import { NotificationBell } from "@/presentation/components/molecules/Notificati
 import {
   LayoutDashboard,
   MessageSquare,
-  Upload,
-  FileText,
   HelpCircle,
   LogOut,
-  CheckSquare,
   Briefcase,
   Truck,
 } from "lucide-react";
@@ -21,7 +18,9 @@ export default function UserDashboardLayout() {
   const navigate = useNavigate();
   const t = useT("dashboard");
   const { isAdmin, loading } = useAdmin();
-  const s = t.sidebar;
+  
+  // Guard for lazy-loaded translations
+  const s = t?.sidebar;
 
   useEffect(() => {
     if (!loading && isAdmin) {
@@ -29,7 +28,13 @@ export default function UserDashboardLayout() {
     }
   }, [isAdmin, loading, navigate]);
 
-  if (loading) return null;
+  if (loading || !s) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   const sidebarLinks = [
     { to: "/dashboard", label: s.dashboard, icon: LayoutDashboard },
@@ -107,7 +112,7 @@ export default function UserDashboardLayout() {
               >
                 <l.icon className="h-5 w-5" />
                 <span className="text-[10px] font-medium">
-                  {l.label.split(" ")[0]}
+                  {l.label?.split(" ")[0] || ""}
                 </span>
               </Link>
             ))}

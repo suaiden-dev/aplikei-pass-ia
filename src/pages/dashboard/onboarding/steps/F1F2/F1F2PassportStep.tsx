@@ -1,7 +1,6 @@
-import { Input } from "@/presentation/components/atoms/input";
-import { Label } from "@/presentation/components/atoms/label";
-import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
+import { FormInput, FormRadioGroup, FormNativeSelect, FormTextarea } from "@/presentation/components/atoms/form/FormFields";
 import { StepProps } from "../../types";
+import { Book, Globe, MapPin, Calendar, HelpCircle } from "lucide-react";
 
 export const F1F2PassportStep = ({
   register,
@@ -15,123 +14,107 @@ export const F1F2PassportStep = ({
   const hasPassportBeenLostStolen = watch("hasPassportBeenLostStolen");
 
   return (
-    <div className="space-y-4 fade-in">
-      <h2 className="font-display text-lg font-semibold text-foreground">
-        {t.f1f2.steps[lang][6]}
-      </h2>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="passportType">{pa.type[lang]} *</Label>
-          <select
-            {...register("passportType")}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-          >
-            <option value="">{pa.select[lang]}</option>
-            <option value="regular">{pa.typeOptions.regular[lang]}</option>
-            <option value="official">{pa.typeOptions.official[lang]}</option>
-            <option value="diplomatic">{pa.typeOptions.diplomatic[lang]}</option>
-            <option value="other">{pa.typeOptions.other[lang]}</option>
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="passportNumberDS">{pa.number[lang]} *</Label>
-          <Input
-            id="passportNumberDS"
-            {...register("passportNumberDS")}
-            onChange={(e) =>
-              setValue(
-                "passportNumberDS",
-                e.target.value.replace(/[^a-zA-Z0-9]/g, ""),
-              )
-            }
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="passportIssuanceCountry">{pa.country[lang]} *</Label>
-          <Input id="passportIssuanceCountry" {...register("passportIssuanceCountry")} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="passportIssuanceCity">{pa.city[lang]} *</Label>
-          <Input id="passportIssuanceCity" {...register("passportIssuanceCity")} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="passportIssuanceState">{pa.state[lang]}</Label>
-          <Input id="passportIssuanceState" {...register("passportIssuanceState")} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="passportIssuanceDate">{pa.issuanceDate[lang]} *</Label>
-          <Input id="passportIssuanceDate" type="date" {...register("passportIssuanceDate")} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="passportExpirationDate">
-            {pa.expirationDate[lang]} *
-          </Label>
-          <Input
-            id="passportExpirationDate"
-            type="date"
-            {...register("passportExpirationDate")}
-          />
-        </div>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col space-y-1.5 border-b border-border/50 pb-4">
+        <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <Book className="h-6 w-6 text-primary" />
+          {t.f1f2.steps[lang][6]}
+        </h2>
       </div>
 
-      <div className="space-y-3 border-t border-border pt-4">
-        <Label>{pa.lostStolen[lang]} *</Label>
-        <RadioGroup
-          onValueChange={(val) => setValue("hasPassportBeenLostStolen", val)}
-          value={hasPassportBeenLostStolen}
-          className="flex gap-4"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="yes" id="lost-yes" />
-            <Label htmlFor="lost-yes">{pa.yes[lang]}</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="no" id="lost-no" />
-            <Label htmlFor="lost-no">{pa.no[lang]}</Label>
-          </div>
-        </RadioGroup>
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <FormNativeSelect
+            label={pa.type[lang]}
+            {...register("passportType")}
+            options={[
+              { label: pa.select[lang], value: "" },
+              { label: pa.typeOptions.regular[lang], value: "regular" },
+              { label: pa.typeOptions.official[lang], value: "official" },
+              { label: pa.typeOptions.diplomatic[lang], value: "diplomatic" },
+              { label: pa.typeOptions.other[lang], value: "other" }
+            ]}
+            required
+          />
 
-        {hasPassportBeenLostStolen === "yes" && (
-          <div className="mt-4 p-4 bg-muted/20 rounded-md border border-dashed border-border scale-in-center space-y-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="lostPassportNumberDetails">
-                  {pa.lostPassportNumber[lang]} *
-                </Label>
-                <Input
-                  id="lostPassportNumberDetails"
+          <FormInput
+            label={pa.number[lang]}
+            {...register("passportNumberDS")}
+            required
+            onChange={(e) =>
+              setValue("passportNumberDS", e.target.value.replace(/[^a-zA-Z0-9]/g, ""))
+            }
+          />
+
+          <FormInput 
+            label={pa.country[lang]} 
+            {...register("passportIssuanceCountry")} 
+            required 
+            icon={<Globe className="h-4 w-4" />}
+          />
+
+          <FormInput 
+            label={pa.city[lang]} 
+            {...register("passportIssuanceCity")} 
+            required 
+            icon={<MapPin className="h-4 w-4" />}
+          />
+
+          <FormInput label={pa.state[lang]} {...register("passportIssuanceState")} />
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormInput 
+              label={pa.issuanceDate[lang]} 
+              type="date" 
+              {...register("passportIssuanceDate")} 
+              required 
+              icon={<Calendar className="h-4 w-4" />}
+            />
+            <FormInput
+              label={pa.expirationDate[lang]}
+              type="date"
+              {...register("passportExpirationDate")}
+              required
+              icon={<Calendar className="h-4 w-4" />}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-6 pt-6 border-t border-border/50">
+          <FormRadioGroup
+            label={pa.lostStolen[lang]}
+            value={hasPassportBeenLostStolen}
+            onValueChange={(val) => setValue("hasPassportBeenLostStolen", val)}
+            options={[
+              { label: pa.yes[lang], value: "yes" },
+              { label: pa.no[lang], value: "no" }
+            ]}
+            required
+          />
+
+          {hasPassportBeenLostStolen === "yes" && (
+            <div className="p-6 bg-muted/20 rounded-3xl border border-border/50 animate-in slide-in-from-top-2 duration-300 space-y-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <FormInput
+                  label={pa.lostPassportNumber[lang]}
                   {...register("lostPassportNumberDetails")}
+                  required
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lostPassportCountryDetails">
-                  {pa.issuingCountry[lang]} *
-                </Label>
-                <Input
-                  id="lostPassportCountryDetails"
+                <FormInput
+                  label={pa.issuingCountry[lang]}
                   {...register("lostPassportCountryDetails")}
+                  required
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lostPassportExplanationDetails">
-                {pa.explanationLabel[lang]} *
-              </Label>
-              <textarea
-                id="lostPassportExplanationDetails"
+              <FormTextarea
+                label={pa.explanationLabel[lang]}
                 {...register("lostPassportExplanationDetails")}
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                required
+                icon={<HelpCircle className="h-4 w-4" />}
               />
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { DocumentStepProps } from "../../types";
+import { 
+  FormInput, 
+  FormGroupBox,
+  FormCheckbox,
+  FormRadioGroup
+} from "@/presentation/components/atoms/form/FormFields";
 import { Label } from "@/presentation/components/atoms/label";
-import { Input } from "@/presentation/components/atoms/input";
 import { Button } from "@/presentation/components/atoms/button";
-import { Checkbox } from "@/presentation/components/atoms/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/presentation/components/atoms/radio-group";
 import {
-  FileEdit, CheckCircle2, Loader2, Download, Send, Globe, ShieldAlert, Contact
+  FileEdit, CheckCircle2, Loader2, Download, Send, ShieldAlert, Contact, Info, Zap, Sparkles, ChevronRight, FileText, Lock
 } from "lucide-react";
 import { Card } from "@/presentation/components/atoms/card";
 import {
@@ -15,10 +17,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/presentation/components/atoms/accordion";
+import { DocumentStepProps } from "../../types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { fillI539Form } from "@/application/use-cases/FillI539Form";
 import { I539FormData } from "@/domain/entities/I539FormData";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const TEMPLATE_URL = import.meta.env.VITE_I539_TEMPLATE_URL as string;
 
@@ -35,7 +40,7 @@ function yesNo(v: string | undefined): { yes: boolean; no: boolean } {
 }
 
 async function uploadBytes(bucket: string, storagePath: string, bytes: Uint8Array): Promise<void> {
-  const blob = new Blob([bytes], { type: "application/pdf" });
+  const blob = new Blob([bytes.buffer as any], { type: "application/pdf" });
   const { error } = await supabase.storage.from(bucket).upload(storagePath, blob, {
     contentType: "application/pdf",
     upsert: true,
@@ -44,7 +49,6 @@ async function uploadBytes(bucket: string, storagePath: string, bytes: Uint8Arra
 }
 
 export const ChangeOfStatusOfficialFormsStep = ({
-  formData,
   register,
   watch,
   setValue,
@@ -66,7 +70,6 @@ export const ChangeOfStatusOfficialFormsStep = ({
 
     setIsGenerating(true);
     try {
-      // Captura todos os valores atuais do formulário (inclui i539_* via 'as any')
       const v = (watch!() as unknown) as Record<string, string | boolean | undefined>;
 
       const i539Data: I539FormData = {
@@ -116,7 +119,7 @@ export const ChangeOfStatusOfficialFormsStep = ({
         totalCoApplicants:       v.i539_total_people as string,
         previouslyExtended:      !!(v.i539_is_based_on_prior_approval as boolean),
 
-        // Part 4 — Security questions (mapped in form order)
+        // Part 4 — Security questions
         q6Yes:  yesNo(v.i539_immigrant_visa_applicant  as string).yes,
         q6No:   yesNo(v.i539_immigrant_visa_applicant  as string).no,
         q7Yes:  yesNo(v.i539_immigrant_petition_filed  as string).yes,
@@ -160,7 +163,6 @@ export const ChangeOfStatusOfficialFormsStep = ({
         uploadBytes,
       });
 
-      // Salva registro na tabela documents (mesmo padrão dos outros uploads)
       await supabase.from("documents").upsert({
         user_id: user.id,
         user_service_id: serviceId,
@@ -171,7 +173,6 @@ export const ChangeOfStatusOfficialFormsStep = ({
         created_at: new Date().toISOString(),
       }, { onConflict: "user_id,name" });
 
-      // Cria URL assinada válida por 1 hora para download imediato
       const { data: signedData, error: signedError } = await supabase.storage
         .from("process-documents")
         .createSignedUrl(result.storagePath, 60 * 60);
@@ -192,111 +193,134 @@ export const ChangeOfStatusOfficialFormsStep = ({
     }
   };
 
-  const isMailingSameAsPhysical = watch!("i539_is_mailing_same_as_physical" as any);
+  const isMailingSameAsPhysical = !!watch!("i539_is_mailing_same_as_physical" as any);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col space-y-1.5 border-b border-border pb-4">
-        <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-          <FileEdit className="h-6 w-6 text-primary" />
-          Preenchimento Oficial I-539 Completo
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-10 pb-10"
+    >
+      <div className="flex flex-col space-y-1.5 border-b border-border/50 pb-6">
+        <h2 className="font-display text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+          <FileEdit className="h-8 w-8 text-primary shrink-0" />
+          Preenchimento Oficial I-539
         </h2>
-        <p className="text-sm text-muted-foreground">
-          Preencha todos os campos requeridos. Eles serão mapeados integralmente para o documento I-539 (Partes 1 a 7).
+        <p className="text-muted-foreground font-medium">
+          Preencha todos os campos requeridos. Eles serão mapeados integralmente para o documento oficial I-539 da USCIS.
         </p>
       </div>
 
-      <Accordion type="multiple" defaultValue={["part1"]} className="w-full space-y-4">
+      <Accordion type="multiple" defaultValue={["part1"]} className="w-full space-y-6">
         
         {/* PARTE 1 - INFORMAÇÕES PESSOAIS */}
-        <AccordionItem value="part1" className="bg-card rounded-2xl border px-4 shadow-sm">
-          <AccordionTrigger className="hover:no-underline py-4">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">1</div>
+        <AccordionItem value="part1" className="bg-card/10 backdrop-blur-sm rounded-[2rem] border border-border/50 px-6 shadow-xl overflow-hidden group">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center shadow-inner group-hover:rotate-6 transition-transform">
+                <span className="font-display text-xl font-black text-primary">01</span>
+              </div>
               <div className="text-left">
-                <p className="font-bold">Part 1 - Information About You</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Dados Pessoais & Endereço</p>
+                <p className="font-display text-xl font-bold text-foreground">Part 1 - Information About You</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">Dados Pessoais & Endereço</p>
               </div>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="pt-2 pb-6 space-y-8">
-            {/* Nomes */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-bold border-b pb-2">Full Legal Name</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2"><Label>Family Name (Sobrenome)</Label><Input {...register!("i539_family_name" as any)} /></div>
-                <div className="space-y-2"><Label>Given Name (Primeiro Nome)</Label><Input {...register!("i539_given_name" as any)} /></div>
-                <div className="space-y-2"><Label>Middle Name</Label><Input {...register!("i539_middle_name" as any)} /></div>
+          <AccordionContent className="pt-2 pb-8 space-y-10">
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 border-b border-border pb-2">
+                <div className="h-2 w-2 rounded-full bg-primary" />
+                <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Full Legal Name</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FormInput label="Family Name (Sobrenome)" {...register!("i539_family_name" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Given Name (Primeiro Nome)" {...register!("i539_given_name" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Middle Name" {...register!("i539_middle_name" as any)} className="h-12 rounded-xl" />
               </div>
             </div>
 
-            {/* Identificadores */}
-            <div className="space-y-4 border-t pt-4">
-              <h4 className="text-sm font-bold border-b pb-2">Identifiers</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2"><Label>A-Number (if any)</Label><Input {...register!("i539_alien_reg_number" as any)} placeholder="A-" /></div>
-                <div className="space-y-2"><Label>USCIS Online Account Number</Label><Input {...register!("i539_uscis_online_account_number" as any)} /></div>
-                <div className="space-y-2"><Label>SSN (if any)</Label><Input {...register!("i539_ssn" as any)} /></div>
+            <div className="space-y-6 pt-4">
+              <div className="flex items-center gap-3 border-b border-border pb-2">
+                <div className="h-2 w-2 rounded-full bg-primary" />
+                <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Identifiers</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FormInput label="A-Number (if any)" placeholder="A-" {...register!("i539_alien_reg_number" as any)} className="h-12 rounded-xl" />
+                <FormInput label="USCIS Account Number" {...register!("i539_uscis_online_account_number" as any)} className="h-12 rounded-xl" />
+                <FormInput label="SSN (if any)" {...register!("i539_ssn" as any)} className="h-12 rounded-xl" />
               </div>
             </div>
 
-            {/* Mailing Address */}
-            <div className="space-y-4 border-t pt-4">
-              <h4 className="text-sm font-bold border-b pb-2">U.S. Mailing Address</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2 md:col-span-2"><Label>In Care Of Name (Aos cuidados de)</Label><Input {...register!("i539_mailing_in_care_of" as any)} /></div>
-                <div className="space-y-2 md:col-span-2"><Label>Street Number and Name</Label><Input {...register!("i539_mailing_street" as any)} /></div>
-                <div className="space-y-2"><Label>Apt / Ste / Flr Number</Label><Input {...register!("i539_mailing_apt_ste_flr" as any)} /></div>
-                <div className="space-y-2"><Label>City or Town</Label><Input {...register!("i539_mailing_city" as any)} /></div>
-                <div className="space-y-2"><Label>State</Label><Input {...register!("i539_mailing_state" as any)} /></div>
-                <div className="space-y-2"><Label>ZIP Code</Label><Input {...register!("i539_mailing_zip" as any)} /></div>
+            <div className="space-y-6 pt-4">
+              <div className="flex items-center gap-3 border-b border-border pb-2">
+                <div className="h-2 w-2 rounded-full bg-primary" />
+                <h4 className="text-sm font-black uppercase tracking-widest text-foreground">U.S. Mailing Address</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormInput className="md:col-span-2" label="In Care Of Name" {...register!("i539_mailing_in_care_of" as any)} className="h-12 rounded-xl" />
+                <FormInput className="md:col-span-2" label="Street Number and Name" {...register!("i539_mailing_street" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Apt / Ste / Flr Number" {...register!("i539_mailing_apt_ste_flr" as any)} className="h-12 rounded-xl" />
+                <FormInput label="City or Town" {...register!("i539_mailing_city" as any)} className="h-12 rounded-xl" />
+                <FormInput label="State" {...register!("i539_mailing_state" as any)} className="h-12 rounded-xl" />
+                <FormInput label="ZIP Code" {...register!("i539_mailing_zip" as any)} className="h-12 rounded-xl font-mono" />
               </div>
             </div>
 
-            {/* Endereço Físico */}
-            <div className="space-y-4 border-t pt-4">
-              <div className="flex items-center gap-2 bg-accent/5 p-3 rounded-lg border border-accent/20">
-                <Checkbox 
+            <div className="space-y-6 pt-4">
+              <div className="bg-primary/5 p-6 rounded-[2rem] border border-primary/20">
+                <FormCheckbox 
                   id="sameAddress" 
+                  label="My mailing address is the same as my physical address"
                   checked={isMailingSameAsPhysical}
                   onCheckedChange={(val) => setValue!("i539_is_mailing_same_as_physical" as any, !!val)}
                 />
-                <Label htmlFor="sameAddress" className="cursor-pointer font-medium">My mailing address is the same as my physical address</Label>
               </div>
               
-              {!isMailingSameAsPhysical && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 opacity-90">
-                  <div className="space-y-2 md:col-span-2"><Label>Physical: Street Number and Name</Label><Input {...register!("i539_physical_street" as any)} /></div>
-                  <div className="space-y-2"><Label>Apt / Ste / Flr Number</Label><Input {...register!("i539_physical_apt" as any)} /></div>
-                  <div className="space-y-2"><Label>City or Town</Label><Input {...register!("i539_physical_city" as any)} /></div>
-                  <div className="space-y-2"><Label>State</Label><Input {...register!("i539_physical_state" as any)} /></div>
-                  <div className="space-y-2"><Label>ZIP Code</Label><Input {...register!("i539_physical_zip" as any)} /></div>
-                </div>
-              )}
+              <AnimatePresence>
+                {!isMailingSameAsPhysical && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                      <FormInput className="md:col-span-2" label="Physical: Street" {...register!("i539_physical_street" as any)} className="h-12 rounded-xl" />
+                      <FormInput label="Apt / Ste / Flr" {...register!("i539_physical_apt" as any)} className="h-12 rounded-xl" />
+                      <FormInput label="City" {...register!("i539_physical_city" as any)} className="h-12 rounded-xl" />
+                      <FormInput label="State" {...register!("i539_physical_state" as any)} className="h-12 rounded-xl" />
+                      <FormInput label="ZIP Code" {...register!("i539_physical_zip" as any)} className="h-12 rounded-xl font-mono" />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* Outras e Ultima Entrada */}
-            <div className="space-y-4 border-t pt-4">
-              <h4 className="text-sm font-bold border-b pb-2">Other Information & Last Arrival</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2"><Label>Country of Birth</Label><Input {...register!("i539_country_of_birth" as any)} /></div>
-                <div className="space-y-2"><Label>Country of Citizenship</Label><Input {...register!("i539_country_of_citizenship" as any)} /></div>
-                <div className="space-y-2"><Label>Date of Birth</Label><Input type="date" {...register!("i539_date_of_birth" as any)} /></div>
+            <div className="space-y-6 pt-4">
+              <div className="flex items-center gap-3 border-b border-border pb-2">
+                <div className="h-2 w-2 rounded-full bg-primary" />
+                <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Travel & Identification</h4>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <div className="space-y-2"><Label>Date of Last Arrival</Label><Input type="date" {...register!("i539_last_arrival_date" as any)} /></div>
-                <div className="space-y-2"><Label>I-94 Record Number</Label><Input {...register!("i539_i94_number" as any)} /></div>
-                <div className="space-y-2"><Label>Passport Number</Label><Input {...register!("i539_passport_number" as any)} /></div>
-                <div className="space-y-2"><Label>Travel Document Number</Label><Input {...register!("i539_travel_document_number" as any)} /></div>
-                <div className="space-y-2"><Label>Country of Issuance</Label><Input {...register!("i539_country_passport_issuance" as any)} /></div>
-                <div className="space-y-2"><Label>Passport Expiration</Label><Input type="date" {...register!("i539_passport_expiration_date" as any)} /></div>
-                <div className="space-y-2"><Label>Current Status (Ex: B2)</Label><Input {...register!("i539_current_nonimmigrant_status" as any)} /></div>
-                <div className="space-y-2"><Label>Status Expiration</Label><Input type="date" {...register!("i539_status_expiration_date" as any)} /></div>
-                <div className="space-y-2 flex items-end pb-2">
-                  <div className="flex items-center gap-2">
-                    <Checkbox id="ds" onCheckedChange={(v) => setValue!("i539_granted_duration_of_status" as any, !!v)} />
-                    <Label htmlFor="ds" className="cursor-pointer">Granted D/S (Duration of Status)</Label>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FormInput label="Country of Birth" {...register!("i539_country_of_birth" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Citizenship" {...register!("i539_country_of_citizenship" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Date of Birth" type="date" {...register!("i539_date_of_birth" as any)} className="h-12 rounded-xl px-4" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                <FormInput label="Last Arrival Date" type="date" {...register!("i539_last_arrival_date" as any)} className="h-12 rounded-xl px-4" />
+                <FormInput label="I-94 Number" {...register!("i539_i94_number" as any)} className="h-12 rounded-xl font-mono" />
+                <FormInput label="Passport Number" {...register!("i539_passport_number" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Travel Doc #" {...register!("i539_travel_document_number" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Country of Passport" {...register!("i539_country_passport_issuance" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Passport Exp." type="date" {...register!("i539_passport_expiration_date" as any)} className="h-12 rounded-xl px-4" />
+                <FormInput label="Current Status (Ex: B2)" {...register!("i539_current_nonimmigrant_status" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Status Expiration" type="date" {...register!("i539_status_expiration_date" as any)} className="h-12 rounded-xl px-4" />
+                <div className="flex items-end pb-4">
+                  <FormCheckbox 
+                    id="ds" 
+                    label="Granted D/S (Duration of Status)"
+                    onCheckedChange={(v) => setValue!("i539_granted_duration_of_status" as any, !!v)} 
+                  />
                 </div>
               </div>
             </div>
@@ -304,213 +328,243 @@ export const ChangeOfStatusOfficialFormsStep = ({
         </AccordionItem>
 
         {/* PARTE 2 e 3 - SOLICITAÇÃO */}
-        <AccordionItem value="part2" className="bg-card rounded-2xl border px-4 shadow-sm">
-          <AccordionTrigger className="hover:no-underline py-4">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">2</div>
+        <AccordionItem value="part2" className="bg-card/10 backdrop-blur-sm rounded-[2rem] border border-border/50 px-6 shadow-xl overflow-hidden group">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-accent/10 flex items-center justify-center shadow-inner group-hover:-rotate-6 transition-transform">
+                <span className="font-display text-xl font-black text-accent">02</span>
+              </div>
               <div className="text-left">
-                <p className="font-bold">Part 2 & 3 - Application & Processing</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Informações do Pedido</p>
+                <p className="font-display text-xl font-bold text-foreground">Part 2 & 3 - Application Info</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">Tipo de Pedido & Processamento</p>
               </div>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="pt-2 pb-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <Label className="font-bold">I am applying for:</Label>
-                <RadioGroup onValueChange={(v) => setValue!("i539_application_type" as any, v)}>
-                  <div className="flex items-center space-x-2"><RadioGroupItem value="reinstatement" id="app1" /><Label htmlFor="app1">Reinstatement to student status</Label></div>
-                  <div className="flex items-center space-x-2"><RadioGroupItem value="extension" id="app2" /><Label htmlFor="app2">Extension of stay</Label></div>
-                  <div className="flex items-center space-x-2"><RadioGroupItem value="change" id="app3" /><Label htmlFor="app3">Change of status</Label></div>
-                </RadioGroup>
+          <AccordionContent className="pt-2 pb-8 space-y-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="space-y-6">
+                <Label className="text-xs font-black uppercase tracking-widest opacity-60">I am applying for:</Label>
+                <FormRadioGroup 
+                  onValueChange={(v) => setValue!("i539_application_type" as any, v)}
+                  options={[
+                    { value: "reinstatement", id: "app1", label: "Reinstatement to student status" },
+                    { value: "extension", id: "app2", label: "Extension of stay" },
+                    { value: "change", id: "app3", label: "Change of status" },
+                  ]}
+                  className="space-y-3"
+                />
               </div>
-              <div className="space-y-4">
-                <div className="space-y-2"><Label>New Status Requested (Ex: F1)</Label><Input {...register!("i539_change_status_to" as any)} /></div>
-                <div className="space-y-2"><Label>To be effective (Date)</Label><Input type="date" {...register!("i539_effective_date_requested" as any)} /></div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4">
-              <div className="space-y-3">
-                <Label className="font-bold">Number of people included:</Label>
-                <RadioGroup onValueChange={(v) => setValue!("i539_number_of_applicants" as any, v)}>
-                  <div className="flex items-center space-x-2"><RadioGroupItem value="only_me" id="num1" /><Label htmlFor="num1">I am the only applicant</Label></div>
-                  <div className="flex items-center space-x-2"><RadioGroupItem value="family" id="num2" /><Label htmlFor="num2">Myself and members of my family</Label></div>
-                </RadioGroup>
-              </div>
-              <div className="space-y-2 mt-4 md:mt-0">
-                <Label>Total Number of People</Label>
-                <Input type="number" {...register!("i539_total_people" as any)} />
+              <div className="space-y-6">
+                <FormInput label="New Status Requested (Ex: F1)" {...register!("i539_change_status_to" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Effective Date Requested" type="date" {...register!("i539_effective_date_requested" as any)} className="h-12 rounded-xl px-4" />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
-              <div className="space-y-2"><Label>School Name (if student)</Label><Input {...register!("i539_school_name" as any)} /></div>
-              <div className="space-y-2"><Label>SEVIS ID Number</Label><Input {...register!("i539_sevis_id" as any)} /></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 border-t border-border/50 pt-8">
+              <div className="space-y-6">
+                <Label className="text-xs font-black uppercase tracking-widest opacity-60">Number of people included:</Label>
+                <FormRadioGroup 
+                  onValueChange={(v) => setValue!("i539_number_of_applicants" as any, v)}
+                  options={[
+                    { value: "only_me", id: "num1", label: "I am the only applicant" },
+                    { value: "family", id: "num2", label: "Myself and family members" },
+                  ]}
+                  className="space-y-3"
+                />
+              </div>
+              <FormInput 
+                label="Total Number of People"
+                type="number" 
+                {...register!("i539_total_people" as any)} 
+                className="h-12 rounded-xl"
+              />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
-              <div className="space-y-2"><Label>Extend until (Date)</Label><Input type="date" {...register!("i539_extended_until_date" as any)} /></div>
-              <div className="space-y-2 pt-6">
-                <div className="flex items-center gap-2"><Checkbox id="prior" onCheckedChange={(v) => setValue!("i539_is_based_on_prior_approval" as any, !!v)} /><Label htmlFor="prior">Based on prior approval given to spouse/parent?</Label></div>
-                <div className="flex items-center gap-2 mt-2"><Checkbox id="pend" onCheckedChange={(v) => setValue!("i539_is_based_on_pending_petition" as any, !!v)} /><Label htmlFor="pend">Based on a pending petition?</Label></div>
-              </div>
-              <div className="space-y-2 md:col-span-2"><Label>USCIS Receipt Number (if pending petition)</Label><Input {...register!("i539_uscis_receipt_number" as any)} /></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-border/50 pt-8">
+              <FormInput label="School Name (if student)" {...register!("i539_school_name" as any)} className="h-12 rounded-xl" />
+              <FormInput label="SEVIS ID Number" {...register!("i539_sevis_id" as any)} className="h-12 rounded-xl font-mono" />
             </div>
           </AccordionContent>
         </AccordionItem>
 
-        {/* PARTE 4 - SEGURANÇA */}
-        <AccordionItem value="part4" className="bg-card rounded-2xl border px-4 shadow-sm">
-          <AccordionTrigger className="hover:no-underline py-4">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-sm">
-                <ShieldAlert className="h-4 w-4" />
+        <AccordionItem value="part4" className="bg-card/10 backdrop-blur-sm rounded-[2rem] border border-border/50 px-6 shadow-xl overflow-hidden group">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-red-100 dark:bg-red-950/30 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                <ShieldAlert className="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
               <div className="text-left">
-                <p className="font-bold">Part 4 - Additional Information</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Histórico e Segurança</p>
+                <p className="font-display text-xl font-bold text-foreground">Part 4 - Security Information</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">Histórico & Segurança</p>
               </div>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="pt-2 pb-6 space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-2 border-b">
-                <Label className="max-w-[70%]">Are you an applicant for an immigrant visa?</Label>
-                <RadioGroup onValueChange={(v) => setValue!("i539_immigrant_visa_applicant" as any, v)} className="flex items-center gap-4">
-                  <div className="flex items-center gap-2"><RadioGroupItem value="yes" id="q1y"/><Label htmlFor="q1y">Yes</Label></div>
-                  <div className="flex items-center gap-2"><RadioGroupItem value="no" id="q1n"/><Label htmlFor="q1n">No</Label></div>
-                </RadioGroup>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b">
-                <Label className="max-w-[70%]">Has an immigrant petition EVER been filed for you?</Label>
-                <RadioGroup onValueChange={(v) => setValue!("i539_immigrant_petition_filed" as any, v)} className="flex items-center gap-4">
-                  <div className="flex items-center gap-2"><RadioGroupItem value="yes" id="q2y"/><Label htmlFor="q2y">Yes</Label></div>
-                  <div className="flex items-center gap-2"><RadioGroupItem value="no" id="q2n"/><Label htmlFor="q2n">No</Label></div>
-                </RadioGroup>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b">
-                <Label className="max-w-[70%]">Have you EVER filed Form I-485?</Label>
-                <RadioGroup onValueChange={(v) => setValue!("i539_filed_i485" as any, v)} className="flex items-center gap-4">
-                  <div className="flex items-center gap-2"><RadioGroupItem value="yes" id="q3y"/><Label htmlFor="q3y">Yes</Label></div>
-                  <div className="flex items-center gap-2"><RadioGroupItem value="no" id="q3n"/><Label htmlFor="q3n">No</Label></div>
-                </RadioGroup>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b">
-                <Label className="max-w-[70%]">Have you been arrested or convicted of any criminal offense?</Label>
-                <RadioGroup onValueChange={(v) => setValue!("i539_criminal_history" as any, v)} className="flex items-center gap-4">
-                  <div className="flex items-center gap-2"><RadioGroupItem value="yes" id="q4y"/><Label htmlFor="q4y">Yes</Label></div>
-                  <div className="flex items-center gap-2"><RadioGroupItem value="no" id="q4n"/><Label htmlFor="q4n">No</Label></div>
-                </RadioGroup>
-              </div>
+          <AccordionContent className="pt-2 pb-8 space-y-10">
+            <div className="flex items-start gap-4 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-2xl text-sm text-red-700 dark:text-red-300">
+              <Info className="h-5 w-5 mt-0.5 shrink-0" />
+              <p className="font-medium leading-relaxed">
+                Responda com extrema honestidade. Informações falsas nestas seções podem acarretar em negações definitivas de visto.
+              </p>
+            </div>
 
-              <div className="pt-4 space-y-4">
-                <h4 className="text-sm font-bold opacity-80 uppercase tracking-widest">General Security Questions (7.a to 15)</h4>
-                {[
-                  { id: "q7a", name: "i539_q7a", label: "7.a. Acts involving torture or genocide?" },
-                  { id: "q7b", name: "i539_q7b", label: "7.b. Killing any person?" },
-                  { id: "q8a", name: "i539_q8a", label: "8.a. Served in military unit, paramilitary unit, rebel group?" },
-                  { id: "q8b", name: "i539_q8b", label: "8.b. Worked/volunteered in prison, jail, detention facility?" },
-                  { id: "q10", name: "i539_q10", label: "10. Sold/provided weapons or assisted in selling weapons?" },
-                  { id: "q11", name: "i539_q11", label: "11. Received weapons/military training?" },
-                  { id: "q12", name: "i539_q12", label: "12. Violated the terms of the nonimmigrant status?" },
-                  { id: "q13", name: "i539_q13", label: "13. Are you now in removal proceedings?" },
-                  { id: "q14", name: "i539_q14", label: "14. Have you EVER been employed in the US since last admitted?" }
-                ].map((q) => (
-                  <div key={q.id} className="flex items-center justify-between py-2 border-b border-dashed">
-                    <Label className="max-w-[70%] font-normal">{q.label}</Label>
-                    <RadioGroup onValueChange={(v) => setValue!(q.name as any, v)} className="flex items-center gap-4">
-                      <div className="flex items-center gap-2"><RadioGroupItem value="yes" id={`${q.id}y`}/><Label htmlFor={`${q.id}y`}>Yes</Label></div>
-                      <div className="flex items-center gap-2"><RadioGroupItem value="no" id={`${q.id}n`}/><Label htmlFor={`${q.id}n`}>No</Label></div>
-                    </RadioGroup>
-                  </div>
-                ))}
-              </div>
+            <div className="space-y-2 border-t border-border/50">
+              {[
+                { name: "i539_immigrant_visa_applicant", label: "Are you an applicant for an immigrant visa?", id: "q1" },
+                { name: "i539_immigrant_petition_filed", label: "Has an immigrant petition EVER been filed for you?", id: "q2" },
+                { name: "i539_filed_i485", label: "Have you EVER filed Form I-485?", id: "q3" },
+                { name: "i539_criminal_history", label: "Have you been arrested or convicted of any criminal offense?", id: "q4" },
+              ].map((q) => (
+                <div key={q.id} className="flex flex-col sm:flex-row sm:items-center justify-between py-6 border-b border-border/50 gap-4 group/row">
+                  <Label className="sm:max-w-[65%] font-bold text-slate-700 dark:text-slate-300 group-hover/row:text-primary transition-colors">{q.label}</Label>
+                  <FormRadioGroup 
+                    onValueChange={(v) => setValue!(q.name as any, v)} 
+                    className="flex items-center gap-6"
+                    options={[
+                      { value: "yes", id: `${q.id}y`, label: "Yes" },
+                      { value: "no", id: `${q.id}n`, label: "No" },
+                    ]}
+                  />
+                </div>
+              ))}
             </div>
           </AccordionContent>
         </AccordionItem>
 
-        {/* PARTE 5 a 7 - CONTATO */}
-        <AccordionItem value="part5" className="bg-card rounded-2xl border px-4 shadow-sm">
-          <AccordionTrigger className="hover:no-underline py-4">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
-                <Contact className="h-4 w-4" />
+        <AccordionItem value="part5" className="bg-card/10 backdrop-blur-sm rounded-[2rem] border border-border/50 px-6 shadow-xl overflow-hidden group">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shadow-inner group-hover:rotate-12 transition-transform">
+                <Contact className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="text-left">
-                <p className="font-bold">Part 5, 6 & 7 - Contact & Signatures</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Informações de Contato</p>
+                <p className="font-display text-xl font-bold text-foreground">Part 5, 6 & 7 - Contact & Signatures</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">Informações de Contato</p>
               </div>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="pt-2 pb-6 space-y-6">
-            <div className="space-y-4">
-              <h4 className="text-sm font-bold border-b pb-2">Applicant's Contact Information</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2"><Label>Daytime Telephone</Label><Input type="tel" {...register!("i539_applicant_phone" as any)} /></div>
-                <div className="space-y-2"><Label>Mobile Telephone</Label><Input type="tel" {...register!("i539_applicant_mobile" as any)} /></div>
-                <div className="space-y-2"><Label>Email Address</Label><Input type="email" {...register!("i539_applicant_email" as any)} /></div>
+          <AccordionContent className="pt-2 pb-8 space-y-10">
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 border-b border-border pb-2">
+                <div className="h-2 w-2 rounded-full bg-blue-600" />
+                <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Applicant's Contact</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FormInput label="Daytime Telephone" type="tel" {...register!("i539_applicant_phone" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Mobile Telephone" type="tel" {...register!("i539_applicant_mobile" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Email Address" type="email" {...register!("i539_applicant_email" as any)} className="h-12 rounded-xl" />
               </div>
             </div>
             
-            <div className="space-y-4 border-t pt-4">
-              <h4 className="text-sm font-bold border-b pb-2">Interpreter & Preparer (If Applicable)</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Interpreter's Full Name</Label><Input {...register!("i539_interpreter_info" as any)} placeholder="Deixe em branco se não aplicável" /></div>
-                <div className="space-y-2"><Label>Preparer's Full Name</Label><Input {...register!("i539_preparer_info" as any)} placeholder="Deixe em branco se não aplicável" /></div>
+            <div className="space-y-6 pt-4 border-t border-border/50">
+              <div className="flex items-center gap-3 border-b border-border pb-2">
+                <div className="h-2 w-2 rounded-full bg-blue-600" />
+                <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Interpreter & Preparer</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormInput label="Interpreter's Full Name" {...register!("i539_interpreter_info" as any)} placeholder="Se houver..." className="h-12 rounded-xl" />
+                <FormInput label="Preparer's Full Name" {...register!("i539_preparer_info" as any)} placeholder="Se houver..." className="h-12 rounded-xl" />
               </div>
             </div>
           </AccordionContent>
         </AccordionItem>
-
       </Accordion>
 
-      <Card className="border-accent/40 bg-accent/5 p-6 shadow-sm overflow-hidden relative">
-        <div className="absolute -right-10 -top-10 opacity-5">
-          <FileEdit className="h-40 w-40 text-accent" />
+      <div className={cn(
+        "rounded-[2.5rem] border-4 p-8 md:p-12 shadow-2xl overflow-hidden relative transition-all duration-700 group mt-10",
+        pdfUrl
+          ? "border-green-500 bg-green-50/50"
+          : "border-primary/20 bg-primary/5"
+      )}>
+        <div className="absolute -right-20 -top-20 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
+          <FileText className="h-64 w-64 text-primary" />
         </div>
-        <div className="relative z-10 flex flex-col md:flex-row gap-6 items-center justify-between">
-          <div className="space-y-2 flex-1">
-            <h3 className="text-lg font-bold text-accent">Gerar Documento Final I-539</h3>
-            <p className="text-sm text-foreground/80">
-              Confira todos os dados antes de prosseguir. Ao "Gerar", nosso sistema preencherá o formulário I-539 da USCIS automaticamente com as informações acima, poupando horas de digitação.
-            </p>
-            {pdfUrl && (
-              <div className="flex items-center gap-2 mt-2 text-sm text-green-600 font-medium">
-                <CheckCircle2 className="h-4 w-4" />
-                PDF gerado com sucesso!
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-            {pdfUrl && (
-              <Button
-                variant="outline"
-                className="h-14 px-6 gap-3 font-bold text-sm uppercase tracking-widest"
-                asChild
-              >
-                <a href={pdfUrl} target="_blank" rel="noopener noreferrer">
-                  <Download className="h-5 w-5" /> Baixar PDF
-                </a>
-              </Button>
-            )}
-            <Button
-              className="h-14 px-8 gap-3 font-bold text-sm uppercase tracking-widest shadow-lg shadow-accent/20"
-              onClick={handleGenerateI539}
-              disabled={isGenerating}
-            >
-              {isGenerating ? (
-                <><Loader2 className="h-5 w-5 animate-spin" /> Processando...</>
-              ) : pdfUrl ? (
-                <><Send className="h-5 w-5" /> Regerar I-539</>
+        
+        <div className="relative z-10 flex flex-col lg:flex-row gap-10 items-center justify-between">
+          <div className="space-y-4 flex-1 text-center lg:text-left">
+            <AnimatePresence mode="wait">
+              {pdfUrl ? (
+                <motion.div 
+                  key="generated-content"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="space-y-4"
+                >
+                  <div className="flex items-center justify-center lg:justify-start gap-3">
+                    <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center shadow-lg shadow-green-600/30">
+                      <CheckCircle2 className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="font-display text-3xl font-black text-green-700 tracking-tight leading-none">
+                      I-539 Gerado!
+                    </h3>
+                  </div>
+                  <p className="text-lg text-green-700/80 font-medium leading-relaxed max-w-xl">
+                    O formulário oficial I-539 foi preenchido com sucesso com seus dados. Você pode baixá-lo agora para conferência.
+                  </p>
+                  <div className="flex flex-wrap justify-center lg:justify-start gap-4 mt-6">
+                    <Button 
+                      variant="outline" 
+                      asChild 
+                      className="bg-white border-green-200 text-green-700 hover:bg-green-50 h-14 px-8 rounded-2xl font-black uppercase text-xs tracking-widest gap-3 shadow-xl shadow-green-500/5 transition-all active:scale-95"
+                    >
+                      <a href={pdfUrl} target="_blank" rel="noopener noreferrer">
+                        <Download className="h-5 w-5" /> Baixar I-539.pdf
+                      </a>
+                    </Button>
+                  </div>
+                </motion.div>
               ) : (
-                <><Send className="h-5 w-5" /> Gerar I-539 Oficial</>
+                <motion.div 
+                  key="initial-content"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-4"
+                >
+                  <div className="flex items-center justify-center lg:justify-start gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+                      <Sparkles className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="font-display text-3xl font-black text-primary tracking-tight leading-none uppercase">
+                      Geração Automática
+                    </h3>
+                  </div>
+                  <p className="text-lg text-foreground/70 font-medium leading-relaxed max-w-xl">
+                    Finalize o preenchimento acima e clique em "Gerar" para criar o seu formulário I-539 oficial em segundos.
+                  </p>
+                  <div className="flex items-center justify-center lg:justify-start gap-2 text-xs font-black text-primary uppercase tracking-widest opacity-60">
+                    <Zap className="h-3 w-3 fill-primary" /> Review all data before generating
+                  </div>
+                </motion.div>
               )}
-            </Button>
+            </AnimatePresence>
           </div>
+
+          <Button
+            className={cn(
+              "w-full lg:w-auto h-24 px-12 gap-5 font-black uppercase text-sm tracking-[0.2em] shadow-2xl rounded-[2.5rem] transition-all active:scale-[0.98] group relative overflow-hidden",
+              pdfUrl ? "bg-green-600 hover:bg-green-700 shadow-green-500/20" : "bg-primary hover:bg-primary/90 shadow-primary/20"
+            )}
+            onClick={handleGenerateI539}
+            disabled={isGenerating}
+          >
+            <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
+            {isGenerating ? (
+              <><Loader2 className="h-6 w-6 animate-spin" /> Processando...</>
+            ) : (
+              <>
+                <Send className="h-6 w-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> 
+                {pdfUrl ? "Regerar Formulário" : "Gerar I-539 Oficial"}
+              </>
+            )}
+          </Button>
         </div>
-      </Card>
-      
-    </div>
+
+        <div className="mt-8 pt-8 border-t border-border/30 flex items-center justify-center lg:justify-start gap-4">
+           <div className="flex items-center gap-2 bg-white/50 dark:bg-card/50 px-4 py-2 rounded-full border border-border/50">
+             <Lock className="h-3.5 w-3.5 text-slate-400" />
+             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Secure 256-bit AES Encryption</span>
+           </div>
+        </div>
+      </div>
+    </motion.div>
   );
 };
