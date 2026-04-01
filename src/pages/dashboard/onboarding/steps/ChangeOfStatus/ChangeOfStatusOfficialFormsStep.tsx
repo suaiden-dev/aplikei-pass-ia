@@ -256,8 +256,8 @@ export const ChangeOfStatusOfficialFormsStep = ({
                 <h4 className="text-sm font-black uppercase tracking-widest text-foreground">U.S. Mailing Address</h4>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormInput className="md:col-span-2" label="In Care Of Name" {...register!("i539_mailing_in_care_of" as any)} className="h-12 rounded-xl" />
-                <FormInput className="md:col-span-2" label="Street Number and Name" {...register!("i539_mailing_street" as any)} className="h-12 rounded-xl" />
+                <FormInput className={cn("h-12 rounded-xl md:col-span-2")} label="In Care Of Name" {...register!("i539_mailing_in_care_of" as any)} />
+                <FormInput className={cn("h-12 rounded-xl md:col-span-2")} label="Street Number and Name" {...register!("i539_mailing_street" as any)} />
                 <FormInput label="Apt / Ste / Flr Number" {...register!("i539_mailing_apt_ste_flr" as any)} className="h-12 rounded-xl" />
                 <FormInput label="City or Town" {...register!("i539_mailing_city" as any)} className="h-12 rounded-xl" />
                 <FormInput label="State" {...register!("i539_mailing_state" as any)} className="h-12 rounded-xl" />
@@ -284,7 +284,7 @@ export const ChangeOfStatusOfficialFormsStep = ({
                     className="overflow-hidden"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                      <FormInput className="md:col-span-2" label="Physical: Street" {...register!("i539_physical_street" as any)} className="h-12 rounded-xl" />
+                      <FormInput className={cn("h-12 rounded-xl md:col-span-2")} label="Physical: Street" {...register!("i539_physical_street" as any)} />
                       <FormInput label="Apt / Ste / Flr" {...register!("i539_physical_apt" as any)} className="h-12 rounded-xl" />
                       <FormInput label="City" {...register!("i539_physical_city" as any)} className="h-12 rounded-xl" />
                       <FormInput label="State" {...register!("i539_physical_state" as any)} className="h-12 rounded-xl" />
