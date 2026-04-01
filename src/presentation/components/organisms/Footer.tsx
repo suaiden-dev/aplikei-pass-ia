@@ -2,9 +2,16 @@ import { Link } from "react-router-dom";
 import { useLanguage, useT } from "@/i18n/LanguageContext";
 
 export default function Footer() {
-  const { lang } = useLanguage();
+  const { lang, isLanguageLoading } = useLanguage();
   const t = useT("footer");
-  const commonT = useT("services"); // for servicesData
+  const servicesT = useT("services");
+
+  // Loading guard to prevent crashes while i18n locale chunks are being fetched.
+  // This ensures that we don't try to access nested properties like servicesT.data.map
+  // before the actual translation object is populated.
+  if (isLanguageLoading || !t || !servicesT || !servicesT.data) {
+    return null;
+  }
 
   return (
     <footer className="bg-highlight text-white pt-40 pb-20 px-8 lg:px-16">
@@ -29,8 +36,12 @@ export default function Footer() {
         <div>
           <h4 className="font-bold text-sm mb-10 uppercase tracking-[0.2em] text-white">{t.servicesHeader}</h4>
           <ul className="space-y-5 text-white/70 font-medium">
-            {commonT.data.map((s) => (
-              <li key={s.slug}><Link to={`/servicos/${s.slug}`} className="hover:text-white transition-colors">{s.shortTitle}</Link></li>
+            {servicesT.data.map((s: any) => (
+              <li key={s.slug}>
+                <Link to={`/servicos/${s.slug}`} className="hover:text-white transition-colors">
+                  {s.shortTitle}
+                </Link>
+              </li>
             ))}
           </ul>
         </div>
