@@ -1,18 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { fetchVerifiedPrices, ServicePrice } from '@/infrastructure/services/CheckoutService';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ShieldCheck, RefreshCcw, AlertCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useLanguage } from '@/i18n/LanguageContext';
 
-interface CheckoutSummaryProps {
-  selectedIds: string[];
-  lang?: 'en' | 'pt' | 'es';
-  onPriceVerified?: (total: number) => void;
-}
-
-/**
- * Componente de Resumo de Checkout que valida preços estritamente via Supabase (Backend).
- * @param selectedIds IDs dos serviços e upsells selecionados para o checkout.
- * @param overrideTotal Valor opcional para sobrescrever o total calculado pelo backend.
- */
 interface CheckoutSummaryProps {
   selectedIds: string[];
   lang?: 'en' | 'pt' | 'es';
@@ -22,10 +14,13 @@ interface CheckoutSummaryProps {
 
 const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ 
   selectedIds, 
-  lang = 'pt', 
+  lang: propLang, 
   onPriceVerified,
   overrideTotal
 }) => {
+  const { lang: contextLang } = useLanguage();
+  const lang = propLang || (contextLang as 'en' | 'pt' | 'es') || 'pt';
+  
   const [items, setItems] = useState<ServicePrice[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
@@ -42,15 +37,14 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({
         if (onPriceVerified) {
           onPriceVerified(overrideTotal !== undefined ? overrideTotal : result.total);
         }
-      } catch (err) {
+      } catch (err: any) {
         const errorMsg = err instanceof Error ? err.message : 'Erro inesperado ao carregar o resumo.';
-        // Se temos overrideTotal, podemos ignorar o erro do banco e usar um item fallback
         if (overrideTotal !== undefined) {
           setError(null);
           setItems([{ 
             id: 'proposal', 
             service_id: selectedIds[0], 
-            name: 'Serviço sob Demanda / Motion', 
+            name: 'Serviço sob Demanda', 
             price: overrideTotal, 
             currency: 'USD' 
           }]);
@@ -73,150 +67,141 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({
     }
   }, [selectedIds, onPriceVerified, overrideTotal]);
 
-  // Auxiliar para formatação monetária segura
-  const formatCurrency = (value: number, currencyCode = 'BRL') => {
-    return new Intl.NumberFormat(lang === 'pt' ? 'pt-BR' : lang === 'en' ? 'en-US' : 'es-ES', {
+  const formatCurrency = (value: number, currencyCode = 'USD') => {
+    if (lang === 'pt') {
+      const formatted = new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value);
+      return `US$ ${formatted}`;
+    }
+    return new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'es-ES', {
       style: 'currency',
       currency: currencyCode,
     }).format(value);
   };
 
-  /**
-   * Estado de Carregamento (Skeleton) Premium
-   */
+  const labels = {
+    pt: {
+      title: "Resumo do Pedido",
+      item: "ITEM",
+      items: "ITENS",
+      total: "TOTAL FINAL",
+      secure: "Preços auditados e protegidos por criptografia de banco.",
+      retry: "Tentar novamente",
+      fail: "Falha técnica na validação"
+    },
+    en: {
+      title: "Order Summary",
+      item: "ITEM",
+      items: "ITEMS",
+      total: "FINAL TOTAL",
+      secure: "Prices audited and protected by bank-level encryption.",
+      retry: "Try again",
+      fail: "Technical validation failure"
+    },
+    es: {
+      title: "Resumen del Pedido",
+      item: "ARTÍCULO",
+      items: "ARTÍCULOS",
+      total: "TOTAL FINAL",
+      secure: "Precios auditados e protegidos por criptografía bancaria.",
+      retry: "Intentar de nuevo",
+      fail: "Falla técnica de validación"
+    }
+  }[lang];
+
   if (loading) {
     return (
-      <div className="p-10 bg-white rounded-[2.5rem] shadow-xl border border-slate-100 flex flex-col gap-6 animate-pulse">
-        <div className="h-8 w-1/3 bg-slate-100 rounded-xl mb-4"></div>
-        <div className="space-y-6">
-          <div className="flex justify-between h-4 bg-slate-50 rounded w-full"></div>
-          <div className="flex justify-between h-4 bg-slate-50 rounded w-5/6"></div>
-        </div>
-        <div className="border-t border-slate-50 pt-8 mt-4 flex justify-between items-center">
-            <div className="h-8 w-24 bg-slate-100 rounded-lg"></div>
-            <div className="h-10 w-40 bg-slate-100 rounded-lg"></div>
-        </div>
+      <div className="p-5 md:p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-5 animate-pulse w-full">
+        <div className="h-6 bg-slate-50 rounded-lg w-1/2 mx-auto"></div>
+        <div className="h-12 bg-slate-50 rounded-xl w-full"></div>
+        <div className="h-px bg-slate-50 w-full my-2"></div>
+        <div className="h-16 w-full bg-slate-50 rounded-xl"></div>
       </div>
     );
   }
 
-  /**
-   * Estado de Erro com UI de feedback claro
-   */
   if (error) {
     return (
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="p-10 bg-red-50 rounded-[2.5rem] border-2 border-red-100 flex flex-col gap-6"
-      >
-        <div className="flex items-center gap-4 text-red-600">
-            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                <span className="material-symbols-outlined font-bold text-2xl">warning</span>
-            </div>
-            <h3 className="text-xl font-extrabold">Falha técnica na validação</h3>
-        </div>
-        <p className="text-red-700 font-medium leading-relaxed opacity-80">{error}</p>
-        <button 
-            onClick={() => window.location.reload()}
-            className="w-full py-4 px-6 bg-red-100 hover:bg-red-200 text-red-700 font-black rounded-2xl transition-all flex items-center justify-center gap-3 uppercase tracking-tighter"
-        >
-            <span className="material-symbols-outlined">refresh</span>
-            Tentar novamente
+      <div className="p-5 md:p-6 bg-white rounded-3xl border border-red-50 flex flex-col gap-4 items-center text-center">
+        <AlertCircle className="w-8 h-8 text-red-400" />
+        <h3 className="text-md font-black text-slate-800">{labels.fail}</h3>
+        <button onClick={() => window.location.reload()} className="text-[10px] text-[#0051B8] font-black uppercase tracking-widest flex items-center gap-2">
+          <RefreshCcw className="w-3 h-3" /> {labels.retry}
         </button>
-      </motion.div>
+      </div>
     );
   }
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-[3rem] p-10 lg:p-14 shadow-3xl shadow-primary/5 border border-slate-50 relative overflow-hidden group"
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-white rounded-[2rem] p-5 md:p-7 shadow-[0_4px_30px_rgba(0,0,0,0.015)] border border-slate-100 flex flex-col w-full relative overflow-hidden h-auto"
     >
-      {/* Elemento Decorativo: Ícone de Carrinho no Fundo */}
-      <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none transition-transform group-hover:scale-110 duration-700">
-          <span className="material-symbols-outlined text-[10rem]">shopping_cart_checkout</span>
+      {/* Decorative large currency letters - signature element */}
+      <div className="absolute bottom-2 right-4 pointer-events-none select-none">
+        <span className="text-6xl font-black text-[#0051B8] leading-none opacity-[0.04]">US</span>
       </div>
 
-      <div className="relative z-10">
-        <header className="flex items-center justify-between mb-12">
-            <div className="space-y-1">
-                <h2 className="text-3xl font-black text-primary tracking-tighter">
-                    Resumo do Pedido
-                </h2>
-                <div className="flex items-center gap-2">
-                    <span className="flex h-2 w-2 rounded-full bg-green-500 shadow-sm shadow-green-200"></span>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        Validação via Backend Supabase
-                    </p>
-                </div>
-            </div>
-            <div className="bg-slate-50 px-5 py-2.5 rounded-2xl">
-                <p className="text-sm font-black text-slate-400">
-                    <span className="text-primary">{items.length}</span> {items.length === 1 ? 'ITEM' : 'ITENS'}
-                </p>
+      <div className="relative z-10 space-y-7 flex flex-col items-center">
+        <header className="flex items-center justify-center gap-4 w-full">
+            <h2 className="text-lg md:text-xl font-black text-[#0051B8] leading-none tracking-tight">
+              {labels.title}
+            </h2>
+            <div className="bg-slate-50 px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-sm">
+              <span className="text-md font-black text-[#0051B8] leading-none">{items.length}</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                {items.length === 1 ? labels.item : labels.items}
+              </span>
             </div>
         </header>
 
-        {/* Listagem Estilizada dos Itens */}
-        <div className="space-y-8 mb-12">
-          <AnimatePresence mode="popLayout">
+        <div className="space-y-6 w-full">
+          <AnimatePresence>
             {items.map((item, idx) => (
               <motion.div 
                 key={item.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.1, ease: "easeOut" }}
-                className="flex justify-between items-start group/item"
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className="flex flex-col items-center gap-1 text-center"
               >
-                <div className="flex flex-col max-w-[70%]">
-                    <span className="text-slate-800 font-extrabold text-xl group-hover/item:text-primary transition-colors duration-300">
-                        {item.name}
-                    </span>
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-2 flex items-center gap-1.5 grayscale group-hover/item:grayscale-0 transition-all">
-                        <span className="material-symbols-outlined text-xs">fingerprint</span>
-                        {item.service_id}
-                    </p>
-                </div>
-                <div className="text-right">
-                    <p className="text-xl font-black text-slate-900 tracking-tighter">
-                        {formatCurrency(item.price, item.currency)}
-                    </p>
-                    {/* Badge de preço unitário caso queira evidenciar o tipo de moeda */}
-                    <span className="text-[10px] text-slate-300 font-black uppercase">Taxa única</span>
-                </div>
+                <p className="text-lg md:text-xl font-black text-[#1E293B] tracking-tighter leading-none">
+                  {formatCurrency(item.price, item.currency)}
+                </p>
+                <span className="text-sm font-black text-slate-800 leading-tight px-2">
+                  {item.name}
+                </span>
               </motion.div>
             ))}
           </AnimatePresence>
         </div>
 
-        {/* Seção do Total com Design de Alto Impacto */}
-        <footer className="pt-12 border-t-4 border-double border-slate-50">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-            <div className="space-y-2">
-                <p className="text-xs text-slate-400 font-black uppercase tracking-[0.2em]">Total Final</p>
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-50 rounded-2xl flex items-center justify-center">
-                        <span className="material-symbols-outlined text-green-600 font-bold">verified_user</span>
-                    </div>
-                    <p className="text-[11px] font-bold text-slate-500 max-w-[160px] leading-tight opacity-70">
-                        Preços auditados e protegidos por criptografia de banco.
-                    </p>
+        <div className="h-px bg-slate-100/60 w-full" />
+
+        <footer className="pt-1 w-full flex flex-col items-center">
+          <div className="flex flex-col items-center gap-4 w-full">
+              <div className="flex flex-col items-center gap-1.5">
+                <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em]">
+                  {labels.total}
+                </p>
+                <p className="text-lg md:text-xl font-black text-[#0051B8] tracking-tighter leading-none">
+                  {formatCurrency(total)}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 bg-slate-50/20 p-2 rounded-xl border border-transparent hover:border-slate-100 transition-all w-full max-w-[220px] justify-center">
+                <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center text-green-500/60 shadow-sm shrink-0">
+                  <ShieldCheck className="w-4.5 h-4.5" />
                 </div>
-            </div>
-            
-            <div className="text-right">
-                <motion.p 
-                    layoutId="totalPrice"
-                    className="text-6xl font-black text-primary tracking-tighter"
-                >
-                    {formatCurrency(overrideTotal !== undefined ? overrideTotal : total, items[0]?.currency)}
-                </motion.p>
-                <p className="text-[10px] text-slate-400 font-black mt-1 uppercase tracking-widest">A pagar agora</p>
-            </div>
+                <p className="text-[8px] font-bold text-slate-400 leading-tight">
+                   Preços auditados e protegidos por criptografia.
+                </p>
+              </div>
           </div>
-        </footer >
+        </footer>
       </div>
     </motion.div>
   );
