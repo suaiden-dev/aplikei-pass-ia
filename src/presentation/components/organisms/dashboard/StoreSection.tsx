@@ -131,10 +131,10 @@ export const StoreSection = ({ userServicesSlugs, lang, services }: StoreSection
 
       <div
         className={cn(
-          "grid gap-6",
-          products.length === 1 ? "grid-cols-1 max-w-md" : 
-          products.length === 2 ? "grid-cols-1 sm:grid-cols-2 max-w-2xl" :
-          "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          "grid gap-8",
+          products.length === 1 ? "grid-cols-1 max-w-xl" : 
+          products.length === 2 ? "grid-cols-1 sm:grid-cols-2 max-w-5xl" :
+          "grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
         )}
       >
         {products.map((product) => (
