@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { 
   FormInput, 
-  FormGroupBox,
   FormCheckbox,
   FormRadioGroup
 } from "@/presentation/components/atoms/form/FormFields";
