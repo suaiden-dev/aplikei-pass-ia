@@ -82,7 +82,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
    */
   const inFlightRef = useRef<Set<Language>>(new Set());
 
-  // ── loadLocale ────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────
+// Chunks de Idioma (Vite Dynamic Imports)
+// ─────────────────────────────────────────
+
+/** 
+ * Usamos import.meta.glob para que o Vite mapeie todos os arquivos index.ts 
+ * de cada idioma no momento do build. Isso garante que cada um vire um chunk 
+ * estável e evita erros de "MIME type" (404) em produção.
+ */
+const localeLoaders = import.meta.glob("./locales/*/index.ts");
+
+// ── loadLocale ────────────────────────────────────────────────────────────
 
   const loadLocale = useCallback(async (targetLang: Language): Promise<void> => {
     // 1. Cache hit — apply immediately, no network round-trip.
@@ -100,48 +111,19 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
     try {
       const l = targetLang;
-      const [
-        common,
-        auth,
-        dashboard,
-        visas,
-        nav,
-        landing,
-        checkout,
-        admin,
-        tracking,
-        services,
-        howItWorks,
-        footer,
-      ] = await Promise.all([
-        import(`./locales/${l}/common`).then((m) => m.default),
-        import(`./locales/${l}/auth`).then((m) => m.default),
-        import(`./locales/${l}/dashboard`).then((m) => m.default),
-        import(`./locales/${l}/visas`).then((m) => m.default),
-        import(`./locales/${l}/nav`).then((m) => m.default),
-        import(`./locales/${l}/landing`).then((m) => m.default),
-        import(`./locales/${l}/checkout`).then((m) => m.default),
-        import(`./locales/${l}/admin`).then((m) => m.default),
-        import(`./locales/${l}/tracking`).then((m) => m.default),
-        import(`./locales/${l}/services`).then((m) => m.default),
-        import(`./locales/${l}/howItWorks`).then((m) => m.default),
-        import(`./locales/${l}/footer`).then((m) => m.default),
-      ]);
+      const loaderPath = `./locales/${l}/index.ts`;
+      const loader = localeLoaders[loaderPath];
+
+      if (!loader) {
+        throw new Error(`Locale loader not found for: ${loaderPath}`);
+      }
+
+      // Executa o carregamento dinâmico do chunk do idioma
+      const localeModule = await loader() as any;
 
       const loaded: LocaleTranslations = {
         _lang: l,
-        common,
-        auth,
-        dashboard,
-        visas,
-        nav,
-        landing,
-        checkout,
-        admin,
-        tracking,
-        services,
-        howItWorks,
-        footer,
+        ...localeModule, // Espalha namespaces (common, auth, visas, etc.)
       };
 
       localeCache.set(targetLang, loaded);

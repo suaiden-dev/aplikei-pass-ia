@@ -130,36 +130,42 @@ Deno.serve(async (req: Request) => {
                 let finalUserId = orderData.user_id;
 
                 if (!finalUserId && orderData.client_email) {
-                    console.log(`[parcelow-webhook] Guest order detectada para ${orderData.client_email}`);
+                    console.log(`[parcelow-webhook] Discovery robosto para ${orderData.client_email}`);
 
                     try {
-                        const { data: users } = await supabase.auth.admin.listUsers();
-                        const userList = (users as unknown as { users: { id: string, email?: string }[] })?.users || [];
-                        const existingUser = userList.find((u: { email?: string }) => u.email === orderData!.client_email);
+                        // 1.1 Tenta encontrar usuário por e-mail no Auth diretamente (Mais confiável)
+                        const { data: usersData } = await supabase.auth.admin.listUsers();
+                        const userList = usersData?.users || [];
+                        const existingAuthUser = userList.find((u: { email?: string }) => u.email === orderData!.client_email);
 
-                        if (existingUser) {
-                            finalUserId = existingUser.id;
+                        if (existingAuthUser) {
+                            console.log(`[parcelow-webhook] Usuário Auth encontrado para convite prévio: ${existingAuthUser.id}`);
+                            finalUserId = existingAuthUser.id;
                         } else {
+                            // 1.2 Se não existir no Auth, ou se o perfil existir sem Auth, convidamos
+                            // Dinamismo de Redirect: Garante funcionamento em localhost ou prod
                             const originUrl = orderData.payment_metadata?.origin_url || Deno.env.get("FRONTEND_URL") || "https://aplikeipass.com";
-                            console.log(`[parcelow-webhook] Criando acc via convite para ${orderData.client_email} (Origin: ${originUrl})`);
+                            const redirectTo = `${originUrl}/auth/confirm-password`;
                             
+                            console.log(`[parcelow-webhook] Intentando convite para: ${orderData.client_email} | Redirect: ${redirectTo}`);
+
                             const { data: authUser, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
                                 orderData.client_email,
                                 {
-                                    redirectTo: `${originUrl}/auth/confirm-password`,
+                                    redirectTo,
                                     data: { full_name: orderData.client_name ?? "Client" }
                                 }
                             );
         
                             if (inviteError) {
-                                console.error("[parcelow-webhook] Erro ao convidar usuário:", inviteError.message);
+                                console.error("[parcelow-webhook] FALHA CRÍTICA NO CONVITE:", inviteError.message);
                             } else if (authUser?.user) {
-                                console.log("[parcelow-webhook] Convite enviado com sucesso para:", orderData.client_email);
+                                console.log("[parcelow-webhook] Convite enviado via Parcelow com sucesso para:", orderData.client_email);
                                 finalUserId = authUser.user.id;
                             }
                         }
                     } catch (e: unknown) { 
-                        console.error("Erro Auth:", (e as Error).message); 
+                        console.error("Erro Auth no Parcelow:", (e as Error).message); 
                     }
                 }
 
@@ -237,6 +243,20 @@ Deno.serve(async (req: Request) => {
                     } catch (pdfErr: unknown) {
                         console.error(`[parcelow-webhook] Erro inesperado ao gerar PDF:`, (pdfErr as Error).message);
                     }
+                }
+
+                if (finalUserId) {
+                    // 4. Envio de Notificação e E-mail (Dispara o send-notification-email via Banco)
+                    const serviceName = orderData.product_slug === 'visa-f1f2' ? 'Visto F1/F2' : orderData.product_slug?.replace('-', ' ').toUpperCase();
+                    
+                    await supabase.from('notifications').insert({
+                        user_id: finalUserId,
+                        target_type: 'user',
+                        title: 'Pagamento Confirmado!',
+                        message: `Seu pagamento para ${serviceName} foi processado e seu processo já está disponível no painel.`,
+                        send_email: true,
+                        link: '/dashboard'
+                    });
                 }
             }
         }

@@ -1,4 +1,23 @@
 project_id = "nkhblkilekfpqhyuhrrj"
+
+[functions.stripe-checkout]
+verify_jwt = false
+
+[functions.create-parcelow-checkout]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.parcelow-webhook]
+verify_jwt = false
+
+[functions.zelle-webhook]
+verify_jwt = false
+
+[functions.send-notification-email]
+verify_jwt = false
+
 [functions.fill-i539]
 enabled = true
 verify_jwt = false

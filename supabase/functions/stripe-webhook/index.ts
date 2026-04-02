@@ -86,14 +86,14 @@ Deno.serve(async (req: Request) => {
             const email = metadata.email || session.customer_details?.email || "";
             const fullName = metadata.fullName || session.customer_details?.name || "Client";
             const phone = metadata.phone || session.customer_details?.phone || "";
-            
+
             let slug = metadata.slug;
             if (!slug) {
                 if (metadata.type === 'specialist_training') slug = 'specialist-training';
                 else if (metadata.type === 'specialist_review') slug = 'specialist-review';
                 else slug = "unknown";
             }
-            
+
             const exchange_rate = metadata.exchange_rate;
             const netAmountUSD = metadata.netAmountUSD;
             const contract_selfie_url = metadata.contract_selfie_url || null;
@@ -105,23 +105,34 @@ Deno.serve(async (req: Request) => {
                 return new Response(JSON.stringify({ error: "No email provided" }), { status: 400 });
             }
 
-            // 1. Find or Create User
+            // 1. Descoberta ou Criação de Usuário (Discovery Robusto)
             let userId: string | null = null;
-            const { data: profile } = await (supabaseAdmin
-                .from('profiles')
-                .select('id')
-                .eq('email', email)
-                .maybeSingle() as any);
 
-            if (profile) {
-                userId = profile.id;
+            // 1.1 Tenta encontrar usuário por e-mail no Auth diretamente (Mais confiável que perfis)
+            const { data: { users: authUsers }, error: authFindError } = await supabaseAdmin.auth.admin.listUsers();
+            const existingAuthUser = authUsers?.find(u => u.email === email);
+
+            if (existingAuthUser) {
+                console.log(`[stripe-webhook] Usuário Auth encontrado: ${existingAuthUser.id}`);
+                userId = existingAuthUser.id;
             } else {
-                // Determine origin for redirect from metadata or fallback
+                // 1.2 Se não existir no Auth, tentamos ver se há um perfil órfão (raro)
+                const { data: profile } = await (supabaseAdmin
+                    .from('profiles')
+                    .select('id')
+                    .eq('email', email)
+                    .maybeSingle() as any);
+
+                if (profile) {
+                    console.log(`[stripe-webhook] Perfil órfão encontrado (s/ Auth). Re-convidando para ${email}`);
+                }
+
+                // 1.3 Criação/Convite do Usuário (Discovery Robusto)
+                // Usamos o origin_url dinâmico para garantir que o link de confirmação funcione em localhost ou produção
                 const originUrl = metadata.origin_url || Deno.env.get("FRONTEND_URL") || "https://aplikeipass.com";
                 const redirectTo = `${originUrl}/auth/confirm-password`;
 
-                console.log(`[stripe-webhook] Criando acc via convite para ${email} (Origin: ${originUrl})`);
-
+                console.log(`[stripe-webhook] Intentando convite para: ${email} | Redirect: ${redirectTo}`);
 
                 const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
                     email,
@@ -132,10 +143,13 @@ Deno.serve(async (req: Request) => {
                 );
 
                 if (!authError && authUser?.user) {
-                    console.log(`[stripe-webhook] Convite enviado com sucesso para: ${email}`);
+                    console.log(`[stripe-webhook] Convite enviado com sucesso para ${email}`);
                     userId = authUser.user.id;
                 } else if (authError) {
-                    console.error("[stripe-webhook] Erro ao convidar usuário:", authError.message);
+                    // Log crítico para sabermos se é limite de cota ou erro de configuração de SMTP
+                    console.error("[stripe-webhook] FALHA AO ENVIAR E-MAIL DE CONVITE:", authError.message);
+                    // IMPORTANTE: Mesmo se falhar o e-mail, tentamos prosseguir com a criação do visto
+                    // O e-mail pode ser re-enviado pelo administrador depois.
                 }
             }
 
@@ -176,9 +190,9 @@ Deno.serve(async (req: Request) => {
                 if (metadata.type === 'specialist_training') {
                     const serviceId = metadata.serviceId;
                     const packageType = parseInt(metadata.packageType || '1');
-                    
+
                     console.log(`Processing specialist training for user ${userId}, service ${serviceId}, package ${packageType}`);
-                    
+
                     const { error: updateError } = await supabaseAdmin
                         .from('user_services')
                         .update({
@@ -194,9 +208,9 @@ Deno.serve(async (req: Request) => {
                     if (updateError) console.error("Error updating specialist training data:", updateError.message);
                 } else if (metadata.type === 'specialist_review') {
                     const serviceId = metadata.serviceId;
-                    
+
                     console.log(`Processing specialist review for user ${userId}, service ${serviceId}`);
-                    
+
                     const { error: reviewError } = await supabaseAdmin
                         .from('user_services')
                         .update({
@@ -213,12 +227,12 @@ Deno.serve(async (req: Request) => {
                     const serviceId = metadata.serviceId;
                     const prefix = metadata.action.startsWith('eos') ? 'EOS' : 'COS';
                     const nextStatus = `${prefix}_CASE_FORM`;
-                    
+
                     console.log(`Processing ${metadata.action} specialist analysis payment for user ${userId}, service ${serviceId}, status: ${nextStatus}`);
-                    
+
                     const { error: cosError } = await supabaseAdmin
                         .from('user_services')
-                        .update({ 
+                        .update({
                             status: nextStatus,
                             product_type: metadata.product_type || (prefix === 'COS' ? 'COS' : 'EOS')
                         })
@@ -227,23 +241,23 @@ Deno.serve(async (req: Request) => {
                     if (cosError) console.error(`Error updating ${nextStatus} status:`, cosError.message);
                 } else if (metadata.action && ['cos_recovery', 'eos_recovery', 'rfe_recovery', 'cos_motion', 'eos_motion', 'motion_recovery'].includes(metadata.action) && metadata.serviceId) {
                     const serviceId = metadata.serviceId;
-                    const actionPrefix = metadata.action.split('_')[0].toUpperCase(); 
-                    
+                    const actionPrefix = metadata.action.split('_')[0].toUpperCase();
+
                     // Verificamos o status atual para saber se devemos ir para FORM ou MOTION
                     const { data: currentService } = await supabaseAdmin
                         .from('user_services')
                         .select('status')
                         .eq('id', serviceId)
                         .single();
-                    
+
                     const isRfeFlow = currentService?.status?.endsWith('_RFE');
                     const nextStatus = isRfeFlow ? `${actionPrefix}_CASE_FORM` : `${actionPrefix}_MOTION_IN_PROGRESS`;
-                    
+
                     console.log(`Processing ${metadata.action} payment for user ${userId}, current_status: ${currentService?.status}, next_status: ${nextStatus}`);
-                    
+
                     const { error: recoveryError } = await supabaseAdmin
                         .from('user_services')
-                        .update({ 
+                        .update({
                             status: nextStatus,
                             product_type: metadata.product_type || (actionPrefix === 'COS' ? 'COS' : 'EOS')
                         })
@@ -252,7 +266,7 @@ Deno.serve(async (req: Request) => {
                     if (recoveryError) console.error("Error updating recovery status:", recoveryError.message);
                 } else if (metadata.action === 'restart' && metadata.serviceId) {
                     console.log(`Processing restart for user ${userId}, service ${metadata.serviceId}`);
-                    
+
                     const { error: restartError } = await supabaseAdmin
                         .from('user_services')
                         .update({
@@ -264,7 +278,7 @@ Deno.serve(async (req: Request) => {
                     if (restartError) console.error("Error restarting user service:", restartError.message);
                 } else if (metadata.action === 'reapply') {
                     console.log(`Processing reapply for user ${userId}, old service ${metadata.serviceId}`);
-                    
+
                     // Create NEW service for reapplication
                     const { error: reapplyError } = await supabaseAdmin
                         .from('user_services')
@@ -288,6 +302,20 @@ Deno.serve(async (req: Request) => {
 
                     if (serviceError) console.error("Error creating user service:", serviceError.message);
                 }
+            }
+
+            // 5. Envio de E-mail de Confirmação (via Tabela de Notificações)
+            if (userId) {
+                const serviceName = slug === 'visa-f1f2' ? 'Visto F1/F2' : slug?.replace('-', ' ').toUpperCase();
+
+                await supabaseAdmin.from('notifications').insert({
+                    user_id: userId,
+                    target_type: 'user',
+                    title: 'Pagamento Confirmado!',
+                    message: `Seu pagamento para ${serviceName} foi processado com sucesso. Bem-vindo(a) à Aplikei!`,
+                    send_email: true, // Dispara o send-notification-email
+                    link: '/dashboard'
+                });
             }
 
             console.log(`Successfully processed order for ${email}`);

@@ -25,10 +25,10 @@ Deno.serve(async (req: Request) => {
         const body = await req.json();
         console.log("Stripe Checkout Request Body:", JSON.stringify(body, null, 2));
 
-        const { 
-            slug, email, fullName, phone, dependents = 0, origin_url, 
-            paymentMethod = 'card', contract_selfie_url, terms_accepted_at, 
-            action, serviceId, discountPct = 0 
+        const {
+            slug, email, fullName, phone, dependents = 0, origin_url,
+            paymentMethod = 'card', contract_selfie_url, terms_accepted_at,
+            action, serviceId, discountPct = 0
         } = body;
 
         if (!slug || !email) {
@@ -54,7 +54,7 @@ Deno.serve(async (req: Request) => {
 
         // 2. Buscar preços na nova tabela services_prices
         const dependentId = DEPENDENT_SERVICE_MAP[slug] || 'dependente-b1-b2';
-        
+
         console.log(`[stripe-checkout] Buscando preços para: ${slug} e ${dependentId}`);
         const { data: dbPrices, error: dbError } = await supabase
             .from("services_prices")
@@ -70,40 +70,14 @@ Deno.serve(async (req: Request) => {
         let mainPriceInfo = dbPrices?.find(p => p.service_id === slug);
         const depPriceInfo = dbPrices?.find(p => p.service_id === dependentId);
 
-        const isDynamicRecovery = action === 'cos_recovery' || action === 'eos_recovery' || action === 'rfe_recovery';
-        
-        if (isDynamicRecovery) {
-            console.log(`[stripe-checkout] Loading dynamic price for recovery case. ServiceId: ${serviceId}`);
-            if (!serviceId) {
-                throw new Error("Missing serviceId for recovery case");
-            }
-            
-            const { data: recoveryCase, error: rcError } = await supabase
-                .from("cos_recovery_cases")
-                .select("proposal_value_usd")
-                .eq("user_service_id", serviceId)
-                .single();
-                
-            if (rcError || !recoveryCase) {
-                console.error("Error fetching recovery case DB price:", rcError);
-                throw new Error("Could not verify recovery case pricing in the database.");
-            }
-            
-            mainPriceInfo = { 
-                service_id: slug, 
-                name: 'Proposta do Especialista', 
-                price: Number(recoveryCase.proposal_value_usd) 
-            };
-        } else {
-            if (!mainPriceInfo && FALLBACK_PRICES[slug]) {
-                console.log(`[stripe-checkout] Usando preço fallback para: ${slug}`);
-                mainPriceInfo = { service_id: slug, ...FALLBACK_PRICES[slug] };
-            }
+        if (!mainPriceInfo && FALLBACK_PRICES[slug]) {
+            console.log(`[stripe-checkout] Usando preço fallback para: ${slug}`);
+            mainPriceInfo = { service_id: slug, ...FALLBACK_PRICES[slug] };
+        }
 
-            if (!mainPriceInfo) {
-                console.error("[stripe-checkout] Serviço não encontrado:", slug);
-                throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
-            }
+        if (!mainPriceInfo) {
+            console.error("[stripe-checkout] Serviço não encontrado:", slug);
+            throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
         }
 
         const serviceName = mainPriceInfo.name;
@@ -114,7 +88,7 @@ Deno.serve(async (req: Request) => {
         const normalizedSlug = slug === 'visa-f1f2' ? 'visto-f1' : slug;
 
         let subtotalUSD = basePriceUSD + (dependents * depPriceUSD);
-        
+
         // Apply discount if provided
         if (discountPct > 0) {
             console.log("Applying discount:", discountPct);
@@ -141,11 +115,11 @@ Deno.serve(async (req: Request) => {
         // Detecting environment to use correct secret key
         let host = "localhost";
         try {
-          host = new URL(origin_url || req.headers.get("referer") || "http://localhost:5173").hostname;
+            host = new URL(origin_url || req.headers.get("referer") || "http://localhost:5173").hostname;
         } catch (e) {
-          console.error("Error parsing origin_url:", origin_url, e);
+            console.error("Error parsing origin_url:", origin_url, e);
         }
-        
+
         let env: 'PROD' | 'STAGING' | 'TEST' = 'TEST';
         if (host === 'aplikei.com' || host === 'www.aplikei.com') env = 'PROD';
         else if (host.includes('netlify.app')) env = 'STAGING';
@@ -203,7 +177,6 @@ Deno.serve(async (req: Request) => {
                 project: "aplikei",
                 action: action || "",
                 serviceId: serviceId || "",
-                product_type: slug === 'troca-status' ? 'COS' : (slug === 'extensao-status' ? 'EOS' : 'B1B2'),
             },
         });
 
@@ -215,18 +188,18 @@ Deno.serve(async (req: Request) => {
         });
     } catch (error: unknown) {
         console.error("Stripe Checkout Error Implementation Details:", error);
-        
+
         const err = error as Error & { raw?: { message: string } };
         let errorMessage = err.message;
         const errorStack = err.stack;
-        
+
         // If it's a Stripe error, it might have more details
         if (err.raw) {
-          console.error("Stripe Raw Error:", JSON.stringify(err.raw, null, 2));
-          errorMessage = err.raw.message || errorMessage;
+            console.error("Stripe Raw Error:", JSON.stringify(err.raw, null, 2));
+            errorMessage = err.raw.message || errorMessage;
         }
 
-        return new Response(JSON.stringify({ 
+        return new Response(JSON.stringify({
             error: errorMessage,
             stack: errorStack,
             raw: err.raw || null,
