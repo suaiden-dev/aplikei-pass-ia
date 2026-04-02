@@ -70,17 +70,17 @@ export const ChangeOfStatusI20Step = ({
                 
                 <div className="flex flex-col items-center gap-1.5 mt-2">
                   {isRejected && (
-                    <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200 text-[9px] font-black uppercase tracking-widest">
+                    <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200 text-[9px] font-black uppercase tracking-widest whitespace-nowrap flex-shrink-0">
                       RECUSADO
                     </Badge>
                   )}
                   {isPending && (
-                    <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 text-[9px] font-black uppercase tracking-widest">
+                    <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 text-[9px] font-black uppercase tracking-widest whitespace-nowrap flex-shrink-0">
                       EM ANÁLISE
                     </Badge>
                   )}
                   {isApproved && (
-                    <Badge className="bg-green-100 text-green-700 hover:bg-green- green-100 border-green-200 text-[9px] font-black uppercase tracking-widest">
+                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 text-[9px] font-black uppercase tracking-widest whitespace-nowrap flex-shrink-0">
                       VERIFICADO
                     </Badge>
                   )}

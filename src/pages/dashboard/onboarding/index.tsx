@@ -51,10 +51,11 @@ export default function Onboarding() {
   const cos = useCOSFlow(base);
 
   const {
-    lang, t, o, serviceSlug, currentStep, setCurrentStep, loading, serviceStatus, orderNumber, 
+    lang, t, o, serviceSlug, originalServiceSlug, currentStep, setCurrentStep, loading, serviceStatus, orderNumber, 
     formMethods: { register, control, setValue, watch, trigger, formState: { errors } },
     formData, handleUpload, handleRemoveDoc, uploadedDocs, fileInputRef, setSelectedDoc, serviceId,
-    securityData, hasConsularCredentials, requiresSelfie, setRequiresSelfie, uploadingSelfie, selfieFile, setSelfieFile, handleSelfieUpload, handleOpenDoc
+    securityData, hasConsularCredentials, requiresSelfie, setRequiresSelfie, uploadingSelfie, selfieFile, setSelfieFile, handleSelfieUpload, handleOpenDoc,
+    isNextLoading, setIsNextLoading, isFinishing, setIsFinishing
   } = base;
 
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -77,13 +78,23 @@ export default function Onboarding() {
   const progress = Math.min(((effectiveStep + 1) / totalSteps) * 100, 100);
 
   const renderStep = () => {
-    const commonProps = { register, o, lang, formData, t, setValue, watch, trigger, errors, serviceSlug, serviceStatus, securityData, control };
+    const commonProps = { register, o, lang, formData, t, setValue, watch, trigger, errors, serviceSlug, originalServiceSlug, serviceStatus, securityData, control };
     const docProps = { ...commonProps, uploadedDocs, handleUpload, handleRemove: handleRemoveDoc, uploading: base.uploading, fileInputRef, setSelectedDoc, handleSkip: async () => setCurrentStep((s) => s + 1) };
 
     if ((serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") && serviceStatus === "casvSchedulingPending") return <CASVSchedulingStep serviceId={serviceId!} onComplete={() => {}} />;
     if ((serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") && serviceStatus === "casvFeeProcessing") return <FeeProcessingStep serviceId={serviceId!} hasConsularCredentials={hasConsularCredentials} onComplete={() => {}} />;
     if ((serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") && serviceStatus === "casvPaymentPending") return <PaymentPendingStep serviceId={serviceId!} onComplete={() => {}} />;
-    if ((serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") && ["review_pending", "ds160Processing", "uploadsUnderReview"].includes(serviceStatus || "") && !uploadedDocs.some(d => d.status === "resubmit")) {
+    const isReviewing = [
+      "review_pending", "ds160Processing", "uploadsUnderReview",
+      "COS_ADMIN_SCREENING", "EOS_ADMIN_SCREENING",
+      "COS_OFFICIAL_FORMS_REVIEW", "EOS_OFFICIAL_FORMS_REVIEW",
+      "COS_COVER_LETTER_ADMIN_REVIEW", "EOS_COVER_LETTER_ADMIN_REVIEW", 
+      "COS_F1_I20_REVIEW", "EOS_F1_I20_REVIEW",
+      "COS_SEVIS_FEE_REVIEW", "EOS_SEVIS_FEE_REVIEW",
+      "COS_FINAL_FORMS_REVIEW", "EOS_FINAL_FORMS_REVIEW"
+    ].includes(serviceStatus || "");
+
+    if ((serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2" || serviceSlug === "changeofstatus") && isReviewing && !uploadedDocs.some(d => d.status === "resubmit")) {
       return <ProcessingStatusStep status={serviceStatus!} serviceSlug={serviceSlug} />;
     }
     if ((serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") && ["awaitingInterview", "approved", "rejected", "completed"].includes(serviceStatus || "")) {
@@ -92,12 +103,19 @@ export default function Onboarding() {
     if ((serviceSlug === "visto-b1-b2" || serviceSlug === "visa-f1f2") && ["ds160AwaitingReviewAndSignature", "ds160upload_documents", "review_assign"].includes(serviceStatus || "")) {
       return <ReviewAndSignDS160Step {...docProps} handleRemove={handleRemoveDoc} />;
     }
-    if (serviceSlug === "changeofstatus" && serviceStatus === "COS_OFFICIAL_FORMS") return <ChangeOfStatusOfficialFormsStep {...docProps} serviceId={serviceId!} />;
-    if (serviceSlug === "changeofstatus" && serviceStatus === "COS_COVER_LETTER_FORM") return <ChangeOfStatusCoverLetterStep {...commonProps} />;
 
     if (serviceSlug === "visto-b1-b2") return <B1B2Renderer effectiveStep={effectiveStep} commonProps={commonProps} docProps={docProps} />;
     if (serviceSlug === "visa-f1f2") return <F1F2Renderer effectiveStep={effectiveStep} commonProps={commonProps} docProps={docProps} />;
-    if (serviceSlug === "changeofstatus") return <COSRenderer stepSlugs={stepSlugs} effectiveStep={effectiveStep} commonProps={commonProps} docProps={docProps} serviceId={serviceId!} />;
+    if (serviceSlug === "changeofstatus") return (
+      <COSRenderer 
+        stepSlugs={stepSlugs} 
+        effectiveStep={effectiveStep} 
+        commonProps={commonProps} 
+        docProps={docProps} 
+        serviceId={serviceId!}
+        onNext={handleNext}
+      />
+    );
 
     switch (currentStep) {
       case 0: return <PersonalInfoStep {...commonProps} />;
@@ -110,14 +128,17 @@ export default function Onboarding() {
   };
 
   const handleFinish = async () => {
-    base.setIsFinishing(true);
+    setIsFinishing(true);
     try {
         const processRepo = (await import("@/infrastructure/factories/processFactory")).getUserProcessRepository();
         let nextStatus = ["ds160upload_documents", "ds160AwaitingReviewAndSignature", "review_assign", "uploadsUnderReview"].includes(serviceStatus || "") ? "uploadsUnderReview" : "review_pending";
         if (serviceSlug === "changeofstatus") nextStatus = serviceStatus === "COS_OFFICIAL_FORMS" ? "COS_OFFICIAL_FORMS_REVIEW" : "COS_ADMIN_SCREENING";
         await processRepo.updateStatus(serviceId!, nextStatus, steps.length - 1);
         window.location.reload();
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error(e);
+      setIsFinishing(false);
+    }
   };
 
   if (loading) {
@@ -132,6 +153,18 @@ export default function Onboarding() {
     );
   }
 
+  const getFriendlySlugName = (slug: string, currentLang: string) => {
+    const map: Record<string, Record<string, string>> = {
+      'visto-b1-b2': { pt: 'Visto B1/B2', en: 'B1/B2 Visa', es: 'Visa B1/B2' },
+      'visto-f1': { pt: 'Visto F1/F2', en: 'F1/F2 Visa', es: 'Visa F1/F2' },
+      'visa-f1f2': { pt: 'Visto F1/F2', en: 'F1/F2 Visa', es: 'Visa F1/F2' },
+      'troca-status': { pt: 'Troca de Status', en: 'Change of Status', es: 'Cambio de Estatus' },
+      'extensao-status': { pt: 'Extensão de Status', en: 'Extension of Status', es: 'Extensión de Estatus' },
+    };
+    const entry = map[slug];
+    return entry ? entry[currentLang] || entry.pt : slug.replace("-", " ");
+  };
+
   return (
     <div className="pb-24 pt-4 md:pb-0 md:pt-0">
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
@@ -141,7 +174,7 @@ export default function Onboarding() {
               <h1 className="font-display text-title font-bold text-foreground">{o.title[lang]}</h1>
               <div className="flex flex-wrap items-center gap-2 mt-1">
                 <p className="text-muted-foreground">{o.subtitle[lang]}</p>
-                {serviceSlug && <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary uppercase">{serviceSlug.replace("-", " ")}</span>}
+                {originalServiceSlug && <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary uppercase">{getFriendlySlugName(originalServiceSlug, lang)}</span>}
                 {orderNumber && <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-bold text-slate-600 dark:text-slate-400">#{orderNumber}</span>}
               </div>
             </div>
@@ -152,17 +185,31 @@ export default function Onboarding() {
           <div className={cn("rounded-md", ["casvPaymentPending", "awaitingInterview"].includes(serviceStatus || "") ? "w-full" : "border border-border bg-card p-4 shadow-card md:p-4")}>
             {renderStep()}
 
-            {!["casvSchedulingPending", "casvFeeProcessing", "casvPaymentPending", "awaitingInterview", "review_pending", "ds160Processing", "approved", "rejected", "completed", "COS_ADMIN_SCREENING", "COS_OFFICIAL_FORMS_REVIEW", "COS_COVER_LETTER_ADMIN_REVIEW", "COS_F1_I20_REVIEW", "COS_SEVIS_FEE_REVIEW", "COS_FINAL_FORMS_REVIEW"].includes(serviceStatus || "") && (
+            {!["casvSchedulingPending", "casvFeeProcessing", "casvPaymentPending", "awaitingInterview", "review_pending", "ds160Processing", "approved", "rejected", "completed", 
+              "COS_ADMIN_SCREENING", "COS_OFFICIAL_FORMS_REVIEW", "COS_COVER_LETTER_ADMIN_REVIEW", "COS_F1_I20_REVIEW", "COS_SEVIS_FEE_REVIEW", "COS_FINAL_FORMS_REVIEW", "COS_TRACKING",
+              "EOS_ADMIN_SCREENING", "EOS_OFFICIAL_FORMS_REVIEW", "EOS_COVER_LETTER_ADMIN_REVIEW", "EOS_F1_I20_REVIEW", "EOS_SEVIS_FEE_REVIEW", "EOS_FINAL_FORMS_REVIEW", "EOS_TRACKING"
+            ].includes(serviceStatus || "") && 
+              !(serviceSlug === "changeofstatus" && currentStep === (steps?.length || 1) - 1) && (
               <div className="mt-5 hidden justify-between md:flex">
-                <Button variant="outline" disabled={effectiveStep === 0} onClick={() => setCurrentStep((s) => s - 1)}>
+                <Button variant="outline" disabled={effectiveStep === 0 || isNextLoading} onClick={() => setCurrentStep((s) => s - 1)}>
                   <ChevronLeft className="mr-1 h-4 w-4" /> {o.previous[lang]}
                 </Button>
                 {currentStep < (steps?.length || 1) - 1 ? (
-                  <Button className="bg-accent text-accent-foreground hover:bg-green-dark" onClick={handleNext}>
-                    {o.next[lang]} <ChevronRight className="ml-1 h-4 w-4" />
+                  <Button 
+                    className="bg-accent text-accent-foreground hover:bg-green-dark min-w-[120px]" 
+                    onClick={handleNext}
+                    disabled={isNextLoading}
+                  >
+                    {isNextLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{o.next[lang]} <ChevronRight className="ml-1 h-4 w-4" /></>}
                   </Button>
                 ) : (
-                  <Button className="bg-accent text-accent-foreground hover:bg-green-dark" onClick={handleFinish}>{o.confirmGenerate[lang]}</Button>
+                  <Button 
+                    className="bg-accent text-accent-foreground hover:bg-green-dark min-w-[120px]" 
+                    onClick={handleFinish}
+                    disabled={isFinishing}
+                  >
+                    {isFinishing ? <Loader2 className="h-4 w-4 animate-spin" /> : o.confirmGenerate[lang]}
+                  </Button>
                 )}
               </div>
             )}
@@ -178,20 +225,18 @@ export default function Onboarding() {
             <Progress value={progress} className="mt-3 h-2" />
             <div className="mt-4 flex flex-wrap gap-2 lg:flex-nowrap lg:flex-col lg:items-stretch lg:gap-3">
                 {steps.map((step: string, i: number) => (
-                <button
+                <div
                     key={i}
-                    onClick={() => i <= effectiveStep && setCurrentStep(i)}
-                    disabled={i > effectiveStep}
                     className={cn(
                         "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-medium transition-all ring-1",
-                        i === effectiveStep ? "bg-accent/10 text-accent ring-accent/20" : i < effectiveStep ? "text-foreground ring-transparent hover:bg-muted" : "cursor-not-allowed text-muted-foreground opacity-50 ring-transparent"
+                        i === effectiveStep ? "bg-accent/10 text-accent ring-accent/20" : i < effectiveStep ? "text-foreground ring-transparent" : "text-muted-foreground opacity-50 ring-transparent"
                     )}
                 >
                     <div className="flex h-5 w-5 shrink-0 items-center justify-center">
                     {i < effectiveStep ? <CheckCircle2 className="h-4 w-4 text-accent" /> : i === effectiveStep ? <div className="h-2 w-2 rounded-full bg-accent animate-pulse" /> : <Circle className="h-4 w-4 text-muted-foreground/30" />}
                     </div>
                     <span className="truncate">{step}</span>
-                </button>
+                </div>
                 ))}
             </div>
             {["visto-b1-b2", "visa-f1f2"].includes(serviceSlug || "") && (

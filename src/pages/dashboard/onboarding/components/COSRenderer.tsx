@@ -9,7 +9,7 @@ import { ChangeOfStatusFinalPackageStep } from "../steps/ChangeOfStatus/ChangeOf
 import { ChangeOfStatusTrackingStep } from "../steps/ChangeOfStatus/ChangeOfStatusTrackingStep";
 import { StepProps, DocumentStepProps } from "../types";
 
-export const COSRenderer = ({ stepSlugs, effectiveStep, commonProps, docProps, serviceId }: { stepSlugs: string[], effectiveStep: number, commonProps: StepProps, docProps: DocumentStepProps, serviceId: string }) => {
+export const COSRenderer = ({ stepSlugs, effectiveStep, commonProps, docProps, serviceId, onNext }: { stepSlugs: string[], effectiveStep: number, commonProps: StepProps, docProps: DocumentStepProps, serviceId: string, onNext: () => Promise<void> }) => {
     const currentSlug = stepSlugs[effectiveStep];
     switch (currentSlug) {
         case "cos-form": return <ChangeOfStatusFormStep {...commonProps} control={commonProps.control!} {...docProps} />;
@@ -18,8 +18,8 @@ export const COSRenderer = ({ stepSlugs, effectiveStep, commonProps, docProps, s
         case "cos-cover-letter-form": return <ChangeOfStatusCoverLetterStep {...commonProps} />;
         case "cos-i20": return <ChangeOfStatusI20Step {...commonProps} {...docProps} />;
         case "cos-sevis": return <ChangeOfStatusSevisStep {...commonProps} {...docProps} />;
-        case "cos-final-forms": return <ChangeOfStatusFinalFormsStep {...commonProps} serviceId={serviceId} />;
-        case "cos-review": return <ChangeOfStatusFinalPackageStep {...commonProps} {...docProps} />;
+        case "cos-final-forms": return <ChangeOfStatusFinalFormsStep {...commonProps} serviceId={serviceId} onNext={onNext} />;
+        case "cos-review": return <ChangeOfStatusFinalPackageStep {...commonProps} {...docProps} onNext={onNext} />;
         case "cos-tracking": return <ChangeOfStatusTrackingStep {...commonProps} />;
         default: return null;
     }

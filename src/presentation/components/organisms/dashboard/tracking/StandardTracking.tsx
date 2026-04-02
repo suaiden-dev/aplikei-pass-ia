@@ -15,6 +15,7 @@ interface StandardTrackingProps {
   handleSaveTracking: () => void;
   setSelectedOutcome: (v: string) => void;
   setIsConfirmOpen: (v: boolean) => void;
+  recoveryType?: string;
 }
 
 export const StandardTracking: React.FC<StandardTrackingProps> = (props) => {
@@ -26,7 +27,8 @@ export const StandardTracking: React.FC<StandardTrackingProps> = (props) => {
     isSaving,
     handleSaveTracking,
     setSelectedOutcome,
-    setIsConfirmOpen
+    setIsConfirmOpen,
+    recoveryType = 'none'
   } = props;
 
   return (
@@ -121,16 +123,18 @@ export const StandardTracking: React.FC<StandardTrackingProps> = (props) => {
                   variant="rejected" 
                   icon={<XCircle className="h-5 w-5" />} 
                   label="Negado" 
-                  description="A petição foi recusada."
+                  description={recoveryType === "motion" ? "A petição foi recusada." : "Desejo abrir Motion."}
                   onClick={() => { setSelectedOutcome("rejected"); setIsConfirmOpen(true); }} 
                 />
-                <StatusButton 
-                  variant="rfe" 
-                  icon={<AlertCircle className="h-5 w-5" />} 
-                  label="RFE Recebido" 
-                  description="Aguardando evidências."
-                  onClick={() => { setSelectedOutcome("rfe"); setIsConfirmOpen(true); }} 
-                />
+                {(recoveryType === 'none' || !recoveryType) && (
+                  <StatusButton 
+                    variant="rfe" 
+                    icon={<AlertCircle className="h-5 w-5" />} 
+                    label="RFE Recebido" 
+                    description="Aguardando evidências."
+                    onClick={() => { setSelectedOutcome("rfe"); setIsConfirmOpen(true); }} 
+                  />
+                )}
               </div>
             </div>
           )}

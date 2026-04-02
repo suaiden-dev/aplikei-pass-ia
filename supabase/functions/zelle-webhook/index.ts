@@ -170,10 +170,47 @@ Deno.serve(async (req: Request) => {
 
             if (orderIdForPdf) {
                 // Garante que o payment_status da visa_order está como paid
-                await supabase
+                const { data: vOrder } = await supabase
                     .from("visa_orders")
                     .update({ payment_status: "paid" })
-                    .eq("id", orderIdForPdf);
+                    .eq("id", orderIdForPdf)
+                    .select("payment_metadata")
+                    .single();
+
+                if (vOrder && vOrder.payment_metadata && typeof vOrder.payment_metadata === 'object' && finalUserId) {
+                    const meta = vOrder.payment_metadata as any;
+                    const action = meta.action;
+                    const metaServiceId = meta.serviceId || meta.service_id;
+                    
+                    if (action && metaServiceId) {
+                        const actionPrefix = action.split('_')[0].toUpperCase(); 
+                        
+                        // Verificamos o status atual para saber se devemos ir para FORM ou MOTION
+                        const { data: currentService } = await supabase
+                            .from('user_services')
+                            .select('status')
+                            .eq('id', metaServiceId)
+                            .single();
+                        
+                        const isRfeFlow = currentService?.status?.endsWith('_RFE');
+                        let nextStatus = "";
+                        
+                        if (['cos_analyst', 'eos_analyst', 'rfe_analyst', 'specialist_review', 'specialist_training'].includes(action)) {
+                            nextStatus = `${actionPrefix}_CASE_FORM`;
+                        } else if (['cos_recovery', 'eos_recovery', 'rfe_recovery', 'cos_motion', 'eos_motion', 'motion_recovery'].includes(action)) {
+                            nextStatus = isRfeFlow ? `${actionPrefix}_CASE_FORM` : `${actionPrefix}_MOTION_IN_PROGRESS`;
+                        }
+                        
+                        if (nextStatus) {
+                            console.log(`[zelle-webhook] Advancing service ${metaServiceId} to ${nextStatus} for action ${action} (current: ${currentService?.status})`);
+                            await supabase
+                                .from("user_services")
+                                .update({ status: nextStatus })
+                                .eq("id", metaServiceId)
+                                .eq("user_id", finalUserId);
+                        }
+                    }
+                }
 
                 const { error: pdfError } = await supabase.functions.invoke("generate-contract-pdf", {
                     body: { order_id: orderIdForPdf }

@@ -87,10 +87,13 @@ export default function AdminContracts() {
           // Find the best service match for this order
           const matchingServices = (services || [])
             .filter(
-              (s) =>
-                s.user_id === order.user_id &&
-                s.service_slug === order.product_slug &&
-                !usedServiceIds.has(s.id)
+              (s) => {
+                const sameUser = s.user_id === order.user_id;
+                const isCOSProduct = order.product_slug === "troca-status" || order.product_slug === "extensao-status";
+                const slugMatch = s.service_slug === order.product_slug || (isCOSProduct && s.service_slug === "changeofstatus");
+                
+                return sameUser && slugMatch && !usedServiceIds.has(s.id);
+              }
             )
             .sort((a, b) => {
               const diffA = Math.abs(new Date(a.created_at).getTime() - new Date(order.created_at).getTime());

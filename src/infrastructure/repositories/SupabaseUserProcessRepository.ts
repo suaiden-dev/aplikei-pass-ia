@@ -14,6 +14,7 @@ interface RawUserProcess {
   grandmother_name?: string | null;
   is_second_attempt?: boolean | null;
   consular_login?: string | null;
+  product_type?: string | null;
   service_metadata?: any;
 }
 
@@ -41,10 +42,15 @@ export class SupabaseUserProcessRepository implements IUserProcessRepository {
     return this.mapToDomain(data as RawUserProcess);
   }
 
-  async create(userId: string, serviceSlug: string, status: string): Promise<UserProcess> {
+  async create(userId: string, serviceSlug: string, status: string, productType?: string): Promise<UserProcess> {
     const { data, error } = await supabase
       .from("user_services")
-      .insert({ user_id: userId, service_slug: serviceSlug, status })
+      .insert({ 
+        user_id: userId, 
+        service_slug: serviceSlug, 
+        status,
+        product_type: productType || (serviceSlug === 'extensao-status' ? 'EOS' : 'COS')
+      })
       .select()
       .single();
 
@@ -94,7 +100,7 @@ export class SupabaseUserProcessRepository implements IUserProcessRepository {
 
     const { error } = await supabase
       .from("user_services")
-      .update(updateData)
+      .update(updateData as any)
       .eq("id", id);
 
     if (error) throw error;
@@ -157,7 +163,9 @@ export class SupabaseUserProcessRepository implements IUserProcessRepository {
       grandmotherName: raw.grandmother_name || undefined,
       isSecondAttempt: raw.is_second_attempt || undefined,
       consularLogin: raw.consular_login || undefined,
-      data: raw.service_metadata || undefined
+      productType: raw.product_type || undefined,
+      data: raw.service_metadata || undefined,
+      service_metadata: raw.service_metadata || undefined
     };
   }
 }

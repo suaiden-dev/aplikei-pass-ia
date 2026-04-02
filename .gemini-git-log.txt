@@ -1,0 +1,164 @@
+commit 3615326dddd2030b4e9720298a5d221de13d0d59
+Author: Anderson Vilela <andersonlucash.al@gmail.com>
+Date:   Tue Mar 31 20:01:41 2026 -0300
+
+    feat: implement recursive RFE/Motion recovery workflow and independent Status Extension (EOS) product
+
+diff --git a/supabase/functions/stripe-webhook/index.ts b/supabase/functions/stripe-webhook/index.ts
+index 98fd951..e8d2709 100644
+--- a/supabase/functions/stripe-webhook/index.ts
++++ b/supabase/functions/stripe-webhook/index.ts
+@@ -210,6 +210,18 @@ Deno.serve(async (req: Request) => {
+                         .eq('user_id', userId);
+ 
+                     if (reviewError) console.error("Error updating specialist review data:", reviewError.message);
++                } else if (metadata.action === 'cos_analyst' && metadata.serviceId) {
++                    const serviceId = metadata.serviceId;
++                    
++                    console.log(`Processing COS specialist analysis payment for user ${userId}, service ${serviceId}`);
++                    
++                    const { error: cosError } = await supabaseAdmin
++                        .from('user_services')
++                        .update({ status: 'COS_CASE_FORM' })
++                        .eq('id', serviceId)
++                        .eq('user_id', userId);
++
++                    if (cosError) console.error("Error updating COS case form status:", cosError.message);
+                 } else if (metadata.action === 'restart' && metadata.serviceId) {
+                     console.log(`Processing restart for user ${userId}, service ${metadata.serviceId}`);
+                     
+
+commit 89799909fb6f9ae50de613777b67ac33b530489d
+Author: Anderson-Vilela-op <andersonlucash.al@gmail.com>
+Date:   Tue Mar 17 21:04:49 2026 -0300
+
+    fix(supabase): resolve Deno type errors and standardize edge functions
+
+diff --git a/supabase/functions/stripe-webhook/index.ts b/supabase/functions/stripe-webhook/index.ts
+index fa3e55c..98fd951 100644
+--- a/supabase/functions/stripe-webhook/index.ts
++++ b/supabase/functions/stripe-webhook/index.ts
+@@ -1,3 +1,4 @@
++/* eslint-disable @typescript-eslint/no-explicit-any */
+ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
+ import Stripe from "https://esm.sh/stripe@14.16.0";
+ 
+@@ -6,7 +7,7 @@ const corsHeaders = {
+     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+ };
+ 
+-Deno.serve(async (req) => {
++Deno.serve(async (req: Request) => {
+     console.log("--- WEBHOOK REQUEST RECEIVED ---");
+     console.log("Method:", req.method);
+ 
+@@ -22,7 +23,7 @@ Deno.serve(async (req) => {
+         // Detect environment to use correct secret key
+         // In local/staging we usually have a fallback or specific env vars
+         const host = req.headers.get("host") || "";
+-        let env = 'TEST';
++        const env = 'TEST';
+ 
+         const webhookSecret = Deno.env.get(`STRIPE_WEBHOOK_SECRET_TEST`) || Deno.env.get("STRIPE_WEBHOOK_SECRET");
+         const stripeSecret = Deno.env.get(`STRIPE_SECRET_KEY_TEST`) || Deno.env.get("STRIPE_SECRET_KEY");
+@@ -64,12 +65,11 @@ Deno.serve(async (req) => {
+                 Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+             );
+ 
+-            // Redundancy check
+-            const { data: existingOrder } = await supabaseAdmin
++            const { data: existingOrder } = await (supabaseAdmin
+                 .from('visa_orders')
+                 .select('id, payment_status')
+                 .eq('stripe_session_id', session.id)
+-                .maybeSingle();
++                .maybeSingle() as any);
+ 
+             if (existingOrder && existingOrder.payment_status === 'paid') {
+                 console.log(`Order already processed for session: ${session.id}`);
+@@ -107,11 +107,11 @@ Deno.serve(async (req) => {
+ 
+             // 1. Find or Create User
+             let userId: string | null = null;
+-            const { data: profile } = await supabaseAdmin
++            const { data: profile } = await (supabaseAdmin
+                 .from('profiles')
+                 .select('id')
+                 .eq('email', email)
+-                .maybeSingle();
++                .maybeSingle() as any);
+ 
+             if (profile) {
+                 userId = profile.id;
+@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
+             const appliedExchangeRate = exchange_rate ? parseFloat(exchange_rate) : null;
+             const totalBRL = appliedExchangeRate ? totalUSD * appliedExchangeRate : null;
+ 
+-            const { data: order, error: orderError } = await supabaseAdmin
++            const { data: order, error: orderError } = await (supabaseAdmin
+                 .from('visa_orders')
+                 .upsert({
+                     stripe_session_id: session.id,
+@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
+                     client_ip
+                 }, { onConflict: 'stripe_session_id' })
+                 .select()
+-                .single();
++                .single() as any);
+ 
+             if (orderError) throw orderError;
+ 
+@@ -257,8 +257,9 @@ Deno.serve(async (req) => {
+             headers: { ...corsHeaders, "Content-Type": "application/json" },
+             status: 200,
+         });
+-    } catch (err) {
+-        console.error(`Webhook Error: ${err.message}`);
+-        return new Response(`Webhook Error: ${err.message}`, { status: 400 });
++    } catch (err: unknown) {
++        const error = err as Error;
++        console.error(`Webhook Error: ${error.message}`);
++        return new Response(`Webhook Error: ${error.message}`, { status: 400 });
+     }
+ });
+
+commit c07606e42ea8454679c2c716804c863e2b922a2c
+Author: Anderson Vilela <andersonlucash.al@gmail.com>
+Date:   Thu Mar 12 19:40:20 2026 -0300
+
+    feat: enhance admin panel and dashboard for reapplication flows
+    
+    - Removed order de-duplication in admin panel to show multiple processes.
+    - Improved service-to-order mapping logic using creation dates.
+    - Added '2ª Tentativa' badge in admin for reapplications.
+    - Fixed crash in AdminProcessDetail when multiple services exist.
+    - Updated dashboard to show 100% progress and 'Negado' badge for rejected status.
+    - Implemented RejectedReapplyStep with mobile-optimized buttons.
+    - Updated stripe-checkout and webhook to support reapplication payments.
+    - Updated Supabase types and translations.
+
+diff --git a/supabase/functions/stripe-webhook/index.ts b/supabase/functions/stripe-webhook/index.ts
+index 1a61cff..fa3e55c 100644
+--- a/supabase/functions/stripe-webhook/index.ts
++++ b/supabase/functions/stripe-webhook/index.ts
+@@ -222,6 +222,20 @@ Deno.serve(async (req) => {
+                         .eq('user_id', userId);
+ 
+                     if (restartError) console.error("Error restarting user service:", restartError.message);
++                } else if (metadata.action === 'reapply') {
++                    console.log(`Processing reapply for user ${userId}, old service ${metadata.serviceId}`);
++                    
++                    // Create NEW service for reapplication
++                    const { error: reapplyError } = await supabaseAdmin
++                        .from('user_services')
++                        .insert({
++                            user_id: userId,
++                            service_slug: slug,
++                            status: 'active',
++                            is_second_attempt: true
++                        });
++
++                    if (reapplyError) console.error("Error creating reapplied user service:", reapplyError.message);
+                 } else {
+                     // Default behavior for visa orders: Create/Update User Service
+                     const { error: serviceError } = await supabaseAdmin

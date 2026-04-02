@@ -173,22 +173,22 @@ export const ChangeOfStatusSevisStep = ({
             
             <AnimatePresence>
               {isRejected && (
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                  <Badge variant="destructive" className="bg-red-500 text-white border-none text-[10px] font-black px-3 py-1.5 h-auto uppercase tracking-tighter shadow-lg shadow-red-500/20">
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex-shrink-0">
+                  <Badge variant="destructive" className="bg-red-500 text-white border-none text-[10px] font-black px-3 py-1.5 h-auto uppercase tracking-tighter shadow-lg shadow-red-500/20 whitespace-nowrap">
                     RECUSADO
                   </Badge>
                 </motion.div>
               )}
               {isPending && (
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                  <Badge className="bg-blue-600 text-white border-none text-[10px] font-black px-3 py-1.5 h-auto uppercase tracking-tighter shadow-lg shadow-blue-600/20">
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex-shrink-0">
+                  <Badge className="bg-blue-600 text-white border-none text-[10px] font-black px-3 py-1.5 h-auto uppercase tracking-tighter shadow-lg shadow-blue-600/20 whitespace-nowrap">
                     EM ANÁLISE
                   </Badge>
                 </motion.div>
               )}
               {isApproved && (
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                  <Badge className="bg-green-600 text-white border-none text-[10px] font-black px-3 py-1.5 h-auto uppercase tracking-tighter shadow-lg shadow-green-600/20">
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex-shrink-0">
+                  <Badge className="bg-green-600 text-white border-none text-[10px] font-black px-3 py-1.5 h-auto uppercase tracking-tighter shadow-lg shadow-green-600/20 whitespace-nowrap">
                     VERIFICADO
                   </Badge>
                 </motion.div>

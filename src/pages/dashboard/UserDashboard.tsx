@@ -83,7 +83,12 @@ export default function UserDashboard() {
 
         if (processes && processes.length > 0) {
           const uniqueServicesMap = new Map<string, ServiceWithProgress>();
-          const EXCLUDED_SUB_SERVICES = ["analise-especialista-cos", "motion-reconsideracao-cos"];
+          const EXCLUDED_SUB_SERVICES = [
+            "analise-especialista-cos", 
+            "motion-reconsideracao-cos",
+            "motion-reconsideracao-eos",
+            "rfe-support"
+          ];
           
           processes.forEach((p) => {
             if (EXCLUDED_SUB_SERVICES.includes(p.serviceSlug)) return;

@@ -46,8 +46,8 @@ export const ActiveServiceCard = ({
       className={cn(
         "relative w-full text-left p-5 rounded-[2rem] border-2 transition-all duration-300 group overflow-hidden shadow-md",
         isSelected
-          ? "border-primary bg-primary/5 shadow-xl shadow-primary/5"
-          : "border-border/40 bg-card/60 backdrop-blur-sm hover:border-primary/20",
+          ? "border-primary bg-primary/5 shadow-xl shadow-primary/10"
+          : "border-slate-200 bg-white hover:border-primary/30 shadow-sm hover:shadow-xl",
         isChecking && "opacity-70 cursor-wait"
       )}
     >
@@ -80,7 +80,7 @@ export const ActiveServiceCard = ({
       </div>
 
       <div className="space-y-3 relative z-10">
-        <h3 className="font-display text-lg font-bold text-foreground uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
+        <h3 className="font-display text-lg font-black text-slate-900 uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
           {displaySlug}
         </h3>
 

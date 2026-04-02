@@ -29,6 +29,7 @@ const CheckoutSuccess = () => {
     }
     const [clientEmail, setClientEmail] = useState<string | null>(initialEmail);
     const [isUploading, setIsUploading] = useState(!!location.state?.zelleData);
+    const [productType, setProductType] = useState<string | null>(searchParams.get("pt") || searchParams.get("product_type"));
 
     const isPending = status === "pending";
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -84,7 +85,7 @@ const CheckoutSuccess = () => {
             // Tenta em visa_orders (Parcelow/Stripe)
             const { data: visaData, error: visaError } = await supabase
                 .from("visa_orders")
-                .select("payment_status, client_email")
+                .select("payment_status, client_email, product_type")
                 .eq("id", paymentId)
                 .single();
 
@@ -99,13 +100,15 @@ const CheckoutSuccess = () => {
 
             if (isMounted && visaData) {
                 console.log("[CheckoutSuccess] Dados da Ordem encontrados:", visaData);
-                if (visaData.client_email) {
-                    setClientEmail(visaData.client_email);
-                } else {
-                    console.warn("[CheckoutSuccess] Ordem encontrada, mas client_email é nulo.");
+                const vData = visaData as any;
+                if (vData.client_email) {
+                    setClientEmail(vData.client_email);
+                }
+                if (vData.product_type) {
+                    setProductType(vData.product_type);
                 }
 
-                if (visaData.payment_status === "approved" || visaData.payment_status === "paid") {
+                if (vData.payment_status === "approved" || vData.payment_status === "paid") {
                     console.log("[CheckoutSuccess] Ordem Visa confirmada.");
                     setStatus("success");
                 }
@@ -204,7 +207,7 @@ const CheckoutSuccess = () => {
 
                 {(!isUploading && !isPending) && (
                     <>
-                        {searchParams.get("slug") === "analise-especialista-cos" ? (
+                        {searchParams.get("slug")?.includes("analise-especialista") ? (
                             <div className="bg-primary/5 rounded-xl p-5 mb-5 text-center border border-primary/20 space-y-3">
                                 <p className="text-primary font-semibold text-lg">
                                     Análise desbloqueada com sucesso!
@@ -216,10 +219,10 @@ const CheckoutSuccess = () => {
                                     className="mt-2 rounded-xl font-bold"
                                     onClick={() => window.location.href = "/dashboard/acompanhamento?from=checkout"}
                                 >
-                                    Preencher Formulário do Caso <ArrowRight className="ml-2 h-4 w-4" />
+                                    Preencher Formulário do {productType || 'Caso'} <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </div>
-                        ) : searchParams.get("slug") === "motion-reconsideracao-cos" ? (
+                        ) : searchParams.get("slug")?.includes("motion-reconsideracao") ? (
                             <div className="bg-primary/5 rounded-xl p-5 mb-5 text-center border border-primary/20 space-y-3">
                                 <p className="text-primary font-semibold text-lg">
                                     Pagamento Confirmado!
@@ -232,6 +235,21 @@ const CheckoutSuccess = () => {
                                     onClick={() => window.location.href = "/dashboard/acompanhamento?from=checkout"}
                                 >
                                     Ver Acompanhamento do Motion <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </div>
+                        ) : searchParams.get("slug")?.includes("rfe-recovery") ? (
+                            <div className="bg-primary/5 rounded-xl p-5 mb-5 text-center border border-primary/20 space-y-3">
+                                <p className="text-primary font-semibold text-lg">
+                                    Pagamento Confirmado!
+                                </p>
+                                <p className="text-muted-foreground text-sm">
+                                    O especialista já foi notificado e começará a produzir a sua resposta de RFE.
+                                </p>
+                                <Button
+                                    className="mt-2 rounded-xl font-bold"
+                                    onClick={() => window.location.href = "/dashboard/acompanhamento?from=checkout"}
+                                >
+                                    Ver Acompanhamento do RFE <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </div>
                         ) : !isLoggedIn ? (

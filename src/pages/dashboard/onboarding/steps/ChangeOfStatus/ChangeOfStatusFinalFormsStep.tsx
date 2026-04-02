@@ -43,7 +43,8 @@ export const ChangeOfStatusFinalFormsStep = ({
   setValue,
   watch,
   serviceId,
-}: Partial<DocumentStepProps> & { serviceId?: string }) => {
+  onNext,
+}: Partial<DocumentStepProps> & { serviceId?: string, onNext?: () => Promise<void> }) => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGenerated, setIsGenerated] = useState(false);
@@ -370,25 +371,42 @@ export const ChangeOfStatusFinalFormsStep = ({
                       : "Forms G-1145 and G-1450 were filled successfully. You can download them below or continue."}
                   </p>
                   {pdfUrls && (
-                    <div className="flex flex-wrap justify-center lg:justify-start gap-4 mt-6">
-                      <Button 
-                        variant="outline" 
-                        asChild 
-                        className="bg-white border-green-200 text-green-700 hover:bg-green-50 h-12 px-6 rounded-xl font-bold gap-2"
-                      >
-                        <a href={pdfUrls.g1145} target="_blank" rel="noopener noreferrer">
-                          <Download className="h-4 w-4" /> G-1145.pdf
-                        </a>
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        asChild 
-                        className="bg-white border-green-200 text-green-700 hover:bg-green-50 h-12 px-6 rounded-xl font-bold gap-2"
-                      >
-                        <a href={pdfUrls.g1450} target="_blank" rel="noopener noreferrer">
-                          <Download className="h-4 w-4" /> G-1450.pdf
-                        </a>
-                      </Button>
+                    <div className="space-y-6">
+                      <div className="flex flex-wrap justify-center lg:justify-start gap-4 mt-6">
+                        <Button 
+                          variant="outline" 
+                          asChild 
+                          className="bg-white border-green-200 text-green-700 hover:bg-green-50 h-14 px-8 rounded-2xl font-bold gap-3 shadow-sm hover:shadow-md transition-all"
+                        >
+                          <a href={pdfUrls.g1145} target="_blank" rel="noopener noreferrer">
+                            <Download className="h-5 w-5" /> G-1145.pdf
+                          </a>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          asChild 
+                          className="bg-white border-green-200 text-green-700 hover:bg-green-50 h-14 px-8 rounded-2xl font-bold gap-3 shadow-sm hover:shadow-md transition-all"
+                        >
+                          <a href={pdfUrls.g1450} target="_blank" rel="noopener noreferrer">
+                            <Download className="h-5 w-5" /> G-1450.pdf
+                          </a>
+                        </Button>
+                      </div>
+
+                      <div className="pt-4 border-t border-green-200/50">
+                        <Button
+                          onClick={onNext}
+                          className="w-full lg:w-auto h-16 px-12 gap-3 bg-green-600 hover:bg-green-700 text-white font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-green-600/20 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                          <Send className="h-5 w-5" />
+                          {lang === "pt" ? "Enviar para Revisão do Administrador" : "Submit for Administrator Review"}
+                        </Button>
+                        <p className="text-[10px] text-green-600/70 font-bold uppercase tracking-widest mt-3 text-center lg:text-left">
+                          {lang === "pt" 
+                            ? "Ao clicar, o administrador será notificado para conferir e aprovar seus formulários."
+                            : "By clicking, the administrator will be notified to check and approve your forms."}
+                        </p>
+                      </div>
                     </div>
                   )}
                 </motion.div>

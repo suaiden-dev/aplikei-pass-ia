@@ -6,12 +6,14 @@ import { getUserProcessRepository } from "@/infrastructure/factories/processFact
 import { GetUserProcesses } from "@/application/use-cases/user/GetUserProcesses";
 import { UserProcess } from "@/domain/user/UserEntities";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export const useTracking = () => {
   const { session } = useAuth();
   const user = session?.user;
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlServiceId = searchParams.get("service_id");
 
   const [loading, setLoading] = useState(true);
   const [process, setProcess] = useState<UserProcess | null>(null);
@@ -29,6 +31,7 @@ export const useTracking = () => {
 
   const getStatusPrefix = (p: UserProcess | null) => {
     if (!p) return "COS_";
+    if (p.productType) return p.productType + "_";
     return p.serviceSlug === "extensao-status" ? "EOS_" : "COS_";
   };
 
@@ -40,12 +43,14 @@ export const useTracking = () => {
       const getUserProcesses = new GetUserProcesses(repo);
       const processes = await getUserProcesses.execute(user.id);
       
-      const cosProcess = processes.find(p => 
-        (p.serviceSlug === "troca-status" || p.serviceSlug === "extensao-status" || p.serviceSlug === "changeofstatus") &&
-        (p.status.startsWith("COS_") || p.status.startsWith("EOS_") || p.status.includes("ANALISE") || p.status.includes("MOTION"))
-      ) || processes.find(p => 
-        p.serviceSlug === "troca-status" || p.serviceSlug === "extensao-status" || p.serviceSlug === "changeofstatus"
-      ) || processes[0]; 
+      const cosProcess = urlServiceId 
+        ? processes.find(p => p.id === urlServiceId)
+        : processes.find(p => 
+            (p.productType === 'COS' || p.productType === 'EOS' || p.serviceSlug === "troca-status" || p.serviceSlug === "extensao-status") &&
+            (p.status.startsWith("COS_") || p.status.startsWith("EOS_") || p.status.includes("ANALISE") || p.status.includes("MOTION"))
+          ) || processes.find(p => 
+            p.productType === 'COS' || p.productType === 'EOS' || p.serviceSlug === "troca-status" || p.serviceSlug === "extensao-status"
+          ) || processes[0]; 
       
       if (cosProcess) {
         setProcess(cosProcess);
@@ -59,7 +64,7 @@ export const useTracking = () => {
                            cosProcess.status.includes("MOTION");
                            
         if (isRecovery) {
-          const { data: rc } = await (supabase as any)
+          const { data: rc } = await supabase
             .from("cos_recovery_cases")
             .select("*")
             .eq("user_service_id", cosProcess.id)
@@ -122,9 +127,14 @@ export const useTracking = () => {
   const handleConfirmStatus = async () => {
     if (!process || !selectedOutcome) return;
     setIsUpdatingStatus(true);
-    const currentType = process.data?.recovery_type || 'motion';
+    const metadata = (process.service_metadata as any) || {};
+    const currentType = metadata.recovery_type || 'none';
     const prefix = getStatusPrefix(process);
     
+    // Explicit rule: If we are in the main tracking status, any rejection starts a Motion flow.
+    // If we are already in some recovery stage (RFE, MOTION, etc) OR have a payment confirmed, rejection is final.
+    const isAtStart = process.status.endsWith("_TRACKING");
+
     try {
       let statusToSave = "";
       let newRecursiveType = "";
@@ -132,28 +142,42 @@ export const useTracking = () => {
       if (selectedOutcome === "approved") {
         statusToSave = "approved";
       } else if (selectedOutcome === "rejected") {
-        if (currentType === "rfe") {
-          statusToSave = prefix + "CASE_FORM";
+        if (isAtStart) {
+          statusToSave = prefix + "REJECTED"; // Starts Motion
           newRecursiveType = "motion";
         } else {
-          statusToSave = "rejected";
+          statusToSave = "rejected"; // Final end
         }
       } else if (selectedOutcome === "rfe") {
-        statusToSave = prefix + "CASE_FORM";
+        statusToSave = prefix + "RFE"; // Starts RFE
         newRecursiveType = "rfe";
       }
 
-      const updatePayload: any = { status: statusToSave };
+      const { data: currentSvc } = await supabase
+        .from("user_services")
+        .select("service_metadata")
+        .eq("id", process.id)
+        .single();
+
+      const existingMetadata = (currentSvc as any)?.service_metadata || {};
+      const updatedMetadata = { ...existingMetadata };
+      
       if (newRecursiveType) {
-        updatePayload.data = { ...process.data, recovery_type: newRecursiveType };
+        updatedMetadata.recovery_type = newRecursiveType;
       }
 
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("user_services")
-        .update(updatePayload)
+        .update({ 
+          status: statusToSave,
+          service_metadata: updatedMetadata
+        })
         .eq("id", process.id);
-
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Error updating status:", error);
+        throw error;
+      }
       
       toast.success("Status atualizado com sucesso!");
       setIsConfirmOpen(false);
@@ -191,19 +215,37 @@ export const useTracking = () => {
   const handleSubmitAnalysis = async () => {
     if (!process || !explanation.trim()) return;
     setIsUpdatingStatus(true);
+    const prefix = getStatusPrefix(process);
+    
     try {
-      const { data: existing } = await (supabase as any).from("cos_recovery_cases").select("id").eq("user_service_id", process.id).maybeSingle();
-      const payload = { explanation: explanation.trim(), document_urls: uploadedFiles, submitted_at: new Date().toISOString(), status: "pending", updated_at: new Date().toISOString() };
+      const { data: existing, error: fetchErr } = await supabase.from("cos_recovery_cases").select("id").eq("user_service_id", process.id).maybeSingle();
+      if (fetchErr) throw fetchErr;
+      
+      const payload = { 
+        explanation: explanation.trim(), 
+        document_urls: uploadedFiles, 
+        submitted_at: new Date().toISOString(), 
+        status: "pending", 
+        updated_at: new Date().toISOString() 
+      };
+      
       if (existing?.id) {
-        await (supabase as any).from("cos_recovery_cases").update(payload).eq("id", existing.id);
+        const { error: updateErr } = await supabase.from("cos_recovery_cases").update(payload).eq("id", existing.id);
+        if (updateErr) throw updateErr;
       } else {
-        await (supabase as any).from("cos_recovery_cases").insert({ ...payload, user_service_id: process.id, user_id: user!.id });
+        const { error: insertErr } = await supabase.from("cos_recovery_cases").insert({ ...payload, user_service_id: process.id, user_id: user!.id });
+        if (insertErr) throw insertErr;
       }
-      await supabase.from("user_services").update({ status: "ANALISE_PENDENTE" }).eq("id", process.id);
-      setProcess({ ...process, status: "ANALISE_PENDENTE" });
+      
+      const nextStatus = prefix + "ANALISE_PENDENTE";
+      const { error: svcErr } = await supabase.from("user_services").update({ status: nextStatus }).eq("id", process.id);
+      if (svcErr) throw svcErr;
+      
+      setProcess({ ...process, status: nextStatus });
       toast.success("Enviado para análise!");
-    } catch (e) {
-      toast.error("Erro ao enviar");
+    } catch (e: any) {
+      console.error("[useTracking] Error submitting analysis:", e);
+      toast.error(`Erro ao enviar: ${e.message || "Erro desconhecido"}`);
     } finally {
       setIsUpdatingStatus(false);
     }

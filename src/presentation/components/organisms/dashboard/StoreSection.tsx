@@ -21,7 +21,7 @@ export const StoreSection = ({ userServicesSlugs, lang, services }: StoreSection
       color: "bg-blue-500",
       gradientFrom: "from-blue-500",
       gradientTo: "to-indigo-600",
-      badgeLabel: lang === "pt" ? "Em breve" : "Coming soon",
+      badgeLabel: lang === "pt" ? "Disponível" : "Available",
       titlePt: "Extensão de Status (I-539)",
       titleEn: "Status Extension (I-539)",
       subtitlePt: "Estender Estadia",

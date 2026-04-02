@@ -79,6 +79,8 @@ const dashboard = {
     finalPackage: "Final Package",
     help: "Support",
     logout: "Log out",
+    myProcesses: "My Processes",
+    status: "Status",
   },
   chat: {
     title: "AI Chat",

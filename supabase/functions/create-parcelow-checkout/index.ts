@@ -124,7 +124,7 @@ Deno.serve(async (req: Request) => {
         const orderUuid = crypto.randomUUID();
         const parcelowReference = `APK_${orderUuid}`;
 
-        const { error: dbError } = await supabase
+        const { error: orderError } = await supabase
             .from("visa_orders")
             .insert({
                 id: orderUuid,
@@ -141,14 +141,15 @@ Deno.serve(async (req: Request) => {
                     payerInfo: payerInfo || null,
                     parcelow_cpf: finalPayerCpf,
                     parcelow_phone: finalPayerPhone,
-                    action: action || null,
-                    serviceId: serviceId || null
+                    action: action || "",
+                    serviceId: serviceId || "",
+                    product_type: slug === 'troca-status' ? 'COS' : (slug === 'extensao-status' ? 'EOS' : 'B1B2'),
                 }
             });
 
-        if (dbError) {
-            console.error("[create-parcelow-checkout] ❌ Erro detalhado do DB:", JSON.stringify(dbError));
-            throw new Error(`Falha ao criar registro pendente da ordem: ${dbError.message || dbError.details || 'Erro desconhecido'}`);
+        if (orderError) {
+            console.error("[create-parcelow-checkout] ❌ Erro detalhado do DB:", JSON.stringify(orderError));
+            throw new Error(`Falha ao criar registro pendente da ordem: ${orderError.message || orderError.details || 'Erro desconhecido'}`);
         }
 
         // 5. Enviar payload para Parcelow

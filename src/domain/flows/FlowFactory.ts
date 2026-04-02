@@ -13,6 +13,8 @@ export class FlowFactory {
         return new F1ProductFlow();
       case "troca-status":
       case "extensao-status":
+      case "analise-especialista-cos":
+      case "analise-especialista-eos":
         return new COSProductFlow();
       default:
         // Default to B1 if unknown to maintain backward compatibility

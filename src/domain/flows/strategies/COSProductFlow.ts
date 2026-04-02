@@ -37,6 +37,11 @@ export class COSProductFlow extends BaseProductFlow {
     COS_FINAL_FORMS: "COS_FINAL_FORMS",
     COS_FINAL_FORMS_REVIEW: "COS_FINAL_FORMS_REVIEW",
     COS_PACKAGE_READY: "COS_PACKAGE_READY",
+    COS_TRACKING: "COS_TRACKING",
+    ANALISE_PENDENTE: "ANALISE_PENDENTE",
+    RFE: "RFE",
+    MOTION_PREPARATION: "MOTION_PREPARATION",
+    MOTION_SENT: "MOTION_SENT",
     COS_COMPLETED: "COS_COMPLETED",
     COS_REJECTED: "COS_REJECTED",
   };
@@ -135,14 +140,39 @@ export class COSProductFlow extends BaseProductFlow {
       description: "Geração do pacote único (PDF) seguindo a ordem da USCIS.",
     },
     {
+      id: COSProductFlow.STATUSS.COS_TRACKING,
+      label: "Acompanhamento: Enviado ao USCIS",
+      description: "Aguardando confirmação de recebimento e processamento pelo USCIS.",
+    },
+    {
+      id: COSProductFlow.STATUSS.ANALISE_PENDENTE,
+      label: "Análise: Especialista em Ação",
+      description: "Um especialista está analisando seu caso para definir a melhor estratégia.",
+    },
+    {
+      id: COSProductFlow.STATUSS.RFE,
+      label: "Recuperação: RFE Recebido",
+      description: "Tratamento de solicitação de informação adicional (RFE).",
+    },
+    {
+      id: COSProductFlow.STATUSS.MOTION_PREPARATION,
+      label: "Recuperação: Elaborando Motion",
+      description: "Redação técnica da defesa/reconsideração do processo.",
+    },
+    {
+      id: COSProductFlow.STATUSS.MOTION_SENT,
+      label: "Recuperação: Motion Enviado",
+      description: "A defesa técnica foi protocolada junto ao USCIS.",
+    },
+    {
       id: COSProductFlow.STATUSS.COS_COMPLETED,
-      label: "Finalizado",
-      description: "Processo de Mudança de Status concluído.",
+      label: "Finalizado: Caso Aprovado",
+      description: "Processo concluído com sucesso pelo USCIS.",
     },
     {
       id: COSProductFlow.STATUSS.COS_REJECTED,
-      label: "Rejeitado",
-      description: "Processo encerrado por negativa ou cancelamento.",
+      label: "Finalizado: Caso Negado",
+      description: "Processo encerrado após negativa definitiva.",
     },
   ];
 

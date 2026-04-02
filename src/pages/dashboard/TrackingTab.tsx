@@ -41,12 +41,14 @@ export default function TrackingTab() {
     handleFileUpload,
     handleSubmitAnalysis,
     fetchProcess,
-    navigate
+    navigate,
+    user
   } = useTracking();
 
   const ct = (t.changeOfStatus as any)?.tracking;
 
   const renderContent = () => {
+    console.log(`[TrackingTab] renderContent - Loading: ${loading}, Process: ${process?.id}, Status: ${process?.status}`);
     if (isAwaitingPaymentConfirm) {
       return (
         <div className="flex flex-col items-center py-24 text-center">
@@ -75,11 +77,19 @@ export default function TrackingTab() {
       return <ProcessFinalStates status={process.status} navigate={navigate} />;
     }
 
-    const isRecovering = process.status.includes("REJECTED") || process.status.includes("ANALISE") || process.status.includes("MOTION") || process.status === "COS_CASE_FORM";
-    
+    const recoveryType = (process.service_metadata as any)?.recovery_type || 'none';
+    const status = process.status || "";
+    const isRecovering =
+      status.toLowerCase().includes("rejected") ||
+      status.toLowerCase().includes("analise") ||
+      status.toLowerCase().includes("motion") ||
+      status.toLowerCase().includes("rfe") ||
+      status.toLowerCase().includes("case_form") ||
+      recoveryType !== 'none';
+
     if (isRecovering) {
       return (
-        <RecoveryFlow 
+        <RecoveryFlow
           process={process}
           recoveryCase={recoveryCase}
           explanation={explanation}
@@ -93,12 +103,13 @@ export default function TrackingTab() {
           setIsConfirmOpen={setIsConfirmOpen}
           navigate={navigate}
           loading={loading}
+          userEmail={user?.email}
         />
       );
     }
 
     return (
-      <StandardTracking 
+      <StandardTracking
         trackingCode={trackingCode}
         setTrackingCode={setTrackingCode}
         isEditing={isEditing}
@@ -107,8 +118,29 @@ export default function TrackingTab() {
         handleSaveTracking={handleSaveTracking}
         setSelectedOutcome={setSelectedOutcome}
         setIsConfirmOpen={setIsConfirmOpen}
+        recoveryType={recoveryType}
       />
     );
+  };
+
+  const getOutcomeLabel = () => {
+    if (selectedOutcome === "approved") return "APROVADO";
+    if (selectedOutcome === "rejected") return "NEGADO";
+    if (selectedOutcome === "rfe") return "PENDENTE DE RFE";
+    return "";
+  };
+
+  const getOutcomeDescription = () => {
+    const status = process?.status || "";
+    const isAlreadyRecovering = status?.toUpperCase().includes('ANALISE') || status?.toUpperCase().includes('MOTION') || status?.toUpperCase().includes('RFE') || status?.toUpperCase().includes('CASE_FORM') || status?.toUpperCase().includes('REJECTED');
+    
+    if (selectedOutcome === "approved") return "Isso restabelecerá seu status no sistema como aprovado.";
+    if (selectedOutcome === "rejected") {
+      if (isAlreadyRecovering) return "Isso encerrará o acompanhamento deste processo definitivamente.";
+      return "Isso levará você para o fluxo de Motion (Reconsideração) para tentar reverter a decisão.";
+    }
+    if (selectedOutcome === "rfe") return "Isso levará você para o fluxo de RFE (Request for Evidence) para enviar as provas solicitadas.";
+    return "";
   };
 
   return (
@@ -120,8 +152,9 @@ export default function TrackingTab() {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl font-bold text-slate-800">Confirmar Resultado?</AlertDialogTitle>
             <AlertDialogDescription className="text-slate-500 text-base">
-              Você está marcando este processo como <strong>{selectedOutcome === "approved" ? "APROVADO" : selectedOutcome === "rejected" ? "NEGADO" : "PENDENTE DE RFE"}</strong>. 
-              {selectedOutcome === "approved" ? " Isso restabelecerá seu status no sistema." : " Isso encerrará o acompanhamento deste Motion."}
+              Você está marcando este processo como <strong>{getOutcomeLabel()}</strong>.
+              <br /><br />
+              {getOutcomeDescription()}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-8 flex gap-3">
@@ -129,8 +162,8 @@ export default function TrackingTab() {
               <Button variant="ghost" className="rounded-xl px-6 border-none hover:bg-slate-100">Cancelar</Button>
             </AlertDialogCancel>
             <AlertDialogAction asChild>
-              <Button 
-                onClick={handleConfirmStatus} 
+              <Button
+                onClick={handleConfirmStatus}
                 disabled={isUpdatingStatus}
                 className={`rounded-xl px-10 font-bold ${selectedOutcome === "approved" ? "bg-blue-600 hover:bg-blue-700" : "bg-red-600 hover:bg-red-700"}`}
               >

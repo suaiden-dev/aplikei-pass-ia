@@ -14,6 +14,7 @@ export interface RecoveryCase {
   status: string;
   admin_final_message?: string | null;
   final_document_urls?: string[] | null;
+  recovery_type?: string | null;
 }
 
 export class AdminAnalysisService {
@@ -30,11 +31,17 @@ export class AdminAnalysisService {
     // 2. Fetch user_service details
     const { data: us, error: usError } = await (supabase as any)
       .from("user_services")
-      .select("status, data, service_slug")
+      .select("status, service_metadata, service_slug")
       .eq("id", userServiceId)
       .single();
 
     if (usError) throw usError;
+
+    // 3. Ensure recovery_type is correctly identified
+    if (rc && !rc.recovery_type) {
+      const metadata = (us.service_metadata as any) || {};
+      rc.recovery_type = metadata.recovery_type || (us.status?.includes('RFE') ? 'rfe' : 'motion');
+    }
 
     return {
       recoveryCase: rc as RecoveryCase,
@@ -83,17 +90,41 @@ export class AdminAnalysisService {
     if (error) throw error;
   }
 
-  static async sendProposal(caseId: string, value: number) {
-    const { error } = await (supabase as any)
+  static async sendProposal(caseId: string, value: number, recoveryType?: 'rfe' | 'motion') {
+    const { data: rc, error: fetchErr } = await (supabase as any)
+      .from("cos_recovery_cases")
+      .select("user_service_id")
+      .eq("id", caseId)
+      .single();
+
+    if (fetchErr) throw fetchErr;
+
+    const { error: rcUpdateErr } = await (supabase as any)
       .from("cos_recovery_cases")
       .update({
         proposal_value_usd: value,
         proposal_sent_at: new Date().toISOString(),
-        status: "proposal_sent"
+        status: "proposal_sent",
+        recovery_type: recoveryType
       })
       .eq("id", caseId);
 
-    if (error) throw error;
+    if (rcUpdateErr) throw rcUpdateErr;
+
+    // Also sync to metadata for dashboard detection
+    if (recoveryType && rc?.user_service_id) {
+      const { data: us } = await (supabase as any)
+        .from("user_services")
+        .select("service_metadata")
+        .eq("id", rc.user_service_id)
+        .single();
+      
+      const currentMeta = us?.service_metadata || {};
+      await (supabase as any)
+        .from("user_services")
+        .update({ service_metadata: { ...currentMeta, recovery_type: recoveryType } })
+        .eq("id", rc.user_service_id);
+    }
   }
 
   static async completeRecovery(
@@ -101,7 +132,8 @@ export class AdminAnalysisService {
     userServiceId: string,
     finalMessage: string,
     documentUrls: string[],
-    statusPrefix: string
+    statusPrefix: string,
+    recoveryType: 'rfe' | 'motion'
   ) {
     // 1. Update recovery case status
     const { error: rcError } = await (supabase as any)
@@ -117,9 +149,10 @@ export class AdminAnalysisService {
     if (rcError) throw rcError;
 
     // 2. Update user_service status
+    const finalStatus = recoveryType === 'rfe' ? 'RFE_COMPLETED' : 'MOTION_COMPLETED';
     const { error: usError } = await (supabase as any)
       .from("user_services")
-      .update({ status: `${statusPrefix}PACKAGE_READY` })
+      .update({ status: `${statusPrefix}${finalStatus}` })
       .eq("id", userServiceId);
 
     if (usError) throw usError;

@@ -46,6 +46,72 @@ export type Database = {
           },
         ]
       }
+      cos_recovery_cases: {
+        Row: {
+          admin_analysis: string | null
+          admin_final_message: string | null
+          admin_notes: string | null
+          document_urls: string[] | null
+          explanation: string | null
+          final_document_urls: string[] | null
+          id: string
+          proposal_sent_at: string | null
+          proposal_value_usd: number | null
+          status: string | null
+          submitted_at: string | null
+          updated_at: string | null
+          user_id: string | null
+          user_service_id: string | null
+        }
+        Insert: {
+          admin_analysis?: string | null
+          admin_final_message?: string | null
+          admin_notes?: string | null
+          document_urls?: string[] | null
+          explanation?: string | null
+          final_document_urls?: string[] | null
+          id?: string
+          proposal_sent_at?: string | null
+          proposal_value_usd?: number | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          user_service_id?: string | null
+        }
+        Update: {
+          admin_analysis?: string | null
+          admin_final_message?: string | null
+          admin_notes?: string | null
+          document_urls?: string[] | null
+          explanation?: string | null
+          final_document_urls?: string[] | null
+          id?: string
+          proposal_sent_at?: string | null
+          proposal_value_usd?: number | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          user_service_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cos_recovery_cases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cos_recovery_cases_user_service_id_fkey"
+            columns: ["user_service_id"]
+            isOneToOne: false
+            referencedRelation: "user_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           bucket_id: string | null
@@ -318,6 +384,7 @@ export type Database = {
           service_slug: string
           specialist_review_data: Json | null
           specialist_training_data: Json | null
+          service_metadata: Json | null
           status: string | null
           user_id: string
         }
@@ -341,6 +408,7 @@ export type Database = {
           service_slug: string
           specialist_review_data?: Json | null
           specialist_training_data?: Json | null
+          service_metadata?: Json | null
           status?: string | null
           user_id: string
         }
@@ -364,6 +432,7 @@ export type Database = {
           service_slug?: string
           specialist_review_data?: Json | null
           specialist_training_data?: Json | null
+          service_metadata?: Json | null
           status?: string | null
           user_id?: string
         }

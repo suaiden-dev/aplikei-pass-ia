@@ -32,8 +32,21 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({
       setError(null);
       try {
         const result = await fetchVerifiedPrices(selectedIds);
-        setItems(result.items as ServicePrice[]);
-        setTotal(result.total);
+        
+        if (overrideTotal !== undefined) {
+          setItems([{ 
+            id: 'proposal', 
+            service_id: selectedIds[0], 
+            name: 'Proposta do Especialista', 
+            price: overrideTotal, 
+            currency: 'USD' 
+          }]);
+          setTotal(overrideTotal);
+        } else {
+          setItems(result.items as ServicePrice[]);
+          setTotal(result.total);
+        }
+        
         if (onPriceVerified) {
           onPriceVerified(overrideTotal !== undefined ? overrideTotal : result.total);
         }
@@ -44,7 +57,7 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({
           setItems([{ 
             id: 'proposal', 
             service_id: selectedIds[0], 
-            name: 'Serviço sob Demanda', 
+            name: 'Proposta do Especialista', 
             price: overrideTotal, 
             currency: 'USD' 
           }]);

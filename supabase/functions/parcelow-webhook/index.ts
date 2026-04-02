@@ -140,16 +140,21 @@ Deno.serve(async (req: Request) => {
                         if (existingUser) {
                             finalUserId = existingUser.id;
                         } else {
-                            console.log(`[parcelow-webhook] Criando acc via convite...`);
+                            const originUrl = orderData.payment_metadata?.origin_url || Deno.env.get("FRONTEND_URL") || "https://aplikeipass.com";
+                            console.log(`[parcelow-webhook] Criando acc via convite para ${orderData.client_email} (Origin: ${originUrl})`);
+                            
                             const { data: authUser, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
                                 orderData.client_email,
                                 {
-                                    redirectTo: `${Deno.env.get("FRONTEND_URL")}/auth/confirm-password`,
+                                    redirectTo: `${originUrl}/auth/confirm-password`,
                                     data: { full_name: orderData.client_name ?? "Client" }
                                 }
                             );
-
-                            if (!inviteError && authUser?.user) {
+        
+                            if (inviteError) {
+                                console.error("[parcelow-webhook] Erro ao convidar usuário:", inviteError.message);
+                            } else if (authUser?.user) {
+                                console.log("[parcelow-webhook] Convite enviado com sucesso para:", orderData.client_email);
                                 finalUserId = authUser.user.id;
                             }
                         }
@@ -170,8 +175,47 @@ Deno.serve(async (req: Request) => {
                         if (metadata.action === 'restart' && metadata.serviceId) {
                             console.log(`[parcelow-webhook] Restarting service ${metadata.serviceId}`);
                             await supabase.from("user_services").update({
-                                status: "active"
-                            }).eq("id", metadata.serviceId).eq("user_id", finalUserId);
+                                status: "active",
+                                product_type: (metadata.product_type || 'COS')
+                            }).eq("id", metadata.serviceId);
+                        } else if (metadata.action && metadata.serviceId) {
+                            const action = metadata.action;
+                            const sId = metadata.serviceId;
+                            const actionPrefix = action.split('_')[0].toUpperCase(); 
+                            
+                            // Verificamos o status atual para saber se devemos ir para FORM ou MOTION
+                            const { data: currentService } = await supabase
+                                .from('user_services')
+                                .select('status')
+                                .eq('id', sId)
+                                .single();
+                            
+                            const isRfeFlow = currentService?.status?.endsWith('_RFE');
+                            let nextStatus = "";
+                            
+                            if (['cos_analyst', 'eos_analyst', 'rfe_analyst', 'specialist_review', 'specialist_training'].includes(action)) {
+                                nextStatus = `${actionPrefix}_CASE_FORM`;
+                            } else if (['cos_recovery', 'eos_recovery', 'rfe_recovery', 'cos_motion', 'eos_motion', 'motion_recovery'].includes(action)) {
+                                nextStatus = isRfeFlow ? `${actionPrefix}_CASE_FORM` : `${actionPrefix}_MOTION_IN_PROGRESS`;
+                            }
+                            
+                            if (nextStatus) {
+                                console.log(`[parcelow-webhook] Advancing service ${sId} to ${nextStatus} for action ${action} (current: ${currentService?.status})`);
+                                await supabase
+                                    .from("user_services")
+                                    .update({ 
+                                        status: nextStatus,
+                                        product_type: metadata.product_type || (actionPrefix === 'COS' ? 'COS' : 'EOS')
+                                    })
+                                    .eq("id", sId);
+                            } else {
+                                // Default fallback to active
+                                await supabase.from("user_services").upsert({
+                                    user_id: finalUserId,
+                                    service_slug: orderData.product_slug,
+                                    status: "active"
+                                });
+                            }
                         } else {
                             await supabase.from("user_services").upsert({
                                 user_id: finalUserId,

@@ -43,5 +43,5 @@ export const F1F2_STEP_SLUGS = [
 
 export const COS_STEP_SLUGS = [
   "cos-form", "cos-documents", "cos-official-forms", "cos-cover-letter-form", 
-  "cos-i20", "cos-sevis", "cos-final-forms", "cos-review", "cos-tracking"
+  "cos-i20", "cos-sevis", "cos-final-forms", "cos-review"
 ];

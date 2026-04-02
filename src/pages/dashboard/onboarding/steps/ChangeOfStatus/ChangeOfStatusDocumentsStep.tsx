@@ -17,9 +17,26 @@ export const ChangeOfStatusDocumentsStep = ({
   uploading,
   fileInputRef,
   setSelectedDoc,
-  formData
+  formData,
+  originalServiceSlug
 }: DocumentStepProps) => {
   const cos = t.changeOfStatus;
+
+  const isExtension = originalServiceSlug === "extensao-status";
+  const numDependents = formData?.dependents?.length || 0;
+
+  const financialNote = isExtension 
+    ? (lang === "pt" ? "Extensão 1.000U$/mês = U$ 6.000" : "Extension $1,000/mo = $6,000")
+    : (lang === "pt" 
+        ? `Extensão (U$ 6.000) - COS (U$ 22.000 + U$ 5.000 por dep.)` 
+        : `Extension ($6,000) - COS ($22,000 + $5,000/dep)`);
+
+  const totalNeeded = isExtension ? 6000 : 28000 + (numDependents * 5000);
+  const formattedTotal = new Intl.NumberFormat(lang === "pt" ? "pt-BR" : "en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(totalNeeded);
 
   const categories = [
     {
@@ -35,7 +52,7 @@ export const ChangeOfStatusDocumentsStep = ({
       title: lang === "pt" ? "Documentos Financeiros" : "Financial Documents",
       icon: Landmark,
       items: [
-        { id: "cos_bank_statement", label: cos.docs.bankStatement, note: lang === "pt" ? "Depósito mínimo exigido" : "Minimum deposit required", icon: Landmark },
+        { id: "cos_bank_statement", label: cos.docs.bankStatement, note: `${financialNote} | Total: ${formattedTotal}`, icon: Landmark },
       ]
     }
   ];
@@ -102,17 +119,17 @@ export const ChangeOfStatusDocumentsStep = ({
             {note && <p className="text-[9.5px] text-muted-foreground italic font-medium">{note}</p>}
           </div>
           {isRejected && (
-            <Badge className="ml-auto bg-red-100 text-red-700 hover:bg-red-100 border-red-200 text-[9px] font-black uppercase tracking-widest">
+            <Badge className="ml-auto bg-red-100 text-red-700 hover:bg-red-100 border-red-200 text-[9px] font-black uppercase tracking-widest whitespace-nowrap flex-shrink-0">
               RECUSADO
             </Badge>
           )}
           {isPending && (
-            <Badge className="ml-auto bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 text-[9px] font-black uppercase tracking-widest">
+            <Badge className="ml-auto bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 text-[9px] font-black uppercase tracking-widest whitespace-nowrap flex-shrink-0">
               EM ANÁLISE
             </Badge>
           )}
           {isApproved && (
-            <Badge className="ml-auto bg-green-100 text-green-700 hover:bg-green-100 border-green-200 text-[9px] font-black uppercase tracking-widest">
+            <Badge className="ml-auto bg-green-100 text-green-700 hover:bg-green-100 border-green-200 text-[9px] font-black uppercase tracking-widest whitespace-nowrap flex-shrink-0">
               VERIFICADO
             </Badge>
           )}

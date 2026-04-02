@@ -7,7 +7,7 @@ import {
 import { Label } from "@/presentation/components/atoms/label";
 import { Button } from "@/presentation/components/atoms/button";
 import {
-  FileEdit, CheckCircle2, Loader2, Download, Send, ShieldAlert, Contact, Info, Zap, Sparkles, ChevronRight, FileText, Lock
+  FileEdit, CheckCircle2, Loader2, Download, Send, ShieldAlert, Contact, Info, Zap, Sparkles, ChevronRight, FileText, Lock, ShieldCheck
 } from "lucide-react";
 import { Card } from "@/presentation/components/atoms/card";
 import {
@@ -51,11 +51,62 @@ export const ChangeOfStatusOfficialFormsStep = ({
   register,
   watch,
   setValue,
-  serviceId
+  serviceId,
+  originalServiceSlug,
+  formData
 }: DocumentStepProps & { serviceId?: string }) => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  // Auto-fill fields from formData and context
+  React.useEffect(() => {
+    // 1. Application Type
+    const currentType = watch!("i539_application_type" as any);
+    if (!currentType) {
+      if (originalServiceSlug === "extensao-status") {
+        setValue!("i539_application_type" as any, "extension");
+      } else if (originalServiceSlug === "troca-status") {
+        setValue!("i539_application_type" as any, "change");
+      }
+    }
+
+    // 2. Mapping common fields from general profile/onboarding data
+    const fieldsToMap: Record<string, any> = {
+      i539_family_name: formData.lastName,
+      i539_given_name: formData.firstName,
+      i539_dob: formData.birthDate,
+      i539_country_birth: formData.birthCountry,
+      i539_country_citizenship: formData.nationalityInfo,
+      i539_last_arrival_date: formData.arrivalDate,
+      i539_passport_number: formData.passportNumberDS,
+      i539_passport_issuing_country: formData.passportIssuanceCountry,
+      i539_passport_expiration: formData.passportExpirationDate,
+      i539_mailing_street: formData.homeAddress,
+      i539_mailing_city: formData.homeCity,
+      i539_mailing_state: formData.homeState,
+      i539_mailing_zip: formData.homeZip,
+      i539_daytime_phone: formData.mobilePhone,
+      i539_mobile_phone: formData.mobilePhone,
+      i539_email: formData.email,
+      i539_status_expiration: formData.i94AuthorizedStayDate,
+      i539_total_people: formData.dependents?.length ? String(formData.dependents.length + 1) : "1",
+      i539_number_of_applicants: formData.dependents?.length ? "family" : "only_me",
+      i539_change_status_to: formData.targetVisa?.toUpperCase() === "B1/B2" ? "B-1" : formData.targetVisa?.toUpperCase(),
+      i539_current_status: formData.currentVisa?.toUpperCase() === "B1/B2" ? "B-1" : formData.currentVisa?.toUpperCase()
+    };
+
+    Object.entries(fieldsToMap).forEach(([target, value]) => {
+      if (value && !watch!(target as any)) {
+        setValue!(target as any, value);
+      }
+    });
+
+    // Default mailing same as physical to TRUE
+    if (watch!("i539_is_mailing_same_as_physical" as any) === undefined) {
+      setValue!("i539_is_mailing_same_as_physical" as any, true);
+    }
+  }, [originalServiceSlug, setValue, watch, formData]);
 
   const handleGenerateI539 = async () => {
     if (!serviceId) {
@@ -76,81 +127,101 @@ export const ChangeOfStatusOfficialFormsStep = ({
         familyName:              v.i539_family_name as string,
         givenName:               v.i539_given_name as string,
         middleName:              v.i539_middle_name as string,
-        alienNumber:             v.i539_alien_reg_number as string,
-        uscisOnlineAccountNumber: v.i539_uscis_online_account_number as string,
+        alienNumber:             v.i539_alien_number as string,
+        uscisOnlineAccountNumber: v.i539_uscis_online_account as string,
         ssn:                     v.i539_ssn as string,
 
-        // Part 1 — Mailing address
+        // Part 1 — Address
         inCareOf:                v.i539_mailing_in_care_of as string,
         streetName:              v.i539_mailing_street as string,
         aptNumber:               v.i539_mailing_apt_ste_flr as string,
         city:                    v.i539_mailing_city as string,
         state:                   v.i539_mailing_state as string,
         zipCode:                 v.i539_mailing_zip as string,
-        hasSeparateMailingAddress: !(v.i539_is_mailing_same_as_physical as boolean),
+        hasMailingAddress:       !isMailingSameAsPhysical,
 
-        // Part 1 — Personal info
-        dateOfBirth:             toUSDate(v.i539_date_of_birth as string),
-        countryOfBirth:          v.i539_country_of_birth as string,
-        countryOfCitizenship:    v.i539_country_of_citizenship as string,
+        // Part 1 — Physical
+        streetNameForeign:       isMailingSameAsPhysical ? (v.i539_mailing_street as string) : (v.i539_physical_street as string),
+        aptNumberForeign:        isMailingSameAsPhysical ? (v.i539_mailing_apt_ste_flr as string) : (v.i539_physical_apt as string),
+        cityForeign:             isMailingSameAsPhysical ? (v.i539_mailing_city as string) : (v.i539_physical_city as string),
+        stateForeign:            isMailingSameAsPhysical ? (v.i539_mailing_state as string) : (v.i539_physical_state as string),
+        zipCodeForeign:          isMailingSameAsPhysical ? (v.i539_mailing_zip as string) : (v.i539_physical_zip as string),
 
         // Part 1 — Travel & status
+        dateOfBirth:             toUSDate(v.i539_date_of_birth as string),
+        countryOfCitizenship:    v.i539_country_of_citizenship as string,
+        countryOfBirth:          v.i539_country_of_birth as string,
         dateOfLastArrival:       toUSDate(v.i539_last_arrival_date as string),
         i94Number:               v.i539_i94_number as string,
         passportNumber:          v.i539_passport_number as string,
-        passportCountry:         v.i539_travel_document_number as string,
-        passportIssuingCountry:  v.i539_country_passport_issuance as string,
-        passportExpirationDate:  toUSDate(v.i539_passport_expiration_date as string),
-        currentImmigrationStatus: v.i539_current_nonimmigrant_status as string,
-        statusExpirationDate:    toUSDate(v.i539_status_expiration_date as string),
-        statusExpiresDS:         !!(v.i539_granted_duration_of_status as boolean),
+        travelDocCountry:        v.i539_passport_country as string,
+        countryOfIssuance:       v.i539_passport_issuing_country as string,
+        passportExpirationDate:  toUSDate(v.i539_passport_expiration as string),
+        currentImmigrationStatus: v.i539_current_status as string,
+        statusExpirationDate:    toUSDate(v.i539_status_expiration as string),
+        statusExpiresDS:         v.i539_status_expires_ds === "yes",
 
         // Part 2 — Application type
         applicationType:
           (v.i539_application_type as string) === "extension" ? "extend"
           : (v.i539_application_type as string) === "change"    ? "change"
           : undefined,
-        newStatusRequested:      v.i539_change_status_to as string,
+        extendSelf:              (v.i539_number_of_applicants as string) === "only_me",
+        extendSpouse:            (v.i539_number_of_applicants as string) === "family",
+        extendChildren:          (v.i539_number_of_applicants as string) === "family",
+        numberOfCoApplicants:    v.i539_total_people as string,
         requestedEffectiveDate:  toUSDate(v.i539_effective_date_requested as string),
-        includeSelf:             true,
-        includeSpouse:           (v.i539_number_of_applicants as string) === "family",
-        includeChildren:         (v.i539_number_of_applicants as string) === "family",
-        totalCoApplicants:       v.i539_total_people as string,
-        previouslyExtended:      !!(v.i539_is_based_on_prior_approval as boolean),
+        newStatusRequested:      v.i539_change_status_to as string,
 
-        // Part 4 — Security questions
-        q6Yes:  yesNo(v.i539_immigrant_visa_applicant  as string).yes,
-        q6No:   yesNo(v.i539_immigrant_visa_applicant  as string).no,
-        q7Yes:  yesNo(v.i539_immigrant_petition_filed  as string).yes,
-        q7No:   yesNo(v.i539_immigrant_petition_filed  as string).no,
-        q8Yes:  yesNo(v.i539_filed_i485                as string).yes,
-        q8No:   yesNo(v.i539_filed_i485                as string).no,
-        q9Yes:  yesNo(v.i539_criminal_history           as string).yes,
-        q9No:   yesNo(v.i539_criminal_history           as string).no,
-        q10Yes: yesNo(v.i539_q7a  as string).yes,
-        q10No:  yesNo(v.i539_q7a  as string).no,
-        q11Yes: yesNo(v.i539_q7b  as string).yes,
-        q11No:  yesNo(v.i539_q7b  as string).no,
-        q12Yes: yesNo(v.i539_q8a  as string).yes,
-        q12No:  yesNo(v.i539_q8a  as string).no,
-        q13Yes: yesNo(v.i539_q8b  as string).yes,
-        q13No:  yesNo(v.i539_q8b  as string).no,
-        q14Yes: yesNo(v.i539_q10  as string).yes,
-        q14No:  yesNo(v.i539_q10  as string).no,
-        q15Yes: yesNo(v.i539_q11  as string).yes,
-        q15No:  yesNo(v.i539_q11  as string).no,
-        q16Yes: yesNo(v.i539_q12  as string).yes,
-        q16No:  yesNo(v.i539_q12  as string).no,
-        q17Yes: yesNo(v.i539_q13  as string).yes,
-        q17No:  yesNo(v.i539_q13  as string).no,
-        q18Yes: yesNo(v.i539_q14  as string).yes,
-        q18No:  yesNo(v.i539_q14  as string).no,
+        // Part 3
+        priorExtensionYes:       v.i539_previously_extended === "yes",
+        priorExtensionNo:        v.i539_previously_extended === "no",
+        priorExtensionDate:      toUSDate(v.i539_previous_extension_date as string),
+        receiptNumber:           v.i539_receipt_number as string,
+        petitionerName:          v.i539_petitioner_name as string,
+        petitionFiledDate:       toUSDate(v.i539_petition_filed_date as string),
+        question3Yes:            v.i539_public_charge_subject === "yes",
+        question3No:             v.i539_public_charge_subject === "no",
+        question4Yes:            v.i539_received_public_benefits === "yes",
+        question4No:             v.i539_received_public_benefits === "no",
+
+        // ── Part 4 — Security questions ──
+        q6Yes:  v.i539_q6 === "yes", q6No:  v.i539_q6 === "no",
+        q7Yes:  v.i539_q7 === "yes", q7No:  v.i539_q7 === "no",
+        q8Yes:  v.i539_q8 === "yes", q8No:  v.i539_q8 === "no",
+        q9Yes:  v.i539_q9 === "yes", q9No:  v.i539_q9 === "no",
+        q10Yes: v.i539_q10 === "yes", q10No: v.i539_q10 === "no",
+        q11Yes: v.i539_q11 === "yes", q11No: v.i539_q11 === "no",
+        q12Yes: v.i539_q12 === "yes", q12No: v.i539_q12 === "no",
+        q13Yes: v.i539_q13 === "yes", q13No: v.i539_q13 === "no",
+        q14Yes: v.i539_q14 === "yes", q14No: v.i539_q14 === "no",
+        q15Yes: v.i539_q15 === "yes", q15No: v.i539_q15 === "no",
+        q16Yes: v.i539_q16 === "yes", q16No: v.i539_q16 === "no",
+        q17Yes: v.i539_q17 === "yes", q17No: v.i539_q17 === "no",
+        q18Yes: v.i539_q18 === "yes", q18No: v.i539_q18 === "no",
+        q19Yes: v.i539_q19 === "yes", q19No: v.i539_q19 === "no",
+        q20Yes: v.i539_q20 === "yes", q20No: v.i539_q20 === "no",
 
         // Part 5 — Contact
-        daytimePhone:     v.i539_applicant_phone  as string,
+        daytimePhone:     v.i539_applicant_phone as string,
         mobilePhone:      v.i539_applicant_mobile as string,
-        email:            v.i539_applicant_email  as string,
+        email:            v.i539_applicant_email as string,
+        signature:        `${v.i539_given_name ?? ""} ${v.i539_family_name ?? ""}`.trim(),
         signatureDate:    new Date().toLocaleDateString("en-US"),
+
+        // Part 6 — Interpreter
+        interpreterFamilyName: v.i539_interpreter_family_name as string,
+        interpreterGivenName:  v.i539_interpreter_given_name as string,
+        interpreterPhone:      v.i539_interpreter_phone as string,
+        interpreterEmail:      v.i539_interpreter_email as string,
+        interpreterLanguage:   v.i539_interpreter_language as string,
+
+        // Part 7 — Preparer
+        preparerFamilyName:    v.i539_preparer_family_name as string,
+        preparerGivenName:     v.i539_preparer_given_name as string,
+        preparerBusiness:      v.i539_preparer_business as string,
+        preparerPhone:         v.i539_preparer_phone as string,
+        preparerEmail:         v.i539_preparer_email as string,
       };
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -244,9 +315,14 @@ export const ChangeOfStatusOfficialFormsStep = ({
                 <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Identifiers</h4>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormInput label="A-Number (if any)" placeholder="A-" {...register!("i539_alien_reg_number" as any)} className="h-12 rounded-xl" />
-                <FormInput label="USCIS Account Number" {...register!("i539_uscis_online_account_number" as any)} className="h-12 rounded-xl" />
-                <FormInput label="SSN (if any)" {...register!("i539_ssn" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Family Name (Last Name)" placeholder="Family Name" {...register!("i539_family_name" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Given Name (First Name)" placeholder="Given Name" {...register!("i539_given_name" as any)} className="h-12 rounded-xl" />
+                <FormInput label="Middle Name" placeholder="Middle Name" {...register!("i539_middle_name" as any)} className="h-12 rounded-xl" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                <FormInput label="A-Number (if any)" placeholder="A-XXXXXXXXX" {...register!("i539_alien_number" as any)} className="h-12 rounded-xl" />
+                <FormInput label="USCIS Account Number" placeholder="XXXXXXXXXXXX" {...register!("i539_uscis_online_account" as any)} className="h-12 rounded-xl" />
+                <FormInput label="SSN (if any)" placeholder="XXX-XX-XXXX" {...register!("i539_ssn" as any)} className="h-12 rounded-xl" />
               </div>
             </div>
 
@@ -284,11 +360,13 @@ export const ChangeOfStatusOfficialFormsStep = ({
                     className="overflow-hidden"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                      <FormInput className={cn("h-12 rounded-xl md:col-span-2")} label="Physical: Street" {...register!("i539_physical_street" as any)} />
+                      <FormInput className="md:col-span-2 h-12 rounded-xl" label="Physical: Street" {...register!("i539_physical_street" as any)} />
                       <FormInput label="Apt / Ste / Flr" {...register!("i539_physical_apt" as any)} className="h-12 rounded-xl" />
                       <FormInput label="City" {...register!("i539_physical_city" as any)} className="h-12 rounded-xl" />
                       <FormInput label="State" {...register!("i539_physical_state" as any)} className="h-12 rounded-xl" />
                       <FormInput label="ZIP Code" {...register!("i539_physical_zip" as any)} className="h-12 rounded-xl font-mono" />
+                      <FormInput label="Province (Foreign)" {...register!("i539_physical_province" as any)} className="h-12 rounded-xl" />
+                      <FormInput label="Country (Foreign)" {...register!("i539_physical_country" as any)} className="h-12 rounded-xl" />
                     </div>
                   </motion.div>
                 )}
@@ -380,6 +458,33 @@ export const ChangeOfStatusOfficialFormsStep = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-border/50 pt-8">
+              <div className="space-y-6">
+                <Label className="text-xs font-black uppercase tracking-widest opacity-60">Is this based on a prior approval?</Label>
+                <FormRadioGroup 
+                  onValueChange={(v) => setValue!("i539_previously_extended" as any, v)}
+                  options={[
+                    { value: "yes", id: "prev1", label: "Yes" },
+                    { value: "no", id: "prev2", label: "No" },
+                  ]}
+                  className="flex items-center gap-6"
+                />
+              </div>
+              <AnimatePresence>
+                {watch!("i539_previously_extended" as any) === "yes" && (
+                  <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                    <FormInput label="Date of Prior Extension" type="date" {...register!("i539_previous_extension_date" as any)} className="h-12 rounded-xl px-4" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-border/50 pt-8">
+              <FormInput label="Petitioner Name" placeholder="Ex: ABC Inc / Self" {...register!("i539_petitioner_name" as any)} className="h-12 rounded-xl" />
+              <FormInput label="Receipt Number" placeholder="WAC/EAC/SRC..." {...register!("i539_receipt_number" as any)} className="h-12 rounded-xl font-mono" />
+              <FormInput label="Petition Filed Date" type="date" {...register!("i539_petition_filed_date" as any)} className="h-12 rounded-xl px-4" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-border/50 pt-8">
               <FormInput label="School Name (if student)" {...register!("i539_school_name" as any)} className="h-12 rounded-xl" />
               <FormInput label="SEVIS ID Number" {...register!("i539_sevis_id" as any)} className="h-12 rounded-xl font-mono" />
             </div>
@@ -407,14 +512,58 @@ export const ChangeOfStatusOfficialFormsStep = ({
             </div>
 
             <div className="space-y-2 border-t border-border/50">
+              <div className="py-6 border-b border-border/50 space-y-4">
+                <Label className="font-black text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  Public Charge Rule
+                </Label>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 group/row">
+                  <Label className="sm:max-w-[70%] font-bold text-slate-600 dark:text-slate-400 group-hover/row:text-primary transition-colors text-sm">
+                    Is this application subject to the public charge ground of inadmissibility?
+                  </Label>
+                  <FormRadioGroup 
+                    onValueChange={(v) => setValue!("i539_public_charge_subject" as any, v)} 
+                    className="flex items-center gap-6"
+                    options={[
+                      { value: "yes", id: "pc1y", label: "Yes" },
+                      { value: "no", id: "pc1n", label: "No" },
+                    ]}
+                  />
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 group/row pt-2">
+                  <Label className="sm:max-w-[70%] font-bold text-slate-600 dark:text-slate-400 group-hover/row:text-primary transition-colors text-sm">
+                    Have you (or anyone in this application) received any public benefits?
+                  </Label>
+                  <FormRadioGroup 
+                    onValueChange={(v) => setValue!("i539_received_public_benefits" as any, v)} 
+                    className="flex items-center gap-6"
+                    options={[
+                      { value: "yes", id: "pc2y", label: "Yes" },
+                      { value: "no", id: "pc2n", label: "No" },
+                    ]}
+                  />
+                </div>
+              </div>
+
               {[
-                { name: "i539_immigrant_visa_applicant", label: "Are you an applicant for an immigrant visa?", id: "q1" },
-                { name: "i539_immigrant_petition_filed", label: "Has an immigrant petition EVER been filed for you?", id: "q2" },
-                { name: "i539_filed_i485", label: "Have you EVER filed Form I-485?", id: "q3" },
-                { name: "i539_criminal_history", label: "Have you been arrested or convicted of any criminal offense?", id: "q4" },
+                { name: "i539_q6", label: "Are you an applicant for an immigrant visa?", id: "q6" },
+                { name: "i539_q7", label: "Has an immigrant petition EVER been filed for you?", id: "q7" },
+                { name: "i539_q8", label: "Have you EVER filed Form I-485?", id: "q8" },
+                { name: "i539_q9", label: "Have you EVER been arrested or convicted of any criminal offense in the U.S.?", id: "q9" },
+                { name: "i539_q10", label: "Have you EVER been ordered deported or removed?", id: "q10" },
+                { name: "i539_q11", label: "Have you EVER been granted voluntary departure?", id: "q11" },
+                { name: "i539_q12", label: "Have you EVER been in any exclusion or removal proceeding?", id: "q12" },
+                { name: "i539_q13", label: "Have you EVER been issued a final order of removal?", id: "q13" },
+                { name: "i539_q14", label: "Have you EVER been granted a stay of removal?", id: "q14" },
+                { name: "i539_q15", label: "Have you EVER been convicted of a felony or misdemeanor?", id: "q15" },
+                { name: "i539_q16", label: "Are you a member of a revolutionary or subversive organization?", id: "q16" },
+                { name: "i539_q17", label: "Member of any organization that used weapons or promoted violence?", id: "q17" },
+                { name: "i539_q18", label: "EVER worked in a prison, jail, or detention facility?", id: "q18" },
+                { name: "i539_q19", label: "EVER worked in a military, police, or self-defense unit?", id: "q19" },
+                { name: "i539_q20", label: "EVER used any kind of weapon against any person?", id: "q20" },
               ].map((q) => (
                 <div key={q.id} className="flex flex-col sm:flex-row sm:items-center justify-between py-6 border-b border-border/50 gap-4 group/row">
-                  <Label className="sm:max-w-[65%] font-bold text-slate-700 dark:text-slate-300 group-hover/row:text-primary transition-colors">{q.label}</Label>
+                  <Label className="sm:max-w-[70%] font-bold text-slate-700 dark:text-slate-300 group-hover/row:text-primary transition-colors text-sm">{q.label}</Label>
                   <FormRadioGroup 
                     onValueChange={(v) => setValue!(q.name as any, v)} 
                     className="flex items-center gap-6"
@@ -454,14 +603,33 @@ export const ChangeOfStatusOfficialFormsStep = ({
               </div>
             </div>
             
-            <div className="space-y-6 pt-4 border-t border-border/50">
-              <div className="flex items-center gap-3 border-b border-border pb-2">
-                <div className="h-2 w-2 rounded-full bg-blue-600" />
-                <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Interpreter & Preparer</h4>
+            <div className="space-y-8 pt-4 border-t border-border/50">
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 border-b border-border pb-2">
+                  <div className="h-2 w-2 rounded-full bg-blue-600" />
+                  <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Part 6 - Interpreter's Information</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormInput label="Interpreter Family Name" {...register!("i539_interpreter_family_name" as any)} className="h-12 rounded-xl" />
+                  <FormInput label="Interpreter Given Name" {...register!("i539_interpreter_given_name" as any)} className="h-12 rounded-xl" />
+                  <FormInput label="Interpreter Phone" type="tel" {...register!("i539_interpreter_phone" as any)} className="h-12 rounded-xl" />
+                  <FormInput label="Interpreter Email" type="email" {...register!("i539_interpreter_email" as any)} className="h-12 rounded-xl" />
+                  <FormInput label="Interpreter Language" placeholder="Ex: Portuguese" {...register!("i539_interpreter_language" as any)} className="md:col-span-2 h-12 rounded-xl" />
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormInput label="Interpreter's Full Name" {...register!("i539_interpreter_info" as any)} placeholder="Se houver..." className="h-12 rounded-xl" />
-                <FormInput label="Preparer's Full Name" {...register!("i539_preparer_info" as any)} placeholder="Se houver..." className="h-12 rounded-xl" />
+
+              <div className="space-y-6 pt-4 border-t border-border/50">
+                <div className="flex items-center gap-3 border-b border-border pb-2">
+                  <div className="h-2 w-2 rounded-full bg-blue-600" />
+                  <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Part 7 - Preparer's Information</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormInput label="Preparer Family Name" {...register!("i539_preparer_family_name" as any)} className="h-12 rounded-xl" />
+                  <FormInput label="Preparer Given Name" {...register!("i539_preparer_given_name" as any)} className="h-12 rounded-xl" />
+                  <FormInput label="Preparer Business Name" {...register!("i539_preparer_business" as any)} className="md:col-span-2 h-12 rounded-xl" />
+                  <FormInput label="Preparer Phone" type="tel" {...register!("i539_preparer_phone" as any)} className="h-12 rounded-xl" />
+                  <FormInput label="Preparer Email" type="email" {...register!("i539_preparer_email" as any)} className="h-12 rounded-xl" />
+                </div>
               </div>
             </div>
           </AccordionContent>

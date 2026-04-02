@@ -40,6 +40,7 @@ export default function AdminDS160ViewerPage() {
     id: string;
     status: string;
     application_id?: string;
+    service_slug?: string;
   } | null>(null);
 
   const fetchDS160Data = useCallback(async () => {
@@ -85,6 +86,7 @@ export default function AdminDS160ViewerPage() {
         id: service.id,
         status: service.status,
         application_id: service.application_id,
+        service_slug: service.service_slug,
       });
       const { data: responses, error } = await supabase
         .from("onboarding_responses")
@@ -538,7 +540,11 @@ export default function AdminDS160ViewerPage() {
           <div>
             <h2 className="font-display text-title font-bold flex items-center gap-2">
               <FileText className="h-6 w-6 text-accent" />
-              Formulário DS-160 completo
+              {serviceData?.service_slug === "extensao-status"
+                ? "Formulário de Extensão de Status completo"
+                : serviceData?.service_slug === "troca-status"
+                  ? "Formulário de Troca de Status completo"
+                  : "Formulário DS-160 completo"}
             </h2>
             <p className="text-muted-foreground">
               Visualizando respostas detalhadas de{" "}

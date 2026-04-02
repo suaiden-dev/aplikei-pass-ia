@@ -90,6 +90,7 @@ interface Order {
   total_price_usd?: number;
   created_at: string;
   terms_accepted_at?: string | null;
+  service_metadata?: Record<string, any> | null;
 }
 
 interface ProcessDocument {
@@ -134,6 +135,7 @@ interface ServiceData {
   contract_selfie_url: string | null;
   specialist_training_data: Record<string, unknown> | null;
   specialist_review_data: Record<string, unknown> | null;
+  service_metadata: Record<string, any> | null;
 }
 
 interface RegistrationData {
@@ -183,6 +185,7 @@ export default function AdminProcessDetail() {
   const [individualRejectionNotes, setIndividualRejectionNotes] = useState<Record<string, string>>({});
   const [cosGeneratingCoverLetter, setCosGeneratingCoverLetter] = useState(false);
   const [cosCoverLetterHtml, setCosCoverLetterHtml] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("actions");
 
   const handleOpenDocAdmin = async (doc: ProcessDocument) => {
     try {
@@ -223,11 +226,15 @@ export default function AdminProcessDetail() {
       }
 
       // Fetch service statuses for this user
+      const isCOSProduct = orderData.product_slug === "troca-status" || orderData.product_slug === "extensao-status";
+      const slugGroup = [orderData.product_slug];
+      if (isCOSProduct) slugGroup.push("changeofstatus");
+
       const { data: services, error: servicesError } = await supabase
         .from("user_services")
         .select("*")
         .eq("user_id", orderData.user_id as string)
-        .eq("service_slug", orderData.product_slug)
+        .in("service_slug", slugGroup)
         .order("created_at", { ascending: true });
 
       if (servicesError) {
@@ -264,8 +271,8 @@ export default function AdminProcessDetail() {
         contract_pdf_url: orderData.contract_pdf_url || null,
         contract_selfie_url: orderData.contract_selfie_url || s?.contract_selfie_url || null,
 
-        specialist_training_data: s?.specialist_training_data || null,
         specialist_review_data: s?.specialist_review_data || null,
+        service_metadata: serviceData?.service_metadata || null,
         consular_login: serviceData?.consular_login || null,
         consular_password: serviceData?.consular_password || null,
         client_whatsapp: profileData?.phone || (orderData.payment_metadata as Record<string, unknown>)?.phone || orderData.client_email || null,
@@ -946,7 +953,6 @@ export default function AdminProcessDetail() {
             </p>
           </div>
         </div>
-
         <div className="grid grid-cols-1 gap-4">
           <Card className="p-4 border-border bg-card shadow-sm">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 block">
@@ -1427,7 +1433,10 @@ export default function AdminProcessDetail() {
 
   const renderCOSOfficialFormsReviewUI = () => {
     return renderCOSDocumentChecklist(
-      [{ id: "cos_i539", label: "Formulário I-539 Assinado" }],
+      [
+        { id: "i539_oficial", label: "Formulário I-539 Assinado" },
+        { id: "i539a_oficial", label: "Suplemento I-539A (se houver)" }
+      ],
       "COS_COVER_LETTER_FORM"
     );
   };
@@ -1590,8 +1599,8 @@ export default function AdminProcessDetail() {
   };
 
   const renderCOSFinalFormsReviewUI = () => {
-    const g1145Doc = processDocs.find(d => d.name === "cos_g1145");
-    const g1450Doc = processDocs.find(d => d.name === "cos_g1450");
+    const g1145Doc = processDocs.find(d => d.name === "g1145_oficial");
+    const g1450Doc = processDocs.find(d => d.name === "g1450_oficial");
     const packageDoc = processDocs.find(d => d.name === "cos_package");
 
     const allUploaded = !!(g1145Doc && g1450Doc);
@@ -1614,8 +1623,8 @@ export default function AdminProcessDetail() {
 
         {renderCOSDocumentChecklist(
           [
-            { id: "cos_g1145", label: "Formulário G-1145" },
-            { id: "cos_g1450", label: "Formulário G-1450" },
+            { id: "g1145_oficial", label: "Formulário G-1145" },
+            { id: "g1450_oficial", label: "Formulário G-1450" },
           ],
           "COS_PACKAGE_READY"
         )}
@@ -1653,6 +1662,9 @@ export default function AdminProcessDetail() {
   // Main COS router
   const renderCOSReviewUI = () => {
     const currentStatus = order?.service_status || "";
+    console.log(`[AdminRouter] renderCOSReviewUI - Status: ${currentStatus}`);
+    console.log(`[AdminRouter] renderCOSReviewUI - Status: ${currentStatus}`);
+    console.log(`[AdminRouter] Status: ${currentStatus}`);
 
     const statusMap: Record<string, () => JSX.Element> = {
       COS_ADMIN_SCREENING: renderCOSScreeningUI,
@@ -1661,6 +1673,12 @@ export default function AdminProcessDetail() {
       COS_F1_I20_REVIEW: renderCOSI20ReviewUI,
       COS_SEVIS_FEE_REVIEW: renderCOSSEVISReviewUI,
       COS_FINAL_FORMS_REVIEW: renderCOSFinalFormsReviewUI,
+      COS_ANALISE_PENDENTE: () => <AdminCosAnalysisPanel userServiceId={order!.user_service_id!} />,
+      EOS_ANALISE_PENDENTE: () => <AdminCosAnalysisPanel userServiceId={order!.user_service_id!} />,
+      ANALISE_PENDENTE: () => <AdminCosAnalysisPanel userServiceId={order!.user_service_id!} />,
+      COS_MOTION_IN_PROGRESS: () => <AdminCosAnalysisPanel userServiceId={order!.user_service_id!} />,
+      EOS_MOTION_IN_PROGRESS: () => <AdminCosAnalysisPanel userServiceId={order!.user_service_id!} />,
+      MOTION_IN_PROGRESS: () => <AdminCosAnalysisPanel userServiceId={order!.user_service_id!} />,
     };
 
     // Client-facing waiting states
@@ -1707,20 +1725,22 @@ export default function AdminProcessDetail() {
       );
     }
 
+    if (currentStatus.includes("ANALISE") || currentStatus.includes("MOTION") || currentStatus.includes("RFE") || currentStatus.includes("TRACKING")) {
+      return <AdminCosAnalysisPanel userServiceId={order!.user_service_id!} />;
+    }
+
     return null;
   };
 
   const renderStatusContent = () => {
+    const currentStatus = order?.service_status || "unknown";
+    console.log(`[AdminStatus] renderStatusContent - Status: ${currentStatus}`);
     const sched = onboardingResponses.find((r) => r.step_slug === "casv_scheduling");
-    const schedData = sched?.data as any;
-    const preferredDate = schedData?.preferred_date;
-
-    // COS product routing
-    if (status.startsWith("COS_")) {
+    if (currentStatus.startsWith("COS_")) {
       return renderCOSReviewUI();
     }
 
-    switch (status) {
+    switch (currentStatus) {
       case "ds160InProgress":
       case "active":
         return (
@@ -1743,6 +1763,22 @@ export default function AdminProcessDetail() {
       case "review_pending":
       case "review_assign":
         return renderProcessingUI();
+
+      case "ANALISE_PENDENTE":
+      case "COS_ANALISE_PENDENTE":
+      case "EOS_ANALISE_PENDENTE":
+      case "MOTION_IN_PROGRESS":
+      case "COS_MOTION_IN_PROGRESS":
+      case "EOS_MOTION_IN_PROGRESS":
+      case "RFE_IN_PROGRESS":
+      case "COS_RFE_IN_PROGRESS":
+      case "EOS_RFE_IN_PROGRESS":
+      case "RFE":
+      case "COS_RFE":
+      case "EOS_RFE":
+      case "COS_ANALISE_CONCLUIDA":
+      case "ANALISE_CONCLUIDA":
+        return <AdminCosAnalysisPanel userServiceId={order!.user_service_id!} />;
 
       case "uploadsUnderReview":
       case "ds160upload_documents":
@@ -2253,11 +2289,38 @@ export default function AdminProcessDetail() {
         );
       }
 
-      // ── COS Post-decision: Specialist Analysis ──
+      // ── COS/EOS Post-decision: Specialist Analysis & Recovery Flows ──
       case "ANALISE_PENDENTE":
+      case "COS_ANALISE_PENDENTE":
+      case "EOS_ANALISE_PENDENTE":
       case "ANALISE_CONCLUIDA":
+      case "COS_ANALISE_CONCLUIDA":
+      case "EOS_ANALISE_CONCLUIDA":
+      case "RECOVERY_PAYMENT_PENDING":
+      case "COS_RECOVERY_PAYMENT_PENDING":
+      case "EOS_RECOVERY_PAYMENT_PENDING":
+      case "RFE":
+      case "COS_RFE":
+      case "EOS_RFE":
+      case "MOTION_PREPARATION":
+      case "COS_MOTION_PREPARATION":
+      case "EOS_MOTION_PREPARATION":
+      case "MOTION_SENT":
+      case "COS_MOTION_SENT":
+      case "EOS_MOTION_SENT":
       case "COS_CASE_FORM":
+      case "EOS_CASE_FORM":
       case "COS_REJECTED":
+      case "EOS_REJECTED":
+      case "MOTION_APPROVED":
+      case "MOTION_REJECTED":
+      case "MOTION_COMPLETED":
+      case "COS_MOTION_COMPLETED":
+      case "EOS_MOTION_COMPLETED":
+      case "MOTION_IN_PROGRESS":
+      case "EOS_MOTION_IN_PROGRESS":
+      case "COS_MOTION_IN_PROGRESS":
+      case "RFE_MOTION_IN_PROGRESS":
         return (
           <div className="space-y-2">
             <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-border">
@@ -2265,13 +2328,28 @@ export default function AdminProcessDetail() {
                 <FileText className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-bold uppercase tracking-widest text-primary">Análise do Especialista — COS</p>
+                <p className="text-sm font-bold uppercase tracking-widest text-primary">
+                  Análise do Especialista — {(order?.product_slug?.toLowerCase().includes("extens") || status?.includes("EOS")) ? "EOS" : "COS"}
+                </p>
                 <p className="text-xs text-muted-foreground">Formulário enviado pelo cliente após pagamento da análise.</p>
               </div>
-              <Badge className="ml-auto" variant={status === "ANALISE_PENDENTE" ? "destructive" : status === "ANALISE_CONCLUIDA" ? "default" : "secondary"}>
+              <Badge 
+                className="ml-auto" 
+                variant={
+                  status === "ANALISE_PENDENTE" ? "destructive" : 
+                  status === "ANALISE_CONCLUIDA" ? "default" : 
+                  (status === "MOTION_SENT" || status === "MOTION_APPROVED") ? "default" : 
+                  "secondary"
+                }
+              >
                 {status === "ANALISE_PENDENTE" ? "Pendente" :
-                 status === "ANALISE_CONCLUIDA" ? "Concluída" :
-                 status === "COS_CASE_FORM" ? "Formulário Recebido" : "Negado"}
+                 status === "ANALISE_CONCLUIDA" ? "Proposta Enviada" :
+                 status === "RECOVERY_PAYMENT_PENDING" ? "Aguardando Pagamento" :
+                 status === "RFE" ? "RFE Recebido" :
+                 (status?.includes("MOTION_IN_PROGRESS") || status === "MOTION_PREPARATION") ? "Em Preparação" :
+                 (status === "MOTION_SENT" || status?.includes("MOTION_COMPLETED")) ? "Entregue" :
+                 status === "EOS_CASE_FORM" || status === "COS_CASE_FORM" ? "Formulário Recebido" : 
+                 status || "Processando"}
               </Badge>
             </div>
             <AdminCosAnalysisPanel
@@ -2318,7 +2396,7 @@ export default function AdminProcessDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Left Column: Status info & Logs */}
         <div className="lg:col-span-3 space-y-4">
-          <Tabs defaultValue="actions" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="mb-4 bg-muted/50 p-1 border border-border">
               <TabsTrigger
                 value="actions"
@@ -2427,49 +2505,57 @@ export default function AdminProcessDetail() {
                     )}
                   </Card>
 
-                  {/* Revisão */}
+                  {/* Análise Técnica / Motion */}
                   <Card className="p-4 border-border bg-muted/10">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-2">
-                        <ShieldCheck className="h-4 w-4 text-accent" />
+                        <Wand2 className="h-4 w-4 text-primary" />
                         <h4 className="text-sm font-bold">
-                          Revisão Especialista
+                          Análise Técnica (Motion/RFE)
                         </h4>
                       </div>
                       <Badge
                         variant={
-                          order.specialist_review_data?.status === "paid"
+                          status.includes("ANALISE") || status.includes("RFE") || status.includes("MOTION") || status.includes("CASE_FORM") || (order?.service_metadata?.recovery_type && order?.service_metadata?.recovery_type !== 'none')
                             ? "default"
                             : "secondary"
                         }
                         className="text-[10px]"
                       >
-                        {order.specialist_review_data?.status === "paid"
+                        {status.includes("ANALISE") || status.includes("RFE") || status.includes("MOTION") || status.includes("CASE_FORM") || (order?.service_metadata?.recovery_type && order?.service_metadata?.recovery_type !== 'none')
                           ? "CONTRATADO"
                           : "NÃO CONTRATADO"}
                       </Badge>
                     </div>
-                    {order.specialist_review_data?.status === "paid" && (
-                      <div className="space-y-2 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Status:</span>
-                          <span className="font-medium text-green-600">
-                            Pagamento Confirmado
-                          </span>
+                    {(status.includes("ANALISE") || status.includes("RFE") || status.includes("MOTION")) ? (
+                      <div className="space-y-3">
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Fase Atual:</span>
+                            <span className="font-medium text-primary">
+                              {status.includes("CASE_FORM") ? "Aguardando Formulário" :
+                               status === "ANALISE_PENDENTE" ? "Nova Análise" : 
+                               status === "RFE" ? "Tratando RFE" : 
+                               status.includes("MOTION") ? "Fluxo de Motion" : "Em Andamento"}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">
-                            Última Atualização:
-                          </span>
-                          <span className="font-medium">
-                            {order.specialist_review_data?.updated_at
-                              ? new Date(
-                                  String(order.specialist_review_data.updated_at),
-                                ).toLocaleDateString("pt-BR")
-                              : "-"}
-                          </span>
-                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-full text-[10px] font-black h-8 uppercase tracking-widest border-primary/30 text-primary hover:bg-primary/5"
+                          onClick={() => {
+                            setActiveTab("actions");
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                        >
+                          Gerenciar Motion
+                        </Button>
                       </div>
+                    ) : (
+                      <p className="text-[10px] text-muted-foreground italic">
+                        O cliente ainda não solicitou o apoio especializado para este caso.
+                      </p>
                     )}
                   </Card>
                 </div>
@@ -2702,7 +2788,11 @@ export default function AdminProcessDetail() {
                       <ClipboardList className="h-4 w-4" />
                     </div>
                     <span className="text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                      Formulário DS-160
+                      {order?.product_slug === "extensao-status"
+                        ? "Formulário de Extensão de Status"
+                        : order?.product_slug === "troca-status"
+                        ? "Formulário de Troca de Status"
+                        : "Formulário DS-160"}
                     </span>
                   </div>
                   <Eye className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />

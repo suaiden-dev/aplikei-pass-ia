@@ -44,7 +44,7 @@ Deno.serve(async (req: Request) => {
         const relevantEvents = ["checkout.session.completed", "checkout.session.async_payment_succeeded"];
 
         if (relevantEvents.includes(event.type)) {
-            const session = event.data.object as Stripe.Checkout.Session;
+            const session = event.data.object as any;
             const metadata = session.metadata;
 
             if (!metadata) throw new Error("No metadata in session");
@@ -53,8 +53,8 @@ Deno.serve(async (req: Request) => {
             // Only process events intended for the 'aplikei' project.
             // If it's another project or missing, skip processing.
             if (metadata.project !== 'aplikei') {
-                console.log(`[IGNORED] Stripe event from another project (Project: ${metadata.project || 'N/A'}) - Session: ${session.id}`);
-                return new Response(JSON.stringify({ received: true, ignored: true }), {
+                console.log(`[IGNORED] Stripe event from another project or old session (Project: ${metadata.project || 'N/A'}) - Session: ${session.id} - Checkout Email: ${session.customer_details?.email}`);
+                return new Response(JSON.stringify({ received: true, ignored: true, sessionId: session.id }), {
                     headers: { ...corsHeaders, "Content-Type": "application/json" },
                     status: 200,
                 });
@@ -117,10 +117,10 @@ Deno.serve(async (req: Request) => {
                 userId = profile.id;
             } else {
                 // Determine origin for redirect from metadata or fallback
-                const originUrl = metadata.origin_url || "http://localhost:5173";
+                const originUrl = metadata.origin_url || Deno.env.get("FRONTEND_URL") || "https://aplikeipass.com";
                 const redirectTo = `${originUrl}/auth/confirm-password`;
 
-                console.log(`Inviting new user: ${email} with redirect to ${redirectTo}`);
+                console.log(`[stripe-webhook] Criando acc via convite para ${email} (Origin: ${originUrl})`);
 
 
                 const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
@@ -132,9 +132,10 @@ Deno.serve(async (req: Request) => {
                 );
 
                 if (!authError && authUser?.user) {
+                    console.log(`[stripe-webhook] Convite enviado com sucesso para: ${email}`);
                     userId = authUser.user.id;
                 } else if (authError) {
-                    console.error("Error inviting user:", authError.message);
+                    console.error("[stripe-webhook] Erro ao convidar usuário:", authError.message);
                 }
             }
 
@@ -181,6 +182,7 @@ Deno.serve(async (req: Request) => {
                     const { error: updateError } = await supabaseAdmin
                         .from('user_services')
                         .update({
+                            product_type: metadata.product_type || 'COS',
                             specialist_training_data: {
                                 status: 'paid',
                                 package_type: packageType,
@@ -188,9 +190,7 @@ Deno.serve(async (req: Request) => {
                                 updated_at: new Date().toISOString()
                             }
                         })
-                        .eq('id', serviceId)
-                        .eq('user_id', userId);
-
+                        .eq('id', serviceId);
                     if (updateError) console.error("Error updating specialist training data:", updateError.message);
                 } else if (metadata.type === 'specialist_review') {
                     const serviceId = metadata.serviceId;
@@ -200,38 +200,66 @@ Deno.serve(async (req: Request) => {
                     const { error: reviewError } = await supabaseAdmin
                         .from('user_services')
                         .update({
+                            product_type: metadata.product_type || 'COS',
                             specialist_review_data: {
                                 status: 'paid',
                                 stripe_session_id: session.id,
                                 updated_at: new Date().toISOString()
                             }
                         })
-                        .eq('id', serviceId)
-                        .eq('user_id', userId);
-
+                        .eq('id', serviceId);
                     if (reviewError) console.error("Error updating specialist review data:", reviewError.message);
-                } else if (metadata.action === 'cos_analyst' && metadata.serviceId) {
+                } else if (['cos_analyst', 'eos_analyst'].includes(metadata.action) && metadata.serviceId) {
                     const serviceId = metadata.serviceId;
+                    const prefix = metadata.action.startsWith('eos') ? 'EOS' : 'COS';
+                    const nextStatus = `${prefix}_CASE_FORM`;
                     
-                    console.log(`Processing COS specialist analysis payment for user ${userId}, service ${serviceId}`);
+                    console.log(`Processing ${metadata.action} specialist analysis payment for user ${userId}, service ${serviceId}, status: ${nextStatus}`);
                     
                     const { error: cosError } = await supabaseAdmin
                         .from('user_services')
-                        .update({ status: 'COS_CASE_FORM' })
-                        .eq('id', serviceId)
-                        .eq('user_id', userId);
+                        .update({ 
+                            status: nextStatus,
+                            product_type: metadata.product_type || (prefix === 'COS' ? 'COS' : 'EOS')
+                        })
+                        .eq('id', serviceId);
 
-                    if (cosError) console.error("Error updating COS case form status:", cosError.message);
+                    if (cosError) console.error(`Error updating ${nextStatus} status:`, cosError.message);
+                } else if (metadata.action && ['cos_recovery', 'eos_recovery', 'rfe_recovery', 'cos_motion', 'eos_motion', 'motion_recovery'].includes(metadata.action) && metadata.serviceId) {
+                    const serviceId = metadata.serviceId;
+                    const actionPrefix = metadata.action.split('_')[0].toUpperCase(); 
+                    
+                    // Verificamos o status atual para saber se devemos ir para FORM ou MOTION
+                    const { data: currentService } = await supabaseAdmin
+                        .from('user_services')
+                        .select('status')
+                        .eq('id', serviceId)
+                        .single();
+                    
+                    const isRfeFlow = currentService?.status?.endsWith('_RFE');
+                    const nextStatus = isRfeFlow ? `${actionPrefix}_CASE_FORM` : `${actionPrefix}_MOTION_IN_PROGRESS`;
+                    
+                    console.log(`Processing ${metadata.action} payment for user ${userId}, current_status: ${currentService?.status}, next_status: ${nextStatus}`);
+                    
+                    const { error: recoveryError } = await supabaseAdmin
+                        .from('user_services')
+                        .update({ 
+                            status: nextStatus,
+                            product_type: metadata.product_type || (actionPrefix === 'COS' ? 'COS' : 'EOS')
+                        })
+                        .eq('id', serviceId);
+
+                    if (recoveryError) console.error("Error updating recovery status:", recoveryError.message);
                 } else if (metadata.action === 'restart' && metadata.serviceId) {
                     console.log(`Processing restart for user ${userId}, service ${metadata.serviceId}`);
                     
                     const { error: restartError } = await supabaseAdmin
                         .from('user_services')
                         .update({
-                            status: 'active'
+                            status: 'active',
+                            product_type: metadata.product_type || 'COS'
                         })
-                        .eq('id', metadata.serviceId)
-                        .eq('user_id', userId);
+                        .eq('id', metadata.serviceId);
 
                     if (restartError) console.error("Error restarting user service:", restartError.message);
                 } else if (metadata.action === 'reapply') {

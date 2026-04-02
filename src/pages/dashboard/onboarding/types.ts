@@ -25,8 +25,10 @@ export interface StepProps {
     t: typeof translations; 
     o: typeof translations.onboardingPage; 
     serviceSlug?: string;
+    originalServiceSlug?: string;
     serviceStatus?: string | null;
     securityData?: { appId: string | null; dob: string | null; grandma: string | null } | null;
+    onNext?: () => Promise<void>;
 }
 
 export interface DocumentStepProps extends StepProps {
@@ -37,5 +39,4 @@ export interface DocumentStepProps extends StepProps {
     fileInputRef: React.RefObject<HTMLInputElement>;
     setSelectedDoc: (docName: string) => void;
     handleSkip?: () => Promise<void>;
-    serviceStatus?: string | null;
 }

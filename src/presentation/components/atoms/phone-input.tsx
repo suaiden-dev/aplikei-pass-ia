@@ -52,145 +52,145 @@ const countries: Country[] = [
   { name: "Canadá", code: "CA", dialCode: "+1", flag: "🇨🇦" },
 ];
 
-interface PhoneInputProps {
-  value: string;
+interface PhoneInputProps extends Omit<React.ComponentPropsWithoutRef<"input">, "value" | "onChange"> {
+  value?: string;
   onChange: (value: string) => void;
-  placeholder?: string;
-  className?: string;
-  required?: boolean;
-  disabled?: boolean;
-  id?: string;
 }
 
-export function PhoneInput({
-  value = "",
-  onChange,
-  placeholder = "Digite o telefone",
-  className,
-  required,
-  disabled,
-  id,
-}: PhoneInputProps) {
-  const [open, setOpen] = React.useState(false);
+export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
+  ({
+    value = "",
+    onChange,
+    placeholder = "Digite o telefone",
+    className,
+    required,
+    disabled,
+    id,
+  }, ref) => {
+    const [open, setOpen] = React.useState(false);
 
-  // Initialize with BR or try to detect from value
-  const [selectedCountry, setSelectedCountry] = React.useState<Country>(() => {
-    if (value.startsWith("+")) {
-      const found = countries.find((c) => value.startsWith(c.dialCode));
-      if (found) return found;
-    }
-    return countries[0]; // Default to Brazil
-  });
-
-  // Extract the actual number without the dial code
-  const [displayValue, setDisplayValue] = React.useState(() => {
-    if (value.startsWith(selectedCountry.dialCode)) {
-      return value.replace(selectedCountry.dialCode, "").trim();
-    }
-    return value;
-  });
-
-  // Simple masking for Brazil
-  const formatPhoneNumber = (input: string, country: Country) => {
-    const digits = input.replace(/\D/g, "");
-    if (country.code === "BR") {
-      if (digits.length <= 11) {
-        let masked = digits;
-        if (digits.length > 2)
-          masked = `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-        if (digits.length > 7)
-          masked = `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
-        return masked;
+    // Initialize with BR or try to detect from value
+    const [selectedCountry, setSelectedCountry] = React.useState<Country>(() => {
+      if (typeof value === "string" && value.startsWith("+")) {
+        const found = countries.find((c) => value.startsWith(c.dialCode));
+        if (found) return found;
       }
-      return digits.slice(0, 11);
-    }
-    return digits; // Basic digits for other countries for now
-  };
+      return countries[0]; // Default to Brazil
+    });
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value;
-    const formatted = formatPhoneNumber(rawValue, selectedCountry);
-    setDisplayValue(formatted);
+    // Extract the actual number without the dial code
+    const [displayValue, setDisplayValue] = React.useState(() => {
+      if (typeof value === "string" && value.startsWith(selectedCountry.dialCode)) {
+        return value.replace(selectedCountry.dialCode, "").trim();
+      }
+      return value || "";
+    });
 
-    // Always return full international format
-    const cleanDigits = formatted.replace(/\D/g, "");
-    onChange(cleanDigits ? `${selectedCountry.dialCode}${cleanDigits}` : "");
-  };
+    // Simple masking for Brazil
+    const formatPhoneNumber = (input: string, country: Country) => {
+      const digits = input.replace(/\D/g, "");
+      if (country.code === "BR") {
+        if (digits.length <= 11) {
+          let masked = digits;
+          if (digits.length > 2)
+            masked = `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+          if (digits.length > 7)
+            masked = `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+          return masked;
+        }
+        return digits.slice(0, 11);
+      }
+      return digits; // Basic digits for other countries for now
+    };
 
-  const handleCountrySelect = (country: Country) => {
-    setSelectedCountry(country);
-    setOpen(false);
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const rawValue = e.target.value;
+      const formatted = formatPhoneNumber(rawValue, selectedCountry);
+      setDisplayValue(formatted);
 
-    // Update parent with same digits but new dial code
-    const cleanDigits = displayValue.replace(/\D/g, "");
-    onChange(cleanDigits ? `${country.dialCode}${cleanDigits}` : "");
-  };
+      // Always return full international format
+      const cleanDigits = formatted.replace(/\D/g, "");
+      onChange(cleanDigits ? `${selectedCountry.dialCode}${cleanDigits}` : "");
+    };
 
-  return (
-    <div className={cn("flex gap-2", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-[85px] justify-between px-2 shrink-0"
+    const handleCountrySelect = (country: Country) => {
+      setSelectedCountry(country);
+      setOpen(false);
+
+      // Update parent with same digits but new dial code
+      const cleanDigits = displayValue.replace(/\D/g, "");
+      onChange(cleanDigits ? `${country.dialCode}${cleanDigits}` : "");
+    };
+
+    return (
+      <div className={cn("flex gap-2", className)}>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-[85px] justify-between px-2 shrink-0"
+              disabled={disabled}
+            >
+              <span className="text-subtitle mr-1">{selectedCountry.flag}</span>
+              <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Buscar país..." />
+              <CommandList>
+                <CommandEmpty>Nenhum país encontrado.</CommandEmpty>
+                <CommandGroup>
+                  {countries.map((country) => (
+                    <CommandItem
+                      key={country.code}
+                      value={country.name}
+                      onSelect={() => handleCountrySelect(country)}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedCountry.code === country.code
+                            ? "opacity-100"
+                            : "opacity-0",
+                        )}
+                      />
+                      <span className="mr-2 text-lg">{country.flag}</span>
+                      <span className="flex-1 text-sm">{country.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {country.dialCode}
+                      </span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        <div className="relative flex-1">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+            {selectedCountry.dialCode}
+          </div>
+          <Input
+            ref={ref}
+            id={id}
+            type="tel"
+            value={displayValue}
+            onChange={handlePhoneChange}
+            placeholder={placeholder}
             disabled={disabled}
-          >
-            <span className="text-subtitle mr-1">{selectedCountry.flag}</span>
-            <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0" align="start">
-          <Command>
-            <CommandInput placeholder="Buscar país..." />
-            <CommandList>
-              <CommandEmpty>Nenhum país encontrado.</CommandEmpty>
-              <CommandGroup>
-                {countries.map((country) => (
-                  <CommandItem
-                    key={country.code}
-                    value={country.name}
-                    onSelect={() => handleCountrySelect(country)}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        selectedCountry.code === country.code
-                          ? "opacity-100"
-                          : "opacity-0",
-                      )}
-                    />
-                    <span className="mr-2 text-lg">{country.flag}</span>
-                    <span className="flex-1 text-sm">{country.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {country.dialCode}
-                    </span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-      <div className="relative flex-1">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-          {selectedCountry.dialCode}
+            required={required}
+            className="pl-[45px]" // Adjust based on dialCode width
+            style={{
+              paddingLeft: `${(selectedCountry.dialCode?.length ?? 3) * 9 + 20}px`,
+            }}
+          />
         </div>
-        <Input
-          id={id}
-          type="tel"
-          value={displayValue}
-          onChange={handlePhoneChange}
-          placeholder={placeholder}
-          disabled={disabled}
-          required={required}
-          className="pl-[45px]" // Adjust based on dialCode width
-          style={{
-            paddingLeft: `${selectedCountry.dialCode.length * 9 + 20}px`,
-          }}
-        />
       </div>
-    </div>
-  );
-}
+    );
+  }
+);
+PhoneInput.displayName = "PhoneInput";

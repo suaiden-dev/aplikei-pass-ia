@@ -22,6 +22,7 @@ export const useOnboardingBase = () => {
     const userId = user?.id;
 
     const [serviceSlug, setServiceSlug] = useState<string>("visto-b1-b2");
+    const [originalServiceSlug, setOriginalServiceSlug] = useState<string>("visto-b1-b2");
     const [loading, setLoading] = useState(true);
     const [serviceId, setServiceId] = useState<string | null>(null);
     const [serviceStatus, setServiceStatus] = useState<string | null>(null);
@@ -29,6 +30,7 @@ export const useOnboardingBase = () => {
     const [securityData, setSecurityData] = useState<{ appId: string; dob: string; grandma: string } | null>(null);
     const [hasConsularCredentials, setHasConsularCredentials] = useState<boolean>(false);
     const [isFinishing, setIsFinishing] = useState<boolean>(false);
+    const [isNextLoading, setIsNextLoading] = useState<boolean>(false);
     
     // Identity Verification (Selfie)
     const [requiresSelfie, setRequiresSelfie] = useState<boolean>(false);
@@ -75,7 +77,10 @@ export const useOnboardingBase = () => {
                 setServiceId(sId);
                 setServiceStatus(service.status || "active");
                 
-                let slug = service.serviceSlug || "visto-b1-b2";
+                let rawSlug = service.serviceSlug || "visto-b1-b2";
+                setOriginalServiceSlug(rawSlug);
+                
+                let slug = rawSlug;
                 if (slug === "visto-f1") slug = "visa-f1f2";
                 if (slug === "troca-status" || slug === "extensao-status") slug = "changeofstatus";
                 setServiceSlug(slug);
@@ -208,8 +213,8 @@ export const useOnboardingBase = () => {
 
     return {
         userId, lang, t, o,
-        serviceSlug, serviceId, serviceStatus, orderNumber, securityData, hasConsularCredentials,
-        loading, setLoading, isFinishing, setIsFinishing,
+        serviceSlug, originalServiceSlug, serviceId, serviceStatus, setServiceStatus, orderNumber, securityData, hasConsularCredentials,
+        loading, setLoading, isFinishing, setIsFinishing, isNextLoading, setIsNextLoading,
         requiresSelfie, setRequiresSelfie, uploadingSelfie, selfieFile, setSelfieFile, handleSelfieUpload,
         uploading, setUploading, selectedDoc, setSelectedDoc, uploadedDocs, setUploadedDocs, fileInputRef,
         formMethods, formData, currentStep, setCurrentStep, handleOpenDoc, handleUpload, handleRemoveDoc, trigger

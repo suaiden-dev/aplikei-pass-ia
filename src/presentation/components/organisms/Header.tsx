@@ -12,10 +12,19 @@ export default function Header() {
   const { lang, t } = useLanguage();
   const location = useLocation();
 
-  const serviceLinks = t.servicesData.map((s) => ({
-    to: `/servicos/${s.slug}`,
-    label: s.shortTitle[lang],
-  }));
+  const excludedSlugs = [
+    'analise-especialista-cos',
+    'motion-reconsideracao-cos',
+    'motion-reconsideracao-eos',
+    'rfe-support'
+  ];
+
+  const serviceLinks = t.servicesData
+    .filter(s => !excludedSlugs.includes(s.slug))
+    .map((s) => ({
+      to: `/servicos/${s.slug}`,
+      label: s.shortTitle[lang],
+    }));
 
   const navLinks = [
     { to: "/como-funciona", label: t.nav.howItWorks[lang] },

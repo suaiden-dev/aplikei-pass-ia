@@ -36,7 +36,7 @@ export const ActiveProcessesSection = ({
              <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <Briefcase className="w-5 h-5 text-primary" />
              </div>
-             <h2 className="font-display text-2xl font-black uppercase tracking-tight text-foreground">
+             <h2 className="font-display text-2xl font-black uppercase tracking-tight text-slate-900">
                {d.activeProcesses}
              </h2>
              <Badge variant="secondary" className="ml-2 h-6 px-3 rounded-full bg-primary/5 text-primary border-primary/10 font-black">

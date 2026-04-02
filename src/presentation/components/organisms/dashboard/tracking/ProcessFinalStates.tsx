@@ -104,20 +104,27 @@ export const ProcessFinalStates: React.FC<ProcessFinalStatesProps> = ({ status, 
 
           <div className="mt-12 flex flex-col sm:flex-row justify-center gap-4">
             <Button 
-              size="lg" 
-              variant="outline" 
-              className="rounded-2xl px-8 h-14 font-black uppercase text-xs tracking-widest border-2" 
-              onClick={() => navigate("/dashboard")}
+                size="lg" 
+                variant="outline"
+                className="rounded-2xl px-10 h-14 font-black uppercase text-xs tracking-widest border-2"
+                onClick={() => navigate("/dashboard")}
             >
-              Dashboard
+                <Home className="w-4 h-4 mr-2" />
+                Início
             </Button>
             <Button 
               size="lg" 
-              className="rounded-2xl px-10 h-14 bg-foreground text-background hover:bg-foreground/90 font-black uppercase text-xs tracking-widest gap-2 shadow-xl shadow-foreground/10"
-              onClick={() => window.open("https://wa.me/APLIKEI", "_blank")}
+              className="rounded-2xl px-10 h-14 bg-primary hover:bg-primary/90 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20 gap-2"
+              onClick={() => {
+                const serviceId = new URLSearchParams(window.location.search).get("service_id");
+                const isEosLocal = status.startsWith("EOS_");
+                const checkoutId = isEosLocal ? "analise-especialista-eos" : "analise-especialista-cos";
+                const action = isEosLocal ? "eos_analyst" : "cos_analyst";
+                navigate(`/checkout/${checkoutId}?serviceId=${serviceId}&action=${action}`);
+              }}
             >
-              <MessageCircle className="w-4 h-4" />
-              Falar com Especialista
+              Iniciar Reavaliação Técnica
+              <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
         </motion.div>

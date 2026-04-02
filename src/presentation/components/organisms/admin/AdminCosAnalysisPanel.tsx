@@ -14,10 +14,12 @@ import {
   Loader2,
   AlertCircle,
   User,
+  RefreshCw,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { AdminAnalysisService, type RecoveryCase } from "@/application/services/admin/AdminAnalysisService";
 import { useT } from "@/i18n/LanguageContext";
+import { cn } from "@/lib/utils";
 
 interface Props {
   userServiceId: string | null;
@@ -42,13 +44,14 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
   const [serviceSlug, setServiceSlug] = useState("");
   const [recoveryType, setRecoveryType] = useState<"rfe" | "motion">("motion");
   const [userServiceStatus, setUserServiceStatus] = useState<string>("");
+  const [productType, setProductType] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userServiceId) { setLoading(false); return; }
     fetchCase();
   }, [userServiceId]);
 
-  const getStatusPrefix = () => serviceSlug === "extensao-status" ? "EOS_" : "COS_";
+  const getStatusPrefix = () => productType ? `${productType}_` : (serviceSlug === "extensao-status" ? "EOS_" : "COS_");
   const getLabel = () => recoveryType === "rfe" ? "RFE" : "Motion";
 
   const fetchCase = async () => {
@@ -67,12 +70,21 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
 
       setUserServiceStatus(us.status || "");
       setServiceSlug(us.service_slug || "");
-      const dataObj = us.data as any;
-      if (dataObj?.recovery_type === "rfe") {
-        setRecoveryType("rfe");
-      } else {
-        setRecoveryType("motion");
+      setProductType(us.product_type || null);
+      
+      const metadata = us.service_metadata as any;
+      
+      // Detecção robusta do tipo de recuperação
+      let detectedType: "rfe" | "motion" = "motion";
+      if (us.status?.includes("RFE_IN_PROGRESS") || us.status?.includes("_RFE") || metadata?.recovery_type === "rfe" || rc?.recovery_type === "rfe") {
+        detectedType = "rfe";
+      } else if (us.status?.includes("MOTION") || metadata?.recovery_type === "motion" || rc?.recovery_type === "motion") {
+        detectedType = "motion";
       }
+      
+      setRecoveryType(detectedType);
+      console.log(`[AdminAnalysis] Status: ${us.status}, Case Status: ${rc?.status}, DetectedType: ${detectedType}`);
+      
     } catch (error: any) {
       console.error("Error saving case:", error);
       toast.error(t.analysisPanel.messages.errorSave);
@@ -93,6 +105,7 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
           admin_notes: adminNotes,
           admin_final_message: adminFinalMessage,
           final_document_urls: finalDocumentUrls,
+          recovery_type: recoveryType,
         }
       );
 
@@ -116,9 +129,22 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
 
     setSaving(true);
     try {
-      await AdminAnalysisService.sendProposal(recoveryCase.id, value);
+      if (adminAnalysis || adminNotes) {
+        await AdminAnalysisService.saveAnalysis(
+          recoveryCase?.id,
+          userServiceId!,
+          recoveryCase?.user_id,
+          {
+            admin_analysis: adminAnalysis,
+            admin_notes: adminNotes,
+            recovery_type: recoveryType
+          }
+        );
+      }
       
-      const newStatus = getStatusPrefix() + "RECOVERY_PAYMENT_PENDING";
+      await AdminAnalysisService.sendProposal(recoveryCase.id, value, recoveryType);
+      
+      const newStatus = "ANALISE_CONCLUIDA";
       await AdminAnalysisService.updateUserServiceStatus(userServiceId!, newStatus);
 
       toast.success("Proposal sent and status updated");
@@ -132,26 +158,22 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
   };
 
   const handleDeliver = async () => {
-    if (!recoveryCase) return;
-    if (!adminFinalMessage.trim() && finalDocumentUrls.length === 0) {
-      toast.error(`Preencha a mensagem final ou envie pelo menos um documento para o ${getLabel()}.`);
-      return;
-    }
-
+    if (!adminFinalMessage.trim()) return;
     setSaving(true);
     try {
       await AdminAnalysisService.completeRecovery(
-        recoveryCase.id,
+        recoveryCase!.id,
         userServiceId!,
         adminFinalMessage,
         finalDocumentUrls,
-        getStatusPrefix()
+        getStatusPrefix(),
+        recoveryType
       );
-
-      toast.success(`${getLabel()} entregue com sucesso! O cliente receberá as instruções imediatamente.`);
-      await fetchCase();
-    } catch (err: any) {
-      toast.error(`Erro ao entregar ${getLabel().toLowerCase()}: ${err.message || "Erro desconhecido"}`);
+      toast.success(t.analysisPanel.messages.successSave);
+      fetchCase();
+    } catch (error) {
+      console.error("Error delivering recovery:", error);
+      toast.error(t.analysisPanel.messages.errorSave);
     } finally {
       setSaving(false);
     }
@@ -188,28 +210,43 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
   }
 
   if (!recoveryCase) {
+    const isWaitingInstructions = userServiceStatus?.includes("RFE") || userServiceStatus?.includes("_REJECTED");
+    
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
         <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
-          <AlertCircle className="w-7 h-7 text-muted-foreground" />
+          {isWaitingInstructions ? <Clock className="w-7 h-7 text-amber-500 animate-pulse" /> : <AlertCircle className="w-7 h-7 text-muted-foreground" />}
         </div>
-        <p className="text-sm font-medium">Nenhuma submissão encontrada</p>
-        <p className="text-xs text-muted-foreground max-w-xs">
-          O cliente ainda não enviou o formulário de análise após o pagamento.
-          O status do processo precisa ser <strong>ANALISE_PENDENTE</strong> para que a submissão apareça aqui.
+        <p className="text-sm font-bold">
+          {isWaitingInstructions ? `Aguardando Instruções do ${getLabel()}` : "Nenhuma submissão encontrada"}
         </p>
+        <p className="text-xs text-muted-foreground max-w-xs">
+          {isWaitingInstructions 
+            ? `O cliente recebeu a notificação de ${getLabel()}, mas ainda não enviou o formulário com a explicação e documentos para sua análise.`
+            : `O cliente ainda não enviou o formulário de análise. O status atual é ${userServiceStatus || 'desconhecido'}.`}
+        </p>
+        {isWaitingInstructions && (
+          <Badge variant="outline" className="mt-2 bg-amber-50 text-amber-700 border-amber-200">
+            Ação Requerida pelo Cliente
+          </Badge>
+        )}
       </div>
     );
   }
 
-  const isPending = recoveryCase.status === "pending";
-  const isProposalSent = recoveryCase.status === "proposal_sent";
-  const isAccepted = recoveryCase.status === "accepted";
-  const isCompleted = recoveryCase.status === "completed";
+  const isCompleted = recoveryCase.status === "completed" || userServiceStatus?.includes("PACKAGE_READY") || userServiceStatus?.includes("_COMPLETED");
+  const isAccepted = (
+    userServiceStatus?.includes("MOTION") || 
+    userServiceStatus?.includes("RFE") || 
+    userServiceStatus?.includes("_IN_PROGRESS") || 
+    recoveryCase.status === 'accepted'
+  ) && !isCompleted;
+  const isProposalSent = (recoveryCase.status === "proposal_sent" || userServiceStatus?.includes("ANALISE_CONCLUIDA") || (userServiceStatus?.includes("TRACKING") && recoveryCase.status === 'proposal_sent')) && !isAccepted && !isCompleted;
+  const isPending = !isProposalSent && !isAccepted && !isCompleted;
 
   return (
     <div className="space-y-6">
-      {/* Status banner */}
+      {/* 1. Status Banner */}
       <div className={`flex items-center gap-3 p-4 rounded-xl border ${
         isCompleted ? "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800" :
         isAccepted ? "bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800" :
@@ -234,11 +271,36 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
                isProposalSent ? "Proposta já enviada" : 
                `Aguardando análise de especialista para ${getLabel()}`}
             </p>
-            <Badge variant="outline" className={serviceSlug === "extensao-status" ? "bg-purple-50 text-purple-700 border-purple-100" : "bg-blue-50 text-blue-700 border-blue-100"}>
-              {serviceSlug === "extensao-status" ? "EOS" : "COS"}
+            <Badge variant="outline" className={(productType === 'EOS' || serviceSlug === "extensao-status") ? "bg-purple-50 text-purple-700 border-purple-100" : "bg-blue-50 text-blue-700 border-blue-100"}>
+              {productType || (serviceSlug === "extensao-status" ? "EOS" : "COS")}
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground">
+          
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase">Tipo de Recuperação:</span>
+            <div className="flex bg-slate-100 p-1 rounded-lg">
+              <button 
+                onClick={() => setRecoveryType("rfe")}
+                className={cn(
+                  "px-3 py-1 rounded-md text-[10px] font-bold transition-all",
+                  recoveryType === "rfe" ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600"
+                )}
+              >
+                RFE
+              </button>
+              <button 
+                onClick={() => setRecoveryType("motion")}
+                className={cn(
+                  "px-3 py-1 rounded-md text-[10px] font-bold transition-all",
+                  recoveryType === "motion" ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600"
+                )}
+              >
+                MOTION
+              </button>
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground mt-2">
             Enviado pelo cliente em: {new Date(recoveryCase.submitted_at).toLocaleString("pt-BR")}
             {recoveryCase.proposal_sent_at && (
               <> · Proposta enviada em: {new Date(recoveryCase.proposal_sent_at).toLocaleString("pt-BR")}</>
@@ -253,269 +315,228 @@ export function AdminCosAnalysisPanel({ userServiceId, clientName }: Props) {
         </Badge>
       </div>
 
-      {/* ─── SECTION 1: Client's submission ─── */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
-        <div className="bg-slate-50 dark:bg-slate-800/50 px-5 py-3 border-b border-border flex items-center gap-2">
-          <User className="w-4 h-4 text-muted-foreground" />
-          <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-            Relato do Cliente — {clientName || "Cliente"}
-          </h3>
+      {/* 2. SECTION: Client's Submission */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-slate-50 dark:bg-slate-800/50 px-5 py-3 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 text-muted-foreground" />
+            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+              Relato do Cliente — {clientName || "Cliente"}
+            </h3>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={fetchCase} 
+            className="h-7 text-[10px] font-bold uppercase tracking-tight text-primary hover:bg-primary/5"
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RefreshCw className="h-3 w-3 mr-1" />}
+            Atualizar Dados
+          </Button>
         </div>
 
-        <div className="p-5 space-y-5">
-          {/* Explanation */}
+        <div className="p-6 space-y-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-primary" />
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Descrição do caso</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Descrição do caso / Justificativa</p>
             </div>
-            <div className="bg-muted/30 rounded-lg p-4 border border-border">
-              <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-                {recoveryCase.explanation || <span className="text-muted-foreground italic">Nenhuma descrição enviada.</span>}
+            <div className="bg-slate-50 dark:bg-slate-900 rounded-2xl p-5 border border-border shadow-inner">
+              <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-800 dark:text-slate-200">
+                {recoveryCase.explanation || (
+                  <span className="text-slate-400 italic">O cliente não forneceu uma descrição em texto para este caso.</span>
+                )}
               </p>
             </div>
           </div>
 
-          {/* Documents */}
-          {recoveryCase.document_urls && recoveryCase.document_urls.length > 0 && (
-            <div className="space-y-2">
+          {recoveryCase.document_urls && recoveryCase.document_urls.length > 0 ? (
+            <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-primary" />
-                <Badge variant="outline" className="text-xs uppercase tracking-wider font-semibold bg-blue-50 text-blue-700 border-blue-200">
-                  {t.analysisPanel.labels.caseComplexity}
-                </Badge>
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Documentos enviados ({recoveryCase.document_urls.length})
-                </p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Documentação Enviada ({recoveryCase.document_urls.length})</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {recoveryCase.document_urls.map((url, idx) => {
-                  const filename = url.split("/").pop() || `Documento ${idx + 1}`;
-                  return (
-                    <a
-                      key={idx}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-background border border-border rounded-lg hover:border-primary/50 hover:bg-primary/5 transition-colors group"
-                    >
-                      <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-4 h-4 text-primary" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {recoveryCase.document_urls.map((url, idx) => (
+                  <a
+                    key={idx} href={url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-between p-4 bg-background border border-border rounded-2xl hover:border-primary/40 hover:bg-primary/[0.02] transition-all group shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                        <FileText className="w-5 h-5" />
                       </div>
-                      <span className="text-sm font-semibold text-slate-700">{t.analysisPanel.finalMessage}</span>
-                      <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary flex-shrink-0" />
-                    </a>
-                  );
-                })}
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Anexo de Evidência #{idx + 1}</span>
+                        <span className="text-[10px] text-muted-foreground uppercase font-medium">Ver Arquivo</span>
+                      </div>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
+                  </a>
+                ))}
               </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-border">
+              <AlertCircle className="w-5 h-5 text-slate-400" />
+              <p className="text-sm text-slate-500 italic">Nenhum arquivo de evidência anexado.</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* ─── SECTION 2: Admin Response Form (Only if NOT accepted or completed) ─── */}
+      {/* 3. SECTION: Admin Proposal Form */}
       {!isAccepted && !isCompleted && (
-        <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="bg-primary/5 dark:bg-primary/10 px-5 py-3 border-b border-border flex items-center gap-2">
-            <div className="flex items-center gap-4 mb-2">
-              <FileText className="w-6 h-6 text-highlight" />
-              <h2 className="text-2xl font-bold tracking-tight text-slate-800">
-                {t.analysisPanel.title}
-              </h2>
+        <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+          <div className="bg-primary/[0.03] px-6 py-4 border-b border-border flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+              <Send className="w-5 h-5" />
             </div>
-            <p className="text-slate-500 mb-8 max-w-2xl">
-              {t.analysisPanel.subtitle}
-            </p>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t.analysisPanel.title}</h3>
+              <p className="text-xs text-muted-foreground">{t.analysisPanel.subtitle}</p>
+            </div>
           </div>
-
-          <div className="p-5 space-y-5">
-            {/* Analysis text */}
+          
+          <div className="p-6 space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                <MessageSquare className="w-5 h-5 text-highlight" />
-                {t.analysisPanel.clientExplanation}
-                <span className="text-red-500">*</span>
+              <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                Análise Técnica do Especialista <span className="text-red-500">*</span>
               </label>
-              <p className="text-xs text-muted-foreground">
-                Descreva a avaliação jurídica do caso, os fundamentos para o {getLabel()} e a estratégia recomendada.
-              </p>
               <textarea
-                className="w-full min-h-[180px] p-4 rounded-xl border border-border bg-background focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all resize-none text-sm leading-relaxed"
-                placeholder={t.analysisPanel.finalMessagePlaceholder}
+                className="w-full min-h-[180px] p-4 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none text-sm leading-relaxed"
+                placeholder="Descreva aqui o parecer técnico, chances de êxito e estratégia para o Motion/RFE..."
                 value={adminAnalysis}
                 onChange={(e) => setAdminAnalysis(e.target.value)}
               />
             </div>
 
-            {/* Proposal value */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                <DollarSign className="w-4 h-4 text-primary" />
-                Valor da Proposta (USD)
-              </label>
-              <p className="text-xs text-muted-foreground">
-                Valor cobrado pelo serviço completo do Motion. Deixe em branco se não houver cobrança adicional.
-              </p>
-              <div className="relative max-w-xs">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">$</span>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={proposalValue}
-                  onChange={(e) => setProposalValue(e.target.value)}
-                  className="pl-7 text-sm font-mono"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-primary" />
+                  Valor Adicional (USD)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
+                  <Input 
+                    type="number" value={proposalValue} onChange={(e) => setProposalValue(e.target.value)}
+                    className="pl-8 h-12 bg-slate-50 dark:bg-slate-900 border-border rounded-xl font-mono"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  Notas Internas
+                </label>
+                <textarea 
+                  className="w-full h-12 p-3 rounded-xl border border-border bg-slate-50 dark:bg-slate-900 resize-none text-xs"
+                  placeholder="Anotações para a equipe administrativa..."
+                  value={adminNotes}
+                  onChange={(e) => setAdminNotes(e.target.value)}
                 />
               </div>
             </div>
 
-            {/* Internal notes */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                <FileText className="w-4 h-4 text-muted-foreground" />
-                Notas internas (não visível ao cliente)
-              </label>
-              <textarea
-                className="w-full min-h-[80px] p-3 rounded-xl border border-border bg-muted/20 focus:border-primary focus:outline-none transition-all resize-none text-sm leading-relaxed text-muted-foreground"
-                placeholder={t.analysisPanel.internalNotesPlaceholder}
-                value={adminNotes}
-                onChange={(e) => setAdminNotes(e.target.value)}
-              />
-            </div>
-
-            {/* Submit */}
-            <div className="border-t pt-4 flex items-center justify-between gap-4">
-              <p className="text-xs text-muted-foreground">
-                {isProposalSent
-                  ? "✓ Proposta já enviada. Você pode atualizar e reenviar se necessário."
-                  : "Ao enviar, o status do cliente será atualizado para ANALISE_CONCLUIDA."}
-              </p>
-              <Button
-                onClick={handleProposedValue}
-                disabled={saving || !adminAnalysis.trim()}
-                className="min-w-[160px] gap-2 font-bold"
-              >
-                {saving
-                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</>
-                  : <><Send className="w-4 h-4" /> {isProposalSent ? "Atualizar Proposta" : "Enviar Proposta"}</>
-                }
-              </Button>
+            <div className="pt-4 flex items-center justify-between gap-4 border-t border-border">
+               <p className="text-xs text-muted-foreground italic max-w-sm">
+                  {isProposalSent ? "✓ Proposta enviada. Alterações serão visíveis para o cliente imediatamente." : "Ao enviar, o cliente receberá uma notificação para contratar o serviço."}
+               </p>
+               <Button onClick={handleProposedValue} disabled={saving || !adminAnalysis.trim()} className="h-12 px-8 font-bold gap-2 rounded-xl">
+                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                 {isProposalSent ? "Atualizar Proposta" : "Enviar Proposta"}
+               </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ─── SECTION 3: Motion Delivery (Only visible if paid/accepted or completed) ─── */}
+      {/* 4. SECTION: Delivery (If Accepted or Completed) */}
       {(isAccepted || isCompleted) && (
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="bg-card border-2 border-indigo-200 dark:border-indigo-900 rounded-xl overflow-hidden shadow-lg"
-        >
-          <div className="bg-indigo-50 dark:bg-indigo-950/30 px-5 py-3 border-b border-indigo-200 dark:border-indigo-900 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-indigo-600" />
-            <h3 className="text-sm font-bold uppercase tracking-widest text-indigo-700 dark:text-indigo-400">
-              Entrega Completa do {getLabel()}
-            </h3>
-            {isAccepted && (
-              <Badge className="ml-auto bg-green-600 text-white border-none animate-pulse px-3">
-                PAGO — AGUARDANDO ENTREGA FINAL
-              </Badge>
-            )}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card border-2 border-primary/20 rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-primary/[0.03] px-6 py-4 border-b border-primary/10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Entrega Final do {getLabel()}</h3>
+                <p className="text-xs text-muted-foreground">Envio de documentos finais para o cliente</p>
+              </div>
+            </div>
+            {isAccepted && <Badge className="bg-green-500 text-white animate-pulse">PAGO — AGUARDANDO ARQUIVOS</Badge>}
           </div>
 
-          <div className="p-5 space-y-6">
-            {/* Final Message */}
+          <div className="p-6 space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                <MessageSquare className="w-4 h-4 text-indigo-600" />
-                Mensagem Final para o Cliente ({getLabel()}) <span className="text-red-500">*</span>
-              </label>
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 italic">Mensagem Final e Instruções <span className="text-red-500">*</span></label>
               <textarea
-                className="w-full min-h-[140px] p-4 rounded-xl border border-indigo-200 dark:border-indigo-900 bg-background focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/20 transition-all resize-none text-sm"
-                placeholder={`Ex: Prezado cliente, conforme solicitado, elaboramos a resposta ao seu ${getLabel()}. Em anexo estão os documentos finais e as instruções detalhadas para o protocolo. Ficamos à disposição...`}
+                className="w-full min-h-[120px] p-4 rounded-xl border border-border bg-background text-sm"
+                placeholder={`Instruções finais para o protocolo físico ou digital do seu ${getLabel()}...`}
                 value={adminFinalMessage}
-                readOnly={isCompleted}
                 onChange={(e) => setAdminFinalMessage(e.target.value)}
+                readOnly={isCompleted}
               />
             </div>
 
-            {/* Document Upload / Delivery */}
-            <div className="space-y-3">
-              <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                <FileText className="w-5 h-5 text-highlight" />
-                {t.analysisPanel.clientDocuments}
-              </label>
-              
-              {!isCompleted && (
-                <div className="flex items-center gap-4">
-                  <Button
-                    variant="outline"
-                    className="gap-2 border-dashed border-indigo-300 dark:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
-                    onClick={() => document.getElementById('fulfillment-upload')?.click()}
-                    disabled={uploading}
-                  >
-                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4 text-indigo-600" />}
-                    Selecionar Arquivos
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-700 flex items-center gap-2 italic">Arquivos de {getLabel()} / Provas</label>
+                {!isCompleted && (
+                  <Button variant="outline" size="sm" onClick={() => (document.getElementById("file-upload") as HTMLInputElement)?.click()} disabled={uploading}>
+                    {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <FileText className="w-4 h-4 mr-2" />}
+                    Adicionar Arquivos
                   </Button>
-                  <input
-                    id="fulfillment-upload"
-                    type="file"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => handleFileUpload(e.target.files)}
-                  />
-                  <p className="text-xs text-muted-foreground italic">Envie PDFs ou imagens da petição e evidências.</p>
+                )}
+                <input id="file-upload" type="file" multiple className="hidden" onChange={(e) => handleFileUpload(e.target.files)} />
+              </div>
+
+              {finalDocumentUrls.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {finalDocumentUrls.map((url, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 border border-border rounded-2xl group">
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-5 h-5 text-primary" />
+                        <span className="text-sm font-bold">Documento de Defesa #{idx+1}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <a href={url} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-white rounded-lg text-primary shadow-sm border border-transparent hover:border-border transition-all">
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                        {!isCompleted && (
+                          <Button variant="ghost" size="sm" onClick={() => setFinalDocumentUrls(prev => prev.filter((_, i) => i !== idx))} className="text-red-500 hover:bg-red-50 p-2 h-auto">
+                            <AlertCircle className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 border-2 border-dashed border-border rounded-2xl text-center">
+                  <p className="text-sm text-muted-foreground italic">Nenhum arquivo final anexado para entrega.</p>
                 </div>
               )}
-
-              {/* List of uploaded files */}
-              <div className="space-y-2">
-                {finalDocumentUrls.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {finalDocumentUrls.map((url, idx) => {
-                      const filename = url.split("/").pop() || `Documento ${idx + 1}`;
-                      return (
-                        <div key={idx} className="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900 rounded-lg">
-                          <FileText className="w-4 h-4 text-indigo-600 flex-shrink-0" />
-                          <span className="text-sm font-semibold text-slate-700">{t.analysisPanel.internalNotes}</span>
-                          <div className="flex items-center gap-2">
-                            <a href={url} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-indigo-50 rounded-md transition-colors">
-                              <ExternalLink className="w-3.5 h-3.5 text-indigo-600" />
-                            </a>
-                            {!isCompleted && (
-                              <button 
-                                onClick={() => setFinalDocumentUrls(prev => prev.filter((_, i) => i !== idx))}
-                                className="p-1.5 hover:bg-red-50 text-red-500 rounded-md transition-colors"
-                              >
-                                {t.analysisPanel.actions.completeReview}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <span className="text-slate-400 text-sm italic">{t.analysisPanel.noDocuments}</span>
-                )}
-              </div>
             </div>
 
-            {/* Finish Button */}
-            {!isCompleted && (
-              <div className="pt-4 border-t border-indigo-100 dark:border-indigo-900 flex justify-end">
-                <Button
-                  size="lg"
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold gap-2 min-w-[200px]"
-                  onClick={handleDeliver}
-                  disabled={saving || uploading}
-                >
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  Finalizar e Entregar {getLabel()}
-                </Button>
-              </div>
-            )}
+            <div className="pt-4 border-t border-border flex items-center justify-between gap-4">
+              <Button variant="outline" size="lg" onClick={() => fetchCase()} disabled={loading} className="gap-2 font-bold px-6">
+                <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
+                Sincronizar Dados
+              </Button>
+
+              <Button 
+                size="lg" 
+                onClick={handleDeliver} 
+                disabled={saving || uploading || !adminFinalMessage.trim()} 
+                className="gap-2 font-bold px-10 bg-primary hover:bg-primary/90"
+              >
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {isCompleted ? `Re-enviar Entrega do ${getLabel()}` : `Finalizar e Entregar ${getLabel()}`}
+              </Button>
+            </div>
           </div>
         </motion.div>
       )}

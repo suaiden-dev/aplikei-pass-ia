@@ -40,10 +40,9 @@ export default function UserDashboardLayout() {
     { to: "/dashboard", label: s.dashboard, icon: LayoutDashboard },
     {
       to: "/dashboard/processos",
-      label: t.myProcesses,
+      label: s.myProcesses,
       icon: Briefcase,
     },
-    { to: "/dashboard/acompanhamento", label: t.status?.trackStatus || "Status", icon: Truck },
     { to: "/dashboard/chat", label: s.chatAI, icon: MessageSquare },
     { to: "/dashboard/ajuda", label: s.help, icon: HelpCircle },
   ];

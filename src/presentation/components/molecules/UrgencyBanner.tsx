@@ -39,7 +39,7 @@ const UrgencyBanner = () => {
   }, []);
 
   return (
-    <div className="sticky top-0 z-[60] bg-primary text-white py-3 px-4 shadow-lg border-b border-white/10">
+    <div className="relative z-[49] bg-primary text-white py-3 px-4 shadow-lg border-b border-white/10">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
         {/* Left Content */}
         <div className="flex items-center gap-2">

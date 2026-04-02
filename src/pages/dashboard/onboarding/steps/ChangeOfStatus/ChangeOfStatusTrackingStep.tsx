@@ -10,12 +10,20 @@ export const ChangeOfStatusTrackingStep = ({
   lang,
   t,
 }: StepProps) => {
-  const trans = (t as any).changeOfStatus.tracking;
+  const cosTrans = (t as any).changeOfStatus || {};
+  const trans = cosTrans.tracking || {
+    title: { pt: "Rastreio e Acompanhamento", en: "Tracking and Monitoring" },
+    trackingLabel: { pt: "Código de Rastreio", en: "Tracking Code" },
+    trackingPlaceholder: { pt: "Ex: 1Z999AA10123456784", en: "Ex: 1Z999AA10123456784" },
+    description: { pt: "O tempo de resposta do USCIS varia de 3 a 6 meses.", en: "USCIS response time varies from 3 to 6 months." },
+    letterInfo: { pt: "Você receberá uma carta física no endereço informado.", en: "You will receive a physical letter at the address provided." },
+    supportInfo: { pt: "Em caso de dúvidas, utilize o chat EMA no site oficial do USCIS.", en: "For questions, use the EMA chat on the official USCIS website." }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col space-y-1.5 border-b border-border pb-4">
-        <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+        <h2 className="font-display text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
           <Truck className="h-6 w-6 text-primary" />
           {trans.title[lang]}
         </h2>

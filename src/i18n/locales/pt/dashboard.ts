@@ -80,6 +80,8 @@ const dashboard = {
     finalPackage: "Pacote Final",
     help: "Suporte",
     logout: "Sair",
+    myProcesses: "Meus Processos",
+    status: "Status",
   },
   chat: {
     title: "Chat IA",

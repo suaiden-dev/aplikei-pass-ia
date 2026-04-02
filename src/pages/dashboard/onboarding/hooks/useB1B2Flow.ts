@@ -93,11 +93,16 @@ export const useB1B2Flow = (base: ReturnType<typeof useOnboardingBase>) => {
     };
 
     const handleNext = async () => {
-        if (await validateStep()) {
-            await saveStep();
-            setCurrentStep(currentStep + 1);
+        base.setIsNextLoading(true);
+        try {
+            if (await validateStep()) {
+                await saveStep();
+                setCurrentStep(currentStep + 1);
+            }
+        } finally {
+            base.setIsNextLoading(false);
         }
     };
 
-    return { steps, stepSlugs, handleNext, validateStep, saveStep };
+    return { steps, stepSlugs, effectiveStep: currentStep, handleNext, validateStep, saveStep };
 };

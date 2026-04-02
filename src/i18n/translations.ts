@@ -5542,6 +5542,90 @@ export const translations = {
         es: ["Análisis positivo del especialista", "Pago de la tasa variable"],
       },
     },
+    {
+      slug: "motion-reconsideracao-eos",
+      title: {
+        en: "Motion for Reconsideration / Reopening (EOS)",
+        pt: "Motion para Reconsideração / Reabertura (EOS)",
+        es: "Motion para Reconsideración / Reapertura (EOS)",
+      },
+      shortTitle: { en: "Motion EOS", pt: "Motion EOS", es: "Motion EOS" },
+      subtitle: {
+        en: "Official response to USCIS to reverse a denial",
+        pt: "Resposta oficial ao USCIS para reverter uma negativa",
+        es: "Respuesta oficial a USCIS para revertir una denegación",
+      },
+      price: { en: "Dynamic", pt: "Variável", es: "Variable" },
+      originalPrice: { en: "US$ 0.00", pt: "US$ 0,00", es: "US$ 0,00" },
+      basePrice: 0,
+      description: {
+        en: "Full preparation of a Motion to Reconsider or Reopen your case. Price set based on case complexity after specialist analysis.",
+        pt: "Preparação completa de uma Moção para Reconsiderar ou Reabrir seu caso. Preço definido com base na complexidade do caso após análise inicial.",
+        es: "Preparación completa de una Moción para Reconsiderar o Reabrir su caso. Precio definido según la complejidad del caso tras el análisis inicial.",
+      },
+      forWhom: {
+        en: ["Applicants with a specialist-vetted case", "Cases with identified procedural or factual errors"],
+        pt: ["Aplicantes com caso validado por especialista", "Casos com erro processual ou de fato identificado"],
+        es: ["Solicitantes con caso validado por especialista", "Casos con error procesal o de hecho identificado"],
+      },
+      included: {
+        en: ["Full I-290B preparation", "Legal argument draft", "Evidence organization", "Filing instructions"],
+        pt: ["Preparação completa do I-290B", "Draft de argumentos legais", "Organização de evidências", "Instruções de envio"],
+        es: ["Preparación completa del I-290B", "Borrador de argumentos legales", "Organización de evidencias", "Instrucciones de envío"],
+      },
+      notIncluded: {
+        en: ["USCIS filing fee ($675)", "Shipping costs", "Guarantee of success"],
+        pt: ["Taxa de protocolo do USCIS (US$ 675)", "Custos de envio", "Garantia de sucesso"],
+        es: ["Tasa de presentación de USCIS ($675)", "Costos de envío", "Garantía de éxito"],
+      },
+      requirements: {
+        en: ["Positive specialist analysis", "Payment of the dynamic fee"],
+        pt: ["Análise positiva do especialista", "Pagamento da taxa variável"],
+        es: ["Análisis positivo del especialista", "Pago de la tasa variable"],
+      },
+    },
+    {
+      slug: "rfe-support",
+      title: {
+        en: "Request for Evidence (RFE) Support",
+        pt: "Apoio a Request for Evidence (RFE)",
+        es: "Soporte para Request for Evidence (RFE)",
+      },
+      shortTitle: { en: "RFE Support", pt: "Apoio RFE", es: "Soporte RFE" },
+      subtitle: {
+        en: "Professional support to answer USCIS requests",
+        pt: "Apoio profissional para responder requisições do USCIS",
+        es: "Soporte profesional para responder solicitudes de USCIS",
+      },
+      price: { en: "Dynamic", pt: "Variável", es: "Variable" },
+      originalPrice: { en: "US$ 0.00", pt: "US$ 0,00", es: "US$ 0,00" },
+      basePrice: 0,
+      description: {
+        en: "Complete preparation of documentation and legal argumentation to answer your RFE. Price set based on complexity.",
+        pt: "Preparação completa de documentação e argumentação para responder ao seu RFE. Preço definido com base na complexidade.",
+        es: "Preparación completa de documentación y argumentación para responder a su RFE. Precio definido según la complejidad.",
+      },
+      forWhom: {
+        en: ["Applicants who received an RFE"],
+        pt: ["Aplicantes que receberam um RFE do USCIS"],
+        es: ["Solicitantes que recibieron un RFE de USCIS"],
+      },
+      included: {
+        en: ["Evidence organization", "Draft response", "Filing instructions"],
+        pt: ["Organização de evidências", "Draft da resposta", "Instruções de envio"],
+        es: ["Organización de evidencias", "Borrador de respuesta", "Instrucciones de envío"],
+      },
+      notIncluded: {
+        en: ["Legal representation", "Guarantee of success"],
+        pt: ["Representação legal", "Garantia de aprovação"],
+        es: ["Representación legal", "Garantía de aprobación"],
+      },
+      requirements: {
+        en: ["Copy of the RFE letter", "Required documents"],
+        pt: ["Cópia da carta RFE", "Documentos solicitados"],
+        es: ["Copia de la carta RFE", "Documentos solicitados"],
+      },
+    }
   ],
 
   f1f2: {

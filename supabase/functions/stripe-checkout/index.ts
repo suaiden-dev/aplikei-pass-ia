@@ -70,14 +70,40 @@ Deno.serve(async (req: Request) => {
         let mainPriceInfo = dbPrices?.find(p => p.service_id === slug);
         const depPriceInfo = dbPrices?.find(p => p.service_id === dependentId);
 
-        if (!mainPriceInfo && FALLBACK_PRICES[slug]) {
-            console.log(`[stripe-checkout] Usando preço fallback para: ${slug}`);
-            mainPriceInfo = { service_id: slug, ...FALLBACK_PRICES[slug] };
-        }
+        const isDynamicRecovery = action === 'cos_recovery' || action === 'eos_recovery' || action === 'rfe_recovery';
+        
+        if (isDynamicRecovery) {
+            console.log(`[stripe-checkout] Loading dynamic price for recovery case. ServiceId: ${serviceId}`);
+            if (!serviceId) {
+                throw new Error("Missing serviceId for recovery case");
+            }
+            
+            const { data: recoveryCase, error: rcError } = await supabase
+                .from("cos_recovery_cases")
+                .select("proposal_value_usd")
+                .eq("user_service_id", serviceId)
+                .single();
+                
+            if (rcError || !recoveryCase) {
+                console.error("Error fetching recovery case DB price:", rcError);
+                throw new Error("Could not verify recovery case pricing in the database.");
+            }
+            
+            mainPriceInfo = { 
+                service_id: slug, 
+                name: 'Proposta do Especialista', 
+                price: Number(recoveryCase.proposal_value_usd) 
+            };
+        } else {
+            if (!mainPriceInfo && FALLBACK_PRICES[slug]) {
+                console.log(`[stripe-checkout] Usando preço fallback para: ${slug}`);
+                mainPriceInfo = { service_id: slug, ...FALLBACK_PRICES[slug] };
+            }
 
-        if (!mainPriceInfo) {
-            console.error("[stripe-checkout] Serviço não encontrado:", slug);
-            throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
+            if (!mainPriceInfo) {
+                console.error("[stripe-checkout] Serviço não encontrado:", slug);
+                throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
+            }
         }
 
         const serviceName = mainPriceInfo.name;
@@ -177,6 +203,7 @@ Deno.serve(async (req: Request) => {
                 project: "aplikei",
                 action: action || "",
                 serviceId: serviceId || "",
+                product_type: slug === 'troca-status' ? 'COS' : (slug === 'extensao-status' ? 'EOS' : 'B1B2'),
             },
         });
 

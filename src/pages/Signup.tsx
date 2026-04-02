@@ -31,12 +31,15 @@ export default function Signup() {
     try {
       const authService = getAuthService();
       const signUpUser = new SignUpUser(authService);
-      const { error } = await signUpUser.execute({
+      const signupResult = await signUpUser.execute({
         email,
         password,
         fullName: name,
         phone,
       });
+
+      console.log("[Signup] Raw signup result:", signupResult);
+      const { error } = signupResult;
 
       if (error) throw new Error(error);
 

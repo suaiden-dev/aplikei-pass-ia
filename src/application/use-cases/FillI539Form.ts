@@ -51,12 +51,15 @@ export async function fillI539Form(
   // ── Header (A-Number & USCIS account) ──
   tx("form1[0].#subform[0].Pt1Line2_AlienNumber[0]", data.alienNumber);
   tx("form1[0].#subform[0].Pt1Line2_USCISOnlineAcctNumber[0]", data.uscisOnlineAccountNumber);
+  tx("form1[0].#subform[0].AttorneyStateBarNumber[0]", undefined); // leave blank unless attorney
+  tx("form1[0].#subform[0].USCISOnlineAcctNumber[0]", data.uscisOnlineAccountNumber);
 
-  // ── Part 1 — Applicant ──
+  // ── Part 1 — Applicant Info ──
   tx("form1[0].#subform[0].P1Line1a_FamilyName[0]", data.familyName);
   tx("form1[0].#subform[0].P1_Line1b_GivenName[0]", data.givenName);
   tx("form1[0].#subform[0].P1_Line1c_MiddleName[0]", data.middleName);
   tx("form1[0].#subform[0].Part2_Item11_InCareOfName[0]", data.inCareOf);
+  // Mailing address
   tx("form1[0].#subform[0].Part2_Item11_StreetName[0]", data.streetName);
   btn("form1[0].#subform[0].Part1_Item4_Unit[0]", data.aptUnit === "Apt");
   btn("form1[0].#subform[0].Part1_Item4_Unit[1]", data.aptUnit === "Ste");
@@ -65,9 +68,20 @@ export async function fillI539Form(
   tx("form1[0].#subform[0].Part2_Item11_City[0]", data.city);
   dd("form1[0].#subform[0].Part2_Item11_State[0]", data.state);
   tx("form1[0].#subform[0].Part2_Item11_ZipCode[0]", data.zipCode);
-  btn("form1[0].#subform[0].P1_checkbox5[0]", data.hasSeparateMailingAddress === true);
-  btn("form1[0].#subform[0].P1_checkbox5[1]", data.hasSeparateMailingAddress === false);
+  // Physical address (if different)
+  tx("form1[0].#subform[0].Part1_Item6_StreetName[0]", data.streetNameForeign);
+  btn("form1[0].#subform[0].Part1_Item6_Unit[0]", data.aptUnitForeign === "Apt");
+  btn("form1[0].#subform[0].Part1_Item6_Unit[1]", data.aptUnitForeign === "Ste");
+  btn("form1[0].#subform[0].Part1_Item6_Unit[2]", data.aptUnitForeign === "Flr");
+  tx("form1[0].#subform[0].Part1_Item6_Number[0]", data.aptNumberForeign);
+  tx("form1[0].#subform[0].Part1_Item6_City[0]", data.cityForeign);
+  dd("form1[0].#subform[0].Part1_Item6_State[0]", data.stateForeign);
+  tx("form1[0].#subform[0].Part1_Item6_ZipCode[0]", data.zipCodeForeign);
+  // Same mailing? checkboxes (yes/no)
+  btn("form1[0].#subform[0].P1_checkbox5[0]", data.hasMailingAddress === true);
+  btn("form1[0].#subform[0].P1_checkbox5[1]", data.hasMailingAddress === false);
 
+  // Page 2
   tx("form1[0].#subform[1].P1_Line8_DateOfBirth[0]", data.dateOfBirth);
   tx("form1[0].#subform[1].P1_Line7_CountryOfCitizenship[0]", data.countryOfCitizenship);
   tx("form1[0].#subform[1].P1_Line6_CountryOfBirth[0]", data.countryOfBirth);
@@ -75,8 +89,8 @@ export async function fillI539Form(
   tx("form1[0].#subform[1].SupA_Line1i_DateOfArrival[0]", data.dateOfLastArrival);
   tx("form1[0].#subform[1].SupA_Line1j_ArrivalDeparture[0]", data.i94Number);
   tx("form1[0].#subform[1].SupA_Line1k_Passport[0]", data.passportNumber);
-  tx("form1[0].#subform[1].SupA_Line1l_TravelDoc[0]", data.passportCountry);
-  tx("form1[0].#subform[1].SupA_Line1m_CountryOfIssuance[0]", data.passportIssuingCountry);
+  tx("form1[0].#subform[1].SupA_Line1l_TravelDoc[0]", data.travelDocCountry);
+  tx("form1[0].#subform[1].SupA_Line1m_CountryOfIssuance[0]", data.countryOfIssuance);
   tx("form1[0].#subform[1].SupA_Line1n_ExpDate[0]", data.passportExpirationDate);
   dd("form1[0].#subform[1].Pt1Line15a_NewStatus[0]", data.currentImmigrationStatus);
   tx("form1[0].#subform[1].SupA_Line1p_DateExpires[0]", data.statusExpirationDate);
@@ -85,19 +99,48 @@ export async function fillI539Form(
   // ── Part 2 — Application Type ──
   btn("form1[0].#subform[1].P2_checkbox4[0]", data.applicationType === "extend");
   btn("form1[0].#subform[1].P2_checkbox4[1]", data.applicationType === "change");
-  btn("form1[0].#subform[1].P2_checkbox[0]", data.includeSelf);
-  btn("form1[0].#subform[1].P2_checkbox[1]", data.includeSpouse);
-  btn("form1[0].#subform[1].P2_checkbox[2]", data.includeChildren);
-  tx("form1[0].#subform[1].P2_Line5b_TotalNumber[0]", data.totalCoApplicants);
+  btn("form1[0].#subform[1].P2_checkbox[0]", data.extendSelf);
+  btn("form1[0].#subform[1].P2_checkbox[1]", data.extendSpouse);
+  btn("form1[0].#subform[1].P2_checkbox[2]", data.extendChildren);
+  tx("form1[0].#subform[1].P2_Line5b_TotalNumber[0]", data.numberOfCoApplicants);
   tx("form1[0].#subform[1].Pt2Line2b_EffectiveDate[0]", data.requestedEffectiveDate);
   dd("form1[0].#subform[1].Pt2Line2a_NewStatus[0]", data.newStatusRequested);
 
-  // ── Part 3 — Processing ──
-  btn("form1[0].#subform[1].P3_checkbox2a[0]", data.previouslyExtended === true);
-  btn("form1[0].#subform[1].P3_checkbox2a[1]", data.previouslyExtended === false);
-  tx("form1[0].#subform[1].P3_Line1a_DateExtended[0]", data.previousExtensionDate);
+  // ── Part 3 — Processing Information ──
+  btn("form1[0].#subform[1].P3_checkbox2a[0]", data.priorExtensionYes);
+  btn("form1[0].#subform[1].P3_checkbox2a[1]", data.priorExtensionNo);
+  tx("form1[0].#subform[1].P3_Line1a_DateExtended[0]", data.priorExtensionDate);
 
-  // ── Part 4 — Additional Info (Yes/No) ──
+  // Page 3
+  tx("form1[0].#subform[2].P3_Line5_ReceiptNumber[0]", data.receiptNumber);
+  tx("form1[0].#subform[2].P3_Line4_NameofPetitioner[0]", data.petitionerName);
+  btn("form1[0].#subform[2].P3_checkbox1[0]", data.petitionType_I130);
+  btn("form1[0].#subform[2].P3_checkbox1[1]", data.petitionType_I140);
+  btn("form1[0].#subform[2].P3_checkbox1[2]", data.petitionType_I360);
+  tx("form1[0].#subform[2].P3_Line5_DateFiled[0]", data.petitionFiledDate);
+  btn("form1[0].#subform[2].P3_checkbox4[0]", data.question3No);
+  btn("form1[0].#subform[2].P3_checkbox4[1]", data.question3Yes);
+  tx("form1[0].#subform[2].P4_Line1a_CountryOfIssuance[0]", data.docCountry1);
+  tx("form1[0].#subform[2].P4_Line1a_CountryOfIssuance[1]", data.docCountry2);
+  // Foreign mailing address for documents
+  tx("form1[0].#subform[2].P2_Line10_StreetName[0]", data.docStreet);
+  btn("form1[0].#subform[2].P2_Line10_Unit[0]", data.docUnit0);
+  btn("form1[0].#subform[2].P2_Line10_Unit[1]", data.docUnit1);
+  btn("form1[0].#subform[2].P2_Line10_Unit[2]", data.docUnit2);
+  tx("form1[0].#subform[2].P2_Line10_Number[0]", data.docUnitNumber);
+  tx("form1[0].#subform[2].P2_Line10_City[0]", data.docCity);
+  tx("form1[0].#subform[2].P2_Line10_Province[0]", data.docProvince);
+  tx("form1[0].#subform[2].P2_Line10_PostalCode[0]", data.docPostalCode);
+  tx("form1[0].#subform[2].P2_Line10_Country[0]", data.docCountry);
+  btn("form1[0].#subform[2].P4_checkbox3_No[0]", data.question3No);
+  btn("form1[0].#subform[2].P4_checkbox3_Yes[0]", data.question3Yes);
+  btn("form1[0].#subform[2].P4_checkbox5_No[0]", data.question5No);
+  btn("form1[0].#subform[2].P4_checkbox5_Yes[0]", data.question5Yes);
+  btn("form1[0].#subform[2].P4_checkbox4_Yes[0]", data.question4Yes);
+  btn("form1[0].#subform[2].P4_checkbox4_No[0]", data.question4No);
+  tx("form1[0].#subform[2].P3_Line4_NameofPetitioner[1]", data.petitionerName);
+
+  // ── Part 4 — Additional Information (Yes/No questions) ──
   btn("form1[0].#subform[3].P4_checkbox6_Yes[0]", data.q6Yes);
   btn("form1[0].#subform[3].P4_checkbox6_No[0]", data.q6No);
   btn("form1[0].#subform[3].P4_checkbox7_Yes[0]", data.q7Yes);
@@ -133,8 +176,28 @@ export async function fillI539Form(
   tx("form1[0].#subform[4].P5_Line3_DaytimePhoneNumber[0]", data.daytimePhone);
   tx("form1[0].#subform[4].P5_Line4_MobilePhoneNumber[0]", data.mobilePhone);
   tx("form1[0].#subform[4].P5_Line5_EmailAddress[0]", data.email);
-  tx("form1[0].#subform[4].P6_Line7_SignatureApplicant[0]", data.applicantSignature);
+  tx("form1[0].#subform[4].P6_Line7_SignatureApplicant[0]", data.signature);
   tx("form1[0].#subform[4].P6_Line7_DateofSignature[0]", data.signatureDate);
+
+  // ── Part 6 — Interpreter ──
+  tx("form1[0].#subform[4].P7_Line1_PreparerFamilyName[0]", data.interpreterFamilyName);
+  tx("form1[0].#subform[4].P7_Line1_PreparerGivenName[0]", data.interpreterGivenName);
+  tx("form1[0].#subform[4].P6_Line4_DaytimePhoneNumber[0]", data.interpreterPhone);
+  tx("form1[0].#subform[4].P6_Line4_DaytimePhoneNumber[1]", data.interpreterPhoneAlt);
+  tx("form1[0].#subform[4].P6_Line5_EmailAddress[0]", data.interpreterEmail);
+  tx("form1[0].#subform[4].P7_Line6_Language[0]", data.interpreterLanguage);
+  tx("form1[0].#subform[4].P6_Line7_SignatureApplicant[1]", data.interpreterSignature);
+  tx("form1[0].#subform[4].P6_Line7_DateofSignature[1]", data.interpreterSignatureDate);
+
+  // ── Part 7 — Preparer ──
+  tx("form1[0].#subform[5].P7_Line1a_PreparerFamilyName[0]", data.preparerFamilyName);
+  tx("form1[0].#subform[5].P7_Line1b_PreparerGivenName[0]", data.preparerGivenName);
+  tx("form1[0].#subform[5].P7_Line2_BusinessName[0]", data.preparerBusiness);
+  tx("form1[0].#subform[5].P7_Line4_PreparerDaytimePhoneNumber[0]", data.preparerPhone);
+  tx("form1[0].#subform[5].P7_Line5_FaxPhoneNumber[0]", data.preparerFax);
+  tx("form1[0].#subform[5].P7_Line6_EmailAddress[0]", data.preparerEmail);
+  tx("form1[0].#subform[5].P7_Line8a_SignatureofPreparer[0]", data.preparerSignature);
+  tx("form1[0].#subform[5].P7_Line8b_DateofSignature[0]", data.preparerSignatureDate);
 
   // ── Last page — name repeat ──
   tx("form1[0].#subform[6].P1Line1a_FamilyName[1]", data.familyName);

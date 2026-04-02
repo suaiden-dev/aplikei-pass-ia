@@ -23,7 +23,8 @@ import {
   Sparkles,
   ChevronRight,
   ShieldCheck,
-  PackageCheck
+  PackageCheck,
+  ArrowRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PDFDocument } from 'pdf-lib';
@@ -32,23 +33,23 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 const DOCS_CONFIG = [
-  { id: "cos_g1145",               label: { pt: "G-1145 (Notificação)",          en: "G-1145 (e-Notification)" } },
-  { id: "cos_g1450",               label: { pt: "G-1450 (Autorização Cartão)",   en: "G-1450 (Credit Card Auth)" } },
-  { id: "cos_i539",                label: { pt: "Formulário I-539 – Principal",  en: "Form I-539 – Main Applicant" } },
-  { id: "cos_i539a_official",      label: { pt: "Formulário I-539A – Dependentes", en: "Form I-539A – Dependents" } },
-  { id: "cos_i94",                 label: { pt: "I-94 – Aplicante principal",    en: "I-94 – Main Applicant" } },
-  { id: "cos_i94_dependent",       label: { pt: "I-94 – Dependentes",            en: "I-94 – Dependents" } },
-  { id: "cos_i20_official",        label: { pt: "I-20 F1",                       en: "I-20 F1" } },
-  { id: "cos_i20_f2",              label: { pt: "I-20 F2",                       en: "I-20 F2" } },
-  { id: "cos_sevis_voucher",       label: { pt: "Taxa SEVIS I-901",              en: "SEVIS Fee I-901" } },
-  { id: "cos_bank_statement",      label: { pt: "Comprovação Financeira",        en: "Financial Proof" } },
-  { id: "cos_cover_letter",        label: { pt: "Cover Letter",                  en: "Cover Letter" } },
-  { id: "cos_passport_visa_principal",  label: { pt: "Passaporte e Visto: Principal",  en: "Passport and Visa: Principal" } },
+  { id: "cos_g1145", label: { pt: "G-1145 (Notificação)", en: "G-1145 (e-Notification)" } },
+  { id: "cos_g1450", label: { pt: "G-1450 (Autorização Cartão)", en: "G-1450 (Credit Card Auth)" } },
+  { id: "cos_i539", label: { pt: "Formulário I-539 – Principal", en: "Form I-539 – Main Applicant" } },
+  { id: "cos_i539a_official", label: { pt: "Formulário I-539A – Dependentes", en: "Form I-539A – Dependents" } },
+  { id: "cos_i94", label: { pt: "I-94 – Aplicante principal", en: "I-94 – Main Applicant" } },
+  { id: "cos_i94_dependent", label: { pt: "I-94 – Dependentes", en: "I-94 – Dependents" } },
+  { id: "cos_i20_official", label: { pt: "I-20 F1", en: "I-20 F1" } },
+  { id: "cos_i20_f2", label: { pt: "I-20 F2", en: "I-20 F2" } },
+  { id: "cos_sevis_voucher", label: { pt: "Taxa SEVIS I-901", en: "SEVIS Fee I-901" } },
+  { id: "cos_bank_statement", label: { pt: "Comprovação Financeira", en: "Financial Proof" } },
+  { id: "cos_cover_letter", label: { pt: "Cover Letter", en: "Cover Letter" } },
+  { id: "cos_passport_visa_principal", label: { pt: "Passaporte e Visto: Principal", en: "Passport and Visa: Principal" } },
   { id: "cos_passport_visa_dependent", label: { pt: "Passaporte e Visto: Dependentes", en: "Passport and Visa: Dependents" } },
-  { id: "cos_marriage_certificate",label: { pt: "Certidão de Casamento",        en: "Marriage Certificate" } },
-  { id: "cos_birth_certificate",   label: { pt: "Certidão de Nascimento",       en: "Birth Certificate" } },
+  { id: "cos_marriage_certificate", label: { pt: "Certidão de Casamento", en: "Marriage Certificate" } },
+  { id: "cos_birth_certificate", label: { pt: "Certidão de Nascimento", en: "Birth Certificate" } },
   { id: "cos_proof_of_residence_brazil", label: { pt: "Comprovante de Residência (Brasil)", en: "Proof of Residence (Brazil)" } },
-  { id: "cos_supporting_docs",     label: { pt: "Documentos de Suporte",        en: "Supporting Documents" } },
+  { id: "cos_supporting_docs", label: { pt: "Documentos de Suporte", en: "Supporting Documents" } },
 ];
 
 export const ChangeOfStatusFinalPackageStep = ({
@@ -61,7 +62,8 @@ export const ChangeOfStatusFinalPackageStep = ({
   uploading,
   fileInputRef,
   setSelectedDoc,
-  serviceStatus
+  serviceStatus,
+  onNext
 }: DocumentStepProps) => {
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -86,15 +88,15 @@ export const ChangeOfStatusFinalPackageStep = ({
       if (configId === "cos_i20_official" && d.name.startsWith("cos_i20_f2")) return false;
       return true;
     }
-    if (configId === "cos_i539"           && d.name === "i539_oficial") return true;
-    if (configId === "cos_g1145"          && d.name === "g1145_oficial") return true;
-    if (configId === "cos_g1450"          && d.name === "g1450_oficial") return true;
-    if (configId === "cos_i539"           && d.name === "cos_applicant_form") return true;
-    if (configId === "cos_i539"           && d.name === "cos_i539_official") return true;
+    if (configId === "cos_i539" && d.name === "i539_oficial") return true;
+    if (configId === "cos_g1145" && d.name === "g1145_oficial") return true;
+    if (configId === "cos_g1450" && d.name === "g1450_oficial") return true;
+    if (configId === "cos_i539" && d.name === "cos_applicant_form") return true;
+    if (configId === "cos_i539" && d.name === "cos_i539_official") return true;
     if (configId === "cos_i539a_official" && d.name === "cos_a_form") return true;
-    if (configId === "cos_cover_letter"   && d.name === "cos_cover_letter_official") return true;
-    if (configId === "cos_g1145"          && d.name === "cos_g1145_voucher") return true;
-    if (configId === "cos_g1450"          && d.name === "cos_g1450_voucher") return true;
+    if (configId === "cos_cover_letter" && d.name === "cos_cover_letter_official") return true;
+    if (configId === "cos_g1145" && d.name === "cos_g1145_voucher") return true;
+    if (configId === "cos_g1450" && d.name === "cos_g1450_voucher") return true;
     return false;
   };
 
@@ -252,7 +254,7 @@ export const ChangeOfStatusFinalPackageStep = ({
     const m = now.getMonth() - birth.getMonth();
     if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
 
-    return age < 14 
+    return age < 14
       ? (lang === "pt" ? `Assinado pelo Principal (${clientFullName})` : `Signed by Principal (${clientFullName})`)
       : (lang === "pt" ? `Assinado pelo dependente (${dependent.name})` : `Signed by dependent (${dependent.name})`);
   };
@@ -264,7 +266,7 @@ export const ChangeOfStatusFinalPackageStep = ({
   const financialRequirement = 22000 + ((formData?.dependents?.length || 0) * 5000);
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       className="space-y-12 pb-10"
@@ -272,7 +274,7 @@ export const ChangeOfStatusFinalPackageStep = ({
       <div className="flex flex-col space-y-4 border-b border-border/50 pb-8">
         <div className="flex items-center gap-4">
           <div className="h-16 w-16 rounded-[2.5rem] bg-green-500/10 flex items-center justify-center text-green-600 shadow-inner group">
-             <PackageCheck className="h-8 w-8 group-hover:scale-110 transition-transform" />
+            <PackageCheck className="h-8 w-8 group-hover:scale-110 transition-transform" />
           </div>
           <div>
             <h2 className="font-display text-3xl font-black tracking-tight text-foreground uppercase">
@@ -286,7 +288,7 @@ export const ChangeOfStatusFinalPackageStep = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <motion.div 
+        <motion.div
           whileHover={{ y: -5 }}
           className="p-8 rounded-[2.5rem] border border-blue-200 bg-blue-50/50 backdrop-blur-sm space-y-4 relative overflow-hidden group"
         >
@@ -307,7 +309,7 @@ export const ChangeOfStatusFinalPackageStep = ({
           </Button>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           whileHover={{ y: -5 }}
           className="p-8 rounded-[2.5rem] border border-purple-200 bg-purple-50/50 backdrop-blur-sm space-y-4 relative overflow-hidden group"
         >
@@ -331,7 +333,7 @@ export const ChangeOfStatusFinalPackageStep = ({
         isSuccess ? "border-green-500/50 bg-green-50/30" : "border-primary/10 bg-primary/5"
       )}>
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-        
+
         <div className="relative z-10 space-y-6">
           <AnimatePresence mode="wait">
             {isSuccess ? (
@@ -394,8 +396,8 @@ export const ChangeOfStatusFinalPackageStep = ({
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {nextSteps.map((step, i) => (
-          <motion.div 
-            key={i} 
+          <motion.div
+            key={i}
             whileHover={{ y: -5 }}
             className="flex flex-col items-center text-center p-6 rounded-[2rem] border border-border/50 bg-card/10 backdrop-blur-sm shadow-lg group"
           >
@@ -411,14 +413,14 @@ export const ChangeOfStatusFinalPackageStep = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="rounded-[2.5rem] border border-border/50 bg-card/20 backdrop-blur-sm p-10 space-y-8 shadow-xl">
           <div className="flex items-center gap-4">
-             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary"><Signature className="h-5 w-5"/></div>
-             <h4 className="font-display font-black text-sm uppercase tracking-[0.2em]">{lang === "pt" ? "Assinaturas" : "Signatures"}</h4>
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary"><Signature className="h-5 w-5" /></div>
+            <h4 className="font-display font-black text-sm uppercase tracking-[0.2em]">{lang === "pt" ? "Assinaturas" : "Signatures"}</h4>
           </div>
           <div className="space-y-4">
             <div className="p-5 rounded-[1.5rem] bg-card border border-border/50 text-xs font-medium space-y-2">
               <p className="font-black text-primary uppercase text-[10px] mb-2">Form I-539 (Principal):</p>
-              <div className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-primary"/> <span>Pág 5, Parte 5, Item 4 - Cante seu nome</span></div>
-              <div className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-primary"/> <span>I-20 Pág 1 - Assinatura requerida</span></div>
+              <div className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-primary" /> <span>Pág 5, Parte 5, Item 4 - Cante seu nome</span></div>
+              <div className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-primary" /> <span>I-20 Pág 1 - Assinatura requerida</span></div>
             </div>
 
             {formData.dependents?.length > 0 && (
@@ -436,23 +438,21 @@ export const ChangeOfStatusFinalPackageStep = ({
           </div>
         </div>
 
-        <div className="rounded-[2.5rem] border border-border/50 bg-slate-950 p-10 space-y-8 shadow-2xl relative overflow-hidden group/addr">
+        <div className="rounded-[2.5rem] border border-border/50 bg-primary p-10 space-y-8 shadow-2xl relative overflow-hidden group/addr">
           <div className="absolute -right-10 -bottom-10 opacity-10 group-hover/addr:rotate-12 transition-transform">
-             <MapPin className="h-48 w-48 text-white"/>
+            <MapPin className="h-48 w-48 text-white" />
           </div>
           <div className="flex items-center justify-between relative z-10">
             <h4 className="font-display font-black text-sm uppercase tracking-[0.2em] text-white">{lang === "pt" ? "Envio" : "Shipping"}</h4>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
               onClick={copyAddress}
-              className="h-9 px-4 rounded-xl text-white border-white/20 hover:bg-white/10 font-black uppercase text-[9px] tracking-widest gap-2 backdrop-blur-md"
+              className="h-9 px-4 rounded-xl bg-white text-primary hover:bg-blue-600 hover:text-white font-black uppercase text-[9px] tracking-widest gap-2 shadow-xl border-none transition-all"
             >
               {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
               {copied ? "COPIADO" : "COPIAR ENDEREÇO"}
             </Button>
           </div>
-          <div className="font-mono text-sm space-y-2 text-white/90 relative z-10 pl-4 border-l-2 border-primary/40 bg-white/5 p-6 rounded-2xl backdrop-blur-sm">
+          <div className="font-mono text-sm space-y-2 font-black relative z-10 pl-4 border-l-2 border-second bg-white p-6 rounded-2xl backdrop-blur-sm">
             <p>U.S. Citizenship and Immigration Services</p>
             <p>ATTN: I-539</p>
             <p>2501 S. State Highway 121 Business</p>
@@ -460,17 +460,17 @@ export const ChangeOfStatusFinalPackageStep = ({
             <p>Lewisville, TX 75067</p>
           </div>
           <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/10 relative z-10">
-             <ShieldCheck className="h-5 w-5 text-primary" />
-             <p className="text-[10px] text-white/60 font-medium leading-relaxed italic">
+            <ShieldCheck className="h-5 w-5 text-white" />
+            <p className="text-[10px] text-white/60 font-medium leading-relaxed italic">
               {lang === "pt" ? "Use FedEx/UPS com Rastreamento (Tracking Number)." : "Use FedEx/UPS with Tracking Number."}
-             </p>
+            </p>
           </div>
         </div>
       </div>
 
       <AnimatePresence>
         {deadlineDate && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="rounded-[2.5rem] bg-red-600 p-8 shadow-2xl shadow-red-600/30 flex flex-col sm:flex-row items-center gap-8 text-white relative overflow-hidden group"
@@ -488,11 +488,21 @@ export const ChangeOfStatusFinalPackageStep = ({
               </p>
             </div>
             <div className="ml-auto relative z-10 bg-white/10 px-6 py-2 rounded-full border border-white/30 font-black text-xs tracking-widest shrink-0">
-               {deadlineDate.toLocaleDateString(lang === "pt" ? "pt-BR" : "en-US")}
+              {deadlineDate.toLocaleDateString(lang === "pt" ? "pt-BR" : "en-US")}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <div className="pt-8 border-t border-border/50">
+        <Button
+          onClick={onNext}
+          className="w-full h-16 gap-3 bg-primary hover:bg-primary/90 text-white font-black uppercase text-sm tracking-[0.2em] shadow-xl shadow-primary/20 rounded-[2rem] transition-all hover:scale-[1.01] active:scale-[0.99]"
+        >
+          {lang === "pt" ? "Ir para Acompanhamento" : "Go to Tracking"}
+          <ArrowRight className="h-5 w-5" />
+        </Button>
+      </div>
 
       <div className="p-8 bg-blue-600 rounded-[2.5rem] text-white shadow-xl shadow-blue-600/20 flex gap-6 items-center group relative overflow-hidden">
         <div className="absolute -right-4 -top-4 opacity-10 group-hover:rotate-12 transition-transform"><Sparkles className="h-20 w-20" /></div>

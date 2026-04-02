@@ -57,7 +57,12 @@ export default function UserProcesses() {
 
         if (processes && processes.length > 0) {
           const uniqueServicesMap = new Map<string, any>();
-          const EXCLUDED_SUB_SERVICES = ["analise-especialista-cos", "motion-reconsideracao-cos"];
+          const EXCLUDED_SUB_SERVICES = [
+            "analise-especialista-cos", 
+            "motion-reconsideracao-cos",
+            "motion-reconsideracao-eos",
+            "rfe-support"
+          ];
 
           processes.forEach((p) => {
             if (EXCLUDED_SUB_SERVICES.includes(p.serviceSlug)) return;
@@ -193,12 +198,12 @@ export default function UserProcesses() {
           {d.trackStatus[lang]}
         </p>
       </header>
-
-      <section>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<br />
+      <section className="bg-slate-100/60 -mx-4 px-4 py-8 rounded-[2.5rem] border border-slate-200 shadow-inner">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.length === 0 ? (
-            <div className="col-span-full py-12 text-center rounded-md border-2 border-dashed border-border">
-              <p className="text-muted-foreground">
+            <div className="col-span-full py-12 text-center rounded-md border-2 border-dashed border-border shadow-soft">
+              <p className="text-muted-foreground font-medium">
                 {d.noActiveProcesses[lang]}
               </p>
             </div>
@@ -210,7 +215,7 @@ export default function UserProcesses() {
                 animate={{ opacity: 1, y: 0 }}
                 onClick={() => handleServiceClick(s)}
                 disabled={checkingSelfie === s.id}
-                className={`relative text-left p-4 rounded-md border-2 border-border bg-card hover:border-primary/40 transition-all duration-300 group shadow-sm hover:shadow-lg ${checkingSelfie === s.id ? "opacity-70 cursor-wait" : ""}`}
+                className={`relative text-left p-6 rounded-[2.5rem] border border-slate-200/80 bg-white hover:border-primary/40 transition-all duration-300 group shadow-lg hover:shadow-2xl hover:-translate-y-1 ${checkingSelfie === s.id ? "opacity-70 cursor-wait" : ""}`}
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="p-3 rounded-md bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
@@ -231,7 +236,7 @@ export default function UserProcesses() {
                   </div>
                 </div>
 
-                <h3 className="font-bold text-subtitle text-foreground mb-1 uppercase tracking-tight">
+                <h3 className="font-bold text-subtitle text-slate-900 mb-1 uppercase tracking-tight">
                   {(s.serviceSlug as string)?.replace("-", " ")}
                 </h3>
 

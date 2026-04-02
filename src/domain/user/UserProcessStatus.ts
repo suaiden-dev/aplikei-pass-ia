@@ -44,6 +44,10 @@ export const getStatusDisplay = (
     else if (status === "EOS_CASE_FORM") normalizedStatus = "cosCaseForm";
     else if (status === "EOS_MOTION_IN_PROGRESS") normalizedStatus = "cosMotionInProgress";
     else if (status === "EOS_MOTION_COMPLETED") normalizedStatus = "cosMotionCompleted";
+    else if (status === "EOS_REJECTED") normalizedStatus = "cosRejected";
+    else if (status === "EOS_REJECTED_ANALYSIS_PENDING") normalizedStatus = "cosRejectedAnalysisPending";
+    else if (status === "EOS_ANALISE_PENDENTE") normalizedStatus = "cosAnalisePendente";
+    else if (status === "EOS_ANALISE_CONCLUIDA") normalizedStatus = "cosAnaliseConcluida";
   } else {
     if (status === "active") normalizedStatus = "ds160InProgress";
     if (status === "review_pending") normalizedStatus = "ds160Processing";

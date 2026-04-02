@@ -47,27 +47,31 @@ interface FormInputProps extends React.ComponentProps<typeof Input> {
   icon?: React.ReactNode;
 }
 
-export const FormInput: React.FC<FormInputProps> = ({ label, error, hint, icon, className, ...props }) => {
-  return (
-    <FormGroup label={label} error={error} hint={hint} id={props.id} required={props.required}>
-      <div className="relative">
-        {icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-            {icon}
-          </div>
-        )}
-        <Input 
-          {...props} 
-          className={cn(
-            error && "border-destructive focus-visible:ring-destructive", 
-            icon && "pl-10",
-            className
-          )} 
-        />
-      </div>
-    </FormGroup>
-  );
-};
+export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
+  ({ label, error, hint, icon, className, ...props }, ref) => {
+    return (
+      <FormGroup label={label} error={error} hint={hint} id={props.id} required={props.required}>
+        <div className="relative">
+          {icon && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              {icon}
+            </div>
+          )}
+          <Input 
+            ref={ref}
+            {...props} 
+            className={cn(
+              error && "border-destructive focus-visible:ring-destructive", 
+              icon && "pl-12",
+              className
+            )} 
+          />
+        </div>
+      </FormGroup>
+    );
+  }
+);
+FormInput.displayName = "FormInput";
 
 interface FormPhoneInputProps extends React.ComponentProps<typeof PhoneInput> {
   label?: string;
@@ -75,13 +79,16 @@ interface FormPhoneInputProps extends React.ComponentProps<typeof PhoneInput> {
   hint?: React.ReactNode;
 }
 
-export const FormPhoneInput: React.FC<FormPhoneInputProps> = ({ label, error, hint, ...props }) => {
-  return (
-    <FormGroup label={label} error={error} hint={hint} id={props.id} required={props.required}>
-      <PhoneInput {...props} className={cn(error && "border-destructive")} />
-    </FormGroup>
-  );
-};
+export const FormPhoneInput = React.forwardRef<HTMLInputElement, FormPhoneInputProps>(
+  ({ label, error, hint, ...props }, ref) => {
+    return (
+      <FormGroup label={label} error={error} hint={hint} id={props.id} required={props.required}>
+        <PhoneInput ref={ref} {...props} className={cn(error && "border-destructive")} />
+      </FormGroup>
+    );
+  }
+);
+FormPhoneInput.displayName = "FormPhoneInput";
 
 interface FormSelectProps extends React.ComponentProps<typeof Select> {
   label?: string;
@@ -93,33 +100,36 @@ interface FormSelectProps extends React.ComponentProps<typeof Select> {
   required?: boolean;
 }
 
-export const FormSelect: React.FC<FormSelectProps> = ({ 
-  label, 
-  error, 
-  hint, 
-  placeholder, 
-  options, 
-  id, 
-  required,
-  ...props 
-}) => {
-  return (
-    <FormGroup label={label} error={error} hint={hint} id={id} required={required}>
-      <Select {...props}>
-        <SelectTrigger id={id} className={cn(error && "border-destructive")}>
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </FormGroup>
-  );
-};
+export const FormSelect = React.forwardRef<HTMLButtonElement, FormSelectProps>(
+  ({ 
+    label, 
+    error, 
+    hint, 
+    placeholder, 
+    options, 
+    id, 
+    required,
+    ...props 
+  }, ref) => {
+    return (
+      <FormGroup label={label} error={error} hint={hint} id={id} required={required}>
+        <Select {...props}>
+          <SelectTrigger ref={ref} id={id} className={cn(error && "border-destructive")}>
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FormGroup>
+    );
+  }
+);
+FormSelect.displayName = "FormSelect";
 
 interface FormCheckboxProps extends React.ComponentProps<typeof Checkbox> {
   label: string;
@@ -127,25 +137,32 @@ interface FormCheckboxProps extends React.ComponentProps<typeof Checkbox> {
   error?: string;
 }
 
-export const FormCheckbox: React.FC<FormCheckboxProps> = ({ label, description, error, className, ...props }) => {
-  return (
-    <div className={cn("space-y-2", className)}>
-      <div className="flex items-start space-x-2">
-        <Checkbox {...props} className={cn("mt-1", error && "border-destructive")} />
-        <div className="grid gap-1.5 leading-none">
-          <Label
-            htmlFor={props.id}
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-          >
-            {label}
-          </Label>
-          {description && <p className="text-xs text-muted-foreground">{description}</p>}
+export const FormCheckbox = React.forwardRef<HTMLButtonElement, FormCheckboxProps>(
+  ({ label, description, error, className, ...props }, ref) => {
+    return (
+      <div className={cn("space-y-2", className)}>
+        <div className="flex items-start space-x-2">
+          <Checkbox 
+            ref={ref}
+            {...props} 
+            className={cn("mt-1", error && "border-destructive")} 
+          />
+          <div className="grid gap-1.5 leading-none">
+            <Label
+              htmlFor={props.id}
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            >
+              {label}
+            </Label>
+            {description && <p className="text-xs text-muted-foreground">{description}</p>}
+          </div>
         </div>
+        {error && <p className="text-[10px] text-destructive font-medium">{error}</p>}
       </div>
-      {error && <p className="text-[10px] text-destructive font-medium">{error}</p>}
-    </div>
-  );
-};
+    );
+  }
+);
+FormCheckbox.displayName = "FormCheckbox";
 interface FormNativeSelectProps extends React.ComponentProps<"select"> {
   label?: string;
   error?: string;
@@ -186,32 +203,35 @@ interface FormRadioGroupProps extends React.ComponentProps<typeof RadioGroup> {
   options: { value: string; label: string; id?: string }[];
 }
 
-export const FormRadioGroup: React.FC<FormRadioGroupProps> = ({ 
-  label, 
-  error, 
-  hint, 
-  options, 
-  className,
-  ...props 
-}) => {
-  return (
-    <FormGroup label={label} error={error} hint={hint} className={className}>
-      <RadioGroup {...props}>
-        {options.map((opt) => {
-          const radioId = opt.id || `radio-${props.name || label}-${opt.value}`;
-          return (
-            <div key={opt.value} className="flex items-center space-x-2">
-              <RadioGroupItem value={opt.value} id={radioId} />
-              <Label htmlFor={radioId} className="cursor-pointer font-normal">
-                {opt.label}
-              </Label>
-            </div>
-          );
-        })}
-      </RadioGroup>
-    </FormGroup>
-  );
-};
+export const FormRadioGroup = React.forwardRef<HTMLDivElement, FormRadioGroupProps>(
+  ({ 
+    label, 
+    error, 
+    hint, 
+    options, 
+    className,
+    ...props 
+  }, ref) => {
+    return (
+      <FormGroup label={label} error={error} hint={hint} className={className}>
+        <RadioGroup ref={ref} {...props}>
+          {options.map((opt) => {
+            const radioId = opt.id || `radio-${props.name || label}-${opt.value}`;
+            return (
+              <div key={opt.value} className="flex items-center space-x-2">
+                <RadioGroupItem value={opt.value} id={radioId} />
+                <Label htmlFor={radioId} className="cursor-pointer font-normal">
+                  {opt.label}
+                </Label>
+              </div>
+            );
+          })}
+        </RadioGroup>
+      </FormGroup>
+    );
+  }
+);
+FormRadioGroup.displayName = "FormRadioGroup";
 
 interface FormViewFieldProps {
   label: string;
@@ -261,7 +281,7 @@ export const FormTextarea = React.forwardRef<HTMLTextAreaElement, FormTextareaPr
             className={cn(
               "flex min-h-[100px] w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all",
               error && "border-destructive focus-visible:ring-destructive",
-              icon && "pl-10",
+              icon && "pl-12",
               className
             )}
             {...props}
