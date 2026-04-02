@@ -70,8 +70,10 @@ export default function TrackingTab() {
       );
     }
 
+    // Only truly FINAL rejections (after Motion) go to the end screen
+    // 'rejected' (after RFE delivery) should go to Motion flow, not the final screen
     const isApproved = process.status === "COS_APPROVED" || process.status === "EOS_APPROVED" || process.status === "MOTION_APPROVED" || process.status === "approved" || process.status === "completed";
-    const isRejected = process.status === "MOTION_REJECTED" || process.status === "rejected" || process.status === "COS_REJECTED_FINAL" || process.status === "EOS_REJECTED_FINAL";
+    const isRejected = process.status === "MOTION_REJECTED" || process.status === "COS_REJECTED_FINAL" || process.status === "EOS_REJECTED_FINAL";
 
     if (isApproved || isRejected) {
       return <ProcessFinalStates status={process.status} navigate={navigate} />;
@@ -80,6 +82,7 @@ export default function TrackingTab() {
     const recoveryType = (process.service_metadata as any)?.recovery_type || 'none';
     const status = process.status || "";
     const isRecovering =
+      status === "rejected" || // RFE was answered but USCIS still denied → go to Motion
       status.toLowerCase().includes("rejected") ||
       status.toLowerCase().includes("analise") ||
       status.toLowerCase().includes("motion") ||
