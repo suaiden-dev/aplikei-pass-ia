@@ -31,6 +31,14 @@ export class UnifiedPaymentService implements IPaymentService {
       });
 
       if (error) {
+        // Extract the actual error message from the server response
+        try {
+          const context = (error as any).context;
+          if (context) {
+            const responseBody = await context.json();
+            console.error("[UnifiedPaymentService] Server error details:", JSON.stringify(responseBody));
+          }
+        } catch (_) { /* ignore parse errors */ }
         console.error("[UnifiedPaymentService] Error in stripe-checkout:", error);
         throw error;
       }
