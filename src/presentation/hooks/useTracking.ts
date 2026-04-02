@@ -131,9 +131,16 @@ export const useTracking = () => {
     const currentType = metadata.recovery_type || 'none';
     const prefix = getStatusPrefix(process);
     
-    // Explicit rule: If we are in the main tracking status, any rejection starts a Motion flow.
-    // If we are already in some recovery stage (RFE, MOTION, etc) OR have a payment confirmed, rejection is final.
+    // State detection for routing rejection to the correct flow:
+    // - At standard tracking → COS_REJECTED (begins Motion)
+    // - After RFE flow completed/in-progress → COS_REJECTED (begins Motion)
+    // - Already in Motion flow → "rejected" (truly final)
     const isAtStart = process.status.endsWith("_TRACKING");
+    const isAfterRfe = process.status.includes("_RFE") || 
+                       process.status.includes("_COMPLETED") ||
+                       process.status === "rejected"; 
+    const isAlreadyInMotion = process.status.includes("_MOTION_") || 
+                              process.status.includes("MOTION_IN_PROGRESS");
 
     try {
       let statusToSave = "";
@@ -142,11 +149,17 @@ export const useTracking = () => {
       if (selectedOutcome === "approved") {
         statusToSave = "approved";
       } else if (selectedOutcome === "rejected") {
-        if (isAtStart) {
-          statusToSave = prefix + "REJECTED"; // Starts Motion
+        if (isAlreadyInMotion) {
+          // Motion was tried and still denied → truly final
+          statusToSave = "MOTION_REJECTED";
+        } else if (isAtStart || isAfterRfe) {
+          // Either initial rejection or post-RFE denial → start Motion
+          statusToSave = prefix + "REJECTED";
           newRecursiveType = "motion";
         } else {
-          statusToSave = "rejected"; // Final end
+          // Fallback: treat as starting Motion
+          statusToSave = prefix + "REJECTED";
+          newRecursiveType = "motion";
         }
       } else if (selectedOutcome === "rfe") {
         statusToSave = prefix + "RFE"; // Starts RFE
