@@ -1,215 +1,88 @@
-import { Toaster } from "@/presentation/components/atoms/toaster";
-import { Toaster as Sonner } from "@/presentation/components/atoms/sonner";
-import { TooltipProvider } from "@/presentation/components/atoms/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { LanguageProvider } from "@/i18n/LanguageContext";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { PublicLayout } from "./layouts/PublicLayout";
+import { AdminLayout } from "./layouts/AdminLayout";
+import { CustomerLayout } from "./layouts/CustomerLayout";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
 
-import Layout from "@/presentation/components/templates/Layout";
-import UserDashboardLayout from "@/presentation/components/templates/UserDashboardLayout";
-import ScrollToTop from "@/presentation/components/atoms/ScrollToTop";
-
-// ... (todas as importações continuam aqui)
-import Index from "./pages/Index";
-import HowItWorks from "./pages/HowItWorks";
-import Services from "./pages/Services";
-import ServiceDetail from "./pages/ServiceDetail";
-import B1B2ServiceDetail from "./pages/B1B2ServiceDetail";
-import F1ServiceDetail from "./pages/F1ServiceDetail";
-import StatusExtensionDetail from "./pages/StatusExtensionDetail";
-import ChangeOfStatusDetail from "./pages/ChangeOfStatusDetail";
+import HomePage from "./pages/HomePage";
+import ServiceDetailPage from "./pages/ServiceDetailPage";
 import Login from "./pages/Login";
+import SignUpPage from "./pages/SignUp";
+import NotFoundPage from "./pages/NotFoundPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
+import ComoFuncionaPage from "./pages/ComoFuncionaPage";
+import ServicosPage from "./pages/ServicosPage";
+import CustomersPage from "./pages/admin/CustomersPage";
 
-import Signup from "./pages/Signup";
-import ConfirmPassword from "./pages/ConfirmPassword";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import CheckoutSuccess from "./pages/CheckoutSuccess";
+import OverviewPage from "./pages/admin/OverviewPage";
+import ZellePaymentsPage from "./pages/admin/ZellePaymentsPage";
+import ProductsPage from "./pages/admin/ProductsPage";
+import AdminProcessesPage from "./pages/admin/ProcessesPage";
+import AdminProcessDetailPage from "./pages/admin/ProcessDetailPage";
 
-import Terms from "./pages/legal/Terms";
-import Privacy from "./pages/legal/Privacy";
-import Refund from "./pages/legal/Refund";
-import Disclaimers from "./pages/legal/Disclaimers";
-import ContractTerms from "./pages/legal/ContractTerms";
+import CustomerDashboardPage from "./pages/customer/DashboardPage";
+import MyProcessesPage from "./pages/customer/MyProcessesPage";
+import ProcessDetailPage from "./pages/customer/ProcessDetailPage";
+import SupportPage from "./pages/customer/SupportPage";
+import AIChatPage from "./pages/customer/AIChatPage";
+import COSOnboardingPage from "./pages/customer/COSOnboardingPage";
 
-import UserDashboard from "./pages/dashboard/UserDashboard";
-import UserProcesses from "./pages/dashboard/UserProcesses";
-import Onboarding from "./pages/dashboard/Onboarding";
-import Chat from "./pages/dashboard/Chat";
-import Uploads from "./pages/dashboard/Uploads";
-import PackagePDF from "./pages/dashboard/PackagePDF";
-import HelpCenter from "./pages/dashboard/HelpCenter";
-import TrackingTab from "./pages/dashboard/TrackingTab";
+import ProfileSettingsPage from "./pages/customer/ProfileSettingsPage";
+import B1B2OnboardingPage from "./pages/customer/B1B2OnboardingPage";
+import F1OnboardingPage from "./pages/customer/F1OnboardingPage";
 
+export default function App() {
+  return (
+    <Routes>
+      {/* Rotas públicas — com Navbar e Footer */}
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/servicos" element={<ServicosPage />} />
+        <Route path="/servicos/:slug" element={<ServiceDetailPage />} />
+        <Route path="/como-funciona" element={<ComoFuncionaPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/cadastro" element={<SignUpPage />} />
+        <Route path="/checkout/:slug" element={<CheckoutPage />} />
+      </Route>
 
-import AdminRoute from "@/presentation/components/molecules/AdminRoute";
-import AdminLayout from "@/presentation/components/templates/AdminLayout";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminOrders from "./pages/admin/AdminOrders";
-import AdminOrderDetail from "./pages/admin/AdminOrderDetail";
-import AdminPayments from "./pages/admin/AdminPayments";
-import AdminContracts from "./pages/admin/AdminProcesses";
-import AdminClients from "./pages/admin/AdminClients";
-import AdminClientDetail from "./pages/admin/AdminClientDetail";
-import AdminDocuments from "./pages/admin/AdminDocuments";
-import AdminPlaceholder from "./pages/admin/AdminPlaceholder";
-import AdminDS160ViewerPage from "./pages/admin/AdminDS160ViewerPage";
-import AdminProcessDetail from "./pages/admin/AdminProcessDetail";
-import Checkout from "./pages/Checkout";
+      {/* Rotas protegidas — exigem autenticação */}
+      <Route element={<ProtectedRoute />}>
+        {/* Checkout success — protected so user is guaranteed authenticated */}
+        <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
+        {/* Customer Dashboard */}
+        <Route element={<CustomerLayout />}>
+          <Route path="/dashboard" element={<CustomerDashboardPage />} />
+          <Route path="/dashboard/processes" element={<MyProcessesPage />} />
+          {/* Onboarding por produto */}
+          <Route path="/dashboard/processes/visto-b1-b2/onboarding" element={<B1B2OnboardingPage />} />
+          <Route path="/dashboard/processes/visto-b1-b2-reaplicacao/onboarding" element={<B1B2OnboardingPage />} />
+          <Route path="/dashboard/processes/visto-f1/onboarding" element={<F1OnboardingPage />} />
+          <Route path="/dashboard/processes/visto-f1-reaplicacao/onboarding" element={<F1OnboardingPage />} />
+          <Route path="/dashboard/processes/extensao-status/onboarding" element={<COSOnboardingPage />} />
+          <Route path="/dashboard/processes/troca-status/onboarding" element={<COSOnboardingPage />} />
+          {/* Onboarding genérico (outros slugs COS) */}
+          <Route path="/dashboard/processes/:slug/onboarding" element={<COSOnboardingPage />} />
 
-import NotFound from "./pages/NotFound";
-import { Navigate, Outlet } from "react-router-dom";
+          <Route path="/dashboard/processes/:slug" element={<ProcessDetailPage />} />
+          <Route path="/dashboard/support" element={<SupportPage />} />
+          <Route path="/dashboard/ai-chat" element={<AIChatPage />} />
+          <Route path="/minha-conta" element={<ProfileSettingsPage />} />
+        </Route>
 
-import { NotificationProvider } from "@/contexts/NotificationContext";
-import { PromoModal } from "@/presentation/components/organisms/PromoModal";
+        {/* Admin */}
+        <Route element={<AdminLayout />}>
+          <Route path="/admin" element={<OverviewPage />} />
+          <Route path="/admin/payments" element={<ZellePaymentsPage />} />
+          <Route path="/admin/customers" element={<CustomersPage />} />
+          <Route path="/admin/processes" element={<AdminProcessesPage />} />
+          <Route path="/admin/processes/:id" element={<AdminProcessDetailPage />} />
+          <Route path="/admin/products" element={<ProductsPage />} />
+        </Route>
+      </Route>
 
-const ProtectedRoute = () => {
-  const { session, loading } = useAuth();
-  const user = session?.user;
-  if (loading) return null;
-  return user ? <Outlet /> : <Navigate to="/login" replace />;
-};
-
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <AuthProvider>
-        <NotificationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter
-              future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-            >
-              <ScrollToTop />
-              <Routes>
-                {/* Public pages */}
-                <Route element={<Layout />}>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/como-funciona" element={<HowItWorks />} />
-                  <Route path="/servicos" element={<Services />} />
-                  <Route path="/servicos/visto-b1-b2" element={<B1B2ServiceDetail />} />
-                  <Route path="/servicos/visto-f1" element={<F1ServiceDetail />} />
-                  <Route path="/servicos/extensao-status" element={<StatusExtensionDetail />} />
-                  <Route path="/servicos/troca-status" element={<ChangeOfStatusDetail />} />
-
-                  <Route path="/servicos/status-extension" element={<StatusExtensionDetail />} />
-                  <Route path="/servicos/extension" element={<StatusExtensionDetail />} />
-                  <Route path="/servicos/:slug" element={<ServiceDetail />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/cadastro" element={<Signup />} />
-                  <Route
-                    path="/auth/confirm-password"
-                    element={<ConfirmPassword />}
-                  />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-
-                  <Route path="/termos" element={<Terms />} />
-                  <Route path="/privacidade" element={<Privacy />} />
-                  <Route path="/reembolso" element={<Refund />} />
-                  <Route path="/disclaimers" element={<Disclaimers />} />
-                  <Route path="/termos-contrato" element={<ContractTerms />} />
-                  <Route path="/checkout/:slug" element={<Checkout />} />
-                  <Route
-                    path="/checkout-success"
-                    element={<CheckoutSuccess />}
-                  />
-                </Route>
-
-                {/* Dashboard area */}
-                <Route element={<ProtectedRoute />}>
-                  <Route element={<UserDashboardLayout />}>
-                    <Route path="/dashboard" element={<UserDashboard />} />
-                    <Route
-                      path="/dashboard/processos"
-                      element={<UserProcesses />}
-                    />
-                    <Route
-                      path="/dashboard/onboarding"
-                      element={<Onboarding />}
-                    />
-                    <Route path="/dashboard/chat" element={<Chat />} />
-                    <Route path="/dashboard/uploads" element={<Uploads />} />
-                    <Route path="/dashboard/pacote" element={<PackagePDF />} />
-                    <Route path="/dashboard/ajuda" element={<HelpCenter />} />
-                    <Route path="/dashboard/acompanhamento" element={<TrackingTab />} />
-                  </Route>
-                </Route>
-
-                {/* Admin area */}
-                <Route element={<AdminRoute />}>
-                  <Route element={<AdminLayout />}>
-                    <Route path="/admin" element={<AdminDashboard />} />
-                    <Route path="/admin/pedidos" element={<AdminOrders />} />
-                    <Route
-                      path="/admin/pedidos/:id"
-                      element={<AdminOrderDetail />}
-                    />
-                    <Route
-                      path="/admin/pagamentos"
-                      element={<AdminPayments />}
-                    />
-                    <Route path="/admin/clientes" element={<AdminClients />} />
-                    <Route
-                      path="/admin/clientes/:id"
-                      element={<AdminClientDetail />}
-                    />
-                    <Route
-                      path="/admin/documentos"
-                      element={<AdminDocuments />}
-                    />
-                    <Route
-                      path="/admin/contratos"
-                      element={<AdminContracts />}
-                    />
-                    <Route
-                      path="/admin/contratos/:id"
-                      element={<AdminProcessDetail />}
-                    />
-                    <Route
-                      path="/admin/ds160/:userId"
-                      element={<AdminDS160ViewerPage />}
-                    />
-                    <Route
-                      path="/admin/sellers"
-                      element={<AdminPlaceholder title="Sellers" />}
-                    />
-                    <Route
-                      path="/admin/parceiros"
-                      element={<AdminPlaceholder title="Parceiros Globais" />}
-                    />
-                    <Route
-                      path="/admin/recorrencias"
-                      element={<AdminPlaceholder title="Recorrências" />}
-                    />
-                    <Route
-                      path="/admin/produtos"
-                      element={<AdminPlaceholder title="Produtos & Cupons" />}
-                    />
-                    <Route
-                      path="/admin/suporte"
-                      element={<AdminPlaceholder title="Suporte" />}
-                    />
-                    <Route
-                      path="/admin/analytics"
-                      element={<AdminPlaceholder title="Analytics" />}
-                    />
-                  </Route>
-                </Route>
-
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <PromoModal />
-            </BrowserRouter>
-          </TooltipProvider>
-        </NotificationProvider>
-      </AuthProvider>
-    </LanguageProvider>
-  </QueryClientProvider>
-);
-
-export default App;
+      {/* 404 */}
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
+}

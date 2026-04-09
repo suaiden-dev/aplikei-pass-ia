@@ -1,0 +1,172 @@
+import { useState, useEffect } from "react";
+import { Link, NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  RiDashboardLine,
+  RiBriefcaseLine,
+  RiChat3Line,
+  RiQuestionLine,
+  RiLogoutBoxRLine,
+  RiMenuLine,
+  RiCloseLine,
+} from "react-icons/ri";
+import { useAuth } from "../hooks/useAuth";
+import { cn } from "../utils/cn";
+
+const navItems = [
+  { label: "Dashboard", icon: RiDashboardLine, to: "/dashboard" },
+  { label: "My Cases", icon: RiBriefcaseLine, to: "/dashboard/processes" },
+  { label: "AI Chat", icon: RiChat3Line, to: "/dashboard/ai-chat" },
+  { label: "Support", icon: RiQuestionLine, to: "/dashboard/support" },
+];
+
+export function CustomerLayout() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const avatarUrl =
+    user?.avatarUrl ??
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? "User")}&background=1a56db&color=fff`;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login", { replace: true });
+  };
+
+  // Close sidebar on navigation (mobile)
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [pathname]);
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-[#F8FAFC] relative">
+      {/* Mobile Header */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-100 px-6 flex items-center justify-between z-40 shadow-sm">
+        <div className="flex items-center gap-2">
+          <span className="font-display font-black text-xl text-slate-800 tracking-tight">
+            Aplikei
+          </span>
+        </div>
+        <button 
+          onClick={() => setIsSidebarOpen(true)}
+          className="p-2 rounded-xl bg-slate-50 text-slate-600 active:scale-95 transition-all"
+        >
+          <RiMenuLine size={24} />
+        </button>
+      </header>
+
+      {/* Backdrop for Mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside 
+        className={cn(
+          "fixed lg:static inset-y-0 left-0 z-[60] flex flex-col shrink-0 w-full lg:w-[240px] bg-white border-r border-slate-100 transition-transform duration-300 lg:translate-x-0 shadow-2xl lg:shadow-none",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {/* Sidebar Header */}
+        <div className="px-6 py-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-display font-black text-xl text-slate-800 tracking-tight">
+                Aplikei
+              </span>
+              <div className="relative">
+                <div className="w-4 h-4 bg-[#E11D48] rounded-full flex items-center justify-center text-[10px] font-bold text-white">
+                  9
+                </div>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => setIsSidebarOpen(false)}
+              className="lg:hidden p-2 rounded-xl bg-slate-50 text-slate-400"
+            >
+              <RiCloseLine size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+          {navItems.map(({ label, icon: Icon, to }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === "/dashboard"}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-2xl text-[13px] font-semibold transition-all duration-200",
+                  isActive
+                    ? "bg-slate-50 text-slate-800"
+                    : "text-slate-400 hover:bg-slate-50/50 hover:text-slate-600"
+                )
+              }
+            >
+              <Icon className={cn("text-xl", pathname === to || (pathname === "/dashboard" && to === "/dashboard") ? "text-primary" : "text-current")} />
+              <span>{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Sidebar Footer: User + Logout */}
+        <div className="p-4 mt-auto space-y-4">
+          <Link 
+            to="/minha-conta"
+            className={cn(
+              "block px-4 py-3 rounded-2xl border transition-all duration-200 group/profile",
+              pathname === "/minha-conta" 
+                ? "bg-slate-100 border-primary/20 shadow-sm" 
+                : "bg-slate-50 border-slate-100 hover:bg-slate-100 hover:border-slate-200"
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <img
+                src={avatarUrl}
+                alt={user?.fullName ?? "User"}
+                className="w-9 h-9 rounded-full object-cover shrink-0 ring-2 ring-white shadow-sm group-hover/profile:scale-105 transition-transform"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-bold text-slate-800 truncate leading-none mb-1">
+                  {user?.fullName ?? "User"}
+                </p>
+                <p className="text-[10px] font-medium text-slate-400 truncate leading-none">
+                  Minha Conta
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2.5 px-4 py-2 w-full text-[13px] font-bold text-slate-400 hover:text-red-500 transition-colors group"
+          >
+            <RiLogoutBoxRLine className="text-xl group-hover:rotate-12 transition-transform" />
+            <span>Log out</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main area */}
+      <main className="flex-1 overflow-y-auto lg:pt-0 pt-16">
+        <motion.div
+          key={pathname}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="h-full"
+        >
+          <Outlet />
+        </motion.div>
+      </main>
+    </div>
+  );
+}
