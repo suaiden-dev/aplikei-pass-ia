@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, ArrowLeft, CheckCircle2, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
-import { Button } from "@/presentation/components/atoms/button";
-import { Input } from "@/presentation/components/atoms/input";
-import { Label } from "@/presentation/components/atoms/label";
-import { getAuthService } from "@/infrastructure/factories/authFactory";
-import { useT } from "@/i18n/useT";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { authService } from "../../services/auth.service";
+import { useT } from "../../i18n/useT";
 
 export default function ResetPassword() {
     const { t } = useT("auth");
@@ -24,9 +24,8 @@ export default function ResetPassword() {
     const passwordMismatch = password.length > 0 && confirmPassword.length > 0 && password !== confirmPassword;
 
     useEffect(() => {
-        const authService = getAuthService();
-        authService.getSession().then((session) => {
-            if (!session.user) {
+        authService.getSession().then((session: any) => {
+            if (!session?.user) {
                 setErrorMessage(t("auth.resetPassword.noSession"));
                 setTimeout(() => navigate("/forgot-password"), 4000);
             }
@@ -51,9 +50,7 @@ export default function ResetPassword() {
         setErrorMessage(null);
 
         try {
-            const authService = getAuthService();
-            const { error } = await authService.resetPassword(password);
-            if (error) throw new Error(error);
+            await authService.resetPassword(password);
 
             setPasswordUpdated(true);
             await authService.logout();
@@ -123,7 +120,7 @@ export default function ResetPassword() {
                                             id="password"
                                             type={showPassword ? "text" : "password"}
                                             value={password}
-                                            onChange={e => setPassword(e.target.value)}
+                                            onChange={e => setPassword((e.target as HTMLInputElement).value)}
                                             className="pl-6 pr-6"
                                             required
                                             minLength={6}
@@ -146,7 +143,7 @@ export default function ResetPassword() {
                                             id="confirmPassword"
                                             type={showConfirm ? "text" : "password"}
                                             value={confirmPassword}
-                                            onChange={e => setConfirmPassword(e.target.value)}
+                                            onChange={e => setConfirmPassword((e.target as HTMLInputElement).value)}
                                             className={`pl-6 pr-6 ${passwordMismatch ? "border-destructive" : ""}`}
                                             required
                                         />

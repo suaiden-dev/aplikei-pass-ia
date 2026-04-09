@@ -1045,8 +1045,6 @@ export default function AdminProcessDetailPage() {
       let nextStep = currentStepIdx + 1;
       
       const isConsular = proc.service_slug.startsWith("visto-b1-b2") || proc.service_slug.startsWith("visto-f1");
-      const isB1B2 = proc.service_slug.startsWith("visto-b1-b2");
-      const isF1 = proc.service_slug.startsWith("visto-f1");
       const isFinal = nextStep >= service.steps.length && !isConsular;
       
       const additionalData = { ...extraData };
@@ -1084,6 +1082,8 @@ export default function AdminProcessDetailPage() {
     if (!rejectionReason || isSubmitting) return;
     setIsSubmitting(true);
     try {
+      const isB1B2 = proc.service_slug.startsWith("visto-b1-b2");
+      const isF1 = proc.service_slug.startsWith("visto-f1");
       const isFinal = currentStepIdx >= (service?.steps.length || 0) - 1;
 
       if (isFinal) {

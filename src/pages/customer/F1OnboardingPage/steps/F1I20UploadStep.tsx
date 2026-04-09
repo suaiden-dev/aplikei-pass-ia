@@ -2,14 +2,10 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
   RiArrowRightLine,
-  RiArrowLeftLine,
   RiLoader4Line,
   RiCheckDoubleLine,
-  RiFileUploadLine,
   RiErrorWarningLine,
-  RiFileTextLine,
-  RiCameraLine,
-  RiUser3Line
+  RiFileTextLine
 } from "react-icons/ri";
 
 import { supabase } from "../../../../lib/supabase";

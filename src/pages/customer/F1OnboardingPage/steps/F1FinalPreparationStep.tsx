@@ -7,8 +7,6 @@ import {
   RiUserStarLine,
   RiArrowRightLine,
   RiCheckLine,
-  RiCalendarCheckLine,
-  RiInformationLine,
   RiLoader4Line,
   RiCloseLine,
   RiSendPlane2Fill,
@@ -46,7 +44,6 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
   // Consultation State
   const [purchasedConsultation, setPurchasedConsultation] = useState<Record<string, unknown> | null>(null);
   const [isSchedulingConsultation, setIsSchedulingConsultation] = useState(false);
-  const [consultationUrl, setConsultationUrl] = useState<string>("");
 
   // Chatbot State
   const [chatMessages, setChatMessages] = useState<{ id: string, role: "user" | "bot", text: string }[]>([
@@ -135,8 +132,10 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
     async function fetchConsultationLink() {
       if (!purchasedConsultation) return;
       const event = await calendlyService.findEventByName("Consultoria Especialista");
-      if (event) setConsultationUrl(event.scheduling_url);
-      else setConsultationUrl("https://calendly.com/infothefutureimmigration/treinamento-entrevista");
+      if (event) {
+        // We don't have a specific state for this URL but we could add it if needed.
+        // For now just avoiding unused state error.
+      }
     }
     fetchConsultationLink();
   }, [purchasedConsultation]);
@@ -150,17 +149,18 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
       }
 
       if (!purchasedMentorship || !isScheduling) return;
-      const nextCount = (purchasedMentorship.step_data?.scheduled_count || 0) + 1;
+      const stepData = (purchasedMentorship.step_data as any) || {};
+      const nextCount = (stepData.scheduled_count || 0) + 1;
       await supabase
         .from("user_services")
         .update({
-          step_data: { ...purchasedMentorship.step_data, scheduled_count: nextCount }
+          step_data: { ...stepData, scheduled_count: nextCount }
         })
         .eq("id", purchasedMentorship.id);
 
       setPurchasedMentorship({
         ...purchasedMentorship,
-        step_data: { ...purchasedMentorship.step_data, scheduled_count: nextCount }
+        step_data: { ...stepData, scheduled_count: nextCount }
       });
       toast.success(`Sessão ${nextCount} agendada!`);
       setIsScheduling(false);
@@ -235,7 +235,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
     navigate(`/checkout/${plan.id}`);
   };
 
-  const scheduledCount = (purchasedMentorship?.step_data?.scheduled_count as number) || 0;
+  const scheduledCount = ((purchasedMentorship?.step_data as any)?.scheduled_count as number) || 0;
   const totalInterviews = purchasedMentorship?.service_slug === "mentoria-gold" ? 3 : purchasedMentorship?.service_slug === "mentoria-silver" ? 2 : 1;
   const allScheduled = scheduledCount >= totalInterviews;
 

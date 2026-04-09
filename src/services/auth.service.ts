@@ -79,5 +79,11 @@ export const authService = {
       .eq("id", userId);
 
     if (error) throw new Error(error.message);
+  },
+
+  async resetPassword(password: string) {
+    const { data, error } = await supabase.auth.updateUser({ password });
+    if (error) throw new Error(error.message);
+    return data;
   }
 };

@@ -36,7 +36,7 @@ import { cn } from "../../../utils/cn";
 
 interface StepProps {
   proc: UserService;
-  onComplete: () => void;
+  onComplete?: () => void;
 }
 
 type PaymentTab = "card" | "pix" | "zelle" | "parcelow";
@@ -478,7 +478,7 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
 /**
  * COSPage - Motion Explanation + $50 Upsell
  */
-export function MotionExplanationStep({ proc }: Omit<StepProps, "onComplete">) {
+export function MotionExplanationStep({ proc, onComplete: _onComplete }: StepProps) {
   const [showCheckout, setShowCheckout] = useState(false);
   
   const motionService = getServiceBySlug('analise-especialista-cos');
@@ -589,7 +589,7 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
         motion_reason: reason,
         motion_submitted_at: new Date().toISOString()
       });
-      onComplete();
+      onComplete?.();
     } catch (e: unknown) {
       const err = e as Error;
       toast.error(err.message);
@@ -655,7 +655,7 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
 /**
  * COSAceptProposal - Receive proposal & pay custom amount
  */
-export function MotionAcceptProposalStep({ proc }: Omit<StepProps, "onComplete">) {
+export function MotionAcceptProposalStep({ proc, onComplete: _onComplete }: StepProps) {
   const [showCheckout, setShowCheckout] = useState(false);
   const data = (proc.step_data || {}) as Record<string, unknown>;
   const proposalText = (data.motion_proposal_text as string) || "O administrador ainda não enviou a estratégia detalhada do Motion.";
@@ -748,7 +748,7 @@ export function MotionEndStep({ proc, onComplete }: StepProps) {
         motion_ended_at: new Date().toISOString()
       });
       toast.success("Processo finalizado com sucesso!");
-      onComplete();
+      onComplete?.();
     } catch (e: unknown) {
       const err = e as Error;
       toast.error(err.message);

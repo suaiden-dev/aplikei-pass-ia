@@ -54,8 +54,7 @@ export const processService = {
 
       const stepData = (proc.step_data || {}) as Record<string, unknown>;
       const currentStep = proc.current_step ?? 0;
-      const isConsular = proc.service_slug?.startsWith("visto-b1-b2") || proc.service_slug?.startsWith("visto-f1");
-      
+
       const uscisResult = stepData.uscis_official_result as string;
       const rfeResult = stepData.uscis_rfe_result as string;
       const motionResult = stepData.motion_final_result as string;

@@ -114,9 +114,6 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
   
   const st = statusConfig[isFinalized ? 'completed' : proc.status] ?? statusConfig.pending;
 
-  const createdAt = new Date(proc.created_at).toLocaleDateString("pt-BR", {
-    day: "2-digit", month: "short", year: "numeric",
-  });
 
   return (
     <motion.div

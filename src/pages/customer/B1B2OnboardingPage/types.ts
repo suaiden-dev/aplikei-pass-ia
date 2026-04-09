@@ -9,6 +9,9 @@ export interface StepProps {
   t: typeof translations;
   securityData?: any;
   errors?: FieldErrors<any>;
+  formData?: any;
+  trigger?: (name?: any) => Promise<boolean>;
+  onComplete?: () => Promise<void>;
 }
 
 export interface UploadedDocument {

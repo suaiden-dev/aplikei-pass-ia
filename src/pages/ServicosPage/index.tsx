@@ -8,8 +8,7 @@ import {
   RiArrowRightUpLine, 
   RiEyeOffLine,
   RiVerifiedBadgeFill,
-  RiExchangeLine,
-  RiWhatsappLine
+  RiExchangeLine
 } from "react-icons/ri";
 import { servicesData } from "../../data/services";
 import { supabase } from "../../lib/supabase";

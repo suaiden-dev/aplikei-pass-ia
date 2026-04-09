@@ -35,7 +35,7 @@ import { cn } from "../../../utils/cn";
 
 interface StepProps {
   proc: UserService;
-  onComplete: () => void;
+  onComplete?: () => void;
   onJumpToMotion?: () => void;
   onJumpToNewRFE?: () => void;
 }
@@ -427,7 +427,7 @@ function RFEHistoryPanel({ proc }: { proc: UserService }) {
 
 // ─── RFEExplanationStep ───────────────────────────────────────────────────────
 
-export function RFEExplanationStep({ proc }: Omit<StepProps, "onComplete">) {
+export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps) {
   const [showCheckout, setShowCheckout] = useState(false);
   
   const rfeService = getServiceBySlug('analise-rfe-cos');
@@ -503,7 +503,7 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
       });
       
       toast.success("Carta enviada!", { id: "u" });
-      onComplete();
+      onComplete?.();
     } catch (e: unknown) {
       const err = e as Error;
       toast.error(err.message, { id: "u" });
@@ -516,7 +516,7 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
         toast.error("Por favor, anexe a carta ou descreva a RFE.");
         return;
      }
-     onComplete();
+     onComplete?.();
   };
 
   return (
@@ -575,7 +575,7 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
 
 // ─── RFEAcceptProposalStep ───────────────────────────────────────────────────
 
-export function RFEAcceptProposalStep({ proc }: Omit<StepProps, "onComplete">) {
+export function RFEAcceptProposalStep({ proc, onComplete: _onComplete }: StepProps) {
   const data = (proc.step_data || {}) as Record<string, unknown>;
   const [loading, setLoading] = useState(false);
 
@@ -674,7 +674,7 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE }:
         await processService.updateStepData(proc.id, updateData);
         await processService.updateProcessStatus(proc.id, 'completed');
         toast.success("Parabéns! Visto aprovado.");
-        onComplete();
+        onComplete?.();
       } else if (outcome === 'rfe') {
         // Reset steps to restart RFE flow
         await processService.updateStepData(proc.id, {

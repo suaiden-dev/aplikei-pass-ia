@@ -77,7 +77,7 @@ function calculatePhaseProgress(proc: UserService, totalSteps: number, isCOS: bo
 }
 
 export default function ProcessDetailPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug = "" } = useParams<{ slug: string }>();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const navigate = useNavigate();

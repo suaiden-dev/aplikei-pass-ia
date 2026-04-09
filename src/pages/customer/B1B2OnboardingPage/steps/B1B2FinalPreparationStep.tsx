@@ -66,7 +66,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   useEffect(() => {
     async function checkMentorship() {
       if (!user) return;
-      const { data, error } = await supabase
+      const { data, error: _error } = await supabase
         .from("user_services")
         .select("*")
         .eq("user_id", user.id)
@@ -162,12 +162,13 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       }
 
       if (!purchasedMentorship || !isScheduling) return;
-      const nextCount = (purchasedMentorship.step_data?.scheduled_count || 0) + 1;
+      const stepData = (purchasedMentorship.step_data as any) || {};
+      const nextCount = (stepData.scheduled_count || 0) + 1;
       const { error } = await supabase
         .from("user_services")
         .update({
           step_data: {
-            ...purchasedMentorship.step_data,
+            ...stepData,
             scheduled_count: nextCount
           }
         })
@@ -176,7 +177,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       if (!error) {
         setPurchasedMentorship({
           ...purchasedMentorship,
-          step_data: { ...purchasedMentorship.step_data, scheduled_count: nextCount }
+          step_data: { ...stepData, scheduled_count: nextCount }
         });
         toast.success(`Sessão ${nextCount} agendada com sucesso!`);
         setIsScheduling(false);
@@ -230,7 +231,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
     navigate(`/checkout/${plan.id}`);
   };
 
-  const scheduledCount = (purchasedMentorship?.step_data?.scheduled_count as number) || 0;
+  const scheduledCount = ((purchasedMentorship?.step_data as any)?.scheduled_count as number) || 0;
   const totalInterviews = purchasedMentorship?.service_slug === "mentoria-gold" ? 3 : purchasedMentorship?.service_slug === "mentoria-silver" ? 2 : 1;
   const allScheduled = scheduledCount >= totalInterviews;
 

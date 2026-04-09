@@ -8,10 +8,9 @@ import type { IconType } from "react-icons";
 import {
   MdVerified, MdGroupAdd, MdCheckCircle, MdCheck, MdCancel, MdClose, MdInfo,
   MdDescription, MdEditNote, MdPayments, MdRecordVoiceOver, MdFactCheck, MdHistory,
-  MdAssignment, MdBadge, MdAccountBalance, MdReceiptLong, MdSchool, MdFlight, MdAccountBalanceWallet, MdArticle,
+  MdArticle,
 } from "react-icons/md";
 import { FiArrowRight } from "react-icons/fi";
-import { FaPassport } from "react-icons/fa";
 import { useAuth } from "../hooks/useAuth";
 import { processService } from "../services/process.service";
 
@@ -51,10 +50,6 @@ const includedIcons: IconType[] = [
   MdDescription, MdEditNote, MdPayments, MdRecordVoiceOver, MdFactCheck, MdHistory,
 ];
 
-const requirementIcons: IconType[] = [
-  FaPassport, MdAssignment, MdBadge, MdAccountBalance, MdDescription,
-  MdReceiptLong, MdSchool, MdFlight, MdAccountBalanceWallet,
-];
 
 const labels = {
   perDependent: "por dependente",

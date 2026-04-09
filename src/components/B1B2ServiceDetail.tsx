@@ -39,12 +39,12 @@ const service: ServiceData = {
     "Itinerário de viagem",
   ],
   steps: [
-    "Acesso ao Guia: Receba acesso imediato ao guia completo após a compra",
-    "Preencha o DS-160: Siga nossas instruções detalhadas para evitar erros comuns",
-    "Reúna os Documentos: Use nosso checklist para garantir que nada seja esquecido",
-    "Prepare-se para a Entrevista: Estude as perguntas frequentes e pratique as respostas",
-    "Monte seu Pacote Final: Use a IA para organizar tudo em um PDF profissional",
-    "Vá ao Consulado: Com confiança e documentação completa",
+    { id: '1', title: "Acesso ao Guia", description: "Receba acesso imediato ao guia completo após a compra", type: "info" },
+    { id: '2', title: "Preencha o DS-160", description: "Siga nossas instruções detalhadas para evitar erros comuns", type: "form" },
+    { id: '3', title: "Reúna os Documentos", description: "Use nosso checklist para garantir que nada seja esquecido", type: "info" },
+    { id: '4', title: "Prepare-se para a Entrevista", description: "Estude as perguntas frequentes e pratique as respostas", type: "info" },
+    { id: '5', title: "Monte seu Pacote Final", description: "Use a IA para organizar tudo em um PDF profissional", type: "admin_action" },
+    { id: '6', title: "Vá ao Consulado", description: "Com confiança e documentação completa", type: "info" },
   ],
   faq: [
     {

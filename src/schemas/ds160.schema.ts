@@ -2,9 +2,9 @@ import { z } from "zod";
 import { zodValidate } from "../utils/zodValidate";
 
 // ─── Base helpers ────────────────────────────────────────────────────────────
-const requiredString = (msg: string) => z.string({ required_error: msg }).min(1, msg);
+const requiredString = (msg: string) => z.string({ message: msg }).min(1, msg);
 const optionalString = () => z.string().optional().or(z.literal(""));
-const yesNo = () => z.enum(["sim", "nao"], { required_error: "Selecione uma opção" });
+const yesNo = () => z.enum(["sim", "nao"], { message: "Selecione uma opção" });
 const yesNoOptional = () => z.enum(["sim", "nao"]).optional();
 
 // ─── DS-160 B1/B2 Zod Schema ─────────────────────────────────────────────────
@@ -18,7 +18,7 @@ export const DS160Schema = z
     fullName: requiredString("Nome completo é obrigatório (conforme passaporte)"),
     hasOtherNames: yesNo(),
     otherNames: optionalString(),
-    gender: z.enum(["masculino", "feminino"], { required_error: "Selecione o sexo" }),
+    gender: z.enum(["masculino", "feminino"], { message: "Selecione o sexo" }),
     maritalStatus: requiredString("Estado civil é obrigatório"),
     birthDate: requiredString("Data de nascimento é obrigatória"),
     birthCity: requiredString("Cidade de nascimento é obrigatória"),
@@ -99,7 +99,7 @@ export const DS160Schema = z
     otherPhones5Y: yesNo(),
     otherPhonesList: optionalString(),
     primaryEmail: z
-      .string({ required_error: "E-mail é obrigatório" })
+      .string({ message: "E-mail é obrigatório" })
       .min(1, "E-mail é obrigatório")
       .email("E-mail inválido"),
     otherEmails5Y: yesNo(),
