@@ -19,7 +19,7 @@ export const TestimonialsSection = ({ avatars }: TestimonialsSectionProps) => {
         </h2>
         <div className="grid md:grid-cols-3 gap-12 relative">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/5 rounded-full blur-3xl -z-10" />
-          {testimonials.map((item, idx) => (
+          {testimonials.map((item: { quote: string, author: string, role?: string }, idx: number) => (
             <motion.div
               key={idx}
               initial={{ opacity: 0, scale: 0.9 }}

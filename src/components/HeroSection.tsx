@@ -2,9 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FiArrowRight } from "react-icons/fi";
 import { MdVerified } from "react-icons/md";
-import { useT, useLocale } from "../i18n/LanguageContext";
-import React from "react";
-
+import { useT } from "../i18n/LanguageContext";
 interface HeroSectionProps {
   heroImage: string;
   avatars: string[];
@@ -13,7 +11,6 @@ interface HeroSectionProps {
 export const HeroSection = ({ heroImage, avatars }: HeroSectionProps) => {
   const t = useT("landing");
   const tCommon = useT("common");
-  const { lang } = useLocale();
 
   return (
     <header className="relative bg-highlight overflow-hidden py-32 lg:py-40 px-8 lg:px-16">

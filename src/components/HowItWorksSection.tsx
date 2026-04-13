@@ -18,7 +18,7 @@ export const HowItWorksSection = () => {
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
-          {steps.map((step, index) => (
+          {steps.map((step: { title: string, desc: string }, index: number) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}

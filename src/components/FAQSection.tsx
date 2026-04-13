@@ -12,7 +12,7 @@ export const FAQSection = () => {
           {t.faq.title}
         </h2>
         <Accordion className="space-y-6" type="single" collapsible>
-          {faqItems.map((item, idx) => (
+          {faqItems.map((item: { q: string, a: string }, idx: number) => (
             <AccordionItem key={idx} value={`item-${idx}`} className="bg-white px-8 py-4 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
               <AccordionTrigger className="text-xl font-bold text-slate-700 hover:text-primary transition-colors text-left">
                 {item.q}
