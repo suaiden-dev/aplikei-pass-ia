@@ -24,7 +24,6 @@ export function CustomerLayout() {
   const navItems = [
     { label: tDashboard.sidebar.dashboard, icon: RiDashboardLine, to: "/dashboard" },
     { label: tDashboard.sidebar.cases, icon: RiBriefcaseLine, to: "/dashboard/processes" },
-    { label: tDashboard.sidebar.chat, icon: RiChat3Line, to: "/dashboard/ai-chat" },
     { label: tDashboard.sidebar.support, icon: RiQuestionLine, to: "/dashboard/support" },
   ];
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
