@@ -1,53 +1,63 @@
 const services = {
-  sectionTitle: "Our services",
+  sectionTitle: "Our Services",
   sectionSubtitle: "Choose the ideal guide for your immigration process.",
-  viewDetails: "View details",
-  catalogTitle: "Services Catalog",
+  viewDetails: "View Details",
+  catalogTitle: "Service Catalog",
   catalogSubtitle: "Complete solutions for every stage of your American dream.",
-  data: [
-    {
-      slug: "visto-turismo-b1b2",
-      title: "Tourist / Business Visa (B1/B2)",
-      shortTitle: "Tourist Visa (B1/B2)",
-      subtitle: "The gateway to the United States",
-      price: "$ 59.00",
-      originalPrice: "$ 118.00",
-      basePrice: 59,
-      description: "Full digital assistance for the B1/B2 visa. Ideal for those traveling for leisure, visiting family, or attending business meetings.",
-      forWhom: ["Leisure travelers", "Visiting friends or family", "Business meetings and conferences", "Short medical treatments"],
-      included: ["DS-160 Form in Portuguese / English", "Custom documents checklist", "Automated search for near dates", "AI interview training"],
-      notIncluded: ["Consular fee ($ 185)", "Passport shipping", "Guarantee of approval"],
-      requirements: ["Valid passport", "Ties to home country", "Financial capacity for the trip"]
+  servicesPage: {
+    hero: {
+      tag: "Official Processes",
+      title: "Choose your",
+      titleHighlight: "US Visa",
+      description: "Complete step-by-step guide with checklist, document preparation and interview simulator for your American dream."
     },
-    {
-      slug: "renovacao-visto",
-      title: "Visa Renewal (No Interview)",
-      shortTitle: "Visa Renewal",
-      subtitle: "Renew your visa simply and quickly",
-      price: "$ 39.00",
-      originalPrice: "$ 78.00",
-      basePrice: 39,
-      description: "Simplified process for those who already have a US visa and wish to renew it without a new consular interview.",
-      forWhom: ["Visas expired within last 48 months", "Same visa type", "Under 14 or over 79 years old"],
-      included: ["Full DS-160 form", "Document submission instructions", "Passport/fee generation", "Operational support"],
-      notIncluded: ["Consular fee ($ 185)", "Document shipping cost", "Passport delivery"],
-      requirements: ["Previous visa issued in Brazil", "No prior visa denial", "Unchanged biographical data"]
+    status: {
+      paused: "Paused"
     },
-    {
-      slug: "visto-estudante-f1",
-      title: "Student Visa (F-1)",
-      shortTitle: "Student Visa (F-1)",
-      subtitle: "Realize your dream of studying in the US",
-      price: "$ 99.00",
-      originalPrice: "$ 198.00",
-      basePrice: 99,
-      description: "Full assistance for the F-1 student visa. From school document organization to interview preparation.",
-      forWhom: ["Language course students", "Undergraduate and Graduate", "Technical and vocational courses"],
-      included: ["I-20 form help", "SEVIS Fee payment", "Specialized DS-160", "Academic interview simulation"],
-      notIncluded: ["Consular fee ($ 185)", "SEVIS Fee ($ 350)", "School/University costs"],
-      requirements: ["I-20 from SEVP approved school", "Robust financial proof", "Intent to return to home country"]
+    faq: {
+      title: "Frequently Asked Questions",
+      subtitle: "Everything you need to know about our guides and assistance.",
+      items: [
+        {
+          q: "How long do I have access to the tool?",
+          a: "You have access for 90 days from purchase — enough time to gather your documents and build your package."
+        },
+        {
+          q: "What visa types do you currently cover?",
+          a: "Currently, we have guides for Tourism (B1/B2), Student (F-1), and Change/Extension of Status (COS/EOS). We are working on adding new visas soon!"
+        },
+        {
+          q: "What happens if I'm not satisfied with the guide?",
+          a: "We offer a 14-day refund guarantee if you haven't started official filling or using the AI tools. Just send us an email."
+        },
+        {
+          q: "Do I still need a lawyer?",
+          a: "We are not a law firm and do not provide legal advice. Our service is one of organization and guidance. If your case is extremely complex (e.g., serious previous denials, criminal issues), we always recommend consulting a licensed immigration attorney."
+        }
+      ]
     }
-  ]
+  },
+  serviceDetail: {
+    overview: "Overview",
+    forWhom: "Who it is for",
+    notForWhom: "Who it is not for",
+    included: "What is included",
+    notIncluded: "What is not included",
+    requirements: "What you will need",
+    steps: "Your Journey of Steps",
+    faq: "Frequently Asked Questions",
+    disclaimer: "Notice: Aplikei is not a law firm, does not offer legal advice, does not guarantee approval, and does not represent the client before consulates or USCIS. Human support is only operational.",
+    createAccount: "Get Started",
+    dependents: "Dependents",
+    dependentsDesc: "Spouses and children under 21 can be included as dependents.",
+    perDependent: "per dependent",
+    successRate: "Success Rate",
+    getStarted: "Start Now",
+    prepareDocs: "Prepare these documents before starting",
+    guidedJourney: "Complete guided journey",
+    legalDisclaimer: "Legal Disclaimer",
+    concludeProcess: "Conclude current process",
+  }
 };
 
 export default services;

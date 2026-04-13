@@ -1,4 +1,5 @@
 export { default as common } from './common';
+export { default as nav } from './nav';
 export { default as auth } from './auth';
 export { default as dashboard } from './dashboard';
 export { default as visas } from './visas';
@@ -9,3 +10,6 @@ export { default as tracking } from './tracking';
 export { default as services } from './services';
 export { default as howItWorks } from './howItWorks';
 export { default as footer } from './footer';
+export { default as legal } from './legal';
+export { default as validation } from './validation';
+export { default as onboarding } from './onboarding';

@@ -4,51 +4,60 @@ const services = {
   viewDetails: "Ver detalhes",
   catalogTitle: "Catálogo de Serviços",
   catalogSubtitle: "Soluções completas para cada etapa do seu sonho americano.",
-  data: [
-    {
-      slug: "visto-turismo-b1b2",
-      title: "Visto de Turismo / Negócios (B1/B2)",
-      shortTitle: "Visto Turismo (B1/B2)",
-      subtitle: "A porta de entrada para os Estados Unidos",
-      price: "R$ 297,00",
-      originalPrice: "R$ 594,00",
-      basePrice: 297,
-      description: "Assessoria digital completa para o visto B1/B2. Ideal para quem vai viajar a lazer, visitar familiares ou participar de reuniões de negócios.",
-      forWhom: ["Pessoas viajando a lazer", "Visita a amigos ou familiares", "Reuniões e conferências de negócios", "Tratamentos médicos rápidos"],
-      included: ["Formulário DS-160 em Português", "Checklist de documentos personalizado", "Busca automatizada por datas próximas", "Treinamento de entrevista com IA"],
-      notIncluded: ["Taxa consular (US$ 185)", "Envio de passaporte via Correios", "Garantia de aprovação"],
-      requirements: ["Passaporte válido", "Vínculos com o Brasil", "Capacidade financeira para a viagem"]
+  servicesPage: {
+    hero: {
+      tag: "Processos Oficiais",
+      title: "Escolha seu",
+      titleHighlight: "Visto Americano",
+      description: "Guia completo passo a passo com checklist, preparação de documentos e simulador de entrevista para o seu sonho americano."
     },
-    {
-      slug: "renovacao-visto",
-      title: "Renovação de Visto (Sem Entrevista)",
-      shortTitle: "Renovação de Visto",
-      subtitle: "Renove seu visto de forma simples e rápida",
-      price: "R$ 197,00",
-      originalPrice: "R$ 394,00",
-      basePrice: 197,
-      description: "Processo simplificado para quem já possuiu visto americano e deseja renovar sem a necessidade de uma nova entrevista consular.",
-      forWhom: ["Vistos vencidos há menos de 48 meses", "Pessoas com o mesmo tipo de visto", "Menores de 14 ou maiores de 79 anos"],
-      included: ["Formulário DS-160 completo", "Instruções de envio de documentos", "Geração de passaporte/boleto", "Suporte operacional"],
-      notIncluded: ["Taxa consular (US$ 185)", "Custo de envio de documentos", "Entrega do passaporte"],
-      requirements: ["Visto anterior emitido no Brasil", "Não ter tido visto negado antes", "Dados biográficos inalterados"]
+    status: {
+      paused: "Pausado"
     },
-    {
-      slug: "visto-estudante-f1",
-      title: "Visto de Estudante (F-1)",
-      shortTitle: "Visto Estudante (F-1)",
-      subtitle: "Realize seu sonho de estudar nos EUA",
-      price: "R$ 497,00",
-      originalPrice: "R$ 994,00",
-      basePrice: 497,
-      description: "Assessoria completa para o visto de estudante F-1. Desde a organização dos documentos da escola até a preparação para a entrevista.",
-      forWhom: ["Estudantes de cursos de idiomas", "Graduação e Pós-graduação", "Cursos técnicos e profissionalizantes"],
-      included: ["Auxílio com formulário I-20", "Pagamento da Taxa SEVIS", "DS-160 especializada", "Simulado de entrevista acadêmica"],
-      notIncluded: ["Taxa consular (US$ 185)", "Taxa SEVIS (US$ 350)", "Custos da escola/universidade"],
-      requirements: ["I-20 emitido por escola aprovada pelo SEVP", "Comprovação financeira robusta", "Intenção de retorno ao Brasil"]
+    faq: {
+      title: "Dúvidas Frequentes",
+      subtitle: "Tudo o que você precisa saber sobre nossos guias e assessoria.",
+      items: [
+        {
+          q: "Quanto tempo tenho acesso à ferramenta?",
+          a: "Você tem acesso por 90 dias a partir da compra — tempo suficiente para reunir seus documentos e montar seu pacote."
+        },
+        {
+          q: "Quais tipos de visto vocês cobrem atualmente?",
+          a: "No momento, possuímos guias para os vistos de Turismo (B1/B2), Estudante (F-1) e Troca/Extensão de Status (COS/EOS). Estamos trabalhando para adicionar novos vistos em breve!"
+        },
+        {
+          q: "O que acontece se eu não ficar satisfeito com o guia?",
+          a: "Oferecemos garantia de reembolso de 14 dias caso você ainda não tenha iniciado o preenchimento oficial ou uso das ferramentas de IA. Basta nos enviar um e-mail."
+        },
+        {
+          q: "Eu ainda preciso de um advogado?",
+          a: "Não somos um escritório de advocacia e não fornecemos aconselhamento jurídico. Nosso serviço é de organização e orientação. Caso seu caso seja extremamente complexo (ex: negativas anteriores graves, questões criminais), recomendamos sempre consultar um advogado de imigração licenciado."
+        }
+      ]
     }
-    // ... more items truncated for brevity, can be added as needed
-  ]
+  },
+  serviceDetail: {
+    overview: "Visão Geral",
+    forWhom: "Para quem é",
+    notForWhom: "Para quem não é",
+    included: "O que está incluído",
+    notIncluded: "O que não está incluído",
+    requirements: "O que você vai precisar",
+    steps: "Sua Jornada de Passos",
+    faq: "Perguntas Frequentes",
+    disclaimer: "Aviso: A Aplikei não é um escritório de advocacia, não oferece aconselhamento jurídico, não garante aprovação e não representa o cliente perante consulados ou USCIS. O suporte humano é apenas operacional.",
+    createAccount: "Contratar",
+    dependents: "Dependentes",
+    dependentsDesc: "Cônjuges e filhos menores de 21 anos podem ser incluídos como dependentes.",
+    perDependent: "por dependente",
+    successRate: "Taxa de Sucesso",
+    getStarted: "Começar Agora",
+    prepareDocs: "Prepare estes documentos antes de começar",
+    guidedJourney: "Jornada guiada completa",
+    legalDisclaimer: "Aviso Legal",
+    concludeProcess: "Conclua processo atual",
+  }
 };
 
 export default services;

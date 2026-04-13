@@ -9,7 +9,16 @@ const footer = {
   terms: "Termos de Uso",
   privacy: "Política de Privacidade",
   refund: "Política de Reembolso",
-  copyright: "Todos os direitos reservados. Aplikei não é escritório de advocacia, não oferece aconselhamento jurídico e não garante aprovação de vistos ou petições."
+  copyright: "Todos os direitos reservados. Aplikei não é escritório de advocacia, não oferece aconselhamento jurídico e não garante aprovação de vistos ou petições.",
+  
+  // Extra fields for variety
+  description: "Guia passo a passo para simplificar processos imigratórios.",
+  contact: "Contato",
+  security: "Segurança de Dados",
+  vistoB1B2: "Visto de Turismo B1/B2",
+  vistoF1: "Visto de Estudante F-1",
+  extensaoStatus: "Extensão de Status",
+  trocaStatus: "Troca de Status",
 };
 
 export default footer;

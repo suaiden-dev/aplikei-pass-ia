@@ -10,11 +10,6 @@ const landing = {
     imageAlt: "International students together",
     cta: "See Plans & Pricing →",
     ctaSecondary: "How it works",
-    stats: {
-      satisfaction: "Satisfaction",
-      success: "Approval",
-      support: "24/7 Support"
-    }
   },
   howItWorksSection: {
     tagline: "Simple, Fast, and Secure",

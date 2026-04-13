@@ -50,7 +50,117 @@ const checkout = {
     creatingCredentialsTitle: "Creando sus credenciales...",
     creatingCredentialsDesc: "Nuestro equipo está configurando su acceso en el sistema consular. Esto suele ser rápido.",
     successMsg: "¡Genial! Ahora vamos al pago.",
-    errorUpdatingStatus: "Error al actualizar estado."
+    errorUpdatingStatus: "Error al actualizar el estado."
+  },
+  product: {
+    title: "Pago",
+    scarcityBanner: {
+      lastSlots: "¡Últimas vacantes con descuento: solo hoy!",
+      timeLeft: "restantes",
+      cta: "Aprovechar ahora"
+    },
+    summary: {
+      mainService: "Servicio principal",
+      dependentsCount: "Dependientes ({{count}}×)",
+      slotsCount: "Cantidad de Slots",
+      subtotal: "Subtotal",
+      total: "Total",
+      stripeFee: "Tasa Stripe (~3.9% + $0.30)",
+      exchangeTax: "Cambio + IOF (est.)",
+      estimatedNotice: "* Valor estimado. El cambio final se calcula al momento del pago.",
+      offLabel: "50% OFF"
+    },
+    dependents: {
+      label: "Dependientes",
+      slotsLabel: "Cantidad de Slots",
+      perPerson: "{{price}} por persona",
+      perSlot: "{{price}} por slot"
+    },
+    userData: {
+      title: "Tus datos",
+      fullName: "Nombre completo",
+      email: "Correo electrónico",
+      phone: "Teléfono",
+      password: "Crea una contraseña para tu cuenta",
+      passwordDesc: "Mínimo 6 caracteres",
+      passwordAutoNotice: "Tu cuenta se creará automáticamente al finalizar el pedido.",
+      errors: {
+        nameRequired: "Ingresa tu nombre completo",
+        nameShort: "Nombre demasiado corto",
+        emailRequired: "Ingresa tu correo electrónico",
+        emailInvalid: "Correo electrónico inválido",
+        phoneRequired: "Ingresa un teléfono válido",
+        passwordShort: "La contraseña debe tener al menos 6 caracteres.",
+        emailTaken: "Este correo electrónico ya tiene una cuenta. Por favor, inicia sesión antes de contratar."
+      }
+    },
+    paymentMethods: {
+      title: "Método de pago",
+      card: {
+        label: "Tarjeta",
+        sublabel: "USD",
+        notice: "Serás redireccionado al checkout seguro de **Stripe**. Aceptamos Visa, Mastercard y American Express em USD."
+      },
+      pix: {
+        label: "Pix",
+        sublabel: "BRL",
+        notice: "Serás redireccionado al checkout de **Stripe con Pix**. Se generará un QR Code en BRL. El valor incluye cambio + IOF."
+      },
+      parcelow: {
+        label: "Parcelow",
+        sublabel: "BRL",
+        notice: "Paga en hasta **12 cuotas** fijas vía **Parcelow**. Valor convertido a BRL con tasas de cuotas. Cambio garantizado.",
+        cpfLabel: "CPF del Titular de la Tarjeta",
+        cpfPlaceholder: "000.000.000-00",
+        cpfRequired: "Informa un CPF válido para proceder con Parcelow.",
+        cpfNotice: "Obligatorio para la emisión de la factura por Parcelow."
+      },
+      zelle: {
+        label: "Zelle",
+        sublabel: "USD",
+        notice: "Envía el Zelle a:",
+        name: "Nombre:",
+        email: "Correo:",
+        phone: "Teléfono:",
+        confirmTitle: "Confirmación de Pago",
+        amountSent: "Valor enviado (USD)",
+        amountPlaceholder: "0.00",
+        confirmationCode: "Código de confirmación (opcional)",
+        confirmationPlaceholder: "Ex: 123456789",
+        paymentDate: "Fecha del pago",
+        uploadProof: "Adjuntar comprobante",
+        uploadDesc: "JPG o PNG. Máximo 8MB.",
+        fileTooLarge: "Archivo demasiado grande. Máximo 8MB.",
+        amountRequired: "Informa el valor enviado vía Zelle.",
+        dateRequired: "Informa la fecha del pago.",
+        proofRequired: "Adjunta el comprobante del pago.",
+        submit: "Enviar Confirmación",
+        pendingReview: "¡Confirmación recibida! Estamos analizando el comprobante para activar tu guía. Recibirás un correo en breve.",
+        goDashboard: "Ir al Dashboard"
+      },
+      soon: "PRÓXIMAMENTE"
+    },
+    placeOrder: "Finalizar Pedido",
+    redirecting: "Procesando...",
+    statusUnavailable: {
+      title: "Servicio no disponible",
+      desc: "Esta guía no está disponible temporalmente para contratación. Serás redireccionado a tu panel.",
+      back: "Volver al Dashboard"
+    },
+    success: {
+      activating: "Activando tu proceso...",
+      confirmed: "¡Pago confirmado!",
+      activated: "Tu proceso ha sido activado con éxito.",
+      checkEmail: "Verifica tu correo",
+      checkEmailDesc: "Enviamos una confirmación con los detalles de tu proceso.",
+      accessDashboard: "Accede a tu dashboard",
+      accessDashboardDesc: "Sigue el progreso de tu proceso y recibe actualizaciones en tiempo real.",
+      goDashboard: "Ir al Dashboard",
+      backHome: "Volver al inicio",
+      errorTitle: "Aviso sobre tu servicio",
+      errorDesc: "Tu pago fue recibido con éxito, pero el sistema encontró una alerta al iniciar el servicio:",
+      sessionExpired: "Sesión expirada. Por favor, inicia sesión de nuevo."
+    }
   }
 };
 

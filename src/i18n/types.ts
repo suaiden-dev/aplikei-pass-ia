@@ -26,7 +26,10 @@ export type TranslationNamespace =
   | "tracking"
   | "services"
   | "howItWorks"
-  | "footer";
+  | "footer"
+  | "legal"
+  | "validation"
+  | "onboarding";
 
 // ─────────────────────────────────────────
 // Locale structure
@@ -93,6 +96,9 @@ export interface LocaleTranslations {
   services: Record<string, any>;
   howItWorks: Record<string, any>;
   footer: Record<string, any>;
+  legal: Record<string, any>;
+  validation: Record<string, any>;
+  onboarding: Record<string, any>;
 }
 
 // ─────────────────────────────────────────
@@ -128,13 +134,6 @@ export interface LanguageContextType {
   lang: Language;
   /** Persist a new language choice to localStorage and reload the locale. */
   setLang: (lang: Language) => void;
-  /**
-   * Legacy translations object (synchronous, key-first with {en,pt,es} leaves).
-   * Kept for backward-compat while existing components are gradually migrated
-   * to useT(). Will be removed once all consumers use the new hook.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  t: any;
   /** Lazy-loaded locale for the current language. Null while first load is in flight. */
   locale: LocaleTranslations | null;
   /** True while any locale import() promise is pending. */

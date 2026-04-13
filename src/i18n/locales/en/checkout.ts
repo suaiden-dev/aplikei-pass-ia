@@ -51,6 +51,116 @@ const checkout = {
     creatingCredentialsDesc: "Our team is setting up your access in the consular system. This should be quick.",
     successMsg: "Great! Now let's proceed to payment.",
     errorUpdatingStatus: "Error updating status."
+  },
+  product: {
+    title: "Payment",
+    scarcityBanner: {
+      lastSlots: "Last slots with discount: today only!",
+      timeLeft: "left",
+      cta: "Hurry up"
+    },
+    summary: {
+      mainService: "Main service",
+      dependentsCount: "Dependents ({{count}}×)",
+      slotsCount: "Slots Quantity",
+      subtotal: "Subtotal",
+      total: "Total",
+      stripeFee: "Stripe Fee (~3.9% + $0.30)",
+      exchangeTax: "Exchange + IOF (est.)",
+      estimatedNotice: "* Estimated value. The final exchange rate is calculated at the time of payment.",
+      offLabel: "50% OFF"
+    },
+    dependents: {
+      label: "Dependents",
+      slotsLabel: "Slots Quantity",
+      perPerson: "{{price}} per person",
+      perSlot: "{{price}} per slot"
+    },
+    userData: {
+      title: "Your details",
+      fullName: "Full name",
+      email: "Email",
+      phone: "Phone",
+      password: "Create a password for your account",
+      passwordDesc: "Minimum 6 characters",
+      passwordAutoNotice: "Your account will be created automatically upon completing the order.",
+      errors: {
+        nameRequired: "Enter your full name",
+        nameShort: "Name too short",
+        emailRequired: "Enter your email",
+        emailInvalid: "Invalid email",
+        phoneRequired: "Enter a valid phone number",
+        passwordShort: "The password must be at least 6 characters.",
+        emailTaken: "This email already has an account. Please log in before hiring."
+      }
+    },
+    paymentMethods: {
+      title: "Payment method",
+      card: {
+        label: "Card",
+        sublabel: "USD",
+        notice: "You will be redirected to **Stripe's** secure checkout. We accept Visa, Mastercard, and American Express in USD."
+      },
+      pix: {
+        label: "Pix",
+        sublabel: "BRL",
+        notice: "You will be redirected to **Stripe checkout with Pix**. A QR Code will be generated in BRL. The value includes exchange rate + IOF."
+      },
+      parcelow: {
+        label: "Parcelow",
+        sublabel: "BRL",
+        notice: "Pay in up to **12 fixed installments** via **Parcelow**. Value converted to BRL with installment fees. Guaranteed exchange rate.",
+        cpfLabel: "Cardholder's CPF",
+        cpfPlaceholder: "000.000.000-00",
+        cpfRequired: "Provide a valid CPF to proceed with Parcelow.",
+        cpfNotice: "Required for invoice issuance by Parcelow."
+      },
+      zelle: {
+        label: "Zelle",
+        sublabel: "USD",
+        notice: "Send Zelle to:",
+        name: "Name:",
+        email: "Email:",
+        phone: "Phone:",
+        confirmTitle: "Payment Confirmation",
+        amountSent: "Amount sent (USD)",
+        amountPlaceholder: "0.00",
+        confirmationCode: "Confirmation code (optional)",
+        confirmationPlaceholder: "Ex: 123456789",
+        paymentDate: "Payment date",
+        uploadProof: "Attach proof",
+        uploadDesc: "JPG or PNG. Max 8MB.",
+        fileTooLarge: "File too large. Max 8MB.",
+        amountRequired: "Inform the value sent via Zelle.",
+        dateRequired: "Inform the payment date.",
+        proofRequired: "Attach the payment proof.",
+        submit: "Submit Confirmation",
+        pendingReview: "Confirmation received! We are analyzing the proof to activate your guide. You will receive an email shortly.",
+        goDashboard: "Go to Dashboard"
+      },
+      soon: "COMING SOON"
+    },
+    placeOrder: "Complete Order",
+    redirecting: "Processing...",
+    statusUnavailable: {
+      title: "Service unavailable",
+      desc: "This guide is temporarily unavailable for hiring. You will be redirected to your dashboard.",
+      back: "Back to Dashboard"
+    },
+    success: {
+      activating: "Activating your process...",
+      confirmed: "Payment confirmed!",
+      activated: "Your process has been successfully activated.",
+      checkEmail: "Check your email",
+      checkEmailDesc: "We sent a confirmation with your process details.",
+      accessDashboard: "Access your dashboard",
+      accessDashboardDesc: "Track your process progress and receive real-time updates.",
+      goDashboard: "Go to Dashboard",
+      backHome: "Back to home",
+      errorTitle: "Notice about your service",
+      errorDesc: "Your payment was successfully received, but the system found an alert when starting the service:",
+      sessionExpired: "Session expired. Please log in again."
+    }
   }
 };
 

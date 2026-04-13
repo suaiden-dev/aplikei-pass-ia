@@ -51,6 +51,116 @@ const checkout = {
     creatingCredentialsDesc: "Nossa equipe está configurando seu acesso no sistema consular. Isso costuma ser rápido.",
     successMsg: "Ótimo! Agora vamos para o pagamento.",
     errorUpdatingStatus: "Erro ao atualizar status."
+  },
+  product: {
+    title: "Pagamento",
+    scarcityBanner: {
+      lastSlots: "Últimas vagas com desconto: só hoje!",
+      timeLeft: "restantes",
+      cta: "Corra"
+    },
+    summary: {
+      mainService: "Serviço principal",
+      dependentsCount: "Dependentes ({{count}}×)",
+      slotsCount: "Quantidade de Vagas",
+      subtotal: "Subtotal",
+      total: "Total",
+      stripeFee: "Taxa Stripe (~3.9% + $0.30)",
+      exchangeTax: "Câmbio + IOF (est.)",
+      estimatedNotice: "* Valor estimado. O câmbio final é calculado no momento do pagamento.",
+      offLabel: "50% OFF"
+    },
+    dependents: {
+      label: "Dependentes",
+      slotsLabel: "Quantidade de Vagas",
+      perPerson: "{{price}} por pessoa",
+      perSlot: "{{price}} por vaga"
+    },
+    userData: {
+      title: "Seus dados",
+      fullName: "Nome completo",
+      email: "E-mail",
+      phone: "Telefone",
+      password: "Crie uma senha para sua conta",
+      passwordDesc: "Mínimo 6 caracteres",
+      passwordAutoNotice: "Sua conta será criada automaticamente ao finalizar o pedido.",
+      errors: {
+        nameRequired: "Informe seu nome completo",
+        nameShort: "Nome muito curto",
+        emailRequired: "Informe seu e-mail",
+        emailInvalid: "E-mail inválido",
+        phoneRequired: "Informe um telefone válido",
+        passwordShort: "A senha precisa ter pelo menos 6 caracteres.",
+        emailTaken: "Este e-mail já possui uma conta. Por favor, faça login antes de contratar."
+      }
+    },
+    paymentMethods: {
+      title: "Forma de pagamento",
+      card: {
+        label: "Cartão",
+        sublabel: "USD",
+        notice: "Você será redirecionado para o checkout seguro da **Stripe**. Aceitamos Visa, Mastercard e Amex em dólar."
+      },
+      pix: {
+        label: "Pix",
+        sublabel: "BRL",
+        notice: "Você será redirecionado para o **Stripe checkout com Pix**. Será gerado um QR Code em reais. O valor inclui câmbio + IOF."
+      },
+      parcelow: {
+        label: "Parcelow",
+        sublabel: "BRL",
+        notice: "Pague em até **12x fixas** via **Parcelow**. Valor convertido para Real com taxas de parcelamento. Câmbio garantido.",
+        cpfLabel: "CPF do Titular do Cartão",
+        cpfPlaceholder: "000.000.000-00",
+        cpfRequired: "Informe um CPF válido para prosseguir com Parcelow.",
+        cpfNotice: "Necessário para emissão da nota fiscal pela Parcelow."
+      },
+      zelle: {
+        label: "Zelle",
+        sublabel: "USD",
+        notice: "Envie o Zelle para:",
+        name: "Nome:",
+        email: "E-mail:",
+        phone: "Telefone:",
+        confirmTitle: "Confirmação de Pagamento",
+        amountSent: "Valor enviado (USD)",
+        amountPlaceholder: "0.00",
+        confirmationCode: "Código de confirmação (opcional)",
+        confirmationPlaceholder: "Ex: 123456789",
+        paymentDate: "Data do envio",
+        uploadProof: "Anexar comprovante",
+        uploadDesc: "JPG ou PNG. Máx 8MB.",
+        fileTooLarge: "Arquivo muito grande. Máx 8MB.",
+        amountRequired: "Informe o valor enviado via Zelle.",
+        dateRequired: "Informe a data do pagamento.",
+        proofRequired: "Anexe o comprovante de pagamento.",
+        submit: "Enviar Confirmação",
+        pendingReview: "Confirmação recebida! Estamos analisando o comprovante para ativar seu guia. Você receberá um e-mail em breve.",
+        goDashboard: "Ir para o Dashboard"
+      },
+      soon: "EM BREVE"
+    },
+    placeOrder: "Finalizar Pedido",
+    redirecting: "Processando...",
+    statusUnavailable: {
+      title: "Serviço indisponível",
+      desc: "Este guia está temporariamente indisponível para contratação. Você será redirecionado ao seu dashboard.",
+      back: "Voltar ao Dashboard"
+    },
+    success: {
+      activating: "Ativando seu processo...",
+      confirmed: "Pagamento confirmado!",
+      activated: "Seu processo foi ativado com sucesso.",
+      checkEmail: "Verifique seu e-mail",
+      checkEmailDesc: "Enviamos uma confirmação com os detalhes do seu processo.",
+      accessDashboard: "Acesse seu dashboard",
+      accessDashboardDesc: "Acompanhe o progresso do seu processo e receba atualizações em tempo real.",
+      goDashboard: "Ir para o Dashboard",
+      backHome: "Voltar ao início",
+      errorTitle: "Aviso sobre o seu serviço",
+      errorDesc: "Seu pagamento foi recebido com sucesso, mas o sistema encontrou um alerta ao iniciar o serviço:",
+      sessionExpired: "Sessão expirada. Por favor, faça login novamente."
+    }
   }
 };
 

@@ -1,21 +1,9 @@
 /**
- * LanguageContext — dual-mode i18n provider.
+ * LanguageContext — modern i18n provider.
  *
- * During the gradual migration from the monolithic translations.ts to the
- * modular locale system, this context exposes two APIs:
- *
- *  • LEGACY  — `useLanguage()` returns `{ lang, setLang, t }` where `t` is the
- *    old synchronous translations object (key-first, with {en,pt,es} leaves).
- *    Existing components continue to work without any change.
- *
- *  • NEW     — `useT(namespace)` (see useT.ts) resolves dot-notation keys
- *    against the lazy-loaded `locale` object that is stored in context.
- *
- * Migration path:
- *   1. Convert a component from `useLanguage()` to `useT("namespace")`.
- *   2. Once all components are converted, delete the `translations` import
- *      and the `t` property from this context.
- *   3. Then remove translations.ts entirely.
+ * This context exposes:
+ *  • `useLocale()` — returns `{ lang, setLang, isLanguageLoading, loadLocale }`
+ *  • `useT(namespace)` — resolves dot-notation keys against the lazy-loaded `locale` object.
  *
  * Lazy loading details:
  *   • Each language is a separate Vite chunk: locales/{lang}/index.
@@ -34,7 +22,6 @@ import {
   type ReactNode,
 } from "react";
 
-import { translations } from "./translations"; // backward-compat — removed when migration is complete
 import {
   Language,
   LocaleTranslations,
@@ -142,6 +129,12 @@ const localeLoaders = import.meta.glob("./locales/*/index.ts");
     void loadLocale(lang);
   }, [lang, loadLocale]);
 
+  /** Synchronize browser tab title with active language. */
+  useEffect(() => {
+    const siteTitle = locale?.common?.siteTitle || "Aplikei";
+    document.title = siteTitle;
+  }, [locale]);
+
   // ── Language switcher ─────────────────────────────────────────────────────
 
   const setLang = useCallback((newLang: Language) => {
@@ -155,7 +148,6 @@ const localeLoaders = import.meta.glob("./locales/*/index.ts");
   const value: LanguageContextType = {
     lang,
     setLang,
-    t: translations,   // legacy — provides old key-first structure to existing components
     locale,
     isLanguageLoading,
     loadLocale,
@@ -179,25 +171,22 @@ const localeLoaders = import.meta.glob("./locales/*/index.ts");
 // ─────────────────────────────────────────
 
 /**
- * Legacy hook — returns the old `{ lang, setLang, t }` API.
- * Existing components continue to use `t.section.key[lang]` without change.
- *
- * @deprecated Migrate components to `useT(namespace)` for lazy-loaded access.
+ * Modern hook for accessing language state and loading status.
+ * Use this alongside useT() for a fully modern i18n experience.
  */
-// eslint-disable-next-line react-refresh/only-export-components
-export function useLanguage() {
+export function useLocale() {
   const context = useContext(LanguageContext);
   if (!context) {
-    throw new Error("useLanguage must be used within <LanguageProvider>");
+    throw new Error("useLocale must be used within <LanguageProvider>");
   }
   return {
     lang: context.lang,
     setLang: context.setLang,
-    t: context.t as typeof translations, // cast to existing translations type for compat
-    locale: context.locale,
     isLanguageLoading: context.isLanguageLoading,
+    loadLocale: context.loadLocale,
   };
 }
+
 
 /**
  * Modern hook for accessing lazy-loaded translation namespaces.
