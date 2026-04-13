@@ -51,47 +51,7 @@ export interface LocaleTranslations {
   nav: Record<string, any>;
   landing: Record<string, any>;
   checkout: Record<string, any>;
-  admin: {
-    analysisPanel: {
-      title: string;
-      subtitle: string;
-      clientExplanation: string;
-      clientDocuments: string;
-      noDocuments: string;
-      internalNotes: string;
-      internalNotesPlaceholder: string;
-      finalMessage: string;
-      finalMessagePlaceholder: string;
-      actions: {
-        completeReview: string;
-        sendProposal: string;
-        requestMoreInfo: string;
-        uploadFinalDocs: string;
-      };
-      status: {
-        pending: string;
-        reviewing: string;
-        proposalSent: string;
-        completed: string;
-        rfeRequested: string;
-        motionStarted: string;
-      };
-      labels: {
-        caseComplexity: string;
-        low: string;
-        medium: string;
-        high: string;
-        estimatedHours: string;
-        expertAssigned: string;
-      };
-      messages: {
-        successSave: string;
-        errorSave: string;
-        missingFields: string;
-        proposalSent: string;
-      };
-    };
-  };
+  admin: Record<string, any>;
   tracking: Record<string, any>;
   services: Record<string, any>;
   howItWorks: Record<string, any>;
