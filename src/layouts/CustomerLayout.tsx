@@ -11,19 +11,22 @@ import {
   RiCloseLine,
 } from "react-icons/ri";
 import { useAuth } from "../hooks/useAuth";
+import { useLocale, useT } from "../i18n/LanguageContext";
 import { cn } from "../utils/cn";
-
-const navItems = [
-  { label: "Dashboard", icon: RiDashboardLine, to: "/dashboard" },
-  { label: "My Cases", icon: RiBriefcaseLine, to: "/dashboard/processes" },
-  { label: "AI Chat", icon: RiChat3Line, to: "/dashboard/ai-chat" },
-  { label: "Support", icon: RiQuestionLine, to: "/dashboard/support" },
-];
 
 export function CustomerLayout() {
   const { user, logout } = useAuth();
+  const { lang, setLang } = useLocale();
+  const tDashboard = useT("dashboard");
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
+  const navItems = [
+    { label: tDashboard.sidebar.dashboard, icon: RiDashboardLine, to: "/dashboard" },
+    { label: tDashboard.sidebar.cases, icon: RiBriefcaseLine, to: "/dashboard/processes" },
+    { label: tDashboard.sidebar.chat, icon: RiChat3Line, to: "/dashboard/ai-chat" },
+    { label: tDashboard.sidebar.support, icon: RiQuestionLine, to: "/dashboard/support" },
+  ];
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const avatarUrl =
@@ -117,8 +120,27 @@ export function CustomerLayout() {
           ))}
         </nav>
 
-        {/* Sidebar Footer: User + Logout */}
+        {/* Sidebar Footer: Interaction + User + Logout */}
         <div className="p-4 mt-auto space-y-4">
+          {/* Language Toggle */}
+          <div className="px-2 pb-2">
+            <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-100">
+              {(['pt', 'en', 'es'] as const).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setLang(l)}
+                  className={cn(
+                    "flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all",
+                    lang === l
+                      ? "bg-white text-primary shadow-sm"
+                      : "text-slate-400 hover:text-slate-600"
+                  )}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
           <Link 
             to="/minha-conta"
             className={cn(
@@ -139,7 +161,7 @@ export function CustomerLayout() {
                   {user?.fullName ?? "User"}
                 </p>
                 <p className="text-[10px] font-medium text-slate-400 truncate leading-none">
-                  Minha Conta
+                  {tDashboard.sidebar.myAccount}
                 </p>
               </div>
             </div>
@@ -150,7 +172,7 @@ export function CustomerLayout() {
             className="flex items-center gap-2.5 px-4 py-2 w-full text-[13px] font-bold text-slate-400 hover:text-red-500 transition-colors group"
           >
             <RiLogoutBoxRLine className="text-xl group-hover:rotate-12 transition-transform" />
-            <span>Log out</span>
+            <span>{tDashboard.sidebar.logout}</span>
           </button>
         </div>
       </aside>

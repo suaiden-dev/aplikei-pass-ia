@@ -32,6 +32,13 @@ import ProfileSettingsPage from "./pages/customer/ProfileSettingsPage";
 import B1B2OnboardingPage from "./pages/customer/B1B2OnboardingPage";
 import F1OnboardingPage from "./pages/customer/F1OnboardingPage";
 
+// Legal Pages
+import Terms from "./pages/Legal/Terms";
+import Privacy from "./pages/Legal/Privacy";
+import Refund from "./pages/Legal/Refund";
+import Disclaimers from "./pages/Legal/Disclaimers";
+import ContractTerms from "./pages/Legal/ContractTerms";
+
 export default function App() {
   return (
     <Routes>
@@ -44,6 +51,14 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<SignUpPage />} />
         <Route path="/checkout/:slug" element={<CheckoutPage />} />
+        
+        {/* Legal Routes */}
+        <Route path="/legal/terms" element={<Terms />} />
+        <Route path="/legal/privacy" element={<Privacy />} />
+        <Route path="/legal/refund" element={<Refund />} />
+        <Route path="/legal/disclaimers" element={<Disclaimers />} />
+        <Route path="/legal/contract-terms" element={<ContractTerms />} />
+
       </Route>
 
       {/* Rotas protegidas — exigem autenticação */}

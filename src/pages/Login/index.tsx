@@ -7,11 +7,14 @@ import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
 import { Label } from "../../components/Label";
 import { authService } from "../../services/auth.service";
-import { loginSchema } from "../../schemas/auth.schema";
+import { getLoginSchema } from "../../schemas/auth.schema";
 import { zodValidate } from "../../utils/zodValidate";
 import { useAuth } from "../../hooks/useAuth";
+import { useT } from "../../i18n/LanguageContext";
 
 export default function Login() {
+  const t = useT("auth");
+  const v = useT("validation");
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading } = useAuth();
 
@@ -23,14 +26,14 @@ export default function Login() {
 
   const formik = useFormik({
     initialValues: { email: "", password: "" },
-    validate: zodValidate(loginSchema),
+    validate: zodValidate(getLoginSchema(v)),
     onSubmit: async (values, { setSubmitting }) => {
       try {
         await authService.login(values);
-        toast.success("Login realizado com sucesso!");
+        toast.success(t.login.success || "Login realizado com sucesso!");
         // redirect handled by useEffect when AuthContext updates
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Erro ao entrar. Tente novamente.");
+        toast.error(err instanceof Error ? err.message : (t.login.error || "Erro ao entrar. Tente novamente."));
         setSubmitting(false);
       }
     },
@@ -45,13 +48,13 @@ export default function Login() {
       >
         <div className="text-center">
           <Link to="/" className="font-display font-bold text-primary text-3xl">Aplikei</Link>
-          <h1 className="mt-8 font-display text-2xl font-bold text-foreground">Acessar minha conta</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Acesse seu guia e continue seu processo.</p>
+          <h1 className="mt-8 font-display text-2xl font-bold text-foreground">{t.login.title}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t.login.subtitle}</p>
         </div>
 
         <form className="mt-8 space-y-5" onSubmit={formik.handleSubmit}>
           <div>
-            <Label htmlFor="email">E-mail</Label>
+            <Label htmlFor="email">{t.login.email}</Label>
             <Input
               id="email"
               name="email"
@@ -69,9 +72,9 @@ export default function Login() {
 
           <div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password">{t.login.password}</Label>
               <Link to="/recuperar-senha" className="text-xs text-primary hover:underline">
-                Esqueceu sua senha?
+                {t.login.forgotPassword}
               </Link>
             </div>
             <Input
@@ -90,13 +93,13 @@ export default function Login() {
           </div>
 
           <Button type="submit" disabled={formik.isSubmitting} className="w-full h-11 text-lg font-bold">
-            {formik.isSubmitting ? "Entrando..." : "Entrar"}
+            {formik.isSubmitting ? (t.login.submitting || "Entrando...") : t.login.submit}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Não tem conta?{" "}
-          <Link to="/cadastro" className="font-medium text-primary hover:underline">Criar conta</Link>
+          {t.login.noAccount}{" "}
+          <Link to="/cadastro" className="font-medium text-primary hover:underline">{t.login.createAccount}</Link>
         </p>
       </motion.div>
     </div>

@@ -1,8 +1,12 @@
 import { motion } from "framer-motion";
 import { HowItWorksSection } from "../../components/HowItWorksSection";
 import { RiInformationLine, RiCheckDoubleLine } from "react-icons/ri";
+import { useT } from "../../i18n/LanguageContext";
 
 export default function ComoFuncionaPage() {
+  const t = useT("common");
+  const p = t.howItWorksPage;
+
   return (
     <div className="bg-white">
       {/* Page Hero */}
@@ -18,24 +22,19 @@ export default function ComoFuncionaPage() {
                 <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
                   <RiInformationLine className="text-primary text-xl" />
                 </div>
-                <span className="text-xs font-black uppercase tracking-[0.2em] text-primary">Como Funciona</span>
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-primary">{p.hero.tag}</span>
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-black text-primary leading-[1.05] mb-10 tracking-tighter">
-                Sua imigração para os EUA, <span className="text-slate-300">descomplicada.</span>
+                {p.hero.title} <span className="text-slate-300">{p.hero.titleHighlight}</span>
               </h1>
               
               <p className="text-lg lg:text-2xl text-slate-500 font-medium leading-relaxed mb-12 italic">
-                A Aplikei combina tecnologia de ponta com análise humana especializada para garantir que cada etapa do seu visto seja executada com perfeição.
+                {p.hero.description}
               </p>
               
               <div className="flex flex-col gap-6">
-                {[
-                  "Processo 100% digital e seguro",
-                  "Análise humana em cada formulário",
-                  "Acompanhamento em tempo real",
-                  "Preparação real para o Consulado"
-                ].map((item, i) => (
+                {p.hero.features.map((item: string, i: number) => (
                   <div key={i} className="flex items-center gap-4">
                     <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                       <RiCheckDoubleLine className="text-emerald-500 text-sm" />
@@ -65,7 +64,7 @@ export default function ComoFuncionaPage() {
               >
                 <p className="text-primary font-black text-4xl mb-2 tracking-tighter">98%</p>
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest leading-relaxed">
-                  Taxa de aprovação em processos revisados pela nossa equipe.
+                  {p.hero.stats}
                 </p>
               </motion.div>
             </div>
@@ -83,16 +82,16 @@ export default function ComoFuncionaPage() {
             <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
             <div className="relative z-10 max-w-3xl mx-auto">
               <h2 className="text-4xl lg:text-6xl font-black text-white mb-8 tracking-tighter">
-                Pronto para começar sua jornada americana?
+                {p.cta.title}
               </h2>
               <p className="text-xl text-white/70 font-medium mb-12 italic">
-                Não deixe seu sonho nas mãos da sorte. Use a plataforma que organiza e valida cada detalhe para você.
+                {p.cta.subtitle}
               </p>
               <button 
                 onClick={() => window.location.href = '/servicos'}
                 className="px-12 py-5 bg-white text-primary rounded-xl font-black text-lg shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all"
               >
-                Ver vistos disponíveis
+                {p.cta.button}
               </button>
             </div>
           </div>

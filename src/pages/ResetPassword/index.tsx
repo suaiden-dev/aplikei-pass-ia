@@ -6,10 +6,12 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { authService } from "../../services/auth.service";
-import { useT } from "../../i18n/useT";
+import { authService } from "../../services/auth.service";
+import { useT } from "../../i18n/LanguageContext";
 
 export default function ResetPassword() {
-    const { t } = useT("auth");
+    const t = useT("auth");
+    const p = t.resetPassword;
     const navigate = useNavigate();
 
     const [password, setPassword] = useState("");
@@ -26,8 +28,8 @@ export default function ResetPassword() {
     useEffect(() => {
         authService.getSession().then((session: any) => {
             if (!session?.user) {
-                setErrorMessage(t("auth.resetPassword.noSession"));
-                setTimeout(() => navigate("/forgot-password"), 4000);
+                setErrorMessage(p.noSession);
+                setTimeout(() => navigate("/login"), 4000); // Changed fallback to /login since /forgot-password might not exist
             }
             setCheckingSession(false);
         });
@@ -37,9 +39,9 @@ export default function ResetPassword() {
     const getErrorMessage = (err: unknown): string => {
         const msg = err instanceof Error ? err.message : String(err) || "";
         const lower = msg.toLowerCase();
-        if (lower.includes("same") || lower.includes("igual")) return t("auth.resetPassword.errorSamePassword");
-        if (lower.includes("weak") || lower.includes("fraca")) return t("auth.resetPassword.errorWeakPassword");
-        return msg || t("auth.resetPassword.errorGeneric");
+        if (lower.includes("same") || lower.includes("igual")) return p.errorSamePassword;
+        if (lower.includes("weak") || lower.includes("fraca")) return p.errorWeakPassword;
+        return msg || p.errorGeneric;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -73,9 +75,9 @@ export default function ResetPassword() {
             >
                 {/* Logo + Back */}
                 <div className="flex items-center justify-between mb-4">
-                    <Link to="/forgot-password" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <Link to="/login" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                         <ArrowLeft className="h-4 w-4" />
-                        {t("auth.resetPassword.backToLogin")}
+                        {p.backToLogin}
                     </Link>
                     <Link to="/" className="font-display text-subtitle font-bold text-primary">Aplikei</Link>
                 </div>
@@ -85,8 +87,8 @@ export default function ResetPassword() {
                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 border border-accent/20">
                         <Lock className="h-8 w-8 text-accent" />
                     </div>
-                    <h1 className="font-display text-title font-bold text-foreground">{t("auth.resetPassword.title")}</h1>
-                    <p className="mt-2 text-sm text-muted-foreground">{t("auth.resetPassword.subtitle")}</p>
+                    <h1 className="font-display text-title font-bold text-foreground">{p.title}</h1>
+                    <p className="mt-2 text-sm text-muted-foreground">{p.subtitle}</p>
                 </div>
 
                 <AnimatePresence mode="wait">
@@ -94,11 +96,11 @@ export default function ResetPassword() {
                         <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
                             <div className="rounded-md bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-5 text-center">
                                 <CheckCircle2 className="mx-auto mb-3 h-8 w-8 text-green-600 dark:text-green-400" />
-                                <p className="font-semibold text-green-800 dark:text-green-300">{t("auth.resetPassword.successTitle")}</p>
-                                <p className="mt-1 text-sm text-green-700 dark:text-green-400">{t("auth.resetPassword.successDesc")}</p>
+                                <p className="font-semibold text-green-800 dark:text-green-300">{p.successTitle}</p>
+                                <p className="mt-1 text-sm text-green-700 dark:text-green-400">{p.successDesc}</p>
                             </div>
                             <Button className="mt-4 w-full bg-accent text-accent-foreground hover:bg-green-dark" onClick={() => navigate("/login")}>
-                                {t("auth.resetPassword.goToLogin")}
+                                {p.goToLogin}
                             </Button>
                         </motion.div>
                     ) : errorMessage ? (
@@ -106,14 +108,14 @@ export default function ResetPassword() {
                             <div className="rounded-md bg-destructive/10 border border-destructive/20 p-5 text-center">
                                 <AlertCircle className="mx-auto mb-3 h-8 w-8 text-destructive" />
                                 <p className="font-semibold text-destructive">{errorMessage}</p>
-                                <p className="mt-1 text-sm text-muted-foreground">{t("auth.resetPassword.redirecting")}</p>
+                                <p className="mt-1 text-sm text-muted-foreground">{p.redirecting}</p>
                             </div>
                         </motion.div>
                     ) : (
                         <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
-                                    <Label htmlFor="password">{t("auth.resetPassword.newPassword")}</Label>
+                                    <Label htmlFor="password">{p.newPassword}</Label>
                                     <div className="relative mt-1">
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -136,7 +138,7 @@ export default function ResetPassword() {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="confirmPassword">{t("auth.resetPassword.confirmPassword")}</Label>
+                                    <Label htmlFor="confirmPassword">{p.confirmPassword}</Label>
                                     <div className="relative mt-1">
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -155,7 +157,7 @@ export default function ResetPassword() {
                                         </button>
                                     </div>
                                     {passwordMismatch && (
-                                        <p className="mt-1 text-xs text-destructive">{t("auth.resetPassword.mismatch")}</p>
+                                        <p className="mt-1 text-xs text-destructive">{p.mismatch}</p>
                                     )}
                                 </div>
 
@@ -165,8 +167,8 @@ export default function ResetPassword() {
                                     className="w-full bg-accent text-accent-foreground hover:bg-green-dark shadow-button"
                                 >
                                     {loading
-                                        ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("auth.resetPassword.submitting")}</>
-                                        : t("auth.resetPassword.submit")}
+                                        ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{p.submitting}</>
+                                        : p.submit}
                                 </Button>
                             </form>
                         </motion.div>

@@ -1,38 +1,20 @@
 import { motion } from "framer-motion";
+import { useT } from "../i18n/LanguageContext";
 
-const steps = [
-  {
-    title: "Escolha seu Plano",
-    desc: "Selecione o visto ou serviço ideal para o seu perfil. Nossa vitrine detalha custos e prazos de forma transparente.",
-  },
-  {
-    title: "Cadastro e Pagamento",
-    desc: "Crie sua conta segura e realize o pagamento via Zelle ou Cartão. Sem taxas ocultas ou surpresas.",
-  },
-  {
-    title: "Onboarding Guiado",
-    desc: "Preencha seus dados em nossa plataforma inteligente. Guiamos você em cada campo para evitar erros comuns.",
-  },
-  {
-    title: "Análise Especializada",
-    desc: "Nossa equipe revisa toda a sua documentação e formulários antes de qualquer envio oficial.",
-  },
-  {
-    title: "Agendamento e Mentoria",
-    desc: "Organizamos suas taxas, agendamentos consulares e preparamos você para o dia da entrevista.",
-  },
-];
 
 export const HowItWorksSection = () => {
+  const t = useT("howItWorks");
+  const steps = t.steps;
+
   return (
     <section className="py-24 px-8 lg:px-16 bg-slate-50">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-4xl mx-auto mb-20 text-balance">
           <p className="text-primary font-bold tracking-widest uppercase text-xs mb-8">
-            Um processo transparente e eficiente. Resultados profissionais, simplificados para você.
+            {t.subtitle}
           </p>
           <h2 className="text-4xl lg:text-5xl font-black text-primary">
-            Sua jornada em 5 passos simples
+            {t.title}
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">

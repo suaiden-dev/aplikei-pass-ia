@@ -1,17 +1,23 @@
+import React from "react";
 import { NavLink, Link } from "react-router-dom";
+
 import { cn } from "../utils/cn";
 import { useAuth } from "../hooks/useAuth";
+import { useLocale, useT } from "../i18n/LanguageContext";
 
-const navLinks = [
-  { to: "/como-funciona", label: "Como funciona" },
-  { to: "/servicos/visto-b1-b2", label: "B1/B2" },
-  { to: "/servicos/visto-f1", label: "F1" },
-  { to: "/servicos/troca-status", label: "Troca de Status" },
-  { to: "/servicos/extensao-status", label: "Extensão" },
-];
 
 export const Navbar = () => {
   const { user, isAuthenticated } = useAuth();
+  const { lang, setLang } = useLocale();
+  const t = useT("nav");
+
+  const navLinks = [
+    { to: "/como-funciona", label: t.howItWorks },
+    { to: "/servicos/visto-b1-b2", label: "B1/B2" },
+    { to: "/servicos/visto-f1", label: "F1" },
+    { to: "/servicos/troca-status", label: t.overview },
+    { to: "/servicos/extensao-status", label: t.processes },
+  ];
 
   return (
     <nav className="bg-highlight px-8 lg:px-16 py-5 flex items-center justify-between sticky top-0 z-50 border-b border-white/5">
@@ -47,12 +53,21 @@ export const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-5">
-        <div className="flex items-center gap-1.5 border border-slate-600 rounded-full px-3 py-1.5">
-          <span className="text-white text-xs font-bold font-sans">PT</span>
-          <span className="text-slate-600 text-xs">|</span>
-          <span className="text-slate-400 text-xs font-medium font-sans hover:text-white cursor-pointer transition-colors">
-            EN
-          </span>
+        <div className="flex items-center gap-1.5 border border-slate-600 rounded-full px-2 py-1">
+          {(["pt", "en", "es"] as const).map((l, i) => (
+            <React.Fragment key={l}>
+              {i > 0 && <span className="text-slate-600 text-[10px]">|</span>}
+              <button
+                onClick={() => setLang(l)}
+                className={cn(
+                  "text-[10px] font-bold font-sans transition-colors uppercase px-1",
+                  lang === l ? "text-primary" : "text-slate-400 hover:text-white"
+                )}
+              >
+                {l}
+              </button>
+            </React.Fragment>
+          ))}
         </div>
 
         {isAuthenticated ? (
@@ -68,14 +83,14 @@ export const Navbar = () => {
               to="/login"
               className="text-slate-300 hover:text-white text-sm font-medium font-sans transition-colors"
             >
-              Log In
+              {t.login}
             </Link>
 
             <Link
               to="/cadastro"
               className="px-5 py-2.5 bg-primary text-white text-sm font-bold font-sans rounded-xl hover:bg-primary-hover transition-all shadow-md shadow-primary/20"
             >
-              Get started
+              {t.getStarted}
             </Link>
           </>
         )}

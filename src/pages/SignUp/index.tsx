@@ -10,9 +10,12 @@ import { Label } from "../../components/Label";
 import { Checkbox } from "../../components/CheckBox";
 import PhoneInput from "../../components/PhoneInput";
 import { authService } from "../../services/auth.service";
-import { signUpSchema } from "../../schemas/auth.schema";
+import { getSignUpSchema } from "../../schemas/auth.schema";
+import { useT } from "../../i18n/LanguageContext";
 
 export default function SignUp() {
+  const t = useT("auth");
+  const v = useT("validation");
   const navigate = useNavigate();
 
   const formik = useFormik({
@@ -23,14 +26,14 @@ export default function SignUp() {
       phoneNumber: "",
       terms: false,
     },
-    validate: zodValidate(signUpSchema),
+    validate: zodValidate(getSignUpSchema(v)),
     onSubmit: async (values, { setSubmitting }) => {
       try {
         await authService.signUp(values);
-        toast.success("Parabéns! Sua conta foi criada com sucesso.");
+        toast.success(t.signup.success);
         navigate("/login");
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Erro ao criar conta. Tente novamente.");
+        toast.error(err instanceof Error ? err.message : t.signup.error);
       } finally {
         setSubmitting(false);
       }
@@ -46,17 +49,17 @@ export default function SignUp() {
       >
         <div className="text-center">
           <Link to="/" className="font-display text-title font-bold text-primary text-3xl">Aplikei</Link>
-          <h1 className="mt-8 font-display text-2xl font-bold text-foreground">Criar sua conta</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Comece hoje sua jornada para o visto americano.</p>
+          <h1 className="mt-8 font-display text-2xl font-bold text-foreground">{t.signup.title}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t.signup.subtitle}</p>
         </div>
 
         <form className="mt-8 space-y-5" onSubmit={formik.handleSubmit}>
           <div>
-            <Label htmlFor="fullName">Nome Completo</Label>
+            <Label htmlFor="fullName">{t.signup.fullName}</Label>
             <Input
               id="fullName"
               name="fullName"
-              placeholder="Ex: Maria Silva"
+              placeholder={t.signup.namePlaceholder}
               className="mt-2"
               value={formik.values.fullName}
               onChange={formik.handleChange}
@@ -68,12 +71,12 @@ export default function SignUp() {
           </div>
 
           <div>
-            <Label htmlFor="email">E-mail</Label>
+            <Label htmlFor="email">{t.signup.email}</Label>
             <Input
               id="email"
               name="email"
               type="email"
-              placeholder="seu@email.com"
+              placeholder={t.signup.emailPlaceholder}
               className="mt-2"
               value={formik.values.email}
               onChange={formik.handleChange}
@@ -85,12 +88,12 @@ export default function SignUp() {
           </div>
 
           <div>
-            <Label htmlFor="password">Senha</Label>
+            <Label htmlFor="password">{t.signup.password}</Label>
             <Input
               id="password"
               name="password"
               type="password"
-              placeholder="Mínimo 6 caracteres"
+              placeholder={t.signup.passwordPlaceholder}
               className="mt-2"
               value={formik.values.password}
               onChange={formik.handleChange}
@@ -102,7 +105,7 @@ export default function SignUp() {
           </div>
 
           <div>
-            <Label className="mb-2 block">Telefone</Label>
+            <Label className="mb-2 block">{t.signup.phone}</Label>
             <PhoneInput
               value={formik.values.phoneNumber}
               onChange={(val) => formik.setFieldValue("phoneNumber", val)}
@@ -115,7 +118,7 @@ export default function SignUp() {
             <div className="flex items-start gap-3">
               <Shield className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
               <p className="text-[11px] text-foreground/70 leading-relaxed">
-                Seus dados estão protegidos por criptografia de nível bancário e conformidade com a LGPD.
+                {t.signup.securityNotice}
               </p>
             </div>
           </div>
@@ -132,10 +135,10 @@ export default function SignUp() {
               }}
             />
             <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
-              Eu li e aceito os{" "}
-              <Link to="/termos" className="text-primary hover:underline font-bold">Termos de Uso</Link>,{" "}
-              <Link to="/privacidade" className="text-primary hover:underline font-bold">Política de Privacidade</Link> e{" "}
-              <Link to="/disclaimers" className="text-primary hover:underline font-bold">Avisos Legais</Link>.
+              {t.signup.acceptTerms}{" "}
+              <Link to="/legal/terms" className="text-primary hover:underline font-bold">{t.signup.termsLink}</Link>,{" "}
+              <Link to="/legal/privacy" className="text-primary hover:underline font-bold">{t.signup.privacyLink}</Link> e{" "}
+              <Link to="/legal/disclaimers" className="text-primary hover:underline font-bold">{t.signup.disclaimersLink}</Link>.
             </label>
           </div>
           {formik.touched.terms && formik.errors.terms && (
@@ -143,13 +146,13 @@ export default function SignUp() {
           )}
 
           <Button type="submit" disabled={formik.isSubmitting} className="w-full h-11 text-lg font-bold">
-            {formik.isSubmitting ? "Criando conta..." : "Criar Conta"}
+            {formik.isSubmitting ? t.signup.submitting : t.signup.submit}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Já tem uma conta?{" "}
-          <Link to="/login" className="font-medium text-primary hover:underline">Entrar</Link>
+          {t.signup.hasAccount}{" "}
+          <Link to="/login" className="font-medium text-primary hover:underline">{t.signup.loginLink}</Link>
         </p>
       </motion.div>
     </div>

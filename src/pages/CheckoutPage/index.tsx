@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useParams, Navigate, useNavigate } from "react-router-dom";
+import { useParams, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useFormik } from "formik";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
@@ -38,6 +38,7 @@ import {
 import PhoneInput from "../../components/PhoneInput";
 import { ZELLE_RECIPIENT } from "../../config/zelle";
 import { maskCPF, validateCPF } from "../../utils/cpf";
+import { useT } from "../../i18n/LanguageContext";
 
 const ZELLE_EMAIL = ZELLE_RECIPIENT.email;
 const ZELLE_PHONE = ZELLE_RECIPIENT.phone;
@@ -69,21 +70,21 @@ interface PaymentMethod {
 const PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: "card",
-    label: "Cartão",
+    label: "card", // Placeholder label, will be localized in JSX
     sublabel: "USD",
     icon: <RiBankCardLine className="text-xl" />,
     available: true,
   },
   {
     id: "pix",
-    label: "Pix",
+    label: "pix",
     sublabel: "BRL",
     icon: <MdPix className="text-xl" />,
     available: true,
   },
   {
     id: "zelle",
-    label: "Zelle",
+    label: "zelle",
     sublabel: "USD",
     icon: (
       <span className="text-xs font-black tracking-tight leading-none">Z$</span>
@@ -92,7 +93,7 @@ const PAYMENT_METHODS: PaymentMethod[] = [
   },
   {
     id: "parcelow",
-    label: "Parcelow",
+    label: "parcelow",
     sublabel: "BRL",
     icon: (
       <span className="text-[10px] font-black tracking-tight leading-none tracking-tighter">PRC</span>
@@ -114,6 +115,7 @@ function PriceSummary({
   dependents: number;
   method: PaymentTab;
 }) {
+  const t = useT("checkout").product;
   const subtotal = baseUSD + dependents * depUSD;
   const isCard = method === "card";
   const isPix = method === "pix";
@@ -125,12 +127,12 @@ function PriceSummary({
   return (
     <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-2.5 text-sm">
       <div className="flex justify-between text-slate-600">
-        <span>Serviço principal</span>
+        <span>{t.summary.mainService}</span>
         <span className="font-semibold">US$ {baseUSD.toFixed(2)}</span>
       </div>
       {dependents > 0 && (
         <div className="flex justify-between text-slate-600">
-          <span>Dependentes ({dependents}×)</span>
+          <span>{t.summary.dependentsCount.replace("{{count}}", dependents.toString())}</span>
           <span className="font-semibold">US$ {(dependents * depUSD).toFixed(2)}</span>
         </div>
       )}
@@ -141,12 +143,12 @@ function PriceSummary({
         <>
           <div className="flex justify-between text-slate-500 text-xs">
             <span className="flex items-center gap-1">
-              <RiInformationLine /> Taxa Stripe (~3.9% + $0.30)
+              <RiInformationLine /> {t.summary.stripeFee}
             </span>
             <span>+ US$ {(cardTotal - subtotal).toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-black text-slate-800 text-base">
-            <span>Total</span>
+            <span>{t.summary.total}</span>
             <span>US$ {cardTotal.toFixed(2)}</span>
           </div>
         </>
@@ -156,23 +158,23 @@ function PriceSummary({
         <>
           <div className="flex justify-between text-slate-500 text-xs">
             <span className="flex items-center gap-1">
-              <RiInformationLine /> Câmbio + IOF (est.)
+              <RiInformationLine /> {t.summary.exchangeTax}
             </span>
             <span>~R$ {pixTotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-black text-slate-800 text-base">
-            <span>Total</span>
+            <span>{t.summary.total}</span>
             <span>R$ {pixTotal.toFixed(2)}</span>
           </div>
           <p className="text-[10px] text-slate-400">
-            * Valor estimado. O câmbio final é calculado no momento do pagamento.
+            {t.summary.estimatedNotice}
           </p>
         </>
       )}
 
       {(method === "zelle" || method === "parcelow") && (
         <div className="flex justify-between font-black text-slate-800 text-base">
-          <span>Subtotal</span>
+          <span>{t.summary.subtotal}</span>
           <span>US$ {subtotal.toFixed(2)}</span>
         </div>
       )}
@@ -181,58 +183,32 @@ function PriceSummary({
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-
 export default function CheckoutPage() {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const service = slug ? getServiceBySlug(slug) : null;
+  const isUpgrade = searchParams.get("upgrade") === "true";
+  const parentId = searchParams.get("id");
+  const billingSlug = isUpgrade ? "slot-dependente" : (slug || "");
+
+  const service = getServiceBySlug(slug || "");
   const [activeMethod, setActiveMethod] = useState<PaymentTab>("card");
   const [dependents, setDependents] = useState(0);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [serviceInactive, setServiceInactive] = useState(false);
-
-
-
-  // Guard: block checkout if product is inactive
-  useEffect(() => {
-    if (!slug) return;
-    supabase
-      .from("services_prices")
-      .select("is_active")
-      .eq("service_id", slug)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data && data.is_active === false) {
-          setServiceInactive(true);
-        }
-      });
-  }, [slug]);
-
-  // Zelle state
-  const [zelleAmount, setZelleAmount] = useState("");
-  const [zelleCode, setZelleCode] = useState("");
-  const [zelleDate, setZelleDate] = useState(new Date().toISOString().split("T")[0]);
-  const [zelleProof, setZelleProof] = useState<File | null>(null);
-  const [zelleProofPreview, setZelleProofPreview] = useState<string | null>(null);
   const [zelleDone, setZelleDone] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleProofSelect = useCallback((file: File) => {
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error("Arquivo muito grande. Máximo 8MB.");
-      return;
-    }
-    setZelleProof(file);
-    setZelleProofPreview(URL.createObjectURL(file));
-  }, []);
-
-  // ── Scarcity Timer ─────────────────────────────────────────────────────────
+  const [zelleAmount, setZelleAmount] = useState("");
+  const [zelleDate, setZelleDate] = useState("");
+  const [zelleProof, setZelleProof] = useState<File | null>(null);
   const [timeLeft, setTimeLeft] = useState(() => {
     const saved = sessionStorage.getItem("checkout_timer");
-    return saved ? parseInt(saved, 10) : 600; // 10 minutes
+    return saved ? parseInt(saved) : 3600;
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const t = useT("checkout").product;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -257,7 +233,8 @@ export default function CheckoutPage() {
   };
 
   const baseUSD = service ? parsePriceUSD(service.price) : 0;
-  const depUSD = service ? parsePriceUSD(service.dependentPrice) : 0;
+  const depUSD = isUpgrade ? baseUSD : (service ? parsePriceUSD(service.dependentPrice) : 0);
+  const checkoutCount = isUpgrade ? (dependents - 1) : dependents;
 
   const handlePhoneChange = (value: string) => {
     formik.setFieldValue("phone", value);
@@ -271,9 +248,15 @@ export default function CheckoutPage() {
       phone: user?.phoneNumber ?? "",
       password: "",
       parcelowCpf: "",
+      zelleConfirmation: "",
     },
     enableReinitialize: true,
-    validate: zodValidate(checkoutSchema),
+    validate: zodValidate(z.object({
+      fullName: z.string().min(1, t.userData.errors.nameRequired).min(3, t.userData.errors.nameShort),
+      email: z.string().min(1, t.userData.errors.emailRequired).email(t.userData.errors.emailInvalid),
+      phone: z.string().min(10, t.userData.errors.phoneRequired),
+      password: z.string().optional(),
+    })),
     onSubmit: async (values) => {
       setIsRedirecting(true);
       try {
@@ -282,7 +265,7 @@ export default function CheckoutPage() {
         // Auto-signup if not logged in
         if (!currentUserId) {
           if (!values.password || values.password.length < 6) {
-             throw new Error("A senha precisa ter pelo menos 6 caracteres.");
+             throw new Error(t.userData.errors.passwordShort);
           }
           
           try {
@@ -296,22 +279,19 @@ export default function CheckoutPage() {
             
             if (signUpRes.user) {
               currentUserId = signUpRes.user.id;
-              toast.success("Conta criada com sucesso!");
             }
           } catch (signUpErr) {
              const error = signUpErr as Error;
              if (error.message?.includes("already registered")) {
-                throw new Error("Este e-mail já possui uma conta. Por favor, faça login antes de contratar.");
+                throw new Error(t.userData.errors.emailTaken);
              }
              throw error;
           }
         }
 
-        // Some slugs are variants of a base product. The Stripe/Parcelow edge functions
-        // only know the base slug, so we pass that for billing while storing the real slug
-        // in localStorage so CheckoutSuccessPage activates the correct product.
         const CATALOG_SLUG: Record<string, string> = { "visto-b1-b2-reaplicacao": "visto-b1-b2" };
         const billingSlug = CATALOG_SLUG[service!.slug] || service!.slug;
+        const totalUSD = baseUSD + (checkoutCount * depUSD);
 
         if (activeMethod === "card" || activeMethod === "pix") {
           const { url } = await paymentService.createStripeCheckout({
@@ -319,20 +299,22 @@ export default function CheckoutPage() {
             email: values.email,
             fullName: values.fullName,
             phone: values.phone,
-            dependents,
+            dependents: checkoutCount,
             paymentMethod: activeMethod as StripePaymentMethod,
             userId: currentUserId,
-            amount: parsePriceUSD(service!.price),
+            amount: totalUSD,
+            proc_id: parentId || undefined,
           });
 
-          // Pre-register in visa_orders (omitted for brevity in this replace but keeping the same logic)
+          // Pre-register in visa_orders
           try {
             await supabase.from("visa_orders").insert({
               user_id: currentUserId,
               client_name: values.fullName,
               client_email: values.email,
+              billing_email: values.email,
+              total_price_usd: totalUSD,
               product_slug: service!.slug,
-              total_price_usd: parsePriceUSD(service!.price) + (dependents * depUSD),
               payment_method: activeMethod === "card" ? "stripe_card" : "stripe_pix",
               payment_status: "pending",
             });
@@ -340,14 +322,13 @@ export default function CheckoutPage() {
             console.error("[Checkout] registration error:", e);
           }
 
-          // Always store the REAL slug so CheckoutSuccessPage activates the correct product
           localStorage.setItem("checkout_slug", service!.slug);
           localStorage.setItem("checkout_dependents", dependents.toString());
           window.location.href = url;
 
         } else if (activeMethod === "parcelow") {
           if (!values.parcelowCpf || !validateCPF(values.parcelowCpf)) {
-            throw new Error("Informe um CPF válido para prosseguir com a Parcelow.");
+            throw new Error(t.paymentMethods.parcelow.cpfRequired);
           }
 
           const { url } = await paymentService.createParcelowCheckout({
@@ -356,33 +337,32 @@ export default function CheckoutPage() {
             fullName: values.fullName,
             phone: values.phone,
             cpf: values.parcelowCpf,
-            dependents,
+            dependents: checkoutCount,
             userId: currentUserId,
-            amount: parsePriceUSD(service!.price),
+            amount: totalUSD,
+            proc_id: parentId || undefined,
           });
 
-          // Always store the REAL slug so CheckoutSuccessPage activates the correct product
           localStorage.setItem("checkout_slug", service!.slug);
           localStorage.setItem("checkout_dependents", dependents.toString());
           window.location.href = url;
 
         } else if (activeMethod === "zelle") {
-          // Validate Zelle fields
           if (!zelleAmount || parseFloat(zelleAmount) <= 0)
-            throw new Error("Informe o valor enviado via Zelle.");
+            throw new Error(t.paymentMethods.zelle.amountRequired);
           if (!zelleDate)
-            throw new Error("Informe a data do pagamento.");
+            throw new Error(t.paymentMethods.zelle.dateRequired);
           if (!zelleProof)
-            throw new Error("Anexe o comprovante do pagamento.");
+            throw new Error(t.paymentMethods.zelle.proofRequired);
 
           const proofPath = await paymentService.uploadZelleProof(zelleProof, service!.slug);
 
           await paymentService.createZellePayment({
             slug: service!.slug,
             serviceName: service!.title,
-            expectedAmount: baseUSD + dependents * depUSD,
-            amount: parseFloat(zelleAmount),
-            confirmationCode: zelleCode,
+            expectedAmount: totalUSD,
+            amount: parseFloat(zelleAmount.replace(",", ".")),
+            confirmationCode: values.zelleConfirmation || "",
             paymentDate: zelleDate,
             proofPath,
             guestEmail: values.email,
@@ -390,12 +370,13 @@ export default function CheckoutPage() {
             phone: values.phone,
             userId: currentUserId || null,
             dependents, // Pass this to paymentService
+            proc_id: parentId || undefined,
           });
 
           setZelleDone(true);
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Erro ao processar pagamento.");
+        toast.error(err instanceof Error ? err.message : t.errors?.genericError || "Erro ao processar pagamento.");
       } finally {
         setIsRedirecting(false);
       }
@@ -404,33 +385,6 @@ export default function CheckoutPage() {
   
   if (!service) return <Navigate to="/dashboard" replace />;
 
-  if (serviceInactive) {
-    return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-width-md w-full bg-white rounded-3xl border border-slate-100 shadow-xl p-10 text-center"
-        >
-          <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <RiCloseLine className="text-red-500 text-3xl" />
-          </div>
-          <h2 className="font-display text-2xl font-black text-slate-800 mb-3">
-            Serviço indisponível
-          </h2>
-          <p className="text-sm text-slate-500 leading-relaxed mb-8">
-            Este guia está temporariamente indisponível para contratação. Você será redirecionado para o seu painel.
-          </p>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-[#1649c0] transition-colors"
-          >
-            Voltar para o Dashboard
-          </button>
-        </motion.div>
-      </div>
-    );
-  }
 
 
   return (
@@ -446,7 +400,7 @@ export default function CheckoutPage() {
           <div className="flex items-center gap-3 font-display tracking-tight">
             <RiFlashlightFill className="text-amber-400 text-xl animate-pulse" />
             <span className="font-black text-xs sm:text-base uppercase underline-offset-4 decoration-amber-400/50">
-              Últimas vagas com desconto: só hoje!
+              {t.scarcityBanner.lastSlots}
             </span>
           </div>
 
@@ -470,7 +424,7 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                   <span className="text-[10px] sm:text-xs font-black uppercase text-blue-200 tracking-widest ml-1">
-                    restantes
+                    {t.scarcityBanner.timeLeft}
                   </span>
                 </>
               );
@@ -482,7 +436,7 @@ export default function CheckoutPage() {
             type="button"
             className="bg-white text-[#003da5] px-6 py-2 rounded-full font-display font-black text-xs sm:text-sm uppercase tracking-tighter hover:bg-blue-50 transition-all shadow-md active:scale-95 whitespace-nowrap"
           >
-            Aproveitar Agora
+            {t.scarcityBanner.cta}
           </button>
         </motion.div>
 
@@ -533,24 +487,30 @@ export default function CheckoutPage() {
                 <span className="text-2xl font-black text-slate-800">{service.price}</span>
                 <span className="text-xs text-slate-400 line-through mb-0.5">{service.originalPrice}</span>
                 <span className="ml-auto text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                  50% OFF
+                  {t.summary.offLabel}
                 </span>
               </div>
             </div>
 
-            {/* Dependents */}
+            {/* Dependents / Upgrade Slots */}
             <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-1">
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">Dependentes</p>
-                  <p className="text-xs text-slate-400">{service.dependentPrice} por pessoa</p>
+                  <p className="text-sm font-semibold text-slate-700">
+                    {isUpgrade ? t.dependents.slotsLabel : t.dependents.label}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {isUpgrade 
+                      ? t.dependents.perSlot.replace("{{price}}", service.price) 
+                      : t.dependents.perPerson.replace("{{price}}", service.dependentPrice)}
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => setDependents(Math.max(0, dependents - 1))}
+                    onClick={() => setDependents(Math.max(isUpgrade ? 1 : 0, dependents - 1))}
                     className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 disabled:opacity-40 transition-colors"
-                    disabled={dependents === 0}
+                    disabled={dependents <= (isUpgrade ? 1 : 0)}
                   >
                     <RiSubtractLine className="text-slate-600" />
                   </button>
@@ -558,7 +518,7 @@ export default function CheckoutPage() {
                   <button
                     type="button"
                     onClick={() => setDependents(Math.min(10, dependents + 1))}
-                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
+                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-all font-mono"
                   >
                     <RiAddLine className="text-slate-600" />
                   </button>
@@ -570,7 +530,7 @@ export default function CheckoutPage() {
             <PriceSummary
               baseUSD={baseUSD}
               depUSD={depUSD}
-              dependents={dependents}
+              dependents={checkoutCount}
               method={activeMethod}
             />
 
@@ -590,11 +550,11 @@ export default function CheckoutPage() {
               {/* Customer info */}
               <div>
                 <h2 className="font-display font-bold text-slate-800 text-base mb-4">
-                  Seus dados
+                  {t.userData.title}
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="fullName">Nome completo</Label>
+                    <Label htmlFor="fullName">{t.userData.fullName}</Label>
                     <Input
                       id="fullName"
                       name="fullName"
@@ -609,7 +569,7 @@ export default function CheckoutPage() {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="email">E-mail</Label>
+                    <Label htmlFor="email">{t.userData.email}</Label>
                     <Input
                       id="email"
                       name="email"
@@ -625,7 +585,7 @@ export default function CheckoutPage() {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="phone">Telefone</Label>
+                    <Label htmlFor="phone">{t.userData.phone}</Label>
                     <div className="mt-1.5">
                       <PhoneInput
                         value={formik.values.phone}
@@ -640,19 +600,19 @@ export default function CheckoutPage() {
                   
                   {!user && (
                     <div>
-                      <Label htmlFor="password">Crie uma senha para sua conta</Label>
+                      <Label htmlFor="password">{t.userData.password}</Label>
                       <Input
                         id="password"
                         name="password"
                         type="password"
-                        placeholder="Mínimo 6 caracteres"
+                        placeholder={t.userData.passwordDesc}
                         className="mt-1.5"
                         value={formik.values.password}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                       />
                       <p className="text-[10px] text-slate-400 mt-1">
-                        Sua conta será criada automaticamente ao finalizar o pedido.
+                        {t.userData.passwordAutoNotice}
                       </p>
                       {formik.touched.password && formik.errors.password && (
                         <p className="text-xs text-red-500 mt-1">{formik.errors.password}</p>
@@ -665,10 +625,15 @@ export default function CheckoutPage() {
               {/* Payment method tabs */}
               <div>
                 <h2 className="font-display font-bold text-slate-800 text-base mb-3">
-                  Método de pagamento
+                  {t.paymentMethods.title}
                 </h2>
                 <div className="grid grid-cols-4 gap-2 mb-4">
-                  {PAYMENT_METHODS.map((m) => (
+                  {[
+                    { ...PAYMENT_METHODS[0], label: t.paymentMethods.card.label, sublabel: t.paymentMethods.card.sublabel },
+                    { ...PAYMENT_METHODS[1], label: t.paymentMethods.pix.label, sublabel: t.paymentMethods.pix.sublabel },
+                    { ...PAYMENT_METHODS[2], label: t.paymentMethods.zelle.label, sublabel: t.paymentMethods.zelle.sublabel },
+                    { ...PAYMENT_METHODS[3], label: t.paymentMethods.parcelow.label, sublabel: t.paymentMethods.parcelow.sublabel },
+                  ].map((m) => (
                     <button
                       key={m.id}
                       type="button"
@@ -687,7 +652,7 @@ export default function CheckoutPage() {
                       <span className="text-[9px] font-medium leading-none opacity-70">{m.sublabel}</span>
                       {!m.available && (
                         <span className="absolute -top-1.5 -right-1 text-[8px] font-black bg-slate-200 text-slate-400 px-1 py-0.5 rounded-full leading-none">
-                          EM BREVE
+                          {t.paymentMethods.soon}
                         </span>
                       )}
                     </button>
@@ -706,9 +671,7 @@ export default function CheckoutPage() {
                       className="flex items-start gap-2.5 rounded-xl bg-blue-50 border border-blue-100 p-3"
                     >
                       <RiBankCardLine className="text-blue-500 mt-0.5 shrink-0" />
-                      <p className="text-xs text-blue-700 leading-relaxed">
-                        Você será redirecionado ao checkout seguro da <strong>Stripe</strong>. Aceitamos Visa, Mastercard e American Express em USD.
-                      </p>
+                      <p className="text-xs text-blue-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.card.notice }} />
                     </motion.div>
                   )}
                   {activeMethod === "pix" && (
@@ -721,9 +684,7 @@ export default function CheckoutPage() {
                       className="flex items-start gap-2.5 rounded-xl bg-emerald-50 border border-emerald-100 p-3"
                     >
                       <RiQrCodeLine className="text-emerald-500 mt-0.5 shrink-0" />
-                      <p className="text-xs text-emerald-700 leading-relaxed">
-                        Você será redirecionado ao checkout da <strong>Stripe com Pix</strong>. Um QR Code será gerado em BRL. O valor inclui câmbio + IOF.
-                      </p>
+                      <p className="text-xs text-emerald-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.pix.notice }} />
                     </motion.div>
                   )}
 
@@ -739,18 +700,16 @@ export default function CheckoutPage() {
                       {/* Info box */}
                       <div className="flex items-start gap-2.5 rounded-xl bg-orange-50 border border-orange-100 p-3">
                         <RiTimeLine className="text-orange-500 mt-0.5 shrink-0" />
-                        <p className="text-xs text-orange-800 leading-relaxed">
-                          Pague em até <strong>12 parcelas</strong> fixas via <strong>Parcelow</strong>. Valor convertido em BRL com taxas de parcelamento. Câmbio garantido.
-                        </p>
+                        <p className="text-xs text-orange-800 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.parcelow.notice }} />
                       </div>
 
                       {/* CPF Field */}
                       <div className="space-y-1.5 px-1">
-                        <Label htmlFor="parcelowCpf">CPF do Titular do Cartão</Label>
+                        <Label htmlFor="parcelowCpf">{t.paymentMethods.parcelow.cpfLabel}</Label>
                         <Input
                           id="parcelowCpf"
                           name="parcelowCpf"
-                          placeholder="000.000.000-00"
+                          placeholder={t.paymentMethods.parcelow.cpfPlaceholder}
                           className="mt-1"
                           maxLength={14}
                           value={formik.values.parcelowCpf}
@@ -762,7 +721,7 @@ export default function CheckoutPage() {
                         />
                         <div className="flex items-center gap-1 text-[10px] text-slate-400">
                           <RiInformationLine className="text-orange-400" />
-                          <span>Obrigatório para emissão da fatura pela Parcelow.</span>
+                          <span>{t.paymentMethods.parcelow.cpfNotice}</span>
                         </div>
                       </div>
                     </motion.div>
@@ -780,35 +739,35 @@ export default function CheckoutPage() {
                       {/* Recipient info */}
                       <div className="rounded-xl bg-violet-50 border border-violet-100 p-4">
                         <p className="text-[11px] font-bold text-violet-500 uppercase tracking-widest mb-2">
-                          Envie o Zelle para:
+                          {t.paymentMethods.zelle.notice}
                         </p>
                         <div className="space-y-1">
-                          <p className="text-sm font-bold text-slate-800">{ZELLE_NAME}</p>
-                          <p className="text-sm text-slate-600 font-mono">{ZELLE_EMAIL}</p>
-                          <p className="text-sm text-slate-600 font-mono">{ZELLE_PHONE}</p>
+                          <p className="text-sm font-bold text-slate-800">{t.paymentMethods.zelle.name} {ZELLE_NAME}</p>
+                          <p className="text-sm text-slate-600 font-mono">{t.paymentMethods.zelle.email} {ZELLE_EMAIL}</p>
+                          <p className="text-sm text-slate-600 font-mono">{t.paymentMethods.zelle.phone} {ZELLE_PHONE}</p>
                         </div>
                         <p className="text-[11px] text-violet-500 mt-2 leading-snug">
-                          Após enviar, preencha os campos abaixo e anexe o comprovante.
+                          {t.paymentMethods.zelle.confirmTitle}
                         </p>
                       </div>
 
                       {/* Zelle fields */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label htmlFor="zelleAmount">Valor enviado (USD)</Label>
+                          <Label htmlFor="zelleAmount">{t.paymentMethods.zelle.amountSent}</Label>
                           <Input
                             id="zelleAmount"
                             type="number"
                             step="0.01"
                             min="1"
-                            placeholder="200.00"
+                            placeholder={t.paymentMethods.zelle.amountPlaceholder}
                             className="mt-1.5"
                             value={zelleAmount}
                             onChange={(e) => setZelleAmount(e.target.value)}
                           />
                         </div>
                         <div>
-                          <Label htmlFor="zelleDate">Data do pagamento</Label>
+                          <Label htmlFor="zelleDate">{t.paymentMethods.zelle.paymentDate}</Label>
                           <Input
                             id="zelleDate"
                             type="date"
@@ -822,11 +781,11 @@ export default function CheckoutPage() {
 
                       <div>
                         <Label htmlFor="zelleCode">
-                          Código de confirmação <span className="text-slate-400 font-normal">(opcional)</span>
+                          {t.paymentMethods.zelle.confirmationCode} <span className="text-slate-400 font-normal">{t.paymentMethods.zelle.confirmationCode.includes("(") ? "" : "(opcional)"}</span>
                         </Label>
                         <Input
                           id="zelleCode"
-                          placeholder="Ex: ABCD1234"
+                          placeholder={t.paymentMethods.zelle.confirmationPlaceholder}
                           className="mt-1.5"
                           value={zelleCode}
                           onChange={(e) => setZelleCode(e.target.value)}
@@ -835,7 +794,7 @@ export default function CheckoutPage() {
 
                       {/* Proof upload */}
                       <div>
-                        <Label>Comprovante</Label>
+                        <Label>{t.paymentMethods.zelle.uploadProof}</Label>
                         <input
                           ref={fileInputRef}
                           type="file"
@@ -850,7 +809,7 @@ export default function CheckoutPage() {
                           <div className="mt-1.5 relative rounded-xl overflow-hidden border border-slate-200">
                             <img
                               src={zelleProofPreview}
-                              alt="Comprovante"
+                              alt={t.paymentMethods.zelle.uploadProof}
                               className="w-full max-h-40 object-cover"
                             />
                             <button
@@ -881,8 +840,8 @@ export default function CheckoutPage() {
                             className="mt-1.5 w-full border-2 border-dashed border-slate-200 rounded-xl py-6 flex flex-col items-center gap-2 text-slate-400 hover:border-primary/40 hover:bg-primary/3 transition-colors"
                           >
                             <RiUploadCloud2Line className="text-2xl" />
-                            <span className="text-xs font-medium">Clique ou arraste o comprovante</span>
-                            <span className="text-[10px]">PNG, JPG, HEIC • máx. 8MB</span>
+                            <span className="text-xs font-medium">{t.paymentMethods.zelle.uploadProof}</span>
+                            <span className="text-[10px]">{t.paymentMethods.zelle.uploadDesc}</span>
                           </button>
                         )}
                       </div>
@@ -897,14 +856,15 @@ export default function CheckoutPage() {
                       className="rounded-xl bg-emerald-50 border border-emerald-100 p-5 text-center"
                     >
                       <RiCheckLine className="text-emerald-500 text-3xl mx-auto mb-2" />
-                      <p className="font-bold text-slate-800 text-sm">Comprovante enviado!</p>
-                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                        Seu pagamento está em <strong>análise</strong>. Você receberá uma confirmação por e-mail assim que for aprovado.
-                      </p>
-                      <div className="flex items-center justify-center gap-1.5 mt-3 text-[11px] text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-1.5">
-                        <RiTimeLine />
-                        Prazo de verificação: até 24 horas úteis
-                      </div>
+                      <p className="font-bold text-slate-800 text-sm">{t.paymentMethods.zelle.pendingReview.split("!")[0]}!</p>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.zelle.pendingReview.split("!")[1] || t.paymentMethods.zelle.pendingReview }} />
+                      <button
+                         type="button"
+                         onClick={() => navigate("/dashboard")}
+                         className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs"
+                      >
+                         {t.paymentMethods.zelle.goDashboard}
+                      </button>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -920,15 +880,15 @@ export default function CheckoutPage() {
                   {isRedirecting ? (
                     <>
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      {activeMethod === "zelle" ? "Enviando..." : "Redirecionando..."}
+                      {t.redirecting}
                     </>
                   ) : (
                     <>
                       <RiLockLine className="text-base" />
-                      {activeMethod === "card" && "Pagar com Cartão"}
-                      {activeMethod === "pix" && "Pagar com Pix"}
-                      {activeMethod === "zelle" && "Enviar Comprovante Zelle"}
-                      {activeMethod === "parcelow" && "Pagar com Parcelow"}
+                      {activeMethod === "card" && t.paymentMethods.card.label}
+                      {activeMethod === "pix" && t.paymentMethods.pix.label}
+                      {activeMethod === "zelle" && t.paymentMethods.zelle.submit}
+                      {activeMethod === "parcelow" && t.paymentMethods.parcelow.label}
                       <RiArrowRightLine className="text-base" />
                     </>
                   )}
@@ -937,7 +897,7 @@ export default function CheckoutPage() {
 
               <p className="text-center text-[11px] text-slate-400 flex items-center justify-center gap-1">
                 <RiShieldCheckLine />
-                Seus dados estão protegidos por criptografia SSL de 256 bits.
+                {t.paymentMethods.card.notice.includes("SSL") ? t.paymentMethods.card.notice : "Protected by 256-bit SSL encryption."}
               </p>
             </form>
           </motion.div>

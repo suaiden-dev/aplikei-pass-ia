@@ -4,14 +4,16 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './contexts/AuthContext'
+import { LanguageProvider } from './i18n/LanguageContext'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <App />
-        <Toaster
+      <LanguageProvider>
+        <AuthProvider>
+          <App />
+          <Toaster
           position="top-right"
           closeButton
           toastOptions={{
@@ -31,7 +33,8 @@ createRoot(document.getElementById('root')!).render(
             },
           }}
         />
-      </AuthProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </BrowserRouter>
   </StrictMode>,
 )

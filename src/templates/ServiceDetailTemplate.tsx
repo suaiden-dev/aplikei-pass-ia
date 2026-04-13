@@ -12,6 +12,7 @@ import {
 } from "react-icons/md";
 import { FiArrowRight } from "react-icons/fi";
 import { useAuth } from "../hooks/useAuth";
+import { useT } from "../i18n/LanguageContext";
 import { processService } from "../services/process.service";
 
 export interface StepConfig {
@@ -51,24 +52,6 @@ const includedIcons: IconType[] = [
 ];
 
 
-const labels = {
-  perDependent: "por dependente",
-  dependentsDesc: "Adicione dependentes ao seu processo",
-  getStarted: "Começar agora",
-  successRate: "Taxa de Sucesso",
-  overview: "Visão Geral",
-  forWhom: "Para quem é este guia?",
-  notForWhom: "Para quem NÃO é?",
-  included: "O que está incluído",
-  requirements: "Documentos Necessários",
-  prepareDocs: "Prepare sua documentação com antecedência.",
-  steps: "Passo a Passo do Processo",
-  guidedJourney: "Uma jornada guiada do início ao fim.",
-  faq: "Perguntas Frequentes",
-  legalDisclaimer: "Aviso Legal Importante",
-  disclaimer:
-    "A Aplikei não é um escritório de advocacia e não oferece assessoria jurídica. Nossos guias são informativos. A decisão final sobre vistos é exclusiva das autoridades consulares e do USCIS.",
-};
 
 export default function ServiceDetailTemplate({
   service,
@@ -77,6 +60,19 @@ export default function ServiceDetailTemplate({
   processType,
   HeroIcon = MdVerified,
 }: ServiceDetailTemplateProps) {
+  const tServices = useT("services");
+  const tVisas = useT("visas");
+  const labels = tServices.serviceDetail;
+  const catalogEntry = service ? (tVisas.catalog as any)?.[service.slug] : null;
+
+  const displayTitle = catalogEntry?.title || service?.title;
+  const displaySubtitle = catalogEntry?.subtitle || service?.subtitle;
+  const displayDescription = catalogEntry?.description || service?.description;
+  const displayForWhom = catalogEntry?.forWhom || service?.forWhom || [];
+  const displayNotForWhom = catalogEntry?.notForWhom || service?.notForWhom || [];
+  const displayIncluded = catalogEntry?.included || service?.included || [];
+  const displayRequirements = catalogEntry?.requirements || service?.requirements || [];
+  const displayFaq = catalogEntry?.faq || service?.faq || [];
   const { user } = useAuth();
   const [hasActiveProcess, setHasActiveProcess] = useState(false);
 
@@ -106,10 +102,10 @@ export default function ServiceDetailTemplate({
                 {processType}
               </span>
               <h1 className="text-primary text-4xl sm:text-5xl lg:text-7xl font-black leading-[1.1] tracking-tight">
-                {service.title}
+                {displayTitle}
               </h1>
               <p className="text-slate-600 text-lg lg:text-2xl font-medium max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                {service.subtitle}
+                {displaySubtitle}
               </p>
             </div>
 
@@ -131,7 +127,7 @@ export default function ServiceDetailTemplate({
 
             {hasActiveProcess ? (
               <Button size="lg" disabled className="w-full sm:px-12 py-8 bg-slate-200 text-slate-500 rounded-xl text-xl font-black transition-all border-none flex items-center justify-center gap-2 cursor-not-allowed">
-                Conclua seu processo atual primeiro
+                {labels.concludeProcess}
               </Button>
             ) : (
               <Link to={`/checkout/${service.slug}`} className="w-full sm:w-auto">
@@ -153,7 +149,7 @@ export default function ServiceDetailTemplate({
             <div className="aspect-[4/5] md:aspect-square bg-slate-100 rounded-[2.5rem] overflow-hidden shadow-2xl relative border border-slate-100/50">
               <img
                 src={heroImage}
-                alt={service.title}
+                alt={displayTitle}
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-primary/5"></div>
@@ -184,7 +180,7 @@ export default function ServiceDetailTemplate({
           >
             <h2 className="text-3xl lg:text-4xl font-black text-primary mb-8">{labels.overview}</h2>
             <p className="text-slate-600 text-lg lg:text-xl leading-relaxed max-w-4xl mx-auto lg:mx-0 font-medium italic">
-              {service.description}
+              {displayDescription}
             </p>
           </motion.div>
 
@@ -195,7 +191,7 @@ export default function ServiceDetailTemplate({
                 {labels.forWhom}
               </h3>
               <ul className="space-y-5">
-                {service.forWhom.map((item, i) => (
+                {displayForWhom.map((item: string, i: number) => (
                   <li key={i} className="flex gap-4 text-slate-700 text-base font-bold">
                     <MdCheck className="text-green-600 shrink-0 text-xl mt-0.5" />
                     <span>{item}</span>
@@ -210,7 +206,7 @@ export default function ServiceDetailTemplate({
                 {labels.notForWhom}
               </h3>
               <ul className="space-y-5">
-                {service.notForWhom.map((item, i) => (
+                {displayNotForWhom.map((item: string, i: number) => (
                   <li key={i} className="flex gap-4 text-red-800/80 text-base font-medium">
                     <MdClose className="text-red-500 shrink-0 text-xl mt-0.5" />
                     <span>{item}</span>
@@ -230,7 +226,7 @@ export default function ServiceDetailTemplate({
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 text-left">
-          {service.included.slice(0, 4).map((item, i) => {
+          {displayIncluded.slice(0, 4).map((item: string, i: number) => {
             const parts = item.split(": ");
             const Icon = includedIcons[i] ?? MdArticle;
             return (
@@ -273,6 +269,10 @@ export default function ServiceDetailTemplate({
         <div className="relative space-y-14 max-w-4xl mx-auto">
           <div className="absolute left-[24px] top-4 bottom-4 w-1.5 bg-slate-100 rounded-full"></div>
           {service.steps.map((step, i) => {
+            const translatedStep = (tVisas.processSteps as any)?.[step.id];
+            const stepTitle = translatedStep?.title || step.title;
+            const stepDescription = translatedStep?.description || step.description;
+
             return (
               <motion.div
                 key={i}
@@ -286,8 +286,8 @@ export default function ServiceDetailTemplate({
                   {i + 1}
                 </div>
                 <div className="pt-1.5">
-                  <h4 className="font-black text-2xl mb-2 text-slate-900 leading-tight">{step.title}</h4>
-                  <p className="text-slate-500 text-lg leading-relaxed italic font-medium">{step.description}</p>
+                  <h4 className="font-black text-2xl mb-2 text-slate-900 leading-tight">{stepTitle}</h4>
+                  <p className="text-slate-500 text-lg leading-relaxed italic font-medium">{stepDescription}</p>
                 </div>
               </motion.div>
             );
@@ -297,7 +297,7 @@ export default function ServiceDetailTemplate({
 
       {/* Conversion CTA */}
       <ServiceCTA 
-        visaType={service.title} 
+        visaType={displayTitle} 
         checkoutUrl={hasActiveProcess ? "#" : `/checkout/${service.slug}`} 
       />
 
@@ -313,7 +313,7 @@ export default function ServiceDetailTemplate({
             {labels.faq}
           </motion.h2>
           <Accordion type="single" collapsible className="space-y-6">
-            {service.faq.map((item, i) => (
+            {displayFaq.map((item: { q: string, a: string }, i: number) => (
               <AccordionItem key={i} value={`faq-${i}`} className="bg-white border border-slate-200 rounded-[1.5rem] px-3 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                 <AccordionTrigger className="w-full flex items-center justify-between p-8 text-left font-black text-xl text-slate-800 hover:no-underline">
                   {item.q}

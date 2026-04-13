@@ -1,7 +1,9 @@
 import { FaTwitter, FaInstagram } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useT } from "../i18n/LanguageContext";
 
 export const Footer = () => {
+  const t = useT("footer");
   return (
     <footer className="bg-highlight px-8 lg:px-16 pt-20 pb-8">
       <div className="max-w-7xl mx-auto">
@@ -14,7 +16,7 @@ export const Footer = () => {
               <span className="text-white font-black text-base tracking-widest uppercase">Aplikei</span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed mb-8">
-              Step-by-step guide to simplify immigration processes.
+              {t.description}
             </p>
             <div className="flex items-center gap-4">
               <a href="#" className="text-slate-400 hover:text-white transition-colors">
@@ -26,24 +28,24 @@ export const Footer = () => {
             </div>
           </div>
           <div>
-            <h4 className="text-white font-bold text-xs uppercase tracking-widest mb-7">Serviços</h4>
+            <h4 className="text-white font-bold text-xs uppercase tracking-widest mb-7">{t.services}</h4>
             <ul className="space-y-4">
-              <li><Link to="/cadastro" className="text-slate-400 hover:text-white text-sm transition-colors">Visto de Turismo B1/B2</Link></li>
-              <li><Link to="/cadastro" className="text-slate-400 hover:text-white text-sm transition-colors">Visto de Estudante F-1</Link></li>
-              <li><Link to="/cadastro" className="text-slate-400 hover:text-white text-sm transition-colors">Extensão de Status</Link></li>
-              <li><Link to="/cadastro" className="text-slate-400 hover:text-white text-sm transition-colors">Troca de Status</Link></li>
+              <li><Link to="/cadastro" className="text-slate-400 hover:text-white text-sm transition-colors">{t.vistoB1B2}</Link></li>
+              <li><Link to="/cadastro" className="text-slate-400 hover:text-white text-sm transition-colors">{t.vistoF1}</Link></li>
+              <li><Link to="/cadastro" className="text-slate-400 hover:text-white text-sm transition-colors">{t.extensaoStatus}</Link></li>
+              <li><Link to="/cadastro" className="text-slate-400 hover:text-white text-sm transition-colors">{t.trocaStatus}</Link></li>
             </ul>
           </div>
           <div>
-            <h4 className="text-white font-bold text-xs uppercase tracking-widest mb-7">Plataforma</h4>
+            <h4 className="text-white font-bold text-xs uppercase tracking-widest mb-7">{t.platform}</h4>
             <ul className="space-y-4">
-              <li><Link to="/como-funciona" className="text-slate-400 hover:text-white text-sm transition-colors">Como Funciona</Link></li>
-              <li><Link to="#" className="text-slate-400 hover:text-white text-sm transition-colors">Segurança de Dados</Link></li>
-              <li><Link to="#" className="text-slate-400 hover:text-white text-sm transition-colors">Central de Ajuda</Link></li>
+              <li><Link to="/como-funciona" className="text-slate-400 hover:text-white text-sm transition-colors">{t.howItWorks}</Link></li>
+              <li><Link to="#" className="text-slate-400 hover:text-white text-sm transition-colors">{t.security}</Link></li>
+              <li><Link to="#" className="text-slate-400 hover:text-white text-sm transition-colors">{t.helpCenter}</Link></li>
             </ul>
           </div>
           <div>
-            <h4 className="text-white font-bold text-xs uppercase tracking-widest mb-7">Contato</h4>
+            <h4 className="text-white font-bold text-xs uppercase tracking-widest mb-7">{t.contact}</h4>
             <ul className="space-y-4">
               <li>
                 <a href="mailto:contato@aplikei.com.br" className="text-slate-400 hover:text-white text-sm transition-colors">
@@ -59,12 +61,13 @@ export const Footer = () => {
           </div>
         </div>
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-slate-500 text-xs">
-            © 2026 Aplikei Technologies. All rights reserved. Not a law firm, does not offer legal advice, and does not guarantee visa approval.
+          <p className="text-slate-500 text-xs text-balance">
+            © 2026 Aplikei Technologies. {t.allRightsReserved}
           </p>
           <div className="flex items-center gap-6">
-            <Link to="#" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">Termos de Uso</Link>
-            <Link to="#" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">Privacidade</Link>
+            <Link to="/legal/terms" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">{t.terms}</Link>
+            <Link to="/legal/privacy" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">{t.privacy || "Privacy"}</Link>
+            <Link to="/legal/refund" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">{t.refund || "Refund"}</Link>
           </div>
         </div>
       </div>

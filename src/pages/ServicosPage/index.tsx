@@ -13,6 +13,7 @@ import {
 import { servicesData } from "../../data/services";
 import { supabase } from "../../lib/supabase";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/Accordion";
+import { useT } from "../../i18n/LanguageContext";
 
 const iconMap: Record<string, any> = {
   MdLanguage: RiFlightTakeoffLine,
@@ -22,6 +23,8 @@ const iconMap: Record<string, any> = {
 };
 
 export default function ServicosPage() {
+  const t = useT("services");
+  const p = t.servicesPage;
   const [activeMap, setActiveMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -56,7 +59,7 @@ export default function ServicosPage() {
             className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-white/90 font-bold text-xs uppercase tracking-[0.2em] mb-8"
           >
             <RiVerifiedBadgeFill className="text-primary text-sm" />
-            Catálogo de Vistos 2026
+            {p.hero.tag}
           </motion.div>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
@@ -64,8 +67,8 @@ export default function ServicosPage() {
             transition={{ delay: 0.1 }}
             className="text-5xl lg:text-7xl font-black text-white mb-8 tracking-tighter"
           >
-            Escolha seu objetivo. <br />
-            <span className="text-primary">Nós cuidamos do resto.</span>
+            {p.hero.title} <br />
+            <span className="text-primary">{p.hero.titleHighlight}</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -73,7 +76,7 @@ export default function ServicosPage() {
             transition={{ delay: 0.2 }}
             className="text-xl text-slate-400 max-w-2xl font-medium mb-12 italic"
           >
-            Seja para estudo, turismo ou extensão de estadia, oferecemos guias digitais completos e ferramentas de análise para garantir o sucesso da sua aplicação.
+            {p.hero.description}
           </motion.p>
         </div>
       </section>
@@ -108,7 +111,7 @@ export default function ServicosPage() {
                       {!active && (
                         <div className="absolute top-6 right-6 flex items-center gap-1.5 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full z-10 shadow-lg">
                           <RiEyeOffLine className="text-xs" />
-                          Pausado
+                          {p.status.paused}
                         </div>
                       )}
 
@@ -148,37 +151,25 @@ export default function ServicosPage() {
       <section className="py-32 px-8 lg:px-16 bg-slate-50">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-20">
-            <h2 className="text-4xl lg:text-5xl font-black text-primary mb-6 tracking-tighter">Dúvidas sobre Vistos</h2>
-            <p className="text-slate-500 font-medium italic">Tudo o que você precisa saber antes de contratar nossos guias.</p>
+            <h2 className="text-4xl lg:text-5xl font-black text-primary mb-6 tracking-tighter">
+              {p.faq.title}
+            </h2>
+            <p className="text-slate-500 font-medium italic">
+              {p.faq.subtitle}
+            </p>
           </div>
           
           <Accordion type="single" collapsible className="space-y-6">
-            <AccordionItem value="item-1" className="bg-white px-8 py-4 rounded-3xl border border-slate-100 shadow-sm">
-              <AccordionTrigger className="text-left font-black text-xl text-slate-800 hover:text-primary transition-colors hover:no-underline">
-                O valor inclui a taxa consular (MRV)?
-              </AccordionTrigger>
-              <AccordionContent className="text-lg text-slate-500 font-medium leading-relaxed pt-4 italic">
-                Não. O valor pago à Aplikei é referente aos nossos guias digitais de instrução, checklists revisados e ferramenta de organização automática. As taxas governamentais americanas devem ser pagas ao consulado ou USCIS separadamente.
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="item-2" className="bg-white px-8 py-4 rounded-3xl border border-slate-100 shadow-sm">
-              <AccordionTrigger className="text-left font-black text-xl text-slate-800 hover:text-primary transition-colors hover:no-underline">
-                Como recebo meu acesso?
-              </AccordionTrigger>
-              <AccordionContent className="text-lg text-slate-500 font-medium leading-relaxed pt-4 italic">
-                O acesso é imediato após a confirmação do pagamento. Você receberá um e-mail de boas-vindas e poderá acessar sua dashboard exclusiva para começar a preencher seus dados e organizar seu processo.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-3" className="bg-white px-8 py-4 rounded-3xl border border-slate-100 shadow-sm">
-              <AccordionTrigger className="text-left font-black text-xl text-slate-800 hover:text-primary transition-colors hover:no-underline">
-                Vocês garantem a aprovação do visto?
-              </AccordionTrigger>
-              <AccordionContent className="text-lg text-slate-500 font-medium leading-relaxed pt-4 italic">
-                A decisão final cabe exclusivamente à autoridade consular americana. O que a Aplikei garante é um processo sem erros formais, com documentação organizada e formulários preenchidos com clareza, o que estatisticamente aumenta suas chances de sucesso.
-              </AccordionContent>
-            </AccordionItem>
+            {p.faq.items.map((item: any, idx: number) => (
+              <AccordionItem key={idx} value={`item-${idx}`} className="bg-white px-8 py-4 rounded-3xl border border-slate-100 shadow-sm">
+                <AccordionTrigger className="text-left font-black text-xl text-slate-800 hover:text-primary transition-colors hover:no-underline">
+                  {item.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-lg text-slate-500 font-medium leading-relaxed pt-4 italic">
+                  {item.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
           </Accordion>
         </div>
       </section>

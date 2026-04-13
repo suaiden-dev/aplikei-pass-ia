@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FiArrowRight } from "react-icons/fi";
 import { MdVerified } from "react-icons/md";
+import { useT, useLocale } from "../i18n/LanguageContext";
+import React from "react";
 
 interface HeroSectionProps {
   heroImage: string;
@@ -9,13 +11,17 @@ interface HeroSectionProps {
 }
 
 export const HeroSection = ({ heroImage, avatars }: HeroSectionProps) => {
+  const t = useT("landing");
+  const tCommon = useT("common");
+  const { lang } = useLocale();
+
   return (
     <header className="relative bg-highlight overflow-hidden py-32 lg:py-40 px-8 lg:px-16">
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-24 items-center">
         <div className="z-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/20 rounded-full text-white font-bold text-sm mb-8">
             <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
-            Prévia da Plataforma Aplikei
+            {t.hero.badge}
           </div>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -23,17 +29,17 @@ export const HeroSection = ({ heroImage, avatars }: HeroSectionProps) => {
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <h1 className="text-5xl lg:text-7xl font-extrabold leading-[1.1] mb-8 text-white">
-              Aplikei: seu visto americano com <span className="text-primary">clareza</span>
+              {t.hero.title} <span className="text-primary">{t.hero.titleHighlight}</span>
             </h1>
             <p className="text-xl text-slate-300 font-medium max-w-xl mb-12 leading-relaxed">
-              Obtenha um guia digital passo a passo para vistos americanos de Turismo (B1/B2), Estudante (F-1) e Visitante de Intercâmbio (J-1), além de ferramentas com IA para organizar seus documentos e gerar um pacote de aplicação pronto para imprimir.
+              {t.hero.subtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-5">
-              <Link to="/cadastro" className="px-10 py-5 bg-primary text-white font-bold text-lg rounded-xl shadow-2xl shadow-primary/30 hover:scale-105 transition-transform flex items-center justify-center gap-2">
-                Começar agora <FiArrowRight size={20} />
+              <Link to="/cadastro" className="px-10 py-5 bg-primary text-white font-bold text-lg rounded-xl shadow-2xl shadow-primary/30 hover:scale-105 transition-transform flex items-center justify-center gap-2 text-center">
+                {t.hero.getStarted} <FiArrowRight size={20} />
               </Link>
-              <Link to="/servicos" className="px-10 py-5 bg-white/10 border border-white/20 text-white font-bold text-lg rounded-xl hover:bg-white/20 transition-colors flex items-center justify-center">
-                Ver vistos disponíveis
+              <Link to="/servicos" className="px-10 py-5 bg-white/10 border border-white/20 text-white font-bold text-lg rounded-xl hover:bg-white/20 transition-colors flex items-center justify-center text-center">
+                {t.hero.ctaSecondary}
               </Link>
             </div>
           </motion.div>
@@ -43,7 +49,9 @@ export const HeroSection = ({ heroImage, avatars }: HeroSectionProps) => {
                 <img key={idx} alt="User" className="w-12 h-12 rounded-full bg-cover border-4 border-highlight" src={avatar} />
               ))}
             </div>
-            <p className="text-sm font-bold text-slate-400 tracking-wide">Mais de 12.000 aplicantes atendidos</p>
+            <p className="text-sm font-bold text-slate-400 tracking-wide">
+              {t.hero.approvedCount}
+            </p>
           </div>
         </div>
         <motion.div
@@ -53,7 +61,7 @@ export const HeroSection = ({ heroImage, avatars }: HeroSectionProps) => {
           className="relative"
         >
           <div className="absolute -inset-4 bg-primary/10 rounded-[3.5rem] rotate-2"></div>
-          <img alt="Estudantes internacionais juntos" className="relative z-10 w-full aspect-[4/5] object-cover rounded-[3rem] shadow-3xl" src={heroImage} />
+          <img alt={t.hero.imageAlt} className="relative z-10 w-full aspect-[4/5] object-cover rounded-[3rem] shadow-3xl" src={heroImage} />
           <motion.div
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -64,7 +72,7 @@ export const HeroSection = ({ heroImage, avatars }: HeroSectionProps) => {
               <MdVerified className="text-green-600 text-3xl" />
             </div>
             <div>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Taxa de Sucesso</p>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">{tCommon.successRate || "Success Rate"}</p>
               <p className="text-2xl font-black text-primary">98.2%</p>
             </div>
           </motion.div>

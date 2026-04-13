@@ -11,6 +11,7 @@ import {
 import { getServiceBySlug } from "../../data/services";
 import { supabase } from "../../lib/supabase";
 import { processService } from "../../services/process.service";
+import { useT } from "../../i18n/LanguageContext";
 
 type ActivationState = "loading" | "done" | "error";
 
@@ -36,6 +37,8 @@ export default function CheckoutSuccessPage() {
   const [activation, setActivation] = useState<ActivationState>("loading");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const t = useT("checkout").product.success;
+
   useEffect(() => {
     // Use the Supabase session directly — no dependency on user_accounts profile loading.
     // This runs once at mount since `slug` is stable (captured via useState initializer).
@@ -49,18 +52,20 @@ export default function CheckoutSuccessPage() {
       const authUserId = session?.user?.id;
 
       if (!authUserId) {
-        setErrorMsg("Sessão expirada. Faça login novamente.");
+        setErrorMsg(t.sessionExpired);
         setActivation("error");
         return;
       }
 
       const checkoutDependents = localStorage.getItem("checkout_dependents");
       const paidDependents = checkoutDependents ? parseInt(checkoutDependents, 10) : 0;
+      const checkoutParentId = localStorage.getItem("checkout_parent_id");
       const pendingAdvanceRaw = localStorage.getItem('pending_payment_advance');
       const isAdvancement = !!pendingAdvanceRaw;
+      const isExtraDependent = slug.startsWith("dependente-adicional-");
 
-      // Only create/upsert a process if this is a NEW purchase (not an advancement of an existing one)
-      if (!isAdvancement) {
+      // Only create/upsert a process if this is a NEW purchase (not an advancement or upgrade)
+      if (!isAdvancement && !isExtraDependent) {
         try {
           await processService.activateService(authUserId, slug, paidDependents);
         } catch (error: any) {
@@ -68,6 +73,36 @@ export default function CheckoutSuccessPage() {
            setErrorMsg(`${error.message} (code: ${error.code})`);
            setActivation("error");
            return;
+        }
+      }
+
+      // Handle extra dependent slot upgrade
+      if (isExtraDependent && checkoutParentId) {
+        try {
+          const { data: proc } = await supabase
+            .from("user_services")
+            .select("step_data")
+            .eq("id", checkoutParentId)
+            .single();
+
+          if (proc) {
+            const oldData = (proc.step_data || {}) as any;
+            const currentSlots = parseInt(String(oldData.paid_dependents || 0), 10);
+            await supabase
+              .from("user_services")
+              .update({
+                step_data: {
+                  ...oldData,
+                  paid_dependents: currentSlots + paidDependents
+                }
+              })
+              .eq("id", checkoutParentId);
+            
+            setActivation("done");
+          }
+        } catch (e) {
+          console.error("[CheckoutSuccess] extra dependent upgrade error:", e);
+          setActivation("error");
         }
       }
 
@@ -136,6 +171,7 @@ export default function CheckoutSuccessPage() {
 
       localStorage.removeItem("checkout_slug");
       localStorage.removeItem("checkout_dependents");
+      localStorage.removeItem("checkout_parent_id");
       setActivation("done");
     })();
   }, [slug]);
@@ -151,7 +187,7 @@ export default function CheckoutSuccessPage() {
         {activation === "loading" ? (
           <div className="flex flex-col items-center gap-4">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-slate-500 text-sm font-medium">Ativando seu processo...</p>
+            <p className="text-slate-500 text-sm font-medium">{t.activating}</p>
           </div>
         ) : activation === "error" ? (
           <>
@@ -159,10 +195,10 @@ export default function CheckoutSuccessPage() {
               <RiErrorWarningLine className="text-amber-400 text-[72px]" />
             </div>
             <h1 className="font-display text-2xl font-black text-slate-800 mb-2">
-              Aviso sobre o seu serviço
+              {t.errorTitle}
             </h1>
             <p className="text-slate-500 text-sm mb-4">
-              Seu pagamento foi recebido com sucesso, porém o sistema encontrou um alerta na hora de iniciar o serviço:
+              {t.errorDesc}
             </p>
             {errorMsg && (
               <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-4 py-3 mb-6 font-medium text-left shadow-inner">
@@ -174,7 +210,7 @@ export default function CheckoutSuccessPage() {
               className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-[#1649c0] transition-colors shadow-lg shadow-primary/20"
             >
               <RiDashboardLine />
-              Ir para o Dashboard
+              {t.goDashboard}
               <RiArrowRightLine />
             </Link>
           </>
@@ -199,14 +235,14 @@ export default function CheckoutSuccessPage() {
               transition={{ delay: 0.15 }}
             >
               <h1 className="font-display text-3xl font-black text-slate-800 mb-2">
-                Pagamento confirmado!
+                {t.confirmed}
               </h1>
               {service && (
                 <p className="text-slate-500 text-sm mb-1">
                   <span className="font-semibold text-slate-700">{service.title}</span>
                 </p>
               )}
-              <p className="text-slate-400 text-sm">Seu processo foi ativado com sucesso.</p>
+              <p className="text-slate-400 text-sm">{t.activated}</p>
             </motion.div>
 
             <motion.div
@@ -218,18 +254,18 @@ export default function CheckoutSuccessPage() {
               <div className="flex items-start gap-3">
                 <RiMailLine className="text-primary text-xl mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">Verifique seu e-mail</p>
+                  <p className="text-sm font-semibold text-slate-700">{t.checkEmail}</p>
                   <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
-                    Enviamos uma confirmação com os detalhes do seu processo.
+                    {t.checkEmailDesc}
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <RiDashboardLine className="text-primary text-xl mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">Acesse seu dashboard</p>
+                  <p className="text-sm font-semibold text-slate-700">{t.accessDashboard}</p>
                   <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
-                    Acompanhe o progresso do seu processo e receba atualizações em tempo real.
+                    {t.accessDashboardDesc}
                   </p>
                 </div>
               </div>
@@ -246,14 +282,14 @@ export default function CheckoutSuccessPage() {
                 className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-[#1649c0] transition-colors shadow-lg shadow-primary/20"
               >
                 <RiDashboardLine />
-                Ir para o Dashboard
+                {t.goDashboard}
                 <RiArrowRightLine />
               </Link>
               <Link
                 to="/"
                 className="w-full py-3.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors text-center"
               >
-                Voltar ao início
+                {t.backHome}
               </Link>
             </motion.div>
           </>
