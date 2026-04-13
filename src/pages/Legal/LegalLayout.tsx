@@ -10,7 +10,7 @@ interface LegalLayoutProps {
 
 export const LegalLayout: React.FC<LegalLayoutProps> = ({ children }) => {
   const { lang, setLang } = useLocale();
-  const t = useT("legal");
+
   const footerT = useT("footer");
   const location = useLocation();
 

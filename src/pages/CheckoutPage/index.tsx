@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useFormik } from "formik";
 import { z } from "zod";
@@ -48,12 +48,7 @@ const ZELLE_NAME  = ZELLE_RECIPIENT.name;
 
 const FALLBACK_EXCHANGE_RATE = 5.7;
 
-const checkoutSchema = z.object({
-  fullName: z.string().min(1, "Informe seu nome completo").min(3, "Nome muito curto"),
-  email: z.string().min(1, "Informe seu e-mail").email("E-mail inválido"),
-  phone: z.string().min(10, "Informe um telefone válido"),
-  password: z.string().optional(),
-});
+
 
 type PaymentTab = "card" | "pix" | "zelle" | "parcelow";
 
@@ -191,7 +186,7 @@ export default function CheckoutPage() {
 
   const isUpgrade = searchParams.get("upgrade") === "true";
   const parentId = searchParams.get("id");
-  const billingSlug = isUpgrade ? "slot-dependente" : (slug || "");
+
 
   const service = getServiceBySlug(slug || "");
   const [activeMethod, setActiveMethod] = useState<PaymentTab>("card");
@@ -201,6 +196,17 @@ export default function CheckoutPage() {
   const [zelleAmount, setZelleAmount] = useState("");
   const [zelleDate, setZelleDate] = useState("");
   const [zelleProof, setZelleProof] = useState<File | null>(null);
+  const [zelleCode, setZelleCode] = useState("");
+  const [zelleProofPreview, setZelleProofPreview] = useState<string | null>(null);
+
+  const handleProofSelect = (file: File) => {
+    setZelleProof(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setZelleProofPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
   const [timeLeft, setTimeLeft] = useState(() => {
     const saved = sessionStorage.getItem("checkout_timer");
     return saved ? parseInt(saved) : 3600;
