@@ -11,6 +11,7 @@ import {
 import { supabase } from "../../../lib/supabase";
 import { toast } from "sonner";
 import type { UserAccount } from "../../../services/auth.service";
+import { useT, useLocale } from "../../../i18n/LanguageContext";
 
 export interface CustomerWithStats extends UserAccount {
   productsCount: number;
@@ -18,6 +19,8 @@ export interface CustomerWithStats extends UserAccount {
 }
 
 export default function CustomersPage() {
+  const t = useT("admin");
+  const { lang: language } = useLocale();
   const [customers, setCustomers] = useState<CustomerWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,7 +70,7 @@ export default function CustomersPage() {
       setCustomers(enhancedCustomers);
     } catch (err: unknown) {
       console.error("Error loading customers:", err);
-      toast.error("Erro ao carregar clientes.");
+      toast.error(t.cases.messages.errorAction);
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +91,7 @@ export default function CustomersPage() {
     );
   }, [customers, searchTerm]);
 
-  const stats = useMemo(() => {
+  const statsCount = useMemo(() => {
     return {
       total: customers.length,
       customers: customers.filter((c) => c.role === "customer").length,
@@ -103,15 +106,21 @@ export default function CustomersPage() {
     };
   }, [customers]);
 
+  const dateFormat = new Intl.DateTimeFormat(language === 'pt' ? 'pt-BR' : language === 'es' ? 'es-ES' : 'en-US', {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+
   return (
     <div className="p-8 pb-20 max-w-[1400px] mx-auto">
       <div className="flex items-center justify-between mb-8">
-        <div>
+        <div className="text-left">
           <h1 className="font-display font-black text-3xl text-slate-800 tracking-tight">
-            Clientes
+            {t.customers.title}
           </h1>
           <p className="text-sm text-slate-500 mt-1 uppercase font-bold tracking-wider">
-            Gerencie os clientes e usuários do sistema
+            {t.customers.subtitle}
           </p>
         </div>
         <button
@@ -119,32 +128,32 @@ export default function CustomersPage() {
           className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm"
         >
           <RiLoader4Line className={isLoading ? "animate-spin" : ""} />
-          Atualizar
+          {t.shared.table.refresh}
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <StatCard
-          label="Total de Usuários"
-          value={stats.total}
+          label={t.customers.stats.totalUsers}
+          value={statsCount.total}
           icon={<RiTeamLine />}
           color="bg-slate-100 text-slate-600"
         />
         <StatCard
-          label="Clientes"
-          value={stats.customers}
+          label={t.customers.stats.customers}
+          value={statsCount.customers}
           icon={<RiUserLine />}
           color="bg-blue-100 text-blue-600"
         />
         <StatCard
-          label="Administradores"
-          value={stats.admins}
+          label={t.customers.stats.admins}
+          value={statsCount.admins}
           icon={<RiVipCrown2Line />}
           color="bg-purple-100 text-purple-600"
         />
         <StatCard
-          label="Novos (7 dias)"
-          value={stats.recent}
+          label={t.customers.stats.newUsers}
+          value={statsCount.recent}
           icon={<RiTimeLine />}
           color="bg-emerald-100 text-emerald-600"
         />
@@ -155,7 +164,7 @@ export default function CustomersPage() {
           <RiSearchLine className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg group-focus-within:text-primary transition-colors" />
           <input
             type="text"
-            placeholder="Buscar por nome, e-mail ou telefone..."
+            placeholder={t.customers.searchInput}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full h-14 pl-12 pr-6 bg-white border border-slate-100 rounded-2xl text-sm font-medium text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/30 transition-all shadow-sm shadow-slate-100"
@@ -174,7 +183,7 @@ export default function CustomersPage() {
               <RiTeamLine className="text-3xl text-slate-200" />
             </div>
             <p className="text-slate-400 font-bold tracking-tight text-lg">
-              Nenhum cliente encontrado no momento.
+              {t.customers.emptyState}
             </p>
           </div>
         ) : (
@@ -183,19 +192,19 @@ export default function CustomersPage() {
               <thead>
                 <tr className="bg-slate-50/50">
                   <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
-                    Cliente / Contato
+                    {t.customers.table.customerContact}
                   </th>
                   <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
-                    Papel
+                    {t.customers.table.role}
                   </th>
                   <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
-                    Compras / Gasto
+                    {t.customers.table.purchasesSpent}
                   </th>
                   <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
-                    Data de Cadastro
+                    {t.customers.table.admissionDate}
                   </th>
                   <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 text-right">
-                    Ações
+                    {t.customers.table.actions}
                   </th>
                 </tr>
               </thead>
@@ -217,9 +226,9 @@ export default function CustomersPage() {
                             <RiUserLine className="text-xl" />
                           )}
                         </div>
-                        <div>
+                        <div className="text-left">
                           <p className="text-sm font-black text-slate-800 leading-tight tracking-tight uppercase">
-                            {c.full_name || "Sem Nome"}
+                            {c.full_name || t.customers.table.noName}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <p className="text-[11px] text-slate-400 font-bold tracking-tight">
@@ -246,14 +255,16 @@ export default function CustomersPage() {
                             : "bg-blue-50 text-blue-600 border-blue-100"
                         }`}
                       >
-                        {c.role === "admin" ? "Admin" : "Cliente"}
+                        {c.role === "admin" ? "Admin" : language === 'pt' ? 'Cliente' : language === 'es' ? 'Cliente' : 'Customer'}
                       </span>
                     </td>
 
                     <td className="px-8 py-6">
-                      <div className="flex flex-col gap-0.5">
+                      <div className="flex flex-col gap-0.5 text-left">
                         <span className="text-sm font-black text-slate-800 tracking-tight">
-                          {c.productsCount} {c.productsCount === 1 ? "produto" : "produtos"}
+                          {c.productsCount === 1 
+                            ? t.customers.table.productCount.replace('{{count}}', '1') 
+                            : t.customers.table.productsCount.replace('{{count}}', String(c.productsCount))}
                         </span>
                         <span className="text-[11px] font-bold text-emerald-500 tracking-tight">
                           ${c.totalSpent.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -263,7 +274,7 @@ export default function CustomersPage() {
 
                     <td className="px-8 py-6">
                       <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                        {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(c.created_at))}
+                        {dateFormat.format(new Date(c.created_at))}
                       </span>
                     </td>
 
@@ -304,7 +315,7 @@ function StatCard({
           {value}
         </div>
       </div>
-      <div>
+      <div className="text-left">
         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
           {label}
         </p>

@@ -13,6 +13,7 @@ import {
   RiEyeLine,
 } from "react-icons/ri";
 import { supabase } from "../../../lib/supabase";
+import { useT } from "../../../i18n/LanguageContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,40 +26,20 @@ interface ServicePrice {
   is_active: boolean;
 }
 
-// ─── Category grouping ────────────────────────────────────────────────────────
-
-const CATEGORY: Record<string, string> = {
-  "visto-b1-b2":          "Serviços Principais",
-  "visto-f1":             "Serviços Principais",
-  "extensao-status":      "Serviços Principais",
-  "troca-status":         "Serviços Principais",
-  "dependente-b1-b2":     "Dependentes",
-  "dependente-estudante": "Dependentes",
-  "mentoria-individual":  "Mentorias",
-  "mentoria-bronze":      "Mentorias",
-  "mentoria-gold":        "Mentorias",
-  "analise-rfe-cos":      "Suporte Adicional",
-  "analise-especialista-cos": "Suporte Adicional",
-};
-
-function categoryOf(serviceId: string): string {
-  return CATEGORY[serviceId] ?? "Outros";
-}
-
 // ─── Inline edit row ──────────────────────────────────────────────────────────
 
 function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () => void }) {
+  const t = useT("admin");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(product.price.toFixed(2));
   const [saving, setSaving] = useState(false);
   const [toggling, setToggling] = useState(false);
-  // Local state so UI updates immediately, independent of schema cache
   const [isActive, setIsActive] = useState(product.is_active ?? true);
 
   const handleSave = async () => {
     const newPrice = parseFloat(draft);
     if (isNaN(newPrice) || newPrice <= 0) {
-      toast.error("Informe um valor válido.");
+      toast.error(t.products.messages.invalidValue);
       return;
     }
     setSaving(true);
@@ -69,11 +50,11 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
       .select("id, price");
 
     if (error) {
-      toast.error(`Erro ao salvar preço: ${error.message}`);
+      toast.error(t.products.messages.updateError.replace('{{error}}', error.message));
     } else if (!data || data.length === 0) {
-      toast.error("Sem permissão para alterar este produto. Verifique as políticas RLS no Supabase.");
+      toast.error(t.products.messages.noPermission);
     } else {
-      toast.success(`Preço de "${product.name}" atualizado.`);
+      toast.success(t.products.messages.updateSuccess.replace('{{name}}', product.name));
       setEditing(false);
       onSaved();
     }
@@ -95,15 +76,15 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
       .select("id, is_active");
 
     if (error) {
-      toast.error(`Erro ao alterar status: ${error.message}`);
+      toast.error(t.products.messages.statusError.replace('{{error}}', error.message));
     } else if (!data || data.length === 0) {
-      toast.error("Sem permissão para alterar este produto. Verifique as políticas RLS no Supabase.");
+      toast.error(t.products.messages.noPermission);
     } else {
       setIsActive(newValue);
       toast.success(
         newValue
-          ? `"${product.name}" ativado. Clientes podem contratar.`
-          : `"${product.name}" desativado. Contratações bloqueadas.`
+          ? t.products.messages.statusActivated.replace('{{name}}', product.name)
+          : t.products.messages.statusDeactivated.replace('{{name}}', product.name)
       );
       onSaved();
     }
@@ -117,26 +98,26 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
       }`}
     >
       {/* Service ID */}
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 text-left">
         <span className="font-mono text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-lg">
           {product.service_id}
         </span>
       </td>
 
       {/* Name */}
-      <td className="px-6 py-4">
-        <p className={`text-sm font-semibold ${isActive ? "text-slate-800" : "text-slate-400"}`}>
+      <td className="px-6 py-4 text-left">
+        <p className={`text-sm font-semibold ${isActive ? "text-slate-800" : "text-slate-400 font-bold"}`}>
           {product.name}
         </p>
       </td>
 
       {/* Currency */}
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 text-left">
         <span className="text-xs font-bold text-slate-400 uppercase">{product.currency}</span>
       </td>
 
       {/* Price */}
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 text-left">
         <AnimatePresence mode="wait">
           {editing ? (
             <motion.div
@@ -190,10 +171,10 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
               </span>
               <button
                 onClick={() => setEditing(true)}
-                className="opacity-0 group-hover:opacity-100 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold text-slate-500 hover:bg-slate-100 transition-all"
+                className="opacity-0 group-hover:opacity-100 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold text-slate-500 hover:bg-slate-100 transition-all font-black uppercase tracking-widest"
               >
                 <RiEditLine />
-                Editar
+                {t.products.table.edit}
               </button>
             </motion.div>
           )}
@@ -201,7 +182,7 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
       </td>
 
       {/* Status */}
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 text-left">
         <span
           className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${
             isActive
@@ -210,7 +191,7 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
           }`}
         >
           {isActive ? <RiEyeLine className="text-xs" /> : <RiEyeOffLine className="text-xs" />}
-          {isActive ? "Ativo" : "Inativo"}
+          {isActive ? t.products.table.active : t.products.table.inactive}
         </span>
       </td>
 
@@ -219,8 +200,8 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
         <button
           onClick={handleToggle}
           disabled={toggling}
-          title={isActive ? "Desativar produto" : "Ativar produto"}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 ${
+          title={isActive ? t.products.table.deactivate : t.products.table.activate}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50 ${
             isActive
               ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
               : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200"
@@ -233,7 +214,7 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
           ) : (
             <RiToggleLine className="text-base" />
           )}
-          {isActive ? "Desativar" : "Ativar"}
+          {isActive ? t.products.table.deactivate : t.products.table.activate}
         </button>
       </td>
     </tr>
@@ -243,8 +224,26 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ProductsPage() {
+  const t = useT("admin");
   const [products, setProducts] = useState<ServicePrice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const categoryOf = useCallback((serviceId: string): string => {
+    const CATEGORY_MAP: Record<string, string> = {
+      "visto-b1-b2":          t.products.categories.main,
+      "visto-f1":             t.products.categories.main,
+      "extensao-status":      t.products.categories.main,
+      "troca-status":         t.products.categories.main,
+      "dependente-b1-b2":     t.products.categories.dependents,
+      "dependente-estudante": t.products.categories.dependents,
+      "mentoria-individual":  t.products.categories.mentorships,
+      "mentoria-bronze":      t.products.categories.mentorships,
+      "mentoria-gold":        t.products.categories.mentorships,
+      "analise-rfe-cos":      t.products.categories.additionalSupport,
+      "analise-especialista-cos": t.products.categories.additionalSupport,
+    };
+    return CATEGORY_MAP[serviceId] ?? t.products.categories.others;
+  }, [t]);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -253,7 +252,7 @@ export default function ProductsPage() {
       .select("*")
       .order("service_id");
     if (error) {
-      toast.error("Erro ao carregar produtos.");
+      toast.error(t.cases.messages.errorAction);
     } else {
       setProducts(
         (data ?? []).map((p) => ({
@@ -263,7 +262,7 @@ export default function ProductsPage() {
       );
     }
     setIsLoading(false);
-  }, []);
+  }, [t]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -275,7 +274,7 @@ export default function ProductsPage() {
     return acc;
   }, {});
 
-  const mainServices = grouped["Serviços Principais"] ?? [];
+  const mainServices = grouped[t.products.categories.main] ?? [];
   const activeCount = products.filter((p) => p.is_active !== false).length;
   const inactiveCount = products.length - activeCount;
 
@@ -284,12 +283,12 @@ export default function ProductsPage() {
   return (
     <div className="p-8 w-full">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 text-left">
         <h1 className="font-display text-3xl font-black text-slate-800 uppercase tracking-tight">
-          Produtos & Preços
+          {t.products.title}
         </h1>
         <p className="text-sm text-slate-400 mt-1">
-          Ative ou desative produtos e edite preços. Alterações afetam contratações imediatamente.
+          {t.products.subtitle}
         </p>
       </div>
 
@@ -297,28 +296,28 @@ export default function ProductsPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {[
           {
-            label: "Total de Produtos",
+            label: t.products.stats.totalProducts,
             value: products.length,
             icon: RiPriceTag3Line,
             bg: "bg-blue-50",
             color: "text-primary",
           },
           {
-            label: "Ativos",
+            label: t.products.stats.activeCount,
             value: activeCount,
             icon: RiEyeLine,
             bg: "bg-emerald-50",
             color: "text-emerald-600",
           },
           {
-            label: "Inativos",
+            label: t.products.stats.inactiveCount,
             value: inactiveCount,
             icon: RiEyeOffLine,
             bg: "bg-red-50",
             color: "text-red-500",
           },
           {
-            label: "Ticket Médio",
+            label: t.products.stats.avgTicket,
             value: `$${(totalRevenue / Math.max(mainServices.length, 1)).toFixed(0)}`,
             icon: RiMoneyDollarCircleLine,
             bg: "bg-violet-50",
@@ -337,7 +336,7 @@ export default function ProductsPage() {
               <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center shrink-0`}>
                 <Icon className={`text-lg ${s.color}`} />
               </div>
-              <div>
+              <div className="text-left">
                 <p className="text-2xl font-black text-slate-800 leading-none">{s.value}</p>
                 <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
               </div>
@@ -354,36 +353,40 @@ export default function ProductsPage() {
       ) : (
         <div className="space-y-6">
           {Object.entries(grouped).map(([category, items]) => (
-            <div key={category} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div key={category} className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h2 className="font-display font-bold text-slate-700 text-sm">{category}</h2>
-                <span className="text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                  {items.length} {items.length === 1 ? "item" : "itens"}
+                <h2 className="font-display font-black text-slate-700 text-sm uppercase tracking-tight">{category}</h2>
+                <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-widest">
+                  {items.length === 1 
+                    ? t.products.table.itemCount.replace('{{count}}', '1') 
+                    : t.products.table.itemsCount.replace('{{count}}', String(items.length))}
                 </span>
               </div>
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-50">
-                    {["ID do Serviço", "Nome", "Moeda", "Preço", "Status", "Ação"].map((h) => (
-                      <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-slate-400 tracking-wide">
-                        {h}
-                      </th>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-50 bg-slate-50/50">
+                      {[t.products.table.serviceId, t.products.table.name, t.products.table.currency, t.products.table.price, t.products.table.status, t.products.table.actions].map((h) => (
+                        <th key={h} className="px-6 py-4 text-left text-[10px] font-black text-slate-400 tracking-widest uppercase">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((p) => (
+                      <ProductRow key={p.id} product={p} onSaved={load} />
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((p) => (
-                    <ProductRow key={p.id} product={p} onSaved={load} />
-                  ))}
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      <p className="mt-6 text-xs text-slate-300 text-center">
-        Passe o mouse sobre o preço e clique "Editar" para alterar. Use "Desativar/Ativar" para controlar a disponibilidade.
+      <p className="mt-8 text-[10px] font-black text-slate-400 text-center uppercase tracking-widest opacity-60">
+        {t.products.footerHint}
       </p>
     </div>
   );

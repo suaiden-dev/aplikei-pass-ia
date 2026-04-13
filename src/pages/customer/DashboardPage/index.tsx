@@ -17,6 +17,7 @@ import { servicesData } from "../../../data/services";
 import { processService, type UserService } from "../../../services/process.service";
 import { cn } from "../../../utils/cn";
 import { toast } from "sonner";
+import { useT } from "../../../i18n/LanguageContext";
 
 // ─── Display config per slug ──────────────────────────────────────────────────
 
@@ -88,7 +89,7 @@ function calculatePhaseProgress(proc: UserService, totalSteps: number): number {
 
 // ─── Active Process Card ───────────────────────────────────────────────────────
 
-function ActiveProcessCard({ proc, index }: { proc: UserService; index: number }) {
+function ActiveProcessCard({ proc, index, t }: { proc: UserService; index: number; t: any }) {
   const cfg = slugConfig[proc.service_slug] ?? { bg: "bg-slate-50", icon: "text-slate-400", label: proc.service_slug.toUpperCase(), category: "" };
   const iconName = heroIconNameBySlug[proc.service_slug] ?? "MdLanguage";
   const Icon = serviceIconMap[iconName] ?? RiFileTextLine;
@@ -117,10 +118,10 @@ function ActiveProcessCard({ proc, index }: { proc: UserService; index: number }
   
   // Label customizado baseado no resultado USCIS
   const getBadgeLabel = () => {
-    if (isApproved) return 'Approved';
-    if (isDenied) return 'Denied';
-    if (isFinalized) return 'Finished';
-    return 'Active';
+    if (isApproved) return t.dashboard.badges.approved;
+    if (isDenied) return t.dashboard.badges.denied;
+    if (isFinalized) return t.dashboard.badges.finished;
+    return t.dashboard.badges.active;
   };
 
   return (
@@ -151,7 +152,7 @@ function ActiveProcessCard({ proc, index }: { proc: UserService; index: number }
         </div>
 
         <h3 className="font-display font-black text-slate-800 text-lg sm:text-xl leading-none tracking-tight mb-3">
-          {cfg.label}
+          {t.dashboard.products[proc.service_slug]?.label || cfg.label}
         </h3>
 
         <div className="flex items-center gap-2 mb-8">
@@ -166,16 +167,16 @@ function ActiveProcessCard({ proc, index }: { proc: UserService; index: number }
             "text-[12px] font-bold tracking-widest uppercase",
             isApproved ? "text-emerald-600" : isDenied ? "text-red-600" : "text-slate-500"
           )}>
-            {isApproved ? "Aprovado pela USCIS" : 
-             isDenied ? "Negado / Encerrado" : 
-             uscisResult === 'rfe' ? "Aguardando RFE" :
-             "Processo em Andamento"}
+            {isApproved ? t.dashboard.status.uscisApproved : 
+             isDenied ? t.dashboard.status.deniedEncerrado : 
+             uscisResult === 'rfe' ? t.dashboard.status.awaitingRfe :
+             t.dashboard.status.inProgress}
           </span>
         </div>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between font-black">
-            <span className="text-[10px] text-slate-400 uppercase tracking-widest">Progresso</span>
+            <span className="text-[10px] text-slate-400 uppercase tracking-widest">{t.dashboard.progress}</span>
             <span className="text-xl text-slate-800">{progress}%</span>
           </div>
           <div className="relative w-full h-3 bg-slate-100 rounded-full overflow-hidden">
@@ -210,12 +211,14 @@ function ServiceCard({
   isOwned,
   isActive,
   hasActiveProcess,
+  t,
 }: {
   service: (typeof servicesData)[0];
   index: number;
   isOwned: boolean;
   isActive?: boolean;
   hasActiveProcess?: boolean;
+  t: any;
 }) {
   const Icon = serviceIconMap[service.heroIconName] ?? MdLanguage;
   const cfg = slugConfig[service.slug] ?? { bg: "bg-blue-50", icon: "text-blue-500", accent: "from-blue-400 to-blue-600", label: "", category: "" };
@@ -246,27 +249,27 @@ function ServiceCard({
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-3 mb-1.5">
               <h3 className="font-display font-black text-slate-800 text-xl leading-tight uppercase tracking-tight">
-                {service.title.replace("Visto de Turismo e Negócios ", "").replace("Visto de Estudante ", "")}
+                {t.dashboard.products[service.slug]?.label || service.title}
               </h3>
               {isOwned ? (
                 <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full uppercase tracking-widest shrink-0 flex items-center gap-1">
                   <RiCheckLine className="text-[12px]" />
-                  Ativo
+                  {t.dashboard.badges.active}
                 </span>
               ) : isActive === false ? (
                 <span className="text-[10px] font-black text-slate-400 bg-slate-50 border border-slate-200 px-3 py-1 rounded-full uppercase tracking-widest shrink-0 flex items-center gap-1">
                   <RiCloseLine className="text-[12px]" />
-                  ESGOTADO
+                  {t.dashboard.badges.soldOut}
                 </span>
               ) : (
                 <span className="text-[10px] font-black text-primary bg-primary/5 border border-primary/20 px-3 py-1 rounded-full uppercase tracking-widest shrink-0 flex items-center gap-1">
                   <RiFlashlightFill className="text-[12px]" />
-                  Disponível
+                  {t.dashboard.badges.available}
                 </span>
               )}
             </div>
             <p className="text-[11px] font-bold text-slate-400 tracking-widest uppercase">
-              {cfg.category}
+              {t.dashboard.products[service.slug]?.category || cfg.category}
             </p>
           </div>
         </div>
@@ -280,7 +283,7 @@ function ServiceCard({
         <div className="rounded-3xl bg-slate-50/80 p-6 sm:p-8 mb-10 flex-1 border border-slate-100">
           <div className="text-[11px] font-black text-slate-400 tracking-widest uppercase mb-5 flex items-center gap-2">
             <div className={cn("w-2 h-2 rounded-full", isOwned ? "bg-emerald-500" : "bg-primary")} />
-            Recursos Inclusos
+            {t.dashboard.serviceCard.includedFeatures}
           </div>
           <ul className="space-y-4">
             {features.map((f) => (
@@ -298,7 +301,7 @@ function ServiceCard({
             to={`/dashboard/processes/${service.slug}`}
             className="flex items-center justify-center gap-3 w-full py-5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-[14px] font-black uppercase tracking-[0.1em] transition-all shadow-lg shadow-emerald-500/20"
           >
-            Acessar Processo
+            {t.dashboard.serviceCard.accessProcess}
             <RiArrowRightLine className="text-xl" />
           </Link>
         ) : isActive === false ? (
@@ -306,7 +309,7 @@ function ServiceCard({
             disabled
             className="flex items-center justify-center gap-3 w-full py-5 rounded-2xl bg-slate-100 text-slate-400 text-[14px] font-black uppercase tracking-[0.1em] cursor-not-allowed border border-slate-200"
           >
-            Indisponível
+            {t.dashboard.serviceCard.unavailable}
             <MdTimer className="text-xl" />
           </button>
         ) : (
@@ -320,12 +323,12 @@ function ServiceCard({
                   : "bg-primary hover:bg-primary-hover text-white shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
               )}
             >
-              Iniciar Agora
+              {t.dashboard.serviceCard.startNow}
               <RiArrowRightLine className="text-xl" />
             </Link>
             {hasActiveProcess && (
               <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-slate-800 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none shadow-xl">
-                Conclua seu processo atual primeiro
+                {t.dashboard.serviceCard.finishCurrentFirst}
                 <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
               </div>
             )}
@@ -340,6 +343,7 @@ function ServiceCard({
 
 export default function CustomerDashboardPage() {
   const { user } = useAuth();
+  const t = useT("dashboard");
   const [userServices, setUserServices] = useState<UserService[]>([]);
   const [activeServices, setActiveServices] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -350,19 +354,43 @@ export default function CustomerDashboardPage() {
     const loadData = async () => {
       try {
         // --- PAYMENT RECOVERY LOGIC ---
-        // Detect if user landed here after Stripe purchase without hitting /checkout-success
         const recoverySlug = localStorage.getItem("checkout_slug");
         if (recoverySlug && user) {
           console.log("[Dashboard] Recovery detected for slug:", recoverySlug);
           const recoveryDeps = parseInt(localStorage.getItem("checkout_dependents") || "0", 10);
+          const recoveryParentId = localStorage.getItem("checkout_parent_id");
+          const isExtraDependent = recoverySlug.startsWith("dependente-adicional-");
           
           try {
-            await processService.activateService(user.id, recoverySlug, recoveryDeps);
-            toast.success("Pagamento confirmado! Seu processo foi ativado.");
+            if (isExtraDependent && recoveryParentId) {
+              // Get current slots and add
+              const { data: proc } = await supabase
+                .from("user_services")
+                .select("step_data")
+                .eq("id", recoveryParentId)
+                .single();
+              
+              if (proc) {
+                const oldData = (proc.step_data || {}) as any;
+                const currentSlots = parseInt(String(oldData.paid_dependents || 0), 10);
+                await supabase
+                  .from("user_services")
+                  .update({
+                    step_data: {
+                      ...oldData,
+                      paid_dependents: currentSlots + recoveryDeps
+                    }
+                  })
+                  .eq("id", recoveryParentId);
+              }
+            } else {
+              await processService.activateService(user.id, recoverySlug, recoveryDeps);
+            }
             
-            // Clean up
+            toast.success("Pagamento confirmado! Seu processo foi atualizado.");
             localStorage.removeItem("checkout_slug");
             localStorage.removeItem("checkout_dependents");
+            localStorage.removeItem("checkout_parent_id");
           } catch (recoveryErr) {
             console.error("[Dashboard] Recovery failed:", recoveryErr);
           }
@@ -396,10 +424,10 @@ export default function CustomerDashboardPage() {
   // 1. Filter only base products (exclude consultancies, etc) and Sort by date DESC
   const baseProducts = userServices
     .filter(s => 
-      servicesData.some(sd => sd.slug === s.service_slug) &&
-      !s.service_slug.startsWith("analise-") &&
-      !s.service_slug.startsWith("mentoria-") &&
-      !s.service_slug.startsWith("consultoria-")
+      !s.service_slug.toLowerCase().startsWith("analise-") &&
+      !s.service_slug.toLowerCase().startsWith("mentoria-") &&
+      !s.service_slug.toLowerCase().startsWith("consultoria-") &&
+      !s.service_slug.toLowerCase().startsWith("dependente-adicional-")
     )
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
@@ -428,9 +456,10 @@ export default function CustomerDashboardPage() {
     activeStatuses.includes(s.status) &&
     !others.find(o => o.id === s.id) &&
     servicesData.some(sd => sd.slug === s.service_slug) &&
-    !s.service_slug.startsWith("analise-") &&
-    !s.service_slug.startsWith("mentoria-") &&
-    !s.service_slug.startsWith("consultoria-")
+    !s.service_slug.toLowerCase().startsWith("analise-") &&
+    !s.service_slug.toLowerCase().startsWith("mentoria-") &&
+    !s.service_slug.toLowerCase().startsWith("consultoria-") &&
+    !s.service_slug.toLowerCase().startsWith("dependente-adicional-")
   );
   const ownedSlugs = new Set(trulyActiveProcesses.map((s) => s.service_slug));
 
@@ -443,10 +472,12 @@ export default function CustomerDashboardPage() {
         className="mb-8 md:mb-12"
       >
         <h1 className="font-display font-black text-2xl md:text-[32px] text-slate-900 leading-tight tracking-tight">
-          Dashboard
+          {t.dashboard.title}
         </h1>
         <p className="text-base font-medium text-slate-500 mt-2">
-          Welcome back{user?.fullName ? `, ${user.fullName.split(" ")[0]}` : ""}! Continue your process.
+          {t.dashboard.welcome.split('!')[0]}
+          {user?.fullName ? `, ${user.fullName.split(" ")[0]}` : ""}! 
+          {t.dashboard.welcome.split('!')[1]}
         </p>
       </motion.div>
 
@@ -459,14 +490,14 @@ export default function CustomerDashboardPage() {
           <div>
             <div className="flex items-center gap-3">
               <h2 className="font-display font-black text-slate-800 text-lg uppercase tracking-tight">
-                Your Active Cases
+                {t.dashboard.sections.activeCases}
               </h2>
               <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 text-sm font-black">
                 {trulyActiveProcesses.length}
               </span>
             </div>
             <p className="text-[13px] font-medium text-slate-400 mt-0.5 italic">
-              Track the progress and next steps of your guides.
+              {t.dashboard.sections.activeCasesDesc}
             </p>
           </div>
         </div>
@@ -480,15 +511,15 @@ export default function CustomerDashboardPage() {
             <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-6">
               <RiBriefcaseLine className="text-4xl text-slate-200" />
             </div>
-            <p className="text-lg font-bold text-slate-400">No active cases yet.</p>
+            <p className="text-lg font-bold text-slate-400">{t.dashboard.sections.noActiveCases}</p>
             <p className="text-sm font-medium text-slate-300 mt-1">
-              Get started with one of our guides below.
+              {t.dashboard.sections.noActiveCasesDesc}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {trulyActiveProcesses.map((proc, i) => (
-              <ActiveProcessCard key={proc.id} proc={proc} index={i} />
+              <ActiveProcessCard key={proc.id} proc={proc} index={i} t={t} />
             ))}
           </div>
         )}
@@ -502,10 +533,10 @@ export default function CustomerDashboardPage() {
           </div>
           <div>
             <h2 className="font-display font-black text-slate-800 text-lg uppercase tracking-tight">
-              Get Cases
+              {t.dashboard.sections.getCases}
             </h2>
             <p className="text-[13px] font-medium text-slate-400 mt-0.5 italic">
-              Enhance your journey with specialized guides.
+              {t.dashboard.sections.getCasesDesc}
             </p>
           </div>
         </div>
@@ -519,9 +550,10 @@ export default function CustomerDashboardPage() {
           ) : (
             servicesData
               .filter(s =>
-                !s.slug.startsWith("analise-") &&
-                !s.slug.startsWith("mentoria-") &&
-                !s.slug.startsWith("consultoria-") &&
+                !s.slug.toLowerCase().startsWith("analise-") &&
+                !s.slug.toLowerCase().startsWith("mentoria-") &&
+                !s.slug.toLowerCase().startsWith("consultoria-") &&
+                !s.slug.toLowerCase().startsWith("dependente-adicional-") &&
                 s.slug !== "visto-b1-b2-reaplicacao" &&
                 s.slug !== "visto-f1-reaplicacao" &&
                 !ownedSlugs.has(s.slug)
@@ -534,6 +566,7 @@ export default function CustomerDashboardPage() {
                   isOwned={false}
                   isActive={activeServices[service.slug]}
                   hasActiveProcess={false}
+                  t={t}
                 />
               ))
           )}

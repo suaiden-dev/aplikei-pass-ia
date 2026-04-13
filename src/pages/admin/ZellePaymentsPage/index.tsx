@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { RiSearchLine, RiCheckboxCircleLine, RiCloseCircleLine, RiImageLine, RiExternalLinkLine, RiCloseLine } from "react-icons/ri";
 import { supabase } from "../../../lib/supabase";
 import { paymentService } from "../../../services/payment.service";
+import { useT } from "../../../i18n/LanguageContext";
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -75,31 +77,6 @@ const APLIKEI_SLUGS = [
   "consultoria-b1-negativa"
 ];
 
-function slugToName(slug: string | null | undefined): string {
-  if (!slug) return "—";
-  const map: Record<string, string> = {
-    "visto-b1-b2":     "Visto B1 B2",
-    "visto-f1":        "Visto F1",
-    "extensao-status": "Extensão Status",
-    "troca-status":    "Troca Status",
-  };
-  return (
-    map[slug] ??
-    slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-  );
-}
-
-function methodLabel(m: string): string {
-  const map: Record<string, string> = {
-    stripe_card: "Stripe Card",
-    stripe_pix:  "Stripe Pix",
-    zelle:       "Zelle",
-    card:        "Stripe Card",
-    pix:         "Stripe Pix",
-  };
-  return map[m] ?? m.toUpperCase();
-}
-
 function buildProofUrl(raw: string | null | undefined): string | null {
   if (!raw) return null;
   if (raw.startsWith("http")) return raw;
@@ -113,6 +90,7 @@ function fmtCurrency(n: number) {
 // ─── Proof lightbox ───────────────────────────────────────────────────────────
 
 function ProofLightbox({ url, name, onClose }: { url: string; name: string; onClose: () => void }) {
+  const t = useT("admin");
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
@@ -126,11 +104,11 @@ function ProofLightbox({ url, name, onClose }: { url: string; name: string; onCl
         className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-xl w-full"
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-          <p className="text-sm font-bold text-slate-800">Comprovante — {name}</p>
+          <p className="text-sm font-bold text-slate-800">{t.payments.modals.proofTitle.replace('{{name}}', name)}</p>
           <div className="flex items-center gap-3">
             <a href={url} target="_blank" rel="noopener noreferrer"
                className="flex items-center gap-1 text-xs text-primary hover:underline">
-              <RiExternalLinkLine /> Abrir
+              <RiExternalLinkLine /> {t.payments.modals.openOriginal}
             </a>
             <button onClick={onClose}
               className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors">
@@ -155,6 +133,7 @@ function RejectModal({
   onConfirm: (reason: string) => void;
   onClose: () => void;
 }) {
+  const t = useT("admin");
   const [reason, setReason] = useState("");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
@@ -166,26 +145,26 @@ function RejectModal({
         onClick={(e) => e.stopPropagation()}
         className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md"
       >
-        <h3 className="font-display font-bold text-slate-800 text-lg mb-1">Rejeitar pagamento</h3>
-        <p className="text-sm text-slate-400 mb-4">
+        <h3 className="font-display font-bold text-slate-800 text-lg mb-1">{t.payments.modals.rejectTitle}</h3>
+        <p className="text-sm text-slate-400 mb-4 text-left">
           <strong className="text-slate-600">{payment.clientName}</strong> — {fmtCurrency(payment.amount)}
         </p>
-        <label className="block text-xs font-semibold text-slate-600 mb-1.5">Motivo (opcional)</label>
+        <label className="block text-xs font-semibold text-slate-600 mb-1.5 text-left">{t.payments.modals.reasonLabel}</label>
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           rows={3}
-          placeholder="Ex: Comprovante ilegível, valor incorreto..."
+          placeholder={t.payments.modals.reasonPlaceholder}
           className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 resize-none focus:outline-none focus:ring-2 focus:ring-red-200"
         />
         <div className="flex gap-3 mt-4">
           <button onClick={onClose}
             className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-            Cancelar
+            {t.shared.rejection.cancel}
           </button>
-          <button onClick={() => onConfirm(reason || "Rejeitado pelo administrador.")}
+          <button onClick={() => onConfirm(reason || t.payments.messages.rejectedByAdmin)}
             className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors">
-            Confirmar
+            {t.shared.confirm.replace('Confirmar', t.shared.rejection.confirm)}
           </button>
         </div>
       </motion.div>
@@ -210,35 +189,49 @@ function PaymentRow({
   onViewProof: () => void;
   busy: boolean;
 }) {
+  const t = useT("admin");
+
+  const methodLabel = useCallback((m: string): string => {
+    const map: Record<string, string> = {
+      stripe_card: "Stripe Card",
+      stripe_pix:  "Stripe Pix",
+      zelle:       "Zelle",
+      card:        "Stripe Card",
+      pix:         "Stripe Pix",
+    };
+    const label = map[m] ?? m.toUpperCase();
+    return t.payments.table.method.replace('{{method}}', label);
+  }, [t]);
+
   return (
     <tr className="border-b border-slate-100 last:border-0 hover:bg-slate-50/40 transition-colors">
       {/* Cliente */}
-      <td className="px-6 py-4">
-        <p className="font-semibold text-slate-800 text-sm">{p.clientName || "Cliente sem nome"}</p>
+      <td className="px-6 py-4 text-left">
+        <p className="font-semibold text-slate-800 text-sm">{p.clientName || t.payments.table.noClientName}</p>
         {p.clientEmail && <p className="text-xs text-slate-400 mt-0.5">{p.clientEmail}</p>}
       </td>
 
       {/* Serviço */}
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 text-left">
         <span className="inline-flex items-center px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-semibold">
           {p.serviceName}
         </span>
         {p.expectedAmount && (
           <p className="text-[10px] text-slate-400 mt-1">
-            Esperado: {fmtCurrency(p.expectedAmount)}
+            {t.payments.table.expected.replace('{{amount}}', fmtCurrency(p.expectedAmount))}
           </p>
         )}
         {p.confirmationCode && (
           <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
-            Cód: {p.confirmationCode}
+            {t.payments.table.code.replace('{{code}}', p.confirmationCode)}
           </p>
         )}
       </td>
 
       {/* Pagamento */}
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 text-left">
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
-          Método: {methodLabel(p.method)}
+          {methodLabel(p.method)}
         </p>
         <p className="font-black text-primary text-lg leading-tight">
           {fmtCurrency(p.amount)}
@@ -246,12 +239,12 @@ function PaymentRow({
         {p.proofUrl && (
           <button onClick={onViewProof}
             className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-primary transition-colors mt-1">
-            <RiImageLine className="text-xs" /> Ver comprovante
+            <RiImageLine className="text-xs" /> {t.payments.table.viewProof}
           </button>
         )}
         {p.source === "stripe" && p.paymentStatus && (
           <p className="flex items-center gap-1 text-[10px] text-emerald-500 font-bold uppercase mt-1">
-            <RiCheckboxCircleLine className="text-xs" /> Status: {p.paymentStatus}
+            <RiCheckboxCircleLine className="text-xs" /> {t.payments.table.statusSuffix.replace('{{status}}', p.paymentStatus)}
           </p>
         )}
       </td>
@@ -263,7 +256,7 @@ function PaymentRow({
             <button
               onClick={onApprove}
               disabled={busy}
-              title="Aprovar"
+              title={t.shared.confirm.replace('Confirmar', 'Aprovar')}
               className="w-9 h-9 rounded-full border-2 border-emerald-500 text-emerald-500 flex items-center justify-center hover:bg-emerald-50 disabled:opacity-40 transition-colors"
             >
               <RiCheckboxCircleLine className="text-xl" />
@@ -271,7 +264,7 @@ function PaymentRow({
             <button
               onClick={onReject}
               disabled={busy}
-              title="Rejeitar"
+              title={t.shared.rejection.confirm}
               className="w-9 h-9 rounded-full border-2 border-red-400 text-red-400 flex items-center justify-center hover:bg-red-50 disabled:opacity-40 transition-colors"
             >
               <RiCloseCircleLine className="text-xl" />
@@ -289,6 +282,9 @@ function PaymentRow({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ZellePaymentsPage() {
+  const t = useT("admin");
+  const tVisas = useT("visas");
+
   const [tab, setTab] = useState<Tab>("pending");
   const [search, setSearch] = useState("");
   const [payments, setPayments] = useState<UnifiedPayment[]>([]);
@@ -297,10 +293,27 @@ export default function ZellePaymentsPage() {
   const [rejectTarget, setRejectTarget] = useState<UnifiedPayment | null>(null);
   const [proofTarget, setProofTarget] = useState<UnifiedPayment | null>(null);
 
+  const slugToName = useCallback((slug: string | null | undefined): string => {
+    if (!slug) return "—";
+    
+    // Mapping slugs to their translation keys in visas namespace
+    const serviceNameMap: Record<string, string> = {
+      "visto-b1-b2": tVisas.onboardingPage.services["visto-b1-b2"].label,
+      "visto-f1": tVisas.onboardingPage.services["visto-f1"].label,
+      "extensao-status": tVisas.onboardingPage.services["extensao-status"].label,
+      "troca-status": tVisas.onboardingPage.services["troca-status"].label,
+    };
+    
+    return (
+      serviceNameMap[slug] ??
+      slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+    );
+  }, [tVisas]);
+
+
   const load = useCallback(async () => {
     setIsLoading(true);
     const results: UnifiedPayment[] = [];
-
 
     if (tab === "pending") {
       const { data: zelleData, error: zelleErr } = await supabase
@@ -447,7 +460,7 @@ export default function ZellePaymentsPage() {
 
     setPayments(results);
     setIsLoading(false);
-  }, [tab]);
+  }, [tab, slugToName]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -476,10 +489,10 @@ export default function ZellePaymentsPage() {
         );
       }
 
-      toast.success(`${p.clientName || "Cliente"} aprovado!`);
+      toast.success(t.payments.messages.approveSuccess.replace('{{name}}', p.clientName || t.shared.client));
       await load();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao aprovar.");
+      toast.error(t.payments.messages.approveError);
     } finally {
       setBusy(null);
     }
@@ -491,10 +504,10 @@ export default function ZellePaymentsPage() {
     setBusy(p.id);
     try {
       await paymentService.rejectZellePayment(p.zelleId, reason);
-      toast.success("Pagamento rejeitado.");
+      toast.success(t.payments.messages.rejectSuccess);
       await load();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao rejeitar.");
+      toast.error(t.payments.messages.rejectError);
     } finally {
       setBusy(null);
     }
@@ -512,21 +525,21 @@ export default function ZellePaymentsPage() {
   });
 
   const TABS: { key: Tab; label: string }[] = [
-    { key: "pending",  label: "Pendentes" },
-    { key: "approved", label: "Aprovados" },
-    { key: "rejected", label: "Rejeitados" },
+    { key: "pending",  label: t.payments.tabs.pending },
+    { key: "approved", label: t.payments.tabs.approved },
+    { key: "rejected", label: t.payments.tabs.rejected },
   ];
 
   return (
     <>
       <div className="p-8 w-full">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 text-left">
           <h1 className="font-display text-3xl font-black text-slate-800 uppercase tracking-tight">
-            Gestão de Pagamentos
+            {t.payments.title}
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Fila de verificação manual de transferências Zelle e ativação de serviços.
+            {t.payments.subtitle}
           </p>
         </div>
 
@@ -551,14 +564,14 @@ export default function ZellePaymentsPage() {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           {/* Search */}
           <div className="px-6 py-4 border-b border-slate-100">
-            <div className="relative max-w-xs">
-              <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
+            <div className="relative max-w-xs group">
+              <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
               <input
                 type="text"
-                placeholder="Buscar por serviço..."
+                placeholder={t.payments.searchPlaceholder}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/30 transition-all"
               />
             </div>
           </div>
@@ -570,34 +583,36 @@ export default function ZellePaymentsPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="py-16 text-center text-sm text-slate-400">
-              Nenhum pagamento encontrado.
+              {t.shared.table.empty.replace('Nenhum item encontrado', t.payments.title.toLowerCase())}
             </div>
           ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  {["Cliente", "Nome do Serviço", "Pagamento", "Ações"].map((h) => (
-                    <th key={h}
-                      className="px-6 py-3 text-left text-xs font-semibold text-slate-400 tracking-wide">
-                      {h}
-                    </th>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/50">
+                    {[t.payments.table.customer, t.payments.table.serviceName, t.payments.table.payment, t.payments.table.actions].map((h) => (
+                      <th key={h}
+                        className="px-6 py-3 text-left text-xs font-black text-slate-400 tracking-widest uppercase">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((p) => (
+                    <PaymentRow
+                      key={`${p.source}-${p.id}`}
+                      p={p}
+                      tab={tab}
+                      busy={busy === p.id}
+                      onApprove={() => handleApprove(p)}
+                      onReject={() => setRejectTarget(p)}
+                      onViewProof={() => setProofTarget(p)}
+                    />
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((p) => (
-                  <PaymentRow
-                    key={`${p.source}-${p.id}`}
-                    p={p}
-                    tab={tab}
-                    busy={busy === p.id}
-                    onApprove={() => handleApprove(p)}
-                    onReject={() => setRejectTarget(p)}
-                    onViewProof={() => setProofTarget(p)}
-                  />
-                ))}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>

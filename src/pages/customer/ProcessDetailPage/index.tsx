@@ -22,6 +22,7 @@ import { getServiceBySlug } from "../../../data/services";
 import { toast } from "sonner";
 import PhotoUploadOverlay from "../../../components/PhotoUploadOverlay";
 import { cn } from "../../../utils/cn";
+import { useT } from "../../../i18n/LanguageContext";
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,
@@ -55,22 +56,22 @@ function calculatePhaseProgress(proc: UserService, totalSteps: number, isCOS: bo
 
   /**
    * Lógica de Pesos para COS (Total 25 passos):
-   * 0-12 (Envio Inicial): 0% a 60%
-   * 13-18 (RFE): 60% a 85%
-   * 19-24 (Motion): 85% a 99%
+   * 0-12 (Engajamento Inicial/Aplicação): 0% a 95%
+   * 13-18 (RFE - Condicional): 95% a 97%
+   * 19-24 (Motion - Condicional): 97% a 99%
    */
   if (step <= 12) {
-    return Math.max(0, Math.min(60, Math.round((step / 12) * 60)));
+    return Math.max(0, Math.min(95, Math.round((step / 12) * 95)));
   }
   
   if (step >= 13 && step <= 18) {
     const rfeProgress = (step - 13) / 5;
-    return Math.max(60, Math.min(85, 60 + Math.round(rfeProgress * 25)));
+    return Math.max(95, Math.min(97, 95 + Math.round(rfeProgress * 2)));
   }
 
   if (step >= 19 && step <= 24) {
     const motionProgress = (step - 19) / 5;
-    return Math.max(85, Math.min(99, 85 + Math.round(motionProgress * 15)));
+    return Math.max(97, Math.min(99, 97 + Math.round(motionProgress * 2)));
   }
 
   return 99;
@@ -79,13 +80,20 @@ function calculatePhaseProgress(proc: UserService, totalSteps: number, isCOS: bo
 export default function ProcessDetailPage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const [searchParams] = useSearchParams();
+  const t = useT("visas");
   const { user } = useAuth();
   const navigate = useNavigate();
   const [proc, setProc] = useState<UserService | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [hasPhoto, setHasPhoto] = useState(!!user?.avatarUrl);
+  const [hasPhoto, setHasPhoto] = useState(false);
   const [hasConsultation, setHasConsultation] = useState(false);
+
+  useEffect(() => {
+    if (user?.passportPhotoUrl || user?.avatarUrl) {
+      setHasPhoto(true);
+    }
+  }, [user]);
 
   const service = slug ? getServiceBySlug(slug) : null;
   const cfg = slug ? slugConfig[slug] : null;
@@ -117,11 +125,11 @@ export default function ProcessDetailPage() {
         }
       }
     } catch {
-      toast.error("Erro ao carregar detalhes do processo.");
+      toast.error(t.processDetail.errorLoad);
     } finally {
       setIsLoading(false);
     }
-  }, [user, slug]);
+  }, [user, slug, t]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -130,10 +138,10 @@ export default function ProcessDetailPage() {
     setIsUpdating(true);
     try {
       await processService.requestStepReview(proc.id);
-      toast.success("Solicitação enviada para revisão!");
+      toast.success(t.processDetail.successRequestReview);
       await load();
     } catch {
-      toast.error("Erro ao enviar solicitação.");
+      toast.error(t.processDetail.errorRequestReview);
     } finally {
       setIsUpdating(false);
     }
@@ -150,8 +158,8 @@ export default function ProcessDetailPage() {
   if (!service || !proc) {
     return (
       <div className="p-12 text-center">
-        <h1 className="text-2xl font-bold text-slate-800">Processo não encontrado.</h1>
-        <Link to="/dashboard/processes" className="text-primary font-bold mt-4 inline-block">Voltar</Link>
+        <h1 className="text-2xl font-bold text-slate-800">{t.processDetail.processNotFound}</h1>
+        <Link to="/dashboard/processes" className="text-primary font-bold mt-4 inline-block">{t.processDetail.back}</Link>
       </div>
     );
   }
@@ -165,7 +173,7 @@ export default function ProcessDetailPage() {
   
   const stepData = proc.step_data || {};
   const targetVisa = stepData.targetVisa as string;
-  const showF1Steps = isCOS ? (targetVisa === "F1/F2") : true;
+  const showF1Steps = isCOS ? (targetVisa === "F1") : true;
   
   const stepsToSkip = [`${prefix}i20_upload`, `${prefix}sevis_fee`, `${prefix}analysis_i20_sevis`];
   const motionSteps = [
@@ -180,8 +188,20 @@ export default function ProcessDetailPage() {
   const uscisResult = stepData.uscis_official_result as string;
   const showMotionSteps = isCOS && uscisResult === 'denied';
 
+  const rfeSteps = [
+    `${prefix}rfe_explanation`,
+    `${prefix}rfe_instruction`,
+    `${prefix}rfe_proposal`,
+    `${prefix}rfe_accept_proposal`,
+    `${prefix}rfe_final_ship`,
+    `${prefix}rfe_end`
+  ];
+
+  const showRfeSteps = isCOS && uscisResult === 'rfe';
+
   const steps = fullSteps.filter(s => {
     if (isCOS && !showF1Steps && stepsToSkip.includes(s.id)) return false;
+    if (isCOS && !showRfeSteps && rfeSteps.includes(s.id)) return false;
     if (isCOS && !showMotionSteps && motionSteps.includes(s.id)) return false;
     return true;
   });
@@ -228,7 +248,7 @@ export default function ProcessDetailPage() {
           className="inline-flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-slate-700 transition-colors"
         >
           <RiArrowLeftLine />
-          My Cases
+          {t.processDetail.myCases}
         </Link>
       </motion.div>
 
@@ -243,7 +263,7 @@ export default function ProcessDetailPage() {
             <RiErrorWarningLine className="text-xl" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-black text-red-900 uppercase tracking-tight mb-1">Ação Necessária: Ajuste Solicitado</h3>
+            <h3 className="text-sm font-black text-red-900 uppercase tracking-tight mb-1">{t.processDetail.actionRequired}</h3>
             <p className="text-sm text-red-700 font-medium leading-relaxed italic mb-3">"{String(stepData.admin_feedback)}"</p>
             
             {Array.isArray(stepData.rejected_items) && (stepData.rejected_items as string[]).length > 0 && (
@@ -267,7 +287,7 @@ export default function ProcessDetailPage() {
                 }}
                 className="px-6 py-2.5 rounded-xl bg-red-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-red-700 shadow-lg shadow-red-500/20 transition-all border-none flex items-center gap-2"
                >
-                 <RiPlayFill className="text-base" /> Corrigir Pendências
+                 <RiPlayFill className="text-base" /> {t.processDetail.fixProblems}
                </button>
             </div>
           </div>
@@ -287,25 +307,25 @@ export default function ProcessDetailPage() {
            <div className="relative flex flex-col lg:flex-row items-center justify-between gap-8">
              <div className="flex-1 text-center lg:text-left">
                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest mb-6">
-                 <RiFlagLine className="text-sm" /> Status: Visto Negado
+                 <RiFlagLine className="text-sm" /> Status: {t.processDetail.visaDenied}
                </div>
                
                {hasConsultation ? (
                  <>
-                   <h2 className="font-display font-black text-3xl sm:text-4xl leading-tight tracking-tight mb-4">
-                     Consulta <span className="text-primary">Confirmada</span>.
-                   </h2>
+                   <h2 className="font-display font-black text-3xl sm:text-4xl leading-tight tracking-tight mb-4" dangerouslySetInnerHTML={{ 
+                     __html: t.processDetail.denialBanner?.consultationConfirmed.replace('{highlight}', `<span className="text-primary">${t.processDetail.denialBanner?.consultationConfirmedHighlight}</span>`) || `Consulta <span className="text-primary">Confirmada</span>.`
+                   }} />
                    <p className="text-slate-400 text-base font-medium max-w-xl">
-                     Recebemos a confirmação do seu pagamento para a Consultoria Especializada. Em breve, um especialista de nossa equipe entrará em contato para iniciar a análise técnica do seu caso e reverter essa pendência.
+                     {t.processDetail.denialBanner?.consultationConfirmedDesc}
                    </p>
                  </>
                ) : (
                  <>
-                   <h2 className="font-display font-black text-3xl sm:text-4xl leading-tight tracking-tight mb-4">
-                     Não aceite a negativa.<br/>Vamos <span className="text-primary">reverter</span> sua situação.
-                   </h2>
+                   <h2 className="font-display font-black text-3xl sm:text-4xl leading-tight tracking-tight mb-4" dangerouslySetInnerHTML={{
+                     __html: t.processDetail.denialTitle.replace('{highlight}', `<span className="text-primary">${t.processDetail.denialTitleHighlight}</span>`)
+                   }} />
                    <p className="text-slate-400 text-base font-medium max-w-xl">
-                     Sua jornada não termina aqui. A maioria das negativas {slug.includes("f1") ? "F-1" : "B1/B2"} ocorre por erros técnicos na DS-160, documentação imprecisa ou falta de estratégia. Nossa consultoria especializada analisa seu caso individualmente.
+                     {t.processDetail.denialDesc.replace('{slug}', slug.includes("f1") ? "F-1" : "B1/B2")}
                    </p>
                  </>
                )}
@@ -319,11 +339,11 @@ export default function ProcessDetailPage() {
                      className="flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white text-sm font-black uppercase tracking-widest transition-all shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98]"
                    >
                      <RiUserVoiceLine className="text-xl" />
-                     Agendar Consultoria {slug.includes("f1") ? "($150)" : "($100)"}
+                     {t.processDetail.scheduleConsultation.replace('{price}', slug.includes("f1") ? "($150)" : "($100)")}
                      <RiArrowRightLine className="text-xl" />
                    </Link>
                    <p className="text-center text-[10px] text-slate-500 mt-4 uppercase font-bold tracking-widest">
-                     Vagas limitadas para esta semana
+                     {t.processDetail.limitedSlots}
                    </p>
                  </div>
                )}
@@ -331,7 +351,7 @@ export default function ProcessDetailPage() {
                  to={slug.includes("f1") ? "/checkout/visto-f1-reaplicacao" : "/checkout/visto-b1-b2-reaplicacao"}
                  className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-black uppercase tracking-widest transition-all"
                >
-                 Recomeçar Processo
+                 {t.processDetail.restartProcess}
                  <RiArrowRightLine className="text-xl" />
                </Link>
              </div>
@@ -352,10 +372,10 @@ export default function ProcessDetailPage() {
             </div>
             <div>
               <h1 className="font-display font-black text-[28px] text-slate-900 leading-tight tracking-tight">
-                {cfg?.label ?? service.title}
+                {t.processDetail.services?.[slug]?.label || cfg?.label || service.title}
               </h1>
               <p className="text-[11px] font-bold text-slate-400 tracking-widest uppercase mt-1">
-                {cfg?.category ?? "Guia Completo"}
+                {t.processDetail.services?.[slug]?.category || cfg?.category || "Guia Completo"}
               </p>
             </div>
           </motion.div>
@@ -399,10 +419,10 @@ export default function ProcessDetailPage() {
                     <h3 className={`text-sm font-bold uppercase tracking-tight mb-1 ${
                       isCurrent ? "text-primary" : "text-slate-700"
                     }`}>
-                      {step.title}
+                      {t.processSteps?.[step.id]?.title || step.title}
                     </h3>
                     <p className="text-[13px] text-slate-500 font-medium leading-relaxed">
-                      {step.description}
+                      {t.processSteps?.[step.id]?.description || step.description}
                     </p>
 
                     {/* Show View button for completed steps in COS, B1/B2 or F1 */}
@@ -411,7 +431,7 @@ export default function ProcessDetailPage() {
                         onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${fullSteps.indexOf(step)}`)}
                         className="mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:border-primary hover:text-primary transition-all bg-white"
                       >
-                        <RiInformationLine className="text-sm" /> Visualizar Etapa
+                        <RiInformationLine className="text-sm" /> {t.processDetail.viewStep}
                       </button>
                     )}
 
@@ -429,7 +449,7 @@ export default function ProcessDetailPage() {
                                  <div className="flex items-start gap-3">
                                    <RiErrorWarningLine className="text-red-500 text-xl shrink-0 mt-0.5" />
                                    <p className="text-xs text-red-600 font-bold leading-normal">
-                                     Aguardando correções solicitadas pela nossa equipe. Clique no botão abaixo para revisar seu formulário e documentos.
+                                     {t.processDetail.waitingCorrectionsDesc}
                                    </p>
                                  </div>
                                  <button
@@ -441,7 +461,7 @@ export default function ProcessDetailPage() {
                                     className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-500/20 transition-all border-none"
                                  >
                                    <RiPlayFill className="text-lg" />
-                                   Corrigir Pendências
+                                   {t.processDetail.fixProblems}
                                  </button>
                                </div>
                              ) : (
@@ -450,14 +470,14 @@ export default function ProcessDetailPage() {
                                     <RiTimeLine className="text-primary text-xl shrink-0 mt-0.5" />
                                     <p className="text-xs text-slate-600 font-medium leading-normal">
                                       {slug.startsWith("visto-b1-b2") && idx === 6 
-                                        ? "UMA CONTA SERÁ CRIADA UTILIZANDO SEU EMAIL NO SITE DO CONSULADO. Nossa equipe está processando seus dados para gerar o seu acesso oficial."
+                                        ? t.processDetail.accountCreationNoticeDesc
                                         : slug.startsWith("visto-b1-b2") && idx === 8
-                                        ? "O BOLETO ESTÁ SENDO GERADO PELA EQUIPE DA TAXA DO CONSULADO. Você será notificado assim que o boleto ou as opções de cartão estiverem disponíveis."
+                                        ? t.processDetail.taxGenerationNoticeDesc
                                         : slug.startsWith("visto-b1-b2") && idx === 10
                                         ? isFinalized 
-                                          ? "Tudo pronto! Sua convocação para o CASV e Consulado foi confirmada. Clique no botão abaixo para ver todos os detalhes e se preparar." 
-                                          : "AGUARDANDO AGENDAMENTO FINAL. Nossa equipe está confirmando as datas e locais do CASV e Consulado. Aproveite para se preparar!"
-                                        : "Nossa equipe está analisando as informações enviadas. Você será notificado assim que esta etapa for concluída e o próximo passo for liberado."}
+                                          ? t.processDetail.schedulingConfirmedDesc
+                                          : t.processDetail.waitingSchedulingDesc
+                                        : t.processDetail.underReviewDesc}
                                     </p>
                                   </div>
                                   {isConsular && idx === (slug.includes("f1") ? 11 : 10) && (
@@ -465,7 +485,7 @@ export default function ProcessDetailPage() {
                                       onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?step=${slug.includes("f1") ? 11 : 10}`)}
                                       className="w-full py-3 rounded-xl border-2 border-primary/20 text-primary font-black text-[11px] uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all flex items-center justify-center gap-2 shadow-sm"
                                     >
-                                       <RiBookOpenLine className="text-base" /> Preparar para Entrevista
+                                       <RiBookOpenLine className="text-base" /> {t.processDetail.prepareForInterview}
                                     </button>
                                   )}
                                 </div>
@@ -475,21 +495,21 @@ export default function ProcessDetailPage() {
                               <div className="flex items-start gap-3 mb-5">
                                  <RiInformationLine className="text-primary text-xl shrink-0 mt-0.5" />
                                  <p className="text-xs text-slate-600 font-medium leading-normal">
-                                   {isConsular && idx === 0 
-                                     ? "Siga para o preenchimento da Etapa 1: o formulário DS-160. Seus dados serão salvos automaticamente."
-                                     : slug.includes("f1") && idx === 1 
-                                     ? "Faça o upload do seu formulário I-20 para que nossa equipe valide seus dados estudantis."
-                                     : isConsular && idx === (slug.includes("f1") ? 4 : 3)
-                                     ? "Revise sua DS-160 no site oficial, assine digitalmente e envie os comprovantes para nossa equipe."
-                                     : isConsular && idx === (slug.includes("f1") ? 6 : 5)
-                                     ? "Informe sua data preferencial para o agendamento no CASV/Consulado."
-                                     : isConsular && idx === (slug.includes("f1") ? 8 : 7)
-                                     ? "Acesse o seu e-mail e clique no link de confirmação enviado pelo consulado para validar sua conta."
-                                     : isConsular && idx === (slug.includes("f1") ? 10 : 9)
-                                     ? "Escolha o método de pagamento da sua taxa consular (Boleto ou Cartão de Crédito) para concluir seu agendamento."
-                                     : isConsular && idx === (slug.includes("f1") ? 11 : 10)
-                                     ? "Tudo pronto! Confira os detalhes da sua convocação e prepare-se para a entrevista."
-                                     : "Clique no botão abaixo para acessar o formulário desta etapa. Após preencher e confirmar, você retornará aqui para acompanhar o progresso."}
+                                    {isConsular && idx === 0 
+                                      ? t.processDetail.step0Desc
+                                      : slug.includes("f1") && idx === 1 
+                                      ? t.processDetail.step1F1Desc
+                                      : isConsular && idx === (slug.includes("f1") ? 4 : 3)
+                                      ? t.processDetail.stepReviewSignDesc
+                                      : isConsular && idx === (slug.includes("f1") ? 6 : 5)
+                                      ? t.processDetail.stepCasvDesc
+                                      : isConsular && idx === (slug.includes("f1") ? 8 : 7)
+                                      ? t.processDetail.stepConfirmEmailDesc
+                                      : isConsular && idx === (slug.includes("f1") ? 10 : 9)
+                                      ? t.processDetail.stepPaymentDesc
+                                      : isConsular && idx === (slug.includes("f1") ? 11 : 10)
+                                      ? t.processDetail.stepFinalSchedulingDesc
+                                      : t.processDetail.genericStepDesc}
                                  </p>
                                </div>
                               <button
@@ -500,16 +520,16 @@ export default function ProcessDetailPage() {
                               >
                                  <RiPlayFill className="text-lg" />
                                  {isConsular && idx === 0 
-                                   ? "Iniciar Etapa 1" 
+                                   ? t.processDetail.startStep1 
                                    : slug.includes("f1") && idx === 1
-                                   ? "Fazer Upload I-20"
+                                   ? t.processDetail.uploadI20
                                    : isConsular && idx === (slug.includes("f1") ? 8 : 7) 
-                                   ? "Confirmar E-mail"
+                                   ? t.processDetail.confirmEmail
                                    : isConsular && idx === (slug.includes("f1") ? 10 : 9)
-                                   ? "Realizar Pagamento"
+                                   ? t.processDetail.makePayment
                                    : isConsular && idx === (slug.includes("f1") ? 11 : 10)
-                                   ? "Ver Convocação"
-                                   : `Ir para Etapa ${idx + 1}`}
+                                   ? t.processDetail.viewSummons
+                                   : t.processDetail.goToStep.replace("{n}", (idx + 1).toString())}
                                </button>
                             </>
                           )
@@ -520,8 +540,8 @@ export default function ProcessDetailPage() {
                               <RiInformationLine className="text-primary text-xl shrink-0 mt-0.5" />
                               <p className="text-xs text-slate-600 font-medium leading-normal">
                                 {proc.status === "awaiting_review"
-                                  ? "Você já enviou esta etapa para revisão. Nossa equipe está validando as informações para liberar o próximo passo."
-                                  : "Siga as instruções acima para completar esta etapa. Assim que terminar, clique no botão abaixo para que nossa equipe possa revisar e liberar a próxima fase."}
+                                  ? t.processDetail.awaitingReviewDesc
+                                  : t.processDetail.completeStepDesc}
                               </p>
                             </div>
                             <button
@@ -538,12 +558,12 @@ export default function ProcessDetailPage() {
                               ) : proc.status === "awaiting_review" ? (
                                 <>
                                   <RiTimeLine className="text-lg" />
-                                  Aguardando Revisão
+                                  {t.processDetail.awaitingReview}
                                 </>
                               ) : (
                                 <>
                                   <RiPlayFill className="text-lg" />
-                                  Concluir Etapa {idx + 1}
+                                  {t.processDetail.completeStep.replace("{n}", (idx + 1).toString())}
                                 </>
                               )}
                             </button>
@@ -566,7 +586,7 @@ export default function ProcessDetailPage() {
             className="p-8 rounded-3xl bg-slate-900 text-white shadow-xl"
           >
             <div className="text-[10px] font-black text-slate-400 tracking-widest uppercase mb-4">
-              Status do Processo
+              {t.processDetail.processStatus}
             </div>
             
             <div className="flex items-center gap-3 mb-6">
@@ -581,17 +601,17 @@ export default function ProcessDetailPage() {
                 isApproved ? "text-emerald-400" :
                 isDenied ? "text-red-400" : ""
               )}>
-                {isApproved ? "Aprovado" : 
-                  isDenied ? "Negado" :
-                  proc.status === "active" ? "Em Andamento" : 
-                  proc.status === "awaiting_review" ? "Em Revisão" : 
-                  proc.status === "completed" ? "Finalizado" : proc.status}
+                {isApproved ? t.processDetail.approved : 
+                  isDenied ? t.processDetail.denied :
+                  proc.status === "active" ? t.processDetail.inProgress : 
+                  proc.status === "awaiting_review" ? t.processDetail.inReview : 
+                  proc.status === "completed" ? t.processDetail.finalized : proc.status}
               </span>
             </div>
 
             <div className="space-y-4">
               <div className="flex justify-between items-end">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Progresso</span>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{t.processDetail.progressLabel}</span>
                 <span className={cn(
                   "text-2xl font-black tabular-nums",
                   isApproved ? "text-emerald-400" : isDenied ? "text-red-400" : ""
@@ -613,21 +633,21 @@ export default function ProcessDetailPage() {
           </motion.div>
 
           <div className="p-8 rounded-3xl border border-slate-100 bg-white">
-            <h4 className="text-sm font-black text-slate-800 uppercase tracking-tight mb-4">Precisa de Ajuda?</h4>
+            <h4 className="text-sm font-black text-slate-800 uppercase tracking-tight mb-4">{t.processDetail.needHelp}</h4>
             <p className="text-[13px] text-slate-500 font-medium leading-relaxed mb-6">
-              Nossa equipe de suporte está disponível para tirar qualquer dúvida sobre este passo.
+              {t.processDetail.supportDesc}
             </p>
             <Link
               to="/dashboard/support"
               className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all"
             >
-              Falar com Consultor
+              {t.processDetail.talkToConsultant}
               <RiArrowRightLine />
             </Link>
           </div>
         </div>
       </div>
-      {isCOS && user && !hasPhoto && (proc.current_step ?? 0) === 0 && (
+      {user && proc && !hasPhoto && (proc.current_step ?? 0) === 0 && (
         <PhotoUploadOverlay
           userId={user.id}
           onSuccess={() => setHasPhoto(true)}

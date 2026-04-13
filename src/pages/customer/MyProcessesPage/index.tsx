@@ -12,6 +12,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import { servicesData } from "../../../data/services";
 import { processService, type UserService } from "../../../services/process.service";
 import { cn } from "../../../utils/cn";
+import { useT } from "../../../i18n/LanguageContext";
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,
@@ -35,13 +36,6 @@ const heroIconNameBySlug: Record<string, string> = {
   "visto-f1":    "MdSchool",
   "extensao-status": "MdHistory",
   "troca-status": "MdSyncAlt",
-};
-
-const statusConfig: Record<string, { label: string; color: string; dot: string }> = {
-  active:    { label: "Em andamento", color: "text-primary bg-primary/5 border-primary/20", dot: "bg-primary" },
-  pending:   { label: "Pendente",     color: "text-amber-600 bg-amber-50 border-amber-200", dot: "bg-amber-500" },
-  completed: { label: "Concluído",    color: "text-emerald-600 bg-emerald-50 border-emerald-200", dot: "bg-emerald-500" },
-  cancelled: { label: "Cancelado",   color: "text-red-500 bg-red-50 border-red-200", dot: "bg-red-400" },
 };
 
 function calculatePhaseProgress(proc: UserService, totalSteps: number): number {
@@ -85,9 +79,16 @@ function calculatePhaseProgress(proc: UserService, totalSteps: number): number {
 }
 
 function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
-  const cfg = slugConfig[proc.service_slug] ?? {
+  const tVisas = useT("visas");
+  const t = useT("dashboard");
+  const cfgBase = slugConfig[proc.service_slug] ?? {
     bg: "bg-slate-50", icon: "text-slate-400", accent: "bg-slate-400",
     label: proc.service_slug.toUpperCase(), category: "",
+  };
+  const cfg = {
+    ...cfgBase,
+    label: tVisas.services?.[proc.service_slug]?.label || cfgBase.label,
+    category: tVisas.services?.[proc.service_slug]?.category || cfgBase.category,
   };
   const iconName = heroIconNameBySlug[proc.service_slug] ?? "MdLanguage";
   const Icon = serviceIconMap[iconName] ?? MdLanguage;
@@ -95,7 +96,7 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
   const service = servicesData.find(s => s.slug === proc.service_slug);
   const totalSteps = service?.steps.length ?? 1;
   const currentStep = proc.current_step ?? 0;
-  const stepData = proc.step_data || {};
+  const stepData = (proc.step_data || {}) as Record<string, any>;
   
   // Lógica de Resultado Final across all phases
   const uscisResult = stepData.uscis_official_result as string;
@@ -112,8 +113,36 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
   const isFinalized = proc.status === 'completed' || isApproved || isDenied;
   const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, totalSteps);
   
-  const st = statusConfig[isFinalized ? 'completed' : proc.status] ?? statusConfig.pending;
+  const statusKey = isFinalized ? 'completed' : proc.status;
+  const displayLabel = isApproved ? t.dashboard.myCases.status.approved : 
+                       isDenied ? t.dashboard.myCases.status.denied : 
+                       (t.dashboard.myCases.status[statusKey] || t.dashboard.myCases.status.pending);
 
+  const getStatusColor = () => {
+    if (isApproved) return "text-emerald-700 bg-emerald-50 border-emerald-200";
+    if (isDenied) return "text-red-700 bg-red-50 border-red-200";
+    
+    switch (statusKey) {
+      case 'active': return "text-primary bg-primary/5 border-primary/20";
+      case 'pending': return "text-amber-600 bg-amber-50 border-amber-200";
+      case 'completed': return "text-emerald-600 bg-emerald-50 border-emerald-200";
+      case 'cancelled': return "text-red-500 bg-red-50 border-red-200";
+      default: return "text-amber-600 bg-amber-50 border-amber-200";
+    }
+  };
+
+  const getDotColor = () => {
+    if (isApproved) return "bg-emerald-500";
+    if (isDenied) return "bg-red-500";
+    
+    switch (statusKey) {
+      case 'active': return "bg-primary";
+      case 'pending': return "bg-amber-500";
+      case 'completed': return "bg-emerald-500";
+      case 'cancelled': return "bg-red-400";
+      default: return "bg-amber-500";
+    }
+  };
 
   return (
     <motion.div
@@ -129,26 +158,21 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
         </div>
 
         {/* Info */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 text-left">
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <h3 className="font-display font-black text-slate-800 text-[15px] tracking-tight leading-none uppercase">
-              {cfg.label}
+              {t.dashboard.products[proc.service_slug]?.label || cfg.label}
             </h3>
             <span className={cn(
               "text-[9px] font-black px-2 py-0.5 rounded-full border uppercase tracking-widest flex items-center gap-1",
-              isApproved ? "text-emerald-700 bg-emerald-50 border-emerald-200" :
-              isDenied ? "text-red-700 bg-red-50 border-red-200" : st.color
+              getStatusColor()
             )}>
-              <span className={cn(
-                "w-1.5 h-1.5 rounded-full",
-                isApproved ? "bg-emerald-500" :
-                isDenied ? "bg-red-500" : st.dot
-              )} />
-              {isApproved ? "Aprovado" : isDenied ? "Negado" : st.label}
+              <span className={cn("w-1.5 h-1.5 rounded-full", getDotColor())} />
+              {displayLabel}
             </span>
           </div>
           <p className="text-[11px] font-bold text-slate-400 tracking-widest uppercase">
-            {cfg.category}
+            {t.dashboard.products[proc.service_slug]?.category || cfg.category}
           </p>
         </div>
       </div>
@@ -158,7 +182,7 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
         {/* Progress */}
         <div className="flex flex-col items-end gap-2 w-full sm:w-36">
           <div className="flex items-center justify-between w-full">
-            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest">Progresso</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest">{t.dashboard.myCases.progress}</span>
             <span className={cn(
               "text-[12px] sm:text-[13px] font-black tabular-nums",
               isApproved ? "text-emerald-600" : isDenied ? "text-red-600" : "text-primary"
@@ -182,7 +206,7 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
           to={`/dashboard/processes/${proc.service_slug}?id=${proc.id}`}
           className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 sm:py-2.5 rounded-xl bg-primary text-white text-[12px] font-black uppercase tracking-wider transition-all hover:bg-primary-hover shadow-lg shadow-primary/20 sm:opacity-0 sm:group-hover:opacity-100 sm:translate-x-2 sm:group-hover:translate-x-0 duration-200"
         >
-          Acessar Case
+          {t.dashboard.myCases.accessCase}
           <RiArrowRightLine className="text-base" />
         </Link>
       </div>
@@ -191,6 +215,7 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
 }
 
 export default function MyProcessesPage() {
+  const t = useT("dashboard");
   const { user } = useAuth();
   const [userServices, setUserServices] = useState<UserService[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -199,8 +224,6 @@ export default function MyProcessesPage() {
     if (!user) return;
     processService.getUserServices(user.id)
       .then((data) => {
-        const b1b2s = data.filter(s => s.service_slug === 'visto-b1-b2');
-        console.log("[DEBUG] Total processes loaded:", data.length, "- B1/B2 count:", b1b2s.length, b1b2s);
         setUserServices(data);
       })
       .finally(() => setIsLoading(false));
@@ -211,9 +234,10 @@ export default function MyProcessesPage() {
   // 1. Filter only base products (exclude consultancies, etc) and Sort by date DESC
   const baseProducts = userServices
     .filter(s => 
-      !s.service_slug.startsWith("analise-") &&
-      !s.service_slug.startsWith("mentoria-") &&
-      !s.service_slug.startsWith("consultoria-")
+      !s.service_slug.toLowerCase().startsWith("analise-") &&
+      !s.service_slug.toLowerCase().startsWith("mentoria-") &&
+      !s.service_slug.toLowerCase().startsWith("consultoria-") &&
+      !s.service_slug.toLowerCase().startsWith("dependente-adicional-")
     )
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
@@ -251,13 +275,13 @@ export default function MyProcessesPage() {
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        className="mb-8 md:mb-12"
+        className="mb-8 md:mb-12 text-left"
       >
-        <h1 className="font-display font-black text-2xl md:text-[32px] text-slate-900 leading-tight tracking-tight">
-          My Cases
+        <h1 className="font-display font-black text-2xl md:text-[32px] text-slate-900 leading-tight tracking-tight uppercase">
+          {t.dashboard.myCases.title}
         </h1>
         <p className="text-sm md:text-base font-medium text-slate-500 mt-2 italic">
-          Acompanhe o status e progresso de todos os seus cases.
+          {t.dashboard.myCases.subtitle}
         </p>
       </motion.div>
 
@@ -270,15 +294,15 @@ export default function MyProcessesPage() {
           <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-6">
             <RiBriefcaseLine className="text-4xl text-slate-200" />
           </div>
-          <p className="text-lg font-bold text-slate-400">No cases yet.</p>
+          <p className="text-lg font-bold text-slate-400">{t.dashboard.myCases.noCases}</p>
           <p className="text-sm font-medium text-slate-300 mt-1">
-            Start a new process from the dashboard.
+            {t.dashboard.myCases.noCasesDesc}
           </p>
           <Link
             to="/dashboard"
             className="mt-6 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-[13px] font-black uppercase tracking-wider hover:bg-primary-hover transition-all shadow-sm shadow-primary/20"
           >
-            Go to Dashboard
+            {t.dashboard.myCases.goDashboard}
             <RiArrowRightLine />
           </Link>
         </div>
@@ -286,13 +310,13 @@ export default function MyProcessesPage() {
         <div className="space-y-10">
           {/* Active */}
           {active.length > 0 && (
-            <section>
+            <section className="text-left">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                   <RiFlashlightFill className="text-primary text-base rotate-12" />
                 </div>
                 <h2 className="font-display font-black text-slate-800 text-base uppercase tracking-tight">
-                  Active
+                  {t.dashboard.myCases.active}
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-primary/5 text-primary text-xs font-black">
                   {active.length}
@@ -308,13 +332,13 @@ export default function MyProcessesPage() {
 
           {/* Others */}
           {others.length > 0 && (
-            <section>
+            <section className="text-left">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
                   <RiTimeLine className="text-slate-400 text-base" />
                 </div>
                 <h2 className="font-display font-black text-slate-800 text-base uppercase tracking-tight">
-                  History
+                  {t.dashboard.myCases.history}
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs font-black">
                   {others.length}
