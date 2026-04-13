@@ -1,4 +1,4 @@
-import { type UserAccount } from "../models/user.model";
+
 
 export interface CoverLetterData {
   reasonGoUS?: string;

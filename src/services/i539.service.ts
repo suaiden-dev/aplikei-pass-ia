@@ -64,6 +64,9 @@ export type I539Data = {
   interpreterPhone?: string; interpreterPhoneAlt?: string;
   interpreterEmail?: string; interpreterLanguage?: string;
   interpreterSignature?: string; interpreterSignatureDate?: string;
+  preparerFamilyName?: string; preparerGivenName?: string;
+  preparerBusiness?: string; preparerPhone?: string;
+  preparerFax?: string; preparerEmail?: string;
   preparerSignature?: string; preparerSignatureDate?: string;
   dependentsA?: I539AData[];
 };

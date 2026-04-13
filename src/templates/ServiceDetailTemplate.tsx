@@ -71,7 +71,7 @@ export default function ServiceDetailTemplate({
   const displayForWhom = catalogEntry?.forWhom || service?.forWhom || [];
   const displayNotForWhom = catalogEntry?.notForWhom || service?.notForWhom || [];
   const displayIncluded = catalogEntry?.included || service?.included || [];
-  const displayRequirements = catalogEntry?.requirements || service?.requirements || [];
+
   const displayFaq = catalogEntry?.faq || service?.faq || [];
   const { user } = useAuth();
   const [hasActiveProcess, setHasActiveProcess] = useState(false);
