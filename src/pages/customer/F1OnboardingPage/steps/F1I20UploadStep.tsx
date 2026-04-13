@@ -10,6 +10,7 @@ import {
 
 import { supabase } from "../../../../lib/supabase";
 import { processService } from "../../../../services/process.service";
+import { useT } from "../../../../i18n/LanguageContext";
 
 interface F1I20UploadStepProps {
   procId: string;
@@ -24,6 +25,7 @@ type DocType = "i20_document";
 export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }: F1I20UploadStepProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState<DocType | null>(null);
+  const t = useT("visas");
   
   const [paths, setPaths] = useState<Record<DocType, string | null>>({
     i20_document: null
@@ -58,9 +60,9 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
       setPaths(prev => ({ ...prev, [docType]: filePath }));
 
       await processService.updateStepData(procId, { docs: updatedDocs });
-      toast.success("Documento enviado com sucesso!");
+      toast.success(t.onboardingPage.f1.i20Success);
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Erro no upload");
+      toast.error((err as Error).message || "Error");
     } finally {
       setUploadingDoc(null);
     }
@@ -68,7 +70,7 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
 
   const handleComplete = async () => {
     if (!paths.i20_document) {
-      toast.error("Por favor, envie o formulário I-20.");
+      toast.error(t.onboardingPage.f1.i20SelectError);
       return;
     }
     setIsSubmitting(true);
@@ -83,7 +85,7 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
       await processService.approveStep(procId, 2, false);
       await processService.requestStepReview(procId);
       
-      toast.success("I-20 enviado para análise!");
+      toast.success(t.onboardingPage.f1.i20AnalysisToast);
       onComplete();
     } catch (err: unknown) {
       toast.error((err as Error).message);
@@ -95,8 +97,8 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
   const docConfigs: { type: DocType; label: string; desc: string; icon: typeof RiFileTextLine }[] = [
     { 
       type: "i20_document", 
-      label: "Formulário I-20", 
-      desc: "Documento emitido pela sua instituição de ensino americana.", 
+      label: t.onboardingPage.f1.i20DocLabel, 
+      desc: t.onboardingPage.f1.i20DocDesc, 
       icon: RiFileTextLine 
     }
   ];
@@ -111,7 +113,7 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-[11px] font-black text-red-900 uppercase tracking-widest mb-1">
-              Correção Solicitada
+              {t.onboardingPage.correctionRequested || "Correção Solicitada"}
             </h3>
             <p className="text-sm text-red-700 font-medium leading-relaxed">
               &ldquo;{adminFeedback}&rdquo;
@@ -121,10 +123,11 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
       )}
 
       <div className="text-center max-w-2xl mx-auto mb-10">
-        <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-3">Upload do I-20</h2>
+        <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-3">
+          {t.onboardingPage.f1.i20UploadTitle}
+        </h2>
         <p className="text-slate-500 font-medium text-sm leading-relaxed">
-          Para prosseguirmos com seu visto F-1, precisamos validar seu formulário I-20. <br className="hidden sm:block" />
-          Certifique-se de que a imagem está nítida e sem reflexos.
+          {t.onboardingPage.f1.i20UploadDesc}
         </p>
       </div>
 
@@ -160,7 +163,7 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
                   ${isUploaded ? 'border-emerald-200 bg-white text-emerald-600' : 'border-slate-100 bg-slate-50/50 hover:border-primary/40 hover:bg-white text-slate-400'}
                   ${isRejected ? 'border-red-300 bg-white text-red-500' : ''}
                 `}>
-                  {isUploading ? "Enviando..." : isUploaded ? (isRejected ? "Reenviar Arquivo" : "Arquivo Enviado") : "Selecionar Arquivo"}
+                  {isUploading ? t.onboardingPage.uploadingBtn : isUploaded ? (isRejected ? t.onboardingPage.f1.resubmitFile : t.onboardingPage.fileSent) : t.onboardingPage.f1.selectFile}
                 </div>
                 <input 
                   type="file" 
@@ -188,7 +191,7 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
           disabled={isSubmitting}
           className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all font-mono"
         >
-          Voltar para Dashboard
+          {t.onboardingPage.backToDashboard}
         </button>
 
         <button
@@ -201,7 +204,7 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
             <RiLoader4Line className="animate-spin text-lg" />
           ) : (
             <>
-              Confirmar e Prosseguir
+              {t.onboardingPage.f1.confirmAndProceed}
               <RiArrowRightLine className="text-lg" />
             </>
           )}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams, useParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useParams, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   RiArrowLeftSLine,
@@ -20,6 +20,10 @@ import I539FormStep from "./I539FormStep";
 import CoverLetterStep from "./CoverLetterStep";
 import FinalFormsStep from "./FinalFormsStep";
 import FinalPackageStep from "./FinalPackageStep";
+import I20UploadStep from "./I20UploadStep";
+import SevisFeeStep from "./SevisFeeStep";
+import { type ServiceData, StepConfig } from "../../../templates/ServiceDetailTemplate";
+import { useT } from "../../../i18n/LanguageContext";
 import { 
   MotionExplanationStep, 
   MotionInstructionStep, 
@@ -33,10 +37,16 @@ import {
   RFEEndStep
 } from "./RFEWorkflow";
 import { DocUploadCard, type DocFile } from "../../../components/DocUploadCard";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../../components/ui/dialog";
+
+// Assets
+import imgTutor1 from "../../../assets/tutor_i94/arrastar_ate_o_final_para_aceitar.png";
+import imgTutor2 from "../../../assets/tutor_i94/fazerupload_ou_usar_a_camera_do_documento.png";
+import imgTutor3 from "../../../assets/tutor_i94/preencher_campos.png";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type VisaType = "B1/B2" | "F1/F2" | "J1/J2" | "L1/L2" | "R1/R2" | "Other";
+type VisaType = string;
 
 interface Dependent {
   id: string;
@@ -48,7 +58,7 @@ interface Dependent {
 }
 
 
-const VISA_OPTIONS: { label: VisaType; icon: string; color: string }[] = [
+const CURRENT_VISA_OPTIONS: { label: string; icon: string; color: string }[] = [
   { label: "B1/B2",  icon: "🌐", color: "text-sky-500" },
   { label: "F1/F2",  icon: "🎓", color: "text-green-500" },
   { label: "J1/J2",  icon: "🔄", color: "text-violet-500" },
@@ -57,11 +67,20 @@ const VISA_OPTIONS: { label: VisaType; icon: string; color: string }[] = [
   { label: "Other",  icon: "···", color: "text-slate-400" },
 ];
 
+const TARGET_VISA_OPTIONS: { label: string; icon: string; color: string }[] = [
+  { label: "B1/B2",  icon: "🌐", color: "text-sky-500" },
+  { label: "F1",     icon: "🎓", color: "text-green-500" },
+  { label: "J1",     icon: "🔄", color: "text-violet-500" },
+];
+
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function COSOnboardingPage() {
+  const t = useT("onboarding");
   const navigate = useNavigate();
-  const { slug } = useParams<{ slug: string }>();
+  const { slug: urlSlug } = useParams<{ slug: string }>();
+  const location = useLocation();
+  const slug = urlSlug || (location.pathname.includes("extensao-status") ? "extensao-status" : "troca-status");
   const [searchParams] = useSearchParams();
   const stepIdx = Number(searchParams.get("step") ?? "0");
 
@@ -87,7 +106,7 @@ export default function COSOnboardingPage() {
   const [docs, setDocs] = useState<Record<string, DocFile>>({
     i94:          { file: null, label: "COS I94" },
     passportVisa: { file: null, label: "COS PASSPORT VISA PRINCIPAL" },
-    proofBrazil:  { file: null, label: "COS PROOF OF RESIDENCE BRAZIL" },
+    proofBrazil:  { file: null, label: "COS PROOF OF RESIDENCE" },
     bankStatement:{ file: null, label: "COS BANK STATEMENT" },
   });
 
@@ -101,14 +120,31 @@ export default function COSOnboardingPage() {
   const canSubmitStep1 = Object.values(docs).every(d => d.file !== null || d.path);
   const canSubmit = (stepIdx === 0 ? canSubmitStep0 : stepIdx === 1 ? canSubmitStep1 : true);
 
-  // Load process data
   useEffect(() => {
-    if (user && slug) {
-      processService.getUserServiceBySlug(user.id, slug)
-        .then(data => {
-          if (!data) return;
-          console.log("Hydrating process data:", data);
-          setProc(data);
+    async function load() {
+      console.log("[COSOnboarding] load() effect triggered", { userId: user?.id, slug, idParam: searchParams.get("id") });
+      if (!user || !slug) return;
+      
+      const idParam = searchParams.get("id");
+      let data = null;
+
+      if (idParam) {
+        data = await processService.getServiceById(idParam);
+        // Safety: verify user owns this process
+        if (data && data.user_id !== user.id) {
+          data = null;
+        }
+      } else {
+        data = await processService.getUserServiceBySlug(user.id, slug);
+      }
+
+      if (!data) {
+        console.log("[COSOnboarding] No process found for:", { userId: user.id, slug, idParam });
+        return;
+      }
+
+      console.log("[COSOnboarding] Success hydrating process data:", data);
+      setProc(data);
           
           if (data.step_data) {
             if (data.step_data.targetVisa) setTargetVisa(data.step_data.targetVisa as VisaType);
@@ -133,18 +169,24 @@ export default function COSOnboardingPage() {
                 return next;
               });
             }
-          }
-        });
+      }
     }
-  }, [user, stepIdx, slug]);
+    load();
+  }, [user, stepIdx, slug, searchParams]);
 
   // Handle doc slot generation
   const getDocSlots = () => {
+    const isExtension = slug === "extensao-status";
+    const cosTotal = 22000 + (dependents.length * 5000);
+    const bankSubtitle = isExtension 
+      ? "Extensão 1.000U$/mes = U$ 6.000"
+      : `COS U$ 22,000 + U$ 5.000 por dependente = U$ ${cosTotal.toLocaleString('en-US')}`;
+
     const slots = [
       { key: "i94", title: "Form I-94 (Principal)", subtitle: "U.S. Entry Record", category: "Personal Documents" },
       { key: "passportVisa", title: "Passport and Visa (Principal)", subtitle: "Bio page + Visa stamp", category: "Personal Documents" },
-      { key: "proofBrazil", title: "Proof of Residence (Brazil)", subtitle: "Utility bill or bank doc", category: "Personal Documents" },
-      { key: "bankStatement", title: "Bank Statement", subtitle: "Financial support proof", category: "Financial Documents" },
+      { key: "proofBrazil", title: "Proof of Residence", subtitle: "Utility bill or bank doc", category: "Personal Documents" },
+      { key: "bankStatement", title: "Bank Statement", subtitle: bankSubtitle, category: "Financial Documents" },
     ];
 
     dependents.forEach(dep => {
@@ -252,7 +294,7 @@ export default function COSOnboardingPage() {
         const uscisResult = freshProc.step_data?.uscis_official_result as string;
         const rfeResult = freshProc.step_data?.uscis_rfe_result as string;
 
-        const showF1Steps = targetVisa === "F1/F2";
+        const showF1Steps = targetVisa === "F1";
         if (!showF1Steps) {
           const stepsToSkipIds = ["cos_i20_upload", "cos_sevis_fee", "cos_analysis_i20_sevis"];
           while (nextStepIdx < service.steps.length && stepsToSkipIds.includes(service.steps[nextStepIdx].id)) {
@@ -298,13 +340,12 @@ export default function COSOnboardingPage() {
         if (!isMotionEnd && (isCorrection || (nextStep?.type === "admin_action") || isFinal)) {
           await processService.requestStepReview(proc.id);
         }
+        toast.success(t.cos.toasts.stepSent);
+        navigate(`/dashboard/processes/${slug}`);
       }
-      
-      toast.success("Etapa enviada!");
-      navigate(`/dashboard/processes/${slug}`);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Erro desconhecido";
-      toast.error("Erro ao salvar: " + message);
+      toast.error(t.cos.toasts.errorSaving + ": " + message);
     } finally {
       setIsSubmitting(false);
     }
@@ -315,11 +356,11 @@ export default function COSOnboardingPage() {
       {/* Top bar */}
       <div className="bg-white border-b border-slate-100 px-8 py-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-black text-slate-900 tracking-tight">Onboarding</h1>
+          <h1 className="text-xl font-black text-slate-900 tracking-tight">{t.cos.title}</h1>
           <p className="text-xs text-slate-400 font-medium mt-0.5">
-            Fill in the information to build your final package.{" "}
+            {t.cos.subtitle}{" "}
             <span className="text-primary font-black uppercase tracking-widest ml-1">
-              CHANGE OF STATUS
+              {t.cos.badge}
             </span>
           </p>
         </div>
@@ -339,18 +380,18 @@ export default function COSOnboardingPage() {
             {stepIdx === 0 && (
               <>
                 <div className="px-8 py-6 border-b border-slate-100">
-                  <h2 className="text-xl font-black text-slate-900 tracking-tight">COS Application Form</h2>
-                  <p className="text-sm text-slate-400 font-medium mt-1">Fill in the information for your change of status.</p>
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">{t.cos.form.title}</h2>
+                  <p className="text-sm text-slate-400 font-medium mt-1">{t.cos.form.desc}</p>
                 </div>
 
                 <div className="px-8 py-6 space-y-8">
                   {/* Current visa */}
                   <div>
                     <label className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-1">
-                      What is your current visa? <span className="text-red-500">*</span>
+                      {t.cos.form.currentVisaLabel} <span className="text-red-500">*</span>
                     </label>
                     <div className="grid grid-cols-3 gap-3">
-                      {VISA_OPTIONS.map(v => {
+                      {CURRENT_VISA_OPTIONS.map(v => {
                         const isRejected = isFieldRejected("currentVisa");
                         return (
                           <button
@@ -375,10 +416,10 @@ export default function COSOnboardingPage() {
                   {/* Target visa */}
                   <div>
                     <label className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-1">
-                      Which visa do you want to switch to? <span className="text-red-500">*</span>
+                      {t.cos.form.targetVisaLabel} <span className="text-red-500">*</span>
                     </label>
                     <div className="grid grid-cols-3 gap-3">
-                      {VISA_OPTIONS.map(v => {
+                      {TARGET_VISA_OPTIONS.map(v => {
                         const isRejected = isFieldRejected("targetVisa");
                         return (
                           <button
@@ -403,7 +444,7 @@ export default function COSOnboardingPage() {
                   {/* I-94 Date */}
                   <div>
                     <label className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-1">
-                      Authorized stay date from I-94 <span className="text-red-500">*</span>
+                      {t.cos.form.i94DateLabel} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
@@ -417,56 +458,161 @@ export default function COSOnboardingPage() {
                       }`}
                     />
                     <div className="mt-2 text-primary font-bold text-xs uppercase tracking-widest pl-1">
-                      Main Applicant I-94
+                      {t.cos.form.mainApplicantI94}
                     </div>
-                    <div className="mt-1">
+                    <div className="mt-1 flex items-center gap-3">
                       <a
-                        href="https://i94.cbp.dhs.gov/I94/#/recent-search"
+                        href="https://i94.cbp.dhs.gov/home"
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs text-primary font-semibold flex items-center gap-1 hover:underline"
+                        className="text-xs text-primary font-semibold flex items-center gap-1 hover:underline underline-offset-4 decoration-primary/30"
                       >
-                        Instructions to search for stay date ↗
+                        {t.cos.form.i94Website} ↗
                       </a>
+
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button className="text-xs text-slate-500 font-bold hover:text-primary transition-colors flex items-center gap-1">
+                            <RiInformationLine className="text-sm" /> {t.cos.form.i94TutorialLink}
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl bg-white p-0 overflow-hidden border-none rounded-3xl shadow-2xl">
+                          <DialogHeader className="p-8 bg-slate-900 border-b border-slate-800">
+                            <DialogTitle className="text-xl font-black text-white tracking-tight flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white">
+                                <RiInformationLine className="text-2xl" />
+                              </div>
+                              {t.cos.form.i94Tutorial.title}
+                            </DialogTitle>
+                          </DialogHeader>
+                          
+                          <div className="p-8 space-y-12 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                            {/* Step 1 */}
+                            <div className="flex gap-6">
+                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center font-black text-slate-900">1</div>
+                              <div className="flex-1 space-y-4">
+                                <p className="text-base font-black text-slate-800 tracking-tight leading-relaxed">
+                                  {t.cos.form.i94Tutorial.step1}
+                                  <span className="block text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">{t.cos.form.i94Tutorial.step1Sub}</span>
+                                </p>
+                                <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
+                                  <img src={imgTutor1} alt="Accept Terms" className="w-full h-auto" />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Step 2 */}
+                            <div className="flex gap-6">
+                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center font-black text-slate-900">2</div>
+                              <div className="flex-1 space-y-4">
+                                <p className="text-base font-black text-slate-800 tracking-tight leading-relaxed">
+                                  {t.cos.form.i94Tutorial.step2}
+                                  <span className="block text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">{t.cos.form.i94Tutorial.step2Sub}</span>
+                                </p>
+                                <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
+                                  <img src={imgTutor2} alt="Upload/Camera Document" className="w-full h-auto" />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Step 3 */}
+                            <div className="flex gap-6">
+                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center font-black text-slate-900">3</div>
+                              <div className="flex-1 space-y-4">
+                                <p className="text-base font-black text-slate-800 tracking-tight leading-relaxed">
+                                  {t.cos.form.i94Tutorial.step3}
+                                  <span className="block text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">{t.cos.form.i94Tutorial.step3Sub}</span>
+                                </p>
+                                <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
+                                  <img src={imgTutor3} alt="Fill in fields" className="w-full h-auto" />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 text-center">
+                              <p className="text-sm font-black text-emerald-800 uppercase tracking-tight">{t.cos.form.i94Tutorial.success} 🎉</p>
+                              <p className="text-xs text-emerald-600 font-bold mt-1 leading-snug">
+                                {t.cos.form.i94Tutorial.successDesc}
+                              </p>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
 
                   {/* Dependents */}
                   <div className="pt-4">
                     {(() => {
-                      const paidDependents = (proc?.step_data?.paid_dependents as number) ?? 0;
+                      const rawPaidValue = proc?.step_data?.paid_dependents;
+                      const paidDependents = parseInt(String(rawPaidValue ?? 0), 10);
                       const hasPaidSlots = paidDependents > 0;
                       const reachedLimit = dependents.length >= paidDependents;
 
+                      console.log("[COSOnboarding] Dependent Logic Debug:", {
+                        rawPaidValue,
+                        paidDependents,
+                        dependentsCount: dependents.length,
+                        reachedLimit,
+                        isReadOnly,
+                        procId: proc?.id
+                      });
+
                       return (
-                        <div className="flex items-center justify-between mb-6">
-                          <div>
-                            <h3 className="text-base font-black text-slate-800 flex items-center gap-2">
-                              Dependents
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                                hasPaidSlots ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-slate-100 text-slate-500 border border-slate-200"
-                              }`}>
-                                {dependents.length} / {paidDependents} slots
-                              </span>
-                            </h3>
-                            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
-                              {hasPaidSlots 
-                                ? `You paid for ${paidDependents} dependent${paidDependents > 1 ? 's' : ''}`
-                                : "No dependents purchased at checkout"}
-                            </p>
+                        <div className="space-y-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-base font-black text-slate-800 flex items-center gap-2">
+                                {t.cos.form.dependents.title}
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                                  hasPaidSlots ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-slate-100 text-slate-500 border border-slate-200"
+                                }`}>
+                                  {dependents.length} / {paidDependents} {t.cos.form.dependents.slots}
+                                </span>
+                              </h3>
+                              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                                {hasPaidSlots 
+                                  ? t.cos.form.dependents.paidFor.replace("{count}", String(paidDependents))
+                                  : t.cos.form.dependents.noPurchased}
+                              </p>
+                            </div>
+                            {!isReadOnly && (
+                              <button
+                                onClick={addDependent}
+                                disabled={reachedLimit}
+                                className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-md ${
+                                  reachedLimit
+                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-200"
+                                    : "bg-slate-900 text-white hover:bg-slate-800 shadow-slate-200"
+                                }`}
+                              >
+                                <RiAddLine className="text-base" /> {reachedLimit ? t.cos.form.dependents.limitReached : t.cos.form.dependents.addBtn}
+                              </button>
+                            )}
                           </div>
-                          {!isReadOnly && (
-                            <button
-                              onClick={addDependent}
-                              disabled={reachedLimit}
-                              className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-md ${
-                                reachedLimit
-                                  ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-200"
-                                  : "bg-slate-900 text-white hover:bg-slate-800 shadow-slate-200"
-                              }`}
+
+                          {reachedLimit && !isReadOnly && proc && (
+                            <motion.div 
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-between gap-4"
                             >
-                              <RiAddLine className="text-base" /> {reachedLimit ? "Limit Reached" : "Add Dependent"}
-                            </button>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                  <RiAddLine className="text-xl" />
+                                </div>
+                                <div>
+                                  <p className="text-xs font-black text-slate-800 uppercase tracking-tight">{t.cos.form.dependents.needMoreSlots}</p>
+                                  <p className="text-[11px] text-slate-500 font-medium leading-tight">{t.cos.form.dependents.addFamilyPrompt}</p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => navigate(`/checkout/dependente-adicional-cos?parentId=${proc?.id}`)}
+                                className="px-5 py-2.5 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#1649c0] transition-all shadow-lg shadow-primary/20"
+                              >
+                                {t.cos.form.dependents.buySlot}
+                              </button>
+                            </motion.div>
                           )}
                         </div>
                       );
@@ -474,7 +620,7 @@ export default function COSOnboardingPage() {
 
                     {dependents.length === 0 && (
                       <div className="text-center py-12 border-2 border-dashed border-slate-100 rounded-2xl">
-                        <p className="text-xs text-slate-300 font-bold uppercase tracking-widest leading-loose">No family members added yet.</p>
+                        <p className="text-xs text-slate-300 font-bold uppercase tracking-widest leading-loose">{t.cos.form.dependents.noDependents}</p>
                       </div>
                     )}
 
@@ -498,33 +644,33 @@ export default function COSOnboardingPage() {
 
                             <div className="grid grid-cols-2 gap-x-6 gap-y-5">
                               <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Full Name</label>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.cos.form.dependents.fullName}</label>
                                 <input
                                   value={dep.name}
                                   disabled={isReadOnly}
                                   onChange={e => updateDependent(dep.id, "name", e.target.value)}
-                                  placeholder="As shown in passport"
+                                  placeholder={t.cos.form.dependents.passportPlaceholder}
                                   className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all disabled:bg-slate-50 disabled:text-slate-500"
                                 />
                               </div>
 
                               <div className="col-span-2 sm:col-span-1">
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Relationship</label>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.cos.form.dependents.relationship}</label>
                                 <select
                                   value={dep.relation}
                                   disabled={isReadOnly}
                                   onChange={e => updateDependent(dep.id, "relation", e.target.value as "spouse" | "child" | "other")}
                                   className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all appearance-none cursor-pointer disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-default"
                                 >
-                                  <option value="">Select...</option>
-                                  <option value="spouse">Spouse (Cônjuge)</option>
-                                  <option value="child">Child (Filho/a)</option>
-                                  <option value="other">Other</option>
+                                  <option value="">{t.cos.form.dependents.select}</option>
+                                  <option value="spouse">{t.cos.form.dependents.spouse}</option>
+                                  <option value="child">{t.cos.form.dependents.child}</option>
+                                  <option value="other">{t.cos.form.dependents.other}</option>
                                 </select>
                               </div>
 
                               <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Date of Birth</label>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.cos.form.dependents.dob}</label>
                                 <input
                                   type="date"
                                   value={dep.birthDate}
@@ -535,7 +681,7 @@ export default function COSOnboardingPage() {
                               </div>
 
                               <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">I-94 Exp. Date</label>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.cos.form.dependents.i94Exp}</label>
                                 <input
                                   type="date"
                                   value={dep.i94Date}
@@ -547,7 +693,7 @@ export default function COSOnboardingPage() {
 
                               {dep.relation === "spouse" && (
                                 <div className="col-span-2">
-                                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-primary">Date of Marriage</label>
+                                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-primary">{t.cos.form.dependents.marriageDate}</label>
                                   <input
                                     type="date"
                                     value={dep.marriageDate}
@@ -564,8 +710,8 @@ export default function COSOnboardingPage() {
                                 <div className="flex items-start gap-3 p-4 rounded-xl bg-orange-50 border border-orange-100">
                                   <RiInformationLine className="text-orange-500 text-lg shrink-0 mt-0.5" />
                                   <p className="text-[11px] font-bold text-orange-800 leading-normal">
-                                    <span className="uppercase font-black block mb-0.5 tracking-wider">Aviso de Elegibilidade</span>
-                                    Se o casamento aconteceu depois que o dependente fez 18 anos, ele pode não ser elegível, caso não seja filho do aplicante principal.
+                                    <span className="uppercase font-black block mb-0.5 tracking-wider">{t.cos.form.dependents.eligibilityWarning}</span>
+                                    {t.cos.form.dependents.marriageWarningText}
                                   </p>
                                 </div>
                               )}
@@ -574,8 +720,8 @@ export default function COSOnboardingPage() {
                                 <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-100">
                                   <RiInformationLine className="text-red-500 text-lg shrink-0 mt-0.5" />
                                   <p className="text-[11px] font-bold text-red-800 leading-normal">
-                                    <span className="uppercase font-black block mb-0.5 tracking-wider">Risco de Inelegibilidade</span>
-                                    Se o filho estiver a menos de 01 ano de fazer 21 anos, o mais correto é o dependente fazer uma nova aplicação de visto individual.
+                                    <span className="uppercase font-black block mb-0.5 tracking-wider">{t.cos.form.dependents.ineligibilityRisk}</span>
+                                    {t.cos.form.dependents.childAgeWarning}
                                   </p>
                                 </div>
                               )}
@@ -597,8 +743,8 @@ export default function COSOnboardingPage() {
                     <MdPerson className="text-xl" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-slate-900 tracking-tight">Document Uploads</h2>
-                    <p className="text-sm text-slate-400 font-medium mt-0.5">Upload the required documents at the beginning of your process.</p>
+                    <h2 className="text-xl font-black text-slate-900 tracking-tight">{t.cos.docs.title}</h2>
+                    <p className="text-sm text-slate-400 font-medium mt-0.5">{t.cos.docs.desc}</p>
                   </div>
                 </div>
 
@@ -606,15 +752,15 @@ export default function COSOnboardingPage() {
                   <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100">
                     <RiInformationLine className="text-blue-500 text-xl shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-black text-slate-800">I-94 Instructions</p>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5">Get your most recent entry record from the official CBP website.</p>
+                      <p className="text-sm font-black text-slate-800">{t.cos.docs.i94Instructions}</p>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">{t.cos.docs.i94InstructionsDesc}</p>
                       <a
                         href="https://i94.cbp.dhs.gov/I94"
                         target="_blank"
                         rel="noreferrer"
                         className="text-xs text-primary font-bold mt-1 inline-flex items-center gap-1 hover:underline"
                       >
-                        Acessar site do I-94 ↗
+                        {t.cos.docs.accessI94} ↗
                       </a>
                     </div>
                   </div>
@@ -650,9 +796,9 @@ export default function COSOnboardingPage() {
             {stepIdx === 3 && proc && user && (
               <div className="px-8 py-6">
                 <div className="mb-6 border-b border-slate-100 pb-6">
-                  <h2 className="text-xl font-black text-slate-900 tracking-tight">COS Official Forms</h2>
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">{t.cos.i539.labels.header}</h2>
                   <p className="text-sm text-slate-400 font-medium mt-1">
-                    Preencha todos os campos do formulário oficial I-539 do USCIS.
+                    {t.cos.i539.labels.fillInstruction}
                   </p>
                 </div>
                 <I539FormStep
@@ -674,6 +820,41 @@ export default function COSOnboardingPage() {
                 </div>
                 <CoverLetterStep
                   proc={proc}
+                  user={user}
+                  onComplete={handleConcluir}
+                />
+              </div>
+            )}
+
+            {/* ── Step 7: I-20 Upload ── */}
+            {stepIdx === 7 && proc && user && (
+              <div className="px-8 py-6">
+                <div className="mb-6 border-b border-slate-100 pb-6">
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">{t.cos.i20Upload.title}</h2>
+                  <p className="text-sm text-slate-400 font-medium mt-1">
+                    {t.cos.i20Upload.desc}
+                  </p>
+                </div>
+                <I20UploadStep
+                  proc={proc}
+                  user={user}
+                  onComplete={handleConcluir}
+                />
+              </div>
+            )}
+
+            {/* ── Step 8: SEVIS Fee ── */}
+            {stepIdx === 8 && proc && user && (
+              <div className="px-8 py-6 pb-24">
+                <div className="mb-6 border-b border-slate-100 pb-6">
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">{t.cos.sevisFee.title}</h2>
+                  <p className="text-sm text-slate-400 font-medium mt-1">
+                    {t.cos.sevisFee.desc}
+                  </p>
+                </div>
+                <SevisFeeStep
+                  proc={proc}
+                  user={user}
                   onComplete={handleConcluir}
                 />
               </div>
@@ -777,15 +958,15 @@ export default function COSOnboardingPage() {
             })()}
 
             {/* ── Fallback ── */}
-            {stepIdx !== 0 && stepIdx !== 1 && stepIdx !== 3 && stepIdx !== 5 && stepIdx !== 10 && stepIdx !== 12 && 
+            {stepIdx !== 0 && stepIdx !== 1 && stepIdx !== 3 && stepIdx !== 5 && stepIdx !== 7 && stepIdx !== 8 && stepIdx !== 10 && stepIdx !== 12 && 
              stepIdx !== 13 && stepIdx !== 14 && stepIdx !== 16 && stepIdx !== 18 && 
              stepIdx !== 19 && stepIdx !== 20 && stepIdx !== 22 && stepIdx !== 24 && (
               <div className="p-16 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4">
                   <RiCheckDoubleLine className="text-3xl" />
                 </div>
-                <h2 className="text-xl font-black text-slate-900 mb-2">Em Construção</h2>
-                <p className="text-sm text-slate-400 font-medium">Esta etapa será liberada em breve.</p>
+                <h2 className="text-xl font-black text-slate-900 mb-2">{t.cos.form.underConstruction}</h2>
+                <p className="text-sm text-slate-400 font-medium">{t.cos.form.stepComingSoon}</p>
               </div>
             )}
           </motion.div>
@@ -795,10 +976,10 @@ export default function COSOnboardingPage() {
               onClick={() => navigate(`/dashboard/processes/${slug}`)}
               className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-slate-100 text-sm font-black text-slate-500 hover:bg-slate-50 hover:border-slate-200 transition-all"
             >
-              <RiArrowLeftSLine className="text-lg" /> Voltar
+              <RiArrowLeftSLine className="text-lg" /> {t.cos.btns.back || "Back"}
             </button>
 
-            {!isReadOnly && stepIdx !== 3 && stepIdx !== 5 && stepIdx !== 10 && stepIdx !== 12 && 
+            {!isReadOnly && stepIdx !== 3 && stepIdx !== 5 && stepIdx !== 7 && stepIdx !== 8 && stepIdx !== 10 && stepIdx !== 12 && 
              stepIdx !== 13 && stepIdx !== 14 && stepIdx !== 16 && stepIdx !== 18 &&
              stepIdx !== 19 && stepIdx !== 20 && stepIdx !== 22 && stepIdx !== 24 && (
               <button
@@ -815,7 +996,7 @@ export default function COSOnboardingPage() {
                 ) : (
                   <>
                     <RiCheckDoubleLine className="text-lg" />
-                    Concluir Etapa
+                    {t.cos.btns.completeStep || "Complete Step"}
                   </>
                 )}
               </button>

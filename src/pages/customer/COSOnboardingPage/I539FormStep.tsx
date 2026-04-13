@@ -1,5 +1,6 @@
 import { useState, type ReactNode, type ElementType } from "react";
-import { RiLoader4Line, RiFilePdf2Line, RiSave3Line, RiArrowRightLine } from "react-icons/ri";
+import { RiLoader4Line, RiArrowRightLine, RiFileTextLine, RiShieldLine, RiUserLine, RiInformationLine, RiFilePdf2Line, RiSave3Line } from "react-icons/ri";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../components/ui/tooltip";
 import { 
   MdPerson, MdBadge, MdLocationOn, MdFlightTakeoff, MdFactCheck, 
   MdHealthAndSafety, MdSecurity, MdContactPhone, MdRecordVoiceOver, MdEditDocument
@@ -10,6 +11,7 @@ import { processService, type UserService } from "../../../services/process.serv
 import { fillI539Form, uploadFilledI539, type I539Data } from "../../../services/i539.service";
 import type { UserAccount } from "../../../models/user.model";
 import { i539Validator, type I539FormInput } from "../../../schemas/i539.schema";
+import { useT } from "../../../i18n/LanguageContext";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -26,36 +28,31 @@ const VISA_STATUSES = [
   "P-1","P-2","P-3","P-4","R-1","R-2","TN","TD","WT","WB","Other",
 ];
 
-// Part 4 security questions (Q6-Q20)
-const SECURITY_QUESTIONS: { key: string; label: string; yesKey: string; noKey: string }[] = [
-  { key: "q6",  label: "6. Is this application related to a removal, exclusion, rescission, or deportation proceeding against you?", yesKey: "q6Yes",  noKey: "q6No" },
-  { key: "q7",  label: "7. Have you ever been arrested, cited, charged, indicted, fined, or imprisoned for breaking or violating any law or ordinance (excluding traffic violations)?", yesKey: "q7Yes",  noKey: "q7No" },
-  { key: "q8",  label: "8. Have you ever served as a public official, representative, employee, or agent of a foreign government?", yesKey: "q8Yes",  noKey: "q8No" },
-  { key: "q9",  label: "9. Have you ever been a J nonimmigrant exchange visitor subject to the 2-year foreign residence requirement?", yesKey: "q9Yes",  noKey: "q9No" },
-  { key: "q10", label: "10. Are you now in immigration proceedings?", yesKey: "q10Yes", noKey: "q10No" },
-  { key: "q11", label: "11. Have you ever, by fraud or willful misrepresentation, sought to procure or procured a visa or any immigration benefit?", yesKey: "q11Yes", noKey: "q11No" },
-  { key: "q12", label: "12. Have you ever received public benefits (cash assistance, Medicaid, SSI, food stamps, etc.) in the U.S. or any other country?", yesKey: "q12Yes", noKey: "q12No" },
-  { key: "q13", label: "13. Have you ever been a member of or associated with any organization, party, club, or society in the U.S. or any other country?", yesKey: "q13Yes", noKey: "q13No" },
-  { key: "q14", label: "14. Have you ever ordered, incited, committed, assisted, or participated in torture?", yesKey: "q14Yes", noKey: "q14No" },
-  { key: "q15", label: "15. Have you ever committed, ordered, incited, or participated in extrajudicial killing, political killing, or other act of violence?", yesKey: "q15Yes", noKey: "q15No" },
-  { key: "q16", label: "16. Have you ever engaged in or conspired to engage in any terrorist activity?", yesKey: "q16Yes", noKey: "q16No" },
-  { key: "q17", label: "17. Have you ever been a member of or associated with a terrorist organization?", yesKey: "q17Yes", noKey: "q17No" },
-  { key: "q18", label: "18. Have you ever recruited, enlisted, conscripted, used, or employed child soldiers?", yesKey: "q18Yes", noKey: "q18No" },
-  { key: "q19", label: "19. Have you ever engaged in or conspired to engage in money laundering?", yesKey: "q19Yes", noKey: "q19No" },
-  { key: "q20", label: "20. Have you ever been the subject of a final order of removal, deportation, or exclusion?", yesKey: "q20Yes", noKey: "q20No" },
-];
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function Field({ label, required, name, children }: { label: string; required?: boolean; name?: string; children: ReactNode }) {
+function Field({ label, required, name, children, tooltip }: { label: string; required?: boolean; name?: string; children: ReactNode; tooltip?: string }) {
   const { errors, touched } = useFormikContext<I539FormInput>();
   const error = name && touched[name as keyof I539FormInput] ? (errors[name as keyof I539FormInput] as string) : undefined;
 
   return (
     <div id={`field-${name}`}>
       <div className="flex justify-between items-center mb-2.5">
-        <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none">
+        <label htmlFor={name} className="flex items-center gap-1.5 block text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none">
           {label}{required && <span className="text-red-500 ml-1">*</span>}
+          {tooltip && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="text-slate-300 hover:text-primary transition-colors cursor-help">
+                    <RiInformationLine className="text-sm" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[200px] text-[10px] font-bold py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
+                  <p>{tooltip}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </label>
         {error && <span className="text-[10px] font-bold text-red-500 animate-in fade-in slide-in-from-right-1">{error}</span>}
       </div>
@@ -64,16 +61,50 @@ function Field({ label, required, name, children }: { label: string; required?: 
   );
 }
 
-function TextInput({ name, placeholder, type = "text", disabled }: {
-  name: string; placeholder?: string; type?: string; disabled?: boolean;
+function TextInput({ name, placeholder, type = "text", disabled, mask }: {
+  name: string; placeholder?: string; type?: string; disabled?: boolean; mask?: "phone" | "date";
 }) {
-  const [field, meta] = useField(name);
+  const [field, meta, helpers] = useField(name);
   const error = meta.touched && meta.error ? meta.error : undefined;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+    if (mask === "phone") {
+      val = val.replace(/\D/g, "");
+      if (val.length <= 10) {
+        val = val.replace(/^(\d{3})(\d{3})(\d{4}).*/, "($1) $2-$3");
+      } else {
+        val = val.replace(/^(\d{2})(\d{5})(\d{4}).*/, "+$1 ($2) $3");
+      }
+      helpers.setValue(val);
+    } else if (type === "date") {
+      // Convert YYYY-MM-DD from browser to MM/DD/YYYY for state/schema
+      if (val) {
+        const [y, m, d] = val.split("-");
+        helpers.setValue(`${m}/${d}/${y}`);
+      } else {
+        helpers.setValue("");
+      }
+    } else {
+      helpers.setValue(val);
+    }
+  };
+
+  // Convert MM/DD/YYYY from state to YYYY-MM-DD for browser input type="date"
+  let displayValue = field.value ?? "";
+  if (type === "date" && displayValue && displayValue.includes("/")) {
+    const [m, d, y] = displayValue.split("/");
+    if (y && m && d) {
+      displayValue = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+    }
+  }
 
   return (
     <input
       {...field}
-      value={field.value ?? ""}
+      id={name}
+      value={displayValue}
+      onChange={handleChange}
       type={type}
       placeholder={placeholder}
       disabled={disabled}
@@ -82,8 +113,8 @@ function TextInput({ name, placeholder, type = "text", disabled }: {
   );
 }
 
-function SelectInput({ name, options, disabled }: {
-  name: string; options: string[]; disabled?: boolean;
+function SelectInput({ name, options, disabled, children }: {
+  name: string; options?: string[]; disabled?: boolean; children?: ReactNode;
 }) {
   const [field, meta] = useField(name);
   const error = meta.touched && meta.error ? meta.error : undefined;
@@ -91,11 +122,13 @@ function SelectInput({ name, options, disabled }: {
   return (
     <select
       {...field}
+      id={name}
       value={field.value ?? ""}
       disabled={disabled}
       className={`w-full bg-slate-50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-white transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 shadow-sm shadow-slate-100/50`}
     >
-      {options.map(o => <option key={o} value={o}>{o || "— Select —"}</option>)}
+      {children}
+      {!children && options?.map(o => <option key={o} value={o}>{o || "— Select —"}</option>)}
     </select>
   );
 }
@@ -167,8 +200,29 @@ interface Props {
 }
 
 export default function I539FormStep({ proc, user, onComplete }: Props) {
+  const t = useT("onboarding");
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Constants mapping
+  const I539_TOOLTIPS = t.cos.i539.tooltips;
+  const SECURITY_QUESTIONS = [
+    { key: "q6",  label: t.cos.i539.securityQuestions.q6,  yesKey: "q6Yes",  noKey: "q6No" },
+    { key: "q7",  label: t.cos.i539.securityQuestions.q7,  yesKey: "q7Yes",  noKey: "q7No" },
+    { key: "q8",  label: t.cos.i539.securityQuestions.q8,  yesKey: "q8Yes",  noKey: "q8No" },
+    { key: "q9",  label: t.cos.i539.securityQuestions.q9,  yesKey: "q9Yes",  noKey: "q9No" },
+    { key: "q10", label: t.cos.i539.securityQuestions.q10, yesKey: "q10Yes", noKey: "q10No" },
+    { key: "q11", label: t.cos.i539.securityQuestions.q11, yesKey: "q11Yes", noKey: "q11No" },
+    { key: "q12", label: t.cos.i539.securityQuestions.q12, yesKey: "q12Yes", noKey: "q12No" },
+    { key: "q13", label: t.cos.i539.securityQuestions.q13, yesKey: "q13Yes", noKey: "q13No" },
+    { key: "q14", label: t.cos.i539.securityQuestions.q14, yesKey: "q14Yes", noKey: "q14No" },
+    { key: "q15", label: t.cos.i539.securityQuestions.q15, yesKey: "q15Yes", noKey: "q15No" },
+    { key: "q16", label: t.cos.i539.securityQuestions.q16, yesKey: "q16Yes", noKey: "q16No" },
+    { key: "q17", label: t.cos.i539.securityQuestions.q17, yesKey: "q17Yes", noKey: "q17No" },
+    { key: "q18", label: t.cos.i539.securityQuestions.q18, yesKey: "q18Yes", noKey: "q18No" },
+    { key: "q19", label: t.cos.i539.securityQuestions.q19, yesKey: "q19Yes", noKey: "q19No" },
+    { key: "q20", label: t.cos.i539.securityQuestions.q20, yesKey: "q20Yes", noKey: "q20No" },
+  ];
 
   const saved = (proc.step_data?.i539 ?? {}) as Partial<I539Data> & { hasMiddleName?: boolean };
 
@@ -266,14 +320,57 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
     interpreterSignatureDate: saved.interpreterSignatureDate ?? "",
     interpreterLanguage: saved.interpreterLanguage ?? "",
     interpreterSignature: saved.interpreterSignature ?? "",
-    preparerFamilyName: saved.preparerFamilyName ?? "Aplikei",
-    preparerGivenName: saved.preparerGivenName ?? "Team",
-    preparerBusiness: saved.preparerBusiness ?? "Aplikei",
-    preparerPhone: saved.preparerPhone ?? "555-555-0199",
+    preparerFamilyName: saved.preparerFamilyName ?? "",
+    preparerGivenName: saved.preparerGivenName ?? "",
+    preparerBusiness: saved.preparerBusiness ?? "",
+    preparerPhone: saved.preparerPhone ?? "",
     preparerFax: saved.preparerFax ?? "",
-    preparerEmail: saved.preparerEmail ?? "suporte@aplikei.com",
-    preparerSignature: saved.preparerSignature ?? "Aplikei Team",
-    preparerSignatureDate: saved.preparerSignatureDate ?? new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }),
+    preparerEmail: saved.preparerEmail ?? "",
+    preparerSignature: saved.preparerSignature ?? "",
+    preparerSignatureDate: saved.preparerSignatureDate ?? "",
+    dependentsA: (proc.step_data?.dependents as any[])?.map(dep => {
+      const savedDep = (saved.dependentsA as any[])?.find(d => d.id === dep.id) || {};
+      return {
+        id: dep.id,
+        familyName: savedDep.familyName || dep.name.split(" ").slice(-1)[0] || "",
+        givenName: savedDep.givenName || dep.name.split(" ")[0] || "",
+        middleName: savedDep.middleName || "",
+        dateOfBirth: savedDep.dateOfBirth || (dep.birthDate ? dep.birthDate.split("-").reverse().join("/") : ""),
+        countryOfBirth: savedDep.countryOfBirth || "",
+        countryOfCitizenship: savedDep.countryOfCitizenship || "",
+        alienNumber: savedDep.alienNumber || "",
+        ssn: savedDep.ssn || "",
+        uscisOnlineAccountNumber: savedDep.uscisOnlineAccountNumber || "",
+        dateOfArrival: savedDep.dateOfArrival || "",
+        i94Number: savedDep.i94Number || (dep.i94Date ? dep.i94Date.split("-").reverse().join("/") : ""),
+        passportNumber: savedDep.passportNumber || "",
+        travelDocNumber: savedDep.travelDocNumber || "",
+        countryOfIssuance: savedDep.countryOfIssuance || "",
+        passportExpirationDate: savedDep.passportExpirationDate || "",
+        currentStatus: savedDep.currentStatus || "",
+        statusExpirationDate: savedDep.statusExpirationDate || "",
+        daytimePhone: savedDep.daytimePhone || "",
+        mobilePhone: savedDep.mobilePhone || "",
+        email: savedDep.email || "",
+        signature: savedDep.signature || "",
+        signatureDate: savedDep.signatureDate || new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }),
+        q1Yes: savedDep.q1Yes || false, q1No: savedDep.q1No ?? true,
+        q2Yes: savedDep.q2Yes || false, q2No: savedDep.q2No ?? true,
+        q3Yes: savedDep.q3Yes || false, q3No: savedDep.q3No ?? true,
+        q4Yes: savedDep.q4Yes || false, q4No: savedDep.q4No ?? true,
+        q5Yes: savedDep.q5Yes || false, q5No: savedDep.q5No ?? true,
+        q6Yes: savedDep.q6Yes || false, q6No: savedDep.q6No ?? true,
+        q7Yes: savedDep.q7Yes || false, q7No: savedDep.q7No ?? true,
+        q8Yes: savedDep.q8Yes || false, q8No: savedDep.q8No ?? true,
+        q9Yes: savedDep.q9Yes || false, q9No: savedDep.q9No ?? true,
+        q10Yes: savedDep.q10Yes || false, q10No: savedDep.q10No ?? true,
+        q11Yes: savedDep.q11Yes || false, q11No: savedDep.q11No ?? true,
+        q12Yes: savedDep.q12Yes || false, q12No: savedDep.q12No ?? true,
+        q13Yes: savedDep.q13Yes || false, q13No: savedDep.q13No ?? true,
+        q14Yes: savedDep.q14Yes || false, q14No: savedDep.q14No ?? true,
+        q15Yes: savedDep.q15Yes || false, q15No: savedDep.q15No ?? true,
+      };
+    }) || [],
   };
 
   const validate = (values: I539FormInput) => {
@@ -292,9 +389,9 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
           const pdfUrl = await uploadFilledI539(filledBytes, proc.id, user.id);
           await processService.updateStepData(proc.id, { i539: values, i539PdfUrl: pdfUrl });
           onComplete();
-          toast.success("Formulário I-539 enviado com sucesso!");
+          toast.success(t.cos.i539.toasts.success);
         } catch (err) {
-          toast.error(err instanceof Error ? err.message : "Erro ao enviar formulário.");
+          toast.error(err instanceof Error ? err.message : t.cos.i539.toasts.error);
         } finally {
           setIsGenerating(false);
         }
@@ -305,9 +402,9 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
           setIsSaving(true);
           try {
             await processService.updateStepData(proc.id, { i539: values });
-            toast.success("Rascunho salvo!");
+            toast.success(t.cos.i539.toasts.draftSaved);
           } catch {
-            toast.error("Erro ao salvar rascunho.");
+            toast.error(t.cos.i539.toasts.draftError);
           } finally {
             setIsSaving(false);
           }
@@ -327,7 +424,7 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
             };
             
             const errorList = errKeys.slice(0, 3).map(k => fieldLabels[k] || k).join(", ");
-            toast.error(`Atenção: verifique os campos [${errorList}]`);
+            toast.error(t.cos.i539.toasts.checkFields.replace("{errorList}", errorList));
             
             // Find the first error that actually exists in the DOM
             const firstKeyWithDOM = errKeys.find(key => 
@@ -348,12 +445,12 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
         return (
           <Form className="space-y-4 pb-20">
             {/* ── Part 1: Information About You ── */}
-            <SectionCard title="Full Legal Name" subtitle="Part 1 — Information About You" icon={MdPerson}>
+            <SectionCard title={t.cos.i539.labels.fullLegalName} subtitle={t.cos.i539.sections.part1} icon={MdPerson}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <Field label="Family Name" required name="familyName">
+                <Field label={t.cos.i539.labels.familyName} required name="familyName" tooltip={I539_TOOLTIPS.familyName}>
                   <TextInput name="familyName" placeholder="Silva" />
                 </Field>
-                <Field label="Given Name" required name="givenName">
+                <Field label={t.cos.i539.labels.givenName} required name="givenName" tooltip={I539_TOOLTIPS.givenName}>
                   <TextInput name="givenName" placeholder="Anderson" />
                 </Field>
                 <div className="space-y-4">
@@ -368,80 +465,77 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
                       }}
                       className="w-4 h-4 rounded text-primary focus:ring-primary border-slate-300"
                     />
-                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">I have a Middle Name</span>
+                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{t.cos.i539.labels.hasMiddleName}</span>
                   </div>
                   {values.hasMiddleName && (
-                    <Field label="Middle Name" required name="middleName">
-                      <TextInput name="middleName" placeholder="Carlos" />
+                    <Field label={t.cos.i539.labels.middleName} name="middleName" tooltip={I539_TOOLTIPS.middleName}>
+                      <TextInput name="middleName" />
                     </Field>
                   )}
                 </div>
               </div>
             </SectionCard>
 
-            <SectionCard title="Identifiers" subtitle="Part 1 — Information About You" icon={MdBadge}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <Field label="A-Number (if any)" name="alienNumber">
-                  <TextInput name="alienNumber" placeholder="A-000 000 000" />
-                </Field>
-                <Field label="USCIS Online Account Number" name="uscisOnlineAccountNumber">
-                  <TextInput name="uscisOnlineAccountNumber" placeholder="000-000-000" />
-                </Field>
+            <SectionCard title={t.cos.i539.labels.identifiers} subtitle={t.cos.i539.sections.part1} icon={MdBadge}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Field label={t.cos.i539.labels.alienNumber} name="alienNumber" tooltip={I539_TOOLTIPS.alienNumber}><TextInput name="alienNumber" placeholder="9 digits" /></Field>
+                <Field label={t.cos.i539.labels.uscisOnlineAccount} name="uscisOnlineAccountNumber" tooltip={I539_TOOLTIPS.uscisOnlineAccount}><TextInput name="uscisOnlineAccountNumber" placeholder="12 digits" /></Field>
               </div>
             </SectionCard>
 
-            <SectionCard title="U.S. Mailing Address" subtitle="Part 1 — Information About You" icon={MdLocationOn}>
+            <SectionCard title={t.cos.i539.labels.mailingAddress} subtitle={t.cos.i539.sections.part1} icon={MdLocationOn}>
               <div className="space-y-5">
-                <Field label="In Care Of Name" name="inCareOf">
-                  <TextInput name="inCareOf" placeholder="Optional" />
-                </Field>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  <div className="col-span-2">
-                    <Field label="Street Number and Name" required name="streetName">
-                      <TextInput name="streetName" placeholder="123 Brickell Ave" />
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                  <Field label={t.cos.i539.labels.inCareOf} name="inCareOf"><TextInput name="inCareOf" /></Field>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-2">
+                    <Field label={t.cos.i539.labels.streetName} required name="streetName" tooltip={I539_TOOLTIPS.streetName}><TextInput name="streetName" /></Field>
+                  </div>
+                  <div>
+                    <Field label={t.cos.i539.labels.unitType} name="aptSteFlrUnit">
+                      <SelectInput name="aptSteFlrUnit">
+                        <option value="">N/A</option>
+                        <option value="Apt">Apt</option>
+                        <option value="Ste">Ste</option>
+                        <option value="Flr">Flr</option>
+                      </SelectInput>
                     </Field>
                   </div>
-                  <Field label="Apt / Ste / Flr Unit" name="aptSteFlrUnit">
-                    <div className="flex gap-2">
-                      {(["Apt", "Ste", "Flr"] as const).map(u => (
-                        <button key={u} type="button"
-                          onClick={() => setFieldValue("aptSteFlrUnit", values.aptSteFlrUnit === u ? undefined : u)}
-                          className={`flex-1 py-3 rounded-xl border text-xs font-black transition-all shadow-sm ${values.aptSteFlrUnit === u ? "border-primary bg-primary/10 text-primary" : "border-slate-200 text-slate-400 bg-white hover:border-slate-300"}`}>
-                          {u}
-                        </button>
-                      ))}
-                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <Field label={t.cos.i539.labels.unitNumber} name="aptSteFlrNumber" tooltip={I539_TOOLTIPS.aptSteFlrNumber}><TextInput name="aptSteFlrNumber" /></Field>
+                  <div className="md:col-span-2">
+                    <Field label={t.cos.i539.labels.city} required name="city" tooltip={I539_TOOLTIPS.city}><TextInput name="city" /></Field>
+                  </div>
+                  <Field label={t.cos.i539.labels.state} required name="state" tooltip={I539_TOOLTIPS.state}>
+                    <SelectInput name="state">
+                      <option value="">Select...</option>
+                      {["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"].map(s => <option key={s} value={s}>{s}</option>)}
+                    </SelectInput>
                   </Field>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-                  <Field label="Unit Number" name="aptSteFlrNumber">
-                    <TextInput name="aptSteFlrNumber" placeholder="4B" />
-                  </Field>
-                  <Field label="City or Town" required name="city">
-                    <TextInput name="city" placeholder="Miami" />
-                  </Field>
-                  <Field label="State" required name="state">
-                    <SelectInput name="state" options={US_STATES} />
-                  </Field>
-                  <Field label="ZIP Code" required name="zipCode">
-                    <TextInput name="zipCode" placeholder="33101" />
-                  </Field>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Field label={t.cos.i539.labels.zipCode} required name="zipCode" tooltip={I539_TOOLTIPS.zipCode}><TextInput name="zipCode" /></Field>
                 </div>
+                
                 <div className="pt-3 border-t border-slate-100">
-                  <p className="text-[11px] font-black text-slate-800 tracking-tight mb-2">Is physical address same as mailing?</p>
+                  <p className="text-[11px] font-black text-slate-800 tracking-tight mb-2">{t.cos.i539.labels.sameAddress}</p>
                   <div className="w-48">
                     <YesNoGroup yesName="hasMailingAddress" noName="dummy" /> 
-                    {/* Note: In our logic, 'hasMailingAddress' true means physical SAME AS mailing. */}
                   </div>
                 </div>
               </div>
             </SectionCard>
 
             {values.hasMailingAddress === false && (
-              <SectionCard title="Physical Address (since it differs)" subtitle="Part 1 — Information About You" icon={MdLocationOn}>
+              <SectionCard title={t.cos.i539.labels.physicalAddress} subtitle={t.cos.i539.sections.part1} icon={MdLocationOn}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                   <div className="col-span-2">
-                    <Field label="Street Number and Name" name="streetNameForeign">
+                    <Field label={t.cos.i539.labels.streetName} name="streetNameForeign">
                       <TextInput name="streetNameForeign" placeholder="456 Main St" />
                     </Field>
                   </div>
@@ -458,76 +552,83 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
                   </Field>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mt-5">
-                  <Field label="Unit Number" name="aptSteFlrForeignNumber"><TextInput name="aptSteFlrForeignNumber" /></Field>
-                  <Field label="City or Town" name="cityForeign"><TextInput name="cityForeign" /></Field>
-                  <Field label="State" name="stateForeign"><SelectInput name="stateForeign" options={US_STATES} /></Field>
-                  <Field label="ZIP Code" name="zipCodeForeign"><TextInput name="zipCodeForeign" /></Field>
+                  <Field label={t.cos.i539.labels.unitNumber} name="aptSteFlrForeignNumber"><TextInput name="aptSteFlrForeignNumber" /></Field>
+                  <Field label={t.cos.i539.labels.city} name="cityForeign"><TextInput name="cityForeign" /></Field>
+                  <Field label={t.cos.i539.labels.state} name="stateForeign"><SelectInput name="stateForeign" options={US_STATES} /></Field>
+                  <Field label={t.cos.i539.labels.zipCode} name="zipCodeForeign"><TextInput name="zipCodeForeign" /></Field>
                 </div>
               </SectionCard>
             )}
 
-            <SectionCard title="Travel & Identification" subtitle="Part 1 — Information About You" icon={MdFlightTakeoff}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <Field label="Country of Birth" required name="countryOfBirth"><TextInput name="countryOfBirth" placeholder="Brazil" /></Field>
-                <Field label="Country of Citizenship" required name="countryOfCitizenship"><TextInput name="countryOfCitizenship" placeholder="Brazil" /></Field>
-                <Field label="Date of Birth" required name="dateOfBirth"><TextInput name="dateOfBirth" placeholder="MM/DD/YYYY" /></Field>
+            <SectionCard title={t.cos.i539.labels.travelId} subtitle={t.cos.i539.sections.part1} icon={MdFlightTakeoff}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Field label={t.cos.i539.labels.dob} required name="dateOfBirth" tooltip={I539_TOOLTIPS.dateOfBirth}><TextInput name="dateOfBirth" type="date" /></Field>
+                <Field label={t.cos.i539.labels.citizenship} required name="countryOfCitizenship" tooltip={I539_TOOLTIPS.countryOfCitizenship}><TextInput name="countryOfCitizenship" /></Field>
+                <Field label={t.cos.i539.labels.birthCountry} required name="countryOfBirth" tooltip={I539_TOOLTIPS.countryOfBirth}><TextInput name="countryOfBirth" /></Field>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
-                <Field label="Social Security Number" name="ssn"><TextInput name="ssn" placeholder="XXX-XX-XXXX" /></Field>
-                <Field label="Date of Last Arrival" required name="dateOfArrival"><TextInput name="dateOfArrival" placeholder="MM/DD/YYYY" /></Field>
-                <Field label="I-94 Number" required name="i94Number"><TextInput name="i94Number" placeholder="12345678901" /></Field>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Field label={t.cos.i539.labels.ssn} name="ssn" tooltip={I539_TOOLTIPS.ssn}><TextInput name="ssn" placeholder="XXX-XX-XXXX" /></Field>
+                <Field label={t.cos.i539.labels.arrivalDate} required name="dateOfArrival" tooltip={I539_TOOLTIPS.dateOfArrival}><TextInput name="dateOfArrival" type="date" /></Field>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
-                <Field label="Passport Number" required name="passportNumber"><TextInput name="passportNumber" placeholder="AB123456" /></Field>
-                <Field label="Travel Document Country" name="travelDocCountry"><TextInput name="travelDocCountry" placeholder="Brazil" /></Field>
-                <Field label="Country of Issuance" name="countryOfIssuance"><TextInput name="countryOfIssuance" placeholder="Brazil" /></Field>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Field label={t.cos.i539.labels.i94Number} required name="i94Number" tooltip={I539_TOOLTIPS.i94Number}><TextInput name="i94Number" placeholder="11 digits" /></Field>
+                <Field label={t.cos.i539.labels.passportNumber} required name="passportNumber" tooltip={I539_TOOLTIPS.passportNumber}><TextInput name="passportNumber" /></Field>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
-                <Field label="Passport Expiration Date" required name="passportExpirationDate"><TextInput name="passportExpirationDate" placeholder="MM/DD/YYYY" /></Field>
-                <Field label="Current Nonimmigrant Status" required name="currentStatus"><SelectInput name="currentStatus" options={VISA_STATUSES} /></Field>
-                <Field label="Status Expiration Date" name="statusExpirationDate">
-                  <TextInput name="statusExpirationDate" placeholder="MM/DD/YYYY" disabled={values.statusExpiresDS} />
-                </Field>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Field label={t.cos.i539.labels.passportIssuance} name="countryOfIssuance" tooltip={I539_TOOLTIPS.countryOfBirth}><TextInput name="countryOfIssuance" /></Field>
+                <Field label={t.cos.i539.labels.passportExp} required name="passportExpirationDate" tooltip={I539_TOOLTIPS.passportExpirationDate}><TextInput name="passportExpirationDate" type="date" /></Field>
+                <Field label={t.cos.i539.labels.currentStatus} required name="currentStatus" tooltip={I539_TOOLTIPS.currentStatus}><TextInput name="currentStatus" /></Field>
               </div>
-              <div className="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-3 w-fit">
-                <button type="button"
-                  onClick={() => setFieldValue("statusExpiresDS", !values.statusExpiresDS)}
-                  className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${values.statusExpiresDS ? "border-primary bg-primary" : "border-slate-300 bg-white"}`}>
-                  {values.statusExpiresDS && <span className="text-white text-[10px] font-black">✓</span>}
-                </button>
-                <span className="text-sm font-bold text-slate-700">Check here if Status is "Duration of Status" (D/S)</span>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Field label={t.cos.i539.labels.statusExp} name="statusExpirationDate" tooltip={I539_TOOLTIPS.statusExpirationDate}><TextInput name="statusExpirationDate" type="date" disabled={values.statusExpiresDS} /></Field>
+                <div className="flex flex-col justify-end pb-3">
+                  <label className="flex items-center gap-2 cursor-pointer group">
+                    <input type="checkbox" name="statusExpiresDS" checked={values.statusExpiresDS} onChange={e => setFieldValue('statusExpiresDS', e.target.checked)} className="rounded border-slate-300 text-primary focus:ring-primary w-4 h-4" />
+                    <span className="text-xs font-bold text-slate-600 group-hover:text-primary transition-colors">{t.cos.i539.labels.durationStatus}</span>
+                  </label>
+                </div>
               </div>
             </SectionCard>
 
-            <SectionCard title="Change of Status" subtitle="Part 2 — Application Type" icon={MdFactCheck}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <Field label="New Status Requested" required name="newStatusDropdown">
-                  <SelectInput name="newStatusDropdown" options={VISA_STATUSES} />
+            <SectionCard title={t.cos.i539.labels.changeStatus} subtitle={t.cos.i539.sections.part2} icon={MdFactCheck}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Field label={t.cos.i539.labels.newStatusRequested} name="newStatusDropdown" tooltip={I539_TOOLTIPS.newStatusDropdown}>
+                  <SelectInput name="newStatusDropdown">
+                    <option value="">{t.cos.form.dependents.select}</option>
+                    <option value="F-1 (Academic Student)">F-1 (Academic Student)</option>
+                    <option value="F-2 (Spouse/Child of F-1)">F-2 (Spouse/Child of F-1)</option>
+                    <option value="B-1 (Visitor for Business)">B-1 (Visitor for Business)</option>
+                    <option value="B-2 (Visitor for Pleasure)">B-2 (Visitor for Pleasure)</option>
+                    <option value="M-1 (Vocational Student)">M-1 (Vocational Student)</option>
+                    <option value="J-1 (Exchange Visitor)">J-1 (Exchange Visitor)</option>
+                  </SelectInput>
                 </Field>
-                <Field label="Effective Date (MM/DD/YYYY)" name="effectiveDate">
-                  <TextInput name="effectiveDate" placeholder="MM/DD/YYYY" />
-                </Field>
+                <Field label={t.cos.i539.labels.effectiveDate} name="effectiveDate" tooltip={I539_TOOLTIPS.effectiveDate}><TextInput name="effectiveDate" type="date" /></Field>
               </div>
             </SectionCard>
 
-            <SectionCard title="Processing Information" subtitle="Part 3 — Processing Information" icon={MdHealthAndSafety}>
+            <SectionCard title={t.cos.i539.labels.processingInfo} subtitle={t.cos.i539.sections.part3} icon={MdHealthAndSafety}>
               <div className="space-y-8">
                 <div>
-                  <p className="text-sm font-bold text-slate-800 mb-3">1. Have you previously been granted status extension or change of status?</p>
+                  <p className="text-sm font-bold text-slate-800 mb-3">{t.cos.i539.labels.priorExtensionQuery}</p>
                   <div className="w-48 mb-4">
                     <YesNoGroup yesName="priorExtensionYes" noName="priorExtensionNo" />
                   </div>
                   {values.priorExtensionYes && (
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                      <Field label="Date of Prior Extension (MM/DD/YYYY)" name="priorExtensionDate">
-                        <TextInput name="priorExtensionDate" placeholder="MM/DD/YYYY" />
+                      <Field label={t.cos.i539.labels.priorExtensionDate} name="priorExtensionDate">
+                        <TextInput name="priorExtensionDate" type="date" />
                       </Field>
                     </div>
                   )}
                 </div>
 
                 <div className="pt-6 border-t border-slate-100">
-                  <p className="text-sm font-bold text-slate-800 mb-4">2. Has an immigrant petition ever been filed on your behalf?</p>
+                  <p className="text-sm font-bold text-slate-800 mb-4">{t.cos.i539.labels.immigrantPetitionQuery}</p>
                   <div className="flex flex-wrap gap-4 mb-4">
                     {([{ k: "petitionType_I130", l: "I-130" }, { k: "petitionType_I140", l: "I-140" }, { k: "petitionType_I360", l: "I-360" }] as const).map(({ k, l }) => (
                       <label key={k} className="flex items-center gap-2 cursor-pointer bg-slate-50 px-4 py-2 rounded-xl border border-slate-200">
@@ -539,20 +640,19 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
                       </label>
                     ))}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <Field label="Name of Petitioner" name="petitionerName"><TextInput name="petitionerName" /></Field>
-                    <Field label="Date Filed" name="petitionFiledDate"><TextInput name="petitionFiledDate" placeholder="MM/DD/YYYY" /></Field>
-                    <Field label="Receipt Number" name="receiptNumber"><TextInput name="receiptNumber" placeholder="EAC-XX-XXX-XXXXX" /></Field>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Field label={t.cos.i539.labels.petitionDate} name="petitionFiledDate" tooltip={I539_TOOLTIPS.signatureDate}><TextInput name="petitionFiledDate" type="date" /></Field>
+                    <Field label={t.cos.i539.labels.receiptNumber} name="receiptNumber" tooltip={I539_TOOLTIPS.alienNumber}><TextInput name="receiptNumber" /></Field>
                   </div>
                 </div>
 
                 <div className="pt-6 border-t border-slate-100">
-                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">Foreign Address for Documents (Optional)</p>
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">{t.cos.i539.labels.foreignAddress}</p>
                   <div className="col-span-full mt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="col-span-full space-y-4">
-                      <Field label="Foreign Street Name" name="docStreet"><TextInput name="docStreet" /></Field>
+                      <Field label={t.cos.i539.labels.foreignStreet} name="docStreet" tooltip={I539_TOOLTIPS.streetName}><TextInput name="docStreet" /></Field>
                       <div className="flex gap-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <span className="text-[10px] font-black text-slate-400 uppercase self-center mr-2">Unit Type:</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase self-center mr-2">{t.cos.i539.labels.unitType}:</span>
                         {[
                           { label: "Apt", key: "docUnit0" },
                           { label: "Ste", key: "docUnit1" },
@@ -572,22 +672,22 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
                           </label>
                         ))}
                       </div>
-                      <Field label="Unit Number" name="docUnitNumber"><TextInput name="docUnitNumber" /></Field>
+                      <Field label={t.cos.i539.labels.unitNumber} name="docUnitNumber" tooltip={I539_TOOLTIPS.aptSteFlrNumber}><TextInput name="docUnitNumber" /></Field>
                     </div>
-                    <Field label="City" name="docCity"><TextInput name="docCity" /></Field>
-                    <Field label="Province" name="docProvince"><TextInput name="docProvince" /></Field>
-                    <Field label="Postal Code" name="docPostalCode"><TextInput name="docPostalCode" /></Field>
-                    <Field label="Country" name="docCountry"><TextInput name="docCountry" /></Field>
+                    <Field label={t.cos.i539.labels.city} name="docCity" tooltip={I539_TOOLTIPS.city}><TextInput name="docCity" /></Field>
+                    <Field label={t.cos.i539.labels.province} name="docProvince" tooltip={I539_TOOLTIPS.state}><TextInput name="docProvince" /></Field>
+                    <Field label={t.cos.i539.labels.postalCode} name="docPostalCode" tooltip={I539_TOOLTIPS.zipCode}><TextInput name="docPostalCode" /></Field>
+                    <Field label={t.cos.i539.labels.country} name="docCountry" tooltip={I539_TOOLTIPS.countryOfBirth}><TextInput name="docCountry" /></Field>
                   </div>
                 </div>
 
                 <div className="pt-6 border-t border-slate-100 space-y-6">
                   {[
-                    { label: "3. Have you ever requested to remove a ground of inadmissibility?", yKey: "question3Yes", nKey: "question3No" },
-                    { label: "4. Have you ever been deported or removed from the U.S.?", yKey: "question4Yes", nKey: "question4No" },
-                    { label: "5. Is an immigrant petition currently being filed?", yKey: "question5Yes", nKey: "question5No" },
-                  ].map(({ label, yKey, nKey }) => (
-                    <Field key={yKey} label={label} name={yKey}>
+                    { label: t.cos.i539.labels.q3, yKey: "question3Yes", nKey: "question3No", t: "Se você já solicitou a remoção de algum impedimento de entrada nos EUA / If you have ever requested a waiver of inadmissibility." },
+                    { label: t.cos.i539.labels.q4, yKey: "question4Yes", nKey: "question4No", t: "Se você já foi deportado ou removido dos EUA / If you have ever been deportado ou removido dos EUA." },
+                    { label: t.cos.i539.labels.q5, yKey: "question5Yes", nKey: "question5No", t: "Se existe uma petição de imigrante sendo protocolada agora / If an immigrant petition is currently being filed." },
+                  ].map(({ label, yKey, nKey, t }) => (
+                    <Field key={yKey} label={label} name={yKey} tooltip={t}>
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
                         <p className="text-sm font-bold text-slate-700 leading-snug md:max-w-2xl">{label}</p>
                         <div className="w-32 shrink-0">
@@ -600,10 +700,10 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
               </div>
             </SectionCard>
 
-            <SectionCard title="Security Information" subtitle="Part 4 — Additional Information" icon={MdSecurity}>
+            <SectionCard title={t.cos.i539.labels.securityInfo} subtitle={t.cos.i539.sections.part4} icon={MdSecurity}>
               <div className="space-y-4">
                 {SECURITY_QUESTIONS.map(({ label, yesKey, noKey }) => (
-                  <Field key={yesKey} label={label} name={yesKey}>
+                  <Field key={yesKey} label={label} name={yesKey} tooltip={t.cos.i539.labels.securityInfo}>
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-4 border-b border-slate-100 last:border-0">
                       <p className="text-sm font-bold text-slate-700 leading-snug md:max-w-2xl">{label}</p>
                       <div className="w-32 shrink-0">
@@ -615,50 +715,133 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
               </div>
             </SectionCard>
 
-            <SectionCard title="Applicant's Contact" subtitle="Part 5 — Applicant's Statement" icon={MdContactPhone}>
+            <SectionCard title={t.cos.i539.labels.contactInfo} subtitle={t.cos.i539.sections.part5} icon={MdContactPhone}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <Field label="Daytime Phone" required name="daytimePhone"><TextInput name="daytimePhone" /></Field>
-                <Field label="Mobile Phone" name="mobilePhone"><TextInput name="mobilePhone" /></Field>
-                <Field label="Email Address" required name="email"><TextInput name="email" type="email" /></Field>
+                <Field label={t.cos.i539.labels.daytimePhone} required name="daytimePhone" tooltip={I539_TOOLTIPS.daytimePhone}><TextInput name="daytimePhone" mask="phone" /></Field>
+                <Field label={t.cos.i539.labels.mobilePhone} name="mobilePhone" tooltip={I539_TOOLTIPS.mobilePhone}><TextInput name="mobilePhone" mask="phone" /></Field>
+                <Field label={t.cos.i539.labels.email} required name="email" tooltip={I539_TOOLTIPS.email}><TextInput name="email" type="email" /></Field>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-                <Field label="Signature (Full Name)" required name="signature"><TextInput name="signature" /></Field>
-                <Field label="Date" required name="signatureDate"><TextInput name="signatureDate" /></Field>
+                <Field label={t.cos.i539.labels.signature} name="signature" tooltip={I539_TOOLTIPS.signature}><TextInput name="signature" disabled /></Field>
+                <Field label={t.cos.i539.labels.date} name="signatureDate" tooltip={I539_TOOLTIPS.signatureDate}><TextInput name="signatureDate" type="date" disabled /></Field>
               </div>
             </SectionCard>
 
-            <SectionCard title="Interpreter Information" subtitle="Part 6 — Interpreter" icon={MdRecordVoiceOver}>
+            <SectionCard title={t.cos.i539.labels.interpreterInfo} subtitle={t.cos.i539.sections.part6} icon={MdRecordVoiceOver}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <Field label="Family Name" name="interpreterFamilyName"><TextInput name="interpreterFamilyName" /></Field>
-                <Field label="Given Name" name="interpreterGivenName"><TextInput name="interpreterGivenName" /></Field>
+                <Field label={t.cos.i539.labels.familyName} name="interpreterFamilyName" tooltip={I539_TOOLTIPS.preparerFamilyName}><TextInput name="interpreterFamilyName" /></Field>
+                <Field label={t.cos.i539.labels.givenName} name="interpreterGivenName" tooltip={I539_TOOLTIPS.preparerGivenName}><TextInput name="interpreterGivenName" /></Field>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
-                <Field label="Phone" name="interpreterPhone"><TextInput name="interpreterPhone" /></Field>
-                <Field label="Email" name="interpreterEmail"><TextInput name="interpreterEmail" /></Field>
-                <Field label="Language" name="interpreterLanguage"><TextInput name="interpreterLanguage" /></Field>
+                <Field label={t.cos.i539.labels.daytimePhone} name="interpreterPhone" tooltip={I539_TOOLTIPS.preparerPhone}><TextInput name="interpreterPhone" mask="phone" /></Field>
+                <Field label={t.cos.i539.labels.email} name="interpreterEmail" tooltip={I539_TOOLTIPS.preparerEmail}><TextInput name="interpreterEmail" /></Field>
+                <Field label={t.cos.i539.labels.language} name="interpreterLanguage" tooltip={t.cos.i539.labels.language}><TextInput name="interpreterLanguage" /></Field>
               </div>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-                <Field label="Signature (Typed Name)" name="interpreterSignature"><TextInput name="interpreterSignature" /></Field>
-                <Field label="Signature Date" name="interpreterSignatureDate"><TextInput name="interpreterSignatureDate" placeholder="MM/DD/YYYY" /></Field>
+                <Field label={t.cos.i539.labels.signature} name="interpreterSignature" tooltip={I539_TOOLTIPS.preparerSignature}><TextInput name="interpreterSignature" /></Field>
+                <Field label={t.cos.i539.labels.date} name="interpreterSignatureDate" tooltip={I539_TOOLTIPS.preparerSignatureDate}><TextInput name="interpreterSignatureDate" type="date" /></Field>
               </div>
             </SectionCard>
 
-            <SectionCard title="Preparer Information" subtitle="Part 7 — Preparer" icon={MdEditDocument}>
+            <SectionCard title={t.cos.i539.labels.preparerInfo} subtitle={t.cos.i539.sections.part7} icon={MdEditDocument}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <Field label="Family Name" name="preparerFamilyName"><TextInput name="preparerFamilyName" /></Field>
-                <Field label="Given Name" name="preparerGivenName"><TextInput name="preparerGivenName" /></Field>
+                <Field label={t.cos.i539.labels.familyName} name="preparerFamilyName" tooltip={I539_TOOLTIPS.preparerFamilyName}><TextInput name="preparerFamilyName" /></Field>
+                <Field label={t.cos.i539.labels.givenName} name="preparerGivenName" tooltip={I539_TOOLTIPS.preparerGivenName}><TextInput name="preparerGivenName" /></Field>
               </div>
                <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mt-5">
-                <Field label="Business" name="preparerBusiness"><TextInput name="preparerBusiness" /></Field>
-                <Field label="Phone" name="preparerPhone"><TextInput name="preparerPhone" /></Field>
-                <Field label="Fax" name="preparerFax"><TextInput name="preparerFax" /></Field>
-                <Field label="Email" name="preparerEmail"><TextInput name="preparerEmail" /></Field>
+                <Field label={t.cos.i539.labels.business} name="preparerBusiness" tooltip={I539_TOOLTIPS.preparerBusiness}><TextInput name="preparerBusiness" /></Field>
+                <Field label={t.cos.i539.labels.daytimePhone} name="preparerPhone" tooltip={I539_TOOLTIPS.preparerPhone}><TextInput name="preparerPhone" mask="phone" /></Field>
+                <Field label={t.cos.i539.labels.fax} name="preparerFax" tooltip={t.cos.i539.labels.fax}><TextInput name="preparerFax" /></Field>
+                <Field label={t.cos.i539.labels.email} name="preparerEmail" tooltip={I539_TOOLTIPS.preparerEmail}><TextInput name="preparerEmail" /></Field>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-                <Field label="Signature (Typed Name)" name="preparerSignature"><TextInput name="preparerSignature" /></Field>
-                <Field label="Signature Date" name="preparerSignatureDate"><TextInput name="preparerSignatureDate" placeholder="MM/DD/YYYY" /></Field>
+                <Field label={t.cos.i539.labels.signature} name="preparerSignature" tooltip={I539_TOOLTIPS.preparerSignature}><TextInput name="preparerSignature" /></Field>
+                <Field label={t.cos.i539.labels.date} name="preparerSignatureDate" tooltip={I539_TOOLTIPS.preparerSignatureDate}><TextInput name="preparerSignatureDate" type="date" /></Field>
               </div>
             </SectionCard>
+
+            {/* ── Supplemental Information for Dependents (I-539A) ── */}
+            {values.dependentsA && values.dependentsA.length > 0 && (
+              <div className="pt-10 mt-10 border-t-4 border-slate-100 space-y-8">
+                <div className="flex items-center gap-4 mb-2 px-2">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 shadow-sm border border-amber-500/20">
+                    <MdPerson className="text-2xl" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">I-539A Supplements</h2>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Form I-539A — Supplemental Information for Dependents</p>
+                  </div>
+                </div>
+
+                {values.dependentsA.map((dep, idx) => (
+                  <div key={dep.id} className="space-y-6">
+                    <SectionCard title={`Dependent ${idx + 1}: ${dep.givenName} ${dep.familyName}`} subtitle="Part 1 — Information About You (Dependent)" icon={MdPerson}>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <Field label="Family Name" required name={`dependentsA.${idx}.familyName`}><TextInput name={`dependentsA.${idx}.familyName`} /></Field>
+                        <Field label="Given Name" required name={`dependentsA.${idx}.givenName`}><TextInput name={`dependentsA.${idx}.givenName`} /></Field>
+                        <Field label="Middle Name" name={`dependentsA.${idx}.middleName`}><TextInput name={`dependentsA.${idx}.middleName`} /></Field>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+                        <Field label="Date of Birth" required name={`dependentsA.${idx}.dateOfBirth`}><TextInput name={`dependentsA.${idx}.dateOfBirth`} type="date" /></Field>
+                        <Field label="Country of Birth" required name={`dependentsA.${idx}.countryOfBirth`}><TextInput name={`dependentsA.${idx}.countryOfBirth`} /></Field>
+                        <Field label="Country of Citizenship" required name={`dependentsA.${idx}.countryOfCitizenship`}><TextInput name={`dependentsA.${idx}.countryOfCitizenship`} /></Field>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
+                        <Field label="A-Number" name={`dependentsA.${idx}.alienNumber`}><TextInput name={`dependentsA.${idx}.alienNumber`} /></Field>
+                        <Field label="SSN" name={`dependentsA.${idx}.ssn`}><TextInput name={`dependentsA.${idx}.ssn`} /></Field>
+                        <Field label="USCIS Online Account" name={`dependentsA.${idx}.uscisOnlineAccountNumber`}><TextInput name={`dependentsA.${idx}.uscisOnlineAccountNumber`} /></Field>
+                      </div>
+                      <div className="pt-6 border-t border-slate-100">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Arrival/Departure & Status Info</p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                          <Field label="Date of Arrival" required name={`dependentsA.${idx}.dateOfArrival`}><TextInput name={`dependentsA.${idx}.dateOfArrival`} type="date" /></Field>
+                          <Field label="I-94 Number" required name={`dependentsA.${idx}.i94Number`}><TextInput name={`dependentsA.${idx}.i94Number`} /></Field>
+                          <Field label="Passport Number" required name={`dependentsA.${idx}.passportNumber`}><TextInput name={`dependentsA.${idx}.passportNumber`} /></Field>
+                          <Field label="Travel Doc" name={`dependentsA.${idx}.travelDocNumber`}><TextInput name={`dependentsA.${idx}.travelDocNumber`} /></Field>
+                          <Field label="Issuance Country" name={`dependentsA.${idx}.countryOfIssuance`}><TextInput name={`dependentsA.${idx}.countryOfIssuance`} /></Field>
+                          <Field label="Passport EXP Date" required name={`dependentsA.${idx}.passportExpirationDate`}><TextInput name={`dependentsA.${idx}.passportExpirationDate`} type="date" /></Field>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+                          <Field label="Current Status" required name={`dependentsA.${idx}.currentStatus`}><TextInput name={`dependentsA.${idx}.currentStatus`} /></Field>
+                          <Field label="Status Exp Date" name={`dependentsA.${idx}.statusExpirationDate`}><TextInput name={`dependentsA.${idx}.statusExpirationDate`} type="date" /></Field>
+                        </div>
+                      </div>
+                    </SectionCard>
+
+                    <SectionCard title={`Security Questions — ${dep.givenName}`} subtitle="Part 3 — Additional Information" icon={MdSecurity}>
+                      <div className="space-y-4">
+                        {[
+                          { l: "1. Is an immigrant petition being filed for you?", y: `dependentsA.${idx}.q1Yes`, n: `dependentsA.${idx}.q1No` },
+                          { l: "2. Is an immigrant petition for any other person being filed for you?", y: `dependentsA.${idx}.q2Yes`, n: `dependentsA.${idx}.q2No` },
+                          { l: "3. Have you ever been denied or requested to remove an inadmissibility?", y: `dependentsA.${idx}.q3Yes`, n: `dependentsA.${idx}.q3No` },
+                          { l: "4. Have you ever been deported or removed from the U.S.?", y: `dependentsA.${idx}.q4Yes`, n: `dependentsA.${idx}.q4No` },
+                          { l: "5. Have you ever been in removal proceedings?", y: `dependentsA.${idx}.q5Yes`, n: `dependentsA.${idx}.q5No` },
+                        ].map(({ l, y, n }) => (
+                          <div key={y} className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-4 border-b border-slate-100 last:border-0">
+                            <p className="text-sm font-bold text-slate-700 leading-snug md:max-w-2xl">{l}</p>
+                            <div className="w-32 shrink-0">
+                              <YesNoGroup yesName={y} noName={n} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </SectionCard>
+
+                    <SectionCard title={`Contact & Signature — ${dep.givenName}`} subtitle="Part 4 — Statement & Contact" icon={MdContactPhone}>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <Field label="Phone" name={`dependentsA.${idx}.daytimePhone`}><TextInput name={`dependentsA.${idx}.daytimePhone`} mask="phone" /></Field>
+                        <Field label="Mobile" name={`dependentsA.${idx}.mobilePhone`}><TextInput name={`dependentsA.${idx}.mobilePhone`} mask="phone" /></Field>
+                        <Field label="Email" name={`dependentsA.${idx}.email`}><TextInput name={`dependentsA.${idx}.email`} /></Field>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+                        <Field label="Signature (Printed Name)" name={`dependentsA.${idx}.signature`}><TextInput name={`dependentsA.${idx}.signature`} disabled /></Field>
+                        <Field label="Signature Date" name={`dependentsA.${idx}.signatureDate`}><TextInput name={`dependentsA.${idx}.signatureDate`} type="date" disabled /></Field>
+                      </div>
+                    </SectionCard>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="rounded-2xl border-2 border-primary bg-primary/5 overflow-hidden shadow-xl shadow-primary/10 mt-12 sticky bottom-6 z-10 backdrop-blur-md">
               <div className="px-7 py-5 bg-white/50 border-b border-primary/10 flex items-center gap-4">

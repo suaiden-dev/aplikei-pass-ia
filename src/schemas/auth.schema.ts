@@ -1,37 +1,38 @@
 import { z } from "zod";
 
-export const loginSchema = z.object({
+export const getLoginSchema = (t: any = {}) => z.object({
   email: z
     .string()
-    .min(1, "Informe seu e-mail")
-    .email("Digite um e-mail válido, ex: nome@email.com"),
+    .min(1, t?.required || "Required")
+    .email(t?.emailInvalid || "Invalid email"),
   password: z
     .string()
-    .min(1, "Informe sua senha")
-    .min(6, "A senha precisa ter pelo menos 6 caracteres"),
+    .min(1, t?.required || "Required")
+    .min(6, t?.passwordMin || "Must be at least 6 characters"),
 });
 
-export const signUpSchema = z.object({
+export const getSignUpSchema = (t: any = {}) => z.object({
   fullName: z
     .string()
-    .min(1, "Informe seu nome completo")
-    .min(3, "O nome precisa ter pelo menos 3 caracteres"),
+    .min(1, t?.required || "Required")
+    .min(3, t?.nameMin || "Must be at least 3 characters"),
   email: z
     .string()
-    .min(1, "Informe seu e-mail")
-    .email("Digite um e-mail válido, ex: nome@email.com"),
+    .min(1, t?.required || "Required")
+    .email(t?.emailInvalid || "Invalid email"),
   password: z
     .string()
-    .min(1, "Crie uma senha")
-    .min(6, "A senha precisa ter pelo menos 6 caracteres"),
+    .min(1, t?.required || "Required")
+    .min(6, t?.passwordMin || "Must be at least 6 characters"),
   phoneNumber: z
     .string()
-    .min(1, "Informe seu telefone")
-    .min(10, "Digite um telefone válido com DDD, ex: (11) 91234-5678"),
+    .min(1, t?.required || "Required")
+    .min(10, t?.phoneInvalid || "Invalid phone number"),
   terms: z.boolean().refine((val) => val === true, {
-    message: "Você precisa aceitar os termos para continuar",
+    message: t?.acceptTerms || "You must accept the terms",
   }),
 });
 
-export type LoginInput = z.infer<typeof loginSchema>;
-export type SignUpInput = z.infer<typeof signUpSchema>;
+// Legacy exports for backward compatibility if needed, but we should migrate all callers
+export const loginSchema = getLoginSchema({}); 
+export const signUpSchema = getSignUpSchema({});

@@ -12,6 +12,7 @@ import {
 import { useAuth } from "../../../hooks/useAuth";
 import { processService } from "../../../services/process.service";
 import { toast } from "sonner";
+import { useT } from "../../../i18n/LanguageContext";
 
 import { DS160SingleFormStep } from "../B1B2OnboardingPage/steps/DS160SingleFormStep";
 import { B1B2UserReviewSignStep } from "../B1B2OnboardingPage/steps/B1B2UserReviewSignStep";
@@ -32,6 +33,7 @@ const INITIAL_VALUES: Partial<DS160FormValues> = {
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function F1OnboardingPage() {
+  const t = useT("visas");
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -63,7 +65,7 @@ export default function F1OnboardingPage() {
         }
 
         if (!data) {
-          toast.error("Processo não encontrado.");
+          toast.error(t.onboardingPage.errorNotFound);
           navigate("/dashboard");
           return;
         }
@@ -77,7 +79,7 @@ export default function F1OnboardingPage() {
         }
       } catch (err) {
         console.error(err);
-        toast.error("Erro ao carregar dados do processo.");
+        toast.error(t.onboardingPage.errorLoad);
       } finally {
         setIsLoading(false);
       }
@@ -99,16 +101,16 @@ export default function F1OnboardingPage() {
       if (currentDBStep === 0) {
         // Move to I-20 Upload (Step 1)
         await processService.approveStep(procId, 1, false);
-        toast.success("Dados salvos! Agora, envie sua documentação de suporte.");
+        toast.success(t.onboardingPage.f1.saveSuccessDocs);
         const idParam = searchParams.get("id");
         navigate(`/dashboard/processes/${slug}/onboarding?step=1${idParam ? `&id=${idParam}` : ""}`);
       } else {
-        toast.success("Dados salvos!");
+        toast.success(t.onboardingPage.successDraft);
         navigate(`/dashboard/processes/${slug}`); 
       }
     } catch (err) {
       console.error(err);
-      toast.error("Erro ao salvar os dados.");
+      toast.error(t.onboardingPage.errorSave);
     }
   };
 
@@ -116,9 +118,9 @@ export default function F1OnboardingPage() {
     if (!procId) return;
     try {
       await processService.updateStepData(procId, values as Record<string, unknown>);
-      toast.success("Rascunho salvo!");
+      toast.success(t.onboardingPage.successDraft);
     } catch {
-      toast.error("Erro ao salvar rascunho.");
+      toast.error(t.onboardingPage.errorDraft);
     }
   };
 
@@ -130,7 +132,7 @@ export default function F1OnboardingPage() {
     );
   }
 
-  const title = isReapplication ? "Visto de Estudante F-1 (Reaplicação)" : "Visto de Estudante F-1";
+  const title = isReapplication ? t.onboardingPage.f1.reapplicationTitle : t.onboardingPage.f1.title;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100/50 pb-24">
@@ -148,10 +150,10 @@ export default function F1OnboardingPage() {
             </button>
             <div>
               <h1 className="text-sm font-black text-slate-800 uppercase tracking-tight">
-                {stepIdx === 0 ? "Formulário DS-160" : "Documentação de Suporte"}
+                {stepIdx === 0 ? t.onboardingPage.f1.ds160Step : t.onboardingPage.f1.supportDocsStep}
               </h1>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                {title} — Etapa {stepIdx + 1}
+                {title} — {t.onboardingPage.stepLabel} {stepIdx + 1}
               </p>
             </div>
           </div>
@@ -159,7 +161,7 @@ export default function F1OnboardingPage() {
           <div className="hidden sm:flex items-center gap-2 bg-primary/5 border border-primary/20 px-4 py-2 rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             <span className="text-[11px] font-black text-primary tracking-widest uppercase">
-              Fluxo VIP
+              {t.onboardingPage.f1.vipFlow}
             </span>
           </div>
         </div>
@@ -179,7 +181,7 @@ export default function F1OnboardingPage() {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-[11px] font-black text-red-900 uppercase tracking-widest mb-1">
-                Ajustes Solicitados pela Equipe
+                {t.onboardingPage.adjustmentsRequested}
               </h3>
               <p className="text-sm text-red-700 font-medium leading-relaxed">"{adminFeedback}"</p>
             </div>
@@ -203,13 +205,13 @@ export default function F1OnboardingPage() {
              <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
                 <RiLoader4Line className="text-3xl animate-spin" />
              </div>
-             <h3 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tight">Taxa Consular</h3>
+             <h3 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tight">{t.onboardingPage.consularFee}</h3>
              <p className="text-sm text-slate-500 font-medium mb-6 leading-relaxed">
-                <strong>O BOLETO ESTÁ SENDO GERADO PELA EQUIPE DA TAXA DO CONSULADO.</strong>
+                <strong>{t.onboardingPage.slipGeneratingByTeam}</strong>
                 <br />
-                Estamos finalizando a emissão do seu boleto MRV (Visto F-1). Você será notificado assim que ele estiver disponível.
+                {t.onboardingPage.f1.mrvF1Desc}
              </p>
-             <button onClick={() => navigate(`/dashboard/processes/${slug}`)} className="px-8 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all font-mono">Voltar para Dashboard</button>
+             <button onClick={() => navigate(`/dashboard/processes/${slug}`)} className="px-8 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all font-mono">{t.onboardingPage.backToDashboard}</button>
           </div>
         ) : stepIdx === 8 ? (
            <B1B2UserConfirmEmailStep
@@ -222,13 +224,13 @@ export default function F1OnboardingPage() {
              <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
                 <RiLoader4Line className="text-3xl animate-spin" />
              </div>
-             <h3 className="text-xl font-black text-slate-800 mb-2 uppercase">Criação de Conta</h3>
+             <h3 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tight">{t.onboardingPage.reviewSign.accountCreation}</h3>
              <p className="text-sm text-slate-500 font-medium mb-6 leading-relaxed">
-                <strong>UMA CONTA SERÁ CRIADA NO SITE DO CONSULADO PARA SEU VISTO F-1.</strong>
+                <strong>{t.onboardingPage.f1.creationNoticeF1}</strong>
                 <br />
-                Nossa equipe está processando seus dados. Você receberá um e-mail de confirmação em breve.
+                {t.onboardingPage.f1.creationLongDesc}
              </p>
-             <button onClick={() => navigate(`/dashboard/processes/${slug}`)} className="px-8 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-[10px] uppercase tracking-widest">Voltar para Dashboard</button>
+             <button onClick={() => navigate(`/dashboard/processes/${slug}`)} className="px-8 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-[10px] uppercase tracking-widest">{t.onboardingPage.backToDashboard}</button>
           </div>
         ) : stepIdx === 6 ? (
            <B1B2CASVSchedulingStep
@@ -271,8 +273,8 @@ export default function F1OnboardingPage() {
                   <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="mb-8 p-5 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-4">
                     <div className="w-9 h-9 rounded-xl bg-red-400 text-white flex items-center justify-center shrink-0"><RiAlertLine className="text-lg" /></div>
                     <div>
-                      <h3 className="text-[11px] font-black text-red-900 uppercase tracking-widest mb-1">Campos obrigatórios não preenchidos</h3>
-                      <p className="text-sm text-red-600 font-medium">{Object.keys(errors).length} campo(s) precisam ser corrigidos.</p>
+                      <h3 className="text-[11px] font-black text-red-900 uppercase tracking-widest mb-1">{t.onboardingPage.requiredFieldsMissing}</h3>
+                      <p className="text-sm text-red-600 font-medium">{t.onboardingPage.fieldsToCorrect.replace("{count}", Object.keys(errors).length.toString())}</p>
                     </div>
                   </motion.div>
                 )}
@@ -281,9 +283,9 @@ export default function F1OnboardingPage() {
                     <DS160SingleFormStep />
                   </div>
                   <div className="px-6 sm:px-10 py-6 bg-slate-50/70 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <button type="button" onClick={() => handleSaveDraft(values)} disabled={isSubmitting} className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50">Salvar Rascunho</button>
+                    <button type="button" onClick={() => handleSaveDraft(values)} disabled={isSubmitting} className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50">{t.onboardingPage.saveDraft}</button>
                     <button type="submit" disabled={isSubmitting} className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50">
-                      {isSubmitting ? <RiLoader4Line className="animate-spin text-lg" /> : <>Finalizar e Enviar Documentos <RiArrowRightLine className="text-lg" /></>}
+                      {isSubmitting ? <RiLoader4Line className="animate-spin text-lg" /> : <>{t.onboardingPage.f1.finalAndSendDocs} <RiArrowRightLine className="text-lg" /></>}
                     </button>
                   </div>
                 </div>

@@ -9,6 +9,7 @@ const DATE_REGEX = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
 const ANUMBER_REGEX = /^A?(\d{7,9})$/; // Match 7-9 digits, optional 'A' prefix
 const I94_REGEX = /^\d{11}$/; // I-94 is exactly 11 digits
 const ZIP_REGEX = /^\d{5}(-\d{4})?$/; // US Zip
+const PHONE_REGEX = /^(\(\d{3}\) \d{3}-\d{4})|(\+\d{2} \(\d{5}\) \d{4})$/;
 
 /**
  * I-539 Zod Schema - Professional Implementation
@@ -162,23 +163,41 @@ export const I539ValidationSchema = z.object({
 
   // --- Part 5: Contact & Signature ---
   daytimePhone: z.string()
-    .min(1, "Daytime Phone is required / Telefone diurno é obrigatório"),
-  mobilePhone: z.string().optional().or(z.literal("")),
+    .min(1, "Daytime Phone is required / Telefone diurno é obrigatório")
+    .regex(PHONE_REGEX, "Invalid phone format (555) 555-5555 / Formato de telefone inválido"),
+  mobilePhone: z.string()
+    .refine(val => !val || PHONE_REGEX.test(val), {
+      message: "Invalid phone format (555) 555-5555 / Formato de telefone inválido"
+    })
+    .optional()
+    .or(z.literal("")),
   email: z.string()
     .min(1, "Email is required / E-mail é obrigatório")
     .email("Invalid email / E-mail inválido")
     .max(60, "Email too long / E-mail longo demais"),
   signature: z.string()
-    .min(1, "Signature is required / Assinatura é obrigatória")
-    .max(50, "Signature too long / Assinatura longa demais"),
+    .max(50, "Signature too long / Assinatura longa demais")
+    .optional()
+    .or(z.literal("")),
   signatureDate: z.string()
-    .min(1, "Date of Signature is required / Data da assinatura é obrigatória"),
+    .optional()
+    .or(z.literal("")),
 
   // --- Part 6 & 7: Interpreter & Preparer ---
   interpreterFamilyName: z.string().optional().or(z.literal("")),
   interpreterGivenName: z.string().optional().or(z.literal("")),
-  interpreterPhone: z.string().optional().or(z.literal("")),
-  interpreterPhoneAlt: z.string().optional().or(z.literal("")),
+  interpreterPhone: z.string()
+    .refine(val => !val || PHONE_REGEX.test(val), {
+      message: "Invalid phone format / Formato de telefone inválido"
+    })
+    .optional()
+    .or(z.literal("")),
+  interpreterPhoneAlt: z.string()
+    .refine(val => !val || PHONE_REGEX.test(val), {
+      message: "Invalid phone format / Formato de telefone inválido"
+    })
+    .optional()
+    .or(z.literal("")),
   interpreterEmail: z.string().optional().or(z.literal("")),
   interpreterLanguage: z.string().optional().or(z.literal("")),
   interpreterSignature: z.string().optional().or(z.literal("")),
@@ -188,11 +207,18 @@ export const I539ValidationSchema = z.object({
   
 
   
-  preparerPhone: z.string().optional().or(z.literal("")),
+  preparerPhone: z.string()
+    .refine(val => !val || PHONE_REGEX.test(val), {
+      message: "Invalid phone format / Formato de telefone inválido"
+    })
+    .optional()
+    .or(z.literal("")),
   preparerFax: z.string().optional().or(z.literal("")),
   preparerEmail: z.string().optional().or(z.literal("")),
   preparerSignature: z.string().optional().or(z.literal("")),
   preparerSignatureDate: z.string().optional().or(z.literal("")),
+  
+  dependentsA: z.array(z.any()).optional(),
 
 }).passthrough()
 .superRefine((data, ctx) => {
@@ -261,6 +287,7 @@ export const I539ValidationSchema = z.object({
   // If it IS Aplikei, we assume it's pre-filled and valid.
   if (data.preparerFamilyName && data.preparerFamilyName.trim() !== "" && data.preparerFamilyName !== "Aplikei") {
     if (!data.preparerPhone) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Required / Obrigatório", path: ["preparerPhone"] });
+    else if (!PHONE_REGEX.test(data.preparerPhone)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid format / Formato inválido", path: ["preparerPhone"] });
     if (!data.preparerSignature) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Required / Obrigatório", path: ["preparerSignature"] });
   }
 

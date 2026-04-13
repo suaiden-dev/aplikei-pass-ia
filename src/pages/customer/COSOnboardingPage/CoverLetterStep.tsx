@@ -9,10 +9,14 @@ import {
   MdOutlineGpsFixed, 
   MdSchool, 
   MdAccountBalanceWallet,
-  MdLightbulbOutline
+  MdLightbulbOutline,
+  MdDescription
 } from "react-icons/md";
 import { toast } from "sonner";
 import { processService, type UserService } from "../../../services/process.service";
+import { coverLetterService } from "../../../services/cover_letter.service";
+import { RiMagicLine } from "react-icons/ri";
+import { useT } from "../../../i18n/LanguageContext";
 
 interface CoverLetterData {
   reasonGoUS?: string;
@@ -31,32 +35,61 @@ interface CoverLetterData {
 
 interface Props {
   proc: UserService;
+  user: any;
   onComplete: () => void;
 }
 
-export default function CoverLetterStep({ proc, onComplete }: Props) {
+export default function CoverLetterStep({ proc, user, onComplete }: Props) {
+  const t = useT("onboarding");
   const [data, setData] = useState<CoverLetterData>({});
+  const [html, setHtml] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [viewMode, setViewMode] = useState<"questions" | "preview">("questions");
 
   // Load saved data
   useEffect(() => {
     if (proc.step_data?.coverLetter) {
       setData(proc.step_data.coverLetter as CoverLetterData);
     }
-  }, [proc]);
+    if (proc.step_data?.generatedCoverLetterHTML) {
+      setHtml(proc.step_data.generatedCoverLetterHTML as string);
+    } else if (user) {
+      // Auto-generate initial version if none exists
+      const initialHtml = coverLetterService.generateHTML(proc.step_data?.coverLetter || {}, user);
+      setHtml(initialHtml);
+    }
+  }, [proc, user]);
 
   const handleChange = (field: keyof CoverLetterData, val: string) => {
     setData((prev) => ({ ...prev, [field]: val }));
   };
 
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    try {
+      const generatedHtml = coverLetterService.generateHTML(data, user);
+      setHtml(generatedHtml);
+      setViewMode("preview");
+      toast.success(t.cos.coverLetter.toasts.generateSuccess);
+    } catch (error) {
+      toast.error(t.cos.coverLetter.toasts.generateError);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const saveDraft = async () => {
     setIsSaving(true);
     try {
-      await processService.updateStepData(proc.id, { coverLetter: data });
-      toast.success("Rascunho salvo com sucesso.");
+      await processService.updateStepData(proc.id, { 
+        coverLetter: data,
+        generatedCoverLetterHTML: html
+      });
+      toast.success(t.cos.coverLetter.toasts.saveSuccess);
     } catch (error) {
-      toast.error("Erro ao salvar rascunho.");
+      toast.error(t.cos.coverLetter.toasts.saveError);
     } finally {
       setIsSaving(false);
     }
@@ -65,10 +98,13 @@ export default function CoverLetterStep({ proc, onComplete }: Props) {
   const handleNext = async () => {
     setIsSubmitting(true);
     try {
-      await processService.updateStepData(proc.id, { coverLetter: data });
+      await processService.updateStepData(proc.id, { 
+        coverLetter: data,
+        generatedCoverLetterHTML: html
+      });
       onComplete(); // Advance step
     } catch (error) {
-      toast.error("Erro ao avançar.");
+      toast.error(t.cos.coverLetter.toasts.advanceError);
     } finally {
       setIsSubmitting(false);
     }
@@ -83,15 +119,36 @@ export default function CoverLetterStep({ proc, onComplete }: Props) {
         </div>
         <div>
           <h3 className="font-black text-blue-900 text-[13px] uppercase tracking-widest mb-1 mt-0.5">
-            AI Powered Generation
+            {t.cos.coverLetter.introTitle}
           </h3>
           <p className="text-sm text-blue-700/80 font-medium leading-relaxed">
-            Answer the questions below in detail. Our AI will use this information to draft a highly persuasive and professional Presentation Letter for USCIS to maximize your chances of approval.
+            {t.cos.coverLetter.introDesc}
           </p>
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="flex gap-4 p-1 bg-slate-100/50 rounded-2xl w-fit">
+        <button
+          onClick={() => setViewMode("questions")}
+          className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+            viewMode === "questions" ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600"
+          }`}
+        >
+          {t.cos.coverLetter.tabs.questions}
+        </button>
+        <button
+          onClick={() => setViewMode("preview")}
+          disabled={!html}
+          className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+            viewMode === "preview" ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600 disabled:opacity-30"
+          }`}
+        >
+          {t.cos.coverLetter.tabs.preview}
+        </button>
+      </div>
+
+      {viewMode === "questions" ? (
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         
         {/* BACKGROUND */}
         <div className="border-b border-slate-100 last:border-0">
@@ -100,28 +157,32 @@ export default function CoverLetterStep({ proc, onComplete }: Props) {
               <MdOutlineGpsFixed className="text-lg" />
             </div>
             <h3 className="font-black text-slate-800 text-[11px] uppercase tracking-widest">
-              BACKGROUND
+              {t.cos.coverLetter.sections.background}
             </h3>
           </div>
           <div className="p-8 space-y-6">
             <TextAreaField
-              label="Why did you decide to go to the US?"
+              label={t.cos.coverLetter.questions.reasonGoUS}
               value={data.reasonGoUS}
+              placeholder={t.cos.coverLetter.placeholders.typeAnswer}
               onChange={(val) => handleChange("reasonGoUS", val)}
             />
             <TextAreaField
-              label="Summary of locations visited in the US"
+              label={t.cos.coverLetter.questions.locationsVisited}
               value={data.locationsVisited}
+              placeholder={t.cos.coverLetter.placeholders.typeAnswer}
               onChange={(val) => handleChange("locationsVisited", val)}
             />
             <TextAreaField
-              label="Why did you request B1/B2 visa in your country?"
+              label={t.cos.coverLetter.questions.reasonB1B2}
               value={data.reasonB1B2}
+              placeholder={t.cos.coverLetter.placeholders.typeAnswer}
               onChange={(val) => handleChange("reasonB1B2", val)}
             />
             <TextAreaField
-              label="What is your job in Brazil and what happens to it during your stay?"
+              label={t.cos.coverLetter.questions.jobInBrazil}
               value={data.jobInBrazil}
+              placeholder={t.cos.coverLetter.placeholders.typeAnswer}
               onChange={(val) => handleChange("jobInBrazil", val)}
             />
           </div>
@@ -134,23 +195,26 @@ export default function CoverLetterStep({ proc, onComplete }: Props) {
               <RiInformationLine className="text-lg" />
             </div>
             <h3 className="font-black text-slate-800 text-[11px] uppercase tracking-widest">
-              THE REASON FOR CHANGE
+              {t.cos.coverLetter.sections.reasonForChange}
             </h3>
           </div>
           <div className="p-8 space-y-6">
             <TextAreaField
-              label="Why did not request F1 directly in your home country?"
+              label={t.cos.coverLetter.questions.reasonNotF1Directly}
               value={data.reasonNotF1Directly}
+              placeholder={t.cos.coverLetter.placeholders.typeAnswer}
               onChange={(val) => handleChange("reasonNotF1Directly", val)}
             />
             <TextAreaField
-              label="Why request status change instead of returning to your country?"
+              label={t.cos.coverLetter.questions.reasonStatusChange}
               value={data.reasonStatusChange}
+              placeholder={t.cos.coverLetter.placeholders.typeAnswer}
               onChange={(val) => handleChange("reasonStatusChange", val)}
             />
             <TextAreaField
-              label="How will this course benefit your career in Brazil?"
+              label={t.cos.coverLetter.questions.careerBenefit}
               value={data.careerBenefit}
+              placeholder={t.cos.coverLetter.placeholders.typeAnswer}
               onChange={(val) => handleChange("careerBenefit", val)}
             />
           </div>
@@ -163,18 +227,20 @@ export default function CoverLetterStep({ proc, onComplete }: Props) {
               <MdSchool className="text-lg" />
             </div>
             <h3 className="font-black text-slate-800 text-[11px] uppercase tracking-widest">
-              STUDY PLAN
+              {t.cos.coverLetter.sections.studyPlan}
             </h3>
           </div>
           <div className="p-8 space-y-6">
             <TextAreaField
-              label="Why this specific course and what are your academic plans?"
+              label={t.cos.coverLetter.questions.specificCourse}
               value={data.specificCourse}
+              placeholder={t.cos.coverLetter.placeholders.typeAnswer}
               onChange={(val) => handleChange("specificCourse", val)}
             />
             <TextAreaField
-              label="Why not take this course in Brazil?"
+              label={t.cos.coverLetter.questions.whyNotBrazil}
               value={data.whyNotBrazil}
+              placeholder={t.cos.coverLetter.placeholders.typeAnswer}
               onChange={(val) => handleChange("whyNotBrazil", val)}
             />
           </div>
@@ -187,56 +253,100 @@ export default function CoverLetterStep({ proc, onComplete }: Props) {
               <MdAccountBalanceWallet className="text-lg" />
             </div>
             <h3 className="font-black text-slate-800 text-[11px] uppercase tracking-widest">
-              TIES & FINANCIALS
+              {t.cos.coverLetter.sections.tiesFinancials}
             </h3>
           </div>
           <div className="p-8 space-y-6">
             <TextAreaField
-              label="What happens to your residence in Brazil during this period?"
+              label={t.cos.coverLetter.questions.residenceInBrazil}
               value={data.residenceInBrazil}
+              placeholder={t.cos.coverLetter.placeholders.typeAnswer}
               onChange={(val) => handleChange("residenceInBrazil", val)}
             />
             <TextAreaField
-              label="How will you support yourself financially in the US?"
+              label={t.cos.coverLetter.questions.financialSupport}
               value={data.financialSupport}
+              placeholder={t.cos.coverLetter.placeholders.typeAnswer}
               onChange={(val) => handleChange("financialSupport", val)}
             />
             <TextAreaField
-              label="Do you have a sponsor? What is your relationship?"
+              label={t.cos.coverLetter.questions.sponsorInfo}
               value={data.sponsorInfo}
+              placeholder={t.cos.coverLetter.placeholders.typeAnswer}
               onChange={(val) => handleChange("sponsorInfo", val)}
             />
           </div>
         </div>
-
       </div>
+    ) : (
+        <div className="bg-white rounded-3xl border-2 border-primary/20 shadow-xl shadow-primary/5 overflow-hidden animate-in fade-in slide-in-from-bottom-4">
+          <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-sm text-primary">
+                <MdDescription className="text-lg" />
+              </div>
+              <h3 className="font-black text-slate-800 text-[11px] uppercase tracking-widest">
+                {t.cos.coverLetter.sections.preview}
+              </h3>
+            </div>
+            <p className="text-[10px] font-bold text-slate-400 italic">{t.cos.coverLetter.previewInfo}</p>
+          </div>
+          <div className="p-8">
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 overflow-auto max-h-[600px]">
+              <div 
+                className="prose prose-slate max-w-none"
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
+            </div>
+            <div className="mt-6 p-4 rounded-xl bg-amber-50 border border-amber-100 flex items-center gap-3">
+              <RiInformationLine className="text-amber-500 text-xl shrink-0" />
+              <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                {t.cos.coverLetter.editInfo}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Action Bar */}
-      <div className="fixed bottom-0 left-0 lg:left-72 right-0 bg-white border-t border-slate-200 p-4 md:p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-40 flex items-center justify-between">
+      <div className="fixed bottom-0 left-0 lg:left-72 right-0 bg-white border-t border-slate-200 p-4 md:p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-40 flex items-center gap-4">
         <button
           onClick={saveDraft}
           disabled={isSaving}
           className="flex items-center gap-2 px-6 py-3.5 rounded-xl border-2 border-slate-100 text-sm font-black text-slate-500 hover:bg-slate-50 hover:border-slate-200 transition-all disabled:opacity-50"
         >
           {isSaving ? <RiLoader4Line className="animate-spin text-lg" /> : <RiSave3Line className="text-lg" />}
-          Save Draft
+          {t.cos.coverLetter.btns.saveDraft}
         </button>
 
-        <button
-          onClick={handleNext}
-          disabled={isSubmitting}
-          className="flex items-center gap-2 px-8 py-3.5 rounded-xl bg-primary text-white text-sm font-black hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
-        >
-          {isSubmitting ? <RiLoader4Line className="animate-spin text-lg" /> : <RiCheckDoubleLine className="text-lg" />}
-          Next Step
-        </button>
+        <div className="flex-1" />
+
+        {viewMode === "questions" ? (
+          <button
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            className="flex items-center gap-2 px-10 py-3.5 rounded-xl bg-slate-900 text-white text-sm font-black uppercase tracking-widest hover:bg-black shadow-xl shadow-slate-200 transition-all flex-1 md:flex-none justify-center"
+          >
+            {isGenerating ? <RiLoader4Line className="animate-spin text-lg" /> : <RiMagicLine className="text-lg" />}
+            {t.cos.coverLetter.btns.generate}
+          </button>
+        ) : (
+          <button
+            onClick={handleNext}
+            disabled={isSubmitting}
+            className="flex items-center gap-2 px-12 py-3.5 rounded-xl bg-primary text-white text-sm font-black uppercase tracking-widest hover:bg-primary-hover shadow-xl shadow-primary/20 transition-all flex-1 md:flex-none justify-center"
+          >
+            {isSubmitting ? <RiLoader4Line className="animate-spin text-lg" /> : <RiCheckDoubleLine className="text-lg" />}
+            {t.cos.coverLetter.btns.advance}
+          </button>
+        )}
       </div>
 
     </div>
   );
 }
 
-function TextAreaField({ label, value, onChange }: { label: string; value?: string; onChange: (v: string) => void }) {
+function TextAreaField({ label, value, onChange, placeholder }: { label: string; value?: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <div className="space-y-2">
       <label className="text-xs font-black text-slate-700 tracking-tight block">
@@ -246,7 +356,7 @@ function TextAreaField({ label, value, onChange }: { label: string; value?: stri
         value={value || ""}
         onChange={e => onChange(e.target.value)}
         className="w-full h-28 rounded-xl border border-slate-200 bg-white p-4 text-sm font-medium text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all resize-none shadow-sm"
-        placeholder="Type your answer here..."
+        placeholder={placeholder || "Type your answer here..."}
       />
     </div>
   );
