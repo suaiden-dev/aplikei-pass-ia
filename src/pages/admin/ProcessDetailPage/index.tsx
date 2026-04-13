@@ -1004,6 +1004,9 @@ export default function AdminProcessDetailPage() {
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const toggleItem = (item: string) => {
+    setSelectedItems(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
+  };
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
   const [coverLetterHtml, setCoverLetterHtml] = useState("");
 
