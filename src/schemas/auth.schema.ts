@@ -36,3 +36,6 @@ export const getSignUpSchema = (t: any = {}) => z.object({
 // Legacy exports for backward compatibility if needed, but we should migrate all callers
 export const loginSchema = getLoginSchema({}); 
 export const signUpSchema = getSignUpSchema({});
+
+export type LoginInput = z.infer<ReturnType<typeof getLoginSchema>>;
+export type SignUpInput = z.infer<ReturnType<typeof getSignUpSchema>>;

@@ -115,7 +115,7 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
           ...prev.g1450,
           applicantFirstName: first,
           applicantLastName: last,
-          dateOfBirth: proc.date_of_birth || ""
+          dateOfBirth: ""
         }
       }));
     }
@@ -489,6 +489,7 @@ function Input({ label, value, onChange, onBlur, placeholder, type = "text", err
 }
 
 function Select({ label, value, onChange, onBlur, options, error, description }: { label: string; value: string; onChange: (v: string) => void; onBlur?: () => void; options: string[]; error?: string; description?: string; }) {
+  const t = useT("onboarding");
   const [showTooltip, setShowTooltip] = useState(false);
 
   return (

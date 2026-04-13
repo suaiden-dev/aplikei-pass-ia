@@ -22,7 +22,7 @@ import FinalFormsStep from "./FinalFormsStep";
 import FinalPackageStep from "./FinalPackageStep";
 import I20UploadStep from "./I20UploadStep";
 import SevisFeeStep from "./SevisFeeStep";
-import { type ServiceData, StepConfig } from "../../../templates/ServiceDetailTemplate";
+
 import { useT } from "../../../i18n/LanguageContext";
 import { 
   MotionExplanationStep, 

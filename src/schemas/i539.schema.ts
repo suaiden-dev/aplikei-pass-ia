@@ -204,9 +204,7 @@ export const I539ValidationSchema = z.object({
   interpreterSignatureDate: z.string().optional().or(z.literal("")),
   preparerFamilyName: z.string().optional().or(z.literal("")),
   preparerGivenName: z.string().optional().or(z.literal("")),
-  
-
-  
+  preparerBusiness: z.string().optional().or(z.literal("")),
   preparerPhone: z.string()
     .refine(val => !val || PHONE_REGEX.test(val), {
       message: "Invalid phone format / Formato de telefone inválido"

@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { 
   RiFileUploadLine, 
   RiFileTextLine, 
   RiCheckLine,
   RiLoader4Line,
-  RiInformationLine,
-  RiErrorWarningLine
+  RiInformationLine
 } from "react-icons/ri";
 import { toast } from "sonner";
 import { supabase } from "../../../lib/supabase";
@@ -20,7 +19,6 @@ interface Props {
 
 export default function I20UploadStep({ proc, user, onComplete }: Props) {
   const t = useT("onboarding");
-  const [i20File, setI20File] = useState<File | null>(null);
   const [i20Path, setI20Path] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,7 +43,6 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
       if (uploadError) throw uploadError;
       
       setI20Path(filePath);
-      setI20File(null);
       
       // Update step data
       const currentDocs = (proc.step_data?.docs as Record<string, string>) || {};

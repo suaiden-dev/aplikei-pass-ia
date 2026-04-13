@@ -1,5 +1,5 @@
 import { useState, type ReactNode, type ElementType } from "react";
-import { RiLoader4Line, RiArrowRightLine, RiFileTextLine, RiShieldLine, RiUserLine, RiInformationLine, RiFilePdf2Line, RiSave3Line } from "react-icons/ri";
+import { RiLoader4Line, RiArrowRightLine, RiInformationLine, RiFilePdf2Line, RiSave3Line } from "react-icons/ri";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../components/ui/tooltip";
 import { 
   MdPerson, MdBadge, MdLocationOn, MdFlightTakeoff, MdFactCheck, 
@@ -22,11 +22,7 @@ const US_STATES = [
   "VT","VA","WA","WV","WI","WY","DC",
 ];
 
-const VISA_STATUSES = [
-  "","B-1","B-2","B-1/B-2","E-1","E-2","F-1","F-2","H-1B","H-2A","H-2B",
-  "H-4","J-1","J-2","K-1","K-2","L-1","L-2","M-1","M-2","O-1","O-2","O-3",
-  "P-1","P-2","P-3","P-4","R-1","R-2","TN","TD","WT","WB","Other",
-];
+
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

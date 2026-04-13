@@ -31,7 +31,6 @@ import { maskCPF, validateCPF } from "../../../utils/cpf";
 import { getServiceBySlug } from "../../../data/services";
 import { cn } from "../../../utils/cn";
 import { useT } from "../../../i18n/LanguageContext";
-import { estimateCardTotal } from "../../../services/payment.service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -62,32 +61,7 @@ interface RFECheckoutOverlayProps {
 
 // ─── Payment method config ────────────────────────────────────────────────────
 
-const PAYMENT_METHODS: { id: PaymentTab; label: string; sublabel: string; icon: React.ReactNode }[] = [
-  {
-    id: "card",
-    label: "Cartão",
-    sublabel: "USD",
-    icon: <RiBankCardLine className="text-xl" />,
-  },
-  {
-    id: "pix",
-    label: "Pix",
-    sublabel: "BRL",
-    icon: <MdPix className="text-xl" />,
-  },
-  {
-    id: "zelle",
-    label: "Zelle",
-    sublabel: "USD",
-    icon: <span className="text-xs font-black tracking-tight leading-none">Z$</span>,
-  },
-  {
-    id: "parcelow",
-    label: "Parcelow",
-    sublabel: "BRL",
-    icon: <span className="text-[10px] font-black tracking-tighter leading-none">PRC</span>,
-  },
-];
+
 
 const ZELLE_EMAIL = ZELLE_RECIPIENT.email;
 const ZELLE_PHONE = ZELLE_RECIPIENT.phone;
@@ -459,7 +433,7 @@ export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps)
           <div className="bg-slate-50 rounded-3xl p-8 mb-10 text-left border border-slate-100">
              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{t.workflows.rfe.explanation.howItWorks}</h4>
              <div className="space-y-4">
-                {t.workflows.rfe.explanation.features.map((f, i) => (
+                {t.workflows.rfe.explanation.features.map((f: string, i: number) => (
                   <div key={i} className="flex gap-3">
                     <RiCheckDoubleLine className="text-primary text-lg shrink-0 mt-1" />
                     <p className="text-sm text-slate-600">{f}</p>

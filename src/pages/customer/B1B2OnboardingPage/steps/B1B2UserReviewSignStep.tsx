@@ -5,8 +5,6 @@ import {
   RiArrowRightLine,
   RiArrowLeftLine,
   RiLoader4Line,
-  RiCheckDoubleLine,
-  RiFileUploadLine,
   RiFileCopyLine,
   RiErrorWarningLine,
 } from "react-icons/ri";
@@ -31,7 +29,6 @@ export function B1B2UserReviewSignStep({ procId, userId, stepData, onComplete, o
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const t = useT("visas");
-  const tc = useT("common");
 
   // useRef para garantir que uploadDoc sempre veja os docs mais recentes (evita sobrescrever o 1º ao enviar o 2º)
   const docsRef = useRef<Record<string, string>>((stepData.docs || {}) as Record<string, string>);

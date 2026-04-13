@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { 
   RiFileUploadLine, 
-  RiFileTextLine, 
   RiCheckLine,
   RiLoader4Line,
   RiInformationLine,

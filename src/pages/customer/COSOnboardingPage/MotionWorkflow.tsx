@@ -458,7 +458,7 @@ export function MotionExplanationStep({ proc, onComplete: _onComplete }: StepPro
           <div className="bg-slate-50 rounded-3xl p-8 mb-10 text-left border border-slate-100">
              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{t.workflows.motion.explanation.howItWorks}</h4>
              <div className="space-y-4">
-                {t.workflows.motion.explanation.features.map((feature, i) => (
+                {t.workflows.motion.explanation.features.map((feature: string, i: number) => (
                   <div key={i} className="flex gap-3">
                     <RiCheckDoubleLine className="text-primary text-lg shrink-0 mt-1" />
                     <p className="text-sm text-slate-600">{feature}</p>
