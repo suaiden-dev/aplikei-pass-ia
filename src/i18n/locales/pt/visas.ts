@@ -575,8 +575,6 @@ const visas = {
       portalPayment: "Pagamento via Portal",
       accessOfficialPortal:
         "Para pagar com cartão de crédito, você deve acessar o portal oficial do consulado com os dados abaixo:",
-      password: "Senha",
-      goToPortal: "IR PARA O PORTAL",
       advantage: "VANTAGEM",
       creditCardInstant:
         "Pagamentos via cartão de crédito costumam ser compensados instantaneamente, agilizando o seu processo.",
@@ -586,15 +584,9 @@ const visas = {
       errorConfirmingPayment: "Erro ao confirmar pagamento.",
       paymentTitle: "Pagamento da Taxa MRV",
       paymentSubtitle: "Escolha como deseja realizar o pagamento da taxa consular ($120.00)",
-      creditCard: "Cartão de Crédito",
-      creditCardDesc: "Pagamento imediato via site do consulado",
-      bankSlip: "Boleto Bancário",
-      bankSlipDesc: "Compensação em até 48 horas úteis",
-      portalAccessTitle: "Acesso ao Portal Consular",
       portalAccessInstructions: "Para pagamento com cartão, você deve acessar o portal do consulado com as credenciais abaixo e realizar o pagamento de $120.00 diretamente no site oficial.",
       loginInfo: "Login (E-mail)",
       passwordInfo: "Senha",
-      goToPortal: "Acessar Site do Consulado",
       mrvSlipTitle: "Boleto Taxa MRV",
       mrvSlipValueDesc: "Valor: $120.00 (Calculado em Reais no boleto)",
       downloadSlip: "Baixar Boleto",
@@ -757,7 +749,6 @@ const visas = {
       howWasFollowUp: "Esperamos que tenha corrido tudo bem na sua entrevista. Como foi o resultado?",
       time: "Horário",
       location: "Local",
-      consulate: "Consulado",
       casv: "CASV",
     },
     form: {

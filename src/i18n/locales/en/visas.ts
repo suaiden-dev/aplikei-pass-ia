@@ -56,7 +56,6 @@ const visas = {
     selfieUploaded: "Selfie uploaded successfully!",
     errorUploadingSelfie: "Error uploading selfie.",
     selectBothDocs: "You must select both requested documents.",
-    selectBothDocs: "You must select both requested documents.",
     copySuccess: "Copied successfully!",
     uploadSuccess: "Document uploaded!",
     uploadError: "Upload error",
@@ -455,16 +454,11 @@ const visas = {
       slide4Title: "Confirm Payment",
       slide4Desc:
         "After successfully paying, return here and click 'I've already paid the fee' to continue scheduling your interview.",
-      downloadPdfSlip: "Download PDF Slip",
       officialSlipAvailable: "The official slip is now available.",
       importantInfo: "IMPORTANT INFO",
-      compensationDesc:
-        "Slip clearing can take up to 48 business hours. Only after this period will our system release your scheduling.",
       portalPayment: "Portal Payment",
       accessOfficialPortal:
         "To pay with a credit card, you must access the official consulate portal with the details below:",
-      password: "Password",
-      goToPortal: "GO TO PORTAL",
       advantage: "ADVANTAGE",
       creditCardInstant:
         "Payments via credit card are usually cleared instantly, speeding up your process.",
