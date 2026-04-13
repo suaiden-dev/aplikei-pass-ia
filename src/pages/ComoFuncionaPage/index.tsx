@@ -17,8 +17,8 @@ export default function ComoFuncionaPage() {
             animate={{ opacity: 1, y: 0 }}
             className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-center"
           >
-            <div>
-              <div className="flex items-center gap-3 mb-8">
+            <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mb-8">
                 <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
                   <RiInformationLine className="text-primary text-xl" />
                 </div>
@@ -33,7 +33,7 @@ export default function ComoFuncionaPage() {
                 {p.hero.description}
               </p>
               
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-6 items-center lg:items-start text-left">
                 {p.hero.features.map((item: string, i: number) => (
                   <div key={i} className="flex items-center gap-4">
                     <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">

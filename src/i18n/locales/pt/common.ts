@@ -29,6 +29,26 @@ const common = {
     selectPdf: "Selecionar Arquivo PDF",
     fileSent: "Arquivo Enviado",
   },
+  howItWorksPage: {
+    hero: {
+      tag: "Como Funciona",
+      title: "Sua imigração para os EUA,",
+      titleHighlight: "descomplicada.",
+      description: "A Aplikei combina tecnologia de ponta com análise humana especializada para garantir que cada etapa do seu visto seja executada com perfeição.",
+      features: [
+        "Processo 100% digital e seguro",
+        "Análise humana em cada formulário",
+        "Acompanhamento em tempo real",
+        "Preparação real para o Consulado"
+      ],
+      stats: "Taxa de aprovação em processos revisados pela nossa equipe."
+    },
+    cta: {
+      title: "Pronto para começar sua jornada americana?",
+      subtitle: "Não deixe seu sonho nas mãos da sorte. Use a plataforma que organiza e valida cada detalhe para você.",
+      button: "Ver vistos disponíveis"
+    }
+  }
 };
 
 export default common;

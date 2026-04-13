@@ -25,7 +25,7 @@ export const HowItWorksSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
+              className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col items-center text-center lg:items-start lg:text-left"
             >
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary text-white font-black text-lg mb-8 shadow-lg shadow-primary/20">
                 {String(index + 1).padStart(2, "0")}

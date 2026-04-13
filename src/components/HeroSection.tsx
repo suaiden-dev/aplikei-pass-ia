@@ -15,7 +15,7 @@ export const HeroSection = ({ heroImage, avatars }: HeroSectionProps) => {
   return (
     <header className="relative bg-highlight overflow-hidden py-32 lg:py-40 px-8 lg:px-16">
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-24 items-center">
-        <div className="z-10">
+        <div className="z-10 flex flex-col items-center text-center lg:items-start lg:text-left">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/20 rounded-full text-white font-bold text-sm mb-8">
             <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
             {t.hero.badge}
@@ -31,16 +31,16 @@ export const HeroSection = ({ heroImage, avatars }: HeroSectionProps) => {
             <p className="text-xl text-slate-300 font-medium max-w-xl mb-12 leading-relaxed">
               {t.hero.subtitle}
             </p>
-            <div className="flex flex-col sm:flex-row gap-5">
-              <Link to="/cadastro" className="px-10 py-5 bg-primary text-white font-bold text-lg rounded-xl shadow-2xl shadow-primary/30 hover:scale-105 transition-transform flex items-center justify-center gap-2 text-center">
+            <div className="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start w-full sm:w-auto">
+              <Link to="/cadastro" className="px-10 py-5 bg-primary text-white font-bold text-lg rounded-xl shadow-2xl shadow-primary/30 hover:scale-105 transition-transform flex items-center justify-center gap-2 text-center w-full sm:w-auto">
                 {t.hero.getStarted} <FiArrowRight size={20} />
               </Link>
-              <Link to="/servicos" className="px-10 py-5 bg-white/10 border border-white/20 text-white font-bold text-lg rounded-xl hover:bg-white/20 transition-colors flex items-center justify-center text-center">
+              <Link to="/servicos" className="px-10 py-5 bg-white/10 border border-white/20 text-white font-bold text-lg rounded-xl hover:bg-white/20 transition-colors flex items-center justify-center text-center w-full sm:w-auto">
                 {t.hero.ctaSecondary}
               </Link>
             </div>
           </motion.div>
-          <div className="mt-16 flex items-center gap-4">
+          <div className="mt-16 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
             <div className="flex -space-x-3">
               {avatars.map((avatar, idx) => (
                 <img key={idx} alt="User" className="w-12 h-12 rounded-full bg-cover border-4 border-highlight" src={avatar} />

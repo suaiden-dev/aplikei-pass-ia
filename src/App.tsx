@@ -3,6 +3,7 @@ import { PublicLayout } from "./layouts/PublicLayout";
 import { AdminLayout } from "./layouts/AdminLayout";
 import { CustomerLayout } from "./layouts/CustomerLayout";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 import HomePage from "./pages/HomePage";
 import ServiceDetailPage from "./pages/ServiceDetailPage";
@@ -41,8 +42,10 @@ import ContractTerms from "./pages/Legal/ContractTerms";
 
 export default function App() {
   return (
-    <Routes>
-      {/* Rotas públicas — com Navbar e Footer */}
+    <>
+      <ScrollToTop />
+      <Routes>
+        {/* Rotas públicas — com Navbar e Footer */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/servicos" element={<ServicosPage />} />
@@ -97,7 +100,8 @@ export default function App() {
       </Route>
 
       {/* 404 */}
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </>
   );
 }

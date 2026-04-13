@@ -61,13 +61,13 @@ export const ServicesSection = () => {
         </div>
         <div className="grid md:grid-cols-4 gap-8">
           {services.map((service, index) => (
-            <div key={index} className="group p-12 rounded-[2.5rem] bg-white border border-slate-100 hover:border-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 duration-300">
+            <div key={index} className="group p-12 rounded-[2.5rem] bg-white border border-slate-100 hover:border-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 duration-300 flex flex-col items-center text-center lg:items-start lg:text-left">
               <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-primary transition-all">
                 <service.Icon className="text-primary text-3xl group-hover:text-white transition-colors" />
               </div>
               <h3 className="text-2xl font-bold mb-6 text-primary">{service.title}</h3>
               <p className="text-slate-600 mb-10 leading-relaxed min-h-[80px]">{service.subtitle}</p>
-              <div className="flex items-end justify-between pt-8 border-t border-slate-100">
+              <div className="flex flex-col lg:flex-row items-center lg:items-end justify-between pt-8 border-t border-slate-100 w-full gap-4 lg:gap-0">
                 <div>
                   <p className="text-sm font-bold text-slate-400 line-through mb-1">{service.originalPrice}</p>
                   <p className="text-2xl font-black text-primary">{service.price}</p>

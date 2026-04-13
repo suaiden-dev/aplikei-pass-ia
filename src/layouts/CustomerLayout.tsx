@@ -68,10 +68,10 @@ export function CustomerLayout() {
         />
       )}
 
-      {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-[60] flex flex-col shrink-0 w-full lg:w-[240px] bg-white border-r border-slate-100 transition-transform duration-300 lg:translate-x-0 shadow-2xl lg:shadow-none",
+          "fixed lg:static inset-y-0 left-0 z-[60] flex flex-col shrink-0 w-full lg:w-[240px] border-r transition-transform duration-300 lg:translate-x-0 shadow-2xl lg:shadow-none",
+          "bg-highlight border-white/10",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -79,7 +79,7 @@ export function CustomerLayout() {
         <div className="px-6 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-display font-black text-xl text-slate-800 tracking-tight">
+              <span className="font-display font-black text-xl text-white tracking-tight">
                 Aplikei
               </span>
               <div className="relative">
@@ -91,7 +91,7 @@ export function CustomerLayout() {
             
             <button 
               onClick={() => setIsSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-xl bg-slate-50 text-slate-400"
+              className="lg:hidden p-2 rounded-xl bg-white/10 text-slate-300 hover:text-white"
             >
               <RiCloseLine size={20} />
             </button>
@@ -109,8 +109,8 @@ export function CustomerLayout() {
                 cn(
                   "flex items-center gap-3 px-4 py-3 rounded-2xl text-[13px] font-semibold transition-all duration-200",
                   isActive
-                    ? "bg-slate-50 text-slate-800"
-                    : "text-slate-400 hover:bg-slate-50/50 hover:text-slate-600"
+                    ? "bg-primary/20 text-white"
+                    : "text-slate-400 hover:bg-white/5 hover:text-white"
                 )
               }
             >
@@ -124,7 +124,7 @@ export function CustomerLayout() {
         <div className="p-4 mt-auto space-y-4">
           {/* Language Toggle */}
           <div className="px-2 pb-2">
-            <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-100">
+            <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-xl border border-white/10">
               {(['pt', 'en', 'es'] as const).map((l) => (
                 <button
                   key={l}
@@ -133,7 +133,7 @@ export function CustomerLayout() {
                     "flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all",
                     lang === l
                       ? "bg-white text-primary shadow-sm"
-                      : "text-slate-400 hover:text-slate-600"
+                      : "text-slate-400 hover:text-white"
                   )}
                 >
                   {l}
@@ -146,8 +146,8 @@ export function CustomerLayout() {
             className={cn(
               "block px-4 py-3 rounded-2xl border transition-all duration-200 group/profile",
               pathname === "/minha-conta" 
-                ? "bg-slate-100 border-primary/20 shadow-sm" 
-                : "bg-slate-50 border-slate-100 hover:bg-slate-100 hover:border-slate-200"
+                ? "bg-white/10 border-primary/30 shadow-sm" 
+                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
             )}
           >
             <div className="flex items-center gap-3">
@@ -157,7 +157,7 @@ export function CustomerLayout() {
                 className="w-9 h-9 rounded-full object-cover shrink-0 ring-2 ring-white shadow-sm group-hover/profile:scale-105 transition-transform"
               />
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-bold text-slate-800 truncate leading-none mb-1">
+                <p className="text-[13px] font-bold text-white truncate leading-none mb-1">
                   {user?.fullName ?? "User"}
                 </p>
                 <p className="text-[10px] font-medium text-slate-400 truncate leading-none">

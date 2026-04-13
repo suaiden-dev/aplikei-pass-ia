@@ -89,7 +89,6 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
         .limit(1)
         .maybeSingle();
 
-      console.log("[DEBUG B1B2FinalPreparationStep] Mentorship query result:", data, "Consultation:", consultationData);
 
       if (data) {
         setPurchasedMentorship(data);
@@ -487,7 +486,6 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                         ) : (
                           <button
                             onClick={() => {
-                              console.log("[DEBUG] Clicked Consultoria Especialista. purchasedMentorship state:", purchasedMentorship);
                               navigate('/checkout/consultoria-b1-negativa');
                             }}
                             className="p-6 bg-primary/10 border border-primary/20 rounded-3xl text-left hover:bg-primary/20 transition-all group/opt relative overflow-hidden"

@@ -122,7 +122,6 @@ export default function COSOnboardingPage() {
 
   useEffect(() => {
     async function load() {
-      console.log("[COSOnboarding] load() effect triggered", { userId: user?.id, slug, idParam: searchParams.get("id") });
       if (!user || !slug) return;
       
       const idParam = searchParams.get("id");
@@ -139,11 +138,9 @@ export default function COSOnboardingPage() {
       }
 
       if (!data) {
-        console.log("[COSOnboarding] No process found for:", { userId: user.id, slug, idParam });
         return;
       }
 
-      console.log("[COSOnboarding] Success hydrating process data:", data);
       setProc(data);
           
           if (data.step_data) {
@@ -155,7 +152,6 @@ export default function COSOnboardingPage() {
             // Hydrate docs
             if (data.step_data.docs) {
               const savedDocs = data.step_data.docs as Record<string, string>;
-              console.log("Hydrating docs:", savedDocs);
               setDocs(prev => {
                 const next = { ...prev };
                 // Add keys for dependents if they exist in saved data
@@ -398,13 +394,13 @@ export default function COSOnboardingPage() {
                             key={v.label}
                             disabled={isReadOnly}
                             onClick={() => !isReadOnly && setCurrentVisa(v.label)}
-                            className={`flex items-center gap-3 px-4 py-4 rounded-xl border-2 font-bold text-sm transition-all ${
+                            className={`flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 px-1 sm:px-4 py-3 sm:py-4 rounded-xl border-2 font-bold text-[12px] sm:text-sm transition-all ${
                               currentVisa === v.label
                                 ? (isRejected ? "border-red-500 bg-red-50 text-red-700" : "border-primary bg-primary/5 text-primary")
                                 : (isRejected ? "border-red-100 bg-red-50/30 text-slate-400" : "border-slate-100 text-slate-600 hover:border-slate-200 hover:bg-slate-50")
                             } ${isReadOnly ? "cursor-default opacity-80" : "cursor-pointer"}`}
                           >
-                            <span className={`text-xl ${v.color}`}>{v.icon}</span>
+                            <span className={`hidden sm:inline-block text-xl ${v.color}`}>{v.icon}</span>
                             {v.label}
                             {isRejected && <RiErrorWarningLine className="ml-auto text-red-500 animate-pulse" />}
                           </button>
@@ -426,13 +422,13 @@ export default function COSOnboardingPage() {
                             key={v.label}
                             disabled={isReadOnly}
                             onClick={() => !isReadOnly && setTargetVisa(v.label)}
-                            className={`flex items-center gap-3 px-4 py-4 rounded-xl border-2 font-bold text-sm transition-all ${
+                            className={`flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 px-1 sm:px-4 py-3 sm:py-4 rounded-xl border-2 font-bold text-[12px] sm:text-sm transition-all ${
                               targetVisa === v.label
                                 ? (isRejected ? "border-red-500 bg-red-50 text-red-700" : "border-primary bg-primary/5 text-primary")
                                 : (isRejected ? "border-red-100 bg-red-50/30 text-slate-400" : "border-slate-100 text-slate-600 hover:border-slate-200 hover:bg-slate-50")
                             } ${isReadOnly ? "cursor-default opacity-80" : "cursor-pointer"}`}
                           >
-                            <span className={`text-xl ${v.color}`}>{v.icon}</span>
+                            <span className={`hidden sm:inline-block text-xl ${v.color}`}>{v.icon}</span>
                             {v.label}
                             {isRejected && <RiErrorWarningLine className="ml-auto text-red-500 animate-pulse" />}
                           </button>
@@ -451,16 +447,16 @@ export default function COSOnboardingPage() {
                       value={i94Date}
                       onChange={e => setI94Date(e.target.value)}
                       disabled={isReadOnly}
-                      className={`border rounded-xl px-4 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all w-64 disabled:text-slate-500 ${
+                      className={`border rounded-xl px-4 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all w-full sm:w-64 disabled:text-slate-500 ${
                         isFieldRejected("i94Date") 
                           ? "border-red-500 bg-red-50 text-red-700" 
                           : "border-slate-200 bg-white text-slate-700 disabled:bg-slate-50"
                       }`}
                     />
-                    <div className="mt-2 text-primary font-bold text-xs uppercase tracking-widest pl-1">
+                    <div className="mt-4 text-primary font-bold text-xs uppercase tracking-widest pl-1">
                       {t.cos.form.mainApplicantI94}
                     </div>
-                    <div className="mt-1 flex items-center gap-3">
+                    <div className="mt-3 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-3">
                       <a
                         href="https://i94.cbp.dhs.gov/home"
                         target="_blank"
@@ -549,15 +545,6 @@ export default function COSOnboardingPage() {
                       const hasPaidSlots = paidDependents > 0;
                       const reachedLimit = dependents.length >= paidDependents;
 
-                      console.log("[COSOnboarding] Dependent Logic Debug:", {
-                        rawPaidValue,
-                        paidDependents,
-                        dependentsCount: dependents.length,
-                        reachedLimit,
-                        isReadOnly,
-                        procId: proc?.id
-                      });
-
                       return (
                         <div className="space-y-6">
                           <div className="flex items-center justify-between">
@@ -595,9 +582,9 @@ export default function COSOnboardingPage() {
                             <motion.div 
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
-                              className="p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-between gap-4"
+                              className="p-4 rounded-2xl bg-primary/5 border border-primary/10 flex flex-col sm:flex-row items-center sm:items-center justify-between gap-4 text-center sm:text-left"
                             >
-                              <div className="flex items-center gap-3">
+                              <div className="flex flex-col sm:flex-row items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                                   <RiAddLine className="text-xl" />
                                 </div>
@@ -608,7 +595,7 @@ export default function COSOnboardingPage() {
                               </div>
                               <button
                                 onClick={() => navigate(`/checkout/dependente-adicional-cos?parentId=${proc?.id}`)}
-                                className="px-5 py-2.5 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#1649c0] transition-all shadow-lg shadow-primary/20"
+                                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#1649c0] transition-all shadow-lg shadow-primary/20"
                               >
                                 {t.cos.form.dependents.buySlot}
                               </button>

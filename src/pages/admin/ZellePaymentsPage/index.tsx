@@ -385,7 +385,6 @@ export default function ZellePaymentsPage() {
         .order("created_at", { ascending: false });
 
       if (stripeError) console.error("[Payments] visa_orders error:", stripeError);
-      else console.log("[Payments] visa_orders rows:", stripeData?.length, stripeData);
 
       (stripeData ?? []).forEach((r: StripeRecord) => {
         results.push({

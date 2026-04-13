@@ -61,7 +61,6 @@ export function parsePriceUSD(priceStr: string): number {
 export const paymentService = {
   async createStripeCheckout(params: StripeCheckoutParams): Promise<StripeCheckoutResult> {
     const service = getServiceBySlug(params.slug);
-    console.log("[PaymentService] createStripeCheckout params:", params);
 
     const cleanPhone = params.phone.replace(/\D/g, "");
 
@@ -110,7 +109,6 @@ export const paymentService = {
   },
 
   async createParcelowCheckout(params: ParcelowCheckoutParams): Promise<StripeCheckoutResult> {
-    console.log("[PaymentService] createParcelowCheckout params:", params);
 
     const response = await fetch(`${SUPABASE_URL}/functions/v1/create-parcelow-checkout`, {
         method: "POST",
@@ -202,7 +200,6 @@ export const paymentService = {
    * Calls 'validate-zelle-payment' with the correct status and payment_id.
    */
   async approveZellePayment(paymentId: string): Promise<void> {
-    console.log("[PaymentService] Manual approval via validate-zelle-payment for:", paymentId);
 
     const res = await fetch(`${SUPABASE_URL}/functions/v1/validate-zelle-payment`, {
       method: "POST",
@@ -224,12 +221,10 @@ export const paymentService = {
       throw new Error(errorData.error || `Erro de Servidor (Status ${res.status})`);
     }
 
-    console.log("[PaymentService] Manual Approval successful");
   },
 
   /** Admin only — reject a Zelle payment */
   async rejectZellePayment(paymentId: string, reason: string): Promise<void> {
-    console.log("[PaymentService] Manual rejection via validate-zelle-payment for:", paymentId);
 
     const res = await fetch(`${SUPABASE_URL}/functions/v1/validate-zelle-payment`, {
       method: "POST",
@@ -251,6 +246,5 @@ export const paymentService = {
       throw new Error(errorData.error || `Erro de Servidor (Status ${res.status})`);
     }
 
-    console.log("[PaymentService] Manual Rejection successful");
   },
 };

@@ -7,9 +7,9 @@ export const Footer = () => {
   return (
     <footer className="bg-highlight px-8 lg:px-16 pt-20 pb-8">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-16 pb-16 border-b border-slate-800">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-16 pb-16 border-b border-slate-800 text-center lg:text-left">
           <div>
-            <Link to="/" className="flex items-center gap-2.5 mb-6">
+            <Link to="/" className="flex items-center justify-center lg:justify-start gap-2.5 mb-6">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-white font-black text-sm">A</span>
               </div>
@@ -18,7 +18,7 @@ export const Footer = () => {
             <p className="text-slate-400 text-sm leading-relaxed mb-8">
               {t.description}
             </p>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center lg:justify-start gap-4">
               <a href="#" className="text-slate-400 hover:text-white transition-colors">
                 <FaTwitter size={18} />
               </a>
@@ -60,11 +60,11 @@ export const Footer = () => {
             </ul>
           </div>
         </div>
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <p className="text-slate-500 text-xs text-balance">
             © 2026 Aplikei Technologies. {t.allRightsReserved}
           </p>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap justify-center sm:justify-end items-center gap-4 sm:gap-6">
             <Link to="/legal/terms" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">{t.terms}</Link>
             <Link to="/legal/privacy" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">{t.privacy || "Privacy"}</Link>
             <Link to="/legal/refund" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">{t.refund || "Refund"}</Link>

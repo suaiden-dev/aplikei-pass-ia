@@ -17,7 +17,6 @@ type ActivationState = "loading" | "done" | "error";
 
 export default function CheckoutSuccessPage() {
   const [params] = useSearchParams();
-  console.log("[CheckoutSuccess] Component mounted. Params:", Object.fromEntries(params.entries()));
 
   // Capture slug ONCE at mount time (using useState initializer).
   // localStorage is read here before the effect clears it. If we recomputed on every render,

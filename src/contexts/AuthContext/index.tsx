@@ -33,7 +33,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Mas só tentamos UMA VEZ para evitar loop infinito com erro de RLS
       if (!data && authUser && !profileCreateAttempted.current) {
         profileCreateAttempted.current = true;
-        console.log("[AuthContext] Perfil ausente. Criando perfil automaticamente para ID:", userId);
         const { data: newData, error: insertError } = await supabase
           .from("user_accounts")
           .insert({
@@ -91,7 +90,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // 2. Set up a STABLE listener for subsequent events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`[AuthContext] event: ${event}`);
 
       if (event === "SIGNED_OUT") {
         setUser(null);

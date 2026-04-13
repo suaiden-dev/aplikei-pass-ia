@@ -136,8 +136,8 @@ function ActiveProcessCard({ proc, index, t }: { proc: UserService; index: numbe
           isDenied ? "border-red-500 shadow-red-500/5" : "border-primary"
         )}
       >
-        <div className="flex items-start justify-between mb-6 sm:mb-10">
-          <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl ${cfg.bg} flex items-center justify-center border border-black/5`}>
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-6 sm:mb-10">
+          <div className={`w-12 h-12 sm:w-16 sm:h-16 shrink-0 rounded-2xl ${cfg.bg} flex items-center justify-center border border-black/5`}>
             <Icon className={`text-2xl sm:text-4xl ${cfg.icon}`} />
           </div>
           <span className={cn(
@@ -242,13 +242,13 @@ function ServiceCard({
 
       <div className="flex flex-col flex-1 p-6 sm:p-10">
         {/* Header */}
-        <div className="flex items-start gap-4 sm:gap-6 mb-8">
+        <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 mb-8 w-full">
           <div className={`w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-[24px] ${cfg.bg} flex items-center justify-center border border-black/5 group-hover:scale-105 transition-transform duration-300`}>
             <Icon className={`text-3xl sm:text-5xl ${cfg.icon}`} />
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-3 mb-1.5">
-              <h3 className="font-display font-black text-slate-800 text-xl leading-tight uppercase tracking-tight">
+          <div className="min-w-0 flex-1 w-full">
+            <div className="flex flex-col xl:flex-row flex-wrap items-start justify-between gap-3 mb-1.5">
+              <h3 className="font-display font-black text-slate-800 text-xl leading-tight uppercase tracking-tight break-words">
                 {t.dashboard.products[service.slug]?.label || service.title}
               </h3>
               {isOwned ? (
@@ -356,7 +356,6 @@ export default function CustomerDashboardPage() {
         // --- PAYMENT RECOVERY LOGIC ---
         const recoverySlug = localStorage.getItem("checkout_slug");
         if (recoverySlug && user) {
-          console.log("[Dashboard] Recovery detected for slug:", recoverySlug);
           const recoveryDeps = parseInt(localStorage.getItem("checkout_dependents") || "0", 10);
           const recoveryParentId = localStorage.getItem("checkout_parent_id");
           const isExtraDependent = recoverySlug.startsWith("dependente-adicional-");

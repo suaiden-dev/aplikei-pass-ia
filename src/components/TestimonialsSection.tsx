@@ -26,10 +26,10 @@ export const TestimonialsSection = ({ avatars }: TestimonialsSectionProps) => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col justify-between hover:-translate-y-2 transition-transform duration-300 relative z-10"
+              className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col justify-between hover:-translate-y-2 transition-transform duration-300 relative z-10 text-center items-center lg:text-left lg:items-stretch"
             >
-              <div>
-                <div className="flex items-center gap-1 mb-6">
+              <div className="flex flex-col items-center lg:items-start">
+                <div className="flex items-center justify-center lg:justify-start gap-1 mb-6">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <FaStar key={i} className="text-amber-400" size={16} />
                   ))}
@@ -37,7 +37,7 @@ export const TestimonialsSection = ({ avatars }: TestimonialsSectionProps) => {
                 <FaQuoteLeft className="text-primary/20 mb-4" size={32} />
                 <p className="text-lg text-slate-600 leading-relaxed font-medium italic">"{item.quote}"</p>
               </div>
-              <div className="flex items-center gap-4 pt-8 mt-8 border-t border-slate-100">
+              <div className="flex flex-col lg:flex-row items-center text-center lg:text-left gap-4 pt-8 mt-8 border-t border-slate-100 w-full">
                 <img
                   alt={item.author}
                   className="w-14 h-14 rounded-full border-4 border-white shadow-md grayscale hover:grayscale-0 transition-all duration-500"
