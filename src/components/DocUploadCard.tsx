@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { useT } from "../i18n/LanguageContext";
 import { 
   RiUploadCloud2Line, 
   RiCheckDoubleLine, 
@@ -22,6 +23,7 @@ interface DocUploadCardProps {
 }
 
 export function DocUploadCard({ docKey, title, subtitle, doc, onChange, isReadOnly, isRejected }: DocUploadCardProps) {
+  const t = useT("common");
   const inputRef = useRef<HTMLInputElement>(null);
   const isUploaded = !!doc.file || !!doc.path;
   const isCorrecting = !!doc.file; // User just selected a new local file
@@ -58,7 +60,11 @@ export function DocUploadCard({ docKey, title, subtitle, doc, onChange, isReadOn
           <span className={`text-[10px] font-black uppercase tracking-widest text-center px-2 ${
             showAsRejected ? "text-red-600" : isUploaded ? "text-emerald-600" : "text-slate-400 group-hover:text-primary"
           }`}>
-            {showAsRejected ? "Needs Correction" : isUploaded ? (isCorrecting ? "New File Selected" : "File Selected") : "Upload File"}
+            {showAsRejected 
+              ? t.docUpload.needsCorrection 
+              : isUploaded 
+                ? (isCorrecting ? t.docUpload.newFileSelected : t.docUpload.fileSelected) 
+                : t.docUpload.uploadFile}
           </span>
         </div>
 
@@ -67,20 +73,20 @@ export function DocUploadCard({ docKey, title, subtitle, doc, onChange, isReadOn
           {subtitle ? (
             <p className="text-[9px] text-slate-400 font-bold mt-0.5 leading-snug line-clamp-2 uppercase tracking-tighter italic">{subtitle}</p>
           ) : (
-             <p className="text-[9px] text-slate-300 font-bold mt-0.5 leading-snug uppercase tracking-tighter italic">Required Document</p>
+             <p className="text-[9px] text-slate-300 font-bold mt-0.5 leading-snug uppercase tracking-tighter italic">{t.docUpload.requiredDocument}</p>
           )}
         </div>
 
         {showAsRejected ? (
           <div className="absolute top-3 right-3 flex gap-1">
             <span className="text-[8px] font-black bg-red-500 text-white px-2 py-0.5 rounded-full shadow-sm animate-pulse">
-              PENDING
+              {t.docUpload.pending}
             </span>
           </div>
         ) : isUploaded ? (
           <div className="absolute top-3 right-3 flex gap-1">
             <span className={`text-[8px] font-black ${isCorrecting ? 'bg-amber-500' : 'bg-emerald-500'} text-white px-2 py-0.5 rounded-full shadow-sm`}>
-              {isCorrecting ? "UPDATED" : "READY"}
+              {isCorrecting ? t.docUpload.updated : t.docUpload.ready}
             </span>
           </div>
         ) : null}

@@ -12,45 +12,7 @@ import {
 } from "react-icons/ri";
 import { processService } from "../../../../services/process.service";
 import { toast } from "sonner";
-
-// ─── Mapa de consulados com endereços e detalhes ─────────────────────────────
-const consuladoInfo: Record<string, { cidade: string; estado: string; endereco: string; telefone: string; flag: string }> = {
-  Brasilia: {
-    cidade: "Brasília",
-    estado: "DF",
-    endereco: "SES – Avenida das Nações, Lote 3, Quadra 801",
-    telefone: "+55 (61) 3312-7000",
-    flag: "🏛️",
-  },
-  "Rio de Janeiro": {
-    cidade: "Rio de Janeiro",
-    estado: "RJ",
-    endereco: "Av. Presidente Wilson, 147 – Centro",
-    telefone: "+55 (21) 3823-2000",
-    flag: "🌆",
-  },
-  "São Paulo": {
-    cidade: "São Paulo",
-    estado: "SP",
-    endereco: "Rua Henri Dunant, 700 – Chácara Santo Antônio",
-    telefone: "+55 (11) 5186-7000",
-    flag: "🏙️",
-  },
-  Recife: {
-    cidade: "Recife",
-    estado: "PE",
-    endereco: "Rua Gonçalves Maia, 163 – Boa Vista",
-    telefone: "+55 (81) 2127-2500",
-    flag: "🌴",
-  },
-  "Porto Alegre": {
-    cidade: "Porto Alegre",
-    estado: "RS",
-    endereco: "Av. Assis Brasil, 1889 – Passo d'Areia",
-    telefone: "+55 (51) 3345-6000",
-    flag: "🌉",
-  },
-};
+import { useT, useLocale } from "../../../../i18n/LanguageContext";
 
 interface B1B2CASVSchedulingStepProps {
   procId: string;
@@ -60,13 +22,25 @@ interface B1B2CASVSchedulingStepProps {
 }
 
 export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }: B1B2CASVSchedulingStepProps) {
+  const t = useT("visas");
+  const { lang } = useLocale();
   const consulado = (stepData.interviewLocation as string) || "";
-  const info = consuladoInfo[consulado];
+  const info = t.onboardingPage.scheduling.consulates?.[consulado as keyof typeof t.onboardingPage.scheduling.consulates];
 
   // Prefer a date already saved, else empty
   const savedDate = (stepData.casv_preferred_date as string) || "";
   const [selectedDate, setSelectedDate] = useState(savedDate);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Map of icons for consulates (UI logic only)
+  const flagMap: Record<string, string> = {
+    Brasilia: "🏛️",
+    "Rio de Janeiro": "🌆",
+    "São Paulo": "🏙️",
+    Recife: "🌴",
+    "Porto Alegre": "🌉",
+  };
+  const flag = flagMap[consulado] || "🏛️";
 
   // Minimum date: tomorrow
   const tomorrow = new Date();
@@ -75,7 +49,7 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
 
   const handleConfirm = async () => {
     if (!selectedDate) {
-      toast.error("Por favor, selecione uma data preferencial.");
+      toast.error(t.onboardingPage.scheduling.errorSelectDate);
       return;
     }
     setIsSubmitting(true);
@@ -87,10 +61,10 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
       await processService.approveStep(procId, 6, false);
       // Notifica admin
       await processService.updateProcessStatus(procId, "awaiting_review");
-      toast.success("Data preferencial enviada! Nossa equipe confirmará o agendamento.");
+      toast.success(t.onboardingPage.scheduling.successDate);
       onComplete();
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Erro ao confirmar agendamento.");
+      toast.error((err as Error).message || t.onboardingPage.scheduling.errorConfirm);
     } finally {
       setIsSubmitting(false);
     }
@@ -104,9 +78,9 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
         <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 shadow-inner">
           <RiCalendarLine className="text-3xl" />
         </div>
-        <h2 className="text-2xl font-black text-slate-800 tracking-tight">Agendamento CASV — Consulado</h2>
+        <h2 className="text-2xl font-black text-slate-800 tracking-tight">{t.onboardingPage.scheduling.title}</h2>
         <p className="text-sm font-medium text-slate-400 mt-2 max-w-xl mx-auto">
-          Confirme seu consulado e escolha uma data preferencial para a realização da entrevista.
+          {t.onboardingPage.scheduling.subtitle}
         </p>
       </div>
 
@@ -116,31 +90,31 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
           <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
             <RiMapPin2Line className="text-primary text-lg" />
           </div>
-          <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest">Seu Consulado</h3>
+          <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest">{t.onboardingPage.scheduling.yourConsulate}</h3>
         </div>
 
         <div className="p-8">
           {info ? (
             <div className="flex items-start gap-6">
-              <div className="text-5xl shrink-0">{info.flag}</div>
+              <div className="text-5xl shrink-0">{flag}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-2">
                   <h4 className="text-xl font-black text-slate-800">
-                    {info.cidade}
+                    {info.city}
                   </h4>
                   <span className="px-2.5 py-0.5 rounded-full bg-primary/5 border border-primary/10 text-[10px] font-black text-primary uppercase tracking-widest">
-                    {info.estado}
+                    {info.state}
                   </span>
                 </div>
-                <p className="text-sm font-medium text-slate-500">{info.endereco}</p>
-                <p className="text-xs text-slate-400 font-bold mt-1">{info.telefone}</p>
+                <p className="text-sm font-medium text-slate-500">{info.address}</p>
+                <p className="text-xs text-slate-400 font-bold mt-1">{info.phone}</p>
               </div>
             </div>
           ) : (
             <div className="flex items-center gap-3 text-amber-600">
               <RiAlertLine className="text-xl shrink-0" />
               <p className="text-sm font-bold">
-                Consulado não identificado. Verifique o campo "Local da Entrevista" no seu formulário DS-160.
+                {t.onboardingPage.scheduling.consulateNotFound}
               </p>
             </div>
           )}
@@ -159,11 +133,10 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-[11px] font-black text-amber-900 uppercase tracking-widest mb-1">
-            Atenção — Disponibilidade de Datas
+            {t.onboardingPage.scheduling.disclaimerTitle}
           </h3>
           <p className="text-sm text-amber-800 font-medium leading-relaxed">
-            A data e horário definitivos dependerão da disponibilidade do consulado e do CASV. 
-            Confira as datas disponíveis antes de escolher:
+            {t.onboardingPage.scheduling.disclaimerText}
           </p>
           <a
             href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html"
@@ -172,7 +145,7 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
             className="inline-flex items-center gap-1.5 mt-2 text-[11px] font-black text-amber-900 underline underline-offset-2 hover:text-amber-700 transition-colors"
           >
             <RiExternalLinkLine />
-            Verificar Disponibilidade Oficial (travel.state.gov)
+            {t.onboardingPage.scheduling.checkAvailability}
           </a>
         </div>
       </motion.div>
@@ -184,15 +157,15 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
             <RiCalendarLine className="text-sky-500 text-lg" />
           </div>
           <div>
-            <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest">Data Preferencial</h3>
-            <p className="text-[10px] text-slate-400 font-bold mt-0.5">Escolha a data mais próxima que desejar realizar a entrevista</p>
+            <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest">{t.onboardingPage.scheduling.preferredDate}</h3>
+            <p className="text-[10px] text-slate-400 font-bold mt-0.5">{t.onboardingPage.scheduling.preferredDateNote}</p>
           </div>
         </div>
 
         <div className="p-8 space-y-6">
           <div className="max-w-xs">
             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-              Data da Entrevista <span className="text-primary">*</span>
+              {t.onboardingPage.scheduling.interviewDateLabel} <span className="text-primary">*</span>
             </label>
             <input
               type="date"
@@ -214,9 +187,9 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
                 <RiCheckLine className="text-base" />
               </div>
               <div>
-                <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-0.5">Data Selecionada</p>
+                <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-0.5">{t.onboardingPage.scheduling.selectedDateLabel}</p>
                 <p className="text-sm font-black text-emerald-900">
-                  {new Date(selectedDate + "T12:00:00").toLocaleDateString("pt-BR", {
+                  {new Date(selectedDate + "T12:00:00").toLocaleDateString(lang, {
                     weekday: "long",
                     day: "2-digit",
                     month: "long",
@@ -225,7 +198,7 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
                 </p>
                 {info && (
                   <p className="text-[11px] text-emerald-700 font-bold mt-1">
-                    📍 {info.cidade} — {info.estado}
+                    📍 {info.city} — {info.state}
                   </p>
                 )}
               </div>
@@ -242,7 +215,7 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
           disabled={isSubmitting}
           className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50"
         >
-          Voltar
+          {t.onboardingPage.common.back}
         </button>
 
         <button
@@ -255,7 +228,7 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
             <RiLoader4Line className="animate-spin text-lg" />
           ) : (
             <>
-              Confirmar Data
+              {t.onboardingPage.scheduling.confirmDate}
               <RiArrowRightLine className="text-lg" />
             </>
           )}

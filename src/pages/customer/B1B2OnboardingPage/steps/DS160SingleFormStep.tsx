@@ -1,5 +1,6 @@
 import { useFormikContext, Field, ErrorMessage } from "formik";
 import type { DS160FormValues } from "../../../../schemas/ds160.schema";
+import { useT } from "../../../../i18n/LanguageContext";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -102,6 +103,7 @@ const FormSelect = ({
 }) => {
   const { errors, touched } = useFormikContext<any>();
   const hasError = !!(errors[name] && touched[name]);
+  const t = useT("visas");
 
   return (
     <div className="space-y-1.5">
@@ -118,7 +120,7 @@ const FormSelect = ({
             : "border-slate-200 bg-white focus:border-primary"
         }`}
       >
-        <option value="">Selecione...</option>
+        <option value="">{t.onboardingPage.form.selectPlaceholder}</option>
         {options.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
@@ -141,6 +143,7 @@ const YesNo = ({
 }) => {
   const { errors, touched } = useFormikContext<any>();
   const hasError = !!(errors[name] && touched[name]);
+  const t = useT("visas");
 
   return (
     <div className="space-y-2">
@@ -152,14 +155,14 @@ const YesNo = ({
           <Field type="radio" name={name} value="sim" className="sr-only peer" />
           <span className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-bold transition-all peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary border-slate-200 text-slate-500 hover:border-slate-300">
             <span className="w-2 h-2 rounded-full border border-current" />
-            Sim
+            {t.onboardingPage.form.yes}
           </span>
         </label>
         <label className="flex-1 cursor-pointer">
           <Field type="radio" name={name} value="nao" className="sr-only peer" />
           <span className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-bold transition-all peer-checked:border-slate-800 peer-checked:bg-slate-50 peer-checked:text-slate-800 border-slate-200 text-slate-500 hover:border-slate-300">
             <span className="w-2 h-2 rounded-full border border-current" />
-            Não
+            {t.onboardingPage.form.no}
           </span>
         </label>
       </div>
@@ -230,15 +233,16 @@ const Divider = () => <div className="border-t border-slate-100 my-8" />;
 
 export const DS160SingleFormStep = () => {
   const { values } = useFormikContext<DS160FormValues>();
+  const t = useT("visas");
 
   return (
     <div className="space-y-8">
 
       {/* ── 1. Entrevista ── */}
-      <Section title="Local da Entrevista" subtitle="Selecione onde fará a entrevista consular">
+      <Section title={t.onboardingPage.form.interviewLocationTitle} subtitle={t.onboardingPage.form.interviewLocationSubtitle}>
         <div className="space-y-2">
           <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-            Local da Entrevista <span className="text-primary">*</span>
+            {t.onboardingPage.form.interviewLocationLabel} <span className="text-primary">*</span>
           </p>
           <div role="group" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {["Brasilia", "Rio de Janeiro", "São Paulo", "Recife", "Porto Alegre"].map((city) => (
@@ -253,87 +257,87 @@ export const DS160SingleFormStep = () => {
           <FieldError name="interviewLocation" />
         </div>
 
-        <YesNo name="isBrazilian" label="Você é Brasileiro(a)?" required />
+        <YesNo name="isBrazilian" label={t.onboardingPage.form.isBrazilian} required />
       </Section>
 
       <Divider />
 
       {/* ── 2. Dados Pessoais ── */}
-      <Section title="Informações Pessoais" subtitle="Conforme consta no seu passaporte">
-        <FormInput name="fullName" label="Nome Completo (Conforme Passaporte)" placeholder="EX: JOAO DA SILVA" required />
+      <Section title={t.onboardingPage.form.personalInfoTitle} subtitle={t.onboardingPage.form.personalInfoSubtitle}>
+        <FormInput name="fullName" label={t.onboardingPage.form.fullNameLabel} placeholder="EX: JOAO DA SILVA" required />
 
-        <YesNo name="hasOtherNames" label="Possui outro nome (solteira, artístico, religioso)?" required />
+        <YesNo name="hasOtherNames" label={t.onboardingPage.form.hasOtherNames} required />
         {values.hasOtherNames === "sim" && (
-          <FormInput name="otherNames" label="Qual nome?" required />
+          <FormInput name="otherNames" label={t.onboardingPage.form.whatName} required />
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <RadioGroup
             name="gender"
-            label="Sexo"
+            label={t.onboardingPage.form.genderLabel}
             required
             options={[
-              { value: "masculino", label: "Masculino" },
-              { value: "feminino", label: "Feminino" },
+              { value: "masculino", label: t.onboardingPage.form.genderMale },
+              { value: "feminino", label: t.onboardingPage.form.genderFemale },
             ]}
           />
           <FormSelect
             name="maritalStatus"
-            label="Estado Civil"
+            label={t.onboardingPage.form.maritalStatusLabel}
             required
             options={[
-              { value: "solteiro", label: "Solteiro(a)" },
-              { value: "casado", label: "Casado(a)" },
-              { value: "divorciado", label: "Divorciado(a)" },
-              { value: "viuvo", label: "Viúvo(a)" },
-              { value: "uniao_estavel", label: "União Estável" },
-              { value: "separado", label: "Separado(a) Judicialmente" },
+              { value: "solteiro", label: t.onboardingPage.form.maritalSingle },
+              { value: "casado", label: t.onboardingPage.form.maritalMarried },
+              { value: "divorciado", label: t.onboardingPage.form.maritalDivorced },
+              { value: "viuvo", label: t.onboardingPage.form.maritalWidowed },
+              { value: "uniao_estavel", label: t.onboardingPage.form.maritalCommonLaw },
+              { value: "separado", label: t.onboardingPage.form.maritalSeparated },
             ]}
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <FormInput name="birthDate" label="Data de Nascimento" type="date" required />
-          <FormInput name="birthCity" label="Cidade" placeholder="Cidade de nascimento" required />
-          <FormInput name="birthState" label="Estado" placeholder="Estado de nascimento" required />
-          <FormInput name="birthCountry" label="País" placeholder="País de nascimento" required />
+          <FormInput name="birthDate" label={t.onboardingPage.form.birthDateLabel} type="date" required />
+          <FormInput name="birthCity" label={t.onboardingPage.form.birthCityLabel} placeholder={t.onboardingPage.form.birthCityPlaceholder} required />
+          <FormInput name="birthState" label={t.onboardingPage.form.birthStateLabel} placeholder={t.onboardingPage.form.birthStatePlaceholder} required />
+          <FormInput name="birthCountry" label={t.onboardingPage.form.birthCountryLabel} placeholder={t.onboardingPage.form.birthCountryPlaceholder} required />
         </div>
       </Section>
 
       <Divider />
 
       {/* ── 3. Nacionalidade ── */}
-      <Section title="Nacionalidade e Identificação">
-        <YesNo name="hasOtherNationality" label="Tem ou já teve outra nacionalidade?" required />
+      <Section title={t.onboardingPage.form.nationalityIdentificationTitle}>
+        <YesNo name="hasOtherNationality" label={t.onboardingPage.form.hasOtherNationality} required />
         {values.hasOtherNationality === "sim" && (
-          <FormInput name="otherNationalityDetails" label="País e número do passaporte (se tiver)" placeholder="Ex: Portugal — Passaporte AB123456" />
+          <FormInput name="otherNationalityDetails" label={t.onboardingPage.form.otherNationalityDetailsLabel} placeholder={t.onboardingPage.form.otherNationalityDetailsPlaceholder} />
         )}
 
-        <YesNo name="hasOtherResidence" label="É residente permanente em outro país além do de origem?" required />
+        <YesNo name="hasOtherResidence" label={t.onboardingPage.form.hasOtherResidence} required />
         {values.hasOtherResidence === "sim" && (
-          <FormInput name="otherResidenceCountry" label="Qual país?" required />
+          <FormInput name="otherResidenceCountry" label={t.onboardingPage.form.whatCountry} required />
         )}
 
         <div className="max-w-xs">
-          <FormInput name="cpf" label="CPF" placeholder="Apenas números" required />
+          <FormInput name="cpf" label={t.onboardingPage.form.cpfLabel} placeholder={t.onboardingPage.form.cpfPlaceholder} required />
         </div>
       </Section>
 
       <Divider />
 
       {/* ── 4. Passaporte ── */}
-      <Section title="Dados do Passaporte">
+      <Section title={t.onboardingPage.form.passportDataTitle}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <FormInput name="passportNumber" label="Nº do Passaporte" required />
-          <FormInput name="passportIssueDate" label="Data de Emissão" type="date" required />
-          <FormInput name="passportExpDate" label="Data de Vencimento" type="date" required />
+          <FormInput name="passportNumber" label={t.onboardingPage.form.passportNumberLabel} required />
+          <FormInput name="passportIssueDate" label={t.onboardingPage.form.passportIssueDateLabel} type="date" required />
+          <FormInput name="passportExpDate" label={t.onboardingPage.form.passportExpDateLabel} type="date" required />
         </div>
 
-        <YesNo name="lostPassport" label="Já perdeu ou teve passaporte roubado?" required />
+        <YesNo name="lostPassport" label={t.onboardingPage.form.lostPassport} required />
         {values.lostPassport === "sim" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
-            <FormInput name="lostPassportNumber" label="Número do passaporte perdido" required />
-            <FormInput name="lostPassportExpanation" label="Explique brevemente" placeholder="Ex: Furtado em viagem" required />
+            <FormInput name="lostPassportNumber" label={t.onboardingPage.form.lostPassportNumberLabel} required />
+            <FormInput name="lostPassportExpanation" label={t.onboardingPage.form.briefExplanationLabel} placeholder={t.onboardingPage.form.briefExplanationPlaceholder} required />
           </div>
         )}
       </Section>
@@ -341,72 +345,72 @@ export const DS160SingleFormStep = () => {
       <Divider />
 
       {/* ── 5. Viagem ── */}
-      <Section title="Detalhes da Viagem">
+      <Section title={t.onboardingPage.form.travelDetailsTitle}>
         <FormSelect
           name="travelPurpose"
-          label="Finalidade da viagem para os EUA"
+          label={t.onboardingPage.form.travelPurposeLabel}
           required
           options={[
-            { value: "b2", label: "Turismo / Férias (B2)" },
-            { value: "b1", label: "Negócios (B1)" },
-            { value: "b1b2", label: "Turismo e Negócios (B1/B2)" },
-            { value: "medico", label: "Tratamento Médico (B2)" },
+            { value: "b2", label: t.onboardingPage.form.purposeTourism },
+            { value: "b1", label: t.onboardingPage.form.purposeBusiness },
+            { value: "b1b2", label: t.onboardingPage.form.purposeBoth },
+            { value: "medico", label: t.onboardingPage.form.purposeMedical },
           ]}
         />
 
-        <YesNo name="specificTravelPlan" label="Já tem um plano de viagem específico?" required />
+        <YesNo name="specificTravelPlan" label={t.onboardingPage.form.specificTravelPlan} required />
 
         {values.specificTravelPlan === "sim" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-            <FormInput name="arrivalDate" label="Data de Chegada" type="date" required />
-            <FormInput name="arrivalFlight" label="Voo de Chegada (opcional)" placeholder="Ex: LA 8015" />
-            <FormInput name="arrivalCity" label="Cidade de Chegada" required />
-            <FormInput name="placesToVisit" label="Locais que irá visitar" placeholder="Ex: Nova York, Miami" />
-            <FormInput name="departureDate" label="Data de Partida" type="date" />
-            <FormInput name="departureFlight" label="Voo de Partida (opcional)" />
-            <FormInput name="departureCity" label="Cidade de Partida" />
+            <FormInput name="arrivalDate" label={t.onboardingPage.form.arrivalDateLabel} type="date" required />
+            <FormInput name="arrivalFlight" label={t.onboardingPage.form.arrivalFlightLabel} placeholder={t.onboardingPage.form.arrivalFlightPlaceholder} />
+            <FormInput name="arrivalCity" label={t.onboardingPage.form.arrivalCityLabel} required />
+            <FormInput name="placesToVisit" label={t.onboardingPage.form.placesToVisitLabel} placeholder={t.onboardingPage.form.placesToVisitPlaceholder} />
+            <FormInput name="departureDate" label={t.onboardingPage.form.departureDateLabel} type="date" />
+            <FormInput name="departureFlight" label={t.onboardingPage.form.departureFlightLabel} />
+            <FormInput name="departureCity" label={t.onboardingPage.form.departureCityLabel} />
           </div>
         )}
 
         {values.specificTravelPlan === "nao" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-            <FormInput name="estArrivalDate" label="Data Estimada da Viagem" type="date" required />
-            <FormInput name="estStayLength" label="Tempo que pretende ficar" placeholder="Ex: 15 dias" />
+            <FormInput name="estArrivalDate" label={t.onboardingPage.form.estArrivalDateLabel} type="date" required />
+            <FormInput name="estStayLength" label={t.onboardingPage.form.estStayLengthLabel} placeholder={t.onboardingPage.form.estStayLengthPlaceholder} />
           </div>
         )}
 
         <div>
-          <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">Endereço de hospedagem nos EUA</p>
+          <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">{t.onboardingPage.form.usStayAddressLabel}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
             <div className="sm:col-span-2">
-              <FormInput name="usStayName" label="Nome do hotel ou anfitrião" placeholder="Ex: Hotel Marriott / Nome do parente" required />
+              <FormInput name="usStayName" label={t.onboardingPage.form.usStayNameLabel} placeholder={t.onboardingPage.form.usStayNamePlaceholder} required />
             </div>
             <div className="sm:col-span-2">
-              <FormInput name="usStayStreet" label="Rua e Número" required />
+              <FormInput name="usStayStreet" label={t.onboardingPage.form.streetNumberLabel} required />
             </div>
-            <FormInput name="usStayCity" label="Cidade" required />
-            <FormInput name="usStayState" label="Estado (sigla)" placeholder="Ex: NY, FL" required />
-            <FormInput name="usStayZip" label="ZIP Code" placeholder="Ex: 10001" />
+            <FormInput name="usStayCity" label={t.onboardingPage.form.cityLabel} required />
+            <FormInput name="usStayState" label={t.onboardingPage.form.stateLabelShort} placeholder={t.onboardingPage.form.statePlaceholderShort} required />
+            <FormInput name="usStayZip" label={t.onboardingPage.form.zipCodeLabel} placeholder={t.onboardingPage.form.zipCodePlaceholder} />
           </div>
         </div>
 
         <FormSelect
           name="payingTrip"
-          label="Quem vai pagar pela viagem?"
+          label={t.onboardingPage.form.payingTripLabel}
           required
           options={[
-            { value: "eu", label: "Eu Mesmo" },
-            { value: "outra_pessoa", label: "Outra Pessoa / Parente" },
-            { value: "empresa", label: "Empresa / Empregador" },
+            { value: "eu", label: t.onboardingPage.form.payingMe },
+            { value: "outra_pessoa", label: t.onboardingPage.form.payingOther },
+            { value: "empresa", label: t.onboardingPage.form.payingCompany },
           ]}
         />
 
         {values.payingTrip && values.payingTrip !== "eu" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-            <FormInput name="payerName" label="Nome Completo do Pagador/Empresa" required />
-            <FormInput name="payerRelation" label="Relação com você" placeholder="Pai, Mãe, Chefe, etc." required />
-            <FormInput name="payerPhone" label="Telefone" />
-            <FormInput name="payerEmail" label="E-mail" type="email" />
+            <FormInput name="payerName" label={t.onboardingPage.form.payerNameLabel} required />
+            <FormInput name="payerRelation" label={t.onboardingPage.form.payerRelationLabel} placeholder={t.onboardingPage.form.payerRelationPlaceholder} required />
+            <FormInput name="payerPhone" label={t.onboardingPage.form.phoneLabel} />
+            <FormInput name="payerEmail" label={t.onboardingPage.form.emailLabel} type="email" />
           </div>
         )}
       </Section>
@@ -414,16 +418,16 @@ export const DS160SingleFormStep = () => {
       <Divider />
 
       {/* ── 6. Acompanhantes ── */}
-      <Section title="Acompanhantes de Viagem">
-        <YesNo name="travelingWithOthers" label="Mais alguém viajará com você?" required />
+      <Section title={t.onboardingPage.form.companionsTitle}>
+        <YesNo name="travelingWithOthers" label={t.onboardingPage.form.travelingWithOthers} required />
 
         {values.travelingWithOthers === "sim" && (
           <div className="space-y-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-            <YesNo name="travelGroup" label="Viajam como parte de um grupo ou organização?" />
+            <YesNo name="travelGroup" label={t.onboardingPage.form.travelGroup} />
             <FormTextarea
               name="companionsDetails"
-              label="Nomes e parentesco de quem viaja com você"
-              placeholder={"Ex: Maria Silva (Esposa)\nJoão Silva (Filho)"}
+              label={t.onboardingPage.form.companionsDetailsLabel}
+              placeholder={t.onboardingPage.form.companionsDetailsPlaceholder}
               rows={3}
             />
           </div>
@@ -433,87 +437,87 @@ export const DS160SingleFormStep = () => {
       <Divider />
 
       {/* ── 7. Viagens Anteriores ── */}
-      <Section title="Viagens Anteriores aos EUA">
-        <YesNo name="beenToUS" label="Você já esteve nos EUA?" required />
+      <Section title={t.onboardingPage.form.previousTravelTitle}>
+        <YesNo name="beenToUS" label={t.onboardingPage.form.beenToUS} required />
         {values.beenToUS === "sim" && (
           <div className="space-y-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
             <FormTextarea
               name="previousVisitsDetails"
-              label="Últimas 5 viagens (datas aproximadas e duração)"
-              placeholder={"Ex: Jan/2018 — 15 dias\nMar/2015 — 10 dias"}
+              label={t.onboardingPage.form.previousVisitsDetailsLabel}
+              placeholder={t.onboardingPage.form.previousVisitsDetailsPlaceholder}
               required
             />
-            <YesNo name="hadUSDriverLicense" label="Já teve carteira de motorista dos EUA?" />
+            <YesNo name="hadUSDriverLicense" label={t.onboardingPage.form.hadUSDriverLicense} />
           </div>
         )}
 
-        <YesNo name="hadUSVisa" label="Já teve o visto americano emitido?" required />
+        <YesNo name="hadUSVisa" label={t.onboardingPage.form.hadUSVisa} required />
         {values.hadUSVisa === "sim" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-            <FormInput name="lastVisaDate" label="Data de emissão do último visto" type="date" required />
-            <FormInput name="lastVisaNumber" label="Número do Visto (Folio em vermelho)" placeholder="Ex: 00123456789" />
-            <FormSelect name="sameVisaType" label="Aplicando para o mesmo tipo?" options={[{value:"sim",label:"Sim"},{value:"nao",label:"Não"}]} />
-            <FormSelect name="sameVisaCountry" label="Mesmo país de emissão (Brasil)?" options={[{value:"sim",label:"Sim"},{value:"nao",label:"Não"}]} />
-            <FormSelect name="tenPrinted" label="Já tirou as 10 digitais?" options={[{value:"sim",label:"Sim"},{value:"nao",label:"Não"}]} />
-            <FormSelect name="visaLost" label="Visto foi perdido ou roubado?" options={[{value:"sim",label:"Sim"},{value:"nao",label:"Não"}]} />
-            <FormSelect name="visaCancelled" label="Visto foi cancelado ou revogado?" options={[{value:"sim",label:"Sim"},{value:"nao",label:"Não"}]} />
+            <FormInput name="lastVisaDate" label={t.onboardingPage.form.lastVisaDateLabel} type="date" required />
+            <FormInput name="lastVisaNumber" label={t.onboardingPage.form.lastVisaNumberLabel} placeholder={t.onboardingPage.form.lastVisaNumberPlaceholder} />
+            <FormSelect name="sameVisaType" label={t.onboardingPage.form.sameVisaType} options={[{value:"sim",label:t.onboardingPage.form.yes},{value:"nao",label:t.onboardingPage.form.no}]} />
+            <FormSelect name="sameVisaCountry" label={t.onboardingPage.form.sameVisaCountry} options={[{value:"sim",label:t.onboardingPage.form.yes},{value:"nao",label:t.onboardingPage.form.no}]} />
+            <FormSelect name="tenPrinted" label={t.onboardingPage.form.tenPrinted} options={[{value:"sim",label:t.onboardingPage.form.yes},{value:"nao",label:t.onboardingPage.form.no}]} />
+            <FormSelect name="visaLost" label={t.onboardingPage.form.visaLost} options={[{value:"sim",label:t.onboardingPage.form.yes},{value:"nao",label:t.onboardingPage.form.no}]} />
+            <FormSelect name="visaCancelled" label={t.onboardingPage.form.visaCancelled} options={[{value:"sim",label:t.onboardingPage.form.yes},{value:"nao",label:t.onboardingPage.form.no}]} />
           </div>
         )}
 
-        <YesNo name="refusedUSVisa" label="Seu visto ou entrada nos EUA já foi negado?" required />
+        <YesNo name="refusedUSVisa" label={t.onboardingPage.form.refusedUSVisa} required />
         {values.refusedUSVisa === "sim" && (
-          <FormTextarea name="refusedExpanation" label="Explique detalhadamente" required />
+          <FormTextarea name="refusedExpanation" label={t.onboardingPage.form.explainDetailLabel} required />
         )}
 
-        <YesNo name="immigrationPetition" label="Alguém preencheu uma petição de imigração para você no USCIS?" required />
+        <YesNo name="immigrationPetition" label={t.onboardingPage.form.immigrationPetition} required />
         {values.immigrationPetition === "sim" && (
-          <FormInput name="petitionExpanation" label="Explique" required />
+          <FormInput name="petitionExpanation" label={t.onboardingPage.form.explainLabel} required />
         )}
       </Section>
 
       <Divider />
 
       {/* ── 8. Contato ── */}
-      <Section title="Contato e Endereço">
+      <Section title={t.onboardingPage.form.contactAddressTitle}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="sm:col-span-2">
-            <FormInput name="homeStreet" label="Rua, Número e Bairro" required />
+            <FormInput name="homeStreet" label={t.onboardingPage.form.homeStreetLabel} required />
           </div>
-          <FormInput name="homeCity" label="Cidade" required />
-          <FormInput name="homeState" label="Estado / Província" required />
-          <FormInput name="homeZip" label="CEP" required />
-          <FormInput name="homeCountry" label="País" required />
+          <FormInput name="homeCity" label={t.onboardingPage.form.cityLabel} required />
+          <FormInput name="homeState" label={t.onboardingPage.form.stateProvinceLabel} required />
+          <FormInput name="homeZip" label={t.onboardingPage.form.zipCodeLabel} required />
+          <FormInput name="homeCountry" label={t.onboardingPage.form.countryLabel} required />
         </div>
 
-        <YesNo name="differentMailingAddress" label="O endereço de correspondência é diferente do residencial?" required />
+        <YesNo name="differentMailingAddress" label={t.onboardingPage.form.differentMailingAddress} required />
         {values.differentMailingAddress === "sim" && (
-          <FormTextarea name="mailingAddressFull" label="Endereço de correspondência completo" />
+          <FormTextarea name="mailingAddressFull" label={t.onboardingPage.form.mailingAddressFullLabel} />
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <FormInput name="primaryPhone" label="Telefone Principal" placeholder="(DD) 9XXXX-XXXX" required />
-          <FormInput name="secondaryPhone" label="Telefone Secundário" />
-          <FormInput name="cellPhone" label="Celular" />
+          <FormInput name="primaryPhone" label={t.onboardingPage.form.primaryPhoneLabel} placeholder={t.onboardingPage.form.phonePlaceholder} required />
+          <FormInput name="secondaryPhone" label={t.onboardingPage.form.secondaryPhoneLabel} />
+          <FormInput name="cellPhone" label={t.onboardingPage.form.cellPhoneLabel} />
         </div>
 
-        <YesNo name="otherPhones5Y" label="Usou outros números nos últimos 5 anos?" required />
+        <YesNo name="otherPhones5Y" label={t.onboardingPage.form.otherPhones5Y} required />
         {values.otherPhones5Y === "sim" && (
-          <FormInput name="otherPhonesList" label="Liste os números (separados por vírgula)" />
+          <FormInput name="otherPhonesList" label={t.onboardingPage.form.otherPhonesListLabel} />
         )}
 
         <div className="max-w-sm">
-          <FormInput name="primaryEmail" label="E-mail Principal" type="email" required />
+          <FormInput name="primaryEmail" label={t.onboardingPage.form.primaryEmailLabel} type="email" required />
         </div>
 
-        <YesNo name="otherEmails5Y" label="Usou outros e-mails nos últimos 5 anos?" required />
+        <YesNo name="otherEmails5Y" label={t.onboardingPage.form.otherEmails5Y} required />
         {values.otherEmails5Y === "sim" && (
-          <FormInput name="otherEmailList" label="Liste os e-mails (separados por vírgula)" />
+          <FormInput name="otherEmailList" label={t.onboardingPage.form.otherEmailListLabel} />
         )}
 
         <FormTextarea
           name="socialMediaAccounts"
-          label="Redes sociais e usuários"
-          placeholder={"Ex: Instagram — @meuperfil\nFacebook — /meunome\nLinkedIn — /in/meunome"}
+          label={t.onboardingPage.form.socialMediaAccountsLabel}
+          placeholder={t.onboardingPage.form.socialMediaAccountsPlaceholder}
           required
           rows={3}
         />
@@ -522,50 +526,50 @@ export const DS160SingleFormStep = () => {
       <Divider />
 
       {/* ── 9. Família ── */}
-      <Section title="Informações Familiares">
+      <Section title={t.onboardingPage.form.familyInfoTitle}>
         <div>
-          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">Pai</p>
+          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">{t.onboardingPage.form.fatherLabel}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-            <FormInput name="fatherName" label="Nome Completo do Pai" />
-            <FormInput name="fatherBirth" label="Data de Nascimento" type="date" />
+            <FormInput name="fatherName" label={t.onboardingPage.form.fatherNameLabel} />
+            <FormInput name="fatherBirth" label={t.onboardingPage.form.birthDateLabel} type="date" />
             <div className="sm:col-span-2">
-              <YesNo name="fatherInUS" label="Seu pai está nos EUA?" />
+              <YesNo name="fatherInUS" label={t.onboardingPage.form.fatherInUS} />
             </div>
             {values.fatherInUS === "sim" && (
               <div className="sm:col-span-2">
-                <FormInput name="fatherUSStatus" label="Status dele nos EUA" placeholder="Cidadão, Residente, Visitante, Não sei..." />
+                <FormInput name="fatherUSStatus" label={t.onboardingPage.form.fatherUSStatusLabel} placeholder={t.onboardingPage.form.usStatusPlaceholder} />
               </div>
             )}
           </div>
         </div>
 
         <div>
-          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">Mãe</p>
+          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">{t.onboardingPage.form.motherLabel}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-            <FormInput name="motherName" label="Nome Completo da Mãe" />
-            <FormInput name="motherBirth" label="Data de Nascimento" type="date" />
+            <FormInput name="motherName" label={t.onboardingPage.form.motherNameLabel} />
+            <FormInput name="motherBirth" label={t.onboardingPage.form.birthDateLabel} type="date" />
             <div className="sm:col-span-2">
-              <YesNo name="motherInUS" label="Sua mãe está nos EUA?" />
+              <YesNo name="motherInUS" label={t.onboardingPage.form.motherInUS} />
             </div>
             {values.motherInUS === "sim" && (
               <div className="sm:col-span-2">
-                <FormInput name="motherUSStatus" label="Status dela nos EUA" placeholder="Cidadão, Residente, Visitante, Não sei..." />
+                <FormInput name="motherUSStatus" label={t.onboardingPage.form.motherUSStatusLabel} placeholder={t.onboardingPage.form.usStatusPlaceholder} />
               </div>
             )}
           </div>
         </div>
 
-        <YesNo name="otherRelInUS" label="Tem outros parentes de 1º grau nos EUA (não listados acima)?" />
+        <YesNo name="otherRelInUS" label={t.onboardingPage.form.otherRelInUS} />
 
         <div>
-          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">Cônjuge (preencha se casado/união estável)</p>
+          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">{t.onboardingPage.form.spouseLabel}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-            <FormInput name="spouseName" label="Nome Completo" />
-            <FormInput name="spouseBirth" label="Data de Nascimento" type="date" />
-            <FormInput name="spouseCity" label="Cidade de Nascimento" />
-            <FormInput name="spouseCountry" label="País de Nascimento" />
+            <FormInput name="spouseName" label={t.onboardingPage.form.fullNameLabel} />
+            <FormInput name="spouseBirth" label={t.onboardingPage.form.birthDateLabel} type="date" />
+            <FormInput name="spouseCity" label={t.onboardingPage.form.birthCityLabel} />
+            <FormInput name="spouseCountry" label={t.onboardingPage.form.birthCountryLabel} />
             <div className="sm:col-span-2">
-              <YesNo name="spouseSameAddress" label="Endereço do cônjuge é o mesmo que o seu?" />
+              <YesNo name="spouseSameAddress" label={t.onboardingPage.form.spouseSameAddress} />
             </div>
           </div>
         </div>
@@ -574,59 +578,59 @@ export const DS160SingleFormStep = () => {
       <Divider />
 
       {/* ── 10. Trabalho e Educação ── */}
-      <Section title="Trabalho e Educação">
+      <Section title={t.onboardingPage.form.workEducationTitle}>
         <div>
-          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">Atividade/Emprego Atual</p>
+          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">{t.onboardingPage.form.currentJobLabel}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-            <FormInput name="primaryJobSector" label="Área de Atuação" placeholder="Engenharia, Saúde, Estudante..." required />
-            <FormInput name="primaryJobEntity" label="Nome da Empresa / Escola" required />
+            <FormInput name="primaryJobSector" label={t.onboardingPage.form.jobSectorLabel} placeholder={t.onboardingPage.form.jobSectorPlaceholder} required />
+            <FormInput name="primaryJobEntity" label={t.onboardingPage.form.jobEntityLabel} required />
             <div className="sm:col-span-2">
-              <FormInput name="primaryJobAddress" label="Endereço Completo" />
+              <FormInput name="primaryJobAddress" label={t.onboardingPage.form.fullAddressLabel} />
             </div>
-            <FormInput name="primaryJobPhone" label="Telefone" />
-            <FormInput name="primaryJobSalary" label="Salário Mensal Bruto (R$)" placeholder="Aproximado" />
+            <FormInput name="primaryJobPhone" label={t.onboardingPage.form.phoneLabel} />
+            <FormInput name="primaryJobSalary" label={t.onboardingPage.form.monthlySalaryLabel} placeholder={t.onboardingPage.form.monthlySalaryPlaceholder} />
             <div className="sm:col-span-2">
-              <FormTextarea name="primaryJobDuties" label="Resumo das suas funções" rows={2} />
+              <FormTextarea name="primaryJobDuties" label={t.onboardingPage.form.jobDutiesLabel} rows={2} />
             </div>
           </div>
         </div>
 
-        <YesNo name="employedLast5Y" label="Foi empregado(a) anteriormente nos últimos 5 anos?" required />
+        <YesNo name="employedLast5Y" label={t.onboardingPage.form.employedLast5Y} required />
         {values.employedLast5Y === "sim" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-            <FormInput name="prevEmployerName" label="Nome do Empregador Anterior" required />
-            <FormInput name="prevEmployerTitle" label="Cargo" />
-            <FormInput name="prevEmployerStart" label="Data de Início" type="date" />
-            <FormInput name="prevEmployerEnd" label="Data de Fim" type="date" />
+            <FormInput name="prevEmployerName" label={t.onboardingPage.form.prevEmployerNameLabel} required />
+            <FormInput name="prevEmployerTitle" label={t.onboardingPage.form.prevEmployerTitleLabel} />
+            <FormInput name="prevEmployerStart" label={t.onboardingPage.form.startDateLabel} type="date" />
+            <FormInput name="prevEmployerEnd" label={t.onboardingPage.form.endDateLabel} type="date" />
             <div className="sm:col-span-2">
-              <FormInput name="prevEmployerDuties" label="Resumo de Funções" />
+              <FormInput name="prevEmployerDuties" label={t.onboardingPage.form.jobDutiesLabel} />
             </div>
           </div>
         )}
 
-        <YesNo name="higherEducation" label="Frequentou ensino superior, técnico ou profissional?" required />
+        <YesNo name="higherEducation" label={t.onboardingPage.form.higherEducation} required />
         {values.higherEducation === "sim" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
             <div className="sm:col-span-2">
-              <FormInput name="eduName" label="Nome da Instituição" required />
+              <FormInput name="eduName" label={t.onboardingPage.form.eduNameLabel} required />
             </div>
             <div className="sm:col-span-2">
-              <FormInput name="eduCourse" label="Curso / Área" />
+              <FormInput name="eduCourse" label={t.onboardingPage.form.eduCourseLabel} />
             </div>
-            <FormInput name="eduStart" label="Data de Início" type="date" />
-            <FormInput name="eduEnd" label="Data de Término" type="date" />
+            <FormInput name="eduStart" label={t.onboardingPage.form.startDateLabel} type="date" />
+            <FormInput name="eduEnd" label={t.onboardingPage.form.endDateLabel} type="date" />
           </div>
         )}
 
-        <YesNo name="belongsToTribe" label="Pertence a alguma tribo, clã ou organização?" required />
-        <FormInput name="fluentLanguages" label="Idiomas que fala fluentemente" placeholder="Ex: Português, Inglês, Espanhol" required />
-        <FormTextarea name="countriesVisited5Y" label="Países visitados nos últimos 5 anos" placeholder="Ex: Argentina, França, Portugal..." rows={2} />
+        <YesNo name="belongsToTribe" label={t.onboardingPage.form.belongsToTribe} required />
+        <FormInput name="fluentLanguages" label={t.onboardingPage.form.fluentLanguagesLabel} placeholder={t.onboardingPage.form.fluentLanguagesPlaceholder} required />
+        <FormTextarea name="countriesVisited5Y" label={t.onboardingPage.form.countriesVisited5YLabel} placeholder={t.onboardingPage.form.countriesVisited5YPlaceholder} rows={2} />
 
-        <YesNo name="servedMilitary" label="Já serviu às Forças Armadas?" required />
+        <YesNo name="servedMilitary" label={t.onboardingPage.form.servedMilitary} required />
         {values.servedMilitary === "sim" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-            <FormInput name="militaryBranch" label="Ramo" placeholder="Ex: Exército" />
-            <FormInput name="militarySpecialty" label="Especialidade" />
+            <FormInput name="militaryBranch" label={t.onboardingPage.form.militaryBranchLabel} placeholder={t.onboardingPage.form.militaryBranchPlaceholder} />
+            <FormInput name="militarySpecialty" label={t.onboardingPage.form.militarySpecialtyLabel} />
           </div>
         )}
       </Section>
@@ -635,19 +639,19 @@ export const DS160SingleFormStep = () => {
 
       {/* ── 11. Segurança ── */}
       <Section
-        title="Perguntas de Segurança"
-        subtitle="Por padrão, todas as alternativas são assinaladas como NÃO pela nossa equipe para otimização da DS-160."
+        title={t.onboardingPage.form.securityQuestionsTitle}
+        subtitle={t.onboardingPage.form.securityQuestionsSubtitle}
       >
         <div className="p-5 bg-amber-50 border border-amber-100 rounded-2xl space-y-4">
           <p className="text-sm font-medium text-amber-800 leading-relaxed">
-            Deseja declarar <strong>SIM</strong> para algum evento de segurança no seu histórico? (Ex: prisão, deportação, doença transmissível grave)
+            {t.onboardingPage.form.securityExceptionsPrompt}
           </p>
           <YesNo name="securityExceptions" label="" />
           {values.securityExceptions === "sim" && (
             <FormInput
               name="securityExceptionsDetails"
-              label="Descreva brevemente o evento"
-              placeholder="Explique brevemente a exceção..."
+              label={t.onboardingPage.form.securityExceptionsLabel}
+              placeholder={t.onboardingPage.form.securityExceptionsPlaceholder}
               required
             />
           )}

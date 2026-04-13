@@ -5,6 +5,7 @@ import {
   RiLoader4Line,
   RiInformationLine,
 } from "react-icons/ri";
+import { useT } from "../../../../i18n/LanguageContext";
 import { processService } from "../../../../services/process.service";
 import { toast } from "sonner";
 import confirmationEmailImg from "../../../../assets/email/confirmation_email.png";
@@ -17,6 +18,7 @@ interface B1B2UserConfirmEmailStepProps {
 
 export function B1B2UserConfirmEmailStep({ procId, onComplete, onBack }: B1B2UserConfirmEmailStepProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const t = useT("visas");
 
   const handleConfirm = async () => {
     setIsSubmitting(true);
@@ -24,10 +26,10 @@ export function B1B2UserConfirmEmailStep({ procId, onComplete, onBack }: B1B2Use
       // Step 8 (idx 7) is the last one in our list currently
       await processService.approveStep(procId, 8, false);
       await processService.requestStepReview(procId);
-      toast.success("E-mail confirmado com sucesso!");
+      toast.success(t.onboardingPage.emailConfirmation.confirmedSuccess);
       onComplete();
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Erro ao confirmar e-mail.");
+      toast.error((err as Error).message || t.onboardingPage.emailConfirmation.confirmedError);
     } finally {
       setIsSubmitting(false);
     }
@@ -40,9 +42,11 @@ export function B1B2UserConfirmEmailStep({ procId, onComplete, onBack }: B1B2Use
         <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-inner">
           <RiMailCheckLine className="text-3xl" />
         </div>
-        <h2 className="text-2xl font-black text-slate-800 tracking-tight">Confirmação de E-mail</h2>
+        <h2 className="text-2xl font-black text-slate-800 tracking-tight">
+          {t.onboardingPage.emailConfirmation.title}
+        </h2>
         <p className="text-sm font-medium text-slate-400 mt-2 max-w-xl mx-auto">
-          Fique atento à sua caixa de entrada. Você recebeu um e-mail do consulado para confirmar sua conta.
+          {t.onboardingPage.emailConfirmation.desc}
         </p>
       </div>
 
@@ -52,10 +56,11 @@ export function B1B2UserConfirmEmailStep({ procId, onComplete, onBack }: B1B2Use
           <RiInformationLine className="text-xl" />
         </div>
         <div>
-          <h3 className="text-xs font-black text-amber-900 uppercase tracking-widest mb-1">O que fazer agora?</h3>
+          <h3 className="text-xs font-black text-amber-900 uppercase tracking-widest mb-1">
+            {t.onboardingPage.emailConfirmation.whatToDo}
+          </h3>
           <p className="text-sm text-amber-800 font-medium leading-relaxed">
-            Acesse o seu e-mail (o mesmo que você utiliza na Aplikei) e procure pela mensagem de confirmação do consulado. 
-            <strong> Clique no link de confirmação</strong> dentro do e-mail antes de clicar no botão abaixo.
+            {t.onboardingPage.emailConfirmation.accessEmailDesc}
           </p>
         </div>
       </div>
@@ -63,11 +68,19 @@ export function B1B2UserConfirmEmailStep({ procId, onComplete, onBack }: B1B2Use
       {/* Example Image */}
       <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl overflow-hidden">
         <div className="px-8 py-5 border-b border-slate-50">
-          <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest">Exemplo de E-mail</h3>
-          <p className="text-[10px] text-slate-400 font-bold mt-0.5">O e-mail terá uma aparência similar a esta:</p>
+          <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest">
+            {t.onboardingPage.emailConfirmation.exampleEmail}
+          </h3>
+          <p className="text-[10px] text-slate-400 font-bold mt-0.5">
+            {t.onboardingPage.emailConfirmation.exampleAppearance}
+          </p>
         </div>
         <div className="p-4 bg-slate-50 flex justify-center">
-          <img src={confirmationEmailImg} alt="Exemplo de e-mail de confirmação" className="rounded-xl border border-slate-200 max-w-full shadow-sm" />
+          <img
+            src={confirmationEmailImg}
+            alt={t.onboardingPage.emailConfirmation.exampleEmail}
+            className="rounded-xl border border-slate-200 max-w-full shadow-sm"
+          />
         </div>
       </div>
 
@@ -79,7 +92,7 @@ export function B1B2UserConfirmEmailStep({ procId, onComplete, onBack }: B1B2Use
           disabled={isSubmitting}
           className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50"
         >
-          Voltar
+          {t.onboardingPage.previous}
         </button>
 
         <button
@@ -92,7 +105,7 @@ export function B1B2UserConfirmEmailStep({ procId, onComplete, onBack }: B1B2Use
             <RiLoader4Line className="animate-spin text-lg" />
           ) : (
             <>
-              JÁ CONFIRMEI O EMAIL
+              {t.onboardingPage.emailConfirmation.alreadyConfirmed}
               <RiCheckLine className="text-lg" />
             </>
           )}

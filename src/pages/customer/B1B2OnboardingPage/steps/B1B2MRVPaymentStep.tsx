@@ -13,6 +13,7 @@ import {
 import { processService } from "../../../../services/process.service";
 import { supabase } from "../../../../lib/supabase";
 import { toast } from "sonner";
+import { useT } from "../../../../i18n/LanguageContext";
 
 interface B1B2MRVPaymentStepProps {
   procId: string;
@@ -23,9 +24,10 @@ interface B1B2MRVPaymentStepProps {
 export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaymentStepProps) {
   const [method, setMethod] = useState<"credit_card" | "boleto" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const t = useT("visas");
 
-  const login = (stepData.mrv_login as string) || "Não informado";
-  const password = (stepData.mrv_password as string) || "Não informado";
+  const login = (stepData.mrv_login as string) || t.onboardingPage.paymentPending.notInformed;
+  const password = (stepData.mrv_password as string) || t.onboardingPage.paymentPending.notInformed;
   const boletoPath = stepData.mrv_boleto_path as string;
   const boletoUrl = boletoPath ? supabase.storage.from("profiles").getPublicUrl(boletoPath).data.publicUrl : null;
 
@@ -40,7 +42,7 @@ export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaym
       await processService.approveStep(procId, 10, false); 
       // Notifica admin para o agendamento final
       await processService.updateProcessStatus(procId, "awaiting_review");
-      toast.success("Pagamento confirmado com sucesso!");
+      toast.success(t.onboardingPage.paymentPending.paymentProcessed);
       onComplete();
     } catch (err: unknown) {
       toast.error((err as Error).message);
@@ -55,8 +57,8 @@ export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaym
         <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
           <RiBankCard2Line className="text-3xl" />
         </div>
-        <h2 className="text-2xl font-black text-slate-800 tracking-tight">Pagamento da Taxa MRV</h2>
-        <p className="text-sm font-medium text-slate-400 mt-2">Escolha como deseja realizar o pagamento da taxa consular ($120.00)</p>
+        <h2 className="text-2xl font-black text-slate-800 tracking-tight">{t.onboardingPage.paymentPending.mrvFeeTitle}</h2>
+        <p className="text-sm font-medium text-slate-400 mt-2">{t.onboardingPage.paymentPending.mrvFeeDesc}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -70,8 +72,8 @@ export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaym
             <RiBankCard2Line className="text-2xl" />
           </div>
           <div>
-            <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest">Cartão de Crédito</h3>
-            <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Pagamento imediato via site do consulado</p>
+            <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest">{t.onboardingPage.paymentPending.creditCard}</h3>
+            <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">{t.onboardingPage.paymentPending.immediatePayment}</p>
           </div>
           {method === "credit_card" && <div className="ml-auto w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><RiCheckLine /></div>}
         </button>
@@ -86,8 +88,8 @@ export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaym
             <RiBarcodeLine className="text-2xl" />
           </div>
           <div>
-            <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest">Boleto Bancário</h3>
-            <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Compensação em até 48 horas úteis</p>
+            <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest">{t.onboardingPage.paymentPending.bankSlip}</h3>
+            <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">{t.onboardingPage.paymentPending.compensationDesc}</p>
           </div>
           {method === "boleto" && <div className="ml-auto w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"><RiCheckLine /></div>}
         </button>
@@ -98,25 +100,25 @@ export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaym
           <div className="p-6 bg-amber-50 border border-amber-100 rounded-[28px] flex gap-4">
              <RiInformationLine className="text-2xl text-amber-600 shrink-0" />
              <div className="text-xs text-amber-800 font-medium leading-relaxed">
-                Para pagamento com cartão, você deve acessar o portal do consulado com as credenciais abaixo e realizar o pagamento de <strong>$120.00</strong> diretamente no site oficial.
+                {t.onboardingPage.paymentPending.accessPortalDesc}
              </div>
           </div>
 
           <div className="bg-white rounded-[28px] border border-slate-100 shadow-xl overflow-hidden">
              <div className="px-8 py-4 border-b border-slate-50 bg-slate-50/50 flex items-center gap-2">
                 <RiShieldUserLine className="text-primary" />
-                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Acesso ao Portal Consular</h4>
+                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t.onboardingPage.paymentPending.portalAccessTitle}</h4>
              </div>
              <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Login (E-mail)</p>
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.onboardingPage.paymentPending.login}</p>
                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                       <RiShieldUserLine className="text-slate-400" />
                       <span className="text-sm font-bold text-slate-800 font-mono">{login}</span>
                    </div>
                 </div>
                 <div className="space-y-2">
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Senha</p>
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.onboardingPage.paymentPending.password}</p>
                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                       <RiLockLine className="text-slate-400" />
                       <span className="text-sm font-bold text-slate-800 font-mono">{password}</span>
@@ -125,7 +127,7 @@ export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaym
              </div>
              <div className="p-4 bg-slate-900 text-center">
                 <a href="https://ais.usvisa-info.com/pt-br/niv/users/sign_in" target="_blank" rel="noreferrer" className="text-[10px] font-black text-white uppercase tracking-widest flex items-center justify-center gap-2 hover:underline">
-                   Acessar Site do Consulado <RiExternalLinkLine className="text-lg" />
+                   {t.onboardingPage.paymentPending.goToPortal} <RiExternalLinkLine className="text-lg" />
                 </a>
              </div>
           </div>
@@ -141,8 +143,8 @@ export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaym
                       <RiBarcodeLine className="text-3xl" />
                    </div>
                    <div>
-                      <h4 className="text-base font-black text-slate-800">Boleto Taxa MRV</h4>
-                      <p className="text-xs text-slate-400 font-medium">Valor: <strong>$120.00</strong> (Calculado em Reais no boleto)</p>
+                      <h4 className="text-base font-black text-slate-800">{t.onboardingPage.paymentPending.mrvBoletoTitle}</h4>
+                      <p className="text-xs text-slate-400 font-medium">{t.onboardingPage.paymentPending.mrvBoletoDesc}</p>
                    </div>
                 </div>
                 {boletoUrl ? (
@@ -152,10 +154,10 @@ export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaym
                      rel="noreferrer"
                      className="px-8 py-3 bg-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-primary/20"
                    >
-                     <RiExternalLinkLine /> Baixar Boleto
+                     <RiExternalLinkLine /> {t.onboardingPage.paymentPending.downloadPdfSlip}
                    </a>
                 ) : (
-                  <p className="text-xs font-bold text-red-500">Boleto ainda não disponível.</p>
+                   <p className="text-xs font-bold text-red-500">{t.onboardingPage.paymentPending.boletoNotAvailable}</p>
                 )}
              </div>
           </div>
@@ -169,10 +171,10 @@ export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaym
              disabled={isSubmitting || (method === "boleto" && !boletoUrl)}
              className="w-full h-14 bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
            >
-             {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> Confirmar Pagamento Realizado</>}
+             {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.onboardingPage.paymentPending.confirmPaymentBtn}</>}
            </button>
            <p className="text-center text-[10px] text-slate-400 font-bold uppercase mt-4 tracking-widest">
-              AO CONFIRMAR, VOCÊ DECLARA QUE REALIZOU O PAGAMENTO CONFORME AS INSTRUÇÕES ACIMA.
+              {t.onboardingPage.paymentPending.paymentDisclaimer}
            </p>
         </div>
       )}
