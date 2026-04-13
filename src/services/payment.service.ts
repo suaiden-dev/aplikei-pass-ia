@@ -183,6 +183,7 @@ export const paymentService = {
         guest_name: params.guestName,
         user_id: params.userId ?? null,
         proc_id: params.proc_id,
+        dependents: params.dependents,
         recipient_name: ZELLE_RECIPIENT.name,
         recipient_email: ZELLE_RECIPIENT.email,
         admin_notes: `Serviço: ${params.serviceName} | Valor esperado: $${params.expectedAmount.toFixed(2)} | Pago: $${params.amount.toFixed(2)}${params.dependents ? ` | Dependentes: ${params.dependents}` : ""}`,

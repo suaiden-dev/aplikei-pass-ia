@@ -47,9 +47,10 @@ export const processService = {
     const trulyActive = data.filter(proc => {
       // Ignora produtos auxiliares que não têm fluxo de progresso próprio
       if (
-        proc.service_slug?.startsWith("analise-") ||
-        proc.service_slug?.startsWith("mentoria-") ||
-        proc.service_slug?.startsWith("consultoria-")
+        proc.service_slug?.toLowerCase().startsWith("analise-") ||
+        proc.service_slug?.toLowerCase().startsWith("mentoria-") ||
+        proc.service_slug?.toLowerCase().startsWith("consultoria-") ||
+        proc.service_slug?.toLowerCase().startsWith("dependente-adicional-")
       ) return false;
 
       const stepData = (proc.step_data || {}) as Record<string, unknown>;
@@ -114,13 +115,24 @@ export const processService = {
 
     if (error) {
       if (error.code === "23505") {
-        // Fallback to upsert if the constraint still exists
+        // Fetch current data to preserve other fields
+        const { data: current } = await supabase
+          .from("user_services")
+          .select("step_data")
+          .match({ user_id: userId, service_slug: slug })
+          .maybeSingle();
+
+        const mergedStepData = {
+          ...(current?.step_data as object || {}),
+          paid_dependents: paidDependents
+        };
+
         await supabase.from("user_services").upsert({
           user_id: userId,
           service_slug: slug,
           status: "active",
           current_step: 0,
-          step_data: { paid_dependents: paidDependents }
+          step_data: mergedStepData
         }, { onConflict: "user_id,service_slug" });
       } else {
         throw error;

@@ -6,6 +6,27 @@
 import { PDFDocument } from "pdf-lib";
 import { supabase } from "../lib/supabase";
 import i539PdfUrl from "../forms/i539_template.pdf?url";
+import i539aPdfUrl from "../forms/i539a_template.pdf?url";
+
+export type I539AData = {
+  id?: string;
+  familyName?: string; givenName?: string; middleName?: string;
+  dateOfBirth?: string; countryOfBirth?: string; countryOfCitizenship?: string;
+  alienNumber?: string; ssn?: string; uscisOnlineAccountNumber?: string;
+  dateOfArrival?: string; i94Number?: string; passportNumber?: string;
+  travelDocNumber?: string; countryOfIssuance?: string; passportExpirationDate?: string;
+  currentStatus?: string; statusExpirationDate?: string;
+  q1Yes?: boolean; q1No?: boolean; q2Yes?: boolean; q2No?: boolean;
+  q3Yes?: boolean; q3No?: boolean; q4Yes?: boolean; q4No?: boolean;
+  q5Yes?: boolean; q5No?: boolean; q6Yes?: boolean; q6No?: boolean;
+  q7Yes?: boolean; q7No?: boolean; q8Yes?: boolean; q8No?: boolean;
+  q9Yes?: boolean; q9No?: boolean; q10Yes?: boolean; q10No?: boolean;
+  q11Yes?: boolean; q11No?: boolean; q12Yes?: boolean; q12No?: boolean;
+  q13Yes?: boolean; q13No?: boolean; q14Yes?: boolean; q14No?: boolean;
+  q15Yes?: boolean; q15No?: boolean;
+  daytimePhone?: string; mobilePhone?: string; email?: string;
+  signature?: string; signatureDate?: string;
+};
 
 export type I539Data = {
   familyName?: string; givenName?: string; middleName?: string;
@@ -43,18 +64,20 @@ export type I539Data = {
   interpreterPhone?: string; interpreterPhoneAlt?: string;
   interpreterEmail?: string; interpreterLanguage?: string;
   interpreterSignature?: string; interpreterSignatureDate?: string;
-  preparerFamilyName?: string; preparerGivenName?: string; preparerBusiness?: string;
-  preparerPhone?: string; preparerFax?: string; preparerEmail?: string;
   preparerSignature?: string; preparerSignatureDate?: string;
+  dependentsA?: I539AData[];
 };
 
 
-/** Fetch decrypted I-539 PDF locally from the project */
 async function fetchDecryptedPDF(): Promise<Uint8Array> {
   const res = await fetch(i539PdfUrl);
-  if (!res.ok) {
-    throw new Error(`PDF base não encontrado localmente (status: ${res.status})`);
-  }
+  if (!res.ok) throw new Error("PDF I-539 base não encontrado.");
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+async function fetchI539APDF(): Promise<Uint8Array> {
+  const res = await fetch(i539aPdfUrl);
+  if (!res.ok) throw new Error("PDF I-539A base não encontrado.");
   return new Uint8Array(await res.arrayBuffer());
 }
 
@@ -214,10 +237,88 @@ export async function fillI539Form(
   tx("form1[0].#subform[5].P7_Line8b_DateofSignature[0]", data.preparerSignatureDate);
 
   // ── Part 8 (name repeat) ──
-  tx("form1[0].#subform[6].P1Line1a_FamilyName[1]", data.familyName);
-  tx("form1[0].#subform[6].P1_Line1b_GivenName[1]", data.givenName);
-  tx("form1[0].#subform[6].P1_Line1c_MiddleName[1]", data.middleName);
   tx("form1[0].#subform[6].P8_Line2_ANumber[0].Pt1Line2_AlienNumber[1]", data.alienNumber);
+
+  // ── Append Dependents (I-539A) ──
+  if (data.dependentsA && data.dependentsA.length > 0) {
+    const aBytes = await fetchI539APDF();
+    for (const dep of data.dependentsA) {
+      const depDoc = await PDFDocument.load(aBytes, { ignoreEncryption: true });
+      const depForm = depDoc.getForm();
+
+      const dtx = (name: string, value: string | undefined) => {
+        if (!value) return;
+        try { depForm.getTextField(name).setText(value); } catch { /* skip */ }
+      };
+      const dbtn = (name: string, checked: boolean | undefined) => {
+        if (checked === undefined) return;
+        try {
+          const f = depForm.getCheckBox(name);
+          checked ? f.check() : f.uncheck();
+        } catch { /* skip */ }
+      };
+
+      dtx("form1[0].#subform[0].P1Line1a_FamilyName[0]", dep.familyName);
+      dtx("form1[0].#subform[0].P1_Line1b_GivenName[0]", dep.givenName);
+      dtx("form1[0].#subform[0].P1_Line1c_MiddleName[0]", dep.middleName);
+      dtx("form1[0].#subform[0].SupA_Line2_DateOfBirth[0]", dep.dateOfBirth);
+      dtx("form1[0].#subform[0].SupA_Line3_CountryOfBirth[0]", dep.countryOfBirth);
+      dtx("form1[0].#subform[0].SupA_Line1f_CountryOfCitz[0]", dep.countryOfCitizenship);
+      dtx("form1[0].#subform[0].SupA_Line1g_SSN[0]", dep.ssn);
+      dtx("form1[0].#subform[0].#area[0].Pt1Line6_AlienNumber[0]", dep.alienNumber);
+      dtx("form1[0].#subform[0].USCISOnlineAcctNumber[0]", dep.uscisOnlineAccountNumber);
+      dtx("form1[0].#subform[0].SupA_Line1i_DateOfArrival[0]", dep.dateOfArrival);
+      dtx("form1[0].#subform[0].SupA_Line1j_ArrivalDeparture[0]", dep.i94Number);
+      dtx("form1[0].#subform[0].SupA_Line1k_Passport[0]", dep.passportNumber);
+      dtx("form1[0].#subform[0].SupA_Line1l_TravelDoc[0]", dep.travelDocNumber);
+      dtx("form1[0].#subform[0].SupA_Line1m_CountryOfIssuance[0]", dep.countryOfIssuance);
+      dtx("form1[0].#subform[0].SupA_Line1n_ExpDate[0]", dep.passportExpirationDate);
+      dtx("form1[0].#subform[0].Pt1Line15a_NewStatus[0]", dep.currentStatus);
+      dtx("form1[0].#subform[0].SupA_Line1p_DateExpires[0]", dep.statusExpirationDate);
+
+      // Part 3 Security
+      dbtn("form1[0].#subform[1].P3_Line1_ImmVisa[0]", dep.q1Yes);
+      dbtn("form1[0].#subform[1].P3_Line1_ImmVisa[1]", dep.q1No);
+      dbtn("form1[0].#subform[1].P3_Line2_PetFiled[0]", dep.q2Yes);
+      dbtn("form1[0].#subform[1].P3_Line2_PetFiled[1]", dep.q2No);
+      dbtn("form1[0].#subform[1].P3_Line3_I485Filed[0]", dep.q3Yes);
+      dbtn("form1[0].#subform[1].P3_Line3_I485Filed[1]", dep.q3No);
+      dbtn("form1[0].#subform[1].P3_Line4_CrimOffense[0]", dep.q4Yes);
+      dbtn("form1[0].#subform[1].P3_Line4_CrimOffense[1]", dep.q4No);
+      dbtn("form1[0].#subform[1].P3_Line5_TorGeno[0]", dep.q5Yes);
+      dbtn("form1[0].#subform[1].P3_Line5_TorGeno[1]", dep.q5No);
+      dbtn("form1[0].#subform[1].P3_Line6_Killing[0]", dep.q6Yes);
+      dbtn("form1[0].#subform[1].P3_Line6_Killing[1]", dep.q6No);
+      dbtn("form1[0].#subform[1].P3_Line7_IntSevInjury[0]", dep.q7Yes);
+      dbtn("form1[0].#subform[1].P3_Line7_IntSevInjury[1]", dep.q7No);
+      dbtn("form1[0].#subform[1].P3_Line8_SexContRel[0]", dep.q8Yes);
+      dbtn("form1[0].#subform[1].P3_Line8_SexContRel[1]", dep.q8No);
+      dbtn("form1[0].#subform[1].P3_Line9_LimDenRelBel[0]", dep.q9Yes);
+      dbtn("form1[0].#subform[1].P3_Line9_LimDenRelBel[1]", dep.q9No);
+      dbtn("form1[0].#subform[1].P3_Line10_MilUnit[0]", dep.q10Yes);
+      dbtn("form1[0].#subform[1].P3_Line10_MilUnit[1]", dep.q10No);
+      dbtn("form1[0].#subform[1].P3_Line11_WorkPrison[0]", dep.q11Yes);
+      dbtn("form1[0].#subform[1].P3_Line11_WorkPrison[1]", dep.q11No);
+      dbtn("form1[0].#subform[1].P3_Line12_MemOfGroup[0]", dep.q12Yes);
+      dbtn("form1[0].#subform[1].P3_Line12_MemOfGroup[1]", dep.q12No);
+      dbtn("form1[0].#subform[1].P3_Line12_SoldProvWeap[0]", dep.q13Yes);
+      dbtn("form1[0].#subform[1].P3_Line12_SoldProvWeap[1]", dep.q13No);
+      dbtn("form1[0].#subform[1].P3_Line14_WeapParamilTrg[0]", dep.q14Yes);
+      dbtn("form1[0].#subform[1].P3_Line14_WeapParamilTrg[1]", dep.q14No);
+      dbtn("form1[0].#subform[1].P3_Line15_NonImmViolSt[0]", dep.q15Yes);
+      dbtn("form1[0].#subform[1].P3_Line15_NonImmViolSt[1]", dep.q15No);
+
+      dtx("form1[0].#subform[2].P12_Line3_Telephone[0]", dep.daytimePhone);
+      dtx("form1[0].#subform[2].P12_Line3_Mobile[0]", dep.mobilePhone);
+      dtx("form1[0].#subform[2].P12_Line5_Email[0]", dep.email);
+      dtx("form1[0].#subform[2].P12_SignatureApplicant[0]", dep.signature);
+      dtx("form1[0].#subform[2].P13_DateofSignature[0]", dep.signatureDate);
+
+      // Merge pages into main document
+      const depPages = await pdfDoc.copyPages(depDoc, depDoc.getPageIndices());
+      depPages.forEach(p => pdfDoc.addPage(p));
+    }
+  }
 
   return new Uint8Array(await pdfDoc.save());
 }
