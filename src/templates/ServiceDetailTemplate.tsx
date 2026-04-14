@@ -299,6 +299,7 @@ export default function ServiceDetailTemplate({
       <ServiceCTA 
         visaType={displayTitle} 
         checkoutUrl={hasActiveProcess ? "#" : `/checkout/${service.slug}`} 
+        slug={service.slug}
       />
 
       {/* FAQ Section */}

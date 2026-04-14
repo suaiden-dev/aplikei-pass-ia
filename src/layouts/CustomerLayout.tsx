@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import {
   RiDashboardLine,
   RiBriefcaseLine,
-  RiChat3Line,
   RiQuestionLine,
   RiLogoutBoxRLine,
   RiMenuLine,

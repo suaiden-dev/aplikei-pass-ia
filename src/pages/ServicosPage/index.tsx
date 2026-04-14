@@ -2,25 +2,16 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
-  RiFlightTakeoffLine, 
-  RiSchoolLine, 
-  RiHistoryLine, 
   RiArrowRightUpLine, 
   RiEyeOffLine,
-  RiVerifiedBadgeFill,
-  RiExchangeLine
+  RiVerifiedBadgeFill
 } from "react-icons/ri";
 import { servicesData } from "../../data/services";
 import { supabase } from "../../lib/supabase";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/Accordion";
 import { useT } from "../../i18n/LanguageContext";
 
-const iconMap: Record<string, any> = {
-  MdLanguage: RiFlightTakeoffLine,
-  MdSchool: RiSchoolLine,
-  MdHistory: RiHistoryLine,
-  MdSyncAlt: RiExchangeLine,
-};
+
 
 export default function ServicosPage() {
   const t = useT("services");
@@ -88,7 +79,6 @@ export default function ServicosPage() {
             {servicesData
               .filter(s => ['visto-b1-b2', 'visto-f1', 'extensao-status', 'troca-status'].includes(s.slug))
               .map((service, index) => {
-                const Icon = iconMap[service.heroIconName] ?? RiFlightTakeoffLine;
                 const active = isServiceActive(service.slug);
                 
                 return (
@@ -102,9 +92,9 @@ export default function ServicosPage() {
                   >
                     <Link
                       to={active ? `/checkout/${service.slug}` : "#"}
-                      className={`group relative bg-white rounded-[40px] p-10 border transition-all duration-500 flex flex-col h-full ${
+                      className={`group relative bg-white rounded-[40px] p-8 border transition-all duration-500 flex flex-col h-full overflow-hidden ${
                         active
-                          ? "border-slate-100 hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-3"
+                          ? "border-slate-100 shadow-xl shadow-slate-200/50 hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2"
                           : "border-slate-200 opacity-70 grayscale cursor-not-allowed"
                       }`}
                     >
@@ -115,8 +105,15 @@ export default function ServicosPage() {
                         </div>
                       )}
 
-                      <div className={`w-16 h-16 rounded-[20px] flex items-center justify-center mb-10 transition-all duration-500 ${active ? "bg-primary/10 group-hover:bg-primary" : "bg-slate-100"}`}>
-                        <Icon className={`text-3xl transition-colors duration-500 ${active ? "text-primary group-hover:text-white" : "text-slate-400"}`} />
+                      <div className="w-full h-40 rounded-2xl overflow-hidden mb-8 border border-slate-50 relative">
+                        <img 
+                          src={service.heroImage} 
+                          alt={service.title} 
+                          className={`w-full h-full object-cover transition-transform duration-500 ${active ? "group-hover:scale-105" : ""}`} 
+                        />
+                        {active && (
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        )}
                       </div>
 
                       <h3 className={`text-2xl font-black mb-4 tracking-tight leading-[1.1] ${active ? "text-slate-800" : "text-slate-500"}`}>

@@ -1,7 +1,5 @@
 import { Link } from "react-router-dom";
-import { MdFlightTakeoff, MdSchool, MdHistory, MdSyncAlt } from "react-icons/md";
 import { FiChevronRight } from "react-icons/fi";
-import type { IconType } from "react-icons";
 
 interface Service {
   slug: string;
@@ -9,7 +7,7 @@ interface Service {
   subtitle: string;
   price: string;
   originalPrice: string;
-  Icon: IconType;
+  image: string;
 }
 
 const services: Service[] = [
@@ -19,7 +17,7 @@ const services: Service[] = [
     subtitle: "Guia completo passo a passo e checklist para o visto de turista americano.",
     price: "US$ 200,00",
     originalPrice: "US$ 400,00",
-    Icon: MdFlightTakeoff,
+    image: "https://images.unsplash.com/photo-1544377193-33dcf4d68fb5?auto=format&fit=crop&q=80&w=800",
   },
   {
     slug: "visto-f1",
@@ -27,7 +25,7 @@ const services: Service[] = [
     subtitle: "Instruções detalhadas para obtenção do I-20 e entrevista consular.",
     price: "US$ 350,00",
     originalPrice: "US$ 700,00",
-    Icon: MdSchool,
+    image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=800",
   },
   {
     slug: "extensao-status",
@@ -35,7 +33,7 @@ const services: Service[] = [
     subtitle: "Deseja ficar mais tempo nos EUA? Saiba como estender seu prazo legal.",
     price: "US$ 200,00",
     originalPrice: "US$ 400,00",
-    Icon: MdHistory,
+    image: "https://images.unsplash.com/photo-1572949645841-094f3a9c4c94?auto=format&fit=crop&q=80&w=800",
   },
   {
     slug: "troca-status",
@@ -43,7 +41,7 @@ const services: Service[] = [
     subtitle: "Mude sua categoria de visto (ex: B2 para F1) sem sair dos Estados Unidos.",
     price: "US$ 350,00",
     originalPrice: "US$ 700,00",
-    Icon: MdSyncAlt,
+    image: "https://images.unsplash.com/photo-1569098644584-210bcd375b59?auto=format&fit=crop&q=80&w=800",
   },
 ];
 
@@ -61,11 +59,12 @@ export const ServicesSection = () => {
         </div>
         <div className="grid md:grid-cols-4 gap-8">
           {services.map((service, index) => (
-            <div key={index} className="group p-12 rounded-[2.5rem] bg-white border border-slate-100 hover:border-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 duration-300 flex flex-col items-center text-center lg:items-start lg:text-left">
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-10 group-hover:bg-primary transition-all">
-                <service.Icon className="text-primary text-3xl group-hover:text-white transition-colors" />
+            <div key={index} className="group p-10 rounded-[2.5rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 transition-all duration-300 flex flex-col items-center text-center lg:items-start lg:text-left overflow-hidden">
+              <div className="w-full h-40 rounded-2xl overflow-hidden mb-8 border border-slate-50 relative">
+                <img src={service.image} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
-              <h3 className="text-2xl font-bold mb-6 text-primary">{service.title}</h3>
+              <h3 className="text-2xl font-bold mb-4 text-primary">{service.title}</h3>
               <p className="text-slate-600 mb-10 leading-relaxed min-h-[80px]">{service.subtitle}</p>
               <div className="flex flex-col lg:flex-row items-center lg:items-end justify-between pt-8 border-t border-slate-100 w-full gap-4 lg:gap-0">
                 <div>
