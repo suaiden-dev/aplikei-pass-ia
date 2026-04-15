@@ -200,16 +200,31 @@ export const processService = {
       newStepData.motion_final_result = result;
     }
     
-    const { error } = await supabase
-      .from("user_services")
-      .update({
-        status: isFinal ? "completed" : "active",
-        current_step: nextStep,
-        step_data: newStepData
-      })
-      .eq("id", serviceId);
-
     if (error) throw new Error(error.message);
+
+    // Notify Client of Approval
+    try {
+      const { data: service } = await supabase
+        .from("user_services")
+        .select("user_id, service_slug")
+        .eq("id", serviceId)
+        .single();
+        
+      if (service) {
+        await notificationService.notifyClient({
+          userId: service.user_id,
+          template: "step_approved",
+          title: "Etapa Aprovada! 🎉",
+          serviceId: serviceId,
+          templateData: {
+            step_name: `Etapa Anterior`, 
+            service_name: service.service_slug
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("[processService] Notify client of approval failed:", e);
+    }
   },
 
   async rejectStep(serviceId: string, isFinal: boolean = false, result?: 'approved' | 'denied'): Promise<void> {
@@ -239,6 +254,33 @@ export const processService = {
       .eq("id", serviceId);
 
     if (error) throw new Error(error.message);
+
+    // Notify Client of Rejection/Adjustment
+    try {
+      const { data: service } = await supabase
+        .from("user_services")
+        .select("user_id, service_slug, step_data")
+        .eq("id", serviceId)
+        .single();
+        
+      if (service) {
+        const feedback = (service.step_data as any)?.admin_feedback || "Verifique os ajustes necessários no seu painel.";
+        
+        await notificationService.notifyClient({
+          userId: service.user_id,
+          template: "step_rejected_feedback",
+          title: "Ajustes Necessários ⚠️",
+          serviceId: serviceId,
+          body: `A etapa atual precisa de sua atenção. Feedback: ${feedback}`,
+          templateData: {
+            step_name: "Etapa Atual",
+            feedback: feedback
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("[processService] Notify client of rejection failed:", e);
+    }
   },
 
   async updateStepData(serviceId: string, data: Record<string, unknown>): Promise<void> {

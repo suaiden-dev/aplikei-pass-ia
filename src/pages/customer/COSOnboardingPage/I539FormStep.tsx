@@ -8,6 +8,7 @@ import {
 import { toast } from "sonner";
 import { Formik, useField, useFormikContext, Form } from "formik";
 import { processService, type UserService } from "../../../services/process.service";
+import { notificationService } from "../../../services/notification.service";
 import { fillI539Form, uploadFilledI539, type I539Data } from "../../../services/i539.service";
 import type { UserAccount } from "../../../models/user.model";
 import { i539Validator, type I539FormInput } from "../../../schemas/i539.schema";
@@ -384,6 +385,14 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
           const filledBytes = await fillI539Form(values as unknown as I539Data);
           const pdfUrl = await uploadFilledI539(filledBytes, proc.id, user.id);
           await processService.updateStepData(proc.id, { i539: values, i539PdfUrl: pdfUrl });
+          
+          await notificationService.notifyAdmin({
+            title: "📋 Formulário I-539 Gerado",
+            body: `O cliente ${user?.fullName || user?.email} concluiu o preenchimento e gerou o PDF do I-539.`,
+            serviceId: proc.id,
+            userId: user.id
+          });
+
           onComplete();
           toast.success(t.cos.i539.toasts.success);
         } catch (err) {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { 
   RiNotification3Line, 
@@ -47,7 +47,7 @@ export function NotificationToast({
 
   const config = typeConfig[toast.type] || typeConfig.system;
 
-  const tick = (timestamp: number) => {
+  const tick = useCallback(function tick(timestamp: number) {
     if (!startTimeRef.current) startTimeRef.current = timestamp;
     
     const elapsed = timestamp - startTimeRef.current;
@@ -63,7 +63,7 @@ export function NotificationToast({
     startTimeRef.current = timestamp;
     remainingRef.current = newRemaining;
     rafRef.current = requestAnimationFrame(tick);
-  };
+  }, [duration, onDismiss]);
 
   useEffect(() => {
     if (!isPaused) {
@@ -75,7 +75,7 @@ export function NotificationToast({
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [isPaused]);
+  }, [isPaused, tick]);
 
   // Reset the start time relative to the current timestamp when unpausing
   // However, the tick logic subtracts elapsed from remaining and then updates 

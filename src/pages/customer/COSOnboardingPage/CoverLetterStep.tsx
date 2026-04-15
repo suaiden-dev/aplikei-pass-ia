@@ -14,6 +14,7 @@ import {
 } from "react-icons/md";
 import { toast } from "sonner";
 import { processService, type UserService } from "../../../services/process.service";
+import { notificationService } from "../../../services/notification.service";
 import { coverLetterService } from "../../../services/cover_letter.service";
 import { RiMagicLine } from "react-icons/ri";
 import { useT } from "../../../i18n";
@@ -102,6 +103,14 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
         coverLetter: data,
         generatedCoverLetterHTML: html
       });
+
+      await notificationService.notifyAdmin({
+        title: "📄 Questionário Cover Letter",
+        body: `O cliente ${user?.full_name || user?.email} respondeu ao questionário da carta de apresentação.`,
+        serviceId: proc.id,
+        userId: user?.id
+      });
+
       onComplete(); // Advance step
     } catch (error) {
       toast.error(t.cos.coverLetter.toasts.advanceError);

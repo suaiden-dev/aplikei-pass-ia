@@ -20,7 +20,8 @@ import {
 import { MdPix } from "react-icons/md";
 import { toast } from "sonner";
 import { supabase } from "../../../lib/supabase";
-import { type UserService, processService } from "../../../services/process.service";
+import { processService, type UserService } from "../../../services/process.service";
+import { notificationService } from "../../../services/notification.service";
 import { paymentService, type StripePaymentMethod } from "../../../services/payment.service";
 import { useAuth } from "../../../hooks/useAuth";
 import { DocUploadCard } from "../../../components/DocUploadCard";
@@ -527,6 +528,13 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
         docs: { ...currentDocs, motion_denial_letter: filePath }
       });
       
+      await notificationService.notifyAdmin({
+        title: "🚨 Carta de Negativa (Motion)",
+        body: `O cliente submeteu a carta de negativa para iniciar um Motion no processo ${proc.id}.`,
+        serviceId: proc.id,
+        userId: proc.user_id
+      });
+
       toast.success(t.workflows.shared.fileSent, { id: "upload" });
     } catch (e: unknown) {
       const err = e as Error;
@@ -547,6 +555,14 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
         motion_reason: reason,
         motion_submitted_at: new Date().toISOString()
       });
+
+      notificationService.notifyAdmin({
+        title: "🚨 Justificativa de Motion",
+        body: `O cliente enviou a justificativa para o Motion no processo ${proc.id}.`,
+        serviceId: proc.id,
+        userId: proc.user_id
+      });
+
       onComplete?.();
     } catch (e: unknown) {
       const err = e as Error;

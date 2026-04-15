@@ -10,6 +10,7 @@ import {
 
 import { supabase } from "../../../../lib/supabase";
 import { processService } from "../../../../services/process.service";
+import { notificationService } from "../../../../services/notification.service";
 import { useT } from "../../../../i18n";
 
 interface F1I20UploadStepProps {
@@ -85,6 +86,13 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
       await processService.approveStep(procId, 2, false);
       await processService.requestStepReview(procId);
       
+      await notificationService.notifyAdmin({
+        title: "🎓 Formulário I-20 Enviado",
+        body: `O cliente anexou o documento I-20 para conferência e início do processo F1.`,
+        serviceId: procId,
+        userId: userId
+      });
+
       toast.success(t.onboardingPage.f1.i20AnalysisToast);
       onComplete();
     } catch (err: unknown) {

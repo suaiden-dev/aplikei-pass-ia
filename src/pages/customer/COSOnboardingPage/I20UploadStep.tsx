@@ -9,6 +9,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "../../../lib/supabase";
 import { processService, type UserService } from "../../../services/process.service";
+import { notificationService } from "../../../services/notification.service";
 import { useT } from "../../../i18n";
 
 interface Props {
@@ -48,6 +49,14 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
       const currentDocs = (proc.step_data?.docs as Record<string, string>) || {};
       await processService.updateStepData(proc.id, {
         docs: { ...currentDocs, i20_document: filePath }
+      });
+
+      // Notify Admin
+      await notificationService.notifyAdmin({
+        title: "📄 Novo I-20 Recebido",
+        body: `O cliente ${user.full_name || user.email} enviou o documento I-20 para análise.`,
+        serviceId: proc.id,
+        userId: user.id
       });
       
       toast.success(t.cos.i20Upload.toasts.success);

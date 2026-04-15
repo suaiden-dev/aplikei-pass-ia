@@ -11,6 +11,7 @@ import {
   RiLockLine,
 } from "react-icons/ri";
 import { processService } from "../../../../services/process.service";
+import { notificationService } from "../../../../services/notification.service";
 import { supabase } from "../../../../lib/supabase";
 import { toast } from "sonner";
 import { useT } from "../../../../i18n";
@@ -42,6 +43,14 @@ export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaym
       await processService.approveStep(procId, 10, false); 
       // Notifica admin para o agendamento final
       await processService.updateProcessStatus(procId, "awaiting_review");
+      
+      // Notify Admin
+      await notificationService.notifyAdmin({
+        title: "💳 Taxa MRV Confirmada",
+        body: `O cliente confirmou o pagamento da taxa MRV (${method === 'credit_card' ? 'Cartão' : 'Boleto'}). O processo aguarda agendamento final no portal.`,
+        serviceId: procId,
+      });
+
       toast.success(t.onboardingPage.paymentPending.paymentProcessed);
       onComplete();
     } catch (err: unknown) {

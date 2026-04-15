@@ -11,6 +11,7 @@ import {
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
 import { processService } from "../../../services/process.service";
+import { notificationService } from "../../../services/notification.service";
 import { toast } from "sonner";
 import { useT } from "../../../i18n";
 
@@ -101,6 +102,15 @@ export default function F1OnboardingPage() {
       if (currentDBStep === 0) {
         // Move to I-20 Upload (Step 1)
         await processService.approveStep(procId, 1, false);
+
+        // Notify Admin
+        await notificationService.notifyAdmin({
+          title: "🎓 Início de Fluxo F1",
+          body: `O cliente ${user?.full_name || user?.email} concluiu o formulário inicial de Estudante (${slug}).`,
+          serviceId: procId,
+          userId: user?.id
+        });
+
         toast.success(t.onboardingPage.f1.saveSuccessDocs);
         const idParam = searchParams.get("id");
         navigate(`/dashboard/processes/${slug}/onboarding?step=1${idParam ? `&id=${idParam}` : ""}`);

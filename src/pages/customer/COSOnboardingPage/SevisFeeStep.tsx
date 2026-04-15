@@ -11,6 +11,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "../../../lib/supabase";
 import { processService, type UserService } from "../../../services/process.service";
+import { notificationService } from "../../../services/notification.service";
 import { useT } from "../../../i18n";
 
 interface Props {
@@ -57,6 +58,14 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
       await processService.updateStepData(proc.id, {
         docs: { ...currentDocs, sevis_receipt: filePath },
         sevis_already_paid: true
+      });
+
+      // Notify Admin
+      await notificationService.notifyAdmin({
+        title: "💰 Taxa SEVIS Anexada",
+        body: `O cliente ${user.full_name || user.email} anexou o comprovante da taxa SEVIS para conferência.`,
+        serviceId: proc.id,
+        userId: user.id
       });
       
       toast.success(t.cos.sevisFee.toasts.success);

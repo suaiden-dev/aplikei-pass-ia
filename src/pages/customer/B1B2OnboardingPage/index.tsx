@@ -11,6 +11,7 @@ import {
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
 import { processService } from "../../../services/process.service";
+import { notificationService } from "../../../services/notification.service";
 import { toast } from "sonner";
 import { useT } from "../../../i18n";
 
@@ -104,6 +105,14 @@ export default function B1B2OnboardingPage() {
       
       // Request review for the current step (which is now 1)
       await processService.requestStepReview(procId);
+
+      // Notify Admin
+      await notificationService.notifyAdmin({
+        title: "📝 DS-160 Preenchida",
+        body: `O cliente ${user?.full_name || user?.email} finalizou o preenchimento da DS-160 para ${slug}.`,
+        serviceId: procId,
+        userId: user?.id
+      });
       
       toast.success(t.onboardingPage.successSubmit);
       navigate(`/dashboard/processes/${slug}`);

@@ -21,6 +21,7 @@ import { MdPix } from "react-icons/md";
 import { toast } from "sonner";
 import { supabase } from "../../../lib/supabase";
 import { type UserService, processService } from "../../../services/process.service";
+import { notificationService } from "../../../services/notification.service";
 import { paymentService } from "../../../services/payment.service";
 import { useAuth } from "../../../hooks/useAuth";
 import { DocUploadCard } from "../../../components/DocUploadCard";
@@ -485,6 +486,14 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
       });
       
       toast.success(t.workflows.shared.fileSent, { id: "u" });
+
+      await notificationService.notifyAdmin({
+        title: "⚠️ Nova RFE Recebida",
+        body: `O cliente submeteu a carta de RFE para o processo ${proc.id}.`,
+        serviceId: proc.id,
+        userId: proc.user_id
+      });
+
       onComplete?.();
     } catch (e: unknown) {
       const err = e as Error;
@@ -498,6 +507,13 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
         toast.error(t.workflows.rfe.instruction.summaryLabel);
         return;
      }
+     notificationService.notifyAdmin({
+        title: "⚠️ Descrição de RFE Enviada",
+        body: `O cliente descreveu os requisitos da RFE para o processo ${proc.id}.`,
+        serviceId: proc.id,
+        userId: proc.user_id
+     });
+     
      onComplete?.();
   };
 

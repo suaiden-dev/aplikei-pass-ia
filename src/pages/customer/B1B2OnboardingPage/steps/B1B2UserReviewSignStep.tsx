@@ -16,6 +16,7 @@ import thirdPhaseImg from "../../../../assets/application_tutorial/three_phase.p
 
 import { supabase } from "../../../../lib/supabase";
 import { processService } from "../../../../services/process.service";
+import { notificationService } from "../../../../services/notification.service";
 
 interface B1B2UserReviewSignStepProps {
   procId: string;
@@ -112,6 +113,14 @@ export function B1B2UserReviewSignStep({ procId, userId, stepData, onComplete, o
       });
       await processService.approveStep(procId, 4, false);
       await processService.requestStepReview(procId);
+      
+      await notificationService.notifyAdmin({
+        title: "🖋️ DS-160 Assinada e Revisada",
+        body: `O cliente concluiu a revisão e anexou os comprovantes de assinatura da DS-160.`,
+        serviceId: procId,
+        userId: userId
+      });
+
       toast.success(t.onboardingPage.uploadAllSuccess);
       onComplete();
     } catch (err: unknown) {
