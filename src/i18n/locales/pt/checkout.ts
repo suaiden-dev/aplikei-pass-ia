@@ -123,22 +123,29 @@ const checkout = {
         email: "E-mail:",
         phone: "Telefone:",
         confirmTitle: "Confirmação de Pagamento",
-        amountSent: "Valor enviado (USD)",
-        amountPlaceholder: "0.00",
-        confirmationCode: "Código de confirmação (opcional)",
-        confirmationPlaceholder: "Ex: 123456789",
-        paymentDate: "Data do envio",
         uploadProof: "Anexar comprovante",
         uploadDesc: "JPG ou PNG. Máx 8MB.",
         fileTooLarge: "Arquivo muito grande. Máx 8MB.",
-        amountRequired: "Informe o valor enviado via Zelle.",
-        dateRequired: "Informe a data do pagamento.",
         proofRequired: "Anexe o comprovante de pagamento.",
         submit: "Enviar Confirmação",
         pendingReview: "Confirmação recebida! Estamos analisando o comprovante para ativar seu guia. Você receberá um e-mail em breve.",
         goDashboard: "Ir para o Dashboard"
       },
       soon: "EM BREVE"
+    },
+    coupon: {
+      label: "Cupom de desconto",
+      placeholder: "Digite o código",
+      apply: "Aplicar",
+      applying: "Validando...",
+      remove: "Remover",
+      applied: "Cupom aplicado!",
+      discount: "Desconto ({{code}})",
+      errors: {
+        invalid: "Cupom inválido ou expirado.",
+        notApplicable: "Cupom não válido para este serviço.",
+        minPurchase: "Valor mínimo de compra: US$ {{value}}"
+      }
     },
     placeOrder: "Finalizar Pedido",
     redirecting: "Processando...",

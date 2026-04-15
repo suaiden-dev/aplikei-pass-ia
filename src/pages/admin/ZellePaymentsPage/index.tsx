@@ -3,7 +3,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { RiSearchLine, RiCheckboxCircleLine, RiCloseCircleLine, RiImageLine, RiExternalLinkLine, RiCloseLine } from "react-icons/ri";
 import { supabase } from "../../../lib/supabase";
-import { paymentService } from "../../../services/payment.service";
+import { paymentService, notificationService } from "../../../services";
+
 import { useT } from "../../../i18n/LanguageContext";
 
 
@@ -30,6 +31,8 @@ interface UnifiedPayment {
   adminNotes?: string | null;
   expectedAmount?: number | null;
   paymentStatus?: string | null;
+  couponCode?: string | null;
+  discountAmount?: number | null;
 }
 
 interface ZelleRecord {
@@ -47,6 +50,8 @@ interface ZelleRecord {
   payment_date?: string;
   admin_notes?: string;
   expected_amount?: number;
+  coupon_code?: string;
+  discount_amount?: number;
 }
 
 interface StripeRecord {
@@ -58,24 +63,15 @@ interface StripeRecord {
   payment_method?: string;
   created_at: string;
   payment_status?: string;
+  coupon_code?: string;
+  discount_amount?: string | number;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 
-const APLIKEI_SLUGS = [
-  "visto-b1-b2", 
-  "visto-f1", 
-  "extensao-status", 
-  "troca-status", 
-  "analise-especialista-cos",
-  "mentoria-bronze",
-  "mentoria-silver",
-  "mentoria-gold",
-  "consultoria-especialista",
-  "consultoria-b1-negativa"
-];
+// Slugs filter removed to show all visa_orders
 
 function buildProofUrl(raw: string | null | undefined): string | null {
   if (!raw) return null;
@@ -247,11 +243,22 @@ function PaymentRow({
             <RiCheckboxCircleLine className="text-xs" /> {t.payments.table.statusSuffix.replace('{{status}}', p.paymentStatus)}
           </p>
         )}
+        {p.couponCode && (
+          <div className="mt-1.5 p-1.5 bg-emerald-50 border border-emerald-100 rounded-lg">
+            <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest leading-none mb-1">CUPOM APLICADO</p>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] font-bold text-slate-700 font-mono">{p.couponCode}</span>
+              {p.discountAmount ? (
+               <span className="text-[10px] font-black text-emerald-600">-{fmtCurrency(p.discountAmount)}</span>
+              ) : null}
+            </div>
+          </div>
+        )}
       </td>
 
       {/* Ações */}
       <td className="px-6 py-4 text-right">
-        {tab === "pending" && (
+        {tab === "pending" && p.source === "zelle" && (
           <div className="flex items-center justify-end gap-2">
             <button
               onClick={onApprove}
@@ -270,6 +277,11 @@ function PaymentRow({
               <RiCloseCircleLine className="text-xl" />
             </button>
           </div>
+        )}
+        {tab === "pending" && p.source === "stripe" && (
+           <p className="text-[10px] text-slate-400 italic">
+             {t.payments.table.autoProcessing || 'Processamento Automático'}
+           </p>
         )}
         {tab === "rejected" && p.adminNotes && (
           <p className="text-xs text-slate-400 max-w-[160px] text-right">{p.adminNotes}</p>
@@ -298,15 +310,29 @@ export default function ZellePaymentsPage() {
     
     // Mapping slugs to their translation keys in visas namespace
     const serviceNameMap: Record<string, string> = {
-      "visto-b1-b2": tVisas.onboardingPage.services["visto-b1-b2"].label,
-      "visto-f1": tVisas.onboardingPage.services["visto-f1"].label,
-      "extensao-status": tVisas.onboardingPage.services["extensao-status"].label,
-      "troca-status": tVisas.onboardingPage.services["troca-status"].label,
+      "visto-b1-b2": tVisas.processDetail.services["visto-b1-b2"].label,
+      "visto-b1-b2-reaplicacao": tVisas.processDetail.services["visto-b1-b2-reaplicacao"].label,
+      "visto-f1": tVisas.processDetail.services["visto-f1"].label,
+      "visto-f1-reaplicacao": tVisas.processDetail.services["visto-f1-reaplicacao"].label,
+      "extensao-status": tVisas.processDetail.services["extensao-status"].label,
+      "troca-status": tVisas.processDetail.services["troca-status"].label,
+      "analise-especialista-cos": "Análise de Especialista (COS)",
+      "analise-especialista-eos": "Análise de Especialista (EOS)",
+      "motion-reconsideracao-cos": "Motion (COS)",
+      "motion-reconsideracao-eos": "Motion (EOS)",
+      "rfe-support": "Suporte RFE",
+      "suporte-rfe-eos": "Suporte RFE (EOS)",
+      "suporte-rfe-cos": "Suporte RFE (COS)",
+      "recovery-eos": "Recuperação de Caso (EOS)",
+      "recovery-cos": "Recuperação de Caso (COS)",
+      "motion-support": "Motion Support",
+      "mentoria-bronze": "Mentoria Bronze",
+      "mentoria-gold": "Mentoria Gold",
     };
     
     return (
-      serviceNameMap[slug] ??
-      slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+      serviceNameMap[slug || ""] ??
+      (slug || "").replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
     );
   }, [tVisas]);
 
@@ -316,14 +342,13 @@ export default function ZellePaymentsPage() {
     const results: UnifiedPayment[] = [];
 
     if (tab === "pending") {
-      const { data: zelleData, error: zelleErr } = await supabase
+      // Only Zelle payments need manual approval — Stripe auto-approves
+      const { data: zelleData } = await supabase
         .from("zelle_payments")
         .select("*")
         .eq("status", "pending_verification")
         .order("created_at", { ascending: false });
-
-      if (zelleErr)  console.error("[Payments] zelle_payments error:", zelleErr);
-
+      
       (zelleData ?? []).forEach((r: ZelleRecord) => {
         results.push({
           id: r.id,
@@ -343,6 +368,8 @@ export default function ZellePaymentsPage() {
           paymentDate: r.payment_date,
           adminNotes: r.admin_notes,
           expectedAmount: r.expected_amount ?? null,
+          couponCode: r.coupon_code || null,
+          discountAmount: r.discount_amount ?? 0,
         });
       });
 
@@ -373,15 +400,16 @@ export default function ZellePaymentsPage() {
           proofUrl: buildProofUrl(r.image_url || r.proof_path),
           confirmationCode: r.confirmation_code,
           expectedAmount: r.expected_amount ?? null,
+          couponCode: r.coupon_code || null,
+          discountAmount: r.discount_amount ?? 0,
         });
       });
 
-      // Stripe approved (visa_orders) — include more successful statuses just in case
+      // Stripe/Parcelow approved (visa_orders) — auto-approved payments
       const { data: stripeData, error: stripeError } = await supabase
         .from("visa_orders")
         .select("id, client_name, client_email, product_slug, total_price_usd, payment_method, created_at, payment_status")
         .in("payment_status", ["paid", "complete", "succeeded", "completed"])
-        .in("product_slug", APLIKEI_SLUGS)
         .order("created_at", { ascending: false });
 
       if (stripeError) console.error("[Payments] visa_orders error:", stripeError);
@@ -414,9 +442,8 @@ export default function ZellePaymentsPage() {
           .order("created_at", { ascending: false }),
         supabase
           .from("visa_orders")
-          .select("*")
+          .select("id, client_name, client_email, product_slug, total_price_usd, payment_method, created_at, payment_status")
           .in("payment_status", ["rejected", "cancelled", "failed", "error"])
-          .in("product_slug", APLIKEI_SLUGS)
           .order("created_at", { ascending: false })
       ]);
 
@@ -437,6 +464,8 @@ export default function ZellePaymentsPage() {
           confirmationCode: r.confirmation_code,
           adminNotes: r.admin_notes,
           expectedAmount: r.expected_amount ?? null,
+          couponCode: r.coupon_code || null,
+          discountAmount: r.discount_amount ?? 0,
         });
       });
 
@@ -469,6 +498,18 @@ export default function ZellePaymentsPage() {
     try {
       await paymentService.approveZellePayment(p.zelleId);
 
+      await notificationService.notifyClient({
+        clientEmail: p.clientEmail,
+        clientName: p.clientName || "Cliente",
+        template: "zelle_payment_approved",
+        title: "Seu pagamento Zelle foi aprovado!",
+        userId: p.userId ?? undefined,
+        templateData: {
+          amount: fmtCurrency(p.amount),
+          service_name: p.serviceName,
+        },
+      });
+
       // Activate service in user_services if we have the user_id
       if (p.userId && p.serviceSlug) {
         let paidDependents = 0;
@@ -490,7 +531,7 @@ export default function ZellePaymentsPage() {
 
       toast.success(t.payments.messages.approveSuccess.replace('{{name}}', p.clientName || t.shared.client));
       await load();
-    } catch (err) {
+    } catch {
       toast.error(t.payments.messages.approveError);
     } finally {
       setBusy(null);
@@ -503,9 +544,21 @@ export default function ZellePaymentsPage() {
     setBusy(p.id);
     try {
       await paymentService.rejectZellePayment(p.zelleId, reason);
+
+      await notificationService.notifyClient({
+        clientEmail: p.clientEmail,
+        clientName: p.clientName || "Cliente",
+        template: "zelle_payment_rejected",
+        title: "Problema com seu pagamento Zelle",
+        userId: p.userId ?? undefined,
+        templateData: {
+          reason: reason || "Pagamento rejeitado pelo administrador.",
+          service_name: p.serviceName,
+        },
+      });
       toast.success(t.payments.messages.rejectSuccess);
       await load();
-    } catch (err) {
+    } catch {
       toast.error(t.payments.messages.rejectError);
     } finally {
       setBusy(null);

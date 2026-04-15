@@ -103,18 +103,13 @@ export default function OverviewPage() {
       setClientesCount(customersCount || 0);
 
       // Pagamentos Pendentes
+      // Contamos apenas Zelle, pois Stripe é auto-aprovado (pendentes no Stripe são geralmente abandonos)
       const { count: pendingZelle } = await supabase
         .from("zelle_payments")
         .select("*", { count: "exact", head: true })
         .eq("status", "pending_verification");
       
-      const { count: pendingStripe } = await supabase
-         .from("visa_orders")
-         .select("*", { count: "exact", head: true })
-         .eq("payment_status", "pending")
-         .in("product_slug", ["visto-b1-b2", "visto-f1", "extensao-status", "troca-status", "analise-especialista-cos"]);
-
-      setPagamentosPendentes((pendingZelle || 0) + (pendingStripe || 0));
+      setPagamentosPendentes(pendingZelle || 0);
 
       // Receita Total
       const { data: zelleData } = await supabase
@@ -125,8 +120,7 @@ export default function OverviewPage() {
       const { data: stripeData } = await supabase
         .from("visa_orders")
         .select("total_price_usd")
-        .in("payment_status", ["paid", "complete", "succeeded", "completed"])
-        .in("product_slug", ["visto-b1-b2", "visto-f1", "extensao-status", "troca-status", "analise-especialista-cos"]);
+        .in("payment_status", ["paid", "complete", "succeeded", "completed"]);
 
       let total = 0;
       zelleData?.forEach(row => {

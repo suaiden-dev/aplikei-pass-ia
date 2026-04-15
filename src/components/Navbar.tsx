@@ -41,7 +41,7 @@ export const Navbar = () => {
 
   return (
     <>
-      <nav className="bg-highlight px-6 lg:px-16 py-4 flex items-center justify-between sticky top-0 z-[100] border-b border-white/5 relative">
+      <nav className="bg-highlight px-6 xl:px-16 py-4 flex items-center justify-between sticky top-0 z-[100] border-b border-white/5 relative">
         <div className="flex items-center gap-10">
           <Link to="/" className="flex items-center gap-2.5 z-[110] relative">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
@@ -52,7 +52,7 @@ export const Navbar = () => {
             </span>
           </Link>
 
-          <div className="hidden lg:flex items-center gap-7">
+          <div className="hidden xl:flex items-center gap-7">
             {navLinks.map(({ to, label }) => (
               <NavLink
                 key={to}
@@ -73,7 +73,7 @@ export const Navbar = () => {
           </div>
         </div>
 
-        <div className="hidden lg:flex items-center gap-5">
+        <div className="hidden xl:flex items-center gap-5">
           <div className="flex items-center gap-1.5 border border-slate-600 rounded-full px-2 py-1">
             {(["pt", "en", "es"] as const).map((l, i) => (
               <React.Fragment key={l}>
@@ -118,7 +118,7 @@ export const Navbar = () => {
 
         {/* Mobile menu button */}
         <button
-          className="lg:hidden text-white p-2 z-[110] rounded-lg hover:bg-white/10 transition-colors relative"
+          className="xl:hidden text-white p-2 z-[110] rounded-lg hover:bg-white/10 transition-colors relative"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label="Toggle menu"
         >

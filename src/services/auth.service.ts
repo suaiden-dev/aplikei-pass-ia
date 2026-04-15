@@ -34,13 +34,13 @@ export const authService = {
     if (data.user) {
       const { error: profileError } = await supabase
         .from("user_accounts")
-        .insert({
+        .upsert({
           id: data.user.id,
           full_name: fullName,
           email: email,
           phone_number: phoneNumber,
           role: "customer",
-        });
+        }, { onConflict: 'id' });
 
       if (profileError) {
         console.error("Erro ao criar perfil de usuário:", profileError.message);

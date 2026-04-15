@@ -27,6 +27,7 @@ import {
 import { getServiceBySlug } from "../../../data/services";
 import { supabase } from "../../../lib/supabase";
 import { processService, type UserService } from "../../../services/process.service";
+import { notificationService } from "../../../services/notification.service";
 import { packageService } from "../../../services/package.service";
 import { toast } from "sonner";
 import { useT } from "../../../i18n/LanguageContext";
@@ -1078,6 +1079,27 @@ export default function AdminProcessDetailPage() {
 
       await processService.approveStep(proc.id, nextStep, isFinal, isFinal ? 'approved' : undefined, additionalData);
 
+      if (isFinal) {
+        await notificationService.notifyClient({
+          userId: proc.user_id!,
+          serviceId: proc.id,
+          title: "Processo Concluído",
+          template: "process_completed_approved",
+          templateData: { service_name: service.title }
+        });
+      } else {
+        await notificationService.notifyClient({
+          userId: proc.user_id!,
+          serviceId: proc.id,
+          title: "Etapa Aprovada",
+          template: "step_approved",
+          templateData: { 
+            step_name: currentStep?.title,
+            next_step_name: service.steps[nextStep]?.title 
+          }
+        });
+      }
+
       // se a próxima etapa para o B1/B2 ou F1 for credenciais ou criação de conta, 
       // certifique-se de que o card aparecerá na fila do administrador na página de listagem
       const nextStepId = service.steps[nextStep]?.id;
@@ -1112,6 +1134,13 @@ export default function AdminProcessDetailPage() {
 
       if (isFinal) {
         await processService.rejectStep(proc.id, true, 'denied');
+        await notificationService.notifyClient({
+          userId: proc.user_id!,
+          serviceId: proc.id,
+          title: "Processo Finalizado",
+          template: "process_completed_denied",
+          templateData: { service_name: service?.title }
+        });
         toast.success(t.cases.messages.rejectFinalSuccess);
       } else if ((isB1B2 && currentStep?.id === "b1b2_admin_final_analysis") || (isF1 && currentStep?.id === "f1_admin_final_analysis")) {
         // Volta para a etapa de assinatura (idx 3 no B1/B2, idx 4 no F1)
@@ -1126,6 +1155,14 @@ export default function AdminProcessDetailPage() {
           .update({ current_step: backIdx, status: "active" })
           .eq("id", proc.id);
         if (error) throw new Error(error.message);
+        
+        await notificationService.notifyClient({
+          userId: proc.user_id!,
+          serviceId: proc.id,
+          title: "Correções Necessárias",
+          template: "step_rejected_feedback",
+          templateData: { step_name: currentStep?.title, feedback: rejectionReason }
+        });
         toast.success(t.shared.administrativeAction); // Or better: t.cases.messages.rejectSuccess
       } else if (isF1 && currentStep?.id === "f1_admin_analysis") {
         // Volta para o upload do I-20 (idx 1)
@@ -1139,6 +1176,14 @@ export default function AdminProcessDetailPage() {
           .update({ current_step: 1, status: "active" })
           .eq("id", proc.id);
         if (error) throw new Error(error.message);
+
+        await notificationService.notifyClient({
+          userId: proc.user_id!,
+          serviceId: proc.id,
+          title: "Correções Necessárias",
+          template: "step_rejected_feedback",
+          templateData: { step_name: currentStep?.title, feedback: rejectionReason }
+        });
         toast.success("Correção de I-20/DS160 solicitada.");
       } else {
         await processService.updateStepData(proc.id, {
@@ -1148,6 +1193,14 @@ export default function AdminProcessDetailPage() {
         });
 
         await processService.rejectStep(proc.id);
+        
+        await notificationService.notifyClient({
+          userId: proc.user_id!,
+          serviceId: proc.id,
+          title: "Correções Necessárias",
+          template: "step_rejected_feedback",
+          templateData: { step_name: currentStep?.title, feedback: rejectionReason }
+        });
         toast.success(t.cases.messages.rejectSuccess);
       }
 

@@ -9,6 +9,34 @@ const admin = {
     confirm: "Confirmar",
     administrativeAction: "Acción Administrativa",
   },
+  overview: {
+    stats: {
+      customers: "Clientes",
+      totalRevenue: "Ingresos Totales",
+      revenueSubtitle: "Ingresos totales acumulados",
+      pendingPayments: "Pagos Pendentes",
+      pendingSubtitle: "Esperando confirmación",
+      activeSellers: "Vendedores Activos",
+      pendingPartners: "Socios Pendientes",
+      partnersSubtitle: "Cola de aprobación"
+    },
+    charts: {
+      monthlyRevenue: "Ingresos Mensuales",
+      growth: "{{percent}}% de crecimiento",
+      serviceDistribution: "Distribución de Servicios",
+      byVisaType: "Por tipo de visa",
+      total: "Total"
+    },
+    recentActivity: {
+      title: "Actividad Reciente",
+      paymentReceived: "Pago Recibido",
+      newCustomer: "Nuevo Cliente",
+      processUpdated: "Proceso Actualizado",
+      paymentPending: "Pago Pendiente",
+      hoursAgo: "hace {{count}} horas",
+      yesterday: "Ayer"
+    }
+  },
   cases: {
     title: "Casos",
     subtitle: "Gestión completa de las solicitudes de los clientes",
@@ -124,6 +152,107 @@ const admin = {
        amount: "Valor:",
     }
   },
+  customers: {
+    title: "Clientes",
+    subtitle: "Administre los clientes y usuarios de su sistema",
+    searchInput: "Buscar por nombre, correo o teléfono...",
+    emptyState: "No se encontraron clientes en este momento.",
+    stats: {
+      totalUsers: "Total de Usuarios",
+      customers: "Clientes",
+      admins: "Administradores",
+      newUsers: "Nuevos (7 días)"
+    },
+    table: {
+      customerContact: "Cliente / Contacto",
+      role: "Rol",
+      purchasesSpent: "Compras / Gastos",
+      admissionDate: "Fecha de Admisión",
+      actions: "Acciones",
+      noName: "Sin Nombre",
+      productCount: "{{count}} producto",
+      productsCount: "{{count}} productos"
+    }
+  },
+  payments: {
+    title: "Gestión de Pagos",
+    subtitle: "Cola para verificación manual de transferencias Zelle y activación de servicios.",
+    tabs: {
+      pending: "Pendientes",
+      approved: "Aprobados",
+      rejected: "Rechazados"
+    },
+    searchPlaceholder: "Buscar por servicio...",
+    table: {
+      customer: "Cliente",
+      serviceName: "Nombre del Servicio",
+      payment: "Pago",
+      actions: "Acciones",
+      noClientName: "Cliente sin nombre",
+      method: "Método: {{method}}",
+      viewProof: "Ver comprobante",
+      statusSuffix: "Estado: {{status}}",
+      expected: "Esperado: {{amount}}",
+      code: "Código: {{code}}",
+      autoProcessing: "Procesamiento Automático"
+    },
+    modals: {
+      rejectTitle: "Rechazar pago",
+      reasonLabel: "Motivo (opcional)",
+      reasonPlaceholder: "Ej: Comprobante ilegible, valor incorrecto...",
+      proofTitle: "Comprobante — {{name}}",
+      openOriginal: "Abrir"
+    },
+    messages: {
+      approveSuccess: "¡{{name}} aprobado!",
+      rejectSuccess: "Pago rechazado.",
+      approveError: "Error al aprobar.",
+      rejectError: "Error al rechazar.",
+      rejectedByAdmin: "Rechazado por el administrador."
+    }
+  },
+  products: {
+    title: "Productos y Precios",
+    subtitle: "Active o desactive productos y edite precios. Los cambios afectan las compras de inmediato.",
+    stats: {
+      totalProducts: "Total de Productos",
+      activeCount: "Activos",
+      inactiveCount: "Inactivos",
+      avgTicket: "Ticket Promedio"
+    },
+    table: {
+      serviceId: "ID del Servicio",
+      name: "Nombre",
+      currency: "Moneda",
+      price: "Precio",
+      status: "Estado",
+      actions: "Acción",
+      active: "Activo",
+      inactive: "Inactivo",
+      edit: "Editar",
+      activate: "Activar",
+      deactivate: "Desactivar",
+      itemCount: "{{count}} artículo",
+      itemsCount: "{{count}} artículos"
+    },
+    categories: {
+      main: "Servicios Principales",
+      dependents: "Dependientes",
+      mentorships: "Mentorías",
+      additionalSupport: "Soporte Adicional",
+      others: "Otros"
+    },
+    messages: {
+      invalidValue: "Ingrese un valor válido.",
+      updateSuccess: "Precio de \"{{name}}\" actualizado.",
+      updateError: "Error al guardar el precio: {{error}}",
+      statusActivated: "\"{{name}}\" activado. Los clientes pueden comprar.",
+      statusDeactivated: "\"{{name}}\" desactivado. Compras bloqueadas.",
+      statusError: "Error al cambiar el estado: {{error}}",
+      noPermission: "Sin permiso para cambiar este producto. Verifique las políticas de RLS."
+    },
+    footerHint: "Pase el mouse sobre el precio y haga clic en \"Editar\" para cambiar. Use el botón Activar/Desactivar para controlar la disponibilidad."
+  },
   analysisPanel: {
     title: "Análisis Técnico del Especialista",
     subtitle: "Analice el caso del cliente y defina los próximos pasos.",
@@ -161,6 +290,75 @@ const admin = {
       errorSave: "Error al guardar el análisis.",
       missingFields: "Complete el mensaje final o envíe al menos un documento.",
       proposalSent: "¡Propuesta enviada al cliente!"
+    }
+  },
+  coupons: {
+    title: "Cupones de Descuento",
+    subtitle: "Crea y gestiona cupones promocionales. Los cambios se aplican al checkout inmediatamente.",
+    createNew: "Crear Nuevo Cupón",
+    stats: {
+      total: "Total de Cupones",
+      active: "Activos",
+      expired: "Expirados",
+      totalUses: "Total de Usos"
+    },
+    form: {
+      code: "Código del Cupón",
+      codePlaceholder: "Ej: SAVE20",
+      generateRandom: "Generar",
+      discountType: "Tipo de Desconto",
+      percentage: "Porcentaje (%)",
+      fixed: "Valor Fixo ($)",
+      value: "Valor",
+      valuePlaceholder: "Ej: 20",
+      maxUses: "Límite de Usos",
+      maxUsesPlaceholder: "Vacío = ilimitado",
+      expiration: "Expiración",
+      expirationOptions: {
+        "1h": "1 hora",
+        "6h": "6 horas",
+        "12h": "12 horas",
+        "24h": "24 horas",
+        "48h": "48 horas",
+        "7d": "7 días",
+        "30d": "30 días",
+        "custom": "Personalizado"
+      },
+      customDate: "Fecha de expiración",
+      applicableSlugs: "Servicios aplicables",
+      allServices: "Todos los servicios",
+      minPurchase: "Compra mínima (USD)",
+      minPurchasePlaceholder: "0.00",
+      submit: "Crear Cupón"
+    },
+    table: {
+      code: "Código",
+      type: "Tipo",
+      value: "Valor",
+      uses: "Usos",
+      expiresAt: "Expira en",
+      status: "Estado",
+      actions: "Acciones",
+      copy: "Copiar",
+      activate: "Ativar",
+      deactivate: "Desactivar",
+      unlimited: "Ilimitado",
+      noResults: "Ningún cupón creado aún."
+    },
+    status: {
+      active: "Activo",
+      expired: "Expirado",
+      depleted: "Agotado",
+      inactive: "Inativo"
+    },
+    messages: {
+      createSuccess: "¡Cupón \"{{code}}\" creado con éxito!",
+      createError: "Error al crear cupón: {{error}}",
+      toggleSuccess: "Cupón \"{{code}}\" {{status}}.",
+      toggleError: "Error al cambiar estado: {{error}}",
+      copied: "¡Código copiado!",
+      invalidValue: "Ingrese un valor válido.",
+      invalidCode: "Ingrese un código válido."
     }
   }
 };

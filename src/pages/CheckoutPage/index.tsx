@@ -39,6 +39,11 @@ import PhoneInput from "../../components/PhoneInput";
 import { ZELLE_RECIPIENT } from "../../config/zelle";
 import { maskCPF, validateCPF } from "../../utils/cpf";
 import { useT } from "../../i18n/LanguageContext";
+import { 
+  validateCoupon, 
+  calculateDiscount, 
+  type CouponValidation 
+} from "../../services/coupon.service";
 
 const ZELLE_EMAIL = ZELLE_RECIPIENT.email;
 const ZELLE_PHONE = ZELLE_RECIPIENT.phone;
@@ -104,14 +109,20 @@ function PriceSummary({
   depUSD,
   dependents,
   method,
+  discountUSD,
+  couponCode,
 }: {
   baseUSD: number;
   depUSD: number;
   dependents: number;
   method: PaymentTab;
+  discountUSD?: number;
+  couponCode?: string;
 }) {
   const t = useT("checkout").product;
-  const subtotal = baseUSD + dependents * depUSD;
+  const subtotalBeforeDiscount = baseUSD + dependents * depUSD;
+  const subtotal = Math.max(0, subtotalBeforeDiscount - (discountUSD || 0));
+  
   const isCard = method === "card";
   const isPix = method === "pix";
   const isParcelow = method === "parcelow";
@@ -129,6 +140,13 @@ function PriceSummary({
         <div className="flex justify-between text-slate-600">
           <span>{t.summary.dependentsCount.replace("{{count}}", dependents.toString())}</span>
           <span className="font-semibold">US$ {(dependents * depUSD).toFixed(2)}</span>
+        </div>
+      )}
+      
+      {discountUSD && discountUSD > 0 && (
+        <div className="flex justify-between text-emerald-600 font-medium">
+          <span>{t.coupon.discount.replace("{{code}}", couponCode || "")}</span>
+          <span>- US$ {discountUSD.toFixed(2)}</span>
         </div>
       )}
 
@@ -193,11 +211,14 @@ export default function CheckoutPage() {
   const [dependents, setDependents] = useState(0);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [zelleDone, setZelleDone] = useState(false);
-  const [zelleAmount, setZelleAmount] = useState("");
-  const [zelleDate, setZelleDate] = useState("");
+  const [zelleAutoApproved, setZelleAutoApproved] = useState(false);
   const [zelleProof, setZelleProof] = useState<File | null>(null);
-  const [zelleCode, setZelleCode] = useState("");
   const [zelleProofPreview, setZelleProofPreview] = useState<string | null>(null);
+
+  // Coupon States
+  const [couponInput, setCouponInput] = useState("");
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponValidation | null>(null);
 
   const handleProofSelect = (file: File) => {
     setZelleProof(file);
@@ -241,6 +262,40 @@ export default function CheckoutPage() {
   const baseUSD = service ? parsePriceUSD(service.price) : 0;
   const depUSD = isUpgrade ? baseUSD : (service ? parsePriceUSD(service.dependentPrice) : 0);
   const checkoutCount = isUpgrade ? (dependents - 1) : dependents;
+  const subtotalUSD = baseUSD + (checkoutCount * depUSD);
+
+  const discountUSD = appliedCoupon?.valid 
+    ? calculateDiscount(subtotalUSD, appliedCoupon.discount_type!, appliedCoupon.discount_value!)
+    : 0;
+  
+  const finalSubtotalUSD = Math.max(0, subtotalUSD - discountUSD);
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setIsValidatingCoupon(true);
+    try {
+      const result = await validateCoupon(couponInput, slug);
+      if (result.valid) {
+        if (result.min_purchase_usd && subtotalUSD < result.min_purchase_usd) {
+          toast.error(t.coupon.errors.minPurchase.replace("{{value}}", result.min_purchase_usd.toString()));
+          return;
+        }
+        setAppliedCoupon(result);
+        toast.success(t.coupon.applied);
+      } else {
+        toast.error(result.error === "NOT_APPLICABLE" ? t.coupon.errors.notApplicable : t.coupon.errors.invalid);
+      }
+    } catch {
+      toast.error(t.coupon.errors.invalid);
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput("");
+  };
 
   const handlePhoneChange = (value: string) => {
     formik.setFieldValue("phone", value);
@@ -254,7 +309,6 @@ export default function CheckoutPage() {
       phone: user?.phoneNumber ?? "",
       password: "",
       parcelowCpf: "",
-      zelleConfirmation: "",
     },
     enableReinitialize: true,
     validate: zodValidate(z.object({
@@ -297,7 +351,7 @@ export default function CheckoutPage() {
 
         const CATALOG_SLUG: Record<string, string> = { "visto-b1-b2-reaplicacao": "visto-b1-b2" };
         const billingSlug = CATALOG_SLUG[service!.slug] || service!.slug;
-        const totalUSD = baseUSD + (checkoutCount * depUSD);
+        const totalToCharge = finalSubtotalUSD;
 
         if (activeMethod === "card" || activeMethod === "pix") {
           const { url } = await paymentService.createStripeCheckout({
@@ -308,8 +362,9 @@ export default function CheckoutPage() {
             dependents: checkoutCount,
             paymentMethod: activeMethod as StripePaymentMethod,
             userId: currentUserId,
-            amount: totalUSD,
+            amount: totalToCharge,
             proc_id: parentId || undefined,
+            coupon_code: appliedCoupon?.valid ? couponInput : undefined,
           });
 
           // Pre-register in visa_orders
@@ -319,7 +374,7 @@ export default function CheckoutPage() {
               client_name: values.fullName,
               client_email: values.email,
               billing_email: values.email,
-              total_price_usd: totalUSD,
+              total_price_usd: totalToCharge,
               product_slug: service!.slug,
               payment_method: activeMethod === "card" ? "stripe_card" : "stripe_pix",
               payment_status: "pending",
@@ -345,8 +400,9 @@ export default function CheckoutPage() {
             cpf: values.parcelowCpf,
             dependents: checkoutCount,
             userId: currentUserId,
-            amount: totalUSD,
+            amount: totalToCharge,
             proc_id: parentId || undefined,
+            coupon_code: appliedCoupon?.valid ? couponInput : undefined,
           });
 
           localStorage.setItem("checkout_slug", service!.slug);
@@ -354,31 +410,29 @@ export default function CheckoutPage() {
           window.location.href = url;
 
         } else if (activeMethod === "zelle") {
-          if (!zelleAmount || parseFloat(zelleAmount) <= 0)
-            throw new Error(t.paymentMethods.zelle.amountRequired);
-          if (!zelleDate)
-            throw new Error(t.paymentMethods.zelle.dateRequired);
           if (!zelleProof)
             throw new Error(t.paymentMethods.zelle.proofRequired);
 
           const proofPath = await paymentService.uploadZelleProof(zelleProof, service!.slug);
 
-          await paymentService.createZellePayment({
+          const zelleResult = await paymentService.createZellePayment({
             slug: service!.slug,
             serviceName: service!.title,
-            expectedAmount: totalUSD,
-            amount: parseFloat(zelleAmount.replace(",", ".")),
-            confirmationCode: values.zelleConfirmation || "",
-            paymentDate: zelleDate,
+            expectedAmount: totalToCharge,
+            amount: totalToCharge,
+            confirmationCode: `UPLD_${Date.now()}`,
+            paymentDate: new Date().toISOString().split("T")[0],
             proofPath,
             guestEmail: values.email,
             guestName: values.fullName,
             phone: values.phone,
             userId: currentUserId || null,
-            dependents, // Pass this to paymentService
+            dependents,
             proc_id: parentId || undefined,
+            coupon_code: appliedCoupon?.valid ? couponInput : undefined,
           });
 
+          setZelleAutoApproved(zelleResult.autoApproved === true);
           setZelleDone(true);
         }
       } catch (err) {
@@ -533,12 +587,51 @@ export default function CheckoutPage() {
             </div>
 
             {/* Price summary */}
-            <PriceSummary
-              baseUSD={baseUSD}
-              depUSD={depUSD}
-              dependents={checkoutCount}
-              method={activeMethod}
-            />
+             <PriceSummary
+               baseUSD={baseUSD}
+               depUSD={depUSD}
+               dependents={checkoutCount}
+               method={activeMethod}
+               discountUSD={discountUSD}
+               couponCode={couponInput}
+             />
+
+             {/* Coupon field */}
+             <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-4">
+               <Label className="text-xs text-slate-500 mb-2 block">{t.coupon.label}</Label>
+               <div className="flex gap-2">
+                 <div className="relative flex-1">
+                   <Input
+                     placeholder={t.coupon.placeholder}
+                     value={couponInput}
+                     onChange={(e) => setCouponInput(e.target.value)}
+                     disabled={!!appliedCoupon || isValidatingCoupon}
+                     className={`text-sm h-10 uppercase font-mono tracking-wider ${appliedCoupon ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : ''}`}
+                   />
+                   {appliedCoupon && (
+                     <RiCheckLine className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500" />
+                   )}
+                 </div>
+                 {appliedCoupon ? (
+                   <button
+                     type="button"
+                     onClick={handleRemoveCoupon}
+                     className="h-10 px-3 rounded-xl border border-red-100 text-red-500 hover:bg-red-50 transition-colors"
+                   >
+                     <RiCloseLine className="text-xl" />
+                   </button>
+                 ) : (
+                   <button
+                     type="button"
+                     onClick={handleApplyCoupon}
+                     disabled={isValidatingCoupon || !couponInput.trim()}
+                     className="h-10 px-4 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-700 disabled:opacity-50 transition-all shadow-sm shadow-slate-200"
+                   >
+                     {isValidatingCoupon ? t.coupon.applying : t.coupon.apply}
+                   </button>
+                 )}
+               </div>
+             </div>
 
           </motion.aside>
 
@@ -757,47 +850,6 @@ export default function CheckoutPage() {
                         </p>
                       </div>
 
-                      {/* Zelle fields */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label htmlFor="zelleAmount">{t.paymentMethods.zelle.amountSent}</Label>
-                          <Input
-                            id="zelleAmount"
-                            type="number"
-                            step="0.01"
-                            min="1"
-                            placeholder={t.paymentMethods.zelle.amountPlaceholder}
-                            className="mt-1.5"
-                            value={zelleAmount}
-                            onChange={(e) => setZelleAmount(e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="zelleDate">{t.paymentMethods.zelle.paymentDate}</Label>
-                          <Input
-                            id="zelleDate"
-                            type="date"
-                            className="mt-1.5"
-                            value={zelleDate}
-                            max={new Date().toISOString().split("T")[0]}
-                            onChange={(e) => setZelleDate(e.target.value)}
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="zelleCode">
-                          {t.paymentMethods.zelle.confirmationCode} <span className="text-slate-400 font-normal">{t.paymentMethods.zelle.confirmationCode.includes("(") ? "" : "(opcional)"}</span>
-                        </Label>
-                        <Input
-                          id="zelleCode"
-                          placeholder={t.paymentMethods.zelle.confirmationPlaceholder}
-                          className="mt-1.5"
-                          value={zelleCode}
-                          onChange={(e) => setZelleCode(e.target.value)}
-                        />
-                      </div>
-
                       {/* Proof upload */}
                       <div>
                         <Label>{t.paymentMethods.zelle.uploadProof}</Label>
@@ -859,18 +911,41 @@ export default function CheckoutPage() {
                       key="zelle-done"
                       initial={{ opacity: 0, scale: 0.97 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="rounded-xl bg-emerald-50 border border-emerald-100 p-5 text-center"
+                      className={`rounded-xl border p-5 text-center ${
+                        zelleAutoApproved
+                          ? "bg-emerald-50 border-emerald-200"
+                          : "bg-amber-50 border-amber-200"
+                      }`}
                     >
-                      <RiCheckLine className="text-emerald-500 text-3xl mx-auto mb-2" />
-                      <p className="font-bold text-slate-800 text-sm">{t.paymentMethods.zelle.pendingReview.split("!")[0]}!</p>
-                      <p className="text-xs text-slate-500 mt-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.zelle.pendingReview.split("!")[1] || t.paymentMethods.zelle.pendingReview }} />
-                      <button
-                         type="button"
-                         onClick={() => navigate("/dashboard")}
-                         className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs"
-                      >
-                         {t.paymentMethods.zelle.goDashboard}
-                      </button>
+                      {zelleAutoApproved ? (
+                        <>
+                          <RiCheckLine className="text-emerald-500 text-3xl mx-auto mb-2" />
+                          <p className="font-bold text-slate-800 text-sm">🎉 Pagamento Aprovado!</p>
+                          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                            Seu comprovante foi verificado automaticamente e seu serviço já está ativo no painel.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => navigate("/dashboard")}
+                            className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs"
+                          >
+                            Acessar Meu Painel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <RiCheckLine className="text-amber-500 text-3xl mx-auto mb-2" />
+                          <p className="font-bold text-slate-800 text-sm">{t.paymentMethods.zelle.pendingReview.split("!")[0]}!</p>
+                          <p className="text-xs text-slate-500 mt-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.zelle.pendingReview.split("!")[1] || t.paymentMethods.zelle.pendingReview }} />
+                          <button
+                            type="button"
+                            onClick={() => navigate("/dashboard")}
+                            className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-amber-600 text-white rounded-xl font-bold text-xs"
+                          >
+                            {t.paymentMethods.zelle.goDashboard}
+                          </button>
+                        </>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>

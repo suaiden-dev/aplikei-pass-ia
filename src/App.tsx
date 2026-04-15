@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import { PublicLayout } from "./layouts/PublicLayout";
 import { AdminLayout } from "./layouts/AdminLayout";
@@ -5,47 +6,56 @@ import { CustomerLayout } from "./layouts/CustomerLayout";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { ScrollToTop } from "./components/ScrollToTop";
 
-import HomePage from "./pages/HomePage";
-import ServiceDetailPage from "./pages/ServiceDetailPage";
-import Login from "./pages/Login";
-import SignUpPage from "./pages/SignUp";
-import NotFoundPage from "./pages/NotFoundPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
-import ComoFuncionaPage from "./pages/ComoFuncionaPage";
-import ServicosPage from "./pages/ServicosPage";
-import CustomersPage from "./pages/admin/CustomersPage";
+// ─── Lazy-loaded Pages ────────────────────────────────────────────────────────
+// Public
+const HomePage            = lazy(() => import("./pages/HomePage"));
+const ServiceDetailPage   = lazy(() => import("./pages/ServiceDetailPage"));
+const Login               = lazy(() => import("./pages/Login"));
+const SignUpPage           = lazy(() => import("./pages/SignUp"));
+const NotFoundPage        = lazy(() => import("./pages/NotFoundPage"));
+const CheckoutPage        = lazy(() => import("./pages/CheckoutPage"));
+const CheckoutSuccessPage = lazy(() => import("./pages/CheckoutSuccessPage"));
+const ComoFuncionaPage    = lazy(() => import("./pages/ComoFuncionaPage"));
+const ServicosPage        = lazy(() => import("./pages/ServicosPage"));
 
-import OverviewPage from "./pages/admin/OverviewPage";
-import ZellePaymentsPage from "./pages/admin/ZellePaymentsPage";
-import ProductsPage from "./pages/admin/ProductsPage";
-import AdminProcessesPage from "./pages/admin/ProcessesPage";
-import AdminProcessDetailPage from "./pages/admin/ProcessDetailPage";
+// Admin
+const CustomersPage          = lazy(() => import("./pages/admin/CustomersPage"));
+const OverviewPage           = lazy(() => import("./pages/admin/OverviewPage"));
+const ZellePaymentsPage      = lazy(() => import("./pages/admin/ZellePaymentsPage"));
+const ProductsPage           = lazy(() => import("./pages/admin/ProductsPage"));
+const AdminProcessesPage     = lazy(() => import("./pages/admin/ProcessesPage"));
+const AdminProcessDetailPage = lazy(() => import("./pages/admin/ProcessDetailPage"));
+const CouponsPage            = lazy(() => import("./pages/admin/CouponsPage"));
 
-import CustomerDashboardPage from "./pages/customer/DashboardPage";
-import MyProcessesPage from "./pages/customer/MyProcessesPage";
-import ProcessDetailPage from "./pages/customer/ProcessDetailPage";
-import SupportPage from "./pages/customer/SupportPage";
-import AIChatPage from "./pages/customer/AIChatPage";
-import COSOnboardingPage from "./pages/customer/COSOnboardingPage";
+// Customer
+const CustomerDashboardPage = lazy(() => import("./pages/customer/DashboardPage"));
+const MyProcessesPage       = lazy(() => import("./pages/customer/MyProcessesPage"));
+const ProcessDetailPage     = lazy(() => import("./pages/customer/ProcessDetailPage"));
+const SupportPage           = lazy(() => import("./pages/customer/SupportPage"));
+const AIChatPage            = lazy(() => import("./pages/customer/AIChatPage"));
+const COSOnboardingPage     = lazy(() => import("./pages/customer/COSOnboardingPage"));
+const ProfileSettingsPage   = lazy(() => import("./pages/customer/ProfileSettingsPage"));
+const B1B2OnboardingPage    = lazy(() => import("./pages/customer/B1B2OnboardingPage"));
+const F1OnboardingPage      = lazy(() => import("./pages/customer/F1OnboardingPage"));
 
-import ProfileSettingsPage from "./pages/customer/ProfileSettingsPage";
-import B1B2OnboardingPage from "./pages/customer/B1B2OnboardingPage";
-import F1OnboardingPage from "./pages/customer/F1OnboardingPage";
-
-// Legal Pages
-import Terms from "./pages/Legal/Terms";
-import Privacy from "./pages/Legal/Privacy";
-import Refund from "./pages/Legal/Refund";
-import Disclaimers from "./pages/Legal/Disclaimers";
-import ContractTerms from "./pages/Legal/ContractTerms";
+// Legal
+const Terms         = lazy(() => import("./pages/Legal/Terms"));
+const Privacy       = lazy(() => import("./pages/Legal/Privacy"));
+const Refund        = lazy(() => import("./pages/Legal/Refund"));
+const Disclaimers   = lazy(() => import("./pages/Legal/Disclaimers"));
+const ContractTerms = lazy(() => import("./pages/Legal/ContractTerms"));
 
 export default function App() {
   return (
     <>
       <ScrollToTop />
-      <Routes>
-        {/* Rotas públicas — com Navbar e Footer */}
+      <Suspense fallback={
+        <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      }>
+        <Routes>
+          {/* Rotas públicas — com Navbar e Footer */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/servicos" element={<ServicosPage />} />
@@ -96,12 +106,14 @@ export default function App() {
           <Route path="/admin/processes" element={<AdminProcessesPage />} />
           <Route path="/admin/processes/:id" element={<AdminProcessDetailPage />} />
           <Route path="/admin/products" element={<ProductsPage />} />
+          <Route path="/admin/coupons" element={<CouponsPage />} />
         </Route>
       </Route>
 
       {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </Suspense>
     </>
   );
 }

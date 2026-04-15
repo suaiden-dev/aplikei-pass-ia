@@ -8,6 +8,37 @@ const admin = {
     cancel: "Cancel",
     confirm: "Confirm",
     administrativeAction: "Administrative Action",
+    rejection: {
+      confirm: "Confirm Rejection",
+    },
+  },
+  overview: {
+    stats: {
+      customers: "Customers",
+      totalRevenue: "Total Revenue",
+      revenueSubtitle: "Total accumulated revenue",
+      pendingPayments: "Pending Payments",
+      pendingSubtitle: "Awaiting confirmation",
+      activeSellers: "Active Sellers",
+      pendingPartners: "Pending Partners",
+      partnersSubtitle: "Approval queue"
+    },
+    charts: {
+      monthlyRevenue: "Monthly Revenue",
+      growth: "{{percent}}% growth",
+      serviceDistribution: "Service Distribution",
+      byVisaType: "By Visa Type",
+      total: "Total"
+    },
+    recentActivity: {
+      title: "Recent Activity",
+      paymentReceived: "Payment Received",
+      newCustomer: "New Customer",
+      processUpdated: "Process Updated",
+      paymentPending: "Payment Pending",
+      hoursAgo: "{{count}} hours ago",
+      yesterday: "Yesterday"
+    }
   },
   cases: {
     title: "Cases",
@@ -166,7 +197,8 @@ const admin = {
       viewProof: "View proof",
       statusSuffix: "Status: {{status}}",
       expected: "Expected: {{amount}}",
-      code: "Code: {{code}}"
+      code: "Code: {{code}}",
+      autoProcessing: "Auto Processing"
     },
     modals: {
       rejectTitle: "Reject payment",
@@ -262,6 +294,75 @@ const admin = {
       errorSave: "Error saving analysis.",
       missingFields: "Fill in the final message or send at least one document.",
       proposalSent: "Proposal sent to the client!"
+    }
+  },
+  coupons: {
+    title: "Discount Coupons",
+    subtitle: "Create and manage promotional coupons. Changes take effect on checkout immediately.",
+    createNew: "Create New Coupon",
+    stats: {
+      total: "Total Coupons",
+      active: "Active",
+      expired: "Expired",
+      totalUses: "Total Uses"
+    },
+    form: {
+      code: "Coupon Code",
+      codePlaceholder: "E.g.: SAVE20",
+      generateRandom: "Generate",
+      discountType: "Discount Type",
+      percentage: "Percentage (%)",
+      fixed: "Fixed Amount ($)",
+      value: "Value",
+      valuePlaceholder: "E.g.: 20",
+      maxUses: "Usage Limit",
+      maxUsesPlaceholder: "Empty = unlimited",
+      expiration: "Expiration",
+      expirationOptions: {
+        "1h": "1 hour",
+        "6h": "6 hours",
+        "12h": "12 hours",
+        "24h": "24 hours",
+        "48h": "48 hours",
+        "7d": "7 days",
+        "30d": "30 days",
+        "custom": "Custom"
+      },
+      customDate: "Expiration date",
+      applicableSlugs: "Applicable services",
+      allServices: "All services",
+      minPurchase: "Minimum purchase (USD)",
+      minPurchasePlaceholder: "0.00",
+      submit: "Create Coupon"
+    },
+    table: {
+      code: "Code",
+      type: "Type",
+      value: "Value",
+      uses: "Uses",
+      expiresAt: "Expires at",
+      status: "Status",
+      actions: "Actions",
+      copy: "Copy",
+      activate: "Activate",
+      deactivate: "Deactivate",
+      unlimited: "Unlimited",
+      noResults: "No coupons created yet."
+    },
+    status: {
+      active: "Active",
+      expired: "Expired",
+      depleted: "Depleted",
+      inactive: "Inactive"
+    },
+    messages: {
+      createSuccess: "Coupon \"{{code}}\" created successfully!",
+      createError: "Error creating coupon: {{error}}",
+      toggleSuccess: "Coupon \"{{code}}\" {{status}}.",
+      toggleError: "Error changing status: {{error}}",
+      copied: "Code copied!",
+      invalidValue: "Enter a valid value.",
+      invalidCode: "Enter a valid code."
     }
   }
 };

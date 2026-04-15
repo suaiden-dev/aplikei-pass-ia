@@ -140,6 +140,20 @@ const checkout = {
       },
       soon: "PRÓXIMAMENTE"
     },
+    coupon: {
+      label: "Cupón de descuento",
+      placeholder: "Ingrese el código",
+      apply: "Aplicar",
+      applying: "Validando...",
+      remove: "Eliminar",
+      applied: "¡Cupón aplicado!",
+      discount: "Descuento ({{code}})",
+      errors: {
+        invalid: "Cupón inválido o expirado.",
+        notApplicable: "Cupón no válido para este servicio.",
+        minPurchase: "Compra mínima: US$ {{value}}"
+      }
+    },
     placeOrder: "Finalizar Pedido",
     redirecting: "Procesando...",
     statusUnavailable: {

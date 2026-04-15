@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { notificationService } from "./notification.service";
 
 export interface UserService {
   id: string;
@@ -152,6 +153,14 @@ export const processService = {
 
   async requestStepReview(serviceId: string): Promise<void> {
     if (!serviceId) throw new Error("ID do serviço é obrigatório.");
+    
+    // Fetch info before updating to get userId and slug
+    const { data: service } = await supabase
+      .from("user_services")
+      .select("user_id, service_slug")
+      .eq("id", serviceId)
+      .single();
+
     const { error } = await supabase
       .from("user_services")
       .update({ 
@@ -160,6 +169,15 @@ export const processService = {
       .eq("id", serviceId);
 
     if (error) throw new Error(error.message);
+
+    if (service) {
+      await notificationService.notifyAdmin({
+        title: "Ação Necessária: Avaliação de Etapa",
+        body: `O cliente concluiu uma etapa no processo e aguarda sua revisão.`,
+        serviceId: serviceId,
+        userId: service.user_id,
+      });
+    }
   },
 
   async approveStep(serviceId: string, nextStep: number, isFinal: boolean = false, result?: 'approved' | 'denied', additionalData?: Record<string, unknown>): Promise<void> {

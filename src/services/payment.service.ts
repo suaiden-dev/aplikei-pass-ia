@@ -16,9 +16,10 @@ export interface StripeCheckoutParams {
   phone: string;
   dependents?: number;
   paymentMethod: StripePaymentMethod;
-  amount?: number; // Optional custom amount (e.g. for Motion fee)
   proc_id?: string;
   userId?: string;
+  amount?: number;
+  coupon_code?: string;
 }
 
 export interface ParcelowCheckoutParams {
@@ -28,9 +29,10 @@ export interface ParcelowCheckoutParams {
   phone: string;
   cpf: string;
   dependents?: number;
-  proc_id?: string;
   userId?: string;
   amount?: number;
+  coupon_code?: string;
+  proc_id?: string;
 }
 
 export interface StripeCheckoutResult {
@@ -78,6 +80,7 @@ export const paymentService = {
       proc_id: params.proc_id,
       dependents: params.dependents ?? 0,
       user_id: params.userId,
+      coupon_code: params.coupon_code || undefined,
       origin_url: window.location.origin,
       success_url: `${window.location.origin}/checkout-success?slug=${params.slug}`,
       cancel_url: `${window.location.origin}/checkout/${params.slug}`,
@@ -89,7 +92,6 @@ export const paymentService = {
       headers: {
         "Content-Type": "application/json",
         "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
       },
       body: JSON.stringify(body)
     });
@@ -115,7 +117,6 @@ export const paymentService = {
         headers: {
           "Content-Type": "application/json",
           "apikey": SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
         },
         body: JSON.stringify({
           ...params,
@@ -123,6 +124,7 @@ export const paymentService = {
           total: params.amount,
           proc_id: params.proc_id,
           user_id: params.userId,
+          coupon_code: params.coupon_code || undefined,
           origin_url: window.location.origin,
           success_url: `${window.location.origin}/checkout-success?slug=${params.slug}`,
           cancel_url: `${window.location.origin}/checkout/${params.slug}`,
@@ -165,13 +167,28 @@ export const paymentService = {
     proofPath: string;
     guestEmail: string;
     guestName: string;
-    phone: string;
     userId?: string | null;
     dependents?: number;
     proc_id?: string;
-  }): Promise<{ paymentId: string }> {
-    const { data, error } = await supabase.functions.invoke("create-zelle-payment", {
-      body: {
+    coupon_code?: string;
+    phone?: string;
+  }): Promise<{ paymentId: string; autoApproved: boolean }> {
+    // Busca o token atual para enviar apenas se existir
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_ANON_KEY,
+    };
+
+    if (session?.access_token) {
+      headers["Authorization"] = `Bearer ${session.access_token}`;
+    }
+
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/create-zelle-payment`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
         amount: params.amount,
         confirmation_code: params.confirmationCode,
         payment_date: params.paymentDate,
@@ -181,18 +198,27 @@ export const paymentService = {
         guest_name: params.guestName,
         user_id: params.userId ?? null,
         proc_id: params.proc_id,
+        coupon_code: params.coupon_code || undefined,
         dependents: params.dependents,
         recipient_name: ZELLE_RECIPIENT.name,
         recipient_email: ZELLE_RECIPIENT.email,
         admin_notes: `Serviço: ${params.serviceName} | Valor esperado: $${params.expectedAmount.toFixed(2)} | Pago: $${params.amount.toFixed(2)}${params.dependents ? ` | Dependentes: ${params.dependents}` : ""}`,
-      },
+      }),
     });
 
-    if (error || !data?.payment_id) {
-      throw new Error(error?.message || data?.error || "Erro ao registrar pagamento Zelle.");
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("[PaymentService] Zelle error response:", errorText);
+      let errorData;
+      try { errorData = JSON.parse(errorText); } catch { errorData = { error: errorText }; }
+      throw new Error(errorData.error || errorData.message || `Erro de Servidor (Status ${response.status})`);
     }
 
-    return { paymentId: data.payment_id };
+    const data = await response.json();
+    return { 
+      paymentId: data.payment_id, 
+      autoApproved: data.auto_approved === true 
+    };
   },
 
   /** 
@@ -206,7 +232,6 @@ export const paymentService = {
       headers: {
         "Content-Type": "application/json",
         "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
       },
       body: JSON.stringify({
         payment_id: paymentId,
@@ -231,7 +256,6 @@ export const paymentService = {
       headers: {
         "Content-Type": "application/json",
         "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
       },
       body: JSON.stringify({
         payment_id: paymentId,
