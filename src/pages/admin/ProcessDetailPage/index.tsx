@@ -30,7 +30,7 @@ import { processService, type UserService } from "../../../services/process.serv
 import { notificationService } from "../../../services/notification.service";
 import { packageService } from "../../../services/package.service";
 import { toast } from "sonner";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 
 interface ProcessWithUser extends UserService {
   user_accounts: {

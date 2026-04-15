@@ -12,7 +12,7 @@ import {
 } from "react-icons/ri";
 import { processService, type UserService } from "../../../services/process.service";
 import { finalFormsService } from "../../../services/final_forms.service";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 import { z } from "zod";
 import { zodValidate } from "../../../utils/zodValidate";
 

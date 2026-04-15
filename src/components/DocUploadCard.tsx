@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { useT } from "../i18n/LanguageContext";
+import { useT } from "../i18n";
 import { 
   RiUploadCloud2Line, 
   RiCheckDoubleLine, 

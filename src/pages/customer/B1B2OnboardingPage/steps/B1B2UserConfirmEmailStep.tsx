@@ -5,7 +5,7 @@ import {
   RiLoader4Line,
   RiInformationLine,
 } from "react-icons/ri";
-import { useT } from "../../../../i18n/LanguageContext";
+import { useT } from "../../../../i18n";
 import { processService } from "../../../../services/process.service";
 import { toast } from "sonner";
 import confirmationEmailImg from "../../../../assets/email/confirmation_email.png";

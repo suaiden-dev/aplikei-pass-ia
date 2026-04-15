@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { RiChat3Line } from "react-icons/ri";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 
 export default function AIChatPage() {
   const t = useT("dashboard");

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useLocale, useT } from "../../i18n/LanguageContext";
+import { useLocale, useT } from "../../i18n";
 import { cn } from "../../utils/cn";
 import { ChevronRight, ShieldCheck, FileText, RefreshCcw, AlertTriangle, Scale } from "lucide-react";
 

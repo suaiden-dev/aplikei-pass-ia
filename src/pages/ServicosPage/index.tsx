@@ -9,7 +9,7 @@ import {
 import { servicesData } from "../../data/services";
 import { supabase } from "../../lib/supabase";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/Accordion";
-import { useT } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n";
 
 
 

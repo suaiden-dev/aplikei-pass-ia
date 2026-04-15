@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useT } from "../../../../i18n/LanguageContext";
+import { useT } from "../../../../i18n";
 import { toast } from "sonner";
 import {
   RiArrowRightLine,

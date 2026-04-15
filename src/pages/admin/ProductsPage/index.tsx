@@ -13,7 +13,7 @@ import {
   RiEyeLine,
 } from "react-icons/ri";
 import { supabase } from "../../../lib/supabase";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

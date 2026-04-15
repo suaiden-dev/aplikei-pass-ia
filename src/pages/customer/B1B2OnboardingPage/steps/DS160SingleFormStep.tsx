@@ -1,6 +1,6 @@
 import { useFormikContext, Field, ErrorMessage } from "formik";
 import type { DS160FormValues } from "../../../../schemas/ds160.schema";
-import { useT } from "../../../../i18n/LanguageContext";
+import { useT } from "../../../../i18n";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 

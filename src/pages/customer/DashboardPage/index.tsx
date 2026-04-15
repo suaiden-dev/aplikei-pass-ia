@@ -17,7 +17,7 @@ import { servicesData } from "../../../data/services";
 import { processService, type UserService } from "../../../services/process.service";
 import { cn } from "../../../utils/cn";
 import { toast } from "sonner";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 
 // ─── Display config per slug ──────────────────────────────────────────────────
 

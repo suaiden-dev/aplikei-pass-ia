@@ -11,7 +11,7 @@ import {
 import { supabase } from "../../../lib/supabase";
 import { toast } from "sonner";
 import type { UserAccount } from "../../../services/auth.service";
-import { useT, useLocale } from "../../../i18n/LanguageContext";
+import { useT, useLocale } from "../../../i18n";
 
 export interface CustomerWithStats extends UserAccount {
   productsCount: number;

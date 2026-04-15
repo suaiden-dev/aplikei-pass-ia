@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useT } from "../i18n/LanguageContext";
+import { useT } from "../i18n";
 
 
 export const HowItWorksSection = () => {

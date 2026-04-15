@@ -11,7 +11,7 @@ import { processService, type UserService } from "../../../services/process.serv
 import { fillI539Form, uploadFilledI539, type I539Data } from "../../../services/i539.service";
 import type { UserAccount } from "../../../models/user.model";
 import { i539Validator, type I539FormInput } from "../../../schemas/i539.schema";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

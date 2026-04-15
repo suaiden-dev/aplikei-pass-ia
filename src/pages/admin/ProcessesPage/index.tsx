@@ -19,7 +19,7 @@ import { processService, type UserService } from "../../../services/process.serv
 import { getServiceBySlug, servicesData } from "../../../data/services";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 
 interface ProcessWithUser extends UserService {
   user_accounts: {

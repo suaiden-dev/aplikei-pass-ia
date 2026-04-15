@@ -24,7 +24,7 @@ import {
   RiSpam2Line,
   RiInformationFill
 } from "react-icons/ri";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 import { formatCurrency } from "../../../utils/format";
 
 interface Props {

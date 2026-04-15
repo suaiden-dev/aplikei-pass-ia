@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { FaStar, FaQuoteLeft } from "react-icons/fa";
-import { useT } from "../i18n/LanguageContext";
+import { useT } from "../i18n";
 
 interface TestimonialsSectionProps {
   avatars: string[];

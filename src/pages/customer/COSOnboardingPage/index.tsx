@@ -23,7 +23,7 @@ import FinalPackageStep from "./FinalPackageStep";
 import I20UploadStep from "./I20UploadStep";
 import SevisFeeStep from "./SevisFeeStep";
 
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 import { 
   MotionExplanationStep, 
   MotionInstructionStep, 

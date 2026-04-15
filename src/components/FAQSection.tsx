@@ -1,5 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./Accordion";
-import { useT } from "../i18n/LanguageContext";
+import { useT } from "../i18n";
 
 export const FAQSection = () => {
   const t = useT("landing");

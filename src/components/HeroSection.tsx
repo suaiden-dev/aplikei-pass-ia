@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FiArrowRight } from "react-icons/fi";
 import { MdVerified } from "react-icons/md";
-import { useT } from "../i18n/LanguageContext";
+import { useT } from "../i18n";
 interface HeroSectionProps {
   heroImage: string;
   avatars: string[];

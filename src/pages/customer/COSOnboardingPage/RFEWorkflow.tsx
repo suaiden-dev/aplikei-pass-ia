@@ -30,7 +30,7 @@ import { Label } from "../../../components/Label";
 import { maskCPF, validateCPF } from "../../../utils/cpf";
 import { getServiceBySlug } from "../../../data/services";
 import { cn } from "../../../utils/cn";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

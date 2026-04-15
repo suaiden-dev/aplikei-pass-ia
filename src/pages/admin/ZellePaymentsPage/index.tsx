@@ -5,7 +5,7 @@ import { RiSearchLine, RiCheckboxCircleLine, RiCloseCircleLine, RiImageLine, RiE
 import { supabase } from "../../../lib/supabase";
 import { paymentService, notificationService } from "../../../services";
 
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────

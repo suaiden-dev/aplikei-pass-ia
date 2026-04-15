@@ -10,7 +10,7 @@ import {
   RiCloseLine,
 } from "react-icons/ri";
 import { useAuth } from "../hooks/useAuth";
-import { useLocale, useT } from "../i18n/LanguageContext";
+import { useLocale, useT } from "../i18n";
 import { cn } from "../utils/cn";
 import { NotificationProvider } from "../contexts/NotificationContext";
 import { NotificationToaster } from "../components/notifications/NotificationToaster";

@@ -12,7 +12,7 @@ import {
 } from "react-icons/ri";
 import { processService } from "../../../../services/process.service";
 import { toast } from "sonner";
-import { useT, useLocale } from "../../../../i18n/LanguageContext";
+import { useT, useLocale } from "../../../../i18n";
 
 interface B1B2CASVSchedulingStepProps {
   procId: string;

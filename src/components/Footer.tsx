@@ -1,6 +1,6 @@
 import { FaTwitter, FaInstagram } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { useT } from "../i18n/LanguageContext";
+import { useT } from "../i18n";
 
 export const Footer = () => {
   const t = useT("footer");

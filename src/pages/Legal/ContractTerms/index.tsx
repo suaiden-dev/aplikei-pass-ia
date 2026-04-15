@@ -1,4 +1,4 @@
-import { useLocale, useT } from "../../../i18n/LanguageContext";
+import { useLocale, useT } from "../../../i18n";
 import { LegalLayout } from "../LegalLayout";
 
 export default function ContractTerms() {

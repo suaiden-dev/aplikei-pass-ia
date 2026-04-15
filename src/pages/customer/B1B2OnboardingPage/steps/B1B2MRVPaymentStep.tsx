@@ -13,7 +13,7 @@ import {
 import { processService } from "../../../../services/process.service";
 import { supabase } from "../../../../lib/supabase";
 import { toast } from "sonner";
-import { useT } from "../../../../i18n/LanguageContext";
+import { useT } from "../../../../i18n";
 
 interface B1B2MRVPaymentStepProps {
   procId: string;

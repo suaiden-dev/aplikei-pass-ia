@@ -7,7 +7,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { authService } from "../../services/auth.service";
 
-import { useT } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n";
 
 export default function ResetPassword() {
     const t = useT("auth");

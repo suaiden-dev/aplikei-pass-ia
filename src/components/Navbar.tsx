@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { cn } from "../utils/cn";
 import { useAuth } from "../hooks/useAuth";
-import { useLocale, useT } from "../i18n/LanguageContext";
+import { useLocale, useT } from "../i18n";
 
 export const Navbar = () => {
   const { user, isAuthenticated } = useAuth();

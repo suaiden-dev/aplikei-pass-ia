@@ -38,7 +38,7 @@ import {
 import PhoneInput from "../../components/PhoneInput";
 import { ZELLE_RECIPIENT } from "../../config/zelle";
 import { maskCPF, validateCPF } from "../../utils/cpf";
-import { useT } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n";
 import { 
   validateCoupon, 
   calculateDiscount, 

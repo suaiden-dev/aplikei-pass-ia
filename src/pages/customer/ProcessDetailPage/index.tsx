@@ -22,7 +22,7 @@ import { getServiceBySlug } from "../../../data/services";
 import { toast } from "sonner";
 import PhotoUploadOverlay from "../../../components/PhotoUploadOverlay";
 import { cn } from "../../../utils/cn";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,

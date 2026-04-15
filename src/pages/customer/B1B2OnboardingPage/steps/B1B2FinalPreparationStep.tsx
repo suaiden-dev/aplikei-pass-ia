@@ -19,7 +19,7 @@ import { InlineWidget, useCalendlyEventListener } from "react-calendly";
 import { useAuth } from "../../../../hooks/useAuth";
 import { supabase } from "../../../../lib/supabase";
 import { calendlyService } from "../../../../services/calendly.service";
-import { useT, useLocale } from "../../../../i18n/LanguageContext";
+import { useT, useLocale } from "../../../../i18n";
 
 interface B1B2FinalPreparationStepProps {
   procId: string;

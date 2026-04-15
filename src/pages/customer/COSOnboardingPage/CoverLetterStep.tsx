@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { processService, type UserService } from "../../../services/process.service";
 import { coverLetterService } from "../../../services/cover_letter.service";
 import { RiMagicLine } from "react-icons/ri";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 
 interface CoverLetterData {
   reasonGoUS?: string;

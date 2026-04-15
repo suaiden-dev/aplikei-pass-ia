@@ -10,7 +10,7 @@ import {
 
 import { supabase } from "../../../../lib/supabase";
 import { processService } from "../../../../services/process.service";
-import { useT } from "../../../../i18n/LanguageContext";
+import { useT } from "../../../../i18n";
 
 interface F1I20UploadStepProps {
   procId: string;

@@ -31,7 +31,7 @@ import { maskCPF, validateCPF } from "../../../utils/cpf";
 import { getServiceBySlug } from "../../../data/services";
 import { estimateCardTotal } from "../../../services/payment.service";
 import { cn } from "../../../utils/cn";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

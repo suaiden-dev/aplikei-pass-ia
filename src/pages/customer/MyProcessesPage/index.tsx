@@ -12,7 +12,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import { servicesData } from "../../../data/services";
 import { processService, type UserService } from "../../../services/process.service";
 import { cn } from "../../../utils/cn";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,

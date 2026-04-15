@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { HowItWorksSection } from "../../components/HowItWorksSection";
 import { RiInformationLine, RiCheckDoubleLine } from "react-icons/ri";
-import { useT } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n";
 
 export default function ComoFuncionaPage() {
   const t = useT("common");

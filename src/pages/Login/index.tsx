@@ -10,7 +10,7 @@ import { authService } from "../../services/auth.service";
 import { getLoginSchema } from "../../schemas/auth.schema";
 import { zodValidate } from "../../utils/zodValidate";
 import { useAuth } from "../../hooks/useAuth";
-import { useT } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n";
 
 export default function Login() {
   const t = useT("auth");

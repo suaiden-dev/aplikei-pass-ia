@@ -12,7 +12,7 @@ import {
 } from "react-icons/md";
 import { FiArrowRight } from "react-icons/fi";
 import { useAuth } from "../hooks/useAuth";
-import { useT } from "../i18n/LanguageContext";
+import { useT } from "../i18n";
 import { processService } from "../services/process.service";
 
 export interface StepConfig {

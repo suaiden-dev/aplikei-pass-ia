@@ -17,7 +17,7 @@ import {
   RiCloseLine
 } from "react-icons/ri";
 import { supabase } from "../../../lib/supabase";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 import { Input } from "../../../components/Input";
 import { Label } from "../../../components/Label";
 import { zodValidate } from "../../../utils/zodValidate";

@@ -11,7 +11,7 @@ import { Checkbox } from "../../components/CheckBox";
 import PhoneInput from "../../components/PhoneInput";
 import { authService } from "../../services/auth.service";
 import { getSignUpSchema } from "../../schemas/auth.schema";
-import { useT } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n";
 
 export default function SignUp() {
   const t = useT("auth");

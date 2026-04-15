@@ -12,7 +12,7 @@ import {
 import { useAuth } from "../../../hooks/useAuth";
 import { processService } from "../../../services/process.service";
 import { toast } from "sonner";
-import { useT } from "../../../i18n/LanguageContext";
+import { useT } from "../../../i18n";
 
 import { DS160SingleFormStep } from "./steps/DS160SingleFormStep";
 import { B1B2UserReviewSignStep } from "./steps/B1B2UserReviewSignStep";
