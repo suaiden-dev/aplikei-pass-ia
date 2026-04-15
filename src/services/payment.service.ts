@@ -1,9 +1,11 @@
 import { supabase } from "../lib/supabase";
 import { ZELLE_RECIPIENT } from "../config/zelle";
 import { getServiceBySlug } from "../data/services";
+import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+const N8N_BOT_CHECKPROOF = import.meta.env.VITE_N8N_BOT_CHECKPROOF as string;
 
 const ZELLE_BUCKET = "zelle_comprovantes";
 
@@ -87,21 +89,28 @@ export const paymentService = {
       project: "aplikei",
     };
 
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {
+      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+      "apikey": SUPABASE_ANON_KEY,
+    };
+    if (session?.access_token) {
+      headers["X-Customer-Auth"] = `Bearer ${session.access_token}`;
+    }
+
     const response = await fetch(`${SUPABASE_URL}/functions/v1/stripe-checkout`, {
       method: "POST",
       headers: {
+        ...headers,
         "Content-Type": "application/json",
-        "apikey": SUPABASE_ANON_KEY,
       },
       body: JSON.stringify(body)
     });
-
+    
     if (!response.ok) {
       const errorText = await response.text();
       console.error("[PaymentService] Stripe error response:", errorText);
-      let errorData;
-      try { errorData = JSON.parse(errorText); } catch { errorData = { error: errorText }; }
-      throw new Error(errorData.error || errorData.message || `Erro de Servidor (Status ${response.status})`);
+      throw new Error(errorText || "Erro ao processar Stripe Checkout");
     }
 
     const data = await response.json();
@@ -112,30 +121,39 @@ export const paymentService = {
 
   async createParcelowCheckout(params: ParcelowCheckoutParams): Promise<StripeCheckoutResult> {
 
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {
+      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+      "apikey": SUPABASE_ANON_KEY,
+    };
+    if (session?.access_token) {
+      headers["X-Customer-Auth"] = `Bearer ${session.access_token}`;
+    }
+
     const response = await fetch(`${SUPABASE_URL}/functions/v1/create-parcelow-checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
-          ...params,
-          price: params.amount,
-          total: params.amount,
-          proc_id: params.proc_id,
-          user_id: params.userId,
-          coupon_code: params.coupon_code || undefined,
-          origin_url: window.location.origin,
-          success_url: `${window.location.origin}/checkout-success?slug=${params.slug}`,
-          cancel_url: `${window.location.origin}/checkout/${params.slug}`,
-          project: "aplikei",
-        })
-      });
+      method: "POST",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...params,
+        price: params.amount,
+        total: params.amount,
+        proc_id: params.proc_id,
+        user_id: params.userId,
+        coupon_code: params.coupon_code || undefined,
+        origin_url: window.location.origin,
+        success_url: `${window.location.origin}/checkout-success?slug=${params.slug}`,
+        cancel_url: `${window.location.origin}/checkout/${params.slug}`,
+        project: "aplikei",
+      }),
+    });
 
     if (!response.ok) {
-        const errorText = await response.text();
-        console.error("[PaymentService] Parcelow error response:", errorText);
-        throw new Error(`Erro Parcelow: ${errorText}`);
+      const errorText = await response.text();
+      console.error("[PaymentService] Parcelow error response:", errorText);
+      throw new Error(errorText || "Erro ao processar Parcelow Checkout");
     }
 
     const data = await response.json();
@@ -173,24 +191,20 @@ export const paymentService = {
     coupon_code?: string;
     phone?: string;
   }): Promise<{ paymentId: string; autoApproved: boolean }> {
-    // Busca o token atual para enviar apenas se existir
     const { data: { session } } = await supabase.auth.getSession();
-    
     const headers: Record<string, string> = {
-      "Content-Type": "application/json",
+      "Authorization": `Bearer ${session?.access_token || SUPABASE_ANON_KEY}`,
       "apikey": SUPABASE_ANON_KEY,
     };
 
-    if (session?.access_token) {
-      headers["Authorization"] = `Bearer ${session.access_token}`;
-    }
-
     const response = await fetch(`${SUPABASE_URL}/functions/v1/create-zelle-payment`, {
       method: "POST",
-      headers,
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         amount: params.amount,
-        confirmation_code: params.confirmationCode,
         payment_date: params.paymentDate,
         proof_path: params.proofPath,
         service_slug: params.slug,
@@ -209,15 +223,97 @@ export const paymentService = {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("[PaymentService] Zelle error response:", errorText);
-      let errorData;
-      try { errorData = JSON.parse(errorText); } catch { errorData = { error: errorText }; }
-      throw new Error(errorData.error || errorData.message || `Erro de Servidor (Status ${response.status})`);
+      throw new Error(errorText || "Erro ao processar pagamento Zelle");
     }
 
     const data = await response.json();
+    const paymentId = data.payment_id;
+
+    // --- N8N BOT CHECKPROOF (Síncrono e com Tratamento de Respostas) ---
+    let autoApproved = data.auto_approved === true;
+    const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/zelle_comprovantes/${params.proofPath}`;
+    
+    const botPayload = {
+      event: "zelle_payment_created",
+      payment_id: paymentId,
+      user_id: params.userId || null,
+      email: params.guestEmail,
+      full_name: params.guestName,
+      amount: params.amount,
+      proof_path: params.proofPath,
+      image_url: imageUrl,
+      service_slug: params.slug,
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      console.log("[N8N Bot] Aguardando verificação prévia...");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s de limite para verificação síncrona
+
+      const botResponse = await fetch(N8N_BOT_CHECKPROOF, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(botPayload),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      const botData = await botResponse.json().catch(() => ({ response: "error" }));
+      console.log("[N8N Bot] Resposta:", botData);
+
+      if (botData.response === "approved payment") {
+        autoApproved = true;
+        console.log("[N8N Bot] Pagamento aprovado automaticamente pelo robô.");
+      } else {
+        autoApproved = false;
+        
+        // Enviar para o sistema de notificações (Sininho + E-mail)
+        try {
+          await supabase.from("notifications").insert({
+            type: "client_action",
+            target_role: "admin", // Notifica o admin que o robô falhou e precisa de revisão
+            user_id: params.userId || null,
+            title: "🔍 Zelle: Verificação Automática Falhou",
+            message: `O pagamento ${paymentId} ($${params.amount}) não passou na conferência automática do robô. Motivo: ${botData.response}. Uma análise manual é necessária.`,
+            send_email: true,
+            metadata: {
+              payment_id: paymentId,
+              bot_response: botData.response
+            }
+          });
+        } catch (notifErr) {
+          console.error("[N8N Bot] Erro ao criar notificação de falha:", notifErr);
+        }
+
+        toast.info("O comprovante não passou na verificação automática inicial e precisará ser analisado manualmente.", {
+          duration: 6000,
+        });
+      }
+    } catch (botErr: unknown) {
+      autoApproved = false;
+      console.warn("[N8N Bot] Falha ou timeout na verificação:", (botErr as Error).message);
+      
+      // Notificação de erro técnico para o admin
+      try {
+        await supabase.from("notifications").insert({
+          type: "client_action",
+          target_role: "admin",
+          user_id: params.userId || null,
+          title: "⚠️ Erro Técnico: Robô Zelle Offline",
+          message: `Não foi possível contatar o robô de verificação para o pagamento ${paymentId}. O sistema seguirá para conferência manual.`,
+          send_email: true
+        });
+      } catch (notifErr) {
+        console.error("[N8N Bot] Erro ao criar notificação de timeout:", notifErr);
+      }
+
+      toast.info("Não foi possível verificar seu comprovante agora. Nossa equipe fará a conferência manual em instantes.");
+    }
+
     return { 
-      paymentId: data.payment_id, 
-      autoApproved: data.auto_approved === true 
+      paymentId: paymentId, 
+      autoApproved: autoApproved 
     };
   },
 
@@ -227,48 +323,64 @@ export const paymentService = {
    */
   async approveZellePayment(paymentId: string): Promise<void> {
 
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/validate-zelle-payment`, {
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {
+      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+      "apikey": SUPABASE_ANON_KEY,
+    };
+    if (session?.access_token) {
+      headers["X-Customer-Auth"] = `Bearer ${session.access_token}`;
+    }
+
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-zelle-payment`, {
       method: "POST",
       headers: {
+        ...headers,
         "Content-Type": "application/json",
-        "apikey": SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({
         payment_id: paymentId,
         status: "approved",
         admin_notes: "Aprovado manualmente via Painel Admin"
-      })
+      }),
     });
 
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      console.error("[PaymentService] Manual Approval failed:", errorData);
-      throw new Error(errorData.error || `Erro de Servidor (Status ${res.status})`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("[PaymentService] Manual Approval failed:", errorText);
+      throw new Error(errorText || "Erro ao aprovar pagamento Zelle");
     }
-
   },
 
   /** Admin only — reject a Zelle payment */
   async rejectZellePayment(paymentId: string, reason: string): Promise<void> {
 
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/validate-zelle-payment`, {
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {
+      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+      "apikey": SUPABASE_ANON_KEY,
+    };
+    if (session?.access_token) {
+      headers["X-Customer-Auth"] = `Bearer ${session.access_token}`;
+    }
+
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-zelle-payment`, {
       method: "POST",
       headers: {
+        ...headers,
         "Content-Type": "application/json",
-        "apikey": SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({
         payment_id: paymentId,
         status: "rejected",
         admin_notes: reason || "Rejeitado manualmente via Painel Admin"
-      })
+      }),
     });
 
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      console.error("[PaymentService] Manual Rejection failed:", errorData);
-      throw new Error(errorData.error || `Erro de Servidor (Status ${res.status})`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("[PaymentService] Manual Rejection failed:", errorText);
+      throw new Error(errorText || "Erro ao rejeitar pagamento Zelle");
     }
-
   },
 };

@@ -1,9 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-customer-auth",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 serve(async (req) => {
@@ -18,13 +19,13 @@ serve(async (req) => {
 
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        const authHeader = req.headers.get("Authorization");
+        const authHeader = req.headers.get("X-Customer-Auth") || req.headers.get("Authorization");
         let userId: string | null = null;
         
         if (authHeader && authHeader.startsWith("Bearer ")) {
             const token = authHeader.replace("Bearer ", "").trim();
             // Evita erro 401 caso o token seja uma string vazia, "null" ou "undefined" (comum em guest sessions)
-            if (token && token !== "null" && token !== "undefined" && token !== "") {
+            if (token && token !== "null" && token !== "undefined" && token !== "" && token !== supabaseKey) {
                 try {
                     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
                     if (!authError && user) {
@@ -131,118 +132,20 @@ serve(async (req) => {
                 .eq("id", visa_order_id);
         }
 
-        // ──────────────────────────────────────────────────────────────
-        // NOTIFICA O N8N E PROCESSA A RESPOSTA
-        // ──────────────────────────────────────────────────────────────
-        // O N8N vai receber o evento e retornar { approved: true } ou { approved: false }
-        // - approved: true  → aprova automaticamente
-        // - approved: false → mantém pending_verification para revisão manual do admin
-        // ──────────────────────────────────────────────────────────────
-        const N8N_WEBHOOK_URL = "https://nwh.suaiden.com/webhook/zelle-aplikei";
-        
-        let n8nApproved: boolean | null = null;
-        const startTime = performance.now();
-        console.log(`[n8n] Requesting verification for payment ${payment.id}...`);
-
+        // ── NOTIFICAÇÃO PARA O ADMIN (Sempre que um Zelle é criado) ─────────────────
         try {
-            const callbackUrl = `${supabaseUrl}/functions/v1/validate-zelle-payment`;
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-            
-            const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                signal: controller.signal,
-                body: JSON.stringify({
-                    event: "zelle_payment_created",
-                    payment_id: payment.id,
-                    email: guest_email || null,
-                    amount,
-                    user_id: userId,
-                    service_slug,
-                    image_url: imageUrl,
-                    callback_url: callbackUrl
-                })
-            });
-
-            clearTimeout(timeoutId);
-            const duration = (performance.now() - startTime).toFixed(0);
-
-            if (n8nResponse.ok) {
-                const n8nData = await n8nResponse.json().catch(() => null);
-                console.log(`[n8n] Response received in ${duration}ms:`, n8nData);
-                if (n8nData && typeof n8nData.approved === "boolean") {
-                    n8nApproved = n8nData.approved;
-                }
-            } else {
-                console.warn(`[n8n] Error response (${n8nResponse.status}) in ${duration}ms`);
-            }
-        } catch (n8nError) {
-            const duration = (performance.now() - startTime).toFixed(0);
-            if (n8nError.name === "AbortError") {
-                console.error(`[n8n] Timeout after ${duration}ms. Skipping sync approval.`);
-            } else {
-                console.error(`[n8n] Connection failed after ${duration}ms:`, n8nError.message);
-            }
-        }
-
-        // ── Processa resultado do N8N ─────────────────────────────────
-        if (n8nApproved === true) {
-            // AUTO-APROVAÇÃO: n8n confirmou o pagamento
-            await supabase.from("zelle_payments")
-                .update({ status: "approved", admin_notes: "Aprovado automaticamente via n8n" })
-                .eq("id", payment.id);
-
-            // Ativa a order vinculada
-            if (visa_order_id) {
-                await supabase.from("visa_orders")
-                    .update({ payment_status: "succeeded" })
-                    .eq("id", visa_order_id);
-            }
-
-            // Notifica o cliente
-            if (userId) {
-                await supabase.from("notifications").insert({
-                    type: "admin_action",
-                    target_role: "client",
-                    user_id: userId,
-                    service_id: null,
-                    title: "✅ Pagamento Zelle confirmado!",
-                    message: `Seu pagamento de $${amount} foi verificado e aprovado automaticamente. Seu serviço já está ativo.`,
-                    send_email: true
-                });
-            }
-        } else if (n8nApproved === false) {
-            // N8N REJEITOU: mantém pending_verification e anota para o admin
-            await supabase.from("zelle_payments")
-                .update({ admin_notes: "Verificação automática negada pelo n8n. Aguarda revisão manual." })
-                .eq("id", payment.id);
-        }
-        // Se n8nApproved === null (n8n não respondeu ou falhou), mantém pending_verification
-        // e cria notificação para o admin revisar manualmente
-        
-        // Notifica Admin (sempre — seja aprovação manual ou para monitoramento)
-        try {
-            const adminTitle = n8nApproved === true
-                ? "✅ Pagamento Zelle aprovado automaticamente"
-                : n8nApproved === false
-                    ? "⚠️ Pagamento Zelle negado pelo n8n — revisão manual necessária"
-                    : "💰 Novo pagamento Zelle aguardando verificação";
-
-            const adminMessage = n8nApproved === true
-                ? `Pagamento de $${amount} foi aprovado automaticamente via n8n.`
-                : n8nApproved === false
-                    ? `Pagamento de $${amount} não passou na verificação do n8n. Revise manualmente.`
-                    : `Pagamento de $${amount} submetido. O n8n não respondeu — verifique manualmente.`;
-
             await supabase.from("notifications").insert({
                 type: "client_action",
                 target_role: "admin",
                 user_id: userId || null,
                 service_id: null,
-                title: adminTitle,
-                message: adminMessage,
-                send_email: false
+                title: "💰 Novo pagamento Zelle submetido",
+                message: `Um novo pagamento de $${amount} via Zelle foi submetido e aguarda verificação manual no painel.`,
+                send_email: true,
+                metadata: {
+                    payment_id: payment.id,
+                    amount: amount
+                }
             });
         } catch (notifError) {
             console.error("Failed to insert admin notification:", notifError);
@@ -251,7 +154,7 @@ serve(async (req) => {
         return new Response(JSON.stringify({
             success: true,
             payment_id: payment.id,
-            auto_approved: n8nApproved === true
+            auto_approved: false
         }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 import nodemailer from "npm:nodemailer@6.9.7";
 
 Deno.serve(async (req: Request) => {

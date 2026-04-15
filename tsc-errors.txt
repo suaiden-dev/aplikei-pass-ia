@@ -1,0 +1,25 @@
+src/components/notifications/NotificationBell.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/notifications/NotificationToast.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/notifications/NotificationToast.tsx(2,18): error TS6133: 'useAnimation' is declared but its value is never read.
+src/components/notifications/NotificationToaster.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/contexts/NotificationContext.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/CheckoutPage/index.tsx(403,13): error TS2353: Object literal may only specify known properties, and 'proc_id' does not exist in type 'ParcelowCheckoutParams'.
+src/pages/CheckoutPage/index.tsx(427,13): error TS2353: Object literal may only specify known properties, and 'phone' does not exist in type '{ slug: string; serviceName: string; expectedAmount: number; amount: number; confirmationCode: string; paymentDate: string; proofPath: string; guestEmail: string; guestName: string; userId?: string | null | undefined; dependents?: number | undefined; proc_id?: string | undefined; coupon_code?: string | undefined; }'.
+src/pages/admin/CouponsPage/index.tsx(16,3): error TS6133: 'RiArrowRightLine' is declared but its value is never read.
+src/pages/admin/CouponsPage/index.tsx(435,27): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/pages/admin/ProcessDetailPage/index.tsx(1088,49): error TS2339: Property 'label' does not exist on type 'ServiceMeta'.
+src/pages/admin/ProcessDetailPage/index.tsx(1097,37): error TS2339: Property 'label' does not exist on type 'StepConfig'.
+src/pages/admin/ProcessDetailPage/index.tsx(1098,54): error TS2339: Property 'label' does not exist on type 'StepConfig'.
+src/pages/admin/ProcessDetailPage/index.tsx(1142,50): error TS2339: Property 'label' does not exist on type 'ServiceMeta'.
+src/pages/admin/ProcessDetailPage/index.tsx(1164,51): error TS2339: Property 'label' does not exist on type 'StepConfig'.
+src/pages/admin/ProcessDetailPage/index.tsx(1185,51): error TS2339: Property 'label' does not exist on type 'StepConfig'.
+src/pages/admin/ProcessDetailPage/index.tsx(1202,51): error TS2339: Property 'label' does not exist on type 'StepConfig'.
+src/pages/admin/ZellePaymentsPage/index.tsx(6,10): error TS2305: Module '"../../../services"' has no exported member 'paymentService'.
+src/pages/admin/ZellePaymentsPage/index.tsx(506,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/pages/admin/ZellePaymentsPage/index.tsx(553,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/pages/customer/COSOnboardingPage/MotionWorkflow.tsx(161,11): error TS2353: Object literal may only specify known properties, and 'proc_id' does not exist in type 'ParcelowCheckoutParams'.
+src/pages/customer/COSOnboardingPage/RFEWorkflow.tsx(134,11): error TS2353: Object literal may only specify known properties, and 'phone' does not exist in type '{ slug: string; serviceName: string; expectedAmount: number; amount: number; confirmationCode: string; paymentDate: string; proofPath: string; guestEmail: string; guestName: string; userId?: string | null | undefined; dependents?: number | undefined; proc_id?: string | undefined; coupon_code?: string | undefined; }'.
+src/pages/customer/COSOnboardingPage/RFEWorkflow.tsx(161,11): error TS2353: Object literal may only specify known properties, and 'proc_id' does not exist in type 'ParcelowCheckoutParams'.
+src/services/payment.service.ts(126,27): error TS2339: Property 'proc_id' does not exist on type 'ParcelowCheckoutParams'.

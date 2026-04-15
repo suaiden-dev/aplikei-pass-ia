@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, test, describe, vi } from 'vitest'
 import I539FormStep from './I539FormStep'
+import { LanguageProvider } from '../../../i18n/LanguageContext'
 
 const mockProc = {
   id: 'proc-123',
@@ -17,9 +18,121 @@ const mockUser = {
 
 const mockOnComplete = vi.fn()
 
+vi.mock('../../../i18n/LanguageContext', () => ({
+  LanguageProvider: ({ children }: any) => <>{children}</>,
+  useT: (ns: string) => {
+    // Return a mock object that matches the usage in I539FormStep
+    return {
+      cos: {
+        i539: {
+          labels: {
+            familyName: "Family Name",
+            givenName: "Given Name",
+            middleName: "Middle Name",
+            hasMiddleName: "Has Middle Name",
+            alienNumber: "Alien Registration Number",
+            uscisOnlineAccount: "USCIS Online Account",
+            mailingAddress: "Mailing Address",
+            physicalAddress: "Physical Address",
+            inCareOf: "In Care Of",
+            streetName: "Street Name",
+            unitType: "Unit Type",
+            unitNumber: "Unit Number",
+            city: "City",
+            state: "State",
+            zipCode: "ZIP Code",
+            sameAddress: "Same Address",
+            foreignAddress: "Foreign Address",
+            country: "Country",
+            province: "Province",
+            postalCode: "Postal Code",
+            foreignStreet: "Foreign Street",
+            travelId: "Travel ID",
+            dob: "Date of Birth",
+            citizenship: "Citizenship",
+            birthCountry: "Birth Country",
+            ssn: "SSN",
+            arrivalDate: "Arrival Date",
+            i94Number: "I-94 Number",
+            passportNumber: "Passport Number",
+            passportIssuance: "Passport Issuance",
+            passportExp: "Passport Expiration Date",
+            currentStatus: "Current Status",
+            statusExp: "Status Expiration Date",
+            durationStatus: "Duration of Status",
+            changeStatus: "Change of Status",
+            newStatusRequested: "New Status Requested",
+            effectiveDate: "Effective Date",
+            processingInfo: "Processing Info",
+            priorExtensionQuery: "Prior Extension Query",
+            priorExtensionDate: "Prior Extension Date",
+            immigrantPetitionQuery: "Immigrant Petition Query",
+            petitionDate: "Petition Date",
+            receiptNumber: "Receipt Number",
+            q3: "Question 3",
+            q4: "Question 4",
+            q5: "Question 5",
+            securityInfo: "Security Info",
+
+            contactInfo: "Contact Info",
+            daytimePhone: "Daytime Phone",
+            mobilePhone: "Mobile Phone",
+            email: "Email",
+            signature: "Signature",
+            date: "Date",
+            interpreterInfo: "Interpreter Info",
+            language: "Language",
+            preparerInfo: "Preparer Info",
+            fax: "Fax"
+          },
+          securityQuestions: {
+            q6: "Q6", q7: "Q7", q8: "Q8", q9: "Q9", q10: "Q10",
+            q11: "Q11", q12: "Q12", q13: "Q13", q14: "Q14", q15: "Q15",
+            q16: "Q16", q17: "Q17", q18: "Q18", q19: "Q19", q20: "Q20"
+          },
+          sections: {
+            part1: "Part 1",
+            part2: "Part 2",
+            part3: "Part 3",
+            part4: "Part 4",
+            part5: "Part 5",
+            part6: "Part 6",
+            part7: "Part 7"
+          },
+          tooltips: {},
+          toasts: {
+            success: "Success",
+            error: "Error",
+            draftSaved: "Draft Saved",
+            draftError: "Draft Error",
+            checkFields: "Check fields: {errorList}"
+          }
+        },
+        form: {
+          dependents: {
+            select: "Select..."
+          }
+        }
+      }
+    };
+  },
+  useLocale: () => ({ lang: 'en', setLang: vi.fn(), isLanguageLoading: false })
+}))
+
 describe('I539FormStep', () => {
+  vi.stubGlobal('localStorage', {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+  })
+
   test('should render and have blank Preparer Information by default', () => {
-    render(<I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />)
+    render(
+      <LanguageProvider>
+        <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
+      </LanguageProvider>
+    )
     
     // Check Preparer Information fields
     const preparerFamilyName = screen.getByLabelText(/Family Name/i, { selector: '[name="preparerFamilyName"]' })
@@ -31,9 +144,13 @@ describe('I539FormStep', () => {
 
   test('should apply phone mask correctly', async () => {
     const user = userEvent.setup()
-    render(<I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />)
+    render(
+      <LanguageProvider>
+        <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
+      </LanguageProvider>
+    )
     
-    const daytimePhone = screen.getByLabelText(/Daytime Phone/i)
+    const daytimePhone = screen.getByLabelText(/Daytime Phone/i, { selector: '[name="daytimePhone"]' })
     
     // Use clear to ensure we start from empty
     await user.clear(daytimePhone)
@@ -42,9 +159,13 @@ describe('I539FormStep', () => {
   })
 
   test('should handle date selection correctly', async () => {
-    render(<I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />)
+    render(
+      <LanguageProvider>
+        <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
+      </LanguageProvider>
+    )
     
-    const dobInput = screen.getByLabelText(/Date of Birth/i)
+    const dobInput = screen.getByLabelText(/Date of Birth/i, { selector: '[name="dateOfBirth"]' })
     
     fireEvent.change(dobInput, { target: { value: '1990-05-15' } })
     expect(dobInput).toHaveValue('1990-05-15')
@@ -52,7 +173,11 @@ describe('I539FormStep', () => {
 
   test('should show validation errors for invalid data', async () => {
     const user = userEvent.setup()
-    render(<I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />)
+    render(
+      <LanguageProvider>
+        <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
+      </LanguageProvider>
+    )
     
     const submitButtons = screen.getAllByRole('button', { name: /Enviar Formulário/i })
     const submitButton = submitButtons[submitButtons.length - 1] // Use the last one (usually the sticky bar)

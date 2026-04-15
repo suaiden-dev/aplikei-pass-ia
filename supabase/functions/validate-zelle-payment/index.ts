@@ -1,9 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-customer-auth",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 /**
@@ -33,25 +34,23 @@ serve(async (req) => {
 
         const supabase = createClient(supabaseUrl, supabaseKey);
 
+        const authHeader = req.headers.get("X-Customer-Auth") || req.headers.get("Authorization");
+        // Embora o admin use a service_role para operações no DB, 
+        // validar o token aqui garante que o gateway não bloqueie a requisição.
+        
         const body = await req.json();
-
-        // ── Normaliza entrada (n8n usa `approved: bool`, admin usa `status: string`) ──
         const payment_id: string = body.payment_id;
         const admin_notes: string = body.admin_notes || body.reason || "";
 
         let isApproved: boolean;
 
-        if (typeof body.approved === "boolean") {
-            // Chamado pelo N8N
-            isApproved = body.approved;
-        } else if (body.status === "approved") {
-            // Chamado pelo admin panel
+        if (body.status === "approved") {
             isApproved = true;
         } else if (body.status === "rejected") {
             isApproved = false;
         } else {
             return new Response(
-                JSON.stringify({ error: "Invalid payload: provide 'approved' (boolean) or 'status' (approved|rejected)" }),
+                JSON.stringify({ error: "Invalid status: provide 'status' as 'approved' or 'rejected'" }),
                 { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
