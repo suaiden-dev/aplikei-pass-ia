@@ -14,9 +14,10 @@ import { AppNotification } from "../../services/notification.service";
 interface NotificationBellProps {
   role: "admin" | "client";
   theme?: "light" | "dark";
+  align?: "left" | "right";
 }
 
-export function NotificationBell({ role, theme = "dark" }: NotificationBellProps) {
+export function NotificationBell({ role, theme = "dark", align = "right" }: NotificationBellProps) {
   const { 
     notifications, 
     unreadCount, 
@@ -76,7 +77,10 @@ export function NotificationBell({ role, theme = "dark" }: NotificationBellProps
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.96 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute top-full right-0 mt-3 w-[340px] max-w-[calc(100vw-32px)] bg-white rounded-[24px] shadow-2xl border border-slate-100 overflow-hidden z-[100] flex flex-col"
+            className={cn(
+              "fixed sm:absolute top-16 sm:top-full mt-2 sm:mt-3 left-4 right-4 sm:left-auto sm:right-auto sm:w-[340px] bg-white rounded-[24px] shadow-2xl border border-slate-100 overflow-hidden z-[100] flex flex-col",
+              align === "right" ? "sm:right-0" : "sm:left-0"
+            )}
           >
             {/* Header */}
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">

@@ -110,6 +110,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []); // Stable listener
 
+  // 3. Re-validate session when tab becomes visible after being idle
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) {
+            // This ensures tokens are fresh when user returns
+            // fetchAccount already has a lock to prevent double fetches
+            fetchAccount(session.user.id, session.user);
+          }
+        });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);

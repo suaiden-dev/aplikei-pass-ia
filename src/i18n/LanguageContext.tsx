@@ -117,6 +117,11 @@ const localeLoaders = import.meta.glob("./locales/*/index.ts");
       setLocale(loaded);
     } catch (error) {
       console.error(`[i18n] Failed to load locale "${targetLang}"`, error);
+      // Fallback: If it fails and we have nothing, at least stop the spinner
+      // or set an empty locale so the app remains interactive.
+      if (!localeCache.has(targetLang)) {
+        setLocale({ _lang: targetLang } as any);
+      }
     } finally {
       inFlightRef.current.delete(targetLang);
       setIsLanguageLoading(false);

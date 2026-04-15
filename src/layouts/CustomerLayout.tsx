@@ -54,7 +54,7 @@ export function CustomerLayout() {
               Aplikei
             </span>
             <div className="ml-2">
-              <NotificationBell role="client" theme="light" />
+              <NotificationBell role="client" theme="light" align="left" />
             </div>
           </div>
           <button 
@@ -88,7 +88,7 @@ export function CustomerLayout() {
                   Aplikei
                 </span>
                 <div className="ml-2">
-                  <NotificationBell role="client" theme="dark" />
+                  <NotificationBell role="client" theme="dark" align="left" />
                 </div>
               </div>
               

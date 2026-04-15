@@ -164,7 +164,7 @@ export function AdminLayout() {
             </div>
 
             <div className="flex items-center gap-4">
-              <NotificationBell role="admin" theme="light" />
+              <NotificationBell role="admin" theme="light" align="right" />
             </div>
           </header>
 

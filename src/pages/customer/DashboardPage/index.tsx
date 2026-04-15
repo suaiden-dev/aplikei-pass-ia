@@ -516,7 +516,7 @@ export default function CustomerDashboardPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 xl:gap-10">
             {trulyActiveProcesses.map((proc, i) => (
               <ActiveProcessCard key={proc.id} proc={proc} index={i} t={t} />
             ))}
@@ -540,7 +540,7 @@ export default function CustomerDashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 xl:gap-10">
           {isLoading ? (
             // Skeleton loaders for services
             Array.from({ length: 3 }).map((_, i) => (
