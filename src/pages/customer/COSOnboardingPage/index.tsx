@@ -336,12 +336,12 @@ export default function COSOnboardingPage() {
         if (!isMotionEnd && (isCorrection || (nextStep?.type === "admin_action") || isFinal)) {
           await processService.requestStepReview(proc.id);
         }
-        toast.success(t.cos.toasts.stepSent);
+        toast.success(t.cos?.toasts?.stepSent);
         navigate(`/dashboard/processes/${slug}`);
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Erro desconhecido";
-      toast.error(t.cos.toasts.errorSaving + ": " + message);
+      toast.error(t.cos?.toasts?.errorSaving + ": " + message);
     } finally {
       setIsSubmitting(false);
     }
@@ -352,11 +352,11 @@ export default function COSOnboardingPage() {
       {/* Top bar */}
       <div className="bg-white border-b border-slate-100 px-8 py-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-black text-slate-900 tracking-tight">{t.cos.title}</h1>
+          <h1 className="text-xl font-black text-slate-900 tracking-tight">{t.cos?.title}</h1>
           <p className="text-xs text-slate-400 font-medium mt-0.5">
-            {t.cos.subtitle}{" "}
+            {t.cos?.subtitle}{" "}
             <span className="text-primary font-black uppercase tracking-widest ml-1">
-              {t.cos.badge}
+              {t.cos?.badge}
             </span>
           </p>
         </div>

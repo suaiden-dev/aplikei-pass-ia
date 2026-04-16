@@ -45,7 +45,19 @@ const Refund        = lazy(() => import("./pages/Legal/Refund"));
 const Disclaimers   = lazy(() => import("./pages/Legal/Disclaimers"));
 const ContractTerms = lazy(() => import("./pages/Legal/ContractTerms"));
 
+import { useLocale } from "./i18n";
+
 export default function App() {
+  const { isLanguageLoading } = useLocale();
+
+  if (isLanguageLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <>
       <ScrollToTop />

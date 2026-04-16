@@ -18,7 +18,7 @@ export const HeroSection = ({ heroImage, avatars }: HeroSectionProps) => {
         <div className="z-10 flex flex-col items-center text-center lg:items-start lg:text-left">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/20 rounded-full text-white font-bold text-sm mb-8">
             <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
-            {t.hero.badge}
+            {t.hero?.badge}
           </div>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -26,17 +26,17 @@ export const HeroSection = ({ heroImage, avatars }: HeroSectionProps) => {
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <h1 className="text-5xl lg:text-7xl font-extrabold leading-[1.1] mb-8 text-white">
-              {t.hero.title} <span className="text-primary">{t.hero.titleHighlight}</span>
+              {t.hero?.title} <span className="text-primary">{t.hero?.titleHighlight}</span>
             </h1>
             <p className="text-xl text-slate-300 font-medium max-w-xl mb-12 leading-relaxed">
-              {t.hero.subtitle}
+              {t.hero?.subtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start w-full sm:w-auto">
               <Link to="/cadastro" className="px-10 py-5 bg-primary text-white font-bold text-lg rounded-xl shadow-2xl shadow-primary/30 hover:scale-105 transition-transform flex items-center justify-center gap-2 text-center w-full sm:w-auto">
-                {t.hero.getStarted} <FiArrowRight size={20} />
+                {t.hero?.getStarted} <FiArrowRight size={20} />
               </Link>
               <Link to="/servicos" className="px-10 py-5 bg-white/10 border border-white/20 text-white font-bold text-lg rounded-xl hover:bg-white/20 transition-colors flex items-center justify-center text-center w-full sm:w-auto">
-                {t.hero.ctaSecondary}
+                {t.hero?.ctaSecondary}
               </Link>
             </div>
           </motion.div>
@@ -47,7 +47,7 @@ export const HeroSection = ({ heroImage, avatars }: HeroSectionProps) => {
               ))}
             </div>
             <p className="text-sm font-bold text-slate-400 tracking-wide">
-              {t.hero.approvedCount}
+              {t.hero?.approvedCount}
             </p>
           </div>
         </div>
@@ -58,7 +58,7 @@ export const HeroSection = ({ heroImage, avatars }: HeroSectionProps) => {
           className="relative"
         >
           <div className="absolute -inset-4 bg-primary/10 rounded-[3.5rem] rotate-2"></div>
-          <img alt={t.hero.imageAlt} className="relative z-10 w-full aspect-[4/5] object-cover rounded-[3rem] shadow-3xl" src={heroImage} />
+          <img alt={t.hero?.imageAlt} className="relative z-10 w-full aspect-[4/5] object-cover rounded-[3rem] shadow-3xl" src={heroImage} />
           <motion.div
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
