@@ -106,7 +106,7 @@ export default function F1OnboardingPage() {
         // Notify Admin
         await notificationService.notifyAdmin({
           title: "🎓 Início de Fluxo F1",
-          body: `O cliente ${user?.full_name || user?.email} concluiu o formulário inicial de Estudante (${slug}).`,
+          body: `O cliente ${user?.fullName || user?.email} concluiu o formulário inicial de Estudante (${slug}).`,
           serviceId: procId,
           userId: user?.id
         });

@@ -18,7 +18,7 @@ const mockUser = {
 
 const mockOnComplete = vi.fn()
 
-vi.mock('../../../i18n/LanguageContext', () => ({
+vi.mock('../../../i18n', () => ({
   LanguageProvider: ({ children }: any) => <>{children}</>,
   useT: (ns: string) => {
     // Return a mock object that matches the usage in I539FormStep
@@ -26,6 +26,8 @@ vi.mock('../../../i18n/LanguageContext', () => ({
       cos: {
         i539: {
           labels: {
+            fullLegalName: "Full Legal Name", // Added missing keys
+            identifiers: "Identifiers",
             familyName: "Family Name",
             givenName: "Given Name",
             middleName: "Middle Name",
@@ -73,7 +75,6 @@ vi.mock('../../../i18n/LanguageContext', () => ({
             q4: "Question 4",
             q5: "Question 5",
             securityInfo: "Security Info",
-
             contactInfo: "Contact Info",
             daytimePhone: "Daytime Phone",
             mobilePhone: "Mobile Phone",
@@ -83,6 +84,7 @@ vi.mock('../../../i18n/LanguageContext', () => ({
             interpreterInfo: "Interpreter Info",
             language: "Language",
             preparerInfo: "Preparer Info",
+            business: "Business",
             fax: "Fax"
           },
           securityQuestions: {

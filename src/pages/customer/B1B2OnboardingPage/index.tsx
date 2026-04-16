@@ -109,7 +109,7 @@ export default function B1B2OnboardingPage() {
       // Notify Admin
       await notificationService.notifyAdmin({
         title: "📝 DS-160 Preenchida",
-        body: `O cliente ${user?.full_name || user?.email} finalizou o preenchimento da DS-160 para ${slug}.`,
+        body: `O cliente ${user?.fullName || user?.email} finalizou o preenchimento da DS-160 para ${slug}.`,
         serviceId: procId,
         userId: user?.id
       });

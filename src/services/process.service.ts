@@ -200,6 +200,15 @@ export const processService = {
       newStepData.motion_final_result = result;
     }
     
+    const { error } = await supabase
+      .from("user_services")
+      .update({ 
+        step_data: newStepData,
+        current_step: nextStep,
+        status: isFinal ? "completed" : "active"
+      })
+      .eq("id", serviceId);
+
     if (error) throw new Error(error.message);
 
     // Notify Client of Approval
