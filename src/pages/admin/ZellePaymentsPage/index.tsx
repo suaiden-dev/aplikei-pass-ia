@@ -130,6 +130,7 @@ function RejectModal({
   onClose: () => void;
 }) {
   const t = useT("admin");
+  const tShared = useT("shared");
   const [reason, setReason] = useState("");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
@@ -156,11 +157,11 @@ function RejectModal({
         <div className="flex gap-3 mt-4">
           <button onClick={onClose}
             className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-            {t.shared.rejection.cancel}
+            {tShared?.rejection?.cancel || "Cancelar"}
           </button>
           <button onClick={() => onConfirm(reason || t.payments.messages.rejectedByAdmin)}
             className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors">
-            {t.shared.confirm.replace('Confirmar', t.shared.rejection.confirm)}
+            {(tShared?.confirm || "Confirmar").replace('Confirmar', tShared?.rejection?.confirm || "Rejeitar")}
           </button>
         </div>
       </motion.div>
@@ -186,6 +187,7 @@ function PaymentRow({
   busy: boolean;
 }) {
   const t = useT("admin");
+  const tShared = useT("shared");
 
   const methodLabel = useCallback((m: string): string => {
     const map: Record<string, string> = {
@@ -263,7 +265,7 @@ function PaymentRow({
             <button
               onClick={onApprove}
               disabled={busy}
-              title={t.shared.confirm.replace('Confirmar', 'Aprovar')}
+              title={(tShared?.confirm || "Confirmar").replace('Confirmar', 'Aprovar')}
               className="w-9 h-9 rounded-full border-2 border-emerald-500 text-emerald-500 flex items-center justify-center hover:bg-emerald-50 disabled:opacity-40 transition-colors"
             >
               <RiCheckboxCircleLine className="text-xl" />
@@ -271,7 +273,7 @@ function PaymentRow({
             <button
               onClick={onReject}
               disabled={busy}
-              title={t.shared.rejection.confirm}
+              title={tShared?.rejection?.confirm || "Rejeitar"}
               className="w-9 h-9 rounded-full border-2 border-red-400 text-red-400 flex items-center justify-center hover:bg-red-50 disabled:opacity-40 transition-colors"
             >
               <RiCloseCircleLine className="text-xl" />
@@ -295,6 +297,7 @@ function PaymentRow({
 
 export default function ZellePaymentsPage() {
   const t = useT("admin");
+  const tShared = useT("shared");
   const tVisas = useT("visas");
 
   const [tab, setTab] = useState<Tab>("pending");
@@ -529,7 +532,7 @@ export default function ZellePaymentsPage() {
         );
       }
 
-      toast.success(t.payments.messages.approveSuccess.replace('{{name}}', p.clientName || t.shared.client));
+      toast.success(t.payments.messages.approveSuccess.replace('{{name}}', p.clientName || tShared?.client || "Cliente"));
       await load();
     } catch {
       toast.error(t.payments.messages.approveError);
@@ -635,7 +638,7 @@ export default function ZellePaymentsPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="py-16 text-center text-sm text-slate-400">
-              {t.shared.table.empty.replace('Nenhum item encontrado', t.payments.title.toLowerCase())}
+              {(tShared?.table?.empty || "Nenhum item encontrado").replace('Nenhum item encontrado', t.payments.title.toLowerCase())}
             </div>
           ) : (
             <div className="overflow-x-auto">

@@ -107,6 +107,7 @@ export default function SignUp() {
           <div>
             <Label className="mb-2 block">{t.signup.phone}</Label>
             <PhoneInput
+              name="phoneNumber"
               value={formik.values.phoneNumber}
               onChange={(val) => formik.setFieldValue("phoneNumber", val)}
               onBlur={() => formik.setFieldTouched("phoneNumber", true)}

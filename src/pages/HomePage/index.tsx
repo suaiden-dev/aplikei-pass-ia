@@ -23,8 +23,10 @@ export default function HomePage() {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
+    // Redirect logic: if authenticated and loading is finished, go to target page
     if (!isLoading && isAuthenticated && user) {
-      navigate(user.role === "admin" ? "/admin" : "/dashboard", { replace: true });
+      const target = user.role === "admin" ? "/admin" : "/dashboard";
+      navigate(target, { replace: true });
     }
   }, [isAuthenticated, isLoading, user, navigate]);
 

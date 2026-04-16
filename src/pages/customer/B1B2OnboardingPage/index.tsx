@@ -8,6 +8,7 @@ import {
   RiLoader4Line,
   RiErrorWarningLine,
   RiAlertLine,
+  RiCheckLine,
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
 import { processService } from "../../../services/process.service";
@@ -41,6 +42,8 @@ export default function B1B2OnboardingPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [procId, setProcId] = useState<string | null>(null);
+  const [procStatus, setProcStatus] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<number>(0);
   const [adminFeedback, setAdminFeedback] = useState<string | null>(null);
   const [savedValues, setSavedValues] = useState<Partial<DS160FormValues>>(INITIAL_VALUES);
 
@@ -67,6 +70,8 @@ export default function B1B2OnboardingPage() {
           return;
         }
         setProcId(data.id);
+        setProcStatus(data.status);
+        setCurrentStep(data.current_step ?? 0);
 
         if (data.step_data) {
           if (data.step_data.admin_feedback) {
@@ -303,38 +308,56 @@ export default function B1B2OnboardingPage() {
                   </motion.div>
                 )}
 
-                {/* ── Form Card ── */}
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
                   <div className="p-6 sm:p-10 space-y-0">
                     <DS160SingleFormStep />
                   </div>
 
-                  {/* ── Footer Actions ── */}
-                  <div className="px-6 sm:px-10 py-6 bg-slate-50/70 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <button
-                      type="button"
-                      onClick={() => handleSaveDraft(values)}
-                      disabled={isSubmitting}
-                      className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50"
-                    >
-                      {t.onboardingPage.saveDraft}
-                    </button>
+                  {procStatus === "awaiting_review" || currentStep > stepIdx ? (
+                    <div className="px-6 sm:px-10 py-10 bg-slate-50 border-t border-slate-100 flex flex-col items-center justify-center text-center">
+                        {currentStep > stepIdx ? (
+                          <div className="space-y-3">
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
+                              <RiCheckLine className="text-2xl" />
+                            </div>
+                            <p className="text-sm font-black text-emerald-900 uppercase tracking-widest">Etapa Aprovada</p>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Todas as informações desta fase já foram validadas.</p>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3 text-slate-500 font-bold uppercase tracking-widest text-xs">
+                            <RiLoader4Line className="text-xl animate-spin text-primary" />
+                            {t.onboardingPage.awaitingReview || "Aguardando Aprovação"}
+                          </div>
+                        )}
+                    </div>
+                  ) : (
+                    /* ── Footer Actions ── */
+                    <div className="px-6 sm:px-10 py-6 bg-slate-50/70 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <button
+                        type="button"
+                        onClick={() => handleSaveDraft(values)}
+                        disabled={isSubmitting}
+                        className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50"
+                      >
+                        {t.onboardingPage.saveDraft}
+                      </button>
 
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-                    >
-                      {isSubmitting ? (
-                        <RiLoader4Line className="animate-spin text-lg" />
-                      ) : (
-                        <>
-                          {t.onboardingPage.finalizeAndSubmit}
-                          <RiArrowRightLine className="text-lg" />
-                        </>
-                      )}
-                    </button>
-                  </div>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                      >
+                        {isSubmitting ? (
+                          <RiLoader4Line className="animate-spin text-lg" />
+                        ) : (
+                          <>
+                            {t.onboardingPage.finalizeAndSubmit}
+                            <RiArrowRightLine className="text-lg" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
               </Form>

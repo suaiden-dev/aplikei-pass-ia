@@ -108,12 +108,15 @@ function ActiveProcessCard({ proc, index, t }: { proc: UserService; index: numbe
 
   const isApproved = uscisResult === 'approved' || rfeResult === 'approved' || motionResult === 'approved' || interviewResult === 'approved';
   // Denied só é "Final" se o usuário não tiver seguido para RFE ou Motion (ou se o Motion negou)
-  const isDenied = motionResult === 'denied' || 
-                   interviewResult === 'denied' ||
+  const isDenied = proc.status === 'rejected' || 
+                   motionResult === 'denied' || 
+                   motionResult === 'rejected' ||
+                   interviewResult === 'denied' || 
+                   interviewResult === 'rejected' ||
                    (rfeResult === 'denied' && currentStep >= 18 && !uscisResult) || 
                    (uscisResult === 'denied' && currentStep >= 12 && !rfeResult && !motionResult);
 
-  const isFinalized = proc.status === 'completed' || isApproved || isDenied;
+  const isFinalized = proc.status === 'completed' || proc.status === 'rejected' || isApproved || isDenied;
   const progress = isFinalized ? 100 : calculatePhaseProgress(proc, totalSteps);
   
   // Label customizado baseado no resultado USCIS

@@ -20,6 +20,7 @@ export interface CustomerWithStats extends UserAccount {
 
 export default function CustomersPage() {
   const t = useT("admin");
+  const tShared = useT("shared");
   const { lang: language } = useLocale();
   const [customers, setCustomers] = useState<CustomerWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -128,7 +129,7 @@ export default function CustomersPage() {
           className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm"
         >
           <RiLoader4Line className={isLoading ? "animate-spin" : ""} />
-          {t.shared.table.refresh}
+          {tShared?.table?.refresh || "Atualizar"}
         </button>
       </div>
 

@@ -32,9 +32,10 @@ interface PhoneInputProps {
   onChange: (value: string) => void;
   onBlur?: () => void;
   error?: string;
+  name?: string;
 }
 
-export default function PhoneInput({ value, onChange, onBlur, error }: PhoneInputProps) {
+export default function PhoneInput({ value, onChange, onBlur, error, name }: PhoneInputProps) {
   const [country, setCountry] = useState<Country>(countries[0]);
   const [open, setOpen] = useState(false);
 
@@ -71,6 +72,7 @@ export default function PhoneInput({ value, onChange, onBlur, error }: PhoneInpu
         {/* Input */}
         <Input
           type="tel"
+          name={name}
           placeholder={country.mask.replace(/X/g, "0")}
           value={displayValue}
           onChange={handlePhone}

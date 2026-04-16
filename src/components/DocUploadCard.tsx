@@ -30,7 +30,7 @@ export function DocUploadCard({ docKey, title, subtitle, doc, onChange, isReadOn
   const showAsRejected = isRejected && !isCorrecting;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" data-testid={`upload-${docKey}`}>
       <button
         type="button"
         onClick={() => !isReadOnly && inputRef.current?.click()}

@@ -36,11 +36,12 @@ export default function CheckoutSuccessPage() {
   const [activation, setActivation] = useState<ActivationState>("loading");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const t = useT("checkout").product.success;
+  const t_base = useT("checkout");
+  const t = t_base?.product?.success;
+
+  if (!t) return null; // Wait for translations to load to avoid crashes
 
   useEffect(() => {
-    // Use the Supabase session directly — no dependency on user_accounts profile loading.
-    // This runs once at mount since `slug` is stable (captured via useState initializer).
     if (!slug) {
       setActivation("done");
       return;
@@ -56,122 +57,28 @@ export default function CheckoutSuccessPage() {
         return;
       }
 
-      const checkoutDependents = localStorage.getItem("checkout_dependents");
-      const paidDependents = checkoutDependents ? parseInt(checkoutDependents, 10) : 0;
-      const checkoutParentId = localStorage.getItem("checkout_parent_id");
-      const pendingAdvanceRaw = localStorage.getItem('pending_payment_advance');
-      const isAdvancement = !!pendingAdvanceRaw;
-      const isExtraDependent = slug.startsWith("dependente-adicional-");
+      try {
+        // Here we poll the database for up to 20 seconds waiting for the Payment Webhook to confirm the purchase
+        const { paymentService } = await import("../../services/payment.service");
+        const isPaid = await paymentService.checkOrderPaymentStatus(slug);
 
-      // Only create/upsert a process if this is a NEW purchase (not an advancement or upgrade)
-      if (!isAdvancement && !isExtraDependent) {
-        try {
-          await processService.activateService(authUserId, slug, paidDependents);
-        } catch (error: any) {
-           console.error("[CheckoutSuccess] activation failed:", error.code, error.message);
-           setErrorMsg(`${error.message} (code: ${error.code})`);
-           setActivation("error");
-           return;
-        }
-      }
-
-      // Handle extra dependent slot upgrade
-      if (isExtraDependent && checkoutParentId) {
-        try {
-          const { data: proc } = await supabase
-            .from("user_services")
-            .select("step_data")
-            .eq("id", checkoutParentId)
-            .single();
-
-          if (proc) {
-            const oldData = (proc.step_data || {}) as any;
-            const currentSlots = parseInt(String(oldData.paid_dependents || 0), 10);
-            await supabase
-              .from("user_services")
-              .update({
-                step_data: {
-                  ...oldData,
-                  paid_dependents: currentSlots + paidDependents
-                }
-              })
-              .eq("id", checkoutParentId);
-            
-            setActivation("done");
-          }
-        } catch (e) {
-          console.error("[CheckoutSuccess] extra dependent upgrade error:", e);
+        if (isPaid) {
+          // If the webhook confirmed the payment, the backend already created the user_services row.
+          // Clean up local storage
+          localStorage.removeItem("checkout_slug");
+          localStorage.removeItem("checkout_dependents");
+          localStorage.removeItem("checkout_parent_id");
+          localStorage.removeItem('pending_payment_advance');
+          setActivation("done");
+        } else {
+          setErrorMsg("Aguardando a confirmação do pagamento pelo provedor. Verifique seu e-mail ou painel em alguns minutos.");
           setActivation("error");
         }
+      } catch (error: any) {
+        console.error("[CheckoutSuccess] validation failed:", error);
+        setErrorMsg("Erro ao validar o pagamento com o servidor.");
+        setActivation("error");
       }
-
-      // Handle post-payment advancement for existing processes (Motion, Proposal, etc)
-      if (pendingAdvanceRaw) {
-        try {
-          const { procId, fromStep } = JSON.parse(pendingAdvanceRaw);
-          
-          // Fetch current process to verify
-          const { data: proc } = await supabase
-            .from("user_services")
-            .select("id, current_step, status")
-            .eq("id", procId)
-            .single();
-
-          if (proc && proc.current_step === fromStep) {
-            await supabase
-              .from("user_services")
-              .update({ 
-                current_step: fromStep + 1,
-                status: 'active' 
-              })
-              .eq("id", procId);
-          }
-          localStorage.removeItem('pending_payment_advance');
-        } catch (e) {
-          console.error("[CheckoutSuccess] advancement error:", e);
-        }
-      }
-
-      // Fallback: auto-repair registration in visa_orders if missing or pending
-      try {
-        const userEmail = session?.user?.email;
-        if (userEmail) {
-          // Check if record exists (use limit 1 to avoid error when multiple rows exist)
-          const { data: existingRows } = await supabase
-            .from("visa_orders")
-            .select("id")
-            .eq("client_email", userEmail)
-            .eq("product_slug", slug)
-            .limit(1);
-          const existing = existingRows?.[0] ?? null;
-
-          if (!existing) {
-            // Create missing record as complete
-            await supabase.from("visa_orders").insert({
-              user_id: authUserId,
-              client_name: session.user.user_metadata?.full_name || "Cliente",
-              client_email: userEmail,
-              product_slug: slug,
-              total_price_usd: 0, // Fallback as we don't have price info here easily
-              payment_method: "stripe_card",
-              payment_status: "complete",
-            });
-          } else {
-            // Update existing pending record
-            await supabase
-              .from("visa_orders")
-              .update({ payment_status: "complete" })
-              .match({ client_email: userEmail, product_slug: slug, payment_status: "pending" });
-          }
-        }
-      } catch (e) {
-        console.error("[CheckoutSuccess] repair error:", e);
-      }
-
-      localStorage.removeItem("checkout_slug");
-      localStorage.removeItem("checkout_dependents");
-      localStorage.removeItem("checkout_parent_id");
-      setActivation("done");
     })();
   }, [slug]);
 

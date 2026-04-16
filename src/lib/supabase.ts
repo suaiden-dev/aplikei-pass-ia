@@ -8,3 +8,8 @@ if (!supabaseUrl || !supabasePublishableKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabasePublishableKey);
+
+// Expose supabase to window for E2E testing
+if (typeof window !== 'undefined' && (import.meta.env.DEV || import.meta.env.MODE === 'test')) {
+  (window as any).supabase = supabase;
+}

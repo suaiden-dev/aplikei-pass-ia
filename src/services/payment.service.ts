@@ -383,4 +383,33 @@ export const paymentService = {
       throw new Error(errorText || "Erro ao rejeitar pagamento Zelle");
     }
   },
+
+  /** Check the payment status of an order via Polling (Used in Checkout Success Page) */
+  async checkOrderPaymentStatus(slug: string, timeoutMs: number = 20000): Promise<boolean> {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userEmail = session?.user?.email;
+    if (!userEmail) return false;
+
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeoutMs) {
+      const { data } = await supabase
+        .from("visa_orders")
+        .select("payment_status")
+        .eq("client_email", userEmail)
+        .eq("product_slug", slug)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data && data.payment_status === "complete") {
+        return true;
+      }
+
+      // Wait 3 seconds before next poll
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+    
+    return false; // Timeout
+  },
 };

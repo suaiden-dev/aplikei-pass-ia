@@ -687,6 +687,7 @@ export default function CheckoutPage() {
                     <Label htmlFor="phone">{t.userData.phone}</Label>
                     <div className="mt-1.5">
                       <PhoneInput
+                        name="phone"
                         value={formik.values.phone}
                         onChange={handlePhoneChange}
                         onBlur={() => formik.setFieldTouched("phone", true)}

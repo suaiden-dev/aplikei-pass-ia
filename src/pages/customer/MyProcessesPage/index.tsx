@@ -106,11 +106,15 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
   const interviewResult = stepData.interview_outcome as string;
 
   const isApproved = uscisResult === 'approved' || rfeResult === 'approved' || motionResult === 'approved' || interviewResult === 'approved';
-  const isDenied = motionResult === 'denied' || interviewResult === 'denied' || 
+  const isDenied = proc.status === 'rejected' ||
+                   motionResult === 'denied' || 
+                   motionResult === 'rejected' ||
+                   interviewResult === 'denied' || 
+                   interviewResult === 'rejected' ||
                    (rfeResult === 'denied' && currentStep >= 18 && !uscisResult) || 
                    (uscisResult === 'denied' && currentStep >= 12 && !rfeResult && !motionResult);
 
-  const isFinalized = proc.status === 'completed' || isApproved || isDenied;
+  const isFinalized = proc.status === 'completed' || proc.status === 'rejected' || isApproved || isDenied;
   const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, totalSteps);
   
   const statusKey = isFinalized ? 'completed' : proc.status;

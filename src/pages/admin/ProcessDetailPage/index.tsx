@@ -22,7 +22,9 @@ import {
   RiCalendarLine,
   RiMailCheckLine,
   RiBarcodeLine,
-  RiCalendarEventLine
+  RiCalendarEventLine,
+  RiUser3Line,
+  RiTimeLine
 } from "react-icons/ri";
 import { getServiceBySlug } from "../../../data/services";
 import { supabase } from "../../../lib/supabase";
@@ -40,12 +42,133 @@ interface ProcessWithUser extends UserService {
   };
 }
 
+interface ProcessLog {
+  id: string;
+  user_service_id: string;
+  actor_id?: string;
+  actor_name?: string;
+  actor_role?: string;
+  action_type?: string;
+  previous_step?: number;
+  new_step?: number;
+  previous_status?: string;
+  new_status?: string;
+  created_at: string;
+}
+
 interface RFEHistoryItem {
   proposal_text: string;
   proposal_amount: number;
   result: "approved" | "rfe" | "denied";
   rfe_letter?: string;
   sent_at: string;
+}
+
+// ─── Process Log Panel ────────────────────────────────────────────────────────
+function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientName: string }) {
+  const [logs, setLogs] = React.useState<ProcessLog[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function fetchLogs() {
+      setLoading(true);
+      const { data } = await supabase
+        .from("process_logs")
+        .select("*")
+        .eq("user_service_id", serviceId)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      setLogs((data || []) as ProcessLog[]);
+      setLoading(false);
+    }
+    fetchLogs();
+  }, [serviceId]);
+
+  const formatDate = (dt: string) =>
+    new Date(dt).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+  const getStatusLabel = (s?: string) => {
+    const map: Record<string, string> = {
+      active: "Ativo",
+      awaiting_review: "Aguardando Revisão",
+      completed: "Concluído",
+      rejected: "Rejeitado",
+    };
+    return s ? (map[s] || s) : "—";
+  };
+
+  const getActorLabel = (log: ProcessLog) => {
+    if (log.actor_name) return log.actor_name;
+    if (log.actor_role === "admin") return "Admin";
+    return clientName || "Cliente";
+  };
+
+  const getActorColor = (log: ProcessLog) => {
+    if (log.actor_role === "admin") return "bg-violet-100 text-violet-700 border border-violet-200";
+    return "bg-sky-100 text-sky-700 border border-sky-200";
+  };
+
+  const getActionDescription = (log: ProcessLog) => {
+    const stepChanged = log.previous_step !== log.new_step;
+    const statusChanged = log.previous_status !== log.new_status;
+
+    if (log.actor_role === "admin") {
+      if (stepChanged && (log.new_step ?? 0) > (log.previous_step ?? 0)) return "✅ Etapa Aprovada";
+      if (statusChanged && log.new_status === "active" && log.previous_status === "awaiting_review") return "🔄 Retornou para Cliente";
+      if (statusChanged && log.new_status === "awaiting_review") return "⏳ Marcou como Em Revisão";
+      if (statusChanged && log.new_status === "completed") return "🎉 Processo Concluído";
+    } else {
+      if (stepChanged) return "📤 Enviou Formulário / Avançou Etapa";
+      if (statusChanged && log.new_status === "awaiting_review") return "📨 Enviou para Revisão";
+    }
+    return "🔧 Alteração Interna";
+  };
+
+  return (
+    <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-6">
+      <div className="flex items-center gap-3 mb-5">
+        <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center">
+          <RiTimeLine className="text-white text-sm" />
+        </div>
+        <h3 className="font-black text-slate-800 text-sm uppercase tracking-tight">Log de Alterações</h3>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <RiLoader4Line className="animate-spin text-2xl text-slate-300" />
+        </div>
+      ) : logs.length === 0 ? (
+        <p className="text-xs text-slate-400 text-center py-6 font-medium">Nenhuma alteração registrada ainda.</p>
+      ) : (
+        <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+          {logs.map((log) => (
+            <div key={log.id} className="flex gap-3 items-start">
+              <div className="mt-1 w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                <RiUser3Line className="text-slate-400 text-xs" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${getActorColor(log)}`}>
+                    {getActorLabel(log)}
+                  </span>
+                  <span className="text-[9px] text-slate-400 font-bold">{formatDate(log.created_at)}</span>
+                </div>
+                <p className="text-[11px] text-slate-700 font-bold">{getActionDescription(log)}</p>
+                <div className="text-[10px] text-slate-400 font-medium space-y-0.5 mt-0.5">
+                  {log.previous_step !== log.new_step && (
+                    <p>Etapa <span className="text-slate-600 font-black">{(log.previous_step ?? 0) + 1}</span> → <span className="text-primary font-black">{(log.new_step ?? 0) + 1}</span></p>
+                  )}
+                  {log.previous_status !== log.new_status && (
+                    <p>Status: <span className="text-slate-500 font-black">{getStatusLabel(log.previous_status)}</span> → <span className="text-slate-700 font-black">{getStatusLabel(log.new_status)}</span></p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function CollapsibleStep({
@@ -969,7 +1092,7 @@ function B1B2CredentialsPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
     <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-8 mb-8 text-left">
       <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
         <RiShieldCheckLine className="text-lg" />
-        {t.processDetail.credentials.panelTitle}
+        Credenciais CEAC / Application ID
       </h3>
       <div className="space-y-4">
         <div>
@@ -977,16 +1100,16 @@ function B1B2CredentialsPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
           <input type="text" value={appId} onChange={e => setAppId(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-black outline-none focus:ring-4 focus:ring-primary/5 transition-all uppercase" placeholder="Ex: AA00XXXXXX" />
         </div>
         <div>
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">{t.processDetail.credentials.securityAnswerLabel}</label>
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Nome da Mãe (Resposta de Segurança)</label>
           <input type="text" value={motherName} onChange={e => setMotherName(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-black outline-none focus:ring-4 focus:ring-primary/5 transition-all uppercase" placeholder="Ex: SILVA" />
         </div>
         <div>
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">{t.processDetail.credentials.birthYearLabel}</label>
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Ano de Nascimento</label>
           <input type="text" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-black outline-none focus:ring-4 focus:ring-primary/5 transition-all" placeholder="Ex: 1990" />
         </div>
         {isActive && (
           <button onClick={handleSaveAndApprove} disabled={loading} className="w-full h-14 bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50">
-            {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.credentials.sendToClient}</>}
+            {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> Enviar Credenciais ao Cliente</>}
           </button>
         )}
       </div>
@@ -1019,7 +1142,7 @@ export default function AdminProcessDetailPage() {
         .from("user_services")
         .select(`
           *,
-          user_accounts!user_id (full_name, email, phone)
+          user_accounts!user_id (full_name, email)
         `)
         .eq("id", id)
         .single();
@@ -1783,7 +1906,7 @@ export default function AdminProcessDetailPage() {
           </div>
 
           {/* Ações */}
-          {isActive && (
+          {isActive && proc.status === "awaiting_review" && casvDate && (
             <div className="flex items-center gap-4 pt-2 border-t border-slate-100">
               <button
                 onClick={() => setShowRejectionModal(true)}
@@ -2020,6 +2143,12 @@ export default function AdminProcessDetailPage() {
               ))}
             </div>
           </div>
+
+          {/* Process Log Panel */}
+          <ProcessLogPanel
+            serviceId={proc.id}
+            clientName={proc.user_accounts?.full_name || proc.user_accounts?.email || "Cliente"}
+          />
         </div>
       </div>
 

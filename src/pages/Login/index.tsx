@@ -19,8 +19,10 @@ export default function Login() {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
+    // Redirect logic: if authenticated and loading is finished, go to target page
     if (!isLoading && isAuthenticated && user) {
-      navigate(user.role === "admin" ? "/admin" : "/dashboard", { replace: true });
+      const target = user.role === "admin" ? "/admin" : "/dashboard";
+      navigate(target, { replace: true });
     }
   }, [isAuthenticated, isLoading, user, navigate]);
 
@@ -31,7 +33,9 @@ export default function Login() {
       try {
         await authService.login(values);
         toast.success(t.login.success || "Login realizado com sucesso!");
-        // redirect handled by useEffect when AuthContext updates
+        // We leave submitting as true for a short moment to allow redirect,
+        // but if no redirect happens after 2s, we reset it.
+        setTimeout(() => setSubmitting(false), 2000);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : (t.login.error || "Erro ao entrar. Tente novamente."));
         setSubmitting(false);

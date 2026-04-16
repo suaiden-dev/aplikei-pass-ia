@@ -14,6 +14,7 @@ import {
   RiErrorWarningLine,
   RiBookOpenLine,
   RiUserVoiceLine,
+  RiUserStarLine,
   RiFlagLine
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
@@ -81,7 +82,7 @@ export default function ProcessDetailPage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const [searchParams] = useSearchParams();
   const t = useT("visas");
-  const { user } = useAuth();
+  const { user, refreshAccount } = useAuth();
   const navigate = useNavigate();
   const [proc, setProc] = useState<UserService | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -223,10 +224,17 @@ export default function ProcessDetailPage() {
   const rfeResult = stepData.uscis_rfe_result as string;
   const motionResult = stepData.motion_final_result as string;
 
-  const isApproved = uscisResult === 'approved' || rfeResult === 'approved' || motionResult === 'approved';
   const interviewOutcome = stepData.interview_outcome as string;
+  const isApproved = uscisResult === 'approved' || 
+                     rfeResult === 'approved' || 
+                     motionResult === 'approved' || 
+                     interviewOutcome === 'approved' || 
+                     interviewOutcome === 'granted' ||
+                     (proc.status === 'completed' && !isDenied && !uscisResult?.includes('denied'));
+
   const isDenied = proc.status === 'rejected' ||
                    interviewOutcome === 'rejected' ||
+                   interviewOutcome === 'denied' ||
                    motionResult === 'denied' ||
                    (rfeResult === 'denied' && currentStepIndexInFull >= 18 && !uscisResult) ||
                    (uscisResult === 'denied' && currentStepIndexInFull >= 12 && !rfeResult && !motionResult);
@@ -251,6 +259,29 @@ export default function ProcessDetailPage() {
           {t.processDetail.myCases}
         </Link>
       </motion.div>
+
+      {/* Success / Approved Banner */}
+      {isApproved && (
+        <motion.div
+           initial={{ opacity: 0, scale: 0.95 }}
+           animate={{ opacity: 1, scale: 1 }}
+           className="mb-12 p-10 rounded-[40px] bg-emerald-500 text-white shadow-2xl shadow-emerald-500/30 overflow-hidden relative"
+        >
+          {/* Decorative stuff logic */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl" />
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+            <div className="w-20 h-20 rounded-[28px] bg-white text-emerald-500 flex items-center justify-center shrink-0 shadow-xl">
+              <RiCheckboxCircleFill className="text-5xl" />
+            </div>
+            <div className="text-center md:text-left">
+              <h2 className="text-3xl font-black uppercase tracking-tight mb-2">{t.processDetail.approvedBannerTitle}</h2>
+              <p className="text-emerald-50 font-medium text-sm leading-relaxed max-w-xl">
+                {t.processDetail.approvedBannerDesc}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Rejection Feedback Alert */}
       {proc?.status === 'active' && !!stepData.admin_feedback && (
@@ -425,13 +456,18 @@ export default function ProcessDetailPage() {
                       {t.processSteps?.[step.id]?.description || step.description}
                     </p>
 
-                    {/* Show View button for completed steps in COS, B1/B2 or F1 */}
-                    {isCompleted && (step.type === "form" || step.type === "upload") && (
+                    {/* Show View button for completed steps or for the final preparation step in B1/B2/F1 */}
+                    {(((isCompleted || (isConsular && idx === (slug.includes("f1") ? 11 : 10))) && (step.type === "form" || step.type === "upload" || (isConsular && idx === (slug.includes("f1") ? 11 : 10))))) && (
                       <button
                         onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${fullSteps.indexOf(step)}`)}
-                        className="mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:border-primary hover:text-primary transition-all bg-white"
+                        className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
+                          idx === (slug.includes("f1") ? 11 : 10) && !isCompleted && !isCurrent
+                            ? "border-emerald-200 text-emerald-500 hover:bg-emerald-50"
+                            : "border-slate-200 text-slate-400 hover:border-primary hover:text-primary bg-white"
+                        }`}
                       >
-                        <RiInformationLine className="text-sm" /> {t.processDetail.viewStep}
+                        {idx === (slug.includes("f1") ? 11 : 10) ? <RiUserStarLine className="text-sm" /> : <RiInformationLine className="text-sm" />}
+                        {idx === (slug.includes("f1") ? 11 : 10) ? t.processDetail.prepareForInterview : t.processDetail.viewStep}
                       </button>
                     )}
 
@@ -650,7 +686,10 @@ export default function ProcessDetailPage() {
       {user && proc && !hasPhoto && (proc.current_step ?? 0) === 0 && (
         <PhotoUploadOverlay
           userId={user.id}
-          onSuccess={() => setHasPhoto(true)}
+          onSuccess={() => {
+            setHasPhoto(true);
+            if (refreshAccount) refreshAccount();
+          }}
           onClose={() => navigate("/dashboard")}
         />
       )}

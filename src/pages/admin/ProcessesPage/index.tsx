@@ -264,9 +264,9 @@ export default function AdminProcessesPage() {
                   // Approved if any of the phases were approved and no subsequent phase was denied
                   // Denied if the latest phase reached was denied and didn't move forward
                   const isApproved = motionResult === 'approved' || (rfeResult === 'approved' && !motionResult) || (uscisResult === 'approved' && !rfeResult && !motionResult);
-                  const isDenied = motionResult === 'denied' || (rfeResult === 'denied' && !motionResult) || (uscisResult === 'denied' && !rfeResult && !motionResult);
+                  const isDenied = p.status === 'rejected' || motionResult === 'denied' || motionResult === 'rejected' || (rfeResult === 'denied' && !motionResult) || (uscisResult === 'denied' && !rfeResult && !motionResult) || (p.step_data?.interview_outcome === 'rejected');
                   
-                  const isFinalized = p.status === 'completed' || isApproved || (isDenied && currentStep >= totalSteps);
+                  const isFinalized = p.status === 'completed' || p.status === 'rejected' || isApproved || (isDenied && (currentStep >= totalSteps || p.status === 'rejected'));
 
                   return (
                     <motion.tr 

@@ -1269,6 +1269,8 @@ const visas = {
     fixProblems: "Corrigir Pendências",
     statusLabel: "Status",
     visaDenied: "Visto Negado",
+    approvedBannerTitle: "Processo Aprovado!",
+    approvedBannerDesc: "Parabéns! Sua aplicação foi concluída com sucesso. Todas as etapas foram aprovadas e seu visto/processo está finalizado.",
     denialTitle: "Não aceite a negativa.<br/>Vamos {highlight} sua situação.",
     denialTitleHighlight: "reverter",
     denialDesc: "Sua jornada não termina aqui. A maioria das negativas {slug} ocorre por erros técnicos na DS-160, documentação imprecisa ou falta de estratégia. Nossa consultoria especializada analisa seu caso individualmente.",

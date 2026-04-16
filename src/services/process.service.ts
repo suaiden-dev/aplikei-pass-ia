@@ -104,6 +104,20 @@ export const processService = {
    * Centralized logic to activate a service (used by SuccessPage and Dashboard Recovery)
    */
   async activateService(userId: string, slug: string, paidDependents: number = 0): Promise<void> {
+    // IDEMPOTENCY: Check if user already has an active process for this slug
+    const { data: existing } = await supabase
+      .from("user_services")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("service_slug", slug)
+      .in("status", ["active", "awaiting_review", "awaitingInterview", "casvPaymentPending"])
+      .maybeSingle();
+
+    if (existing) {
+      console.log(`[activateService] Serviço já existe para o usuário: ${existing.id}. Pulando insert.`);
+      return;
+    }
+
     const { error } = await supabase
       .from("user_services")
       .insert({

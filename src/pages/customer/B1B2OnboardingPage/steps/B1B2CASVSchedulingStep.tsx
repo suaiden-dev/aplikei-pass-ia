@@ -57,9 +57,7 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
       await processService.updateStepData(procId, {
         casv_preferred_date: selectedDate,
       });
-      // Avança para a Etapa 7 (Criação de Conta)
-      await processService.approveStep(procId, 6, false);
-      // Notifica admin
+      // Notifica admin e marca como aguardando revisão
       await processService.updateProcessStatus(procId, "awaiting_review");
       toast.success(t.onboardingPage.scheduling.successDate);
       onComplete();

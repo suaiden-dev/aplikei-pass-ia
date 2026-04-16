@@ -59,8 +59,10 @@ Deno.serve(async (req: Request) => {
             slug, email, fullName, phone, dependents = 0,
             paymentMethod = 'card', contract_selfie_url, terms_accepted_at,
             action, serviceId, processId, proc_id, discountPct = 0, 
-            amount: requestAmount, coupon_code // <--- ADDED coupon_code
+            amount: requestAmount, coupon_code, userId, user_id // <--- ADDED user_id
         } = body;
+        
+        const targetUserId = user_id || userId;
 
         let origin_url = body.origin_url || body.originUrl || req.headers.get("origin") || req.headers.get("referer") || "https://aplikei.com";
         if (!origin_url.startsWith("http")) origin_url = `https://${origin_url}`;
@@ -85,6 +87,9 @@ Deno.serve(async (req: Request) => {
             'recovery-eos': { name: 'Recuperação de Caso - Motion (EOS)', price: 897 },
             'recovery-cos': { name: 'Recuperação de Caso - Motion (Troca de Status)', price: 897 },
             'motion-support': { name: 'Motion de Reconsideração', price: 897 },
+            'mentoria-individual': { name: 'Mentoria Individual - 1 Simulado', price: 197 },
+            'mentoria-bronze': { name: 'Mentoria Bronze - 2 Simulados', price: 397 },
+            'mentoria-gold': { name: 'Mentoria Gold - 3 Simulados', price: 697 },
         };
 
         const dependentId = DEPENDENT_SERVICE_MAP[slug] || 'dependente-b1-b2';
@@ -125,7 +130,7 @@ Deno.serve(async (req: Request) => {
                 }
             }
         } else {
-            const isDynamicService = ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos'].includes(slug);
+            const isDynamicService = ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos', 'mentoria-individual', 'mentoria-bronze', 'mentoria-gold'].includes(slug);
             if (requestAmount && isDynamicService) {
                 basePriceUSD = Number(requestAmount);
             }
@@ -213,6 +218,8 @@ Deno.serve(async (req: Request) => {
             success_url: `${origin_url}/checkout-success?session_id={CHECKOUT_SESSION_ID}&slug=${normalizedSlug}`,
             cancel_url: `${origin_url}/servicos/${slug}`,
             metadata: {
+                user_id: targetUserId || "", // <--- ADDED for webhook
+                service_slug: normalizedSlug, // <--- ADDED for webhook
                 slug: normalizedSlug,
                 email,
                 fullName: fullName || "",
