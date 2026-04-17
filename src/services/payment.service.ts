@@ -332,7 +332,7 @@ export const paymentService = {
       headers["X-Customer-Auth"] = `Bearer ${session.access_token}`;
     }
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-zelle-payment`, {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-zelle-payment-v2`, {
       method: "POST",
       headers: {
         ...headers,
@@ -364,7 +364,7 @@ export const paymentService = {
       headers["X-Customer-Auth"] = `Bearer ${session.access_token}`;
     }
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-zelle-payment`, {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-zelle-payment-v2`, {
       method: "POST",
       headers: {
         ...headers,

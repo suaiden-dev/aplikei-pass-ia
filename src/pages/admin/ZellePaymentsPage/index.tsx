@@ -513,25 +513,6 @@ export default function ZellePaymentsPage() {
         },
       });
 
-      // Activate service in user_services if we have the user_id
-      if (p.userId && p.serviceSlug) {
-        let paidDependents = 0;
-        if (p.adminNotes) {
-          const match = p.adminNotes.match(/Dependentes:\s*(\d+)/i);
-          if (match) paidDependents = parseInt(match[1], 10);
-        }
-
-        await supabase.from("user_services").insert(
-          { 
-            user_id: p.userId, 
-            service_slug: p.serviceSlug, 
-            status: "active", 
-            current_step: 0,
-            step_data: { paid_dependents: paidDependents }
-          }
-        );
-      }
-
       toast.success(t.payments.messages.approveSuccess.replace('{{name}}', p.clientName || tShared?.client || "Cliente"));
       await load();
     } catch {

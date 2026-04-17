@@ -420,7 +420,7 @@ export default function CheckoutPage() {
 
           const proofPath = await paymentService.uploadZelleProof(zelleProof, service!.slug);
 
-          const { data:zelleOrder } = await supabase.from("visa_orders").insert({
+          await supabase.from("visa_orders").insert({
             user_id: currentUserId,
             client_name: values.fullName,
             client_email: values.email,

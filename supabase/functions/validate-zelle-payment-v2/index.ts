@@ -331,7 +331,12 @@ async function handlePaymentSuccess(data: any) {
 
        const currentCount = parseInt(String(stepData.paid_dependents ?? 0), 10);
        let newCount = currentCount;
-       const isAdditionalSlot = service_slug.includes("dependente-adicional");
+       const isAdditionalSlot = service_slug.includes("dependente-adicional") || 
+                               service_slug.includes("slot-dependente") ||
+                               service_slug.includes("slot-vip") ||
+                               service_slug.includes("dependente-estudante") ||
+                               service_slug.includes("dependente-f1") ||
+                               service_slug.includes("dependente-b1-b2");
 
        if (isAdditionalSlot) {
          newCount += (dependents || 1);

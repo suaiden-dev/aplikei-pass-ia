@@ -110,17 +110,6 @@ export const processService = {
   } = {}): Promise<void> {
     const { paymentId, method = "activation", amount = 0 } = options;
 
-    // IDEMPOTENCY: Check if user already has an active process for this slug
-    const { data: existing } = await supabase
-      .from("user_services")
-      .select("id, step_data")
-      .eq("user_id", userId)
-      .eq("service_slug", slug)
-      .in("status", ["active", "awaiting_review", "awaitingInterview", "casvPaymentPending", "paid"])
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
     const purchaseId = paymentId || `INIT_${slug}_${Date.now()}`;
     const initialPurchase = {
       id: purchaseId,
@@ -131,6 +120,59 @@ export const processService = {
       date: new Date().toISOString()
     };
 
+    // ── VÍNCULO AO PROCESSO PRINCIPAL (Para serviços auxiliares) ──
+    const isAuxiliary = slug.includes("dependente") || 
+                        slug.includes("slot-") ||
+                        slug.startsWith("analise-") || 
+                        slug.startsWith("apoio-") || 
+                        slug.startsWith("revisao-") || 
+                        slug.startsWith("mentoria-") ||
+                        slug.startsWith("consultoria-") ||
+                        slug.includes("rfe-motion") ||
+                        slug.includes("-support");
+
+    let targetSlug = slug;
+    let fallbackProcId: string | null = null;
+
+    if (isAuxiliary) {
+      const isCOS = slug.includes("cos") || slug.includes("eos") || slug.includes("-status");
+      const mainSlugsByGroup = {
+        cos: ["troca-status", "extensao-status"],
+        consular: ["visto-b1-b2", "visto-f1"]
+      };
+      const group = isCOS ? "cos" : "consular";
+      const mainSlugs = mainSlugsByGroup[group];
+
+      const { data: activeMain } = await supabase
+        .from("user_services")
+        .select("id, service_slug")
+        .eq("user_id", userId)
+        .in("service_slug", mainSlugs)
+        .in("status", ["active", "awaiting_review", "paid"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (activeMain) {
+        fallbackProcId = activeMain.id;
+        targetSlug = activeMain.service_slug;
+        console.log(`[activateService] Vínculo dinâmico: Atribuindo ${slug} ao processo principal ${activeMain.service_slug}`);
+      }
+    }
+
+    // Identifica o registro existente (ou pelo fallbackId ou pelo slug)
+    const { data: existing } = fallbackProcId 
+      ? await supabase.from("user_services").select("id, step_data, service_slug").eq("id", fallbackProcId).single()
+      : await supabase
+        .from("user_services")
+        .select("id, step_data, service_slug")
+        .eq("user_id", userId)
+        .eq("service_slug", slug)
+        .in("status", ["active", "awaiting_review", "awaitingInterview", "casvPaymentPending", "paid"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
     if (existing) {
       console.log(`[activateService] Serviço já existe para o usuário: ${existing.id}. Atualizando histórico.`);
       
@@ -140,12 +182,22 @@ export const processService = {
       // Idempotency: skip if already exists
       if (purchases.some((p: any) => p.id === purchaseId)) return;
 
+      const isAdditionalSlot = slug.includes("dependente-adicional") || 
+                               slug.includes("slot-dependente") ||
+                               slug.includes("slot-vip") ||
+                               slug.includes("dependente-estudante") ||
+                               slug.includes("dependente-f1") ||
+                               slug.includes("dependente-b1-b2");
+
+      const currentPaid = parseInt(String(stepData.paid_dependents ?? 0), 10);
+      const newPaidCount = isAdditionalSlot ? (currentPaid + paidDependents) : Math.max(currentPaid, paidDependents);
+
       purchases.push(initialPurchase);
       
       await supabase.from("user_services").update({
         step_data: {
           ...stepData,
-          paid_dependents: Math.max(stepData.paid_dependents || 0, paidDependents),
+          paid_dependents: newPaidCount,
           purchases: purchases
         }
       }).eq("id", existing.id);
