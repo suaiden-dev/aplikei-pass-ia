@@ -27,16 +27,24 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return (saved as Language) || "en";
   });
 
-  const [locale, setLocale] = useState<LocaleTranslations | null>(
-    () => localeCache.get((localStorage.getItem("aplikei-lang") as Language) || "en") ?? null,
-  );
+  const [locale, setLocale] = useState<LocaleTranslations | null>(() => {
+    const currentLang = (localStorage.getItem("aplikei-lang") as Language) || "en";
+    const cached = localeCache.get(currentLang);
+    if (cached) return cached;
+    
+    // Check eager loaders for immediate sync initialization
+    const loaderPath = `./locales/${currentLang}/index.ts`;
+    const mod = localeLoaders[loaderPath];
+    if (mod) {
+      const data = (mod as any).default || mod;
+      return { _lang: currentLang, ...data } as LocaleTranslations;
+    }
+    return null;
+  });
 
   const [isLanguageLoading, setIsLanguageLoading] = useState(!locale);
-  const inFlightRef = useRef<Set<string>>(new Set());
 
   const loadLocale = useCallback(async (targetLang: Language) => {
-    if (inFlightRef.current.has(targetLang)) return;
-
     const cached = localeCache.get(targetLang);
     if (cached) {
       setLocale(cached);
@@ -44,21 +52,19 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      setIsLanguageLoading(true);
-      inFlightRef.current.add(targetLang);
-
       const loaderPath = `./locales/${targetLang}/index.ts`;
-      const loader = localeLoaders[loaderPath];
+      const localeModule = localeLoaders[loaderPath];
 
-      if (!loader) {
+      if (!localeModule) {
         throw new Error(`Locale loader not found for: ${loaderPath}`);
       }
 
-      const localeModule = (await loader()) as Omit<LocaleTranslations, "_lang">;
+      // With { eager: true }, localeModule is the actual content
+      const data = (localeModule as any).default || localeModule;
 
       const loaded: LocaleTranslations = {
         _lang: targetLang,
-        ...localeModule,
+        ...data,
       };
 
       localeCache.set(targetLang, loaded);
@@ -69,7 +75,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         setLocale({ _lang: targetLang } as unknown as LocaleTranslations);
       }
     } finally {
-      inFlightRef.current.delete(targetLang);
       setIsLanguageLoading(false);
     }
   }, []);

@@ -441,7 +441,7 @@ export function MotionExplanationStep({ proc, onComplete: _onComplete }: StepPro
   const t = useT("onboarding");
   const [showCheckout, setShowCheckout] = useState(false);
   
-  const motionService = getServiceBySlug('analise-especialista-cos');
+  const motionService = getServiceBySlug('apoio-rfe-motion-inicio') || getServiceBySlug('analise-especialista-cos');
   const baseAmount = parseInt(motionService?.price.replace(/\D/g, '') || "50");
 
   return (
@@ -490,7 +490,7 @@ export function MotionExplanationStep({ proc, onComplete: _onComplete }: StepPro
       {showCheckout && (
         <MotionCheckoutOverlay
           amount={baseAmount}
-          slug="analise-especialista-cos"
+          slug="apoio-rfe-motion-inicio"
           proc={proc}
           onClose={() => setShowCheckout(false)}
         />
@@ -695,7 +695,7 @@ export function MotionAcceptProposalStep({ proc, onComplete: _onComplete }: Step
       {showCheckout && (
         <MotionCheckoutOverlay
           amount={proposalAmount}
-          slug={proc.service_slug || "troca-status"}
+          slug="proposta-rfe-motion"
           proc={proc}
           onClose={() => setShowCheckout(false)}
         />

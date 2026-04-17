@@ -11,6 +11,7 @@ import {
   RiAlertLine,
 } from "react-icons/ri";
 import { processService } from "../../../../services/process.service";
+import { notificationService } from "../../../../services/notification.service";
 import { toast } from "sonner";
 import { useT, useLocale } from "../../../../i18n";
 
@@ -57,8 +58,16 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
       await processService.updateStepData(procId, {
         casv_preferred_date: selectedDate,
       });
-      // Notifica admin e marca como aguardando revisão
-      await processService.updateProcessStatus(procId, "awaiting_review");
+      // Avança para etapa 6 (Criação de Conta pelo Admin)
+      await processService.approveStep(procId, 6, false);
+      
+      // Notifica Admin
+      await notificationService.notifyAdmin({
+        title: "📅 Preferência de Agendamento",
+        body: `O cliente enviou a data preferencial para o agendamento CASV.`,
+        serviceId: procId
+      });
+
       toast.success(t.onboardingPage.scheduling.successDate);
       onComplete();
     } catch (err: unknown) {

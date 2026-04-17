@@ -119,7 +119,7 @@ export default function ProcessDetailPage() {
       setProc(data);
       
       if (slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1")) {
-        const consultSlug = slug.startsWith("visto-b1-b2") ? "consultoria-b1-negativa" : "consultoria-f1-negativa";
+        const consultSlug = "mentoria-negativa-consular";
         const consult = await processService.getUserServiceBySlug(user.id, consultSlug);
         if (consult && consult.status !== "cancelled") {
           setHasConsultation(true);
@@ -366,11 +366,11 @@ export default function ProcessDetailPage() {
                {!hasConsultation && (
                  <div>
                    <Link
-                     to={slug.includes("f1") ? "/checkout/consultoria-f1-negativa" : "/checkout/consultoria-b1-negativa"}
+                     to="/checkout/mentoria-negativa-consular"
                      className="flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white text-sm font-black uppercase tracking-widest transition-all shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98]"
                    >
                      <RiUserVoiceLine className="text-xl" />
-                     {t.processDetail.scheduleConsultation.replace('{price}', slug.includes("f1") ? "($150)" : "($100)")}
+                     {t.processDetail.scheduleConsultation.replace('{price}', " ($97)")}
                      <RiArrowRightLine className="text-xl" />
                    </Link>
                    <p className="text-center text-[10px] text-slate-500 mt-4 uppercase font-bold tracking-widest">

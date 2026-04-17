@@ -52,7 +52,8 @@ serve(async (req) => {
           proc_id: session.metadata.proc_id || session.metadata.processId,
           payment_method: "stripe",
           status: "complete",
-          payment_id: session.id
+          payment_id: session.id,
+          applied_coupon_id: session.metadata.applied_coupon_id || null
         });
       }
 
@@ -121,7 +122,7 @@ serve(async (req) => {
 
 // === FUNÇÃO CENTRALIZADA DE ATIVAÇÃO ===
 async function handlePaymentSuccess(data) {
-  const { user_id, service_slug, payment_method, status, proc_id, paid_amount, dependents, payment_id } = data;
+  const { user_id, service_slug, payment_method, status, proc_id, paid_amount, dependents, payment_id, applied_coupon_id } = data;
 
   if (!user_id || !service_slug) {
     console.error("Dados insuficientes no webhook:", data);
@@ -129,6 +130,12 @@ async function handlePaymentSuccess(data) {
   }
 
   console.log(`🚀 Ativando serviço ${service_slug} para ${user_id}`);
+
+  // Consumir cupom se houver
+  if (applied_coupon_id) {
+    console.log(`[Coupon] Consumindo cupom: ${applied_coupon_id}`);
+    await supabase.rpc("increment_coupon_usage", { p_coupon_id: applied_coupon_id });
+  }
 
   let targetProcId = proc_id;
 
@@ -141,6 +148,7 @@ async function handlePaymentSuccess(data) {
                       service_slug.startsWith("revisao-") || 
                       service_slug.startsWith("mentoria-") ||
                       service_slug.startsWith("consultoria-") ||
+                      service_slug.includes("rfe-motion") ||
                       service_slug.includes("-support");
 
   if (!targetProcId && isAuxiliary) {
@@ -251,7 +259,7 @@ async function handlePaymentSuccess(data) {
 
        const currentCount = parseInt(String(stepData.paid_dependents ?? 0), 10);
        let newCount = currentCount;
-       const isAdditionalSlot = service_slug.includes("dependente-adicional");
+       const isAdditionalSlot = service_slug.includes("dependente-adicional") || service_slug.includes("slot-dependente");
 
        if (isAdditionalSlot) {
          newCount += (dependents || 1);
@@ -271,9 +279,17 @@ async function handlePaymentSuccess(data) {
        
        purchases.push(newPurchase);
 
+       const isProposal = service_slug === "proposta-rfe-motion";
+       let nextStep = currentProc.current_step;
+       
+       if (isProposal && nextStep !== null) {
+         nextStep = nextStep + 1;
+       }
+
        await supabase
          .from("user_services")
          .update({ 
+           current_step: nextStep,
            step_data: { 
              ...stepData, 
              paid_dependents: newCount,
@@ -282,7 +298,17 @@ async function handlePaymentSuccess(data) {
          })
          .eq("id", targetProcId);
 
-       console.log(`[Webhook] Sucesso: Histórico atualizado no processo ${targetProcId}`);
+        if (isProposal) {
+          await supabase.from("notifications").insert({
+            user_id: user_id,
+            target_role: "client",
+            type: "system",
+            title: "Estratégia Paga! 🚀",
+            message: "Seu pagamento foi confirmado. Iniciamos agora a preparação para o envio final ao USCIS."
+          });
+        }
+
+       console.log(`[Webhook] Sucesso: Histórico e status atualizados no processo ${targetProcId}`);
      }
   }
 }

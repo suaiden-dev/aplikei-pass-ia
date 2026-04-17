@@ -83,7 +83,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
         .from("user_services")
         .select("*")
         .eq("user_id", user.id)
-        .eq("service_slug", "consultoria-b1-negativa")
+        .eq("service_slug", "mentoria-negativa-consular")
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(1)
@@ -223,11 +223,29 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
     }
   };
 
-  const PLANS = [
+  const interviewOutcome = (freshStepData as any)?.interview_outcome as string;
+  const isDenied = interviewOutcome === 'rejected' || interviewOutcome === 'denied';
+
+  const basePlans = [
     { id: "mentoria-individual", name: t.onboardingPage.specialistTraining.bronzePackage, price: 197, interviews: 1, features: [t.onboardingPage.specialistTraining.trainingSession, t.onboardingPage.specialistTraining.interviewSim] },
     { id: "mentoria-bronze", name: t.onboardingPage.specialistTraining.silverPackage, price: 397, interviews: 2, features: [t.onboardingPage.specialistTraining.sessions2Training, t.onboardingPage.specialistTraining.deepProfileAnalysis, t.onboardingPage.specialistTraining.immediateFeedback] },
-    { id: "mentoria-gold", name: t.onboardingPage.specialistTraining.goldPackage, price: 697, interviews: 3, features: [t.onboardingPage.specialistTraining.sessions3Training, t.onboardingPage.specialistTraining.vipSupport, t.onboardingPage.specialistTraining.responseStrategy], best: true },
+    { id: "mentoria-gold", name: t.onboardingPage.specialistTraining.goldPackage, price: 697, interviews: 3, features: [t.onboardingPage.specialistTraining.sessions3Training, t.onboardingPage.specialistTraining.vipSupport, t.onboardingPage.specialistTraining.responseStrategy], best: !isDenied },
   ];
+
+  const negativePlan = {
+    id: "mentoria-negativa-consular",
+    name: t.onboardingPage.specialistTraining.reviewTopic,
+    price: 97,
+    interviews: 1,
+    features: [
+      t.onboardingPage.specialistTraining.detailedRefusalAnalysis,
+      t.onboardingPage.specialistTraining.specialistMentoring45,
+      t.onboardingPage.specialistTraining.customActionPlan
+    ],
+    best: isDenied
+  };
+
+  const PLANS = isDenied ? [negativePlan, ...basePlans] : basePlans;
 
   const handleSelectPlan = (plan: typeof PLANS[0]) => {
     navigate(`/checkout/${plan.id}`);
@@ -464,7 +482,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                         ) : (
                           <button
                             onClick={() => {
-                              navigate('/checkout/consultoria-b1-negativa');
+                              navigate('/checkout/mentoria-negativa-consular');
                             }}
                             className="p-6 bg-primary/10 border border-primary/20 rounded-3xl text-left hover:bg-primary/20 transition-all group/opt relative overflow-hidden"
                           >

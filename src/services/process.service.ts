@@ -103,29 +103,54 @@ export const processService = {
   /**
    * Centralized logic to activate a service (used by SuccessPage and Dashboard Recovery)
    */
-  async activateService(userId: string, slug: string, paidDependents: number = 0): Promise<void> {
+  async activateService(userId: string, slug: string, paidDependents: number = 0, options: { 
+    paymentId?: string; 
+    method?: string; 
+    amount?: number;
+  } = {}): Promise<void> {
+    const { paymentId, method = "activation", amount = 0 } = options;
+
     // IDEMPOTENCY: Check if user already has an active process for this slug
     const { data: existing } = await supabase
       .from("user_services")
-      .select("id")
+      .select("id, step_data")
       .eq("user_id", userId)
       .eq("service_slug", slug)
-      .in("status", ["active", "awaiting_review", "awaitingInterview", "casvPaymentPending"])
+      .in("status", ["active", "awaiting_review", "awaitingInterview", "casvPaymentPending", "paid"])
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
-    if (existing) {
-      console.log(`[activateService] Serviço já existe para o usuário: ${existing.id}. Pulando insert.`);
-      return;
-    }
-
+    const purchaseId = paymentId || `INIT_${slug}_${Date.now()}`;
     const initialPurchase = {
-      id: `INIT_${slug}_${Date.now()}`,
-      method: "activation",
-      amount: 0,
+      id: purchaseId,
+      method: method,
+      amount: amount,
       dependents: paidDependents,
       slug: slug,
       date: new Date().toISOString()
     };
+
+    if (existing) {
+      console.log(`[activateService] Serviço já existe para o usuário: ${existing.id}. Atualizando histórico.`);
+      
+      const stepData = (existing.step_data as any) || {};
+      const purchases = stepData.purchases || [];
+      
+      // Idempotency: skip if already exists
+      if (purchases.some((p: any) => p.id === purchaseId)) return;
+
+      purchases.push(initialPurchase);
+      
+      await supabase.from("user_services").update({
+        step_data: {
+          ...stepData,
+          paid_dependents: Math.max(stepData.paid_dependents || 0, paidDependents),
+          purchases: purchases
+        }
+      }).eq("id", existing.id);
+      return;
+    }
 
     const { error } = await supabase
       .from("user_services")
@@ -142,31 +167,8 @@ export const processService = {
 
     if (error) {
       if (error.code === "23505") {
-        // Fetch current data to preserve other fields
-        const { data: current } = await supabase
-          .from("user_services")
-          .select("step_data")
-          .match({ user_id: userId, service_slug: slug })
-          .maybeSingle();
-
-        const currentStepData = (current?.step_data as any || {});
-        const purchases = currentStepData.purchases || [];
-        
-        purchases.push(initialPurchase);
-
-        const mergedStepData = {
-          ...currentStepData,
-          paid_dependents: paidDependents,
-          purchases: purchases
-        };
-
-        await supabase.from("user_services").upsert({
-          user_id: userId,
-          service_slug: slug,
-          status: "active",
-          current_step: 0,
-          step_data: mergedStepData
-        }, { onConflict: "user_id,service_slug" });
+        // Fallback for race condition: re-run logic as an update
+        return this.activateService(userId, slug, paidDependents, options);
       } else {
         throw error;
       }

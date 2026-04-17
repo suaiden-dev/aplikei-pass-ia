@@ -7,6 +7,6 @@ import { Language, LocaleTranslations } from "./types";
 export const localeCache = new Map<Language, LocaleTranslations>();
 
 /**
- * Static mapping for Vite dynamic imports.
+ * Static mapping for Vite dynamic imports - now using eager loading to avoid refresh delay.
  */
-export const localeLoaders = import.meta.glob("./locales/*/index.ts");
+export const localeLoaders = import.meta.glob("./locales/*/index.ts", { eager: true });

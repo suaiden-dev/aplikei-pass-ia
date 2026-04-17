@@ -416,7 +416,7 @@ export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps)
   const t = useT("onboarding");
   const [showCheckout, setShowCheckout] = useState(false);
   
-  const rfeService = getServiceBySlug('analise-rfe-cos');
+  const rfeService = getServiceBySlug('apoio-rfe-motion-inicio') || getServiceBySlug('analise-rfe-cos');
   const baseAmount = parseInt(rfeService?.price.replace(/\D/g, '') || "50");
 
   return (
@@ -455,7 +455,7 @@ export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps)
         {showCheckout && (
           <RFECheckoutOverlay 
             amount={baseAmount} 
-            slug="analise-rfe-cos" 
+            slug="apoio-rfe-motion-inicio" 
             proc={proc} 
             onClose={() => setShowCheckout(false)} 
           />
@@ -576,6 +576,7 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
 export function RFEAcceptProposalStep({ proc, onComplete: _onComplete }: StepProps) {
   const t = useT("onboarding");
   const data = (proc.step_data || {}) as Record<string, unknown>;
+  const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleAcceptProposal = async () => {
@@ -622,13 +623,22 @@ export function RFEAcceptProposalStep({ proc, onComplete: _onComplete }: StepPro
         </div>
 
         <button 
-          onClick={handleAcceptProposal}
+          onClick={() => setShowCheckout(true)}
           disabled={loading || !(data.rfe_proposal_text as string)}
           className="w-full bg-primary hover:bg-primary-hover text-white h-16 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
         >
           {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-2xl" /> {t?.workflows?.shared?.acceptBtn}</>}
         </button>
       </div>
+
+      {showCheckout && (
+        <RFECheckoutOverlay 
+          amount={Number(data.rfe_proposal_amount || 0)} 
+          slug="proposta-rfe-motion" 
+          proc={proc} 
+          onClose={() => setShowCheckout(false)} 
+        />
+      )}
     </div>
   );
 }

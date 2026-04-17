@@ -133,7 +133,7 @@ export const notificationService = {
     const { count } = await supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
-      .eq("target_role", "admin")
+      .or("target_role.eq.admin,type.eq.client_action")
       .eq("is_read", false);
     return count ?? 0;
   },
@@ -142,17 +142,18 @@ export const notificationService = {
     const { data } = await supabase
       .from("notifications")
       .select("*")
-      .eq("target_role", "admin")
+      .or("target_role.eq.admin,type.eq.client_action")
       .order("created_at", { ascending: false })
       .limit(limit);
     return (data as AppNotification[]) ?? [];
   },
 
   async getClientNotifications(userId: string, limit = 30): Promise<AppNotification[]> {
+    // Busca notificações destinadas ao cliente pelo userId
+    // Removemos o filtro estrito de target_role para garantir que notificações legadas apareçam
     const { data } = await supabase
       .from("notifications")
       .select("*")
-      .eq("target_role", "client")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(limit);

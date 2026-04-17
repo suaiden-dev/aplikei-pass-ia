@@ -111,6 +111,7 @@ function PriceSummary({
   method,
   discountUSD,
   couponCode,
+  isUpgrade,
 }: {
   baseUSD: number;
   depUSD: number;

@@ -378,6 +378,7 @@ const visas = {
       interviewSim: "Simulado de perguntas",
       immediateFeedback: "Feedback imediato",
       bronzePackage: "Pacote Bronze",
+      silverPackage: "Pacote Prata",
       sessions2Training: "2 Aulas de Treinamento",
       mentoring2x45: "2x 45 min de mentoria",
       deepProfileAnalysis: "Análise profunda de perfil",

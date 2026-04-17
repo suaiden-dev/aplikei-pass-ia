@@ -90,6 +90,8 @@ Deno.serve(async (req: Request) => {
             'mentoria-individual': { name: 'Mentoria Individual - 1 Simulado', price: 197 },
             'mentoria-bronze': { name: 'Mentoria Bronze - 2 Simulados', price: 397 },
             'mentoria-gold': { name: 'Mentoria Gold - 3 Simulados', price: 697 },
+            'mentoria-negativa-consular': { name: 'Consultoria Especializada (Pós-Negativa)', price: 97 },
+            'slot-dependente-cos': { name: 'Dependente Adicional (COS/EOS)', price: 100 },
         };
 
         const dependentId = DEPENDENT_SERVICE_MAP[slug] || 'dependente-b1-b2';
@@ -130,7 +132,7 @@ Deno.serve(async (req: Request) => {
                 }
             }
         } else {
-            const isDynamicService = ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos', 'mentoria-individual', 'mentoria-bronze', 'mentoria-gold'].includes(slug);
+            const isDynamicService = ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos', 'mentoria-individual', 'mentoria-bronze', 'mentoria-gold', 'mentoria-negativa-consular'].includes(slug);
             if (requestAmount && isDynamicService) {
                 basePriceUSD = Number(requestAmount);
             }

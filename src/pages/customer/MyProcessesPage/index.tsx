@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MdLanguage, MdSchool, MdHistory, MdSyncAlt } from "react-icons/md";
@@ -233,45 +233,55 @@ export default function MyProcessesPage() {
       .finally(() => setIsLoading(false));
   }, [user]);
 
-  const activeStatuses = ["active", "awaiting_review"];
+  const activeStatuses = useMemo(() => ["active", "awaiting_review"], []);
   
   // 1. Filter only base products (exclude consultancies, etc) and Sort by date DESC
-  const baseProducts = userServices
-    .filter(s => 
-      !s.service_slug.toLowerCase().startsWith("analise-") &&
-      !s.service_slug.toLowerCase().startsWith("mentoria-") &&
-      !s.service_slug.toLowerCase().startsWith("consultoria-") &&
-      !s.service_slug.toLowerCase().startsWith("dependente-adicional-")
-    )
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-  const newestActiveSlugs = new Set<string>();
+  const baseProducts = useMemo(() => {
+    return userServices
+      .filter(s => 
+        !s.service_slug.toLowerCase().startsWith("analise-") &&
+        !s.service_slug.toLowerCase().startsWith("apoio-") &&
+        !s.service_slug.toLowerCase().startsWith("revisao-") &&
+        !s.service_slug.toLowerCase().startsWith("mentoria-") &&
+        !s.service_slug.toLowerCase().startsWith("consultoria-") &&
+        !s.service_slug.toLowerCase().startsWith("dependente-") &&
+        !s.service_slug.toLowerCase().startsWith("slot-") &&
+        !s.service_slug.toLowerCase().includes("rfe") &&
+        !s.service_slug.toLowerCase().includes("motion")
+      )
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [userServices]);
 
   // 2. Determine which ones are "History"
-  const others = baseProducts.filter((s) => {
-    const stepData = (s.step_data || {}) as Record<string, any>;
-    const isConsular = s.service_slug.startsWith("visto-b1-b2") || s.service_slug.startsWith("visto-f1");
-    const isCOS = s.service_slug === 'troca-status' || s.service_slug === 'extensao-status';
-    
-    // Explicit finalized statuses
-    if (['completed', 'rejected', 'denied', 'cancelled'].includes(s.status)) return true;
+  const others = useMemo(() => {
+    const newestActiveSlugs = new Set<string>();
+    return baseProducts.filter((s) => {
+      const stepData = (s.step_data || {}) as Record<string, any>;
+      const isConsular = s.service_slug.startsWith("visto-b1-b2") || s.service_slug.startsWith("visto-f1");
+      const isCOS = s.service_slug === 'troca-status' || s.service_slug === 'extensao-status';
+      
+      // Explicit finalized statuses
+      if (['completed', 'rejected', 'denied', 'cancelled'].includes(s.status)) return true;
 
-    // Flow-based finalization
-    if (isConsular && stepData.interview_outcome) return true;
-    if (isCOS && (s.current_step ?? 0) >= 19) return true;
+      // Flow-based finalization
+      if (isConsular && stepData.interview_outcome) return true;
+      if (isCOS && (s.current_step ?? 0) >= 19) return true;
 
-    // Logic: If there is already a NEWER active process for this slug, this one is history
-    if (activeStatuses.includes(s.status)) {
-       if (newestActiveSlugs.has(s.service_slug)) return true;
-       newestActiveSlugs.add(s.service_slug);
-    }
-    return false;
-  });
+      // Logic: If there is already a NEWER active process for this slug, this one is history
+      if (activeStatuses.includes(s.status)) {
+         if (newestActiveSlugs.has(s.service_slug)) return true;
+         newestActiveSlugs.add(s.service_slug);
+      }
+      return false;
+    });
+  }, [baseProducts, activeStatuses]);
 
   // 3. The rest are "Active"
-  const active = baseProducts.filter((s) => 
-    activeStatuses.includes(s.status) && !others.find(o => o.id === s.id)
-  );
+  const active = useMemo(() => {
+    return baseProducts.filter((s) => 
+      activeStatuses.includes(s.status) && !others.find(o => o.id === s.id)
+    );
+  }, [baseProducts, activeStatuses, others]);
 
   return (
     <div className="p-6 md:p-12 max-w-[1200px] mx-auto">

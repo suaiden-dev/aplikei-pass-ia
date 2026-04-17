@@ -49,6 +49,8 @@ interface ProcessLog {
   actor_name?: string;
   actor_role?: string;
   action_type?: string;
+  action?: string;
+  message?: string;
   previous_step?: number;
   new_step?: number;
   previous_status?: string;
@@ -65,6 +67,60 @@ interface RFEHistoryItem {
 }
 
 // ─── Process Log Panel ────────────────────────────────────────────────────────
+// ─── Purchases History Panel ──────────────────────────────────────────────────
+function PurchasesPanel({ stepData }: { stepData: any }) {
+  const purchases = (stepData?.purchases || []) as any[];
+  const paidDependents = parseInt(String(stepData?.paid_dependents ?? 0), 10);
+
+  const formatDate = (dt: string) =>
+    new Date(dt).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+  return (
+    <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-6">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center">
+            <RiMoneyDollarCircleLine className="text-white text-sm" />
+          </div>
+          <h3 className="font-black text-slate-800 text-sm uppercase tracking-tight">Histórico de Compras</h3>
+        </div>
+        <div className="px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-emerald-100">
+           {paidDependents} Slots Pagos
+        </div>
+      </div>
+
+      {purchases.length === 0 ? (
+        <p className="text-xs text-slate-400 text-center py-6 font-medium italic">Nenhuma compra registrada via JSONB.</p>
+      ) : (
+        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+          {purchases.map((p, idx) => (
+            <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-primary/20 transition-all">
+              <div className="flex justify-between items-start mb-2">
+                <span className="text-[10px] font-black text-primary uppercase tracking-widest">{p.method}</span>
+                <span className="text-[10px] text-slate-400 font-bold">{formatDate(p.date)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-black text-slate-800 leading-none mb-1">{p.slug}</p>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+                    ID: <span className="text-slate-700">{p.id.length > 20 ? p.id.substring(0, 15) + '...' : p.id}</span>
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-black text-slate-900 leading-none mb-1">${p.amount?.toFixed(2)}</p>
+                  {p.dependents > 0 && (
+                     <p className="text-[9px] text-emerald-600 font-black uppercase">+{p.dependents} Dependentes</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientName: string }) {
   const [logs, setLogs] = React.useState<ProcessLog[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -109,6 +165,10 @@ function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientN
   };
 
   const getActionDescription = (log: ProcessLog) => {
+    // 1. Prioridade absoluta para a mensagem do banco de dados (nossa nova lógica clear)
+    if (log.message) return log.message;
+    if (log.action) return log.action;
+
     const stepChanged = log.previous_step !== log.new_step;
     const statusChanged = log.previous_status !== log.new_status;
 
@@ -550,6 +610,9 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
   const [loading, setLoading] = useState(false);
   const t = useT("admin");
   const data = (proc.step_data || {}) as Record<string, unknown>;
+  const purchases = (data.purchases || []) as any[];
+  const hasPaidProposal = purchases.some(p => p.slug === "proposta-rfe-motion" || p.slug === "apoio-rfe-motion-inicio" || p.slug === "analise-especialista-cos");
+
   const clientReason = data.motion_reason as string;
   const docs = (data.docs as Record<string, string>) || {};
   const denialLetterPath = docs.motion_denial_letter;
@@ -595,8 +658,15 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
           <RiShieldCheckLine className="text-lg" />
           {t.processDetail.motion.panelTitle}
         </h3>
-        <div className="px-3 py-1 bg-amber-50 rounded-lg border border-amber-100 text-[9px] font-black text-amber-600 uppercase tracking-widest">
-          {t.shared.administrativeAction}
+        <div className="flex gap-2">
+           {hasPaidProposal && (
+             <div className="px-3 py-1 bg-emerald-50 rounded-lg border border-emerald-100 text-[9px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1">
+               <RiCheckDoubleLine /> Pago
+             </div>
+           )}
+           <div className="px-3 py-1 bg-amber-50 rounded-lg border border-amber-100 text-[9px] font-black text-amber-600 uppercase tracking-widest">
+             {t.shared.administrativeAction}
+           </div>
         </div>
       </div>
 
@@ -678,6 +748,8 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
   const [loading, setLoading] = useState(false);
   const t = useT("admin");
   const data = (proc.step_data || {}) as Record<string, unknown>;
+  const purchases = (data.purchases || []) as any[];
+  const hasPaidProposal = purchases.some(p => p.slug === "proposta-rfe-motion" || p.slug === "apoio-rfe-motion-inicio" || p.slug === "analise-rfe-cos");
 
   const clientDescription = data.rfe_description as string;
   const docs = (data.docs as Record<string, string>) || {};
@@ -732,8 +804,15 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
           <RiShieldCheckLine className="text-lg" />
           {t.processDetail.rfe.panelTitle}
         </h3>
-        <div className="px-3 py-1 bg-amber-50 rounded-lg border border-amber-100 text-[9px] font-black text-amber-600 uppercase tracking-widest">
-          {t.shared.administrativeAction}
+        <div className="flex gap-2">
+           {hasPaidProposal && (
+             <div className="px-3 py-1 bg-emerald-50 rounded-lg border border-emerald-100 text-[9px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1">
+               <RiCheckDoubleLine /> Pago
+             </div>
+           )}
+           <div className="px-3 py-1 bg-amber-50 rounded-lg border border-amber-100 text-[9px] font-black text-amber-600 uppercase tracking-widest">
+             {t.shared.administrativeAction}
+           </div>
         </div>
       </div>
 
@@ -2155,6 +2234,9 @@ export default function AdminProcessDetailPage() {
               ))}
             </div>
           </div>
+
+          {/* Purchases Panel */}
+          <PurchasesPanel stepData={proc?.step_data} />
 
           {/* Process Log Panel */}
           <ProcessLogPanel

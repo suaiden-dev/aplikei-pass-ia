@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { MdLanguage, MdSchool, MdHistory, MdSyncAlt, MdTimer } from "react-icons/md";
@@ -358,50 +358,14 @@ export default function CustomerDashboardPage() {
       try {
         // --- PAYMENT RECOVERY LOGIC ---
         const recoverySlug = localStorage.getItem("checkout_slug");
-        if (recoverySlug && user) {
-          const recoveryDeps = parseInt(localStorage.getItem("checkout_dependents") || "0", 10);
-          const recoveryParentId = localStorage.getItem("checkout_parent_id");
-          const isExtraDependent = recoverySlug.startsWith("dependente-adicional-");
-          
+        if (recoverySlug) {
           try {
-            if (isExtraDependent && recoveryParentId) {
-              // Get current slots and add
-              const { data: proc } = await supabase
-                .from("user_services")
-                .select("step_data")
-                .eq("id", recoveryParentId)
-                .single();
-              
-              if (proc) {
-                const oldData = (proc.step_data || {}) as any;
-                const currentSlots = parseInt(String(oldData.paid_dependents || 0), 10);
-                const purchases = oldData.purchases || [];
-                
-                const purchaseId = `REC_${recoverySlug}_${Date.now()}`;
-                
-                purchases.push({
-                  id: purchaseId,
-                  method: "recovery",
-                  amount: 0, // Unknown here
-                  dependents: recoveryDeps,
-                  slug: recoverySlug,
-                  date: new Date().toISOString()
-                });
-
-                await supabase
-                  .from("user_services")
-                  .update({
-                    step_data: {
-                      ...oldData,
-                      paid_dependents: currentSlots + recoveryDeps,
-                      purchases: purchases
-                    }
-                  })
-                  .eq("id", recoveryParentId);
-              }
-            } else {
-              await processService.activateService(user.id, recoverySlug, recoveryDeps);
-            }
+            const recoveryDeps = parseInt(localStorage.getItem("checkout_dependents") || "0", 10);
+            await processService.activateService(user.id, recoverySlug, recoveryDeps, {
+              paymentId: `REC_${recoverySlug}_${Date.now()}`,
+              method: "recovery",
+              amount: 0
+            });
             
             toast.success("Pagamento confirmado! Seu processo foi atualizado.");
             localStorage.removeItem("checkout_slug");
@@ -435,49 +399,63 @@ export default function CustomerDashboardPage() {
     loadData();
   }, [user]);
 
-  const activeStatuses = ["active", "awaiting_review"];
+  const activeStatuses = useMemo(() => ["active", "awaiting_review"], []);
   
   // 1. Filter only base products (exclude consultancies, etc) and Sort by date DESC
-  const baseProducts = userServices
-    .filter(s => 
-      !s.service_slug.toLowerCase().startsWith("analise-") &&
-      !s.service_slug.toLowerCase().startsWith("mentoria-") &&
-      !s.service_slug.toLowerCase().startsWith("consultoria-") &&
-      !s.service_slug.toLowerCase().startsWith("dependente-adicional-")
-    )
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-  const newestActiveSlugs = new Set<string>();
+  const baseProducts = useMemo(() => {
+    return userServices
+      .filter(s => 
+        !s.service_slug.toLowerCase().startsWith("analise-") &&
+        !s.service_slug.toLowerCase().startsWith("apoio-") &&
+        !s.service_slug.toLowerCase().startsWith("revisao-") &&
+        !s.service_slug.toLowerCase().startsWith("mentoria-") &&
+        !s.service_slug.toLowerCase().startsWith("consultoria-") &&
+        !s.service_slug.toLowerCase().startsWith("dependente-") &&
+        !s.service_slug.toLowerCase().startsWith("slot-") &&
+        !s.service_slug.toLowerCase().includes("rfe") &&
+        !s.service_slug.toLowerCase().includes("motion")
+      )
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [userServices]);
 
   // 2. Determine which ones are "History"
-  const others = baseProducts.filter((s) => {
-    const stepData = (s.step_data || {}) as Record<string, any>;
-    const isB1B2 = s.service_slug.startsWith("visto-b1-b2");
-    const isF1 = s.service_slug.startsWith("visto-f1");
-    const isCOS = s.service_slug === 'troca-status' || s.service_slug === 'extensao-status';
-    
-    if (['completed', 'rejected', 'denied', 'cancelled'].includes(s.status)) return true;
-    if ((isB1B2 || isF1) && stepData.interview_outcome) return true;
-    if (isCOS && (s.current_step ?? 0) >= 19) return true;
+  const others = useMemo(() => {
+    const newestActiveSlugs = new Set<string>();
+    return baseProducts.filter((s) => {
+      const stepData = (s.step_data || {}) as Record<string, any>;
+      const isB1B2 = s.service_slug.startsWith("visto-b1-b2");
+      const isF1 = s.service_slug.startsWith("visto-f1");
+      const isCOS = s.service_slug === 'troca-status' || s.service_slug === 'extensao-status';
+      
+      if (['completed', 'rejected', 'denied', 'cancelled'].includes(s.status)) return true;
+      if ((isB1B2 || isF1) && stepData.interview_outcome) return true;
+      if (isCOS && (s.current_step ?? 0) >= 19) return true;
 
-    if (activeStatuses.includes(s.status)) {
-       if (newestActiveSlugs.has(s.service_slug)) return true;
-       newestActiveSlugs.add(s.service_slug);
-    }
-    return false;
-  });
+      if (activeStatuses.includes(s.status)) {
+         if (newestActiveSlugs.has(s.service_slug)) return true;
+         newestActiveSlugs.add(s.service_slug);
+      }
+      return false;
+    });
+  }, [baseProducts, activeStatuses]);
 
   // 3. The rest are "Truly Active"
-  const trulyActiveProcesses = baseProducts.filter((s) =>
-    activeStatuses.includes(s.status) &&
-    !others.find(o => o.id === s.id) &&
-    servicesData.some(sd => sd.slug === s.service_slug) &&
-    !s.service_slug.toLowerCase().startsWith("analise-") &&
-    !s.service_slug.toLowerCase().startsWith("mentoria-") &&
-    !s.service_slug.toLowerCase().startsWith("consultoria-") &&
-    !s.service_slug.toLowerCase().startsWith("dependente-adicional-")
-  );
-  const ownedSlugs = new Set(trulyActiveProcesses.map((s) => s.service_slug));
+  const trulyActiveProcesses = useMemo(() => {
+    return baseProducts.filter((s) =>
+      activeStatuses.includes(s.status) &&
+      !others.find(o => o.id === s.id) &&
+      servicesData.some(sd => sd.slug === s.service_slug) &&
+      !s.service_slug.toLowerCase().startsWith("analise-") &&
+      !s.service_slug.toLowerCase().startsWith("apoio-") &&
+      !s.service_slug.toLowerCase().startsWith("revisao-") &&
+      !s.service_slug.toLowerCase().startsWith("mentoria-") &&
+      !s.service_slug.toLowerCase().startsWith("consultoria-") &&
+      !s.service_slug.toLowerCase().startsWith("dependente-") &&
+      !s.service_slug.toLowerCase().startsWith("slot-")
+    );
+  }, [baseProducts, activeStatuses, others]);
+
+  const ownedSlugs = useMemo(() => new Set(trulyActiveProcesses.map((s) => s.service_slug)), [trulyActiveProcesses]);
 
   return (
     <div className="p-6 md:p-12 max-w-[1400px] mx-auto">
@@ -567,11 +545,15 @@ export default function CustomerDashboardPage() {
             servicesData
               .filter(s =>
                 !s.slug.toLowerCase().startsWith("analise-") &&
+                !s.slug.toLowerCase().startsWith("apoio-") &&
+                !s.slug.toLowerCase().startsWith("revisao-") &&
                 !s.slug.toLowerCase().startsWith("mentoria-") &&
                 !s.slug.toLowerCase().startsWith("consultoria-") &&
-                !s.slug.toLowerCase().startsWith("dependente-adicional-") &&
-                s.slug !== "visto-b1-b2-reaplicacao" &&
-                s.slug !== "visto-f1-reaplicacao" &&
+                !s.slug.toLowerCase().startsWith("dependente-") &&
+                !s.slug.toLowerCase().startsWith("slot-") &&
+                !s.slug.toLowerCase().includes("reaplicacao") &&
+                !s.slug.toLowerCase().includes("rfe") &&
+                !s.slug.toLowerCase().includes("motion") &&
                 !ownedSlugs.has(s.slug)
               )
               .map((service, index) => (

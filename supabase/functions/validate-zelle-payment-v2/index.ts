@@ -243,6 +243,7 @@ async function handlePaymentSuccess(data: any) {
                       service_slug.startsWith("revisao-") || 
                       service_slug.startsWith("mentoria-") ||
                       service_slug.startsWith("consultoria-") ||
+                      service_slug.includes("rfe-motion") ||
                       service_slug.includes("-support");
 
   if (!targetProcId && isAuxiliary) {
@@ -349,16 +350,34 @@ async function handlePaymentSuccess(data: any) {
        
        purchases.push(newPurchase);
 
-       await supabase
-         .from("user_services")
-         .update({ 
-           step_data: { 
-             ...stepData, 
-             paid_dependents: newCount,
-             purchases: purchases
-           } 
-         })
-         .eq("id", targetProcId);
+        const isProposal = service_slug === "proposta-rfe-motion";
+        let nextStep = currentProc.current_step;
+        
+        if (isProposal && nextStep !== null) {
+          nextStep = nextStep + 1;
+        }
+
+        await supabase
+          .from("user_services")
+          .update({ 
+            current_step: nextStep,
+            step_data: { 
+              ...stepData, 
+              paid_dependents: newCount,
+              purchases: purchases
+            } 
+          })
+          .eq("id", targetProcId);
+
+        if (isProposal) {
+          await supabase.from("notifications").insert({
+            user_id: user_id,
+            target_role: "client",
+            type: "system",
+            title: "Estratégia Paga via Zelle! 🚀",
+            message: "Seu pagamento foi aprovado pelo administrador. Iniciamos agora a preparação para o envio final ao USCIS."
+          });
+        }
 
        console.log(`[Zelle] Sucesso: Histórico atualizado no processo ${targetProcId}`);
      }

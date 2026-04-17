@@ -158,39 +158,33 @@ export default function COSOnboardingPage() {
 
       setProc(data);
 
-      // --- AUTO-REPAIR: Sincronizar slots pagos com os pedidos (visa_orders) ---
+      // --- AUTO-REPAIR: Sincronizar slots pagos com o histórico de compras (purchases) ---
       try {
-        const { data: orders } = await supabase
-          .from("visa_orders")
-          .select("product_slug, payment_metadata")
-          .or(`user_id.eq.${user.id},client_email.eq.${user.email}`)
-          .in("product_slug", [
-            "troca-status", "extensao-status", 
-            "dependente-adicional-cos", "dependente-adicional-eos", 
-            "dependente-adicional", "dependente-estudante", "dependente-b1-b2"
-          ])
-          .in("payment_status", ["complete", "paid", "succeeded"]);
+        if (data.step_data?.purchases) {
+          const purchases = data.step_data.purchases as any[];
+          let totalPaidViaPurchases = 0;
+          
+          purchases.forEach(p => {
+             const count = parseInt(String(p.dependents ?? 0), 10);
+             const isAdditional = p.slug?.includes("dependente-adicional") || 
+                                 p.slug?.includes("slot-dependente") ||
+                                 p.slug === "dependente-estudante" ||
+                                 p.slug === "dependente-b1-b2";
 
-        if (orders && orders.length > 0) {
-          let totalPaidViaOrders = 0;
-          orders.forEach(o => {
-             const meta = o.payment_metadata as any;
-             const count = parseInt(String(meta?.dependents ?? 0), 10);
-             if (o.product_slug.includes("dependente-adicional")) {
-                // Slots adicionais são somados (pelo menos 1 por pedido pago)
-                totalPaidViaOrders += Math.max(1, count);
+             if (isAdditional) {
+                // Slots adicionais são somados (pelo menos 1 por compra)
+                totalPaidViaPurchases += Math.max(1, count);
              } else {
                 // No pedido principal, meta.dependents é o total de dependentes incluídos
-                totalPaidViaOrders = Math.max(totalPaidViaOrders, count);
+                totalPaidViaPurchases = Math.max(totalPaidViaPurchases, count);
              }
           });
 
           const currentInDB = parseInt(String(data.step_data?.paid_dependents ?? 0), 10);
-          if (totalPaidViaOrders > currentInDB) {
-            console.log(`[AutoRepair] Sincronizando slots: ${currentInDB} -> ${totalPaidViaOrders}`);
-            await processService.updateStepData(data.id, { paid_dependents: totalPaidViaOrders });
-            // Atualiza o objeto local para renderizar imediatamente
-            if (data.step_data) data.step_data.paid_dependents = totalPaidViaOrders;
+          if (totalPaidViaPurchases > currentInDB) {
+            console.log(`[AutoRepair] Sincronizando slots via JSONB: ${currentInDB} -> ${totalPaidViaPurchases}`);
+            await processService.updateStepData(data.id, { paid_dependents: totalPaidViaPurchases });
+            if (data.step_data) data.step_data.paid_dependents = totalPaidViaPurchases;
             setProc({ ...data });
           }
         }
@@ -650,7 +644,7 @@ export default function COSOnboardingPage() {
                               </div>
                               <div className="flex flex-col sm:flex-row items-center gap-2">
                                 <button
-                                  onClick={() => navigate(`/checkout/dependente-adicional-cos?id=${proc?.id}&upgrade=true`)}
+                                  onClick={() => navigate(`/checkout/slot-dependente-cos?id=${proc?.id}&upgrade=true`)}
                                   className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#1649c0] transition-all shadow-lg shadow-primary/20"
                                 >
                                   {t.cos.form.dependents.buySlot}
