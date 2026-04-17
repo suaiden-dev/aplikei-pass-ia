@@ -201,6 +201,8 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  if (!t || !t.cos) return null;
+
   // Constants mapping
   const I539_TOOLTIPS = t.cos.i539.tooltips;
   const SECURITY_QUESTIONS = [

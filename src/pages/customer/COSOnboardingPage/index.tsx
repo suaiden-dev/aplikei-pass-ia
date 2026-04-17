@@ -84,6 +84,23 @@ export default function COSOnboardingPage() {
   const [searchParams] = useSearchParams();
   const stepIdx = Number(searchParams.get("step") ?? "0");
 
+  // Translation safety guard: if locale is loading, return a refined loading state
+  if (!t || !t.cos) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4 text-center p-12 bg-white rounded-[40px] shadow-sm border border-slate-100 animate-in fade-in zoom-in-95">
+          <div className="w-16 h-16 rounded-3xl bg-primary/5 flex items-center justify-center text-primary shadow-inner">
+            <RiLoader4Line className="text-3xl animate-spin" />
+          </div>
+          <div>
+            <p className="text-xs font-black text-slate-800 uppercase tracking-widest">Sincronizando Traduções</p>
+            <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">Preparando interface personalizada...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Safety guard: this component is only for COS products.
   // If somehow the generic :slug route catches a B1/B2 request, redirect immediately.
   useEffect(() => {
@@ -124,11 +141,11 @@ export default function COSOnboardingPage() {
     async function load() {
       if (!user || !slug) return;
       
-      const idParam = searchParams.get("id");
+      const parentId = searchParams.get("id") || searchParams.get("parentId") || searchParams.get("processId");
       let data = null;
 
-      if (idParam) {
-        data = await processService.getServiceById(idParam);
+      if (parentId) {
+        data = await processService.getServiceById(parentId);
         // Safety: verify user owns this process
         if (data && data.user_id !== user.id) {
           data = null;
@@ -137,34 +154,72 @@ export default function COSOnboardingPage() {
         data = await processService.getUserServiceBySlug(user.id, slug);
       }
 
-      if (!data) {
-        return;
-      }
+      if (!data) return;
 
       setProc(data);
+
+      // --- AUTO-REPAIR: Sincronizar slots pagos com os pedidos (visa_orders) ---
+      try {
+        const { data: orders } = await supabase
+          .from("visa_orders")
+          .select("product_slug, payment_metadata")
+          .or(`user_id.eq.${user.id},client_email.eq.${user.email}`)
+          .in("product_slug", [
+            "troca-status", "extensao-status", 
+            "dependente-adicional-cos", "dependente-adicional-eos", 
+            "dependente-adicional", "dependente-estudante", "dependente-b1-b2"
+          ])
+          .in("payment_status", ["complete", "paid", "succeeded"]);
+
+        if (orders && orders.length > 0) {
+          let totalPaidViaOrders = 0;
+          orders.forEach(o => {
+             const meta = o.payment_metadata as any;
+             const count = parseInt(String(meta?.dependents ?? 0), 10);
+             if (o.product_slug.includes("dependente-adicional")) {
+                // Slots adicionais são somados (pelo menos 1 por pedido pago)
+                totalPaidViaOrders += Math.max(1, count);
+             } else {
+                // No pedido principal, meta.dependents é o total de dependentes incluídos
+                totalPaidViaOrders = Math.max(totalPaidViaOrders, count);
+             }
+          });
+
+          const currentInDB = parseInt(String(data.step_data?.paid_dependents ?? 0), 10);
+          if (totalPaidViaOrders > currentInDB) {
+            console.log(`[AutoRepair] Sincronizando slots: ${currentInDB} -> ${totalPaidViaOrders}`);
+            await processService.updateStepData(data.id, { paid_dependents: totalPaidViaOrders });
+            // Atualiza o objeto local para renderizar imediatamente
+            if (data.step_data) data.step_data.paid_dependents = totalPaidViaOrders;
+            setProc({ ...data });
+          }
+        }
+      } catch (err) {
+        console.warn("[AutoRepair] Erro ao sincronizar slots:", err);
+      }
+      // --------------------------------------------------------------------------
           
-          if (data.step_data) {
-            if (data.step_data.targetVisa) setTargetVisa(data.step_data.targetVisa as VisaType);
-            if (data.step_data.currentVisa) setCurrentVisa(data.step_data.currentVisa as VisaType);
-            if (data.step_data.i94Date) setI94Date(data.step_data.i94Date as string);
-            if (data.step_data.dependents) setDependents(data.step_data.dependents as Dependent[]);
-            
-            // Hydrate docs
-            if (data.step_data.docs) {
-              const savedDocs = data.step_data.docs as Record<string, string>;
-              setDocs(prev => {
-                const next = { ...prev };
-                // Add keys for dependents if they exist in saved data
-                Object.keys(savedDocs).forEach(key => {
-                  next[key] = { 
-                    file: null, 
-                    label: key.toUpperCase().replace(/_/g, ' '), 
-                    path: savedDocs[key] 
-                  };
-                });
-                return next;
-              });
-            }
+      if (data.step_data) {
+        if (data.step_data.targetVisa) setTargetVisa(data.step_data.targetVisa as VisaType);
+        if (data.step_data.currentVisa) setCurrentVisa(data.step_data.currentVisa as VisaType);
+        if (data.step_data.i94Date) setI94Date(data.step_data.i94Date as string);
+        if (data.step_data.dependents) setDependents(data.step_data.dependents as Dependent[]);
+        
+        // Hydrate docs
+        if (data.step_data.docs) {
+          const savedDocs = data.step_data.docs as Record<string, string>;
+          setDocs(prev => {
+            const next = { ...prev };
+            Object.keys(savedDocs).forEach(key => {
+              next[key] = { 
+                file: null, 
+                label: key.toUpperCase().replace(/_/g, ' '), 
+                path: savedDocs[key] 
+              };
+            });
+            return next;
+          });
+        }
       }
     }
     load();
@@ -593,12 +648,20 @@ export default function COSOnboardingPage() {
                                   <p className="text-[11px] text-slate-500 font-medium leading-tight">{t.cos.form.dependents.addFamilyPrompt}</p>
                                 </div>
                               </div>
-                              <button
-                                onClick={() => navigate(`/checkout/dependente-adicional-cos?parentId=${proc?.id}`)}
-                                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#1649c0] transition-all shadow-lg shadow-primary/20"
-                              >
-                                {t.cos.form.dependents.buySlot}
-                              </button>
+                              <div className="flex flex-col sm:flex-row items-center gap-2">
+                                <button
+                                  onClick={() => navigate(`/checkout/dependente-adicional-cos?id=${proc?.id}&upgrade=true`)}
+                                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#1649c0] transition-all shadow-lg shadow-primary/20"
+                                >
+                                  {t.cos.form.dependents.buySlot}
+                                </button>
+                                <button
+                                  onClick={() => window.location.reload()}
+                                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all"
+                                >
+                                  🔄 Atualizar Slots
+                                </button>
+                              </div>
                             </motion.div>
                           )}
                         </div>
@@ -945,15 +1008,19 @@ export default function COSOnboardingPage() {
             })()}
 
             {/* ── Fallback ── */}
-            {stepIdx !== 0 && stepIdx !== 1 && stepIdx !== 3 && stepIdx !== 5 && stepIdx !== 7 && stepIdx !== 8 && stepIdx !== 10 && stepIdx !== 12 && 
-             stepIdx !== 13 && stepIdx !== 14 && stepIdx !== 16 && stepIdx !== 18 && 
-             stepIdx !== 19 && stepIdx !== 20 && stepIdx !== 22 && stepIdx !== 24 && (
+            {![0, 1, 3, 5, 7, 8, 10, 12, 13, 14, 16, 18, 19, 20, 22, 24].includes(stepIdx) && (
               <div className="p-16 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4">
-                  <RiCheckDoubleLine className="text-3xl" />
+                <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 mx-auto mb-4">
+                  <RiLoader4Line className="text-3xl animate-spin" />
                 </div>
-                <h2 className="text-xl font-black text-slate-900 mb-2">{t.cos.form.underConstruction}</h2>
-                <p className="text-sm text-slate-400 font-medium">{t.cos.form.stepComingSoon}</p>
+                <h2 className="text-xl font-black text-slate-900 mb-2">Análise em Andamento</h2>
+                <p className="text-sm text-slate-400 font-medium">
+                  {service?.steps[stepIdx]?.title || "Etapa Administrativa"}: {service?.steps[stepIdx]?.description || "Nossa equipe está processando sua solicitação."}
+                </p>
+                <div className="mt-8 p-4 bg-slate-50 rounded-2xl border border-slate-100 max-w-sm mx-auto">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status do Processo</p>
+                    <p className="text-xs font-bold text-slate-600">Aguardando revisão interna de nossa equipe.</p>
+                </div>
               </div>
             )}
           </motion.div>

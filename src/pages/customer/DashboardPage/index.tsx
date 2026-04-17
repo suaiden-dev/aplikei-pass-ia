@@ -375,12 +375,26 @@ export default function CustomerDashboardPage() {
               if (proc) {
                 const oldData = (proc.step_data || {}) as any;
                 const currentSlots = parseInt(String(oldData.paid_dependents || 0), 10);
+                const purchases = oldData.purchases || [];
+                
+                const purchaseId = `REC_${recoverySlug}_${Date.now()}`;
+                
+                purchases.push({
+                  id: purchaseId,
+                  method: "recovery",
+                  amount: 0, // Unknown here
+                  dependents: recoveryDeps,
+                  slug: recoverySlug,
+                  date: new Date().toISOString()
+                });
+
                 await supabase
                   .from("user_services")
                   .update({
                     step_data: {
                       ...oldData,
-                      paid_dependents: currentSlots + recoveryDeps
+                      paid_dependents: currentSlots + recoveryDeps,
+                      purchases: purchases
                     }
                   })
                   .eq("id", recoveryParentId);

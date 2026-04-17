@@ -23,6 +23,8 @@ interface Props {
 export default function SevisFeeStep({ proc, user, onComplete }: Props) {
   const t = useT("onboarding");
   const [alreadyPaid, setAlreadyPaid] = useState<boolean | null>(null);
+
+  if (!t || !t.cos) return null;
   const [receiptPath, setReceiptPath] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

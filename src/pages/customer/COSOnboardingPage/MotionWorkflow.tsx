@@ -82,7 +82,7 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
 
   const handleProofSelect = useCallback((file: File) => {
     if (file.size > 8 * 1024 * 1024) {
-      toast.error(t.paymentMethods.zelle.uploadDesc);
+      toast.error(t?.paymentMethods?.zelle?.uploadDesc || "File too large");
       return;
     }
     setZelleProof(file);
@@ -127,7 +127,7 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
       const phone = user.phoneNumber || authUser?.user_metadata?.phone_number || "0000000000";
 
       if (!email) {
-        toast.error(t_onboarding.toasts.emailNotFound);
+        toast.error(t_onboarding?.toasts?.emailNotFound || "Email not found");
         return;
       }
 
@@ -149,7 +149,7 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
 
       } else if (activeMethod === "parcelow") {
         if (!parcelowCpf || !validateCPF(parcelowCpf)) {
-          throw new Error(t.paymentMethods.parcelow.cpfRequired);
+          throw new Error(t?.paymentMethods?.parcelow?.cpfRequired || "CPF required");
         }
 
         const { url } = await paymentService.createParcelowCheckout({
@@ -166,7 +166,7 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
         window.location.href = url;
 
       } else if (activeMethod === "zelle") {
-        toast.success(t.paymentMethods.zelle.pendingReview);
+        toast.success(t?.paymentMethods?.zelle?.pendingReview || "Pending review");
         setZelleDone(true);
       }
     } catch (e: unknown) {
@@ -190,8 +190,8 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
         {/* Header */}
         <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{t.title}</h3>
-            <p className="text-xs text-slate-400 font-bold mt-0.5">{t.success.confirmed}</p>
+            <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{t?.title}</h3>
+            <p className="text-xs text-slate-400 font-bold mt-0.5">{t?.success?.confirmed}</p>
           </div>
           <button
             onClick={onClose}
@@ -204,7 +204,7 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
         {/* Amount banner */}
         <div className="mx-8 mt-6 bg-primary/5 border border-primary/10 rounded-2xl p-5 flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{t.summary.total}</p>
+            <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{t?.summary?.total}</p>
             <h4 className="text-2xl font-black text-slate-800">$ {amount.toFixed(2)}</h4>
           </div>
           <RiMoneyDollarCircleLine className="text-4xl text-primary opacity-20" />
@@ -214,10 +214,10 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
         <div className="px-8 pt-6 pb-2">
           <div className="grid grid-cols-4 gap-2">
             {[
-              { id: "card", label: t.paymentMethods.card.label, sub: t.paymentMethods.card.sublabel, icon: <RiBankCardLine className="text-xl" /> },
-              { id: "pix", label: t.paymentMethods.pix.label, sub: t.paymentMethods.pix.sublabel, icon: <MdPix className="text-xl" /> },
-              { id: "zelle", label: t.paymentMethods.zelle.label, sub: t.paymentMethods.zelle.sublabel, icon: <span className="text-xs font-black tracking-tight leading-none">Z$</span> },
-              { id: "parcelow", label: t.paymentMethods.parcelow.label, sub: t.paymentMethods.parcelow.sublabel, icon: <span className="text-[10px] font-black tracking-tighter leading-none">PRC</span> },
+              { id: "card", label: t?.paymentMethods?.card?.label, sub: t?.paymentMethods?.card?.sublabel, icon: <RiBankCardLine className="text-xl" /> },
+              { id: "pix", label: t?.paymentMethods?.pix?.label, sub: t?.paymentMethods?.pix?.sublabel, icon: <MdPix className="text-xl" /> },
+              { id: "zelle", label: t?.paymentMethods?.zelle?.label, sub: t?.paymentMethods?.zelle?.sublabel, icon: <span className="text-xs font-black tracking-tight leading-none">Z$</span> },
+              { id: "parcelow", label: t?.paymentMethods?.parcelow?.label, sub: t?.paymentMethods?.parcelow?.sublabel, icon: <span className="text-[10px] font-black tracking-tighter leading-none">PRC</span> },
             ].map(m => (
               <button
                 key={m.id}
@@ -242,14 +242,14 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
           {activeMethod === "card" && (
             <div className="flex items-start gap-2.5 rounded-xl bg-blue-50 border border-blue-100 p-3">
               <RiBankCardLine className="text-blue-500 mt-0.5 shrink-0" />
-              <p className="text-xs text-blue-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.card.notice }} />
+              <p className="text-xs text-blue-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: t?.paymentMethods?.card?.notice || "" }} />
             </div>
           )}
 
           {activeMethod === "pix" && (
             <div className="flex items-start gap-2.5 rounded-xl bg-emerald-50 border border-emerald-100 p-3">
               <RiQrCodeLine className="text-emerald-500 mt-0.5 shrink-0" />
-              <p className="text-xs text-emerald-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.pix.notice }} />
+              <p className="text-xs text-emerald-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: t?.paymentMethods?.pix?.notice || "" }} />
             </div>
           )}
 
@@ -257,11 +257,11 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
             <div className="space-y-4">
               <div className="flex items-start gap-2.5 rounded-xl bg-orange-50 border border-orange-100 p-3">
                 <RiTimeLine className="text-orange-500 mt-0.5 shrink-0" />
-                <p className="text-xs text-orange-800 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.parcelow.notice }} />
+                <p className="text-xs text-orange-800 leading-relaxed" dangerouslySetInnerHTML={{ __html: t?.paymentMethods?.parcelow?.notice || "" }} />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="motionParcelowCpf">{t.paymentMethods.parcelow.cpfLabel}</Label>
+                <Label htmlFor="motionParcelowCpf">{t?.paymentMethods?.parcelow?.cpfLabel}</Label>
                 <Input
                   id="motionParcelowCpf"
                   placeholder="000.000.000-00"
@@ -271,7 +271,7 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
                 />
                 <div className="flex items-center gap-1 text-[10px] text-slate-400">
                   <RiInformationLine className="text-orange-400" />
-                  <span>{t.paymentMethods.parcelow.cpfNotice}</span>
+                  <span>{t?.paymentMethods?.parcelow?.cpfNotice}</span>
                 </div>
               </div>
             </div>
@@ -281,34 +281,34 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
             <div className="space-y-4">
               {/* Recipient info */}
               <div className="rounded-xl bg-violet-50 border border-violet-100 p-4">
-                <p className="text-[11px] font-bold text-violet-500 uppercase tracking-widest mb-2">{t.paymentMethods.zelle.notice}</p>
+                <p className="text-[11px] font-bold text-violet-500 uppercase tracking-widest mb-2">{t?.paymentMethods?.zelle?.notice}</p>
                 <div className="space-y-1">
-                  <p className="text-sm font-bold text-slate-800">{t.paymentMethods.zelle.name} {ZELLE_NAME}</p>
-                  <p className="text-sm text-slate-600 font-mono">{t.paymentMethods.zelle.email} {ZELLE_EMAIL}</p>
-                  <p className="text-sm text-slate-600 font-mono">{t.paymentMethods.zelle.phone} {ZELLE_PHONE}</p>
+                  <p className="text-sm font-bold text-slate-800">{t?.paymentMethods?.zelle?.name} {ZELLE_NAME}</p>
+                  <p className="text-sm text-slate-600 font-mono">{t?.paymentMethods?.zelle?.email} {ZELLE_EMAIL}</p>
+                  <p className="text-sm text-slate-600 font-mono">{t?.paymentMethods?.zelle?.phone} {ZELLE_PHONE}</p>
                 </div>
                 <p className="text-[11px] text-violet-500 mt-2 leading-snug">
-                  {t.paymentMethods.zelle.confirmTitle}
+                  {t?.paymentMethods?.zelle?.confirmTitle}
                 </p>
               </div>
 
               {/* Zelle fields */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="motionZelleAmount">{t.paymentMethods.zelle.amountSent}</Label>
+                  <Label htmlFor="motionZelleAmount">{t?.paymentMethods?.zelle?.amountSent}</Label>
                   <Input
                     id="motionZelleAmount"
                     type="number"
                     step="0.01"
                     min="1"
-                    placeholder={t.paymentMethods.zelle.amountPlaceholder}
+                    placeholder={t?.paymentMethods?.zelle?.amountPlaceholder}
                     className="mt-1.5"
                     value={zelleAmount}
                     onChange={e => setZelleAmount(e.target.value)}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="motionZelleDate">{t.paymentMethods.zelle.paymentDate}</Label>
+                  <Label htmlFor="motionZelleDate">{t?.paymentMethods?.zelle?.paymentDate}</Label>
                   <Input
                     id="motionZelleDate"
                     type="date"
@@ -322,11 +322,11 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
 
               <div>
                 <Label htmlFor="motionZelleCode">
-                  {t.paymentMethods.zelle.confirmationCode} <span className="text-slate-400 font-normal">{t.paymentMethods.zelle.confirmationCode.includes("(") ? "" : "(opcional)"}</span>
+                  {t?.paymentMethods?.zelle?.confirmationCode} <span className="text-slate-400 font-normal">{t?.paymentMethods?.zelle?.confirmationCode?.includes("(") ? "" : "(opcional)"}</span>
                 </Label>
                 <Input
                   id="motionZelleCode"
-                  placeholder={t.paymentMethods.zelle.confirmationPlaceholder}
+                  placeholder={t?.paymentMethods?.zelle?.confirmationPlaceholder}
                   className="mt-1.5"
                   value={zelleCode}
                   onChange={e => setZelleCode(e.target.value)}
@@ -335,7 +335,7 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
 
               {/* Proof upload */}
               <div>
-                <Label>{t.paymentMethods.zelle.uploadProof}</Label>
+                <Label>{t?.paymentMethods?.zelle?.uploadProof}</Label>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -348,7 +348,7 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
                 />
                 {zelleProofPreview ? (
                   <div className="mt-1.5 relative rounded-xl overflow-hidden border border-slate-200">
-                    <img src={zelleProofPreview} alt={t.paymentMethods.zelle.uploadProof} className="w-full max-h-40 object-cover" />
+                    <img src={zelleProofPreview} alt={t?.paymentMethods?.zelle?.uploadProof} className="w-full max-h-40 object-cover" />
                     <button
                       type="button"
                       onClick={() => { setZelleProof(null); setZelleProofPreview(null); }}
@@ -374,8 +374,8 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
                     className="mt-1.5 w-full border-2 border-dashed border-slate-200 rounded-xl py-6 flex flex-col items-center gap-2 text-slate-400 hover:border-primary/40 hover:bg-primary/3 transition-colors"
                   >
                     <RiUploadCloud2Line className="text-2xl" />
-                    <span className="text-xs font-medium">{t.paymentMethods.zelle.uploadProof}</span>
-                    <span className="text-[10px]">{t.paymentMethods.zelle.uploadDesc}</span>
+                    <span className="text-xs font-medium">{t?.paymentMethods?.zelle?.uploadProof}</span>
+                    <span className="text-[10px]">{t?.paymentMethods?.zelle?.uploadDesc}</span>
                   </button>
                 )}
               </div>
@@ -385,14 +385,14 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
           {activeMethod === "zelle" && zelleDone && (
             <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-5 text-center">
               <RiCheckLine className="text-emerald-500 text-3xl mx-auto mb-2" />
-              <p className="font-bold text-slate-800 text-sm">{t.paymentMethods.zelle.pendingReview.split("!")[0]}!</p>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.zelle.pendingReview.split("!")[1] || t.paymentMethods.zelle.pendingReview }} />
+              <p className="font-bold text-slate-800 text-sm">{t?.paymentMethods?.zelle?.pendingReview?.split("!")[0]}!</p>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: t?.paymentMethods?.zelle?.pendingReview?.split("!")[1] || t?.paymentMethods?.zelle?.pendingReview }} />
               <button
                  type="button"
                  onClick={onClose}
                  className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs"
               >
-                 {t.paymentMethods.zelle.goDashboard}
+                 {t?.paymentMethods?.zelle?.goDashboard}
               </button>
             </div>
           )}
@@ -407,15 +407,15 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
               {loading ? (
                 <>
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  {t.redirecting}
+                  {t?.redirecting || "Redirecting..."}
                 </>
               ) : (
                 <>
                   <RiLockLine className="text-base" />
-                  {activeMethod === "card" && t.paymentMethods.card.label}
-                  {activeMethod === "pix" && t.paymentMethods.pix.label}
-                  {activeMethod === "zelle" && t.paymentMethods.zelle.submit}
-                  {activeMethod === "parcelow" && t.paymentMethods.parcelow.label}
+                  {activeMethod === "card" && t?.paymentMethods?.card?.label}
+                  {activeMethod === "pix" && t?.paymentMethods?.pix?.label}
+                  {activeMethod === "zelle" && t?.paymentMethods?.zelle?.submit}
+                  {activeMethod === "parcelow" && t?.paymentMethods?.parcelow?.label}
                   <RiArrowRightLine className="text-base" />
                 </>
               )}
@@ -424,7 +424,7 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
 
           <p className="text-center text-[11px] text-slate-400 flex items-center justify-center gap-1">
             <RiShieldCheckLine />
-            {t.paymentMethods.card.notice.includes("SSL") ? t.paymentMethods.card.notice : "Protected by 256-bit SSL encryption."}
+            {t?.paymentMethods?.card?.notice?.includes("SSL") ? t?.paymentMethods?.card?.notice : "Protected by 256-bit SSL encryption."}
           </p>
         </div>
       </div>
@@ -451,15 +451,15 @@ export function MotionExplanationStep({ proc, onComplete: _onComplete }: StepPro
           <div className="w-20 h-20 rounded-3xl bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-8 shadow-inner">
              <RiErrorWarningLine className="text-4xl" />
           </div>
-          <h2 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tight">{t.workflows.motion.explanation.title}</h2>
+          <h2 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tight">{t?.workflows?.motion?.explanation?.title}</h2>
           <p className="text-slate-500 leading-relaxed max-w-md mx-auto mb-10 overflow-hidden text-ellipsis line-clamp-3">
-            {t.workflows.motion.explanation.desc}
+            {t?.workflows?.motion?.explanation?.desc}
           </p>
 
           <div className="bg-slate-50 rounded-3xl p-8 mb-10 text-left border border-slate-100">
-             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{t.workflows.motion.explanation.howItWorks}</h4>
+             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{t?.workflows?.motion?.explanation?.howItWorks}</h4>
              <div className="space-y-4">
-                {t.workflows.motion.explanation.features.map((feature: string, i: number) => (
+                {t?.workflows?.motion?.explanation?.features?.map((feature: string, i: number) => (
                   <div key={i} className="flex gap-3">
                     <RiCheckDoubleLine className="text-primary text-lg shrink-0 mt-1" />
                     <p className="text-sm text-slate-600">{feature}</p>
@@ -472,15 +472,15 @@ export function MotionExplanationStep({ proc, onComplete: _onComplete }: StepPro
             onClick={() => setShowCheckout(true)}
             className="w-full bg-primary hover:bg-primary-hover text-white py-6 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3"
           >
-            {t.workflows.motion.explanation.btn}
+            {t?.workflows?.motion?.explanation?.btn}
             <RiMoneyDollarCircleLine className="text-xl" />
           </button>
           <div className="mt-4 flex flex-col items-center gap-1">
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">
-              {t.workflows.shared.analysisFee.replace("{amount}", baseAmount.toFixed(2))}
+              {t?.workflows?.shared?.analysisFee?.replace("{amount}", baseAmount.toFixed(2)) || `Fee: $${baseAmount.toFixed(2)}`}
             </p>
             <p className="text-[9px] text-primary/50 font-black uppercase tracking-tighter">
-              {t.workflows.shared.processingFees}
+              {t?.workflows?.shared?.processingFees}
             </p>
           </div>
         </div>
@@ -513,7 +513,7 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
   const handleFileUpload = async (file: File) => {
     try {
       setLoading(true);
-      toast.loading(t.workflows.shared.sendingFile, { id: "upload" });
+      toast.loading(t?.workflows?.shared?.sendingFile || "Sending...", { id: "upload" });
       const fileExt = file.name.split(".").pop();
       const filePath = `${proc.user_id}/motion/${crypto.randomUUID()}.${fileExt}`;
       
@@ -535,7 +535,7 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
         userId: proc.user_id
       });
 
-      toast.success(t.workflows.shared.fileSent, { id: "upload" });
+      toast.success(t?.workflows?.shared?.fileSent || "File sent!", { id: "upload" });
     } catch (e: unknown) {
       const err = e as Error;
       toast.error("Erro no upload: " + err.message, { id: "upload" });
@@ -546,7 +546,7 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
 
   const handleSave = async () => {
     if (!reason.trim()) {
-      toast.error(t.workflows.motion.instruction.reasonLabel);
+      toast.error(t?.workflows?.motion?.instruction?.reasonLabel || "Description required");
       return;
     }
     try {
@@ -575,32 +575,32 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div className="bg-white rounded-[40px] border border-slate-100 p-12 shadow-sm">
-        <h3 className="text-2xl font-black text-slate-800 mb-6 uppercase tracking-tight">{t.workflows.motion.instruction.title}</h3>
+        <h3 className="text-2xl font-black text-slate-800 mb-6 uppercase tracking-tight">{t?.workflows?.motion?.instruction?.title}</h3>
         
         <div className="space-y-6">
           <div>
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
-              {t.workflows.motion.instruction.reasonLabel}
+              {t?.workflows?.motion?.instruction?.reasonLabel}
             </label>
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none min-h-[150px]"
-              placeholder={t.workflows.motion.instruction.reasonPlaceholder}
+              placeholder={t?.workflows?.motion?.instruction?.reasonPlaceholder}
             />
           </div>
 
           <div>
              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
-                {t.workflows.motion.instruction.uploadLabel}
+                {t?.workflows?.motion?.instruction?.uploadLabel}
              </label>
              <DocUploadCard
                 docKey="motion_denial_letter"
-                title={t.workflows.motion.instruction.uploadTitle}
-                subtitle={t.workflows.motion.instruction.uploadSubtitle}
+                title={t?.workflows?.motion?.instruction?.uploadTitle}
+                subtitle={t?.workflows?.motion?.instruction?.uploadSubtitle}
                 doc={{
                   file: null,
-                  label: t.workflows.motion.instruction.uploadStatus,
+                  label: t?.workflows?.motion?.instruction?.uploadStatus,
                   path: (data.docs as Record<string, string>)?.motion_denial_letter
                 }}
                 onChange={(_key: string, file: File) => handleFileUpload(file)}
@@ -615,7 +615,7 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
               loading && "opacity-50 cursor-not-allowed"
             )}
           >
-            {loading ? t.workflows.shared.saving : t.workflows.motion.instruction.btn}
+            {loading ? t?.workflows?.shared?.saving : t?.workflows?.motion?.instruction?.btn}
             {!loading && <RiArrowRightLine className="text-xl" />}
           </button>
         </div>
@@ -633,7 +633,7 @@ export function MotionAcceptProposalStep({ proc, onComplete: _onComplete }: Step
   const t = useT("onboarding");
   const [showCheckout, setShowCheckout] = useState(false);
   const data = (proc.step_data || {}) as Record<string, unknown>;
-  const proposalText = (data.motion_proposal_text as string) || t.workflows.motion.proposal.defaultStrategy;
+  const proposalText = (data.motion_proposal_text as string) || t?.workflows?.motion?.proposal?.defaultStrategy;
   const proposalAmount = Number(data.motion_proposal_amount) || 0;
 
   return (
@@ -643,11 +643,11 @@ export function MotionAcceptProposalStep({ proc, onComplete: _onComplete }: Step
           <div className="w-20 h-20 rounded-3xl bg-indigo-50 text-indigo-500 flex items-center justify-center mx-auto mb-8 shadow-inner">
              <RiShieldCheckLine className="text-4xl" />
           </div>
-          <h2 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tight">{t.workflows.motion.proposal.title}</h2>
+          <h2 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tight">{t?.workflows?.motion?.proposal?.title}</h2>
           
           <div className="flex items-center justify-center gap-3 mb-10">
              <div className="h-px w-8 bg-slate-100" />
-             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{t.workflows.motion.proposal.strategyLabel}</p>
+             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{t?.workflows?.motion?.proposal?.strategyLabel}</p>
              <div className="h-px w-8 bg-slate-100" />
           </div>
 
@@ -657,7 +657,7 @@ export function MotionAcceptProposalStep({ proc, onComplete: _onComplete }: Step
 
           <div className="bg-primary/5 border border-primary/10 rounded-3xl p-8 mb-4 flex items-center justify-between">
              <div>
-                <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{t.workflows.shared.serviceCost}</p>
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{t?.workflows?.shared?.serviceCost}</p>
                 <h4 className="text-3xl font-black text-slate-800">$ {proposalAmount.toFixed(2)}</h4>
              </div>
              <RiMoneyDollarCircleLine className="text-5xl text-primary opacity-20" />
@@ -665,11 +665,11 @@ export function MotionAcceptProposalStep({ proc, onComplete: _onComplete }: Step
 
           <div className="flex items-center justify-center gap-4 mb-10 px-4">
              <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded-lg border border-slate-100">
-               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">{t.workflows.shared.ref}</span>
+               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">{t?.workflows?.shared?.ref}</span>
                <span className="text-[10px] font-mono text-slate-500">{proc.service_slug}</span>
              </div>
              <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded-lg border border-slate-100">
-               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">{t.workflows.shared.id}</span>
+               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">{t?.workflows?.shared?.id}</span>
                <span className="text-[10px] font-mono text-slate-500">{proc.id.slice(0, 8)}</span>
              </div>
           </div>
@@ -679,13 +679,13 @@ export function MotionAcceptProposalStep({ proc, onComplete: _onComplete }: Step
             disabled={proposalAmount <= 0}
             className="w-full bg-primary hover:bg-primary-hover text-white py-6 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
           >
-            {t.workflows.motion.proposal.btn}
+            {t?.workflows?.motion?.proposal?.btn}
             <RiArrowRightLine className="text-xl" />
           </button>
           
           {proposalAmount > 0 && (
             <p className="mt-4 text-[9px] text-slate-400 font-bold uppercase tracking-widest text-center italic">
-              {t.workflows.checkout.totalWithTax.replace("{amount}", estimateCardTotal(proposalAmount).toFixed(2))}
+              {t?.workflows?.checkout?.totalWithTax?.replace("{amount}", estimateCardTotal(proposalAmount).toFixed(2)) || `Total: $${estimateCardTotal(proposalAmount).toFixed(2)}`}
             </p>
           )}
         </div>
@@ -723,7 +723,7 @@ export function MotionEndStep({ proc, onComplete }: StepProps) {
         motion_final_result: result,
         motion_ended_at: new Date().toISOString()
       });
-      toast.success(t.toasts.finishSuccess);
+      toast.success(t?.toasts?.finishSuccess || "Finished");
       onComplete?.();
     } catch (e: unknown) {
       const err = e as Error;
@@ -740,8 +740,8 @@ export function MotionEndStep({ proc, onComplete }: StepProps) {
            <div className="w-16 h-16 rounded-2xl bg-white text-emerald-500 flex items-center justify-center mb-4 shadow-sm">
               <RiDownload2Line className="text-3xl" />
            </div>
-           <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{t.workflows.motion.end.packageTitle}</h3>
-           <p className="text-xs text-slate-500 font-medium mt-1 mb-6">{t.workflows.motion.end.packageDesc}</p>
+           <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{t?.workflows?.motion?.end?.packageTitle}</h3>
+           <p className="text-xs text-slate-500 font-medium mt-1 mb-6">{t?.workflows?.motion?.end?.packageDesc}</p>
            <a 
             href={motionLetterUrl} 
             target="_blank" 
@@ -757,9 +757,9 @@ export function MotionEndStep({ proc, onComplete }: StepProps) {
         <div className="w-20 h-20 rounded-3xl bg-primary/5 text-primary flex items-center justify-center mx-auto mb-8">
            <RiCheckDoubleLine className="text-4xl" />
         </div>
-        <h2 className="text-2xl font-black text-slate-800 mb-3 uppercase tracking-tight">{t.workflows.motion.end.resultTitle}</h2>
+        <h2 className="text-2xl font-black text-slate-800 mb-3 uppercase tracking-tight">{t?.workflows?.motion?.end?.resultTitle}</h2>
         <p className="text-sm text-slate-400 font-medium max-w-sm mx-auto leading-relaxed mb-10">
-          {t.workflows.motion.end.resultDesc}
+          {t?.workflows?.motion?.end?.resultDesc}
         </p>
 
         <div className="grid grid-cols-2 gap-4">
@@ -769,7 +769,7 @@ export function MotionEndStep({ proc, onComplete }: StepProps) {
             className="flex flex-col items-center justify-center p-8 bg-emerald-50 border border-emerald-100 rounded-3xl hover:bg-emerald-100 transition-all group"
           >
             <RiCheckDoubleLine className="text-3xl text-emerald-500 mb-3 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">{t.workflows.motion.end.approved}</span>
+            <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">{t?.workflows?.motion?.end?.approved}</span>
           </button>
 
           <button
@@ -778,7 +778,7 @@ export function MotionEndStep({ proc, onComplete }: StepProps) {
             className="flex flex-col items-center justify-center p-8 bg-red-50 border border-red-100 rounded-3xl hover:bg-red-100 transition-all group"
           >
             <RiSpam2Line className="text-3xl text-red-500 mb-3 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-black text-red-700 uppercase tracking-widest">{t.workflows.motion.end.denied}</span>
+            <span className="text-[10px] font-black text-red-700 uppercase tracking-widest">{t?.workflows?.motion?.end?.denied}</span>
           </button>
         </div>
       </div>

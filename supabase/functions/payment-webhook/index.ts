@@ -51,7 +51,8 @@ serve(async (req) => {
           dependents: parseInt(session.metadata.dependents || "0", 10),
           proc_id: session.metadata.proc_id || session.metadata.processId,
           payment_method: "stripe",
-          status: "complete"
+          status: "complete",
+          payment_id: session.id
         });
       }
 
@@ -102,7 +103,8 @@ serve(async (req) => {
           dependents: dependents,
           proc_id: procId,
           payment_method: "parcelow",
-          status: "complete"
+          status: "complete",
+          payment_id: payload.id || reference
         });
       }
 
@@ -119,7 +121,7 @@ serve(async (req) => {
 
 // === FUNÇÃO CENTRALIZADA DE ATIVAÇÃO ===
 async function handlePaymentSuccess(data) {
-  const { user_id, service_slug, payment_method, status, proc_id, paid_amount, dependents } = data;
+  const { user_id, service_slug, payment_method, status, proc_id, paid_amount, dependents, payment_id } = data;
 
   if (!user_id || !service_slug) {
     console.error("Dados insuficientes no webhook:", data);
@@ -128,55 +130,140 @@ async function handlePaymentSuccess(data) {
 
   console.log(`🚀 Ativando serviço ${service_slug} para ${user_id}`);
 
+  let targetProcId = proc_id;
+
+  // FALLBACK: Se for compra de slot extra e não tiver proc_id, tenta encontrar o processo ativo do usuário
+  if (!targetProcId && service_slug.includes("dependente-adicional")) {
+     const mainSlugs = service_slug.includes("cos") ? ["troca-status", "extensao-status"] : ["visto-b1-b2"];
+     const { data: activeMain } = await supabase
+       .from("user_services")
+       .select("id")
+       .eq("user_id", user_id)
+       .in("service_slug", mainSlugs)
+       .in("status", ["active", "awaiting_review", "awaiting_payment", "paid"])
+       .order("created_at", { ascending: false })
+       .limit(1)
+       .maybeSingle();
+     
+     if (activeMain) {
+       targetProcId = activeMain.id;
+       console.log(`[Webhook] Fallback: Vinculando slot extra ao processo ${targetProcId}`);
+     }
+  }
+
   // 1. Marcar visa_orders como "complete"
-  // (Caso o sistema já tenha criado como pending ao gerar o link)
   await supabase
     .from("visa_orders")
     .update({ payment_status: "complete" })
     .match({ user_id: user_id, product_slug: service_slug, payment_status: "pending" });
 
-  // 2. Criar ou Atualizar user_services se não for avanço ou dependente extra
-  if (!proc_id) {
+  // 2. Criar ou Atualizar user_services
+  if (!targetProcId) {
     // IDEMPOTÊNCIA: Verifica se já existe um serviço ativo idêntico criado recentemente
     const { data: existing } = await supabase
       .from("user_services")
-      .select("id")
+      .select("id, step_data")
       .eq("user_id", user_id)
       .eq("service_slug", service_slug)
-      .in("status", ["active", "awaiting_review", "awaitingInterview", "casvPaymentPending"])
+      .in("status", ["active", "awaiting_review", "awaitingInterview", "casvPaymentPending", "paid"])
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
     if (existing) {
-      console.log(`[Webhook] Serviço já existe para o usuário: ${existing.id}. Pulando insert.`);
+      console.log(`[Webhook] Serviço já existe para o usuário: ${existing.id}. Atualizando se necessário.`);
+      targetProcId = existing.id;
+      // Continue para a lógica de atualização...
+    } else {
+      // Nova Compra de Serviço Principal
+      const newPurchase = {
+        id: payment_id || `TRX_${Date.now()}`,
+        method: payment_method,
+        amount: paid_amount,
+        dependents: dependents || 0,
+        slug: service_slug,
+        date: new Date().toISOString()
+      };
+
+      const { error: insertError } = await supabase.from("user_services").insert({
+        user_id: user_id,
+        service_slug: service_slug,
+        status: "active",
+        current_step: 0,
+        step_data: { 
+          paid_dependents: dependents || 0,
+          purchases: [newPurchase]
+        },
+        data: {}
+      });
+
+      if (insertError) {
+        console.error("Erro ao criar user_services:", insertError.message);
+      } else {
+        await supabase.from("notifications").insert({
+            user_id: user_id,
+            type: "system",
+            title: "Pagamento Confirmado! 🎉",
+            message: `Seu processo para ${service_slug} está liberado no dashboard.`
+        });
+      }
       return;
     }
+  }
 
-    // Nova Compra de Serviço Principal
-    const { error: insertError } = await supabase.from("user_services").insert({
-      user_id: user_id,
-      service_slug: service_slug,
-      status: "active",
-      current_step: 0,
-      step_data: { paid_dependents: dependents },
-      data: {}
-    });
-
-    if (insertError) {
-      console.error("Erro ao criar user_services:", insertError.message);
-    } else {
-       // Opcional: Criar notificação para o usuário informando que ativou
-       await supabase.from("notifications").insert({
-          user_id: user_id,
-          type: "system",
-          title: "Pagamento Confirmado! 🎉",
-          message: `Seu processo para ${service_slug} está liberado no dashboard.`
-       });
-    }
-  } else {
+  if (targetProcId) {
      // Lógica de avanço/dependente extra: atualizar o proc_id existente
-     console.log(`Fazendo update no proc_id: ${proc_id}`);
-     // ... (a lógica depende dos metadados para adicionar slots de pagamento)
+     console.log(`Fazendo update no targetProcId: ${targetProcId}`);
+     
+     const { data: currentProc } = await supabase
+       .from("user_services")
+       .select("step_data, service_slug")
+       .eq("id", targetProcId)
+       .single();
+
+     if (currentProc) {
+       const stepData = currentProc.step_data || {};
+       const purchases = (stepData.purchases as any[]) || [];
+       
+       // Idempotency: Check if this payment was already processed
+       if (payment_id && purchases.some(p => p.id === payment_id)) {
+         console.log(`[Webhook] Pagamento ${payment_id} já processado para ${targetProcId}.`);
+         return;
+       }
+
+       const currentCount = parseInt(String(stepData.paid_dependents ?? 0), 10);
+       let newCount = currentCount;
+       const isAdditionalSlot = service_slug.includes("dependente-adicional");
+
+       if (isAdditionalSlot) {
+         newCount += (dependents || 1);
+       } else if (dependents > currentCount) {
+         newCount = dependents;
+       }
+
+       const newPurchase = {
+         id: payment_id || `TRX_${Date.now()}`,
+         method: payment_method,
+         amount: paid_amount,
+         dependents: dependents || 0,
+         slug: service_slug,
+         date: new Date().toISOString()
+       };
+       
+       purchases.push(newPurchase);
+
+       await supabase
+         .from("user_services")
+         .update({ 
+           step_data: { 
+             ...stepData, 
+             paid_dependents: newCount,
+             purchases: purchases
+           } 
+         })
+         .eq("id", targetProcId);
+
+       console.log(`[Webhook] Atualizado slots para ${newCount} no processo ${targetProcId}`);
+     }
   }
 }

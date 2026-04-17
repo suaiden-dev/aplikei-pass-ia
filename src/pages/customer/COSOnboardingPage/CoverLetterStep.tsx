@@ -43,6 +43,9 @@ interface Props {
 export default function CoverLetterStep({ proc, user, onComplete }: Props) {
   const t = useT("onboarding");
   const [data, setData] = useState<CoverLetterData>({});
+
+  if (!t || !t.cos) return null;
+
   const [html, setHtml] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

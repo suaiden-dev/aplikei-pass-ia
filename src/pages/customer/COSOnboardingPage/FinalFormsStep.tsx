@@ -79,6 +79,9 @@ interface Props {
 
 export default function FinalFormsStep({ proc, user, onComplete }: Props) {
   const t = useT("onboarding");
+
+  if (!t || !t.cos) return null;
+
   const [data, setData] = useState<FinalFormsData>({
     g1145: { lastName: "", firstName: "", middleName: "", email: "", mobile: "" },
     g1450: { 

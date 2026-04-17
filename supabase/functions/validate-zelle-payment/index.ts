@@ -108,6 +108,30 @@ serve(async (req) => {
                     .eq("id", payment.visa_order_id);
             }
 
+            // --- NOVO: Ativação de Slots / User Services ---
+            try {
+                const { data: order } = payment.visa_order_id 
+                    ? await supabase.from("visa_orders").select("payment_metadata").eq("id", payment.visa_order_id).single()
+                    : { data: null };
+                
+                const meta = order?.payment_metadata as any;
+                const dependentsCount = parseInt(String(meta?.dependents ?? 0), 10);
+                const proc_id = meta?.proc_id || meta?.processId;
+
+                await handlePaymentSuccess({
+                    user_id: payment.user_id,
+                    service_slug: payment.service_slug,
+                    payment_method: "zelle",
+                    paid_amount: payment.amount,
+                    dependents: dependentsCount,
+                    proc_id: proc_id,
+                    payment_id: payment.id,
+                    supabase: supabase
+                });
+            } catch (actErr) {
+                console.error("[validate-zelle] Erro ao ativar slots:", actErr.message);
+            }
+
             // 3. Notifica o cliente (se autenticado)
             const clientUserId = payment.user_id || null;
             if (clientUserId) {
@@ -196,3 +220,124 @@ serve(async (req) => {
         );
     }
 });
+
+// === FUNÇÃO CENTRALIZADA DE ATIVAÇÃO (Ported from payment-webhook) ===
+async function handlePaymentSuccess(data: any) {
+  const { user_id, service_slug, payment_method, proc_id, paid_amount, dependents, payment_id, supabase } = data;
+
+  if (!user_id || !service_slug) {
+    console.error("Dados insuficientes no activation helper:", data);
+    return;
+  }
+
+  console.log(`🚀 [Zelle] Ativando serviço ${service_slug} para ${user_id}`);
+
+  let targetProcId = proc_id;
+
+  // FALLBACK: Procurar processo principal ativo
+  if (!targetProcId && service_slug.includes("dependente-adicional")) {
+     const mainSlugs = service_slug.includes("cos") ? ["troca-status", "extensao-status"] : ["visto-b1-b2"];
+     const { data: activeMain } = await supabase
+       .from("user_services")
+       .select("id")
+       .eq("user_id", user_id)
+       .in("service_slug", mainSlugs)
+       .in("status", ["active", "awaiting_review", "awaiting_payment", "paid"])
+       .order("created_at", { ascending: false })
+       .limit(1)
+       .maybeSingle();
+     
+     if (activeMain) {
+       targetProcId = activeMain.id;
+     }
+  }
+
+  if (!targetProcId) {
+    // Verifica se já existe um serviço ativo
+    const { data: existing } = await supabase
+      .from("user_services")
+      .select("id, step_data")
+      .eq("user_id", user_id)
+      .eq("service_slug", service_slug)
+      .in("status", ["active", "awaiting_review", "awaitingInterview", "casvPaymentPending", "paid"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      targetProcId = existing.id;
+    } else {
+      // Nova Compra
+      const newPurchase = {
+        id: payment_id || `TRX_${Date.now()}`,
+        method: payment_method,
+        amount: paid_amount,
+        dependents: dependents || 0,
+        slug: service_slug,
+        date: new Date().toISOString()
+      };
+
+      await supabase.from("user_services").insert({
+        user_id: user_id,
+        service_slug: service_slug,
+        status: "active",
+        current_step: 0,
+        step_data: { 
+          paid_dependents: dependents || 0,
+          purchases: [newPurchase]
+        },
+        data: {}
+      });
+      return;
+    }
+  }
+
+  if (targetProcId) {
+     const { data: currentProc } = await supabase
+       .from("user_services")
+       .select("step_data")
+       .eq("id", targetProcId)
+       .single();
+
+     if (currentProc) {
+       const stepData = currentProc.step_data || {};
+       const purchases = (stepData.purchases as any[]) || [];
+       
+       if (payment_id && purchases.some((p: any) => p.id === payment_id)) {
+         return;
+       }
+
+       const currentCount = parseInt(String(stepData.paid_dependents ?? 0), 10);
+       let newCount = currentCount;
+       const isAdditionalSlot = service_slug.includes("dependente-adicional");
+
+       if (isAdditionalSlot) {
+         newCount += (dependents || 1);
+       } else if (dependents > currentCount) {
+         newCount = dependents;
+       }
+
+       const newPurchase = {
+         id: payment_id || `TRX_${Date.now()}`,
+         method: payment_method,
+         amount: paid_amount,
+         dependents: dependents || 0,
+         slug: service_slug,
+         date: new Date().toISOString()
+       };
+       
+       purchases.push(newPurchase);
+
+       await supabase
+         .from("user_services")
+         .update({ 
+           step_data: { 
+             ...stepData, 
+             paid_dependents: newCount,
+             purchases: purchases
+           } 
+         })
+         .eq("id", targetProcId);
+     }
+  }
+}

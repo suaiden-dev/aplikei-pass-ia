@@ -21,6 +21,8 @@ interface Props {
 export default function I20UploadStep({ proc, user, onComplete }: Props) {
   const t = useT("onboarding");
   const [i20Path, setI20Path] = useState<string>("");
+
+  if (!t || !t.cos) return null;
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

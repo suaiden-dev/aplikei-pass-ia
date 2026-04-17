@@ -1192,6 +1192,18 @@ export default function AdminProcessDetailPage() {
     try {
       let nextStep = currentStepIdx + 1;
 
+      // --- SKIP LOGIC: Se o visto de destino NÃO for F1, pula I-20 e SEVIS ---
+      const isCOS = proc.service_slug.includes("troca-status") || proc.service_slug.includes("extensao-status");
+      if (isCOS) {
+        const targetVisa = proc.step_data?.targetVisa as string;
+        if (targetVisa !== "F1") {
+          const stepsToSkipIds = ["cos_i20_upload", "cos_sevis_fee", "cos_analysis_i20_sevis", "eos_i20_upload", "eos_sevis_fee", "eos_analysis_i20_sevis"];
+          while (nextStep < service.steps.length && stepsToSkipIds.includes(service.steps[nextStep].id)) {
+            nextStep++;
+          }
+        }
+      }
+
       const isConsular = proc.service_slug.startsWith("visto-b1-b2") || proc.service_slug.startsWith("visto-f1");
       const isFinal = nextStep >= service.steps.length && !isConsular;
 

@@ -118,6 +118,15 @@ export const processService = {
       return;
     }
 
+    const initialPurchase = {
+      id: `INIT_${slug}_${Date.now()}`,
+      method: "activation",
+      amount: 0,
+      dependents: paidDependents,
+      slug: slug,
+      date: new Date().toISOString()
+    };
+
     const { error } = await supabase
       .from("user_services")
       .insert({
@@ -125,7 +134,10 @@ export const processService = {
         service_slug: slug,
         status: "active",
         current_step: 0,
-        step_data: { paid_dependents: paidDependents }
+        step_data: { 
+          paid_dependents: paidDependents,
+          purchases: [initialPurchase]
+        }
       });
 
     if (error) {
@@ -137,9 +149,15 @@ export const processService = {
           .match({ user_id: userId, service_slug: slug })
           .maybeSingle();
 
+        const currentStepData = (current?.step_data as any || {});
+        const purchases = currentStepData.purchases || [];
+        
+        purchases.push(initialPurchase);
+
         const mergedStepData = {
-          ...(current?.step_data as object || {}),
-          paid_dependents: paidDependents
+          ...currentStepData,
+          paid_dependents: paidDependents,
+          purchases: purchases
         };
 
         await supabase.from("user_services").upsert({

@@ -118,6 +118,7 @@ function PriceSummary({
   method: PaymentTab;
   discountUSD?: number;
   couponCode?: string;
+  isUpgrade?: boolean;
 }) {
   const t = useT("checkout").product;
   const subtotalBeforeDiscount = baseUSD + dependents * depUSD;
@@ -132,13 +133,15 @@ function PriceSummary({
 
   return (
     <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-2.5 text-sm">
-      <div className="flex justify-between text-slate-600">
-        <span>{t.summary.mainService}</span>
-        <span className="font-semibold">US$ {baseUSD.toFixed(2)}</span>
-      </div>
+      {!isUpgrade && (
+        <div className="flex justify-between text-slate-600">
+          <span>{t.summary.mainService}</span>
+          <span className="font-semibold">US$ {baseUSD.toFixed(2)}</span>
+        </div>
+      )}
       {dependents > 0 && (
         <div className="flex justify-between text-slate-600">
-          <span>{t.summary.dependentsCount.replace("{{count}}", dependents.toString())}</span>
+          <span>{isUpgrade ? `${t.summary.slotsCount} (${dependents}x)` : t.summary.dependentsCount.replace("{{count}}", dependents.toString())}</span>
           <span className="font-semibold">US$ {(dependents * depUSD).toFixed(2)}</span>
         </div>
       )}
@@ -203,12 +206,12 @@ export default function CheckoutPage() {
   const { user } = useAuth();
 
   const isUpgrade = searchParams.get("upgrade") === "true";
-  const parentId = searchParams.get("id");
+  const parentId = searchParams.get("id") || searchParams.get("parentId") || searchParams.get("processId");
 
 
   const service = getServiceBySlug(slug || "");
   const [activeMethod, setActiveMethod] = useState<PaymentTab>("card");
-  const [dependents, setDependents] = useState(0);
+  const [dependents, setDependents] = useState(searchParams.get("upgrade") === "true" ? 1 : 0);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [zelleDone, setZelleDone] = useState(false);
   const [zelleAutoApproved, setZelleAutoApproved] = useState(false);
@@ -261,8 +264,8 @@ export default function CheckoutPage() {
 
   const baseUSD = service ? parsePriceUSD(service.price) : 0;
   const depUSD = isUpgrade ? baseUSD : (service ? parsePriceUSD(service.dependentPrice) : 0);
-  const checkoutCount = isUpgrade ? (dependents - 1) : dependents;
-  const subtotalUSD = baseUSD + (checkoutCount * depUSD);
+  const checkoutCount = dependents;
+  const subtotalUSD = isUpgrade ? (dependents * baseUSD) : (baseUSD + (dependents * depUSD));
 
   const discountUSD = appliedCoupon?.valid 
     ? calculateDiscount(subtotalUSD, appliedCoupon.discount_type!, appliedCoupon.discount_value!)
@@ -378,6 +381,7 @@ export default function CheckoutPage() {
               product_slug: service!.slug,
               payment_method: activeMethod === "card" ? "stripe_card" : "stripe_pix",
               payment_status: "pending",
+              payment_metadata: { dependents: checkoutCount, proc_id: parentId || undefined },
             });
           } catch (e) {
             console.error("[Checkout] registration error:", e);
@@ -415,11 +419,24 @@ export default function CheckoutPage() {
 
           const proofPath = await paymentService.uploadZelleProof(zelleProof, service!.slug);
 
+          const { data:zelleOrder } = await supabase.from("visa_orders").insert({
+            user_id: currentUserId,
+            client_name: values.fullName,
+            client_email: values.email,
+            billing_email: values.email,
+            total_price_usd: totalToCharge,
+            product_slug: service!.slug,
+            payment_method: "zelle",
+            payment_status: "pending",
+            payment_metadata: { dependents: checkoutCount, proc_id: parentId || undefined },
+          }).select("id").single();
+
           const zelleResult = await paymentService.createZellePayment({
             slug: service!.slug,
             serviceName: service!.title,
             expectedAmount: totalToCharge,
             amount: totalToCharge,
+            visa_order_id: zelleOrder?.id || undefined,
             confirmationCode: `UPLD_${Date.now()}`,
             paymentDate: new Date().toISOString().split("T")[0],
             proofPath,
@@ -427,7 +444,7 @@ export default function CheckoutPage() {
             guestName: values.fullName,
             phone: values.phone,
             userId: currentUserId || null,
-            dependents,
+            dependents: checkoutCount,
             proc_id: parentId || undefined,
             coupon_code: appliedCoupon?.valid ? couponInput : undefined,
           });
@@ -588,12 +605,13 @@ export default function CheckoutPage() {
 
             {/* Price summary */}
              <PriceSummary
-               baseUSD={baseUSD}
+               baseUSD={isUpgrade ? 0 : baseUSD}
                depUSD={depUSD}
-               dependents={checkoutCount}
+               dependents={dependents}
                method={activeMethod}
                discountUSD={discountUSD}
                couponCode={couponInput}
+               isUpgrade={isUpgrade}
              />
 
              {/* Coupon field */}

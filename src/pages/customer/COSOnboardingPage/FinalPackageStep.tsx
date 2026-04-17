@@ -36,6 +36,8 @@ export default function FinalPackageStep({ proc, onComplete }: Props) {
   const t = useT("onboarding");
   const [isMerging, setIsMerging] = useState(false);
   const [mergedPdfUrl, setMergedPdfUrl] = useState<string | null>(null);
+
+  if (!t || !t.cos) return null;
   const [showCelebration, setShowCelebration] = useState(false);
   const data = (proc.step_data || {}) as Record<string, unknown>;
 

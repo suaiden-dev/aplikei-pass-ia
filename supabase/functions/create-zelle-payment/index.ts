@@ -51,7 +51,8 @@ serve(async (req) => {
             terms_accepted_at,
             guest_email,
             guest_name,
-            coupon_code // <--- ADICIONADO coupon_code
+            coupon_code,
+            dependents // <--- ADICIONADO dependents
         } = await req.json();
 
         const actualPaymentDate = payment_date || new Date().toISOString().split('T')[0];
@@ -117,7 +118,8 @@ serve(async (req) => {
             const updatedMetadata = {
                 ...(currentOrder?.payment_metadata || {}),
                 coupon_code: finalCouponCode || "",
-                discount_amount: discountAmount.toString()
+                discount_amount: discountAmount.toString(),
+                dependents: dependents || 0 // <--- ADICIONADO dependents
             };
 
             await supabase
