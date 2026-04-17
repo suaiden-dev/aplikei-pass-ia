@@ -130,7 +130,7 @@ function RejectModal({
   onClose: () => void;
 }) {
   const t = useT("admin");
-  const tShared = useT("shared");
+  const tShared = useT("common");
   const [reason, setReason] = useState("");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
@@ -187,7 +187,7 @@ function PaymentRow({
   busy: boolean;
 }) {
   const t = useT("admin");
-  const tShared = useT("shared");
+  const tShared = useT("common");
 
   const methodLabel = useCallback((m: string): string => {
     const map: Record<string, string> = {
@@ -297,7 +297,7 @@ function PaymentRow({
 
 export default function ZellePaymentsPage() {
   const t = useT("admin");
-  const tShared = useT("shared");
+  const tShared = useT("common");
   const tVisas = useT("visas");
 
   const [tab, setTab] = useState<Tab>("pending");

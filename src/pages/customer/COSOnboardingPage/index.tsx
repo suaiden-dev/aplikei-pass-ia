@@ -83,6 +83,7 @@ export default function COSOnboardingPage() {
   const slug = urlSlug || (location.pathname.includes("extensao-status") ? "extensao-status" : "troca-status");
   const [searchParams] = useSearchParams();
   const stepIdx = Number(searchParams.get("step") ?? "0");
+  const service = getServiceBySlug(slug);
 
   // Translation safety guard: if locale is loading, return a refined loading state
   if (!t || !t.cos) {

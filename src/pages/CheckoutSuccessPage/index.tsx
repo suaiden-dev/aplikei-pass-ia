@@ -10,7 +10,6 @@ import {
 } from "react-icons/ri";
 import { getServiceBySlug } from "../../data/services";
 import { supabase } from "../../lib/supabase";
-import { processService } from "../../services/process.service";
 import { useT } from "../../i18n";
 
 type ActivationState = "loading" | "done" | "error";

@@ -104,33 +104,35 @@ export default function ProcessDetailPage() {
     if (!user || !slug) return;
     try {
       const idParam = searchParams.get("id");
-      let data = null;
+      const isConsular = slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1");
+      
+      const promises: [Promise<UserService | null>, Promise<UserService | null> | null] = [
+        idParam 
+          ? processService.getServiceById(idParam) 
+          : processService.getUserServiceBySlug(user.id, slug),
+        isConsular 
+          ? processService.getUserServiceBySlug(user.id, "mentoria-negativa-consular")
+          : null
+      ];
 
-      if (idParam) {
-        data = await processService.getServiceById(idParam);
-        // Validar se pertence ao user e slug (slugConfig key)
-        if (data && (data.user_id !== user.id || data.service_slug !== slug)) {
-           data = null;
-        }
+      const [data, consult] = await Promise.all(promises);
+
+      // Validate if process belongs to current user
+      if (data && (data.user_id !== user.id || (idParam && data.service_slug !== slug))) {
+        setProc(null);
       } else {
-        data = await processService.getUserServiceBySlug(user.id, slug);
+        setProc(data);
       }
 
-      setProc(data);
-      
-      if (slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1")) {
-        const consultSlug = "mentoria-negativa-consular";
-        const consult = await processService.getUserServiceBySlug(user.id, consultSlug);
-        if (consult && consult.status !== "cancelled") {
-          setHasConsultation(true);
-        }
+      if (consult && consult.status !== "cancelled") {
+        setHasConsultation(true);
       }
     } catch {
       toast.error(t.processDetail.errorLoad);
     } finally {
       setIsLoading(false);
     }
-  }, [user, slug, t]);
+  }, [user, slug, searchParams, t]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -225,19 +227,19 @@ export default function ProcessDetailPage() {
   const motionResult = stepData.motion_final_result as string;
 
   const interviewOutcome = stepData.interview_outcome as string;
-  const isApproved = uscisResult === 'approved' || 
-                     rfeResult === 'approved' || 
-                     motionResult === 'approved' || 
-                     interviewOutcome === 'approved' || 
-                     interviewOutcome === 'granted' ||
-                     (proc.status === 'completed' && !isDenied && !uscisResult?.includes('denied'));
-
   const isDenied = proc.status === 'rejected' ||
                    interviewOutcome === 'rejected' ||
                    interviewOutcome === 'denied' ||
                    motionResult === 'denied' ||
                    (rfeResult === 'denied' && currentStepIndexInFull >= 18 && !uscisResult) ||
                    (uscisResult === 'denied' && currentStepIndexInFull >= 12 && !rfeResult && !motionResult);
+
+  const isApproved = uscisResult === 'approved' || 
+                     rfeResult === 'approved' || 
+                     motionResult === 'approved' || 
+                     interviewOutcome === 'approved' || 
+                     interviewOutcome === 'granted' ||
+                     (proc.status === 'completed' && !isDenied && !uscisResult?.includes('denied'));
 
   const isFinalized = proc.status === 'completed' || isApproved || isDenied;
   const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, fullSteps.length, isCOS);

@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npm run test && vite",
+    "dev": "vite",
     "build": "npm run test && tsc -b && vite build",
     "lint": "eslint .",
     "test": "vitest --run",

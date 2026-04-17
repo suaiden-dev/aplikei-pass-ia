@@ -577,21 +577,7 @@ export function RFEAcceptProposalStep({ proc, onComplete: _onComplete }: StepPro
   const t = useT("onboarding");
   const data = (proc.step_data || {}) as Record<string, unknown>;
   const [showCheckout, setShowCheckout] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const handleAcceptProposal = async () => {
-    setLoading(true);
-    try {
-      const currentStep = proc.current_step ?? 0;
-      await processService.approveStep(proc.id, currentStep + 1);
-      toast.success(t?.toasts?.strategyAccepted || "Strategy accepted");
-    } catch (e: unknown) {
-      const err = e as Error;
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-10 py-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -624,10 +610,10 @@ export function RFEAcceptProposalStep({ proc, onComplete: _onComplete }: StepPro
 
         <button 
           onClick={() => setShowCheckout(true)}
-          disabled={loading || !(data.rfe_proposal_text as string)}
+          disabled={!(data.rfe_proposal_text as string)}
           className="w-full bg-primary hover:bg-primary-hover text-white h-16 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
         >
-          {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-2xl" /> {t?.workflows?.shared?.acceptBtn}</>}
+          <RiCheckLine className="text-2xl" /> {t?.workflows?.shared?.acceptBtn}
         </button>
       </div>
 

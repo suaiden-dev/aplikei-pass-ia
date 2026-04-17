@@ -20,7 +20,7 @@ export interface CustomerWithStats extends UserAccount {
 
 export default function CustomersPage() {
   const t = useT("admin");
-  const tShared = useT("shared");
+  const tShared = useT("common");
   const { lang: language } = useLocale();
   const [customers, setCustomers] = useState<CustomerWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);

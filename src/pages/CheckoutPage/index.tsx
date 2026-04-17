@@ -437,7 +437,6 @@ export default function CheckoutPage() {
             serviceName: service!.title,
             expectedAmount: totalToCharge,
             amount: totalToCharge,
-            visa_order_id: zelleOrder?.id || undefined,
             confirmationCode: `UPLD_${Date.now()}`,
             paymentDate: new Date().toISOString().split("T")[0],
             proofPath,
