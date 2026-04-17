@@ -44,12 +44,7 @@ export const Navbar = () => {
       <nav className="bg-highlight px-6 xl:px-16 py-4 flex items-center justify-between sticky top-0 z-[100] border-b border-white/5 relative">
         <div className="flex items-center gap-10">
           <Link to="/" className="flex items-center gap-2.5 z-[110] relative">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-black text-sm font-sans">A</span>
-            </div>
-            <span className="text-white font-black text-base tracking-widest uppercase font-sans">
-              Aplikei
-            </span>
+            <img src="/logo.png" alt="Aplikei" className="h-10 w-auto object-contain" />
           </Link>
 
           <div className="hidden xl:flex items-center gap-7">

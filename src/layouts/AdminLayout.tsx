@@ -80,11 +80,10 @@ export function AdminLayout() {
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
-          {/* Logo & Close Button */}
           <div className="px-6 py-6 border-b border-white/10 flex items-center justify-between">
-            <span className="font-display font-bold text-xl tracking-tight text-white">
-              Aplikei<span className="text-primary">.</span>
-            </span>
+            <div className="flex items-center gap-2">
+              <img src="/logo.png" alt="Aplikei" className="h-8 w-auto object-contain" />
+            </div>
             <button 
               onClick={() => setIsSidebarOpen(false)}
               className="xl:hidden p-2 rounded-xl bg-white/5 text-slate-300 hover:text-white transition-colors"

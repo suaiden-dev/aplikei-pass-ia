@@ -10,10 +10,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-16 pb-16 border-b border-slate-800 text-center lg:text-left">
           <div>
             <Link to="/" className="flex items-center justify-center lg:justify-start gap-2.5 mb-6">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-white font-black text-sm">A</span>
-              </div>
-              <span className="text-white font-black text-base tracking-widest uppercase">Aplikei</span>
+              <img src="/logo.png" alt="Aplikei" className="h-8 w-auto object-contain" />
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed mb-8">
               {t.description}

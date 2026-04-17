@@ -49,11 +49,9 @@ export function CustomerLayout() {
       <div className="flex h-screen overflow-hidden bg-[#F8FAFC] relative">
         {/* Mobile Header */}
         <header className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-100 px-6 flex items-center justify-between z-40 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="font-display font-black text-xl text-slate-800 tracking-tight">
-              Aplikei
-            </span>
-            <div className="ml-2">
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="Aplikei" className="h-8 w-auto object-contain" />
+            <div className="ml-1">
               <NotificationBell role="client" theme="light" align="left" />
             </div>
           </div>
@@ -83,11 +81,9 @@ export function CustomerLayout() {
           {/* Sidebar Header */}
           <div className="px-6 py-8">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="font-display font-black text-xl text-white tracking-tight">
-                  Aplikei
-                </span>
-                <div className="ml-2">
+              <div className="flex items-center gap-3">
+                <img src="/logo.png" alt="Aplikei" className="h-10 w-auto object-contain" />
+                <div className="ml-1">
                   <NotificationBell role="client" theme="dark" align="left" />
                 </div>
               </div>

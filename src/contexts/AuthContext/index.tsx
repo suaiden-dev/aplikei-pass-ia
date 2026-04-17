@@ -16,9 +16,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const performFetch = async () => {
-      // Safety timeout: don't wait more than 10 seconds for DB profile
+      // Safety timeout: don't wait more than 5 seconds for DB profile
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Timeout")), 2000)
+        setTimeout(() => reject(new Error("Timeout")), 5000)
       );
 
       try {

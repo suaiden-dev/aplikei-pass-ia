@@ -412,4 +412,33 @@ export const paymentService = {
     
     return false; // Timeout
   },
+
+  async verifyStripeSession(sessionId: string): Promise<boolean> {
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {
+      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+      "apikey": SUPABASE_ANON_KEY,
+    };
+    if (session?.access_token) {
+      headers["X-Customer-Auth"] = `Bearer ${session.access_token}`;
+    }
+
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-stripe-session`, {
+        method: "POST",
+        headers: {
+          ...headers,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ session_id: sessionId }),
+      });
+
+      if (!response.ok) return false;
+      const data = await response.json();
+      return data.success === true;
+    } catch (err) {
+      console.error("[PaymentService] Verify session failed:", err);
+      return false;
+    }
+  },
 };

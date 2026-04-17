@@ -29,6 +29,9 @@ export default function OverviewPage() {
   const [clientesCount, setClientesCount] = useState<number>(0);
   const [receitaTotal, setReceitaTotal] = useState<number>(0);
   const [pagamentosPendentes, setPagamentosPendentes] = useState<number>(0);
+  const [monthlyRevenue, setMonthlyRevenue] = useState<{ month: string, value: number }[]>([]);
+  const [serviceDistribution, setServiceDistribution] = useState<{ label: string, percent: number, color: string }[]>([]);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
   const defaultStats: StatCard[] = [
     {
@@ -76,66 +79,104 @@ export default function OverviewPage() {
     },
   ];
 
-  const monthlyRevenue = [
-    { month: "Jan", value: 1200 },
-    { month: "Feb", value: 2100 },
-    { month: "Mar", value: 1800 },
-    { month: "Apr", value: 3400 },
-    { month: "May", value: 2900 },
-    { month: "Jun", value: 4328 },
-  ];
-
-  const maxRevenue = Math.max(...monthlyRevenue.map((m) => m.value));
-
-  const serviceDistribution = [
-    { label: "B1/B2", percent: 45, color: "#1a56db" },
-    { label: "F-1", percent: 30, color: "#6366f1" },
-    { label: "EOS", percent: 15, color: "#0ea5e9" },
-    { label: "COS", percent: 10, color: "#06b6d4" },
-  ];
+  // ... (Data fetching logic in useEffect)
 
   useEffect(() => {
     async function fetchData() {
-      // Clientes
-      const { count: customersCount } = await supabase
-        .from("user_accounts")
-        .select("*", { count: "exact", head: true });
-      setClientesCount(customersCount || 0);
+      const now = new Date();
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(now.getMonth() - 5);
+      sixMonthsAgo.setDate(1);
 
-      // Pagamentos Pendentes
-      // Contamos apenas Zelle, pois Stripe é auto-aprovado (pendentes no Stripe são geralmente abandonos)
-      const { count: pendingZelle } = await supabase
-        .from("zelle_payments")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending_verification");
-      
+      const [
+        { count: customersCount },
+        { count: pendingZelle },
+        { data: zellePayments },
+        { data: stripeOrders },
+        { data: services }
+      ] = await Promise.all([
+        supabase.from("user_accounts").select("*", { count: "exact", head: true }),
+        supabase.from("zelle_payments").select("*", { count: "exact", head: true }).eq("status", "pending_verification"),
+        supabase.from("zelle_payments").select("amount, created_at, status"),
+        supabase.from("visa_orders").select("total_price_usd, created_at, payment_status"),
+        supabase.from("user_services").select("service_slug, status")
+      ]);
+
+      setClientesCount(customersCount || 0);
       setPagamentosPendentes(pendingZelle || 0);
 
-      // Receita Total
-      const { data: zelleData } = await supabase
-        .from("zelle_payments")
-        .select("amount")
-        .eq("status", "approved");
+      // --- REVENUE CALCULATION ---
+      const approvedZelle = (zellePayments || []).filter(p => p.status === "approved");
+      const paidStripe = (stripeOrders || []).filter(o => ["paid", "complete", "succeeded", "completed"].includes(o.payment_status));
+
+      let totalAllTime = 0;
+      const monthlyMap: Record<string, number> = {};
+
+      for (let i = 0; i < 6; i++) {
+        const d = new Date();
+        d.setMonth(now.getMonth() - i);
+        const monthKey = d.toLocaleString('en-US', { month: 'short' });
+        monthlyMap[monthKey] = 0;
+      }
+
+      [...approvedZelle, ...paidStripe].forEach(p => {
+        const val = Number(p.amount || p.total_price_usd) || 0;
+        totalAllTime += val;
+        const pDate = new Date(p.created_at);
+        if (pDate >= sixMonthsAgo) {
+          const mKey = pDate.toLocaleString('en-US', { month: 'short' });
+          if (monthlyMap[mKey] !== undefined) monthlyMap[mKey] += val;
+        }
+      });
+
+      setReceitaTotal(totalAllTime);
+      setMonthlyRevenue(Object.entries(monthlyMap).map(([month, value]) => ({ month, value })).reverse());
+
+      // --- SERVICE DISTRIBUTION ---
+      const dist: Record<string, number> = { "B1/B2": 0, "F-1": 0, "COS": 0, "EOS": 0 };
+      let totalServicesCount = 0;
+
+      services?.forEach(s => {
+        if (s.status === "cancelled") return;
+        const slug = s.service_slug.toLowerCase();
+        
+        let matched = false;
+        if (slug.includes("b1-b2")) { dist["B1/B2"]++; matched = true; }
+        else if (slug.includes("f1")) { dist["F-1"]++; matched = true; }
+        else if (slug.includes("troca-status")) { dist["COS"]++; matched = true; }
+        else if (slug.includes("extensao-status")) { dist["EOS"]++; matched = true; }
+        
+        if (matched) totalServicesCount++;
+      });
+
+      const distArray = Object.entries(dist).map(([label, count], i) => ({
+        label,
+        percent: totalServicesCount > 0 ? Math.round((count / totalServicesCount) * 100) : 0,
+        color: ["#1a56db", "#6366f1", "#0ea5e9", "#06b6d4"][i]
+      })).filter(d => d.percent > 0);
       
-      const { data: stripeData } = await supabase
-        .from("visa_orders")
-        .select("total_price_usd")
-        .in("payment_status", ["paid", "complete", "succeeded", "completed"]);
+      setServiceDistribution(distArray);
 
-      let total = 0;
-      zelleData?.forEach(row => {
-         total += Number(row.amount) || 0;
-      });
-      stripeData?.forEach(row => {
-         let val = row.total_price_usd;
-         if (typeof val === "string") val = parseFloat(val);
-         total += Number(val) || 0;
-      });
+      // --- RECENT ACTIVITY ---
+      const { data: notifs, error: notifError } = await supabase
+        .from("notifications")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(6);
 
-      setReceitaTotal(total);
+      if (notifs && !notifError) {
+        setRecentActivity(notifs.map(n => ({
+          action: n.title,
+          detail: n.message,
+          time: new Date(n.created_at).toLocaleDateString(),
+          dot: n.type === "payment" ? "bg-green-500" : n.type === "new_user" ? "bg-blue-500" : "bg-amber-500"
+        })));
+      }
     }
     fetchData();
   }, []);
+
+  const maxRevenue = monthlyRevenue.length > 0 ? Math.max(...monthlyRevenue.map((m) => m.value)) : 1000;
 
   const stats: StatCard[] = defaultStats.map(stat => {
     if (stat.id === "customers") return { ...stat, value: clientesCount };
@@ -276,12 +317,7 @@ export default function OverviewPage() {
           {t.overview.recentActivity.title}
         </h2>
         <div className="flex flex-col gap-3">
-          {[
-            { action: t.overview.recentActivity.paymentReceived, detail: "Zelle – John D. — $1,200.00", time: t.overview.recentActivity.hoursAgo.replace('{{count}}', '2'), dot: "bg-green-500" },
-            { action: t.overview.recentActivity.newCustomer, detail: "Maria Silva — maria@email.com", time: t.overview.recentActivity.hoursAgo.replace('{{count}}', '5'), dot: "bg-blue-500" },
-            { action: t.overview.recentActivity.processUpdated, detail: "B1/B2 Visa — #PROC-0041", time: t.overview.recentActivity.yesterday, dot: "bg-amber-500" },
-            { action: t.overview.recentActivity.paymentPending, detail: "Zelle – Carlos R. — $850.00", time: t.overview.recentActivity.yesterday, dot: "bg-red-400" },
-          ].map((item, i) => (
+          {recentActivity.map((item, i) => (
             <div key={i} className="flex items-start gap-4 py-2.5 border-b border-slate-50 last:border-0">
               <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${item.dot}`} />
               <div className="flex-1 min-w-0 text-left">

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useT } from "../../i18n";
 
 export default function Login() {
+  const [isWelcoming, setIsWelcoming] = useState(false);
   const t = useT("auth");
   const v = useT("validation");
   const navigate = useNavigate();
@@ -32,10 +33,10 @@ export default function Login() {
     onSubmit: async (values, { setSubmitting }) => {
       try {
         await authService.login(values);
+        setIsWelcoming(true);
         toast.success(t.login.success || "Login realizado com sucesso!");
-        // We leave submitting as true for a short moment to allow redirect,
-        // but if no redirect happens after 2s, we reset it.
-        setTimeout(() => setSubmitting(false), 2000);
+        // We stay in 'isWelcoming' state for a bit before navigation triggers automatically via useEffect
+        setTimeout(() => setSubmitting(false), 3000);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : (t.login.error || "Erro ao entrar. Tente novamente."));
         setSubmitting(false);
@@ -46,14 +47,49 @@ export default function Login() {
   return (
     <div className="flex min-h-[80vh] items-center justify-center py-12">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md rounded-md border border-border bg-card p-8 shadow-card"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-md relative overflow-hidden rounded-[32px] border-2 border-slate-100 bg-white p-8 sm:p-12 shadow-2xl shadow-primary/5"
       >
+        {/* Welcome Overlay */}
+        {isWelcoming && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center p-8 text-center"
+          >
+            <motion.div
+              initial={{ scale: 0.5, rotate: -20, opacity: 0 }}
+              animate={{ scale: 1.1, rotate: 0, opacity: 1 }}
+              transition={{ type: "spring", damping: 12 }}
+            >
+              <img src="/logo.png" alt="Aplikei" className="h-20 w-auto mb-6" />
+            </motion.div>
+            <motion.h2 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="font-display font-black text-2xl text-slate-800 leading-none mb-3"
+            >
+              {t.login.welcomeMessage || "Bem-vindo de volta!"}
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="text-xs font-bold text-slate-400 uppercase tracking-widest"
+            >
+              Acessando sua conta com clareza
+            </motion.p>
+          </motion.div>
+        )}
+
         <div className="text-center">
-          <Link to="/" className="font-display font-bold text-primary text-3xl">Aplikei</Link>
-          <h1 className="mt-8 font-display text-2xl font-bold text-foreground">{t.login.title}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{t.login.subtitle}</p>
+          <Link to="/" className="inline-block group">
+            <img src="/logo.png" alt="Aplikei" className="h-12 w-auto group-hover:scale-105 transition-transform" />
+          </Link>
+          <h1 className="mt-10 font-display text-2xl font-black text-slate-800 tracking-tight leading-none">{t.login.title}</h1>
+          <p className="mt-3 text-sm font-medium text-slate-500">{t.login.subtitle}</p>
         </div>
 
         <form className="mt-8 space-y-5" onSubmit={formik.handleSubmit}>

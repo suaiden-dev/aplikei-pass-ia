@@ -18,6 +18,7 @@ import { processService, type UserService } from "../../../services/process.serv
 import { cn } from "../../../utils/cn";
 import { toast } from "sonner";
 import { useT } from "../../../i18n";
+import { LogoLoader } from "../../../components/ui/LogoLoader";
 
 // ─── Display config per slug ──────────────────────────────────────────────────
 
@@ -379,7 +380,8 @@ export default function CustomerDashboardPage() {
 
         const [services, { data: prices }] = await Promise.all([
           processService.getUserServices(user.id),
-          supabase.from("services_prices").select("service_id, is_active")
+          supabase.from("services_prices").select("service_id, is_active"),
+          new Promise(resolve => setTimeout(resolve, 1500)) // TEMPO MÍNIMO PARA ANIMAÇÃO
         ]);
 
         setUserServices(services);
@@ -497,9 +499,7 @@ export default function CustomerDashboardPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          </div>
+          <LogoLoader />
         ) : trulyActiveProcesses.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[32px] border border-slate-100 shadow-sm">
             <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-6">
@@ -537,10 +537,9 @@ export default function CustomerDashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 xl:gap-10">
           {isLoading ? (
-            // Skeleton loaders for services
-            Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-[400px] rounded-[32px] bg-slate-50 animate-pulse border border-slate-100" />
-            ))
+            <div className="col-span-full py-20 flex justify-center">
+              <LogoLoader />
+            </div>
           ) : (
             servicesData
               .filter(s =>

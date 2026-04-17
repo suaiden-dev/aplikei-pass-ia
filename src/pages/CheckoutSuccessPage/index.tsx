@@ -47,8 +47,8 @@ export default function CheckoutSuccessPage() {
     }
 
     (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const authUserId = session?.user?.id;
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const authUserId = authSession?.user?.id;
 
       if (!authUserId) {
         setErrorMsg(t.sessionExpired);
@@ -57,20 +57,40 @@ export default function CheckoutSuccessPage() {
       }
 
       try {
-        // Here we poll the database for up to 20 seconds waiting for the Payment Webhook to confirm the purchase
+        const { processService } = await import("../../services/process.service");
         const { paymentService } = await import("../../services/payment.service");
+
+        // 1. TENTATIVA DE ATIVAÇÃO IMEDIATA E SEGURA (Server-side Verify)
+        const stripeSessionId = params.get("session_id");
+        
+        if (stripeSessionId) {
+          console.log("[CheckoutSuccess] Iniciando verificação segura...");
+          try {
+            const success = await paymentService.verifyStripeSession(stripeSessionId);
+            if (success) {
+              localStorage.removeItem("checkout_slug");
+              localStorage.removeItem("checkout_dependents");
+              localStorage.removeItem("checkout_parent_id");
+              localStorage.removeItem("pending_payment_advance");
+              setActivation("done");
+              return;
+            }
+          } catch (actErr) {
+            console.warn("[CheckoutSuccess] Erro na verificação segura, seguindo para polling:", actErr);
+          }
+        }
+
+        // 2. POLLING (Fallback caso a ativação imediata falhe ou seja redundante)
         const isPaid = await paymentService.checkOrderPaymentStatus(slug);
 
         if (isPaid) {
-          // If the webhook confirmed the payment, the backend already created the user_services row.
-          // Clean up local storage
           localStorage.removeItem("checkout_slug");
           localStorage.removeItem("checkout_dependents");
           localStorage.removeItem("checkout_parent_id");
-          localStorage.removeItem('pending_payment_advance');
+          localStorage.removeItem("pending_payment_advance");
           setActivation("done");
         } else {
-          setErrorMsg("Aguardando a confirmação do pagamento pelo provedor. Verifique seu e-mail ou painel em alguns minutos.");
+          setErrorMsg("Seu pagamento foi recebido! Pode levar alguns instantes para o sistema liberar o acesso. Se não atualizar em breve, verifique seu e-mail.");
           setActivation("error");
         }
       } catch (error: any) {
