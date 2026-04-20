@@ -4,12 +4,28 @@ import Stripe from "npm:stripe@14.14.0"; // Note: adjust version if needed
 
 const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") || "";
 const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET") || "";
+const NOTIFICATIONS_WEBHOOK = Deno.env.get("NOTIFICATIONS_WEBHOOK_URL");
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
+
+async function sendAlert(message: string, metadata: any = {}) {
+  if (!NOTIFICATIONS_WEBHOOK) return;
+  try {
+    await fetch(NOTIFICATIONS_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: `🚨 *Erro Fatal no Webhook (Payment)*\n*Erro:* ${message}\n*Email:* ${metadata.email || 'unknown'}\n*Payload:* ${JSON.stringify(metadata)}`
+      })
+    });
+  } catch (e) {
+    console.error("Failed to send alert:", e);
+  }
+}
 
 serve(async (req) => {
   // CORS check
@@ -116,6 +132,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("❌ Erro fatal no Webhook:", error.message);
+    await sendAlert(error.message, { phase: "root_handler" });
     return new Response(`Server error: ${error.message}`, { status: 500 });
   }
 });
@@ -258,22 +275,14 @@ async function handlePaymentSuccess(data) {
        }
 
        const currentCount = parseInt(String(stepData.paid_dependents ?? 0), 10);
-       let newCount = currentCount;
-       const isAdditionalSlot = service_slug.includes("dependente-adicional") || 
-                               service_slug.includes("slot-dependente") ||
-                               service_slug.includes("slot-vip") ||
-                               service_slug.includes("dependente-estudante") ||
-                               service_slug.includes("dependente-f1") ||
-                               service_slug.includes("dependente-b1-b2");
+       const newCount = calculateIncrementedSlots(
+         currentCount, 
+         parseInt(session?.metadata?.dependents || session?.dependents || String(dependents || "0"), 10),
+         service_slug,
+         currentProc.service_slug
+       );
 
-       console.log(`[Webhook] Analisando slots: slug=${service_slug}, isAdditional=${isAdditionalSlot}, current=${currentCount}, metadataDeps=${dependents}`);
-
-       if (isAdditionalSlot) {
-         newCount += (dependents || 1);
-       } else if (dependents > currentCount && service_slug === currentProc.service_slug) {
-         // Repagamento/Upgrade do mesmo serviço
-         newCount = dependents;
-       }
+       console.log(`[Webhook] Analisando slots: slug=${service_slug}, current=${currentCount}, new=${newCount}`);
 
        const newPurchase = {
          id: payment_id || `TRX_${Date.now()}`,
@@ -318,4 +327,20 @@ async function handlePaymentSuccess(data) {
        console.log(`[Webhook] Sucesso: Histórico e status atualizados no processo ${targetProcId}`);
      }
   }
+}
+
+function calculateIncrementedSlots(currentCount: number, dependentsMetadata: number, serviceSlug: string, mainServiceSlug: string): number {
+    const isAdditionalSlot = serviceSlug.includes("dependente-adicional") || 
+                             serviceSlug.includes("slot-dependente") ||
+                             serviceSlug.includes("slot-vip") ||
+                             serviceSlug.includes("dependente-estudante") ||
+                             serviceSlug.includes("dependente-f1") ||
+                             serviceSlug.includes("dependente-b1-b2");
+
+    if (isAdditionalSlot) {
+        return currentCount + (dependentsMetadata || 1);
+    } else if (dependentsMetadata > currentCount && serviceSlug === mainServiceSlug) {
+        return dependentsMetadata;
+    }
+    return currentCount;
 }

@@ -1,6 +1,6 @@
 const services = {
   sectionTitle: "Nuestros servicios",
-  sectionSubtitle: "Elige la guía ideal para tu proceso migratorio.",
+  sectionSubtitle: "Elige la guía ideal para tu proceso de visa.",
   viewDetails: "Ver detalles",
   catalogTitle: "Catálogo de Servicios",
   catalogSubtitle: "Soluciones completas para cada etapa de tu sueño americano.",
@@ -19,7 +19,7 @@ const services = {
       subtitle: "Todo lo que necesitas saber sobre nuestros guías y asesoría.",
       items: [
         {
-          q: "¿Cuánto tiempo tengo acceso a la herramienta?",
+          q: "¿Cuánto tempo tengo acceso a la herramienta?",
           a: "Tienes acceso por 90 días a partir de la compra — tiempo suficiente para reunir tus documentos y armar tu paquete."
         },
         {
@@ -44,7 +44,7 @@ const services = {
     included: "Qué está incluido",
     notIncluded: "Qué no está incluido",
     requirements: "Lo que vas a necesitar",
-    steps: "Tu Jornada de Pasos",
+    steps: "Tu jornada en 6 pasos simples",
     faq: "Preguntas Frecuentes",
     disclaimer: "Aviso: Aplikei no es un bufete de abogados, no ofrece asesoría legal, no garantiza la aprobación y no representa al cliente ante consulados o USCIS. El soporte humano es solo operacional.",
     createAccount: "Contratar",
@@ -54,9 +54,17 @@ const services = {
     successRate: "Tasa de Éxito",
     getStarted: "Empezar Ahora",
     prepareDocs: "Prepare estos documentos antes de comenzar",
-    guidedJourney: "Jornada guiada completa",
+    guidedJourney: "Del registro al paquete final, cuidamos cada detalle por ti.",
     legalDisclaimer: "Aviso Legal",
     concludeProcess: "Concluir proceso actual",
+    journeySteps: [
+      { title: "Registro y Configuración", desc: "Crea tu cuenta y selecciona la guía ideal para tu objetivo." },
+      { title: "Ingreso de Datos", desc: "Proporciona tu información en nuestro entorno amigable e intuitivo." },
+      { title: "Análisis de Expertos", desc: "Nuestro equipo revisa tus datos para garantizar que todo sea perfecto." },
+      { title: "Organización de Documentos", desc: "Usa nuestra IA para validar y organizar tus documentos según el checklist." },
+      { title: "Preparación Estratégica", desc: "Recibe orientación clara sobre qué esperar en tu entrevista o envío." },
+      { title: "Paquete Final Listo", desc: "Descarga tu kit completo, organizado y listo para imprimir y enviar." }
+    ]
   }
 };
 

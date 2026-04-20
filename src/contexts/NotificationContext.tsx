@@ -102,10 +102,7 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
       if (role === "admin") {
         await notificationService.markAllAdminAsRead();
       } else if (user) {
-        // We could add markAllClientAsRead in the service if needed
-        // For now, let's just update local state after bulk action if it existed
-        // But the service only has markAllAdminAsRead. 
-        // We'll just mark them locally for the client for now or implement the service method.
+        await notificationService.markAllClientAsRead(user.id);
       }
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     } catch (error) {

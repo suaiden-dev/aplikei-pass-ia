@@ -1,22 +1,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 import Stripe from "https://esm.sh/stripe@14.16.0";
+import { 
+    calculateSubtotal, 
+    applyCoupon, 
+    calculateCardAmountWithFees, 
+    calculateUSDToPixFinalBRL,
+    CouponData
+} from "./payment-logic.ts";
 
-// --- EMBEDDED UTILITIES TO ENSURE DEPLOYMENT WITHOUT DOCKER ---
-const CARD_FIXED_FEE = 0.30;
-const CARD_PERCENTAGE_FEE = 0.039; // 3.9%
-const PIX_PROCESSING_FEE = 0.018; // 1.8%
-const IOF_RATE = 0.035; // 3.5%
+const NOTIFICATIONS_WEBHOOK = Deno.env.get("NOTIFICATIONS_WEBHOOK_URL");
 
-const calculateCardAmountWithFees = (netAmount: number): number => {
-    return (netAmount + CARD_FIXED_FEE) / (1 - CARD_PERCENTAGE_FEE);
-};
-
-const calculateUSDToPixFinalBRL = (usdNetAmount: number, exchangeRate: number): number => {
-    const netBrl = usdNetAmount * exchangeRate;
-    const brlWithFees = netBrl / (1 - PIX_PROCESSING_FEE);
-    return brlWithFees * (1 + IOF_RATE);
-};
+async function sendAlert(message: string, metadata: any = {}) {
+    if (!NOTIFICATIONS_WEBHOOK) return;
+    try {
+        await fetch(NOTIFICATIONS_WEBHOOK, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                text: `🚨 *Erro Crítico no Checkout*\n*Erro:* ${message}\n*Ambiente:* ${metadata.env || 'Desconhecido'}\n*Email:* ${metadata.email}\n*Slug:* ${metadata.slug}`
+            })
+        });
+    } catch (e) {
+        console.error("Failed to send alert:", e);
+    }
+}
 
 async function getExchangeRate(): Promise<number> {
     try {
@@ -31,7 +39,6 @@ async function getExchangeRate(): Promise<number> {
         return 5.60;
     }
 }
-// --- END EMBEDDED UTILITIES ---
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -50,27 +57,25 @@ const DEPENDENT_SERVICE_MAP: Record<string, string> = {
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+    const metadata_for_logs: any = { env: 'TEST', email: 'unknown', slug: 'none' };
+
     try {
         const body = await req.json();
-        
-        console.log("Stripe Checkout Request Body:", JSON.stringify(body, null, 2));
-
         const {
             slug, email, fullName, phone, dependents = 0,
-            paymentMethod = 'card', contract_selfie_url, terms_accepted_at,
-            action, serviceId, processId, proc_id, discountPct = 0, 
-            amount: requestAmount, coupon_code, userId, user_id // <--- ADDED user_id
+            paymentMethod = 'card', action, serviceId, processId, proc_id, discountPct = 0, 
+            amount: requestAmount, coupon_code, userId, user_id
         } = body;
         
+        metadata_for_logs.email = email;
+        metadata_for_logs.slug = slug;
+        
         const targetUserId = user_id || userId;
-
         let origin_url = body.origin_url || body.originUrl || req.headers.get("origin") || req.headers.get("referer") || "https://aplikei.com";
         if (!origin_url.startsWith("http")) origin_url = `https://${origin_url}`;
-        if (origin_url.endsWith("/")) origin_url = origin_url.slice(0, -1);
 
-        if (!slug || !email) {
-            throw new Error("Missing required parameters: slug and email are required.");
-        }
+        const urlObj = new URL(origin_url);
+        metadata_for_logs.env = (urlObj.hostname === 'aplikei.com') ? 'PROD' : 'TEST';
 
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
         const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -104,48 +109,26 @@ Deno.serve(async (req: Request) => {
             mainPriceInfo = { service_id: slug, ...FALLBACK_PRICES[slug] };
         }
 
-        if (!mainPriceInfo) {
-            throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
-        }
+        if (!mainPriceInfo) throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
 
-        // --- LÓGICA DE SEGURANÇA (VALOR DO PROCESSO) ---
         let basePriceUSD = Number(mainPriceInfo.price);
-
         const targetProcId = proc_id || processId;
+
+        // Validação dinâmica de preço (Segurança)
         if (targetProcId) {
-            const { data: procData, error: procError } = await supabase
-                .from("user_services")
-                .select("step_data")
-                .eq("id", targetProcId)
-                .single();
-            
-            if (procError) {
-                console.error("[Segurança] Erro ao validar processo:", procError);
-            } else if (procData?.step_data?.motion_proposal_amount) {
+            const { data: procData } = await supabase.from("user_services").select("step_data").eq("id", targetProcId).single();
+            if (procData?.step_data?.motion_proposal_amount) {
                 basePriceUSD = Number(procData.step_data.motion_proposal_amount);
-                console.log(`[Segurança] Valor validado via DB para o processo ${targetProcId}: $${basePriceUSD}`);
-            } else {
-                const isDynamicService = ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos'].includes(slug);
-                if (requestAmount && isDynamicService) {
-                    basePriceUSD = Number(requestAmount);
-                    console.log(`[Checkout] Usando valor dinâmico enviado: $${basePriceUSD}`);
-                }
-            }
-        } else {
-            const isDynamicService = ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos', 'mentoria-individual', 'mentoria-bronze', 'mentoria-gold', 'mentoria-negativa-consular'].includes(slug);
-            if (requestAmount && isDynamicService) {
+            } else if (requestAmount && ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos'].includes(slug)) {
                 basePriceUSD = Number(requestAmount);
             }
+        } else if (requestAmount && ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos', 'mentoria-individual', 'mentoria-bronze', 'mentoria-gold', 'mentoria-negativa-consular'].includes(slug)) {
+            basePriceUSD = Number(requestAmount);
         }
-        // --- FIM DA LÓGICA DE SEGURANÇA ---
 
-        const serviceName = mainPriceInfo.name;
         const depPriceUSD = depPriceInfo ? Number(depPriceInfo.price) : 0;
-        const normalizedSlug = slug === 'visa-f1f2' ? 'visto-f1' : slug;
+        const subtotalUSD = calculateSubtotal(basePriceUSD, dependents, depPriceUSD);
 
-        let subtotalUSD = basePriceUSD + (dependents * depPriceUSD);
-
-        // --- NOVA LÓGICA DE CUPOM (ESTENDIDA) ---
         let finalSubtotalUSD = subtotalUSD;
         let appliedCouponId = null;
 
@@ -156,21 +139,11 @@ Deno.serve(async (req: Request) => {
             });
 
             if (!couponError && couponData?.valid) {
-                const minPurchase = couponData.min_purchase_usd || 0;
-                if (subtotalUSD >= minPurchase) {
-                    if (couponData.discount_type === "percentage") {
-                        finalSubtotalUSD = Math.max(0, subtotalUSD * (1 - (couponData.discount_value / 100)));
-                    } else {
-                        finalSubtotalUSD = Math.max(0, subtotalUSD - couponData.discount_value);
-                    }
-                    appliedCouponId = couponData.coupon_id;
-                    console.log(`[Coupon] Aplicado ${coupon_code}: $${subtotalUSD} -> $${finalSubtotalUSD}`);
-                }
-            } else if (couponError) {
-                console.error("[Coupon] Erro na validação:", couponError);
+                const { finalAmount, discountAmount } = applyCoupon(subtotalUSD, couponData as CouponData);
+                finalSubtotalUSD = finalAmount;
+                appliedCouponId = couponData.coupon_id;
             }
         } else if (discountPct > 0) {
-            // Suporte legado para discountPct se enviado diretamente e sem cupom
             finalSubtotalUSD = subtotalUSD * (1 - (discountPct / 100));
         }
 
@@ -183,58 +156,42 @@ Deno.serve(async (req: Request) => {
             currency = "brl";
             payment_method_types = ["pix"];
             appliedExchangeRate = await getExchangeRate();
-            // --- USA finalSubtotalUSD ---
             unitAmount = Math.round(calculateUSDToPixFinalBRL(finalSubtotalUSD, appliedExchangeRate) * 100);
         } else {
-            // --- USA finalSubtotalUSD ---
             unitAmount = Math.round(calculateCardAmountWithFees(finalSubtotalUSD) * 100);
         }
 
-        const urlObj = new URL(origin_url);
-        const host = urlObj.hostname;
-        let env: 'PROD' | 'STAGING' | 'TEST' = 'TEST';
-        if (host === 'aplikei.com' || host === 'www.aplikei.com') env = 'PROD';
-        else if (host.includes('netlify.app')) env = 'STAGING';
-
-        const stripeSecret = Deno.env.get(`STRIPE_SECRET_KEY_${env}`) || Deno.env.get("STRIPE_SECRET_KEY");
-        const stripe = new Stripe(stripeSecret!, {
-            apiVersion: "2023-10-16",
-            httpClient: Stripe.createFetchHttpClient(),
-        });
+        const stripeSecret = Deno.env.get(`STRIPE_SECRET_KEY_${metadata_for_logs.env}`) || Deno.env.get("STRIPE_SECRET_KEY");
+        const stripe = new Stripe(stripeSecret!, { apiVersion: "2023-10-16", httpClient: Stripe.createFetchHttpClient() });
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: payment_method_types as any,
             line_items: [{
                 price_data: {
                     currency,
-                    product_data: {
-                        name: serviceName,
-                        description: `Serviço Aplikei - ${paymentMethod.toUpperCase()}`,
-                    },
+                    product_data: { name: mainPriceInfo.name, description: `Serviço Aplikei - ${paymentMethod.toUpperCase()}` },
                     unit_amount: unitAmount,
                 },
                 quantity: 1,
             }],
             mode: "payment",
             customer_email: email,
-            success_url: `${origin_url}/checkout-success?session_id={CHECKOUT_SESSION_ID}&slug=${normalizedSlug}`,
+            success_url: `${origin_url}/checkout-success?session_id={CHECKOUT_SESSION_ID}&slug=${slug}`,
             cancel_url: `${origin_url}/servicos/${slug}`,
             metadata: {
-                user_id: targetUserId || "", // <--- ADDED for webhook
-                service_slug: normalizedSlug, // <--- ADDED for webhook
-                slug: normalizedSlug,
+                user_id: targetUserId || "",
+                service_slug: slug,
                 email,
                 fullName: fullName || "",
                 phone: phone || "",
                 dependents: dependents.toString(),
-                env,
+                env: metadata_for_logs.env,
                 paymentMethod,
                 origin_url: origin_url,
                 project: "aplikei",
                 action: action || "",
                 serviceId: serviceId || "",
                 processId: targetProcId || "",
-                proc_id: targetProcId || "",
                 coupon_code: coupon_code || "",
                 applied_coupon_id: appliedCouponId || "",
                 original_subtotal: subtotalUSD.toString(),
@@ -248,6 +205,7 @@ Deno.serve(async (req: Request) => {
         });
     } catch (error: unknown) {
         console.error("Stripe Checkout Error:", error);
+        await sendAlert((error as Error).message, metadata_for_logs);
         return new Response(JSON.stringify({ error: (error as Error).message }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 400,

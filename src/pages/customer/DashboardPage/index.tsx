@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { MdLanguage, MdSchool, MdHistory, MdSyncAlt, MdTimer } from "react-icons/md";
@@ -19,6 +19,7 @@ import { cn } from "../../../utils/cn";
 import { toast } from "sonner";
 import { useT } from "../../../i18n";
 import { LogoLoader } from "../../../components/ui/LogoLoader";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 // ─── Display config per slug ──────────────────────────────────────────────────
 
@@ -348,58 +349,79 @@ function ServiceCard({
 export default function CustomerDashboardPage() {
   const { user } = useAuth();
   const t = useT("dashboard");
-  const [userServices, setUserServices] = useState<UserService[]>([]);
-  const [activeServices, setActiveServices] = useState<Record<string, boolean>>({});
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  // 1. Fetcher for User Services
+  const { data: userServices = [], isLoading: isServicesLoading } = useQuery({
+    queryKey: ['user-services', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      // Recovery logic (still runs but can be separate)
+      const recoverySlug = localStorage.getItem("checkout_slug");
+      if (recoverySlug) {
+        try {
+          const recoveryDeps = parseInt(localStorage.getItem("checkout_dependents") || "0", 10);
+          await processService.activateService(user.id, recoverySlug, recoveryDeps, {
+            paymentId: `REC_${recoverySlug}_${Date.now()}`,
+            method: "recovery",
+            amount: 0
+          });
+          toast.success("Pagamento confirmado! Seu processo foi atualizado.");
+          localStorage.removeItem("checkout_slug");
+          localStorage.removeItem("checkout_dependents");
+          localStorage.removeItem("checkout_parent_id");
+          localStorage.removeItem("pending_payment_advance");
+        } catch (e) {
+          console.error("[Dashboard] Recovery failed", e);
+        }
+      }
+
+      return processService.getUserServices(user.id);
+    },
+    enabled: !!user,
+  });
+
+  // 2. Fetcher for Prices/Availability
+  const { data: activeServices = {}, isLoading: isPricesLoading } = useQuery({
+    queryKey: ['service-prices'],
+    queryFn: async () => {
+      const { data: prices } = await supabase.from("services_prices").select("service_id, is_active");
+      const availabilityMap: Record<string, boolean> = {};
+      (prices as any[] | null)?.forEach((p) => {
+        availabilityMap[p.service_id] = p.is_active;
+      });
+      return availabilityMap;
+    },
+  });
+
+  const isLoading = isServicesLoading || isPricesLoading;
 
   useEffect(() => {
     if (!user) return;
-    
-    const loadData = async () => {
-      try {
-        // --- PAYMENT RECOVERY LOGIC ---
-        const recoverySlug = localStorage.getItem("checkout_slug");
-        if (recoverySlug) {
-          try {
-            const recoveryDeps = parseInt(localStorage.getItem("checkout_dependents") || "0", 10);
-            await processService.activateService(user.id, recoverySlug, recoveryDeps, {
-              paymentId: `REC_${recoverySlug}_${Date.now()}`,
-              method: "recovery",
-              amount: 0
-            });
-            
-            toast.success("Pagamento confirmado! Seu processo foi atualizado.");
-            localStorage.removeItem("checkout_slug");
-            localStorage.removeItem("checkout_dependents");
-            localStorage.removeItem("checkout_parent_id");
-          } catch (recoveryErr) {
-            console.error("[Dashboard] Recovery failed:", recoveryErr);
-          }
+
+    // REALTIME SUBSCRIPTION
+    const channel = supabase
+      .channel(`dashboard-realtime-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_services',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          console.log("[Dashboard] Realtime update detected, invalidating cache...");
+          queryClient.invalidateQueries({ queryKey: ['user-services', user.id] });
         }
-        // ------------------------------
+      )
+      .subscribe();
 
-        const [services, { data: prices }] = await Promise.all([
-          processService.getUserServices(user.id),
-          supabase.from("services_prices").select("service_id, is_active"),
-          new Promise(resolve => setTimeout(resolve, 1500)) // TEMPO MÍNIMO PARA ANIMAÇÃO
-        ]);
-
-        setUserServices(services);
-        
-        const availabilityMap: Record<string, boolean> = {};
-        (prices as { service_id: string; is_active: boolean }[] | null)?.forEach((p) => {
-          availabilityMap[p.service_id] = p.is_active;
-        });
-        setActiveServices(availabilityMap);
-      } catch (error) {
-        console.error("Error loading dashboard data:", error);
-      } finally {
-        setIsLoading(false);
-      }
+    return () => {
+      supabase.removeChannel(channel);
     };
-
-    loadData();
-  }, [user]);
+  }, [user, queryClient]);
 
   const activeStatuses = useMemo(() => ["active", "awaiting_review"], []);
   

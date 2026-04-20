@@ -54,7 +54,12 @@ export function NotificationBell({ role, theme = "dark", align = "right" }: Noti
     <div className="relative" ref={containerRef}>
       {/* Trigger Bell */}
       <button 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          setIsOpen(!isOpen);
+          if (!isOpen && unreadCount > 0) {
+            markAllAsRead();
+          }
+        }}
         className={buttonClasses}
         aria-label="Notificações"
       >

@@ -32,8 +32,8 @@ const common = {
   howItWorksPage: {
     hero: {
       tag: "Como Funciona",
-      title: "Sua imigração para os EUA,",
-      titleHighlight: "descomplicada.",
+      title: "Seu visto para os EUA,",
+      titleHighlight: "descomplicado.",
       description: "A Aplikei combina tecnologia de ponta com análise humana especializada para garantir que cada etapa do seu visto seja executada com perfeição.",
       features: [
         "Processo 100% digital e seguro",

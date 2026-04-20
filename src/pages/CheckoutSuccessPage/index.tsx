@@ -11,6 +11,8 @@ import {
 import { getServiceBySlug } from "../../data/services";
 import { supabase } from "../../lib/supabase";
 import { useT } from "../../i18n";
+import { LogoLoader } from "../../components/ui/LogoLoader";
+import { type UserService } from "../../services/process.service";
 
 type ActivationState = "loading" | "done" | "error";
 
@@ -38,11 +40,9 @@ export default function CheckoutSuccessPage() {
   const t_base = useT("checkout");
   const t = t_base?.product?.success;
 
-  if (!t) return null; // Wait for translations to load to avoid crashes
-
   useEffect(() => {
-    if (!slug) {
-      setActivation("done");
+    if (!t || !slug) {
+      if (!slug) setActivation("done");
       return;
     }
 
@@ -56,50 +56,88 @@ export default function CheckoutSuccessPage() {
         return;
       }
 
+      // Cleanup logic helper
+      const markAsDone = () => {
+        localStorage.removeItem("checkout_slug");
+        localStorage.removeItem("checkout_dependents");
+        localStorage.removeItem("checkout_parent_id");
+        localStorage.removeItem("pending_payment_advance");
+        setActivation("done");
+      };
+
       try {
-        const { processService } = await import("../../services/process.service");
         const { paymentService } = await import("../../services/payment.service");
 
         // 1. TENTATIVA DE ATIVAÇÃO IMEDIATA E SEGURA (Server-side Verify)
         const stripeSessionId = params.get("session_id");
-        
         if (stripeSessionId) {
-          console.log("[CheckoutSuccess] Iniciando verificação segura...");
+          console.log("[Realtime] Iniciando verificação segura...");
           try {
             const success = await paymentService.verifyStripeSession(stripeSessionId);
             if (success) {
-              localStorage.removeItem("checkout_slug");
-              localStorage.removeItem("checkout_dependents");
-              localStorage.removeItem("checkout_parent_id");
-              localStorage.removeItem("pending_payment_advance");
-              setActivation("done");
+              markAsDone();
               return;
             }
           } catch (actErr) {
-            console.warn("[CheckoutSuccess] Erro na verificação segura, seguindo para polling:", actErr);
+            console.warn("[Realtime] Erro na verificação segura, seguindo para Realtime:", actErr);
           }
         }
 
-        // 2. POLLING (Fallback caso a ativação imediata falhe ou seja redundante)
-        const isPaid = await paymentService.checkOrderPaymentStatus(slug);
-
-        if (isPaid) {
-          localStorage.removeItem("checkout_slug");
-          localStorage.removeItem("checkout_dependents");
-          localStorage.removeItem("checkout_parent_id");
-          localStorage.removeItem("pending_payment_advance");
-          setActivation("done");
-        } else {
-          setErrorMsg("Seu pagamento foi recebido! Pode levar alguns instantes para o sistema liberar o acesso. Se não atualizar em breve, verifique seu e-mail.");
-          setActivation("error");
+        // 2. REALTIME (Escuta ativa por novos serviços ativos)
+        console.log("[Realtime] Aguardando ativação via WebSocket...");
+        
+        // Check if already active before subscribing
+        const isAlreadyActive = await paymentService.checkOrderPaymentStatus(slug);
+        if (isAlreadyActive) {
+          markAsDone();
+          return;
         }
-      } catch (error: any) {
-        console.error("[CheckoutSuccess] validation failed:", error);
-        setErrorMsg("Erro ao validar o pagamento com o servidor.");
+
+        // Subscribe to user_services changes
+        const channel = supabase
+          .channel('checkout-activation')
+          .on(
+            'postgres_changes',
+            {
+              event: '*', 
+              schema: 'public',
+              table: 'user_services',
+              filter: `user_id=eq.${authUserId}`
+            },
+            (payload) => {
+              console.log("[Realtime] Mudança detectada no banco:", payload);
+              const newService = payload.new as UserService;
+              // Se o serviço que acabou de ser inserido/atualizado for o que estamos esperando
+              if (newService && newService.service_slug === slug && (newService.status === 'active' || newService.status === 'awaiting_review')) {
+                console.log("[Realtime] Serviço ativado com sucesso!");
+                markAsDone();
+                supabase.removeChannel(channel);
+              }
+            }
+          )
+          .subscribe();
+
+        // 3. FALLBACK TIMEOUT (25 segundos)
+        const timer = setTimeout(() => {
+          supabase.removeChannel(channel);
+          setActivation(prev => prev === "loading" ? "error" : prev);
+          setErrorMsg("Seu pagamento foi recebido! Pode levar alguns instantes para o sistema liberar o acesso devido à alta demanda. Se não atualizar em 1 minuto, verifique seu e-mail ou entre em contato.");
+        }, 25000);
+
+        return () => {
+          clearTimeout(timer);
+          supabase.removeChannel(channel);
+        };
+
+      } catch (error: unknown) {
+        console.error("[CheckoutSuccess] Realtime setup failed:", error);
+        setErrorMsg("Erro ao conectar com o servidor para ativação.");
         setActivation("error");
       }
     })();
-  }, [slug]);
+  }, [slug, t, params]);
+
+  if (!t) return null;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4 py-16">
@@ -110,9 +148,8 @@ export default function CheckoutSuccessPage() {
         className="w-full max-w-lg text-center"
       >
         {activation === "loading" ? (
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-slate-500 text-sm font-medium">{t.activating}</p>
+          <div className="py-12">
+            <LogoLoader />
           </div>
         ) : activation === "error" ? (
           <>

@@ -1455,6 +1455,14 @@ const visas = {
           q: "Funciona para renovação de visto?",
           a: "Sim. O guia cobre tanto a primeira solicitação quanto a renovação do visto B1/B2."
         }
+      ],
+      marketingSteps: [
+        { title: "Cadastro e Perfil", desc: "Crie sua conta e configure seu objetivo de viagem." },
+        { title: "Formulário DS-160", desc: "Preencha o formulário consular de forma simples e segura." },
+        { title: "Análise Técnica", desc: "Nossos especialistas revisam cada detalhe da sua aplicação." },
+        { title: "Taxa e Agendamento", desc: "Emitimos seu boleto e monitoramos as melhores vagas para você." },
+        { title: "Preparação de Elite", desc: "Treine com nosso simulador de IA e guias de entrevista." },
+        { title: "Dia da Entrevista", desc: "Vá para o consulado com seu pacote pronto e total confiança." }
       ]
     },
     "visto-f1": {
@@ -1499,6 +1507,14 @@ const visas = {
           q: "E se meu visto for negado?",
           a: "Nosso guia maximiza suas chances, mas não garantimos aprovação. Em caso de negativa, recomendamos consultar um advogado."
         }
+      ],
+      marketingSteps: [
+        { title: "Cadastro e I-20", desc: "Inicie seu processo e anexe seu documento de aceitação escolar." },
+        { title: "Formulário DS-160", desc: "Preencha as informações acadêmicas e pessoais com nosso guia." },
+        { title: "Revisão Especializada", desc: "Validamos seu vínculo e extratos para fortalecer seu perfil." },
+        { title: "SEVIS e Taxa MRV", desc: "Orientação completa para o pagamento das taxas obrigatórias." },
+        { title: "Treino Estudantil", desc: "Prepare-se para perguntas específicas sobre seus estudos nos EUA." },
+        { title: "Pacote de Aprovação", desc: "Kit completo com I-20, DS-160 e checklist prontos para o consulado." }
       ]
     },
     "extensao-status": {
@@ -1537,6 +1553,14 @@ const visas = {
           q: "Posso continuar nos EUA enquanto aguardo?",
           a: "Sim, se você enviou o pedido antes do vencimento, você está em 'authorized stay' enquanto aguarda a decisão."
         }
+      ],
+      marketingSteps: [
+        { title: "Cadastro e Documentos", desc: "Crie sua conta e anexe seu I-94 e comprovantes atuais." },
+        { title: "Formulário I-539", desc: "Preencha a solicitação ao USCIS com nosso passo a passo intuitivo." },
+        { title: "Carta de Suporte", desc: "Elabore uma justificativa forte com nossos modelos especializados." },
+        { title: "Análise de Especialista", desc: "Revisamos todo o dossiê antes da submissão final ao USCIS." },
+        { title: "Pagamento e Postagem", desc: "Instruções claras para taxas e envio físico do seu pacote." },
+        { title: "Acompanhamento Ativo", desc: "Monitore o status do seu pedido com nossa orientação contínua." }
       ]
     },
     "troca-status": {
@@ -1566,7 +1590,15 @@ const visas = {
         "Carta explicativa",
         "Taxa da USCIS"
       ],
-      faq: []
+      faq: [],
+      marketingSteps: [
+        { title: "Cadastro e Documentos", desc: "Crie sua conta e anexe seu I-94 e comprovantes atuais." },
+        { title: "Formulário I-539", desc: "Preencha a solicitação ao USCIS com nosso passo a passo intuitivo." },
+        { title: "Carta de Suporte", desc: "Elabore uma justificativa forte com nossos modelos especializados." },
+        { title: "Análise de Especialista", desc: "Revisamos todo o dossiê antes da submissão final ao USCIS." },
+        { title: "Pagamento e Postagem", desc: "Instruções claras para taxas e envio físico do seu pacote." },
+        { title: "Acompanhamento Ativo", desc: "Monitore o status do seu pedido com nossa orientação contínua." }
+      ]
     }
   }
 } as const;

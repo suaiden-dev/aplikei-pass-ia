@@ -33,7 +33,7 @@ const common = {
   howItWorksPage: {
     hero: {
       tag: "How it Works",
-      title: "Your immigration to the US,",
+      title: "Your US visa,",
       titleHighlight: "uncomplicated.",
       description: "Aplikei combines cutting-edge technology with expert human analysis to ensure every step of your visa process is executed perfectly.",
       features: [

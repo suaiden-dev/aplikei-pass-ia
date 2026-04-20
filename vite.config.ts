@@ -18,20 +18,30 @@ export default defineConfig({
           if (id.includes('node_modules/@supabase')) {
             return 'vendor-supabase';
           }
-          if (id.includes('node_modules/react-icons')) {
-            return 'vendor-icons';
+          if (id.includes('node_modules/@radix-ui')) {
+            return 'vendor-radix';
+          }
+          if (id.includes('node_modules/react-icons') || id.includes('node_modules/lucide-react')) {
+            return 'vendor-ui-icons';
           }
           if (id.includes('node_modules/pdf-lib')) {
             return 'vendor-pdf';
           }
+          if (id.includes('node_modules/@tanstack/react-query')) {
+            return 'vendor-query';
+          }
           if (id.includes('node_modules/recharts')) {
             return 'vendor-charts';
           }
-          if (id.includes('node_modules/formik') || id.includes('node_modules/zod')) {
+          if (id.includes('node_modules/formik') || id.includes('node_modules/zod') || id.includes('node_modules/validator')) {
             return 'vendor-forms';
+          }
+          if (id.includes('node_modules/date-fns')) {
+            return 'vendor-utils';
           }
         },
       },
     },
+    chunkSizeWarningLimit: 1000,
   },
 })

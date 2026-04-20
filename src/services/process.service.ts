@@ -131,7 +131,6 @@ export const processService = {
                         slug.includes("rfe-motion") ||
                         slug.includes("-support");
 
-    let targetSlug = slug;
     let fallbackProcId: string | null = null;
 
     if (isAuxiliary) {
@@ -155,7 +154,6 @@ export const processService = {
 
       if (activeMain) {
         fallbackProcId = activeMain.id;
-        targetSlug = activeMain.service_slug;
         console.log(`[activateService] Vínculo dinâmico: Atribuindo ${slug} ao processo principal ${activeMain.service_slug}`);
       }
     }
@@ -262,6 +260,14 @@ export const processService = {
         body: `O cliente concluiu uma etapa no processo e aguarda sua revisão.`,
         serviceId: serviceId,
         userId: service.user_id,
+      });
+
+      await notificationService.notifyClient({
+        userId: service.user_id,
+        template: "admin_message", // Fallback template
+        title: "Estamos Revisando! 📝",
+        body: "Sua etapa foi enviada com sucesso para nossa equipe de análise. Aguarde a validação.",
+        serviceId: serviceId,
       });
     }
   },

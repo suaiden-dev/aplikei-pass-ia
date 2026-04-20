@@ -1,5 +1,5 @@
 const footer = {
-  tagline: "Guia passo a passo + IA para processos imigratórios simples.",
+  tagline: "Guia passo a passo + IA para processos de visto simples.",
   servicesHeader: "Serviços",
   platformHeader: "Plataforma",
   legalHeader: "Legal",
@@ -12,7 +12,7 @@ const footer = {
   copyright: "Todos os direitos reservados. Aplikei não é escritório de advocacia, não oferece aconselhamento jurídico e não garante aprovação de vistos ou petições.",
   
   // Extra fields for variety
-  description: "Guia passo a passo para simplificar processos imigratórios.",
+  description: "Guia passo a passo para simplificar processos de visto.",
   contact: "Contato",
   security: "Segurança de Dados",
   vistoB1B2: "Visto de Turismo B1/B2",

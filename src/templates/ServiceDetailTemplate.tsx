@@ -261,37 +261,32 @@ export default function ServiceDetailTemplate({
       <section className="max-w-7xl mx-auto px-6 lg:px-20 py-32 text-left">
         <div className="text-center mb-24">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-primary mb-6">
-            {labels.steps}
+            Sua jornada em 6 passos simples
           </h2>
-          <p className="text-slate-600 text-lg lg:text-xl font-medium">{labels.guidedJourney}</p>
+          <p className="text-slate-600 text-lg lg:text-xl font-medium">Do cadastro ao pacote final, cuidamos de cada detalhe para você.</p>
         </div>
 
         <div className="relative space-y-14 max-w-4xl mx-auto">
           <div className="absolute left-[24px] top-4 bottom-4 w-1.5 bg-slate-100 rounded-full"></div>
-          {service.steps.map((step, i) => {
-            const translatedStep = (tVisas.processSteps as any)?.[step.id];
-            const stepTitle = translatedStep?.title || step.title;
-            const stepDescription = translatedStep?.description || step.description;
-
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="relative flex gap-10 group"
-              >
-                <div className="z-10 w-12 h-12 shrink-0 rounded-2xl bg-primary flex items-center justify-center text-white font-extrabold shadow-xl shadow-primary/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                  {i + 1}
-                </div>
-                <div className="pt-1.5">
-                  <h4 className="font-black text-2xl mb-2 text-slate-900 leading-tight">{stepTitle}</h4>
-                  <p className="text-slate-500 text-lg leading-relaxed italic font-medium">{stepDescription}</p>
-                </div>
-              </motion.div>
-            );
-          })}
+          
+          {(catalogEntry?.marketingSteps || tServices.serviceDetail?.journeySteps || []).map((step: any, i: number) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="relative flex gap-10 group"
+            >
+              <div className="z-10 w-12 h-12 shrink-0 rounded-2xl bg-primary flex items-center justify-center text-white font-extrabold shadow-xl shadow-primary/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                {i + 1}
+              </div>
+              <div className="pt-1.5">
+                <h4 className="font-black text-2xl mb-2 text-slate-900 leading-tight">{step.title}</h4>
+                <p className="text-slate-500 text-lg leading-relaxed italic font-medium">{step.desc}</p>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 

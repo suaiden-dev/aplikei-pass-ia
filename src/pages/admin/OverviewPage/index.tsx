@@ -119,7 +119,7 @@ export default function OverviewPage() {
         monthlyMap[monthKey] = 0;
       }
 
-      [...approvedZelle, ...paidStripe].forEach(p => {
+      [...approvedZelle, ...paidStripe].forEach((p: any) => {
         const val = Number(p.amount || p.total_price_usd) || 0;
         totalAllTime += val;
         const pDate = new Date(p.created_at);

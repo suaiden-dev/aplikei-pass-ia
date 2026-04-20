@@ -114,7 +114,8 @@ export const notificationService = {
    */
   async notifyAdmin(params: NotifyAdminParams): Promise<void> {
     try {
-      await supabase.from("notifications").insert({
+      console.log("[notificationService] Sending admin notification:", params.title);
+      const { error } = await supabase.from("notifications").insert({
         type: "client_action",
         target_role: "admin",
         user_id: params.userId || null,
@@ -124,6 +125,9 @@ export const notificationService = {
         send_email: false,
         metadata: params.metadata || {},
       });
+      if (error) {
+        console.error("[notificationService] notifyAdmin DB Error:", error);
+      }
     } catch (e) {
       console.error("[notificationService] notifyAdmin failed:", e);
     }
@@ -133,7 +137,7 @@ export const notificationService = {
     const { count } = await supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
-      .or("target_role.eq.admin,type.eq.client_action")
+      .eq("target_role", "admin")
       .eq("is_read", false);
     return count ?? 0;
   },
@@ -142,7 +146,7 @@ export const notificationService = {
     const { data } = await supabase
       .from("notifications")
       .select("*")
-      .or("target_role.eq.admin,type.eq.client_action")
+      .eq("target_role", "admin")
       .order("created_at", { ascending: false })
       .limit(limit);
     return (data as AppNotification[]) ?? [];
@@ -172,6 +176,15 @@ export const notificationService = {
       .from("notifications")
       .update({ is_read: true })
       .eq("target_role", "admin")
+      .eq("is_read", false);
+  },
+  
+  async markAllClientAsRead(userId: string): Promise<void> {
+    await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", userId)
+      .eq("target_role", "client")
       .eq("is_read", false);
   },
 };

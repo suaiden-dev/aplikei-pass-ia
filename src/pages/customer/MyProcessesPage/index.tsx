@@ -13,6 +13,7 @@ import { servicesData } from "../../../data/services";
 import { processService, type UserService } from "../../../services/process.service";
 import { cn } from "../../../utils/cn";
 import { useT } from "../../../i18n";
+import { LogoLoader } from "../../../components/ui/LogoLoader";
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,
@@ -301,7 +302,7 @@ export default function MyProcessesPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-24">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <LogoLoader />
         </div>
       ) : userServices.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[32px] border border-slate-100 shadow-sm">

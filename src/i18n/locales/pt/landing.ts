@@ -19,7 +19,7 @@ const landing = {
   howItWorksSection: {
     tagline: "Simples, Rápido e Seguro",
     title: "Como funciona",
-    subtitle: "Três passos simples para organizar seu processo imigratório.",
+    subtitle: "Três passos simples para organizar seu processo de visto.",
     step1Title: "Escolha seu serviço",
     step1Desc: "Selecione o guia para seu tipo de visto específico. Listamos claramente o que está incluso (como a ferramenta de IA) e o que não está (como assessoria jurídica).",
     step2Title: "Leia antes de comprar",
@@ -43,7 +43,7 @@ const landing = {
   },
   servicesSection: {
     title: "Nossos serviços",
-    subtitle: "Escolha o guia ideal para o seu processo imigratório.",
+    subtitle: "Escolha o guia ideal para a sua solicitação de visto.",
     viewDetails: "Ver detalhes",
     promo: "🔥 Aproveite condições especiais enquanto durem!",
     discount: "50% OFF"

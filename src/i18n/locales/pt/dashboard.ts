@@ -260,7 +260,7 @@ const dashboard = {
         {
           title: "1. Sobre a Aplikei",
           content:
-            "A Aplikei é uma plataforma digital que oferece guias passo a passo com auxílio de inteligência artificial para processos imigratórios simples. A Aplikei não é escritório de advocacia, não oferece aconselhamento jurídico e não garante aprovação de vistos ou petições.",
+            "A Aplikei é uma plataforma digital que oferece guias passo a passo com auxílio de inteligência artificial para processos de visto simples. A Aplikei não é escritório de advocacia, não oferece aconselhamento jurídico e não garante aprovação de vistos ou petições.",
         },
         {
           title: "2. Serviços oferecidos",
@@ -297,7 +297,7 @@ const dashboard = {
         {
           title: "1. Dados coletados",
           content:
-            "Coletamos: dados de cadastro (nome, e-mail), dados do processo imigratório (informações pessoais, documentos), dados de uso da plataforma e dados de pagamento (processados por terceiros seguros).",
+            "Coletamos: dados de cadastro (nome, e-mail), dados do processo de visto (informações pessoais, documentos), dados de uso da plataforma e dados de pagamento (processados por terceiros seguros).",
         },
         {
           title: "2. Uso dos dados",
@@ -368,7 +368,7 @@ const dashboard = {
       ],
       offersTitle: "O que a Aplikei oferece",
       offersItems: [
-        "Guias digitais educacionais passo a passo para processos imigratórios simples.",
+        "Guias digitais educacionais passo a passo para processos de visto simples.",
         "IA para organização de dados e documentos (não para análise jurídica).",
         "Suporte humano exclusivamente operacional (N1): uso do sistema, upload, taxas, agendamento e status.",
         "Geração de pacote final (PDF) com checklist, resumo e instruções.",

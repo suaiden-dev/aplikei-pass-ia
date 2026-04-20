@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MdLanguage, MdSchool, MdHistory, MdSyncAlt } from "react-icons/md";
@@ -20,10 +20,13 @@ import {
 import { useAuth } from "../../../hooks/useAuth";
 import { processService, type UserService } from "../../../services/process.service";
 import { getServiceBySlug } from "../../../data/services";
+import { supabase } from "../../../lib/supabase";
 import { toast } from "sonner";
 import PhotoUploadOverlay from "../../../components/PhotoUploadOverlay";
 import { cn } from "../../../utils/cn";
 import { useT } from "../../../i18n";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Skeleton } from "../../../components/ui/skeleton";
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,
@@ -84,11 +87,10 @@ export default function ProcessDetailPage() {
   const t = useT("visas");
   const { user, refreshAccount } = useAuth();
   const navigate = useNavigate();
-  const [proc, setProc] = useState<UserService | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [isUpdating, setIsUpdating] = useState(false);
   const [hasPhoto, setHasPhoto] = useState(false);
-  const [hasConsultation, setHasConsultation] = useState(false);
 
   useEffect(() => {
     if (user?.passportPhotoUrl || user?.avatarUrl) {
@@ -100,41 +102,58 @@ export default function ProcessDetailPage() {
   const cfg = slug ? slugConfig[slug] : null;
   const Icon = cfg ? (serviceIconMap[cfg.iconName] ?? MdLanguage) : MdLanguage;
 
-  const load = useCallback(async () => {
-    if (!user || !slug) return;
-    try {
+  const { data: proc, isLoading, refetch } = useQuery({
+    queryKey: ['process-detail', slug, searchParams.get("id")],
+    queryFn: async () => {
+      if (!user || !slug) return null;
       const idParam = searchParams.get("id");
-      const isConsular = slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1");
-      
-      const promises: [Promise<UserService | null>, Promise<UserService | null> | null] = [
-        idParam 
-          ? processService.getServiceById(idParam) 
-          : processService.getUserServiceBySlug(user.id, slug),
-        isConsular 
-          ? processService.getUserServiceBySlug(user.id, "mentoria-negativa-consular")
-          : null
-      ];
+      const data = idParam 
+        ? await processService.getServiceById(idParam) 
+        : await processService.getUserServiceBySlug(user.id, slug);
 
-      const [data, consult] = await Promise.all(promises);
-
-      // Validate if process belongs to current user
       if (data && (data.user_id !== user.id || (idParam && data.service_slug !== slug))) {
-        setProc(null);
-      } else {
-        setProc(data);
+        return null;
       }
+      return data;
+    },
+    enabled: !!user && !!slug,
+  });
 
-      if (consult && consult.status !== "cancelled") {
-        setHasConsultation(true);
-      }
-    } catch {
-      toast.error(t.processDetail.errorLoad);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user, slug, searchParams, t]);
+  const { data: hasConsultation = false } = useQuery({
+    queryKey: ['mentoria-negativa', user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const consult = await processService.getUserServiceBySlug(user.id, "mentoria-negativa-consular");
+      return !!consult && consult.status !== "cancelled";
+    },
+    enabled: !!user && (slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1")),
+  });
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (!user || !proc) return;
+
+    // REALTIME SUBSCRIPTION
+    const channel = supabase
+      .channel(`process-realtime-${proc.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_services',
+          filter: `id=eq.${proc.id}`
+        },
+        () => {
+          console.log("[ProcessDetail] Realtime update detected, refetching...");
+          queryClient.invalidateQueries({ queryKey: ['process-detail', slug, searchParams.get("id")] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, proc, slug, searchParams, queryClient]);
 
   const handleCompleteStep = async () => {
     if (!proc) return;
@@ -142,7 +161,7 @@ export default function ProcessDetailPage() {
     try {
       await processService.requestStepReview(proc.id);
       toast.success(t.processDetail.successRequestReview);
-      await load();
+      await refetch();
     } catch {
       toast.error(t.processDetail.errorRequestReview);
     } finally {
@@ -152,8 +171,25 @@ export default function ProcessDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <RiLoader4Line className="text-4xl text-primary animate-spin" />
+      <div className="p-12 max-w-[1200px]">
+        <div className="flex items-center gap-6 mb-12">
+          <Skeleton className="w-16 h-16 rounded-2xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-2 space-y-4">
+            <Skeleton className="h-32 w-full rounded-2xl" />
+            <Skeleton className="h-32 w-full rounded-2xl" />
+            <Skeleton className="h-32 w-full rounded-2xl" />
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-48 w-full rounded-3xl" />
+            <Skeleton className="h-32 w-full rounded-3xl" />
+          </div>
+        </div>
       </div>
     );
   }

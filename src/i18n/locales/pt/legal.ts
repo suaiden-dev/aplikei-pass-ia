@@ -6,7 +6,7 @@ const legal = {
     sections: [
       {
         title: "1. Sobre a Aplikei",
-        content: "A Aplikei é uma plataforma digital que oferece guias passo a passo com auxílio de inteligência artificial para processos imigratórios simples. A Aplikei não é escritório de advocacia, não oferece aconselhamento jurídico e não garante aprovação de vistos ou petições."
+        content: "A Aplikei é uma plataforma digital que oferece guias passo a passo com auxílio de inteligência artificial para processos de visto simples. A Aplikei não é escritório de advocacia, não oferece aconselhamento jurídico e não garante aprovação de vistos ou petições."
       },
       {
         title: "2. Serviços oferecidos",
@@ -27,7 +27,7 @@ const legal = {
     sections: [
       {
         title: "1. Dados coletados",
-        content: "Coletamos: dados de cadastro (nome, e-mail), dados do processo imigratório (informações pessoais, documentos), dados de uso da plataforma e dados de pagamento."
+        content: "Coletamos: dados de cadastro (nome, e-mail), dados do processo de visto (informações pessoais, documentos), dados de uso da plataforma e dados de pagamento."
       },
       {
         title: "2. Uso dos dados",

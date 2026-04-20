@@ -46,88 +46,98 @@ const Disclaimers   = lazy(() => import("./pages/Legal/Disclaimers"));
 const ContractTerms = lazy(() => import("./pages/Legal/ContractTerms"));
 
 import { useLocale } from "./i18n";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { LogoLoader } from "./components/ui/LogoLoader";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30,   // 30 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 export default function App() {
   const { isLanguageLoading } = useLocale();
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <ScrollToTop />
       {/* 
         Global loading overlay that doesn't unmount the route tree.
-        This prevents flickering during language transitions and ensures
-        redirects (which depend on route mounting) work correctly.
       */}
       {isLanguageLoading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-[9999]">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="fixed inset-0 flex items-center justify-center bg-white/95 backdrop-blur-md z-[9999]">
+          <LogoLoader />
         </div>
       )}
       <Suspense fallback={
         <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <LogoLoader />
         </div>
       }>
         <Routes>
           {/* Rotas públicas — com Navbar e Footer */}
-      <Route element={<PublicLayout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/servicos" element={<ServicosPage />} />
-        <Route path="/servicos/:slug" element={<ServiceDetailPage />} />
-        <Route path="/como-funciona" element={<ComoFuncionaPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/cadastro" element={<SignUpPage />} />
-        <Route path="/checkout/:slug" element={<CheckoutPage />} />
-        
-        {/* Legal Routes */}
-        <Route path="/legal/terms" element={<Terms />} />
-        <Route path="/legal/privacy" element={<Privacy />} />
-        <Route path="/legal/refund" element={<Refund />} />
-        <Route path="/legal/disclaimers" element={<Disclaimers />} />
-        <Route path="/legal/contract-terms" element={<ContractTerms />} />
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/servicos" element={<ServicosPage />} />
+            <Route path="/servicos/:slug" element={<ServiceDetailPage />} />
+            <Route path="/como-funciona" element={<ComoFuncionaPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/cadastro" element={<SignUpPage />} />
+            <Route path="/checkout/:slug" element={<CheckoutPage />} />
+            
+            {/* Legal Routes */}
+            <Route path="/legal/terms" element={<Terms />} />
+            <Route path="/legal/privacy" element={<Privacy />} />
+            <Route path="/legal/refund" element={<Refund />} />
+            <Route path="/legal/disclaimers" element={<Disclaimers />} />
+            <Route path="/legal/contract-terms" element={<ContractTerms />} />
+          </Route>
 
-      </Route>
+          {/* Rotas protegidas — exigem autenticação */}
+          <Route element={<ProtectedRoute />}>
+            {/* Checkout success — protected so user is guaranteed authenticated */}
+            <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
+            {/* Customer Dashboard */}
+            <Route element={<CustomerLayout />}>
+              <Route path="/dashboard" element={<CustomerDashboardPage />} />
+              <Route path="/dashboard/processes" element={<MyProcessesPage />} />
+              {/* Onboarding por produto */}
+              <Route path="/dashboard/processes/visto-b1-b2/onboarding" element={<B1B2OnboardingPage />} />
+              <Route path="/dashboard/processes/visto-b1-b2-reaplicacao/onboarding" element={<B1B2OnboardingPage />} />
+              <Route path="/dashboard/processes/visto-f1/onboarding" element={<F1OnboardingPage />} />
+              <Route path="/dashboard/processes/visto-f1-reaplicacao/onboarding" element={<F1OnboardingPage />} />
+              <Route path="/dashboard/processes/extensao-status/onboarding" element={<COSOnboardingPage />} />
+              <Route path="/dashboard/processes/troca-status/onboarding" element={<COSOnboardingPage />} />
+              {/* Onboarding genérico (outros slugs COS) */}
+              <Route path="/dashboard/processes/:slug/onboarding" element={<COSOnboardingPage />} />
 
-      {/* Rotas protegidas — exigem autenticação */}
-      <Route element={<ProtectedRoute />}>
-        {/* Checkout success — protected so user is guaranteed authenticated */}
-        <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
-        {/* Customer Dashboard */}
-        <Route element={<CustomerLayout />}>
-          <Route path="/dashboard" element={<CustomerDashboardPage />} />
-          <Route path="/dashboard/processes" element={<MyProcessesPage />} />
-          {/* Onboarding por produto */}
-          <Route path="/dashboard/processes/visto-b1-b2/onboarding" element={<B1B2OnboardingPage />} />
-          <Route path="/dashboard/processes/visto-b1-b2-reaplicacao/onboarding" element={<B1B2OnboardingPage />} />
-          <Route path="/dashboard/processes/visto-f1/onboarding" element={<F1OnboardingPage />} />
-          <Route path="/dashboard/processes/visto-f1-reaplicacao/onboarding" element={<F1OnboardingPage />} />
-          <Route path="/dashboard/processes/extensao-status/onboarding" element={<COSOnboardingPage />} />
-          <Route path="/dashboard/processes/troca-status/onboarding" element={<COSOnboardingPage />} />
-          {/* Onboarding genérico (outros slugs COS) */}
-          <Route path="/dashboard/processes/:slug/onboarding" element={<COSOnboardingPage />} />
+              <Route path="/dashboard/processes/:slug" element={<ProcessDetailPage />} />
+              <Route path="/dashboard/support" element={<SupportPage />} />
+              <Route path="/dashboard/ai-chat" element={<AIChatPage />} />
+              <Route path="/minha-conta" element={<ProfileSettingsPage />} />
+            </Route>
 
-          <Route path="/dashboard/processes/:slug" element={<ProcessDetailPage />} />
-          <Route path="/dashboard/support" element={<SupportPage />} />
-          <Route path="/dashboard/ai-chat" element={<AIChatPage />} />
-          <Route path="/minha-conta" element={<ProfileSettingsPage />} />
-        </Route>
+            {/* Admin */}
+            <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<OverviewPage />} />
+              <Route path="/admin/payments" element={<ZellePaymentsPage />} />
+              <Route path="/admin/customers" element={<CustomersPage />} />
+              <Route path="/admin/processes" element={<AdminProcessesPage />} />
+              <Route path="/admin/processes/:id" element={<AdminProcessDetailPage />} />
+              <Route path="/admin/products" element={<ProductsPage />} />
+              <Route path="/admin/coupons" element={<CouponsPage />} />
+            </Route>
+          </Route>
 
-        {/* Admin */}
-        <Route element={<AdminLayout />}>
-          <Route path="/admin" element={<OverviewPage />} />
-          <Route path="/admin/payments" element={<ZellePaymentsPage />} />
-          <Route path="/admin/customers" element={<CustomersPage />} />
-          <Route path="/admin/processes" element={<AdminProcessesPage />} />
-          <Route path="/admin/processes/:id" element={<AdminProcessDetailPage />} />
-          <Route path="/admin/products" element={<ProductsPage />} />
-          <Route path="/admin/coupons" element={<CouponsPage />} />
-        </Route>
-      </Route>
-
-      {/* 404 */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+          {/* 404 */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
       </Suspense>
-    </>
+    </QueryClientProvider>
   );
 }
