@@ -11,6 +11,11 @@ const admin = {
     rejection: {
       confirm: "Confirm Rejection",
     },
+    table: {
+      empty: "No files",
+    },
+    registration: "Registration",
+    paid: "Paid",
   },
   overview: {
     stats: {
@@ -139,22 +144,125 @@ const admin = {
        selectPackage: "Select Final PDF",
     },
     rfe: {
-       panelTitle: "Formulate RFE Response Proposal",
-       infoTitle: "RFE Information",
-       clientDescription: "Client Description:",
-       officialLetter: "Official RFE Letter",
-       strategyLabel: "Response Strategy",
-       strategyPlaceholder: "Describe how the RFE will be answered...",
-       amountLabel: "RFE Consultancy Value ($)",
-       sendProposal: "Send RFE Proposal",
-       historyTitle: "RFE History",
-       cycle: "Cycle",
-       resultApproved: "Approved",
-       resultNewRfe: "New RFE",
-       resultRejected: "Rejected",
-       amount: "Value:",
-       yesterday: "yesterday"
-    }
+        panelTitle: "Formulate RFE Response Proposal",
+        infoTitle: "RFE Information",
+        clientDescription: "Client Description:",
+        officialLetter: "Official RFE Letter",
+        strategyLabel: "Response Strategy",
+        strategyPlaceholder: "Describe how the RFE will be answered...",
+        amountLabel: "RFE Consultancy Value ($)",
+        sendProposal: "Send RFE Proposal",
+        historyTitle: "RFE History",
+        cycle: "Cycle",
+        resultApproved: "Approved",
+        resultNewRfe: "New RFE",
+        resultRejected: "Rejected",
+        amount: "Value:",
+        yesterday: "yesterday"
+     },
+     credentials: {
+        title: "CEAC Credentials / Application ID",
+        appId: "Application ID",
+        motherName: "Mother's Name (Security Answer)",
+        birthYear: "Birth Year",
+        sendBtn: "Send Credentials to Client",
+     },
+     notifications: {
+        completed: "Process Completed",
+        approved: "Step Approved",
+        corrections: "Corrections Needed",
+     },
+     officialForms: {
+        title: "Official Forms",
+        i539Form: "Form I-539",
+        digitalDocDesc: "Digitally filled document.",
+        viewPdf: "View PDF",
+        reject: "Reject",
+     },
+     coverLetter: {
+        title: "Analysis: Cover Letter",
+        finalLetter: "Final Letter Generated",
+        generateBtn: "Generate Cover Letter",
+     },
+     finalForms: {
+        g1145: "G-1145",
+        g1450: "G-1450",
+     },
+     i20Sevis: {
+        title: "I-20 and SEVIS Review",
+        rejectBtn: "Reject",
+        approveBtn: "Approve I-20 / SEVIS",
+        requestCorrection: "Request Correction",
+     },
+     f1Documents: {
+        title: "Applied Analysis: I-20 Document",
+        approveBtn: "Approve Documents",
+     },
+     f1FinalDocs: {
+        title: "Student Proofs (DS-160 / SEVIS)",
+        ds160Signed: "Signed DS-160",
+        finalProof: "Final Proof",
+        approveBtn: "Approve Final Review",
+     },
+     b1b2FinalDocs: {
+        title: "Final DS-160 Proofs",
+        ds160Signed: "Signed DS-160",
+        ceacProof: "CEAC Proof",
+        approveBtn: "Approve Documentation",
+     },
+     casv: {
+        title: "CASV Scheduling — Consulate",
+        selectedConsulate: "Selected Consulate",
+        noConsulate: "Consulate not informed",
+        preferredDate: "Requested Preferred Date",
+        noDate: "No date provided yet.",
+        confirmBtn: "Confirm Scheduling",
+        requestAdjustment: "Request Adjustment",
+     },
+     accountCreation: {
+        title: "Account Creation on Consulate Website",
+        instruction: "Use the data above to create the official account on the consulate website. Once created, confirm below so the client can validate access.",
+        confirmBtn: "Confirm Account Created",
+     },
+     finalPackage: {
+        title: "Final Package",
+        mergeBtn: "Merge All Documents",
+        reviewPdf: "Review PDF",
+        approveBtn: "Approve Step",
+     },
+     purchases: {
+        title: "Purchase History",
+        slotsPaid: "Paid Slots",
+        noPurchases: "No purchases recorded via JSONB.",
+        dependents: "Dependents",
+     },
+     logs: {
+        title: "Change Log",
+        noLogs: "No changes recorded yet.",
+        status: {
+           active: "Active",
+           awaitingReview: "Awaiting Review",
+           completed: "Completed",
+           rejected: "Rejected",
+        },
+        actor: {
+           admin: "Admin",
+           client: "Client",
+        },
+        actions: {
+           approved: "✅ Step Approved",
+           returned: "🔄 Returned to Client",
+           inReview: "⏳ Marked as In Review",
+           completed: "🎉 Process Completed",
+           formSubmitted: "📤 Submitted Form / Advanced Step",
+           sentForReview: "📨 Sent for Review",
+           internalChange: "🔧 Internal Change",
+        },
+        labels: {
+           step: "Step",
+           status: "Status",
+        }
+     }
   },
   customers: {
     title: "Customers",
@@ -364,6 +472,22 @@ const admin = {
       invalidValue: "Enter a valid value.",
       invalidCode: "Enter a valid code."
     }
+  },
+  chats: {
+    title: "Message Center",
+    subtitle: "Direct support and case tracking",
+    searchPlaceholder: "Search conversation...",
+    emptyState: "No conversations",
+    selectChat: "Select a conversation",
+    selectChatSubtitle: "Choose a customer from the list to start the service or view history.",
+    online: "Online",
+    offline: "Offline",
+    typeMessage: "Type your message...",
+    today: "Today",
+    settings: "Settings",
+    finalizeProcess: "Finalize Process",
+    finalizeConfirm: "Are you sure you want to finalize this process? This action cannot be undone.",
+    processFinalized: "Process finalized successfully!"
   }
 };
 

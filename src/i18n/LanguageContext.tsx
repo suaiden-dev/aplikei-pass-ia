@@ -11,6 +11,7 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
+import { supabase } from "../lib/supabase";
 
 import {
   Language,
@@ -79,13 +80,46 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setLang = useCallback(
-    (newLang: Language) => {
+    async (newLang: Language) => {
       if (newLang === lang) return;
       localStorage.setItem("aplikei-lang", newLang);
       setLangState(newLang);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        supabase
+          .from("user_accounts")
+          .update({ preferred_language: newLang })
+          .eq("id", user.id)
+          .then(({ error }) => {
+            if (error) {
+              console.warn("[i18n] Failed to persist lang to DB:", error.message);
+            }
+          });
+      }
     },
     [lang],
   );
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+
+      supabase
+        .from("user_accounts")
+        .select("preferred_language")
+        .eq("id", user.id)
+        .single()
+        .then(({ data }) => {
+          const dbLang = data?.preferred_language as Language | undefined;
+          if (dbLang && dbLang !== lang) {
+            localStorage.setItem("aplikei-lang", dbLang);
+            setLangState(dbLang);
+          }
+        });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     loadLocale(lang);

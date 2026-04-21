@@ -111,7 +111,8 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
         title: "📄 Questionário Cover Letter",
         body: `O cliente ${user?.full_name || user?.email} respondeu ao questionário da carta de apresentação.`,
         serviceId: proc.id,
-        userId: user?.id
+        userId: user?.id,
+        link: `/admin/processes/${proc.id}`,
       });
 
       onComplete(); // Advance step

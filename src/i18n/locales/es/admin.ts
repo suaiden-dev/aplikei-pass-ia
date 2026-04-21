@@ -8,6 +8,11 @@ const admin = {
     cancel: "Cancelar",
     confirm: "Confirmar",
     administrativeAction: "Acción Administrativa",
+    table: {
+      empty: "Ningún archivo",
+    },
+    registration: "Registro",
+    paid: "Pagado",
   },
   overview: {
     stats: {
@@ -136,21 +141,124 @@ const admin = {
        selectPackage: "Seleccionar PDF Final",
     },
     rfe: {
-       panelTitle: "Formular Propuesta de Respuesta RFE",
-       infoTitle: "Información de la RFE",
-       clientDescription: "Descripción del Cliente:",
-       officialLetter: "Carta de RFE Oficial",
-       strategyLabel: "Estrategia de Respuesta",
-       strategyPlaceholder: "Describa cómo se responderá a la RFE...",
-       amountLabel: "Valor de la Asesoría RFE ($)",
-       sendProposal: "Enviar Propuesta de RFE",
-       historyTitle: "Historial de RFE",
-       cycle: "Ciclo",
-       resultApproved: "Aprobado",
-       resultNewRfe: "Nueva RFE",
-       resultRejected: "Rechazado",
-       amount: "Valor:",
-    }
+        panelTitle: "Formular Propuesta de Respuesta RFE",
+        infoTitle: "Información de la RFE",
+        clientDescription: "Descripción del Cliente:",
+        officialLetter: "Carta de RFE Oficial",
+        strategyLabel: "Estrategia de Respuesta",
+        strategyPlaceholder: "Describa cómo se responderá a la RFE...",
+        amountLabel: "Valor de la Asesoría RFE ($)",
+        sendProposal: "Enviar Propuesta de RFE",
+        historyTitle: "Historial de RFE",
+        cycle: "Ciclo",
+        resultApproved: "Aprobado",
+        resultNewRfe: "Nueva RFE",
+        resultRejected: "Rechazado",
+        amount: "Valor:",
+     },
+     credentials: {
+        title: "Credenciales CEAC / Application ID",
+        appId: "Application ID",
+        motherName: "Nombre de la Madre (Respuesta de Seguridad)",
+        birthYear: "Año de Nacimiento",
+        sendBtn: "Enviar Credenciales al Cliente",
+     },
+     notifications: {
+        completed: "Proceso Completado",
+        approved: "Etapa Aprovada",
+        corrections: "Correcciones Necesarias",
+     },
+     officialForms: {
+        title: "Formularios Oficiales",
+        i539Form: "Formulario I-539",
+        digitalDocDesc: "Documento cumplimentado digitalmente.",
+        viewPdf: "Visualizar PDF",
+        reject: "Rechazar",
+     },
+     coverLetter: {
+        title: "Análisis: Cover Letter",
+        finalLetter: "Carta Final Generada",
+        generateBtn: "Generar Cover Letter",
+     },
+     finalForms: {
+        g1145: "G-1145",
+        g1450: "G-1450",
+     },
+     i20Sevis: {
+        title: "Revisión I-20 y SEVIS",
+        rejectBtn: "Rechazar",
+        approveBtn: "Aprobar I-20 / SEVIS",
+        requestCorrection: "Pedir Corrección",
+     },
+     f1Documents: {
+        title: "Análisis Aplicakei: Documento I-20",
+        approveBtn: "Aprovar Documentos",
+     },
+     f1FinalDocs: {
+        title: "Comprobantes Estudiantiles (DS-160 / SEVIS)",
+        ds160Signed: "DS-160 Firmada",
+        finalProof: "Comprobante Final",
+        approveBtn: "Aprobar Revisión Final",
+     },
+     b1b2FinalDocs: {
+        title: "Comprobantes Finales DS-160",
+        ds160Signed: "DS-160 Firmada",
+        ceacProof: "Comprobante CEAC",
+        approveBtn: "Aprobar Documentación",
+     },
+     casv: {
+        title: "Programación CASV — Consulado",
+        selectedConsulate: "Consulado Seleccionado",
+        noConsulate: "Consulado no informado",
+        preferredDate: "Fecha Preferencial Solicitada",
+        noDate: "Aún no se ha proporcionado ninguna fecha.",
+        confirmBtn: "Confirmar Programación",
+        requestAdjustment: "Pedir Ajuste",
+     },
+     accountCreation: {
+        title: "Creación de Cuenta en el Sitio del Consulado",
+        instruction: "Utilice los datos anteriores para crear la cuenta oficial en el sitio del consulado. Una vez creada, confirme a continuación para que el cliente possa validar el acceso.",
+        confirmBtn: "Confirmar que la Cuenta fue Creada",
+     },
+     finalPackage: {
+        title: "Final Package",
+        mergeBtn: "Merge All Documents",
+        reviewPdf: "Review PDF",
+        approveBtn: "Aprobar Etapa",
+     },
+     purchases: {
+        title: "Historial de Compras",
+        slotsPaid: "Slots Pagados",
+        noPurchases: "Ninguna compra registrada a través de JSONB.",
+        dependents: "Dependientes",
+     },
+     logs: {
+        title: "Log de Alteraciones",
+        noLogs: "Aún no se ha registrado ninguna alteración.",
+        status: {
+           active: "Activo",
+           awaitingReview: "Esperando Revisión",
+           completed: "Completado",
+           rejected: "Rechazado",
+        },
+        actor: {
+           admin: "Admin",
+           client: "Cliente",
+        },
+        actions: {
+           approved: "✅ Etapa Aprobada",
+           returned: "🔄 Regresó al Cliente",
+           inReview: "⏳ Marcado como En Revisión",
+           completed: "🎉 Proceso Completado",
+           formSubmitted: "📤 Envió Formulario / Avanzó Etapa",
+           sentForReview: "📨 Enviado para Revisión",
+           internalChange: "🔧 Alteración Interna",
+        },
+        labels: {
+           step: "Etapa",
+           status: "Estado",
+        }
+     }
   },
   customers: {
     title: "Clientes",
@@ -360,6 +468,22 @@ const admin = {
       invalidValue: "Ingrese un valor válido.",
       invalidCode: "Ingrese un código válido."
     }
+  },
+  chats: {
+    title: "Centro de Mensajes",
+    subtitle: "Soporte directo y seguimiento de casos",
+    searchPlaceholder: "Buscar conversación...",
+    emptyState: "Sin conversaciones",
+    selectChat: "Selecciona una conversación",
+    selectChatSubtitle: "Elige un cliente de la lista para iniciar el servicio o ver el historial.",
+    online: "En línea",
+    offline: "Desconectado",
+    typeMessage: "Escribe tu mensaje...",
+    today: "Hoy",
+    settings: "Configuración",
+    finalizeProcess: "Finalizar Proceso",
+    finalizeConfirm: "¿Estás seguro de que deseas finalizar este proceso? Esta acción no se puede deshacer.",
+    processFinalized: "¡Proceso finalizado con éxito!"
   }
 };
 

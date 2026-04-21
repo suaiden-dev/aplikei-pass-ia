@@ -118,7 +118,8 @@ export function B1B2UserReviewSignStep({ procId, userId, stepData, onComplete, o
         title: "🖋️ DS-160 Assinada e Revisada",
         body: `O cliente concluiu a revisão e anexou os comprovantes de assinatura da DS-160.`,
         serviceId: procId,
-        userId: userId
+        userId,
+        link: `/admin/processes/${procId}`,
       });
 
       toast.success(t.onboardingPage.uploadAllSuccess);

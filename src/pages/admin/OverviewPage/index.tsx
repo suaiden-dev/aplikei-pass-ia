@@ -98,7 +98,7 @@ export default function OverviewPage() {
         supabase.from("user_accounts").select("*", { count: "exact", head: true }),
         supabase.from("zelle_payments").select("*", { count: "exact", head: true }).eq("status", "pending_verification"),
         supabase.from("zelle_payments").select("amount, created_at, status"),
-        supabase.from("visa_orders").select("total_price_usd, created_at, payment_status"),
+        supabase.from("orders").select("total_price_usd, created_at, payment_status"),
         supabase.from("user_services").select("service_slug, status")
       ]);
 

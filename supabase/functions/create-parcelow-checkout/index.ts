@@ -29,10 +29,10 @@ Deno.serve(async (req: Request) => {
     try {
         const payload = await req.json();
         console.log("[create-parcelow-checkout] Payload Recebido (v2):", JSON.stringify(payload));
-        const { 
-            slug, email, fullName, phone, dependents = 0, 
-            cpf, payerInfo, paymentMethod, origin_url, 
-            action, serviceId, processId, coupon_code // <--- ADICIONADO coupon_code
+        const {
+            slug, email, fullName, phone, dependents = 0,
+            cpf, payerInfo, paymentMethod, origin_url,
+            action, serviceId, processId, proc_id, order_id, parent_service_slug, coupon_code
         } = payload;
 
         if (!slug || !email || (!cpf && !payerInfo?.cpf)) {
@@ -153,22 +153,31 @@ Deno.serve(async (req: Request) => {
         const finalPayerCpf = cleanDocumentNumber(payerInfo?.cpf || cpf);
         const finalPayerPhone = cleanDocumentNumber(payerInfo?.phone || phone);
 
-        // 4. Criar ordem pendente na Aplikei
-        const orderUuid = crypto.randomUUID();
+        // 4. Atualizar ordem pré-criada pelo service (nunca inserir aqui)
+        const orderUuid = order_id;
+        if (!orderUuid) {
+            throw new Error("order_id é obrigatório. A ordem deve ser pré-criada pelo service antes de chamar esta função.");
+        }
         const parcelowReference = `APK_${orderUuid}`;
 
+        const { data: existingOrder } = await supabase
+            .from("orders")
+            .select("payment_metadata")
+            .eq("id", orderUuid)
+            .maybeSingle();
+
+        const existingMetadata = existingOrder?.payment_metadata || {};
+        const targetProcId = proc_id || processId || existingMetadata.proc_id || existingMetadata.parent_process_id || "";
+        const parentServiceSlug = parent_service_slug || existingMetadata.parent_service_slug || "";
+
         const { error: orderError } = await supabase
-            .from("visa_orders")
-            .insert({
-                id: orderUuid,
+            .from("orders")
+            .update({
                 order_number: parcelowReference,
-                client_name: fullName,
-                client_email: email,
-                product_slug: slug,
-                total_price_usd: finalSubtotalUSD, // <--- USA VALOR COM DESCONTO
-                payment_status: "pending",
+                total_price_usd: finalSubtotalUSD,
                 payment_method: `parcelow_${paymentMethod || 'credit_card'}`,
                 payment_metadata: {
+                    ...existingMetadata,
                     dependents,
                     phone,
                     payerInfo: payerInfo || null,
@@ -176,14 +185,18 @@ Deno.serve(async (req: Request) => {
                     parcelow_phone: finalPayerPhone,
                     action: action || "",
                     serviceId: serviceId || "",
-                    processId: processId || "",
-                    coupon_code: coupon_code || "",           // <--- ADICIONADO PARA TRACKING
-                    applied_coupon_id: appliedCouponId || "", // <--- ADICIONADO PARA TRACKING
+                    proc_id: targetProcId,
+                    parent_process_id: targetProcId,
+                    processId: targetProcId,
+                    parent_service_slug: parentServiceSlug,
+                    coupon_code: coupon_code || "",
+                    applied_coupon_id: appliedCouponId || "",
                     original_subtotal: subtotalUSD.toString(),
                     discount_amount: (subtotalUSD - finalSubtotalUSD).toString(),
                     product_type: slug === 'troca-status' ? 'COS' : (slug === 'extensao-status' ? 'EOS' : 'B1B2'),
                 }
-            });
+            })
+            .eq("id", orderUuid);
 
         if (orderError) {
             console.error("[create-parcelow-checkout] ❌ Erro detalhado do DB:", JSON.stringify(orderError));
@@ -270,7 +283,7 @@ Deno.serve(async (req: Request) => {
 
         // 6. Atualizar a ordem com o ID remoto
         await supabase
-            .from("visa_orders")
+            .from("orders")
             .update({ parcelow_order_id: parcelowGenOrderId })
             .eq("id", orderUuid);
 

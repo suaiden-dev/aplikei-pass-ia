@@ -11,6 +11,7 @@ import {
   RiMenuLine,
   RiCloseLine,
   RiTicket2Line,
+  RiChat3Line,
 } from "react-icons/ri";
 import { useAuth } from "../hooks/useAuth";
 import { cn } from "../utils/cn";
@@ -24,6 +25,7 @@ const navItems = [
   { label: "Products",  icon: RiPriceTag3Line, to: "/admin/products" },
   { label: "Coupons",   icon: RiTicket2Line,   to: "/admin/coupons" },
   { label: "Customers", icon: RiTeamLine,      to: "/admin/customers" },
+  { label: "Chats", icon: RiChat3Line, to: "/admin/chats" },
   { label: "Cases", icon: RiFileListLine,  to: "/admin/processes" },
 ];
 
@@ -33,6 +35,7 @@ const pageTitle: Record<string, string> = {
   "/admin/products":  "Produtos & Preços",
   "/admin/coupons":   "Cupons de Desconto",
   "/admin/customers": "Customers",
+  "/admin/chats": "Centro de Mensagens",
   "/admin/processes": "Cases",
 };
 

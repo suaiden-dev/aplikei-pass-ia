@@ -108,7 +108,8 @@ export default function F1OnboardingPage() {
           title: "🎓 Início de Fluxo F1",
           body: `O cliente ${user?.fullName || user?.email} concluiu o formulário inicial de Estudante (${slug}).`,
           serviceId: procId,
-          userId: user?.id
+          userId: user?.id,
+          link: `/admin/processes/${procId}`,
         });
 
         toast.success(t.onboardingPage.f1.saveSuccessDocs);

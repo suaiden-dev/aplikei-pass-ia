@@ -392,7 +392,8 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
             title: "📋 Formulário I-539 Gerado",
             body: `O cliente ${user?.fullName || user?.email} concluiu o preenchimento e gerou o PDF do I-539.`,
             serviceId: proc.id,
-            userId: user.id
+            userId: user.id,
+            link: `/admin/processes/${proc.id}`,
           });
 
           onComplete();

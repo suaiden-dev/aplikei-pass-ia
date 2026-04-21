@@ -1081,7 +1081,7 @@ export const servicesData: ServiceMeta[] = [
     faq: [],
   },
   {
-    slug: "mentoria-bronze",
+    slug: "mentoria-bronze-usd",
     title: "Mentoria Bronze",
     subtitle: "Preparação completa com 2 simulados de entrevista.",
     price: "US$ 397,00",
@@ -1100,7 +1100,7 @@ export const servicesData: ServiceMeta[] = [
     faq: [],
   },
   {
-    slug: "mentoria-gold",
+    slug: "mentoria-gold-usd",
     title: "Mentoria Gold",
     subtitle: "Acompanhamento VIP com 3 simulados e suporte prioritário.",
     price: "US$ 697,00",

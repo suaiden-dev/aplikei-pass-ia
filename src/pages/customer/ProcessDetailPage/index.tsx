@@ -15,8 +15,10 @@ import {
   RiBookOpenLine,
   RiUserVoiceLine,
   RiUserStarLine,
-  RiFlagLine
+  RiFlagLine,
+  RiChat3Line
 } from "react-icons/ri";
+import { SupportChat } from "../../../components/SupportChat";
 import { useAuth } from "../../../hooks/useAuth";
 import { processService, type UserService } from "../../../services/process.service";
 import { getServiceBySlug } from "../../../data/services";
@@ -719,6 +721,30 @@ export default function ProcessDetailPage() {
               <RiArrowRightLine />
             </Link>
           </div>
+
+          {(() => {
+            const stepData = (proc.step_data || {}) as Record<string, unknown>;
+            const purchases = (stepData.purchases || []) as any[];
+            const hasPaidProposal = purchases.some(p => 
+              p.slug === "proposta-rfe-motion" || 
+              p.slug === "apoio-rfe-motion-inicio" || 
+              p.slug === "analise-rfe-cos" || 
+              p.slug === "apoio-rfe-cos" || 
+              p.slug === "analise-especialista-cos" ||
+              p.slug === "analise-especialista-rfe"
+            );
+
+            if (!hasPaidProposal) return null;
+
+            return (
+              <SupportChat 
+                processId={proc.id} 
+                userId={user?.id || ""} 
+                role="customer" 
+                userName="Consultor Aplikei" 
+              />
+            );
+          })()}
         </div>
       </div>
       {user && proc && !hasPhoto && (proc.current_step ?? 0) === 0 && (

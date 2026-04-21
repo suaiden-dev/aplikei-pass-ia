@@ -36,7 +36,7 @@ export default function CustomersPage() {
       ] = await Promise.all([
         supabase.from("user_accounts").select("*").order("created_at", { ascending: false }),
         supabase.from("zelle_payments").select("amount, user_id, guest_email").eq("status", "approved"),
-        supabase.from("visa_orders").select("total_price_usd, client_email").in("payment_status", ["paid", "complete", "succeeded", "completed"])
+        supabase.from("orders").select("total_price_usd, client_email").in("payment_status", ["paid", "complete", "succeeded", "completed"])
       ]);
 
       if (accountsErr) throw accountsErr;

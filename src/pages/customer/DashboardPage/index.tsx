@@ -356,27 +356,6 @@ export default function CustomerDashboardPage() {
     queryKey: ['user-services', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      
-      // Recovery logic (still runs but can be separate)
-      const recoverySlug = localStorage.getItem("checkout_slug");
-      if (recoverySlug) {
-        try {
-          const recoveryDeps = parseInt(localStorage.getItem("checkout_dependents") || "0", 10);
-          await processService.activateService(user.id, recoverySlug, recoveryDeps, {
-            paymentId: `REC_${recoverySlug}_${Date.now()}`,
-            method: "recovery",
-            amount: 0
-          });
-          toast.success("Pagamento confirmado! Seu processo foi atualizado.");
-          localStorage.removeItem("checkout_slug");
-          localStorage.removeItem("checkout_dependents");
-          localStorage.removeItem("checkout_parent_id");
-          localStorage.removeItem("pending_payment_advance");
-        } catch (e) {
-          console.error("[Dashboard] Recovery failed", e);
-        }
-      }
-
       return processService.getUserServices(user.id);
     },
     enabled: !!user,

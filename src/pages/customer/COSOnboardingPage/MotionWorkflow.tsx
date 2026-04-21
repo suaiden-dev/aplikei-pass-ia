@@ -93,7 +93,7 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
     const { data: { user: authUser } } = await supabase.auth.getUser();
     if (authUser?.id) {
       try {
-        await supabase.from("visa_orders").insert({
+        await supabase.from("orders").insert({
           user_id: authUser.id,
           client_name: user?.fullName || authUser.user_metadata?.full_name || "Cliente",
           client_email: email,
@@ -103,7 +103,7 @@ function MotionCheckoutOverlay({ amount, slug, proc, onClose }: MotionCheckoutOv
           payment_status: "pending",
         });
       } catch (e) {
-        console.error("[Motion] visa_orders pre-registration error:", e);
+        console.error("[Motion] orders pre-registration error:", e);
       }
     }
   };
@@ -532,7 +532,8 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
         title: "🚨 Carta de Negativa (Motion)",
         body: `O cliente submeteu a carta de negativa para iniciar um Motion no processo ${proc.id}.`,
         serviceId: proc.id,
-        userId: proc.user_id
+        userId: proc.user_id,
+        link: `/admin/processes/${proc.id}`,
       });
 
       toast.success(t?.workflows?.shared?.fileSent || "File sent!", { id: "upload" });
@@ -560,7 +561,8 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
         title: "🚨 Justificativa de Motion",
         body: `O cliente enviou a justificativa para o Motion no processo ${proc.id}.`,
         serviceId: proc.id,
-        userId: proc.user_id
+        userId: proc.user_id,
+        link: `/admin/processes/${proc.id}`,
       });
 
       onComplete?.();

@@ -491,7 +491,8 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
         title: "⚠️ Nova RFE Recebida",
         body: `O cliente submeteu a carta de RFE para o processo ${proc.id}.`,
         serviceId: proc.id,
-        userId: proc.user_id
+        userId: proc.user_id,
+        link: `/admin/processes/${proc.id}`,
       });
 
       onComplete?.();
@@ -511,7 +512,8 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
         title: "⚠️ Descrição de RFE Enviada",
         body: `O cliente descreveu os requisitos da RFE para o processo ${proc.id}.`,
         serviceId: proc.id,
-        userId: proc.user_id
+        userId: proc.user_id,
+        link: `/admin/processes/${proc.id}`,
      });
      
      onComplete?.();

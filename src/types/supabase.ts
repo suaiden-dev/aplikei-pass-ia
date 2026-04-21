@@ -483,7 +483,7 @@ export type Database = {
           },
         ]
       }
-      visa_orders: {
+      orders: {
         Row: {
           client_email: string
           client_ip: string | null
@@ -561,7 +561,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "visa_orders_user_id_fkey"
+            foreignKeyName: "orders_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user_accounts"
@@ -663,7 +663,7 @@ export type Database = {
             foreignKeyName: "zelle_payments_visa_order_id_fkey"
             columns: ["visa_order_id"]
             isOneToOne: false
-            referencedRelation: "visa_orders"
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]

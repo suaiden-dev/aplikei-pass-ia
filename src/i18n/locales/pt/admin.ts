@@ -11,6 +11,11 @@ const admin = {
     rejection: {
       confirm: "Confirmar Rejeição",
     },
+    table: {
+      empty: "Nenhum arquivo",
+    },
+    registration: "Registro",
+    paid: "Pago",
   },
   overview: {
     stats: {
@@ -139,21 +144,124 @@ const admin = {
        selectPackage: "Selecionar PDF Final",
     },
     rfe: {
-       panelTitle: "Formular Proposta de Resposta RFE",
-       infoTitle: "Informações da RFE",
-       clientDescription: "Descrição do Cliente:",
-       officialLetter: "Carta de RFE Oficial",
-       strategyLabel: "Estratégia de Resposta",
-       strategyPlaceholder: "Descreva como a RFE será respondida...",
-       amountLabel: "Valor da Assessoria RFE ($)",
-       sendProposal: "Enviar Proposta de RFE",
-       historyTitle: "Histórico de RFEs",
-       cycle: "Ciclo",
-       resultApproved: "Aprovado",
-       resultNewRfe: "Nova RFE",
-       resultRejected: "Reprovado",
-       amount: "Valor:",
-    }
+        panelTitle: "Formular Proposta de Resposta RFE",
+        infoTitle: "Informações da RFE",
+        clientDescription: "Descrição do Cliente:",
+        officialLetter: "Carta de RFE Oficial",
+        strategyLabel: "Estratégia de Resposta",
+        strategyPlaceholder: "Descreva como a RFE será respondida...",
+        amountLabel: "Valor da Assessoria RFE ($)",
+        sendProposal: "Enviar Proposta de RFE",
+        historyTitle: "Histórico de RFEs",
+        cycle: "Ciclo",
+        resultApproved: "Aprovado",
+        resultNewRfe: "Nova RFE",
+        resultRejected: "Reprovado",
+        amount: "Valor:",
+     },
+     credentials: {
+        title: "Credenciais CEAC / Application ID",
+        appId: "Application ID",
+        motherName: "Nome da Mãe (Resposta de Segurança)",
+        birthYear: "Ano de Nascimento",
+        sendBtn: "Enviar Credenciais ao Cliente",
+     },
+     notifications: {
+        completed: "Processo Concluído",
+        approved: "Etapa Aprovada",
+        corrections: "Correções Necessárias",
+     },
+     officialForms: {
+        title: "Formulários Oficiais",
+        i539Form: "Formulário I-539",
+        digitalDocDesc: "Documento preenchido digitalmente.",
+        viewPdf: "Visualizar PDF",
+        reject: "Reprovar",
+     },
+     coverLetter: {
+        title: "Análise: Cover Letter",
+        finalLetter: "Carta Final Gerada",
+        generateBtn: "Gerar Cover Letter",
+     },
+     finalForms: {
+        g1145: "G-1145",
+        g1450: "G-1450",
+     },
+     i20Sevis: {
+        title: "Revisão I-20 e SEVIS",
+        rejectBtn: "Rejeitar",
+        approveBtn: "Aprovar I-20 / SEVIS",
+        requestCorrection: "Pedir Correção",
+     },
+     f1Documents: {
+        title: "Análise Aplicakei: Documento I-20",
+        approveBtn: "Aprovar Documentos",
+     },
+     f1FinalDocs: {
+        title: "Comprovantes Estudantis (DS-160 / SEVIS)",
+        ds160Signed: "DS-160 Assinada",
+        finalProof: "Comprovante Final",
+        approveBtn: "Aprovar Revisão Final",
+     },
+     b1b2FinalDocs: {
+        title: "Comprovantes Finais DS-160",
+        ds160Signed: "DS-160 Assinada",
+        ceacProof: "Comprovante CEAC",
+        approveBtn: "Aprovar Documentação",
+     },
+     casv: {
+        title: "Agendamento CASV — Consulado",
+        selectedConsulate: "Consulado Selecionado",
+        noConsulate: "Consulado não informado",
+        preferredDate: "Data Preferencial Solicitada",
+        noDate: "Nenhuma data informada ainda.",
+        confirmBtn: "Confirmar Agendamento",
+        requestAdjustment: "Pedir Ajuste",
+     },
+     accountCreation: {
+        title: "Criação de Conta no Site do Consulado",
+        instruction: "Utilize os dados acima para criar a conta oficial no site do consulado. Uma vez criada, confirme abaixo para que o cliente possa validar o acesso.",
+        confirmBtn: "Confirmar que Conta foi Criada",
+     },
+     finalPackage: {
+        title: "Final Package",
+        mergeBtn: "Merge All Documents",
+        reviewPdf: "Review PDF",
+        approveBtn: "Aprovar Etapa",
+     },
+     purchases: {
+        title: "Histórico de Compras",
+        slotsPaid: "Slots Pagos",
+        noPurchases: "Nenhuma compra registrada via JSONB.",
+        dependents: "Dependentes",
+     },
+     logs: {
+        title: "Log de Alterações",
+        noLogs: "Nenhuma alteração registrada ainda.",
+        status: {
+           active: "Ativo",
+           awaitingReview: "Aguardando Revisão",
+           completed: "Concluído",
+           rejected: "Rejeitado",
+        },
+        actor: {
+           admin: "Admin",
+           client: "Cliente",
+        },
+        actions: {
+           approved: "✅ Etapa Aprovada",
+           returned: "🔄 Retornou para Cliente",
+           inReview: "⏳ Marcou como Em Revisão",
+           completed: "🎉 Processo Concluído",
+           formSubmitted: "📤 Enviou Formulário / Avançou Etapa",
+           sentForReview: "📨 Enviou para Revisão",
+           internalChange: "🔧 Alteração Interna",
+        },
+        labels: {
+           step: "Etapa",
+           status: "Status",
+        }
+     }
   },
   customers: {
     title: "Clientes",
@@ -363,6 +471,22 @@ const admin = {
       invalidValue: "Informe um valor válido.",
       invalidCode: "Informe um código válido."
     }
+  },
+  chats: {
+    title: "Centro de Mensagens",
+    subtitle: "Suporte direto e acompanhamento de cases",
+    searchPlaceholder: "Buscar conversa...",
+    emptyState: "Nenhuma conversa",
+    selectChat: "Selecione uma conversa",
+    selectChatSubtitle: "Escolha um cliente na lista ao lado para iniciar o atendimento ou visualizar o histórico.",
+    online: "Online",
+    offline: "Offline",
+    typeMessage: "Digite sua mensagem...",
+    today: "Hoje",
+    settings: "Configurações",
+    finalizeProcess: "Finalizar Processo",
+    finalizeConfirm: "Tem certeza que deseja finalizar este processo? Esta ação não pode ser desfeita.",
+    processFinalized: "Processo finalizado com sucesso!"
   }
 };
 

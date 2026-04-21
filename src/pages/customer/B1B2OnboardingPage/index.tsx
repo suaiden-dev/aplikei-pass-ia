@@ -116,7 +116,8 @@ export default function B1B2OnboardingPage() {
         title: "📝 DS-160 Preenchida",
         body: `O cliente ${user?.fullName || user?.email} finalizou o preenchimento da DS-160 para ${slug}.`,
         serviceId: procId,
-        userId: user?.id
+        userId: user?.id,
+        link: `/admin/processes/${procId}`,
       });
       
       toast.success(t.onboardingPage.successSubmit);

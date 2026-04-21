@@ -18,7 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const performFetch = async () => {
       // Safety timeout: don't wait more than 5 seconds for DB profile
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Timeout")), 5000)
+        setTimeout(() => reject(new Error("Timeout")), 10000)
       );
 
       try {
@@ -177,7 +177,7 @@ function buildFallbackUser(authUser: User): UserAccount {
     phoneNumber: authUser.user_metadata?.phone_number || "",
     avatarUrl: null,
     passportPhotoUrl: null,
-    role: "customer",
+    role: authUser.user_metadata?.role || "customer",
     createdAt: authUser.created_at,
     updatedAt: authUser.updated_at || authUser.created_at,
   };

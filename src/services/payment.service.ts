@@ -1,10 +1,8 @@
 import { supabase } from "../lib/supabase";
 import { ZELLE_RECIPIENT } from "../config/zelle";
-import { getServiceBySlug } from "../data/services";
 import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 const N8N_BOT_CHECKPROOF = import.meta.env.VITE_N8N_BOT_CHECKPROOF as string;
 
 const ZELLE_BUCKET = "zelle_comprovantes";
@@ -19,6 +17,7 @@ export interface StripeCheckoutParams {
   dependents?: number;
   paymentMethod: StripePaymentMethod;
   proc_id?: string;
+  order_id?: string;
   userId?: string;
   amount?: number;
   coupon_code?: string;
@@ -35,10 +34,12 @@ export interface ParcelowCheckoutParams {
   amount?: number;
   coupon_code?: string;
   proc_id?: string;
+  order_id?: string;
 }
 
 export interface StripeCheckoutResult {
   url: string;
+  orderId?: string;
 }
 
 // Fee constants (mirrors edge function — for display only, final calc is server-side)
@@ -63,103 +64,174 @@ export function parsePriceUSD(priceStr: string): number {
 }
 
 export const paymentService = {
-  async createStripeCheckout(params: StripeCheckoutParams): Promise<StripeCheckoutResult> {
-    const service = getServiceBySlug(params.slug);
+  async _preRegisterOrder(params: {
+    userId?: string;
+    fullName: string;
+    email: string;
+    amount: number;
+    slug: string;
+    paymentMethod: string;
+    dependents?: number;
+    procId?: string;
+    phone?: string;
+    coupon_code?: string;
+  }): Promise<string | undefined> {
+    try {
+    let parentServiceSlug: string | null = null;
 
-    const cleanPhone = params.phone.replace(/\D/g, "");
+    if (params.procId) {
+      const { data: parentProcess } = await supabase
+        .from("user_services")
+        .select("service_slug")
+        .eq("id", params.procId)
+        .maybeSingle();
 
-    const body = {
-      ...params,
-      phone: cleanPhone,
-      product_name: service?.title || params.slug,
-      product_description: service?.subtitle || "",
-      price: params.amount,
-      total: params.amount,
-      amount: params.amount,
-      unit_amount: params.amount,
-      quantity: 1,
-      service_slug: params.slug,
-      proc_id: params.proc_id,
+      parentServiceSlug = parentProcess?.service_slug ?? null;
+    }
+
+    const paymentMetadata = {
       dependents: params.dependents ?? 0,
-      user_id: params.userId,
-      coupon_code: params.coupon_code || undefined,
-      origin_url: window.location.origin,
-      success_url: `${window.location.origin}/checkout-success?slug=${params.slug}`,
-      cancel_url: `${window.location.origin}/checkout/${params.slug}`,
-      project: "aplikei",
+      proc_id: params.procId,
+      parent_process_id: params.procId,
+      parent_service_slug: parentServiceSlug,
+      phone: params.phone?.replace(/\D/g, "")
     };
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const headers: Record<string, string> = {
-      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-      "apikey": SUPABASE_ANON_KEY,
-    };
-    if (session?.access_token) {
-      headers["X-Customer-Auth"] = `Bearer ${session.access_token}`;
+    // 1. Check if a pending order already exists for this user and slug
+    // This prevents duplicates if the user clicks multiple times or refreshes
+    if (params.userId) {
+      const { data: existingOrder } = await supabase
+        .from("orders")
+        .select("id, payment_metadata")
+        .eq("user_id", params.userId)
+        .eq("product_slug", params.slug)
+        .eq("payment_status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingOrder) {
+        await supabase
+          .from("orders")
+          .update({
+            client_name: params.fullName,
+            client_email: params.email,
+            total_price_usd: params.amount,
+            payment_method: params.paymentMethod,
+            coupon_code: params.coupon_code || null,
+            payment_metadata: {
+              ...(existingOrder.payment_metadata || {}),
+              ...paymentMetadata,
+            },
+          })
+          .eq("id", existingOrder.id);
+
+        console.log("[PaymentService] Reusing existing pending order:", existingOrder.id);
+        return existingOrder.id;
+      }
     }
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/stripe-checkout`, {
-      method: "POST",
-      headers: {
-        ...headers,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body)
+    // 2. Insert new order if none exists
+    try {
+      const { data: orderData } = await supabase.from("orders").insert({
+        user_id: params.userId || null,
+        client_name: params.fullName,
+        client_email: params.email,
+        total_price_usd: params.amount,
+        product_slug: params.slug,
+        payment_method: params.paymentMethod,
+        payment_status: "pending",
+        coupon_code: params.coupon_code || null,
+        payment_metadata: paymentMetadata,
+      }).select("id").single();
+      
+      return orderData?.id;
+    } catch (e) {
+      console.error("[PaymentService] Pre-registration error:", e);
+      return undefined;
+    }
+  } catch (outerError) {
+    console.error("[PaymentService] Critical pre-registration failure:", outerError);
+    return undefined;
+  }
+},
+
+  async createStripeCheckout(params: StripeCheckoutParams): Promise<StripeCheckoutResult> {
+    const orderId = await this._preRegisterOrder({
+      userId: params.userId,
+      fullName: params.fullName,
+      email: params.email,
+      amount: params.amount || 0,
+      slug: params.slug,
+      paymentMethod: params.paymentMethod === "card" ? "stripe_card" : "stripe_pix",
+      dependents: params.dependents,
+      procId: params.proc_id,
+      phone: params.phone,
+      coupon_code: params.coupon_code
     });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[PaymentService] Stripe error response:", errorText);
-      throw new Error(errorText || "Erro ao processar Stripe Checkout");
+
+    const { data, error } = await supabase.functions.invoke("stripe-checkout", {
+      body: {
+        order_id: orderId,
+        slug: params.slug,
+        email: params.email,
+        fullName: params.fullName,
+        amount: params.amount,
+        dependents: params.dependents,
+        paymentMethod: params.paymentMethod,
+        coupon_code: params.coupon_code,
+        origin_url: window.location.origin,
+      },
+    });
+
+    if (error) {
+      console.error("[PaymentService] Stripe error:", error);
+      // Try to extract error message from error object if it's a FunctionsHttpError
+      const errorDetail = (error as any).context?.message || error.message;
+      throw new Error(errorDetail || "Erro ao processar Stripe Checkout");
     }
 
-    const data = await response.json();
     if (!data?.url) throw new Error("URL de checkout não retornada.");
 
-    return { url: data.url };
+    return { url: data.url, orderId };
   },
 
   async createParcelowCheckout(params: ParcelowCheckoutParams): Promise<StripeCheckoutResult> {
-
-    const { data: { session } } = await supabase.auth.getSession();
-    const headers: Record<string, string> = {
-      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-      "apikey": SUPABASE_ANON_KEY,
-    };
-    if (session?.access_token) {
-      headers["X-Customer-Auth"] = `Bearer ${session.access_token}`;
-    }
-
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/create-parcelow-checkout`, {
-      method: "POST",
-      headers: {
-        ...headers,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...params,
-        price: params.amount,
-        total: params.amount,
-        proc_id: params.proc_id,
-        user_id: params.userId,
-        coupon_code: params.coupon_code || undefined,
-        origin_url: window.location.origin,
-        success_url: `${window.location.origin}/checkout-success?slug=${params.slug}`,
-        cancel_url: `${window.location.origin}/checkout/${params.slug}`,
-        project: "aplikei",
-      }),
+    const orderId = await this._preRegisterOrder({
+      userId: params.userId,
+      fullName: params.fullName,
+      email: params.email,
+      amount: params.amount || 0,
+      slug: params.slug,
+      paymentMethod: "parcelow",
+      dependents: params.dependents,
+      procId: params.proc_id,
+      phone: params.phone,
+      coupon_code: params.coupon_code
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[PaymentService] Parcelow error response:", errorText);
-      throw new Error(errorText || "Erro ao processar Parcelow Checkout");
+    const { data, error } = await supabase.functions.invoke("create-parcelow-checkout", {
+      body: {
+        order_id: orderId,
+        slug: params.slug,
+        email: params.email,
+        fullName: params.fullName,
+        amount: params.amount,
+        dependents: params.dependents,
+        cpf: params.cpf,
+        coupon_code: params.coupon_code,
+        origin_url: window.location.origin,
+      },
+    });
+
+    if (error) {
+      console.error("[PaymentService] Parcelow error:", error);
+      throw new Error(error.message || "Erro ao processar Parcelow Checkout");
     }
 
-    const data = await response.json();
     if (!data?.checkoutUrl) throw new Error("URL de checkout Parcelow não retornada.");
 
-    return { url: data.checkoutUrl };
+    return { url: data.checkoutUrl, orderId };
   },
 
   /** Upload proof image to Supabase Storage, returns the storage path */
@@ -191,23 +263,26 @@ export const paymentService = {
     coupon_code?: string;
     phone?: string;
   }): Promise<{ paymentId: string; autoApproved: boolean }> {
-    const { data: { session } } = await supabase.auth.getSession();
-    const headers: Record<string, string> = {
-      "Authorization": `Bearer ${session?.access_token || SUPABASE_ANON_KEY}`,
-      "apikey": SUPABASE_ANON_KEY,
-    };
+    const orderId = await this._preRegisterOrder({
+      userId: params.userId || undefined,
+      fullName: params.guestName,
+      email: params.guestEmail,
+      amount: params.expectedAmount,
+      slug: params.slug,
+      paymentMethod: "zelle",
+      dependents: params.dependents,
+      procId: params.proc_id,
+      phone: params.phone,
+      coupon_code: params.coupon_code
+    });
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/create-zelle-payment`, {
-      method: "POST",
-      headers: {
-        ...headers,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const { data, error } = await supabase.functions.invoke("create-zelle-payment", {
+      body: {
         amount: params.amount,
         payment_date: params.paymentDate,
         proof_path: params.proofPath,
         service_slug: params.slug,
+        visa_order_id: orderId,
         guest_email: params.guestEmail,
         guest_name: params.guestName,
         user_id: params.userId ?? null,
@@ -217,16 +292,14 @@ export const paymentService = {
         recipient_name: ZELLE_RECIPIENT.name,
         recipient_email: ZELLE_RECIPIENT.email,
         admin_notes: `Serviço: ${params.serviceName} | Valor esperado: $${params.expectedAmount.toFixed(2)} | Pago: $${params.amount.toFixed(2)}${params.dependents ? ` | Dependentes: ${params.dependents}` : ""}`,
-      }),
+      },
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[PaymentService] Zelle error response:", errorText);
-      throw new Error(errorText || "Erro ao processar pagamento Zelle");
+    if (error) {
+      console.error("[PaymentService] Zelle error:", error);
+      throw new Error(error.message || "Erro ao processar pagamento Zelle");
     }
 
-    const data = await response.json();
     const paymentId = data.payment_id;
 
     // --- N8N BOT CHECKPROOF (Síncrono e com Tratamento de Respostas) ---
@@ -322,87 +395,61 @@ export const paymentService = {
    * Calls 'validate-zelle-payment' with the correct status and payment_id.
    */
   async approveZellePayment(paymentId: string): Promise<void> {
-
-    const { data: { session } } = await supabase.auth.getSession();
-    const headers: Record<string, string> = {
-      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-      "apikey": SUPABASE_ANON_KEY,
-    };
-    if (session?.access_token) {
-      headers["X-Customer-Auth"] = `Bearer ${session.access_token}`;
-    }
-
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-zelle-payment-v2`, {
-      method: "POST",
-      headers: {
-        ...headers,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const { error } = await supabase.functions.invoke("validate-zelle-payment", {
+      body: {
         payment_id: paymentId,
         status: "approved",
         admin_notes: "Aprovado manualmente via Painel Admin"
-      }),
+      },
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[PaymentService] Manual Approval failed:", errorText);
-      throw new Error(errorText || "Erro ao aprovar pagamento Zelle");
+    if (error) {
+      console.error("[PaymentService] Manual Approval failed:", error);
+      throw new Error(error.message || "Erro ao aprovar pagamento Zelle");
     }
   },
 
   /** Admin only — reject a Zelle payment */
   async rejectZellePayment(paymentId: string, reason: string): Promise<void> {
-
-    const { data: { session } } = await supabase.auth.getSession();
-    const headers: Record<string, string> = {
-      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-      "apikey": SUPABASE_ANON_KEY,
-    };
-    if (session?.access_token) {
-      headers["X-Customer-Auth"] = `Bearer ${session.access_token}`;
-    }
-
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/validate-zelle-payment-v2`, {
-      method: "POST",
-      headers: {
-        ...headers,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const { error } = await supabase.functions.invoke("validate-zelle-payment", {
+      body: {
         payment_id: paymentId,
         status: "rejected",
         admin_notes: reason || "Rejeitado manualmente via Painel Admin"
-      }),
+      },
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[PaymentService] Manual Rejection failed:", errorText);
-      throw new Error(errorText || "Erro ao rejeitar pagamento Zelle");
+    if (error) {
+      console.error("[PaymentService] Manual Rejection failed:", error);
+      throw new Error(error.message || "Erro ao rejeitar pagamento Zelle");
     }
   },
 
   /** Check the payment status of an order via Polling (Used in Checkout Success Page) */
-  async checkOrderPaymentStatus(slug: string, timeoutMs: number = 20000): Promise<boolean> {
+  async checkOrderPaymentStatus(slug: string, timeoutMs: number = 20000, orderId?: string | null): Promise<boolean> {
     const { data: { session } } = await supabase.auth.getSession();
     const userEmail = session?.user?.email;
-    if (!userEmail) return false;
+    if (!userEmail && !orderId) return false;
 
     const startTime = Date.now();
 
     while (Date.now() - startTime < timeoutMs) {
-      const { data } = await supabase
-        .from("visa_orders")
-        .select("payment_status")
-        .eq("client_email", userEmail)
-        .eq("product_slug", slug)
+      let query = supabase
+        .from("orders")
+        .select("payment_status");
+
+      if (orderId) {
+        query = query.eq("id", orderId);
+      } else {
+        query = query.eq("client_email", userEmail!).eq("product_slug", slug);
+      }
+
+      const { data } = await query
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
 
-      if (data && data.payment_status === "complete") {
+      if (data && (data.payment_status === "paid" || data.payment_status === "complete")) {
         return true;
       }
 
@@ -414,31 +461,37 @@ export const paymentService = {
   },
 
   async verifyStripeSession(sessionId: string): Promise<boolean> {
-    const { data: { session } } = await supabase.auth.getSession();
-    const headers: Record<string, string> = {
-      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-      "apikey": SUPABASE_ANON_KEY,
-    };
-    if (session?.access_token) {
-      headers["X-Customer-Auth"] = `Bearer ${session.access_token}`;
-    }
-
     try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-stripe-session`, {
-        method: "POST",
-        headers: {
-          ...headers,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ session_id: sessionId }),
+      const { data, error } = await supabase.functions.invoke("verify-stripe-session", {
+        body: { session_id: sessionId },
       });
 
-      if (!response.ok) return false;
-      const data = await response.json();
+      if (error) return false;
       return data.success === true;
     } catch (err) {
       console.error("[PaymentService] Verify session failed:", err);
       return false;
     }
   },
+
+  /**
+   * Immediate check for order activation.
+   */
+  async verifyOrderActivation(params: {
+    slug: string;
+    orderId?: string | null;
+    onSuccess: () => void;
+    onError: (msg: string) => void;
+  }): Promise<void> {
+    const { slug, orderId, onSuccess, onError } = params;
+
+    // Direct check of orders
+    const isPaid = await this.checkOrderPaymentStatus(slug, 1000, orderId);
+    
+    if (isPaid) {
+      onSuccess();
+    } else {
+      onError("Seu pagamento foi recebido, mas a ativação automática está sendo processada. Por favor, aguarde cerca de 3 minutos e verifique seu e-mail ou o dashboard. Se o serviço não aparecer, entre em contato com nosso suporte.");
+    }
+  }
 };

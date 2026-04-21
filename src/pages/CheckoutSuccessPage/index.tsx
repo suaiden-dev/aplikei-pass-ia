@@ -12,130 +12,79 @@ import { getServiceBySlug } from "../../data/services";
 import { supabase } from "../../lib/supabase";
 import { useT } from "../../i18n";
 import { LogoLoader } from "../../components/ui/LogoLoader";
-import { type UserService } from "../../services/process.service";
+import { paymentService } from "../../services/payment.service";
 
 type ActivationState = "loading" | "done" | "error";
 
 export default function CheckoutSuccessPage() {
   const [params] = useSearchParams();
 
-  // Capture slug ONCE at mount time (using useState initializer).
-  // localStorage is read here before the effect clears it. If we recomputed on every render,
-  // clearing localStorage mid-effect would change `slug`, re-trigger the effect, and
-  // upsert the wrong product a second time.
   const [slug] = useState<string>(() => {
     const urlSlug = params.get("slug") || "";
     const localSlug = localStorage.getItem("checkout_slug") || "";
-    // Prefer localStorage when it's a more specific variant of the URL slug
-    // (e.g. localStorage = "visto-b1-b2-reaplicacao", url = "visto-b1-b2")
     return (localSlug && (!urlSlug || localSlug.startsWith(urlSlug)))
       ? localSlug
       : (urlSlug || localSlug);
   });
+  const [orderId] = useState<string | null>(() =>
+    params.get("order_id") ||
+    params.get("pid") ||
+    localStorage.getItem("checkout_order_id")
+  );
+  const sessionId = params.get("session_id");
   const service = slug ? getServiceBySlug(slug) : null;
 
-  const [activation, setActivation] = useState<ActivationState>("loading");
+  const [activation, setActivation] = useState<ActivationState>(() => slug ? "loading" : "done");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const t_base = useT("checkout");
   const t = t_base?.product?.success;
 
   useEffect(() => {
-    if (!t || !slug) {
-      if (!slug) setActivation("done");
-      return;
-    }
+    if (!t || !slug) return;
 
     (async () => {
       const { data: { session: authSession } } = await supabase.auth.getSession();
-      const authUserId = authSession?.user?.id;
+      const hasSession = !!authSession?.user?.id;
+      const hasOrderReference = !!orderId || !!sessionId;
 
-      if (!authUserId) {
+      if (!hasSession && !hasOrderReference) {
         setErrorMsg(t.sessionExpired);
         setActivation("error");
         return;
       }
 
-      // Cleanup logic helper
       const markAsDone = () => {
         localStorage.removeItem("checkout_slug");
+        localStorage.removeItem("checkout_order_id");
         localStorage.removeItem("checkout_dependents");
         localStorage.removeItem("checkout_parent_id");
         localStorage.removeItem("pending_payment_advance");
         setActivation("done");
+        
       };
 
       try {
-        const { paymentService } = await import("../../services/payment.service");
+        if (sessionId) {
+          await paymentService.verifyStripeSession(sessionId);
+        }
 
-        // 1. TENTATIVA DE ATIVAÇÃO IMEDIATA E SEGURA (Server-side Verify)
-        const stripeSessionId = params.get("session_id");
-        if (stripeSessionId) {
-          console.log("[Realtime] Iniciando verificação segura...");
-          try {
-            const success = await paymentService.verifyStripeSession(stripeSessionId);
-            if (success) {
-              markAsDone();
-              return;
-            }
-          } catch (actErr) {
-            console.warn("[Realtime] Erro na verificação segura, seguindo para Realtime:", actErr);
+        await paymentService.verifyOrderActivation({
+          slug,
+          orderId,
+          onSuccess: markAsDone,
+          onError: (msg) => {
+            setErrorMsg(msg);
+            setActivation("error");
           }
-        }
-
-        // 2. REALTIME (Escuta ativa por novos serviços ativos)
-        console.log("[Realtime] Aguardando ativação via WebSocket...");
-        
-        // Check if already active before subscribing
-        const isAlreadyActive = await paymentService.checkOrderPaymentStatus(slug);
-        if (isAlreadyActive) {
-          markAsDone();
-          return;
-        }
-
-        // Subscribe to user_services changes
-        const channel = supabase
-          .channel('checkout-activation')
-          .on(
-            'postgres_changes',
-            {
-              event: '*', 
-              schema: 'public',
-              table: 'user_services',
-              filter: `user_id=eq.${authUserId}`
-            },
-            (payload) => {
-              console.log("[Realtime] Mudança detectada no banco:", payload);
-              const newService = payload.new as UserService;
-              // Se o serviço que acabou de ser inserido/atualizado for o que estamos esperando
-              if (newService && newService.service_slug === slug && (newService.status === 'active' || newService.status === 'awaiting_review')) {
-                console.log("[Realtime] Serviço ativado com sucesso!");
-                markAsDone();
-                supabase.removeChannel(channel);
-              }
-            }
-          )
-          .subscribe();
-
-        // 3. FALLBACK TIMEOUT (25 segundos)
-        const timer = setTimeout(() => {
-          supabase.removeChannel(channel);
-          setActivation(prev => prev === "loading" ? "error" : prev);
-          setErrorMsg("Seu pagamento foi recebido! Pode levar alguns instantes para o sistema liberar o acesso devido à alta demanda. Se não atualizar em 1 minuto, verifique seu e-mail ou entre em contato.");
-        }, 25000);
-
-        return () => {
-          clearTimeout(timer);
-          supabase.removeChannel(channel);
-        };
-
+        });
       } catch (error: unknown) {
-        console.error("[CheckoutSuccess] Realtime setup failed:", error);
-        setErrorMsg("Erro ao conectar com o servidor para ativação.");
+        console.error("[CheckoutSuccess] Verification failed:", error);
+        setErrorMsg("Erro ao verificar status do pagamento.");
         setActivation("error");
       }
     })();
-  }, [slug, t, params]);
+  }, [slug, t, orderId, sessionId]);
 
   if (!t) return null;
 

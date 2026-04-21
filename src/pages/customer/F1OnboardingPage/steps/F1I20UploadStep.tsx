@@ -90,7 +90,8 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
         title: "🎓 Formulário I-20 Enviado",
         body: `O cliente anexou o documento I-20 para conferência e início do processo F1.`,
         serviceId: procId,
-        userId: userId
+        userId,
+        link: `/admin/processes/${procId}`,
       });
 
       toast.success(t.onboardingPage.f1.i20AnalysisToast);

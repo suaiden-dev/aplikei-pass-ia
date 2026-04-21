@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { 
   RiNotification3Line, 
   RiUserLine, 
@@ -37,56 +38,12 @@ export function NotificationToast({
   toast, 
   index, 
   onDismiss, 
-  duration = 5000 
+  duration = 5000,
 }: NotificationToastProps) {
-  const [progress, setProgress] = useState(100);
   const [isPaused, setIsPaused] = useState(false);
-  const remainingRef = useRef<number>(duration);
-  const startTimeRef = useRef<number | null>(null);
-  const rafRef = useRef<number | null>(null);
+  const navigate = useNavigate();
 
   const config = typeConfig[toast.type] || typeConfig.system;
-
-  const tick = useCallback(function tick(timestamp: number) {
-    if (!startTimeRef.current) startTimeRef.current = timestamp;
-    
-    const elapsed = timestamp - startTimeRef.current;
-    const newRemaining = remainingRef.current - elapsed;
-
-    if (newRemaining <= 0) {
-      setProgress(0);
-      onDismiss();
-      return;
-    }
-
-    setProgress((newRemaining / duration) * 100);
-    startTimeRef.current = timestamp;
-    remainingRef.current = newRemaining;
-    rafRef.current = requestAnimationFrame(tick);
-  }, [duration, onDismiss]);
-
-  useEffect(() => {
-    if (!isPaused) {
-      rafRef.current = requestAnimationFrame(tick);
-    } else {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    }
-    
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [isPaused, tick]);
-
-  // Reset the start time relative to the current timestamp when unpausing
-  // However, the tick logic subtracts elapsed from remaining and then updates 
-  // remainingRef and resets startTimeRef to current timestamp. 
-  // This approach actually works fine for pausing/resuming as long as we reset 
-  // startTimeRef when resuming.
-  useEffect(() => {
-    if (!isPaused) {
-      startTimeRef.current = null; // Forces recalculation in next frame
-    }
-  }, [isPaused]);
 
   return (
     <motion.div
@@ -117,8 +74,16 @@ export function NotificationToast({
           {config.icon}
         </div>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0">
+        <button
+          type="button"
+          onClick={() => {
+            onDismiss();
+            if (toast.link) {
+              navigate(toast.link);
+            }
+          }}
+          className="flex-1 min-w-0 text-left"
+        >
           <p className="text-sm font-bold text-slate-800 leading-snug">
             {toast.title}
           </p>
@@ -127,12 +92,12 @@ export function NotificationToast({
               {toast.message}
             </p>
           )}
-        </div>
+        </button>
 
         {/* Close Button */}
         <button
-          onClick={(e) => {
-            e.stopPropagation();
+          type="button"
+          onClick={() => {
             onDismiss();
           }}
           className="shrink-0 p-1 rounded-lg text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-colors"
@@ -144,8 +109,15 @@ export function NotificationToast({
       {/* Progress Bar */}
       <div className="h-1 bg-slate-100">
         <div
-          className="h-full bg-primary transition-none"
-          style={{ width: `${progress}%` }}
+          className="h-full bg-primary origin-left"
+          style={{
+            animationName: "notif-shrink",
+            animationDuration: `${duration}ms`,
+            animationTimingFunction: "linear",
+            animationFillMode: "forwards",
+            animationPlayState: isPaused ? "paused" : "running",
+          }}
+          onAnimationEnd={onDismiss}
         />
       </div>
     </motion.div>

@@ -65,7 +65,8 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
       await notificationService.notifyAdmin({
         title: "📅 Preferência de Agendamento",
         body: `O cliente enviou a data preferencial para o agendamento CASV.`,
-        serviceId: procId
+        serviceId: procId,
+        link: `/admin/processes/${procId}`,
       });
 
       toast.success(t.onboardingPage.scheduling.successDate);

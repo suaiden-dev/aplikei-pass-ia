@@ -49,6 +49,7 @@ export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaym
         title: "💳 Taxa MRV Confirmada",
         body: `O cliente confirmou o pagamento da taxa MRV (${method === 'credit_card' ? 'Cartão' : 'Boleto'}). O processo aguarda agendamento final no portal.`,
         serviceId: procId,
+        link: `/admin/processes/${procId}`,
       });
 
       toast.success(t.onboardingPage.paymentPending.paymentProcessed);

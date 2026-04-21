@@ -62,24 +62,44 @@ Deno.serve(async (req: Request) => {
     try {
         const body = await req.json();
         const {
-            slug, email, fullName, phone, dependents = 0,
-            paymentMethod = 'card', action, serviceId, processId, proc_id, discountPct = 0, 
-            amount: requestAmount, coupon_code, userId, user_id
+            order_id, action, serviceId, discountPct = 0, coupon_code,
+            paymentMethod = 'card'
         } = body;
-        
+
+        const supabaseUrl = Deno.env.get("SUPABASE_URL");
+        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        const supabase = createClient(supabaseUrl!, supabaseKey!);
+
+        // 🔎 Buscar dados do pedido se houver order_id
+        let orderData: any = null;
+        if (order_id) {
+            const { data } = await supabase.from("orders").select("*").eq("id", order_id).single();
+            orderData = data;
+        }
+
+        if (!orderData && !body.slug) {
+            throw new Error("ID do pedido ou Slug do serviço não fornecido.");
+        }
+
+        // --- Normalização de Dados (Prioridade para o Banco) ---
+        const slug = orderData?.product_slug || body.slug;
+        const email = orderData?.client_email || body.email;
+        const fullName = orderData?.client_name || body.fullName;
+        const targetUserId = orderData?.user_id || body.user_id || body.userId;
+        const targetProcId = orderData?.payment_metadata?.proc_id || orderData?.payment_metadata?.parent_process_id || body.proc_id || body.processId;
+        const parentServiceSlug = orderData?.payment_metadata?.parent_service_slug || body.parent_service_slug || "";
+        const dependents = Number(orderData?.payment_metadata?.dependents || body.dependents || 0);
+        const requestAmount = orderData?.total_price_usd || body.amount;
+        const phone = orderData?.payment_metadata?.phone || body.phone || "";
+
         metadata_for_logs.email = email;
         metadata_for_logs.slug = slug;
         
-        const targetUserId = user_id || userId;
         let origin_url = body.origin_url || body.originUrl || req.headers.get("origin") || req.headers.get("referer") || "https://aplikei.com";
         if (!origin_url.startsWith("http")) origin_url = `https://${origin_url}`;
 
         const urlObj = new URL(origin_url);
         metadata_for_logs.env = (urlObj.hostname === 'aplikei.com') ? 'PROD' : 'TEST';
-
-        const supabaseUrl = Deno.env.get("SUPABASE_URL");
-        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-        const supabase = createClient(supabaseUrl!, supabaseKey!);
 
         const FALLBACK_PRICES: Record<string, { name: string; price: number }> = {
             'analise-especialista-cos': { name: 'Análise de Especialista (COS)', price: 50 },
@@ -112,7 +132,6 @@ Deno.serve(async (req: Request) => {
         if (!mainPriceInfo) throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
 
         let basePriceUSD = Number(mainPriceInfo.price);
-        const targetProcId = proc_id || processId;
 
         // Validação dinâmica de preço (Segurança)
         if (targetProcId) {
@@ -122,7 +141,7 @@ Deno.serve(async (req: Request) => {
             } else if (requestAmount && ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos'].includes(slug)) {
                 basePriceUSD = Number(requestAmount);
             }
-        } else if (requestAmount && ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos', 'mentoria-individual', 'mentoria-bronze', 'mentoria-gold', 'mentoria-negativa-consular'].includes(slug)) {
+        } else if (requestAmount) {
             basePriceUSD = Number(requestAmount);
         }
 
@@ -139,7 +158,7 @@ Deno.serve(async (req: Request) => {
             });
 
             if (!couponError && couponData?.valid) {
-                const { finalAmount, discountAmount } = applyCoupon(subtotalUSD, couponData as CouponData);
+                const { finalAmount } = applyCoupon(subtotalUSD, couponData as CouponData);
                 finalSubtotalUSD = finalAmount;
                 appliedCouponId = couponData.coupon_id;
             }
@@ -176,7 +195,7 @@ Deno.serve(async (req: Request) => {
             }],
             mode: "payment",
             customer_email: email,
-            success_url: `${origin_url}/checkout-success?session_id={CHECKOUT_SESSION_ID}&slug=${slug}`,
+            success_url: `${origin_url}/checkout-success?session_id={CHECKOUT_SESSION_ID}&slug=${slug}&order_id=${order_id || ""}`,
             cancel_url: `${origin_url}/servicos/${slug}`,
             metadata: {
                 user_id: targetUserId || "",
@@ -191,7 +210,10 @@ Deno.serve(async (req: Request) => {
                 project: "aplikei",
                 action: action || "",
                 serviceId: serviceId || "",
+                proc_id: targetProcId || "",
                 processId: targetProcId || "",
+                order_id: order_id || "",
+                parent_service_slug: parentServiceSlug,
                 coupon_code: coupon_code || "",
                 applied_coupon_id: appliedCouponId || "",
                 original_subtotal: subtotalUSD.toString(),

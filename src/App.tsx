@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ComponentType } from "react";
 import { Routes, Route } from "react-router-dom";
 import { PublicLayout } from "./layouts/PublicLayout";
 import { AdminLayout } from "./layouts/AdminLayout";
@@ -6,44 +6,52 @@ import { CustomerLayout } from "./layouts/CustomerLayout";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { ScrollToTop } from "./components/ScrollToTop";
 
+// Wrap lazy imports in a plain object to avoid React 19 + Vite 8 dev-mode incompatibility
+// where ES module namespaces (null prototype) can't be stringified by console.error
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function lazyPage<T extends ComponentType<any>>(importFn: () => Promise<{ default: T }>) {
+  return lazy(() => importFn().then((m) => ({ default: m.default })));
+}
+
 // ─── Lazy-loaded Pages ────────────────────────────────────────────────────────
 // Public
-const HomePage            = lazy(() => import("./pages/HomePage"));
-const ServiceDetailPage   = lazy(() => import("./pages/ServiceDetailPage"));
-const Login               = lazy(() => import("./pages/Login"));
-const SignUpPage           = lazy(() => import("./pages/SignUp"));
-const NotFoundPage        = lazy(() => import("./pages/NotFoundPage"));
-const CheckoutPage        = lazy(() => import("./pages/CheckoutPage"));
-const CheckoutSuccessPage = lazy(() => import("./pages/CheckoutSuccessPage"));
-const ComoFuncionaPage    = lazy(() => import("./pages/ComoFuncionaPage"));
-const ServicosPage        = lazy(() => import("./pages/ServicosPage"));
+const HomePage            = lazyPage(() => import("./pages/HomePage"));
+const ServiceDetailPage   = lazyPage(() => import("./pages/ServiceDetailPage"));
+const Login               = lazyPage(() => import("./pages/Login"));
+const SignUpPage           = lazyPage(() => import("./pages/SignUp"));
+const NotFoundPage        = lazyPage(() => import("./pages/NotFoundPage"));
+const CheckoutPage        = lazyPage(() => import("./pages/CheckoutPage"));
+const CheckoutSuccessPage = lazyPage(() => import("./pages/CheckoutSuccessPage"));
+const ComoFuncionaPage    = lazyPage(() => import("./pages/ComoFuncionaPage"));
+const ServicosPage        = lazyPage(() => import("./pages/ServicosPage"));
 
 // Admin
-const CustomersPage          = lazy(() => import("./pages/admin/CustomersPage"));
-const OverviewPage           = lazy(() => import("./pages/admin/OverviewPage"));
-const ZellePaymentsPage      = lazy(() => import("./pages/admin/ZellePaymentsPage"));
-const ProductsPage           = lazy(() => import("./pages/admin/ProductsPage"));
-const AdminProcessesPage     = lazy(() => import("./pages/admin/ProcessesPage"));
-const AdminProcessDetailPage = lazy(() => import("./pages/admin/ProcessDetailPage"));
-const CouponsPage            = lazy(() => import("./pages/admin/CouponsPage"));
+const CustomersPage          = lazyPage(() => import("./pages/admin/CustomersPage"));
+const OverviewPage           = lazyPage(() => import("./pages/admin/OverviewPage"));
+const ZellePaymentsPage      = lazyPage(() => import("./pages/admin/ZellePaymentsPage"));
+const ProductsPage           = lazyPage(() => import("./pages/admin/ProductsPage"));
+const AdminProcessesPage     = lazyPage(() => import("./pages/admin/ProcessesPage"));
+const AdminProcessDetailPage = lazyPage(() => import("./pages/admin/ProcessDetailPage"));
+const AdminChatsPage         = lazyPage(() => import("./pages/admin/ChatsPage"));
+const CouponsPage            = lazyPage(() => import("./pages/admin/CouponsPage"));
 
 // Customer
-const CustomerDashboardPage = lazy(() => import("./pages/customer/DashboardPage"));
-const MyProcessesPage       = lazy(() => import("./pages/customer/MyProcessesPage"));
-const ProcessDetailPage     = lazy(() => import("./pages/customer/ProcessDetailPage"));
-const SupportPage           = lazy(() => import("./pages/customer/SupportPage"));
-const AIChatPage            = lazy(() => import("./pages/customer/AIChatPage"));
-const COSOnboardingPage     = lazy(() => import("./pages/customer/COSOnboardingPage"));
-const ProfileSettingsPage   = lazy(() => import("./pages/customer/ProfileSettingsPage"));
-const B1B2OnboardingPage    = lazy(() => import("./pages/customer/B1B2OnboardingPage"));
-const F1OnboardingPage      = lazy(() => import("./pages/customer/F1OnboardingPage"));
+const CustomerDashboardPage = lazyPage(() => import("./pages/customer/DashboardPage"));
+const MyProcessesPage       = lazyPage(() => import("./pages/customer/MyProcessesPage"));
+const ProcessDetailPage     = lazyPage(() => import("./pages/customer/ProcessDetailPage"));
+const SupportPage           = lazyPage(() => import("./pages/customer/SupportPage"));
+const AIChatPage            = lazyPage(() => import("./pages/customer/AIChatPage"));
+const COSOnboardingPage     = lazyPage(() => import("./pages/customer/COSOnboardingPage"));
+const ProfileSettingsPage   = lazyPage(() => import("./pages/customer/ProfileSettingsPage"));
+const B1B2OnboardingPage    = lazyPage(() => import("./pages/customer/B1B2OnboardingPage"));
+const F1OnboardingPage      = lazyPage(() => import("./pages/customer/F1OnboardingPage"));
 
 // Legal
-const Terms         = lazy(() => import("./pages/Legal/Terms"));
-const Privacy       = lazy(() => import("./pages/Legal/Privacy"));
-const Refund        = lazy(() => import("./pages/Legal/Refund"));
-const Disclaimers   = lazy(() => import("./pages/Legal/Disclaimers"));
-const ContractTerms = lazy(() => import("./pages/Legal/ContractTerms"));
+const Terms         = lazyPage(() => import("./pages/Legal/Terms"));
+const Privacy       = lazyPage(() => import("./pages/Legal/Privacy"));
+const Refund        = lazyPage(() => import("./pages/Legal/Refund"));
+const Disclaimers   = lazyPage(() => import("./pages/Legal/Disclaimers"));
+const ContractTerms = lazyPage(() => import("./pages/Legal/ContractTerms"));
 
 import { useLocale } from "./i18n";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -117,7 +125,7 @@ export default function App() {
               <Route path="/dashboard/processes/:slug/onboarding" element={<COSOnboardingPage />} />
 
               <Route path="/dashboard/processes/:slug" element={<ProcessDetailPage />} />
-              <Route path="/dashboard/support" element={<SupportPage />} />
+              <Route path="/dashboard/support" element={<AIChatPage />} />
               <Route path="/dashboard/ai-chat" element={<AIChatPage />} />
               <Route path="/minha-conta" element={<ProfileSettingsPage />} />
             </Route>
@@ -129,6 +137,7 @@ export default function App() {
               <Route path="/admin/customers" element={<CustomersPage />} />
               <Route path="/admin/processes" element={<AdminProcessesPage />} />
               <Route path="/admin/processes/:id" element={<AdminProcessDetailPage />} />
+              <Route path="/admin/chats" element={<AdminChatsPage />} />
               <Route path="/admin/products" element={<ProductsPage />} />
               <Route path="/admin/coupons" element={<CouponsPage />} />
             </Route>

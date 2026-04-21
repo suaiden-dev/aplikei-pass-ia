@@ -1,3 +1,5 @@
+import { calculateIncrementedSlots } from "../_shared/payment-slot-logic.ts";
+
 /**
  * Payment Logic Utilities
  * Extracted for unit testing and modularity
@@ -52,19 +54,4 @@ export const calculateSubtotal = (basePrice: number, dependents: number, depPric
     return basePrice + (dependents * depPrice);
 };
 
-export const calculateIncrementedSlots = (currentCount: number, dependentsMetadata: number, serviceSlug: string, mainServiceSlug: string): number => {
-    const isAdditionalSlot = serviceSlug.includes("dependente-adicional") || 
-                             serviceSlug.includes("slot-dependente") ||
-                             serviceSlug.includes("slot-vip") ||
-                             serviceSlug.includes("dependente-estudante") ||
-                             serviceSlug.includes("dependente-f1") ||
-                             serviceSlug.includes("dependente-b1-b2");
-
-    if (isAdditionalSlot) {
-        return currentCount + (dependentsMetadata || 1);
-    } else if (dependentsMetadata > currentCount && serviceSlug === mainServiceSlug) {
-        // Upgrade/Repayment of same service
-        return dependentsMetadata;
-    }
-    return currentCount;
-};
+export { calculateIncrementedSlots };

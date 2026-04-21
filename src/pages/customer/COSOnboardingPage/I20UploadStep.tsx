@@ -58,7 +58,8 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
         title: "📄 Novo I-20 Recebido",
         body: `O cliente ${user.full_name || user.email} enviou o documento I-20 para análise.`,
         serviceId: proc.id,
-        userId: user.id
+        userId: user.id,
+        link: `/admin/processes/${proc.id}`,
       });
       
       toast.success(t.cos.i20Upload.toasts.success);

@@ -71,7 +71,7 @@ interface StripeRecord {
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 
-// Slugs filter removed to show all visa_orders
+// Slugs filter removed to show all orders
 
 function buildProofUrl(raw: string | null | undefined): string | null {
   if (!raw) return null;
@@ -408,14 +408,14 @@ export default function ZellePaymentsPage() {
         });
       });
 
-      // Stripe/Parcelow approved (visa_orders) — auto-approved payments
+      // Stripe/Parcelow approved (orders) — auto-approved payments
       const { data: stripeData, error: stripeError } = await supabase
-        .from("visa_orders")
+        .from("orders")
         .select("id, client_name, client_email, product_slug, total_price_usd, payment_method, created_at, payment_status")
         .in("payment_status", ["paid", "complete", "succeeded", "completed"])
         .order("created_at", { ascending: false });
 
-      if (stripeError) console.error("[Payments] visa_orders error:", stripeError);
+      if (stripeError) console.error("[Payments] orders error:", stripeError);
 
       (stripeData ?? []).forEach((r: StripeRecord) => {
         results.push({
@@ -444,7 +444,7 @@ export default function ZellePaymentsPage() {
           .eq("status", "rejected")
           .order("created_at", { ascending: false }),
         supabase
-          .from("visa_orders")
+          .from("orders")
           .select("id, client_name, client_email, product_slug, total_price_usd, payment_method, created_at, payment_status")
           .in("payment_status", ["rejected", "cancelled", "failed", "error"])
           .order("created_at", { ascending: false })
@@ -505,12 +505,12 @@ export default function ZellePaymentsPage() {
         clientEmail: p.clientEmail,
         clientName: p.clientName || "Cliente",
         template: "zelle_payment_approved",
-        title: "Seu pagamento Zelle foi aprovado!",
         userId: p.userId ?? undefined,
         templateData: {
           amount: fmtCurrency(p.amount),
           service_name: p.serviceName,
         },
+        link: "/dashboard",
       });
 
       toast.success(t.payments.messages.approveSuccess.replace('{{name}}', p.clientName || tShared?.client || "Cliente"));
@@ -533,12 +533,12 @@ export default function ZellePaymentsPage() {
         clientEmail: p.clientEmail,
         clientName: p.clientName || "Cliente",
         template: "zelle_payment_rejected",
-        title: "Problema com seu pagamento Zelle",
         userId: p.userId ?? undefined,
         templateData: {
           reason: reason || "Pagamento rejeitado pelo administrador.",
           service_name: p.serviceName,
         },
+        link: "/dashboard",
       });
       toast.success(t.payments.messages.rejectSuccess);
       await load();

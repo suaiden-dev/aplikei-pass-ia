@@ -114,7 +114,7 @@ serve(async (req) => {
                 || null;
             
             // Busca metadados atuais para não sobrescrever
-            const { data: currentOrder } = await supabase.from("visa_orders").select("payment_metadata").eq("id", visa_order_id).single();
+            const { data: currentOrder } = await supabase.from("orders").select("payment_metadata").eq("id", visa_order_id).single();
             const updatedMetadata = {
                 ...(currentOrder?.payment_metadata || {}),
                 coupon_code: finalCouponCode || "",
@@ -123,7 +123,7 @@ serve(async (req) => {
             };
 
             await supabase
-                .from("visa_orders")
+                .from("orders")
                 .update({
                     payment_method: "zelle",
                     payment_metadata: updatedMetadata,

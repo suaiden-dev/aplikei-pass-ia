@@ -67,7 +67,8 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
         title: "💰 Taxa SEVIS Anexada",
         body: `O cliente ${user.full_name || user.email} anexou o comprovante da taxa SEVIS para conferência.`,
         serviceId: proc.id,
-        userId: user.id
+        userId: user.id,
+        link: `/admin/processes/${proc.id}`,
       });
       
       toast.success(t.cos.sevisFee.toasts.success);

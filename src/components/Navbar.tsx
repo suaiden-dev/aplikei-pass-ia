@@ -33,8 +33,8 @@ export const Navbar = () => {
 
   const navLinks = [
     { to: "/como-funciona", label: t.howItWorks },
-    { to: "/servicos/visto-b1-b2", label: "B1/B2" },
-    { to: "/servicos/visto-f1", label: "F1" },
+    { to: "/servicos/visto-b1-b2", label: "Visto de Turismo" },
+    { to: "/servicos/visto-f1", label: "Visto de Estudante" },
     { to: "/servicos/troca-status", label: lang === "pt" ? "Troca de Status (COS)" : lang === "es" ? "Cambio de Estatus (COS)" : "Change of Status (COS)" },
     { to: "/servicos/extensao-status", label: lang === "pt" ? "Extensão de Status (EOS)" : lang === "es" ? "Extensión de Estatus (EOS)" : "Extension of Status (EOS)" },
   ];

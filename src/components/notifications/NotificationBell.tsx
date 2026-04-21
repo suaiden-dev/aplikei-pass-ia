@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   RiNotification3Line, 
   RiCheckDoubleLine, 
@@ -22,11 +23,13 @@ export function NotificationBell({ role, theme = "dark", align = "right" }: Noti
     notifications, 
     unreadCount, 
     markAsRead, 
-    markAllAsRead 
+    markAllAsRead,
+    realtimeStatus,
   } = useNotifications();
   
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Close on click outside
   useEffect(() => {
@@ -53,24 +56,27 @@ export function NotificationBell({ role, theme = "dark", align = "right" }: Noti
   return (
     <div className="relative" ref={containerRef}>
       {/* Trigger Bell */}
-      <button 
-        onClick={() => {
-          setIsOpen(!isOpen);
-          if (!isOpen && unreadCount > 0) {
-            markAllAsRead();
-          }
-        }}
-        className={buttonClasses}
-        aria-label="Notificações"
+        <button 
+          onClick={() => {
+            setIsOpen(!isOpen);
+          }}
+          className={buttonClasses}
+          aria-label="Notificações"
       >
         <RiNotification3Line size={20} />
         {unreadCount > 0 && (
           <span className={cn(
             "absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[9px] font-black text-white shadow-sm ring-2",
             ringClass
-          )}>
+            )}>
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
+        )}
+        {realtimeStatus === "disconnected" && unreadCount === 0 && (
+          <span
+            title="Notificações temporariamente offline"
+            className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400"
+          />
         )}
       </button>
 
@@ -117,7 +123,15 @@ export function NotificationBell({ role, theme = "dark", align = "right" }: Noti
                     <NotificationItem 
                       key={n.id} 
                       notification={n} 
-                      onClick={() => markAsRead(n.id)} 
+                      onClick={async () => {
+                        if (!n.is_read) {
+                          await markAsRead(n.id);
+                        }
+                        setIsOpen(false);
+                        if (n.link) {
+                          navigate(n.link);
+                        }
+                      }} 
                     />
                   ))}
                 </div>
@@ -184,8 +198,9 @@ function NotificationItem({
       className={cn(
         "w-full text-left p-3 rounded-2xl transition-all border group",
         notification.is_read 
-          ? "bg-transparent border-transparent hover:bg-slate-50" 
-          : "bg-primary/5 border-primary/10 hover:bg-primary/10"
+          ? "bg-transparent border-transparent hover:bg-slate-50"
+          : "bg-primary/5 border-primary/10 hover:bg-primary/10",
+        notification.link ? "cursor-pointer" : "cursor-default",
       )}
     >
       <div className="flex items-start gap-3">

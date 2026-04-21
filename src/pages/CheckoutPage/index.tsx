@@ -358,7 +358,7 @@ export default function CheckoutPage() {
         const totalToCharge = finalSubtotalUSD;
 
         if (activeMethod === "card" || activeMethod === "pix") {
-          const { url } = await paymentService.createStripeCheckout({
+          const { url, orderId } = await paymentService.createStripeCheckout({
             slug: billingSlug,
             email: values.email,
             fullName: values.fullName,
@@ -371,24 +371,8 @@ export default function CheckoutPage() {
             coupon_code: appliedCoupon?.valid ? couponInput : undefined,
           });
 
-          // Pre-register in visa_orders
-          try {
-            await supabase.from("visa_orders").insert({
-              user_id: currentUserId,
-              client_name: values.fullName,
-              client_email: values.email,
-              billing_email: values.email,
-              total_price_usd: totalToCharge,
-              product_slug: service!.slug,
-              payment_method: activeMethod === "card" ? "stripe_card" : "stripe_pix",
-              payment_status: "pending",
-              payment_metadata: { dependents: checkoutCount, proc_id: parentId || undefined },
-            });
-          } catch (e) {
-            console.error("[Checkout] registration error:", e);
-          }
-
           localStorage.setItem("checkout_slug", service!.slug);
+          if (orderId) localStorage.setItem("checkout_order_id", orderId);
           localStorage.setItem("checkout_dependents", dependents.toString());
           window.location.href = url;
 
@@ -397,7 +381,7 @@ export default function CheckoutPage() {
             throw new Error(t.paymentMethods.parcelow.cpfRequired);
           }
 
-          const { url } = await paymentService.createParcelowCheckout({
+          const { url, orderId } = await paymentService.createParcelowCheckout({
             slug: billingSlug,
             email: values.email,
             fullName: values.fullName,
@@ -411,6 +395,7 @@ export default function CheckoutPage() {
           });
 
           localStorage.setItem("checkout_slug", service!.slug);
+          if (orderId) localStorage.setItem("checkout_order_id", orderId);
           localStorage.setItem("checkout_dependents", dependents.toString());
           window.location.href = url;
 
@@ -419,18 +404,6 @@ export default function CheckoutPage() {
             throw new Error(t.paymentMethods.zelle.proofRequired);
 
           const proofPath = await paymentService.uploadZelleProof(zelleProof, service!.slug);
-
-          await supabase.from("visa_orders").insert({
-            user_id: currentUserId,
-            client_name: values.fullName,
-            client_email: values.email,
-            billing_email: values.email,
-            total_price_usd: totalToCharge,
-            product_slug: service!.slug,
-            payment_method: "zelle",
-            payment_status: "pending",
-            payment_metadata: { dependents: checkoutCount, proc_id: parentId || undefined },
-          }).select("id").single();
 
           const zelleResult = await paymentService.createZellePayment({
             slug: service!.slug,

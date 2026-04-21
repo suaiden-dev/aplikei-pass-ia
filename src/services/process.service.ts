@@ -100,141 +100,6 @@ export const processService = {
     return (data as UserService) ?? null;
   },
 
-  /**
-   * Centralized logic to activate a service (used by SuccessPage and Dashboard Recovery)
-   */
-  async activateService(userId: string, slug: string, paidDependents: number = 0, options: { 
-    paymentId?: string; 
-    method?: string; 
-    amount?: number;
-  } = {}): Promise<void> {
-    const { paymentId, method = "activation", amount = 0 } = options;
-
-    const purchaseId = paymentId || `INIT_${slug}_${Date.now()}`;
-    const initialPurchase = {
-      id: purchaseId,
-      method: method,
-      amount: amount,
-      dependents: paidDependents,
-      slug: slug,
-      date: new Date().toISOString()
-    };
-
-    // ── VÍNCULO AO PROCESSO PRINCIPAL (Para serviços auxiliares) ──
-    const isAuxiliary = slug.includes("dependente") || 
-                        slug.includes("slot-") ||
-                        slug.startsWith("analise-") || 
-                        slug.startsWith("apoio-") || 
-                        slug.startsWith("revisao-") || 
-                        slug.startsWith("mentoria-") ||
-                        slug.startsWith("consultoria-") ||
-                        slug.includes("rfe-motion") ||
-                        slug.includes("-support");
-
-    let fallbackProcId: string | null = null;
-
-    if (isAuxiliary) {
-      const isCOS = slug.includes("cos") || slug.includes("eos") || slug.includes("-status");
-      const mainSlugsByGroup = {
-        cos: ["troca-status", "extensao-status"],
-        consular: ["visto-b1-b2", "visto-f1"]
-      };
-      const group = isCOS ? "cos" : "consular";
-      const mainSlugs = mainSlugsByGroup[group];
-
-      const { data: activeMain } = await supabase
-        .from("user_services")
-        .select("id, service_slug")
-        .eq("user_id", userId)
-        .in("service_slug", mainSlugs)
-        .in("status", ["active", "awaiting_review", "paid"])
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (activeMain) {
-        fallbackProcId = activeMain.id;
-        console.log(`[activateService] Vínculo dinâmico: Atribuindo ${slug} ao processo principal ${activeMain.service_slug}`);
-      }
-    }
-
-    // Identifica o registro existente (ou pelo fallbackId ou pelo slug)
-    const { data: existing } = fallbackProcId 
-      ? await supabase.from("user_services").select("id, step_data, service_slug").eq("id", fallbackProcId).single()
-      : await supabase
-        .from("user_services")
-        .select("id, step_data, service_slug")
-        .eq("user_id", userId)
-        .eq("service_slug", slug)
-        .in("status", ["active", "awaiting_review", "awaitingInterview", "casvPaymentPending", "paid"])
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-    if (existing) {
-      console.log(`[activateService] Serviço já existe para o usuário: ${existing.id}. Atualizando histórico.`);
-      
-      const stepData = (existing.step_data as any) || {};
-      const purchases = stepData.purchases || [];
-      
-      // Idempotency: skip if already exists
-      if (purchases.some((p: any) => p.id === purchaseId)) return;
-
-      const isAdditionalSlot = slug.includes("dependente-adicional") || 
-                               slug.includes("slot-dependente") ||
-                               slug.includes("slot-vip") ||
-                               slug.includes("dependente-estudante") ||
-                               slug.includes("dependente-f1") ||
-                               slug.includes("dependente-b1-b2");
-
-      const currentPaid = parseInt(String(stepData.paid_dependents ?? 0), 10);
-      const newPaidCount = isAdditionalSlot ? (currentPaid + paidDependents) : Math.max(currentPaid, paidDependents);
-
-      purchases.push(initialPurchase);
-      
-      await supabase.from("user_services").update({
-        step_data: {
-          ...stepData,
-          paid_dependents: newPaidCount,
-          purchases: purchases
-        }
-      }).eq("id", existing.id);
-      return;
-    }
-
-    const { error } = await supabase
-      .from("user_services")
-      .insert({
-        user_id: userId,
-        service_slug: slug,
-        status: "active",
-        current_step: 0,
-        step_data: { 
-          paid_dependents: paidDependents,
-          purchases: [initialPurchase]
-        }
-      });
-
-    if (error) {
-      if (error.code === "23505") {
-        // Fallback for race condition: re-run logic as an update
-        return this.activateService(userId, slug, paidDependents, options);
-      } else {
-        throw error;
-      }
-    }
-
-    // Auto-repair/sync visa_orders status
-    try {
-      await supabase
-        .from("visa_orders")
-        .update({ payment_status: "complete" })
-        .match({ user_id: userId, product_slug: slug, payment_status: "pending" });
-    } catch (e) {
-      console.warn("[processService] Repair visa_orders failed:", e);
-    }
-  },
-
   async requestStepReview(serviceId: string): Promise<void> {
     if (!serviceId) throw new Error("ID do serviço é obrigatório.");
     
@@ -260,14 +125,16 @@ export const processService = {
         body: `O cliente concluiu uma etapa no processo e aguarda sua revisão.`,
         serviceId: serviceId,
         userId: service.user_id,
+        link: `/admin/processes/${serviceId}`,
       });
 
       await notificationService.notifyClient({
         userId: service.user_id,
-        template: "admin_message", // Fallback template
+        template: "admin_message",
         title: "Estamos Revisando! 📝",
         body: "Sua etapa foi enviada com sucesso para nossa equipe de análise. Aguarde a validação.",
         serviceId: serviceId,
+        link: `/dashboard/processes/${service.service_slug}`,
       });
     }
   },
@@ -315,12 +182,13 @@ export const processService = {
         await notificationService.notifyClient({
           userId: service.user_id,
           template: "step_approved",
-          title: "Etapa Aprovada! 🎉",
           serviceId: serviceId,
           templateData: {
-            step_name: `Etapa Anterior`, 
-            service_name: service.service_slug
-          }
+            step_name: "Etapa Anterior",
+            next_step_name: "",
+            service_name: service.service_slug,
+          },
+          link: `/dashboard/processes/${service.service_slug}`,
         });
       }
     } catch (e) {
@@ -370,13 +238,12 @@ export const processService = {
         await notificationService.notifyClient({
           userId: service.user_id,
           template: "step_rejected_feedback",
-          title: "Ajustes Necessários ⚠️",
           serviceId: serviceId,
-          body: `A etapa atual precisa de sua atenção. Feedback: ${feedback}`,
           templateData: {
             step_name: "Etapa Atual",
-            feedback: feedback
-          }
+            feedback,
+          },
+          link: `/dashboard/processes/${service.service_slug}`,
         });
       }
     } catch (e) {

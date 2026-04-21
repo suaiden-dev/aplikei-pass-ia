@@ -77,3 +77,8 @@ a:disabled,
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+
+@keyframes notif-shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
