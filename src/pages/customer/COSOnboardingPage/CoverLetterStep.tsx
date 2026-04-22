@@ -9,14 +9,11 @@ import {
   MdOutlineGpsFixed, 
   MdSchool, 
   MdAccountBalanceWallet,
-  MdLightbulbOutline,
-  MdDescription
+  MdLightbulbOutline
 } from "react-icons/md";
 import { toast } from "sonner";
 import { processService, type UserService } from "../../../services/process.service";
-import { notificationService } from "../../../services/notification.service";
 import { coverLetterService } from "../../../services/cover_letter.service";
-import { RiMagicLine } from "react-icons/ri";
 import { useT } from "../../../i18n";
 
 interface CoverLetterData {
@@ -37,7 +34,7 @@ interface CoverLetterData {
 interface Props {
   proc: UserService;
   user: any;
-  onComplete: () => void;
+  onComplete: () => Promise<void> | void;
 }
 
 export default function CoverLetterStep({ proc, user, onComplete }: Props) {
@@ -46,23 +43,13 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
 
   if (!t || !t.cos) return null;
 
-  const [html, setHtml] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [viewMode, setViewMode] = useState<"questions" | "preview">("questions");
 
   // Load saved data
   useEffect(() => {
     if (proc.step_data?.coverLetter) {
       setData(proc.step_data.coverLetter as CoverLetterData);
-    }
-    if (proc.step_data?.generatedCoverLetterHTML) {
-      setHtml(proc.step_data.generatedCoverLetterHTML as string);
-    } else if (user) {
-      // Auto-generate initial version if none exists
-      const initialHtml = coverLetterService.generateHTML(proc.step_data?.coverLetter || {}, user);
-      setHtml(initialHtml);
     }
   }, [proc, user]);
 
@@ -70,26 +57,13 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
     setData((prev) => ({ ...prev, [field]: val }));
   };
 
-  const handleGenerate = async () => {
-    setIsGenerating(true);
-    try {
-      const generatedHtml = coverLetterService.generateHTML(data, user);
-      setHtml(generatedHtml);
-      setViewMode("preview");
-      toast.success(t.cos.coverLetter.toasts.generateSuccess);
-    } catch (error) {
-      toast.error(t.cos.coverLetter.toasts.generateError);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const saveDraft = async () => {
     setIsSaving(true);
     try {
+      const generatedHtml = coverLetterService.generateHTML(data, user);
       await processService.updateStepData(proc.id, { 
         coverLetter: data,
-        generatedCoverLetterHTML: html
+        generatedCoverLetterHTML: generatedHtml
       });
       toast.success(t.cos.coverLetter.toasts.saveSuccess);
     } catch (error) {
@@ -102,20 +76,14 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
   const handleNext = async () => {
     setIsSubmitting(true);
     try {
+      const generatedHtml = coverLetterService.generateHTML(data, user);
       await processService.updateStepData(proc.id, { 
         coverLetter: data,
-        generatedCoverLetterHTML: html
+        generatedCoverLetterHTML: generatedHtml
       });
 
-      await notificationService.notifyAdmin({
-        title: "📄 Questionário Cover Letter",
-        body: `O cliente ${user?.full_name || user?.email} respondeu ao questionário da carta de apresentação.`,
-        serviceId: proc.id,
-        userId: user?.id,
-        link: `/admin/processes/${proc.id}`,
-      });
-
-      onComplete(); // Advance step
+      await onComplete(); // Advance step first
+      await processService.requestStepReview(proc.id);
     } catch (error) {
       toast.error(t.cos.coverLetter.toasts.advanceError);
     } finally {
@@ -139,29 +107,7 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
           </p>
         </div>
       </div>
-
-      <div className="flex gap-4 p-1 bg-slate-100/50 rounded-2xl w-fit">
-        <button
-          onClick={() => setViewMode("questions")}
-          className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-            viewMode === "questions" ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600"
-          }`}
-        >
-          {t.cos.coverLetter.tabs.questions}
-        </button>
-        <button
-          onClick={() => setViewMode("preview")}
-          disabled={!html}
-          className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-            viewMode === "preview" ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600 disabled:opacity-30"
-          }`}
-        >
-          {t.cos.coverLetter.tabs.preview}
-        </button>
-      </div>
-
-      {viewMode === "questions" ? (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         
         {/* BACKGROUND */}
         <div className="border-b border-slate-100 last:border-0">
@@ -290,36 +236,7 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
             />
           </div>
         </div>
-      </div>
-    ) : (
-        <div className="bg-white rounded-3xl border-2 border-primary/20 shadow-xl shadow-primary/5 overflow-hidden animate-in fade-in slide-in-from-bottom-4">
-          <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-sm text-primary">
-                <MdDescription className="text-lg" />
-              </div>
-              <h3 className="font-black text-slate-800 text-[11px] uppercase tracking-widest">
-                {t.cos.coverLetter.sections.preview}
-              </h3>
-            </div>
-            <p className="text-[10px] font-bold text-slate-400 italic">{t.cos.coverLetter.previewInfo}</p>
-          </div>
-          <div className="p-8">
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 overflow-auto max-h-[600px]">
-              <div 
-                className="prose prose-slate max-w-none"
-                dangerouslySetInnerHTML={{ __html: html }}
-              />
-            </div>
-            <div className="mt-6 p-4 rounded-xl bg-amber-50 border border-amber-100 flex items-center gap-3">
-              <RiInformationLine className="text-amber-500 text-xl shrink-0" />
-              <p className="text-xs text-amber-700 font-medium leading-relaxed">
-                {t.cos.coverLetter.editInfo}
-              </p>
-            </div>
-          </div>
         </div>
-      )}
 
       {/* Action Bar */}
       <div className="fixed bottom-0 left-0 lg:left-72 right-0 bg-white border-t border-slate-200 p-4 md:p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-40 flex items-center gap-4">
@@ -334,25 +251,14 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
 
         <div className="flex-1" />
 
-        {viewMode === "questions" ? (
-          <button
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="flex items-center gap-2 px-10 py-3.5 rounded-xl bg-slate-900 text-white text-sm font-black uppercase tracking-widest hover:bg-black shadow-xl shadow-slate-200 transition-all flex-1 md:flex-none justify-center"
-          >
-            {isGenerating ? <RiLoader4Line className="animate-spin text-lg" /> : <RiMagicLine className="text-lg" />}
-            {t.cos.coverLetter.btns.generate}
-          </button>
-        ) : (
-          <button
-            onClick={handleNext}
-            disabled={isSubmitting}
-            className="flex items-center gap-2 px-12 py-3.5 rounded-xl bg-primary text-white text-sm font-black uppercase tracking-widest hover:bg-primary-hover shadow-xl shadow-primary/20 transition-all flex-1 md:flex-none justify-center"
-          >
-            {isSubmitting ? <RiLoader4Line className="animate-spin text-lg" /> : <RiCheckDoubleLine className="text-lg" />}
-            {t.cos.coverLetter.btns.advance}
-          </button>
-        )}
+        <button
+          onClick={handleNext}
+          disabled={isSubmitting}
+          className="flex items-center gap-2 px-12 py-3.5 rounded-xl bg-primary text-white text-sm font-black uppercase tracking-widest hover:bg-primary-hover shadow-xl shadow-primary/20 transition-all flex-1 md:flex-none justify-center"
+        >
+          {isSubmitting ? <RiLoader4Line className="animate-spin text-lg" /> : <RiCheckDoubleLine className="text-lg" />}
+          {t.cos.coverLetter.btns.send}
+        </button>
       </div>
 
     </div>

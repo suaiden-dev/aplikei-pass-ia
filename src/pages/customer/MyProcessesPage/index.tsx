@@ -1,4 +1,3 @@
-import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MdLanguage, MdSchool, MdHistory, MdSyncAlt } from "react-icons/md";
@@ -10,10 +9,11 @@ import {
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
 import { servicesData } from "../../../data/services";
-import { processService, type UserService } from "../../../services/process.service";
 import { cn } from "../../../utils/cn";
 import { useT } from "../../../i18n";
 import { LogoLoader } from "../../../components/ui/LogoLoader";
+import { useMyProcessesController } from "../../../controllers/MyProcesses/MyProcessesController";
+import type { UserService } from "../../../models";
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,
@@ -41,42 +41,10 @@ const heroIconNameBySlug: Record<string, string> = {
 
 function calculatePhaseProgress(proc: UserService, totalSteps: number): number {
   const step = proc.current_step ?? 0;
-  const isCOS = proc.service_slug === 'troca-status' || proc.service_slug === 'extensao-status';
-
-  // Se o status for completed, sempre 100%
   if (proc.status === 'completed') return 100;
-  
-  if (!isCOS) {
-    const isConsular = proc.service_slug.startsWith("visto-b1-b2") || proc.service_slug.startsWith("visto-f1");
-    const rawProgress = Math.round((step / (totalSteps || 1)) * 100);
-    // Cap B1/B2 and F1 at 95% until completed
-    if (isConsular) {
-      return Math.min(95, rawProgress);
-    }
-    return Math.min(99, rawProgress);
-  }
-
-  /**
-   * Lógica de Pesos para COS (Total 25 passos):
-   * 0-12 (Envio Inicial): 0% a 60%
-   * 13-18 (RFE): 60% a 85%
-   * 19-24 (Motion): 85% a 99%
-   */
-  if (step <= 12) {
-    return Math.max(0, Math.min(60, Math.round((step / 12) * 60)));
-  }
-  
-  if (step >= 13 && step <= 18) {
-    const rfeProgress = (step - 13) / 5;
-    return Math.max(60, Math.min(85, 60 + Math.round(rfeProgress * 25)));
-  }
-
-  if (step >= 19 && step <= 24) {
-    const motionProgress = (step - 19) / 5;
-    return Math.max(85, Math.min(99, 85 + Math.round(motionProgress * 15)));
-  }
-
-  return 99;
+  const isConsular = proc.service_slug.startsWith("visto-b1-b2") || proc.service_slug.startsWith("visto-f1");
+  const maxProgress = isConsular ? 95 : 99;
+  return Math.min(maxProgress, Math.round((step / (totalSteps || 1)) * 100));
 }
 
 function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
@@ -93,40 +61,34 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
   };
   const iconName = heroIconNameBySlug[proc.service_slug] ?? "MdLanguage";
   const Icon = serviceIconMap[iconName] ?? MdLanguage;
-  
+
   const service = servicesData.find(s => s.slug === proc.service_slug);
   const totalSteps = service?.steps.length ?? 1;
-  const currentStep = proc.current_step ?? 0;
-  const stepData = (proc.step_data || {}) as Record<string, any>;
-  
-  // Lógica de Resultado Final across all phases
+  const stepData = (proc.step_data || {}) as Record<string, unknown>;
+
   const uscisResult = stepData.uscis_official_result as string;
   const rfeResult = stepData.uscis_rfe_result as string;
   const motionResult = stepData.motion_final_result as string;
-
   const interviewResult = stepData.interview_outcome as string;
 
   const isApproved = uscisResult === 'approved' || rfeResult === 'approved' || motionResult === 'approved' || interviewResult === 'approved';
   const isDenied = proc.status === 'rejected' ||
-                   motionResult === 'denied' || 
+                   motionResult === 'denied' ||
                    motionResult === 'rejected' ||
-                   interviewResult === 'denied' || 
-                   interviewResult === 'rejected' ||
-                   (rfeResult === 'denied' && currentStep >= 18 && !uscisResult) || 
-                   (uscisResult === 'denied' && currentStep >= 12 && !rfeResult && !motionResult);
+                   interviewResult === 'denied' ||
+                   interviewResult === 'rejected';
 
   const isFinalized = proc.status === 'completed' || proc.status === 'rejected' || isApproved || isDenied;
   const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, totalSteps);
-  
+
   const statusKey = isFinalized ? 'completed' : proc.status;
-  const displayLabel = isApproved ? t.dashboard.myCases.status.approved : 
-                       isDenied ? t.dashboard.myCases.status.denied : 
+  const displayLabel = isApproved ? t.dashboard.myCases.status.approved :
+                       isDenied ? t.dashboard.myCases.status.denied :
                        (t.dashboard.myCases.status[statusKey] || t.dashboard.myCases.status.pending);
 
   const getStatusColor = () => {
     if (isApproved) return "text-emerald-700 bg-emerald-50 border-emerald-200";
     if (isDenied) return "text-red-700 bg-red-50 border-red-200";
-    
     switch (statusKey) {
       case 'active': return "text-primary bg-primary/5 border-primary/20";
       case 'pending': return "text-amber-600 bg-amber-50 border-amber-200";
@@ -139,7 +101,6 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
   const getDotColor = () => {
     if (isApproved) return "bg-emerald-500";
     if (isDenied) return "bg-red-500";
-    
     switch (statusKey) {
       case 'active': return "bg-primary";
       case 'pending': return "bg-amber-500";
@@ -157,12 +118,9 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
       className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 bg-white rounded-3xl border border-slate-100 p-5 sm:px-6 sm:py-5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all group"
     >
       <div className="flex items-center gap-4 sm:gap-6 flex-1 min-w-0">
-        {/* Icon */}
         <div className={`w-12 h-12 shrink-0 rounded-2xl ${cfg.bg} flex items-center justify-center border border-black/5`}>
           <Icon className={`text-2xl ${cfg.icon}`} />
         </div>
-
-        {/* Info */}
         <div className="flex-1 min-w-0 text-left">
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <h3 className="font-display font-black text-slate-800 text-[15px] tracking-tight leading-none uppercase">
@@ -182,9 +140,7 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
         </div>
       </div>
 
-      {/* Progress & CTA Wrapper */}
       <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-        {/* Progress */}
         <div className="flex flex-col items-end gap-2 w-full sm:w-36">
           <div className="flex items-center justify-between w-full">
             <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest">{t.dashboard.myCases.progress}</span>
@@ -206,7 +162,6 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
           </div>
         </div>
 
-        {/* CTA */}
         <Link
           to={`/dashboard/processes/${proc.service_slug}?id=${proc.id}`}
           className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 sm:py-2.5 rounded-xl bg-primary text-white text-[12px] font-black uppercase tracking-wider transition-all hover:bg-primary-hover shadow-lg shadow-primary/20 sm:opacity-0 sm:group-hover:opacity-100 sm:translate-x-2 sm:group-hover:translate-x-0 duration-200"
@@ -222,67 +177,8 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
 export default function MyProcessesPage() {
   const t = useT("dashboard");
   const { user } = useAuth();
-  const [userServices, setUserServices] = useState<UserService[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user) return;
-    processService.getUserServices(user.id)
-      .then((data) => {
-        setUserServices(data);
-      })
-      .finally(() => setIsLoading(false));
-  }, [user]);
-
-  const activeStatuses = useMemo(() => ["active", "awaiting_review"], []);
-  
-  // 1. Filter only base products (exclude consultancies, etc) and Sort by date DESC
-  const baseProducts = useMemo(() => {
-    return userServices
-      .filter(s => 
-        !s.service_slug.toLowerCase().startsWith("analise-") &&
-        !s.service_slug.toLowerCase().startsWith("apoio-") &&
-        !s.service_slug.toLowerCase().startsWith("revisao-") &&
-        !s.service_slug.toLowerCase().startsWith("mentoria-") &&
-        !s.service_slug.toLowerCase().startsWith("consultoria-") &&
-        !s.service_slug.toLowerCase().startsWith("dependente-") &&
-        !s.service_slug.toLowerCase().startsWith("slot-") &&
-        !s.service_slug.toLowerCase().includes("rfe") &&
-        !s.service_slug.toLowerCase().includes("motion")
-      )
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }, [userServices]);
-
-  // 2. Determine which ones are "History"
-  const others = useMemo(() => {
-    const newestActiveSlugs = new Set<string>();
-    return baseProducts.filter((s) => {
-      const stepData = (s.step_data || {}) as Record<string, any>;
-      const isConsular = s.service_slug.startsWith("visto-b1-b2") || s.service_slug.startsWith("visto-f1");
-      const isCOS = s.service_slug === 'troca-status' || s.service_slug === 'extensao-status';
-      
-      // Explicit finalized statuses
-      if (['completed', 'rejected', 'denied', 'cancelled'].includes(s.status)) return true;
-
-      // Flow-based finalization
-      if (isConsular && stepData.interview_outcome) return true;
-      if (isCOS && (s.current_step ?? 0) >= 19) return true;
-
-      // Logic: If there is already a NEWER active process for this slug, this one is history
-      if (activeStatuses.includes(s.status)) {
-         if (newestActiveSlugs.has(s.service_slug)) return true;
-         newestActiveSlugs.add(s.service_slug);
-      }
-      return false;
-    });
-  }, [baseProducts, activeStatuses]);
-
-  // 3. The rest are "Active"
-  const active = useMemo(() => {
-    return baseProducts.filter((s) => 
-      activeStatuses.includes(s.status) && !others.find(o => o.id === s.id)
-    );
-  }, [baseProducts, activeStatuses, others]);
+  const { activeProcesses, historyProcesses, userServices, isLoading } = useMyProcessesController(user?.id);
 
   return (
     <div className="p-6 md:p-12 max-w-[1200px] mx-auto">
@@ -323,8 +219,7 @@ export default function MyProcessesPage() {
         </div>
       ) : (
         <div className="space-y-10">
-          {/* Active */}
-          {active.length > 0 && (
+          {activeProcesses.length > 0 && (
             <section className="text-left">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -334,19 +229,18 @@ export default function MyProcessesPage() {
                   {t.dashboard.myCases.active}
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-primary/5 text-primary text-xs font-black">
-                  {active.length}
+                  {activeProcesses.length}
                 </span>
               </div>
               <div className="space-y-3">
-                {active.map((proc, i) => (
+                {activeProcesses.map((proc, i) => (
                   <ProcessRow key={proc.id} proc={proc} index={i} />
                 ))}
               </div>
             </section>
           )}
 
-          {/* Others */}
-          {others.length > 0 && (
+          {historyProcesses.length > 0 && (
             <section className="text-left">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
@@ -356,12 +250,12 @@ export default function MyProcessesPage() {
                   {t.dashboard.myCases.history}
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs font-black">
-                  {others.length}
+                  {historyProcesses.length}
                 </span>
               </div>
               <div className="space-y-3">
-                {others.map((proc, i) => (
-                  <ProcessRow key={proc.id} proc={proc} index={active.length + i} />
+                {historyProcesses.map((proc, i) => (
+                  <ProcessRow key={proc.id} proc={proc} index={activeProcesses.length + i} />
                 ))}
               </div>
             </section>

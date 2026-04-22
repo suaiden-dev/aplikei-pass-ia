@@ -3,41 +3,64 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   RiUserLine,
   RiSearchLine,
-  RiLoader4Line,
   RiChat3Line,
-  RiTimeLine,
   RiCheckDoubleLine,
   RiCircleFill,
   RiCloseLine,
-  RiSendPlane2Line,
   RiSettings3Line,
-  RiFlagLine,
+  RiLockLine,
+  RiLockUnlockLine,
 } from "react-icons/ri";
-import { supabase } from "../../../lib/supabase";
 import { toast } from "sonner";
-import type { UserAccount } from "../../../services/auth.service";
-import { useT, useLocale } from "../../../i18n";
+import { useT } from "../../../i18n";
+import { useAuth } from "../../../hooks/useAuth";
 import { cn } from "../../../utils/cn";
+import { SupportChat } from "../../../components/SupportChat";
+import { chatService } from "../../../services/chat-specialist.service";
+
+interface AnalysisChatItem {
+  id: string;
+  userId: string;
+  processId: string;
+  serviceSlug: string;
+  chatTitle: string;
+  fullName: string;
+  email: string;
+  avatarUrl: string | null;
+  createdAt: string;
+  unreadCount: number;
+}
 
 export default function ChatsPage() {
   const t = useT("admin");
-  const { lang: language } = useLocale();
-  const [customers, setCustomers] = useState<UserAccount[]>([]);
+  const { user } = useAuth();
+  const [chats, setChats] = useState<AnalysisChatItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedChat, setSelectedChat] = useState<UserAccount | null>(null);
+  const [selectedChat, setSelectedChat] = useState<AnalysisChatItem | null>(null);
 
   const load = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("user_accounts")
-        .select("*")
-        .eq("role", "customer")
-        .order("created_at", { ascending: false });
+      const threads = await chatService.listAdminSpecialistThreads();
+      const unreadByProcess = await chatService.getUnreadCountsByProcess(
+        threads.map((thread) => thread.processId),
+      );
 
-      if (error) throw error;
-      setCustomers(data || []);
+      setChats(
+        threads.map((row) => ({
+          id: row.processId,
+          userId: row.userId,
+          processId: row.processId,
+          serviceSlug: row.serviceSlug,
+          chatTitle: row.chatTitle,
+          fullName: row.fullName || "Sem Nome",
+          email: row.email || "",
+          avatarUrl: row.avatarUrl || null,
+          createdAt: row.createdAt,
+          unreadCount: unreadByProcess[row.processId] || 0,
+        })),
+      );
     } catch (err: unknown) {
       console.error("Error loading chats:", err);
       toast.error("Erro ao carregar conversas.");
@@ -50,15 +73,48 @@ export default function ChatsPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    const channel = chatService.subscribeToAllMessages((payload) => {
+      const msg = payload?.new;
+      if (!msg?.process_id) return;
+
+      setChats((prev) =>
+        prev.map((chat) => {
+          if (chat.processId !== msg.process_id) return chat;
+
+          if (msg.sender_role === "admin") {
+            return { ...chat, unreadCount: 0 };
+          }
+
+          if (selectedChat?.processId === chat.processId) {
+            return { ...chat, unreadCount: 0 };
+          }
+
+          return { ...chat, unreadCount: (chat.unreadCount || 0) + 1 };
+        }),
+      );
+    });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [selectedChat?.processId]);
+
   const filteredChats = useMemo(() => {
-    if (!searchTerm) return customers;
+    if (!searchTerm) return chats;
     const s = searchTerm.toLowerCase();
-    return customers.filter(
+    return chats.filter(
       (c) =>
-        c.full_name?.toLowerCase().includes(s) ||
-        c.email?.toLowerCase().includes(s)
+        c.fullName.toLowerCase().includes(s) ||
+        c.email.toLowerCase().includes(s) ||
+        c.chatTitle.toLowerCase().includes(s)
     );
-  }, [customers, searchTerm]);
+  }, [chats, searchTerm]);
+
+  const unreadTotal = useMemo(
+    () => chats.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0),
+    [chats],
+  );
 
   return (
     <div className="h-full flex flex-col bg-white overflow-hidden">
@@ -67,6 +123,11 @@ export default function ChatsPage() {
           <h1 className="font-display font-black text-2xl text-slate-800 tracking-tight flex items-center gap-3">
             <RiChat3Line className="text-primary" />
             {t.chats.title}
+            {unreadTotal > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-2 rounded-full bg-red-500 text-white text-[11px] font-black">
+                {unreadTotal}
+              </span>
+            )}
           </h1>
           <p className="text-[10px] text-slate-400 mt-1 uppercase font-black tracking-widest leading-none">
             {t.chats.subtitle}
@@ -113,7 +174,16 @@ export default function ChatsPage() {
                 {filteredChats.map((chat) => (
                   <button
                     key={chat.id}
-                    onClick={() => setSelectedChat(chat)}
+                    onClick={() => {
+                      setSelectedChat(chat);
+                      setChats((prev) =>
+                        prev.map((item) =>
+                          item.processId === chat.processId
+                            ? { ...item, unreadCount: 0 }
+                            : item,
+                        ),
+                      );
+                    }}
                     className={cn(
                       "w-full p-4 flex gap-3 text-left transition-all hover:bg-slate-50/80",
                       selectedChat?.id === chat.id ? "bg-primary/5 ring-1 ring-inset ring-primary/10" : ""
@@ -121,8 +191,8 @@ export default function ChatsPage() {
                   >
                     <div className="relative shrink-0">
                       <div className="w-12 h-12 rounded-2xl bg-slate-100 overflow-hidden shadow-inner flex items-center justify-center">
-                        {chat.avatar_url ? (
-                          <img src={chat.avatar_url} alt={chat.full_name} className="w-full h-full object-cover" />
+                        {chat.avatarUrl ? (
+                          <img src={chat.avatarUrl} alt={chat.fullName} className="w-full h-full object-cover" />
                         ) : (
                           <RiUserLine className="text-xl text-slate-400" />
                         )}
@@ -135,16 +205,25 @@ export default function ChatsPage() {
                           "text-xs font-black uppercase tracking-tight truncate",
                           selectedChat?.id === chat.id ? "text-primary" : "text-slate-700"
                         )}>
-                          {chat.full_name || "Sem Nome"}
+                          {chat.fullName}
                         </h4>
-                        <span className="text-[9px] font-bold text-slate-400">12:45</span>
+                        <div className="flex items-center gap-2">
+                          {chat.unreadCount > 0 && (
+                            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-red-500 text-white text-[10px] font-black">
+                              {chat.unreadCount}
+                            </span>
+                          )}
+                          <span className="text-[9px] font-bold text-slate-400">
+                            {new Date(chat.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
                       </div>
                       <p className="text-[11px] text-slate-400 font-medium truncate italic">
                         {chat.email}
                       </p>
                       <div className="flex items-center gap-1 mt-1">
                         <RiCheckDoubleLine className="text-xs text-blue-400" />
-                        <p className="text-[10px] text-slate-500 truncate font-medium">Aguardando resposta da análise...</p>
+                        <p className="text-[10px] text-slate-500 truncate font-medium">{chat.chatTitle}</p>
                       </div>
                     </div>
                   </button>
@@ -157,7 +236,7 @@ export default function ChatsPage() {
         {/* Chat Content / Welcome */}
         <div className="hidden md:flex flex-1 bg-slate-50/30 flex-col overflow-hidden relative">
           {selectedChat ? (
-            <ChatInterface chat={selectedChat} onClose={() => setSelectedChat(null)} />
+            <ChatInterface adminId={user?.id || ""} chat={selectedChat} onClose={() => setSelectedChat(null)} />
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
               <div className="w-24 h-24 rounded-[32px] bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center mb-8">
@@ -182,7 +261,7 @@ export default function ChatsPage() {
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
             className="md:hidden fixed inset-0 z-[100] bg-white flex flex-col"
           >
-            <ChatInterface chat={selectedChat} onClose={() => setSelectedChat(null)} />
+            <ChatInterface adminId={user?.id || ""} chat={selectedChat} onClose={() => setSelectedChat(null)} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -190,18 +269,37 @@ export default function ChatsPage() {
   );
 }
 
-function ChatInterface({ chat, onClose }: { chat: UserAccount; onClose: () => void }) {
-  const t = useT("admin");
-  const [message, setMessage] = useState("");
+function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: AnalysisChatItem; onClose: () => void }) {
   const [showSettings, setShowSettings] = useState(false);
+  const [isClosed, setIsClosed] = useState<boolean | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleFinalize = () => {
-    if (window.confirm(t.chats.finalizeConfirm)) {
-      toast.success(t.chats.processFinalized);
+  useEffect(() => {
+    chatService.getChatClosedAt(chat.processId)
+      .then((val) => setIsClosed(val !== null))
+      .catch(() => setIsClosed(false));
+  }, [chat.processId]);
+
+  const handleToggleClose = async () => {
+    setIsUpdating(true);
+    try {
+      if (isClosed) {
+        await chatService.reopenChat(chat.processId);
+        setIsClosed(false);
+        toast.success("Chat reaberto.");
+      } else {
+        await chatService.closeChat(chat.processId);
+        setIsClosed(true);
+        toast.success("Chat encerrado.");
+      }
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    } finally {
+      setIsUpdating(false);
       setShowSettings(false);
     }
   };
-  
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white md:bg-transparent">
       {/* Header */}
@@ -211,139 +309,86 @@ function ChatInterface({ chat, onClose }: { chat: UserAccount; onClose: () => vo
             <RiCloseLine size={24} />
           </button>
           <div className="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden shadow-inner flex items-center justify-center shrink-0">
-            {chat.avatar_url ? (
-              <img src={chat.avatar_url} alt={chat.full_name} className="w-full h-full object-cover" />
+            {chat.avatarUrl ? (
+              <img src={chat.avatarUrl} alt={chat.fullName} className="w-full h-full object-cover" />
             ) : (
               <RiUserLine className="text-lg text-slate-400" />
             )}
           </div>
           <div className="text-left">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight leading-none mb-1">
-              {chat.full_name || "Sem Nome"}
+              {chat.fullName}
             </h3>
             <div className="flex items-center gap-1.5">
-              <RiCircleFill className="text-[8px] text-emerald-500" />
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t.chats.online}</span>
+              <RiCircleFill className={cn("text-[8px]", isClosed ? "text-slate-400" : "text-emerald-500")} />
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                {chat.chatTitle}
+              </span>
             </div>
           </div>
         </div>
 
+        {/* Settings button */}
         <div className="relative">
-          <button 
-            onClick={() => setShowSettings(!showSettings)}
-            className={cn(
-              "p-2 rounded-xl transition-all",
-              showSettings ? "bg-slate-100 text-primary" : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"
-            )}
+          <button
+            onClick={() => setShowSettings((v) => !v)}
+            className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-slate-100 hover:text-slate-600 transition-all"
           >
-            <RiSettings3Line size={24} />
+            <RiSettings3Line size={18} />
           </button>
 
           <AnimatePresence>
             {showSettings && (
-              <>
-                <div 
-                  className="fixed inset-0 z-10" 
-                  onClick={() => setShowSettings(false)} 
-                />
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-20"
-                >
-                  <p className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 mb-1">
-                    {t.chats.settings}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                transition={{ duration: 0.12 }}
+                className="absolute right-0 top-11 z-50 w-52 bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden"
+              >
+                <div className="p-2">
+                  <p className="px-3 py-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    Configurações do Chat
                   </p>
-                  <button 
-                    onClick={handleFinalize}
-                    className="w-full px-4 py-3 flex items-center gap-3 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors"
+                  <button
+                    onClick={handleToggleClose}
+                    disabled={isUpdating || isClosed === null}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all",
+                      isClosed
+                        ? "text-emerald-700 hover:bg-emerald-50"
+                        : "text-red-600 hover:bg-red-50"
+                    )}
                   >
-                    <RiFlagLine className="text-lg" />
-                    {t.chats.finalizeProcess}
+                    {isClosed ? (
+                      <>
+                        <RiLockUnlockLine size={16} />
+                        Reabrir conversa
+                      </>
+                    ) : (
+                      <>
+                        <RiLockLine size={16} />
+                        Encerrar conversa
+                      </>
+                    )}
                   </button>
-                </motion.div>
-              </>
+                </div>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50 custom-scrollbar">
-        <div className="flex justify-center">
-          <span className="px-3 py-1 rounded-full bg-white border border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest shadow-sm">
-            {t.chats.today}
-          </span>
-        </div>
-
-        <Message 
-          content="Olá, gostaria de saber como está o andamento do meu processo de visto F1. Já enviei todos os documentos." 
-          time="12:40" 
-          isMine={false} 
+      {isClosed !== null && (
+        <SupportChat
+          processId={chat.processId}
+          userId={adminId}
+          role="admin"
+          userName={chat.fullName}
+          title={chat.chatTitle}
+          isClosed={isClosed}
         />
-        
-        <Message 
-          content="Olá! Recebemos seus documentos sim. Nossa equipe técnica está analisando o I-20 e o SEVIS agora mesmo. Te avisaremos assim que concluirmos essa etapa." 
-          time="12:42" 
-          isMine={true} 
-        />
-
-        <Message 
-          content="Perfeito, muito obrigado pelo retorno rápido!" 
-          time="12:45" 
-          isMine={false} 
-        />
-      </div>
-
-      {/* Input */}
-      <div className="p-4 md:p-6 bg-white border-t border-slate-100 shrink-0">
-        <form 
-          onSubmit={(e) => { e.preventDefault(); setMessage(""); }}
-          className="flex items-center gap-4 bg-slate-50 border border-slate-100 rounded-2xl p-2 pl-4 focus-within:ring-4 focus-within:ring-primary/5 transition-all"
-        >
-          <input 
-            type="text" 
-            placeholder={t.chats.typeMessage}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-slate-700 placeholder:text-slate-400"
-          />
-          <button 
-            type="submit"
-            disabled={!message.trim()}
-            className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-primary-hover transition-all disabled:opacity-50 disabled:grayscale"
-          >
-            <RiSendPlane2Line className="text-xl" />
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function Message({ content, time, isMine }: { content: string; time: string; isMine: boolean }) {
-  return (
-    <div className={cn(
-      "flex flex-col max-w-[80%]",
-      isMine ? "ml-auto items-end" : "mr-auto items-start"
-    )}>
-      <div className={cn(
-        "p-4 rounded-3xl text-sm font-medium leading-relaxed shadow-sm",
-        isMine 
-          ? "bg-primary text-white rounded-tr-none" 
-          : "bg-white text-slate-700 border border-slate-100 rounded-tl-none"
-      )}>
-        {content}
-      </div>
-      <div className={cn(
-        "flex items-center gap-1.5 mt-2 px-1",
-        isMine ? "flex-row-reverse" : "flex-row"
-      )}>
-        <span className="text-[10px] font-bold text-slate-300">{time}</span>
-        {isMine && <RiCheckDoubleLine className="text-xs text-blue-400" />}
-      </div>
+      )}
     </div>
   );
 }

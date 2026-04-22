@@ -4,7 +4,6 @@ import { useFormik } from "formik";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { supabase } from "../../lib/supabase";
 import { authService } from "../../services/auth.service";
 import {
   RiShieldCheckLine,

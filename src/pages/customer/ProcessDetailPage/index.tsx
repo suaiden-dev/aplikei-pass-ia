@@ -16,9 +16,7 @@ import {
   RiUserVoiceLine,
   RiUserStarLine,
   RiFlagLine,
-  RiChat3Line
 } from "react-icons/ri";
-import { SupportChat } from "../../../components/SupportChat";
 import { useAuth } from "../../../hooks/useAuth";
 import { processService, type UserService } from "../../../services/process.service";
 import { getServiceBySlug } from "../../../data/services";
@@ -28,6 +26,9 @@ import PhotoUploadOverlay from "../../../components/PhotoUploadOverlay";
 import { cn } from "../../../utils/cn";
 import { useT } from "../../../i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { StepConfig } from "../../../templates/ServiceDetailTemplate";
+import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "../../../data/workflowTemplates";
+import { normalizeLegacyFinalShipSteps } from "../../../utils/legacyWorkflow";
 import { Skeleton } from "../../../components/ui/skeleton";
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -50,37 +51,11 @@ const slugConfig: Record<string, {
 function calculatePhaseProgress(proc: UserService, totalSteps: number, isCOS: boolean): number {
   const step = proc.current_step ?? 0;
 
-  // Se o status for completed, sempre 100%
   if (proc.status === 'completed') return 100;
 
-  if (!isCOS) {
-    const isSpecialVisa = proc.service_slug?.startsWith("visto-b1-b2") || proc.service_slug?.startsWith("visto-f1");
-    // Cap at 95% for B1B2/F1 because they only finalize after client interview outcome
-    const maxProgress = isSpecialVisa ? 95 : 99;
-    return Math.min(maxProgress, Math.round((step / (totalSteps || 1)) * 100));
-  }
-
-  /**
-   * Lógica de Pesos para COS (Total 25 passos):
-   * 0-12 (Engajamento Inicial/Aplicação): 0% a 95%
-   * 13-18 (RFE - Condicional): 95% a 97%
-   * 19-24 (Motion - Condicional): 97% a 99%
-   */
-  if (step <= 12) {
-    return Math.max(0, Math.min(95, Math.round((step / 12) * 95)));
-  }
-  
-  if (step >= 13 && step <= 18) {
-    const rfeProgress = (step - 13) / 5;
-    return Math.max(95, Math.min(97, 95 + Math.round(rfeProgress * 2)));
-  }
-
-  if (step >= 19 && step <= 24) {
-    const motionProgress = (step - 19) / 5;
-    return Math.max(97, Math.min(99, 97 + Math.round(motionProgress * 2)));
-  }
-
-  return 99;
+  const isSpecialVisa = !isCOS && (proc.service_slug?.startsWith("visto-b1-b2") || proc.service_slug?.startsWith("visto-f1"));
+  const maxProgress = isSpecialVisa ? 95 : 99;
+  return Math.min(maxProgress, Math.round((step / (totalSteps || 1)) * 100));
 }
 
 export default function ProcessDetailPage() {
@@ -206,54 +181,30 @@ export default function ProcessDetailPage() {
   }
 
   const currentStepIndexInFull = proc.current_step ?? 0;
-  const fullSteps = service.steps;
-  
-  // Filter steps for COS conditional logic
   const isCOS = slug === "troca-status" || slug === "extensao-status";
   const prefix = slug === "extensao-status" ? "eos_" : "cos_";
-  
+
   const stepData = proc.step_data || {};
+  const uscisResult = stepData.uscis_official_result as string;
   const targetVisa = stepData.targetVisa as string;
   const showF1Steps = isCOS ? (targetVisa === "F1") : true;
-  
   const stepsToSkip = [`${prefix}i20_upload`, `${prefix}sevis_fee`, `${prefix}analysis_i20_sevis`];
-  const motionSteps = [
-    `${prefix}motion_explanation`, 
-    `${prefix}motion_instruction`, 
-    `${prefix}motion_proposal`, 
-    `${prefix}motion_accept_proposal`, 
-    `${prefix}motion_final_ship`, 
-    `${prefix}motion_end`
-  ];
 
-  const uscisResult = stepData.uscis_official_result as string;
-  const showMotionSteps = isCOS && uscisResult === 'denied';
+  // Base steps (all of them, to maintain index consistency with onboarding)
+  const steps = [...service.steps];
 
-  const rfeSteps = [
-    `${prefix}rfe_explanation`,
-    `${prefix}rfe_instruction`,
-    `${prefix}rfe_proposal`,
-    `${prefix}rfe_accept_proposal`,
-    `${prefix}rfe_final_ship`,
-    `${prefix}rfe_end`
-  ];
-
-  const showRfeSteps = isCOS && uscisResult === 'rfe';
-
-  const steps = fullSteps.filter(s => {
-    if (isCOS && !showF1Steps && stepsToSkip.includes(s.id)) return false;
-    if (isCOS && !showRfeSteps && rfeSteps.includes(s.id)) return false;
-    if (isCOS && !showMotionSteps && motionSteps.includes(s.id)) return false;
-    return true;
+  // Append dynamic cycle steps from step_data.history
+  const history = (stepData.history as any[]) || [];
+  history.forEach((cycle, cIdx) => {
+    const baseTemplate = cycle.steps || (cycle.type === 'motion' ? MOTION_STEPS_TEMPLATE : RFE_STEPS_TEMPLATE);
+    const template = normalizeLegacyFinalShipSteps(baseTemplate as StepConfig[]);
+    template.forEach((s: StepConfig) => {
+      steps.push({ ...s, id: `${s.id}_cycle_${cIdx}` });
+    });
   });
 
-  // Calculate current index in the filtered list
-  const currentStepId = fullSteps[currentStepIndexInFull]?.id;
-  let currentStepIndex = steps.findIndex(s => s.id === currentStepId);
-  
-  if (currentStepIndex === -1 && currentStepIndexInFull >= steps.length) {
-    currentStepIndex = steps.length;
-  }
+  // currentStepIndex = position of current_step inside the expanded steps array
+  let currentStepIndex = Math.min(currentStepIndexInFull, steps.length);
 
   // Se o processo está marcado como finalizado E com sucesso, forçamos o índice para o fim
   if (proc.status === 'completed') {
@@ -268,9 +219,7 @@ export default function ProcessDetailPage() {
   const isDenied = proc.status === 'rejected' ||
                    interviewOutcome === 'rejected' ||
                    interviewOutcome === 'denied' ||
-                   motionResult === 'denied' ||
-                   (rfeResult === 'denied' && currentStepIndexInFull >= 18 && !uscisResult) ||
-                   (uscisResult === 'denied' && currentStepIndexInFull >= 12 && !rfeResult && !motionResult);
+                   motionResult === 'denied';
 
   const isApproved = uscisResult === 'approved' || 
                      rfeResult === 'approved' || 
@@ -280,7 +229,7 @@ export default function ProcessDetailPage() {
                      (proc.status === 'completed' && !isDenied && !uscisResult?.includes('denied'));
 
   const isFinalized = proc.status === 'completed' || isApproved || isDenied;
-  const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, fullSteps.length, isCOS);
+  const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, steps.length, isCOS);
 
   return (
     <div className="p-12 max-w-[1200px]">
@@ -351,7 +300,7 @@ export default function ProcessDetailPage() {
                <button 
                 onClick={() => {
                   const currentIdx = proc.current_step ?? 0;
-                  const currentStep = fullSteps[currentIdx];
+                  const currentStep = steps[currentIdx];
                   // If we are currently on an admin-review step, go back one step to the form the user just filled
                   const targetIdx = currentStep?.type === 'admin_action' ? currentIdx - 1 : currentIdx;
                   navigate(`/dashboard/processes/${slug}/onboarding?step=${targetIdx}`);
@@ -456,11 +405,16 @@ export default function ProcessDetailPage() {
             {steps.map((step, idx) => {
               const isCompleted = idx < currentStepIndex;
               const isConsular = slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1");
+              const baseStepId = step.id.replace(/_cycle_\d+$/, "").replace(/_final_ship$/, "_end");
               // Re-ajuste isCurrent para não fixar no último passo se o processo já estiver COMPLETED (status final de histórico)
               const isCurrent = (idx === currentStepIndex) || (isConsular && idx === (slug.includes("f1") ? 11 : 10) && isFinalized && proc.status !== 'completed');
               // const isLocked = idx > currentStepIndex;
 
+              const skipThisStep = isCOS && !showF1Steps && stepsToSkip.includes(step.id);
+              if (skipThisStep) return null;
+
               return (
+
                 <motion.div
                   key={idx}
                   initial={{ opacity: 0, x: -12 }}
@@ -497,9 +451,10 @@ export default function ProcessDetailPage() {
                     </p>
 
                     {/* Show View button for completed steps or for the final preparation step in B1/B2/F1 */}
-                    {(((isCompleted || (isConsular && idx === (slug.includes("f1") ? 11 : 10))) && (step.type === "form" || step.type === "upload" || (isConsular && idx === (slug.includes("f1") ? 11 : 10))))) && (
+                    {(isCompleted || (isConsular && idx === (slug.includes("f1") ? 11 : 10)) || (isCurrent && isCOS && baseStepId === "cos_motion_end")) &&
+                      (step.type === "form" || step.type === "upload" || (isConsular && idx === (slug.includes("f1") ? 11 : 10)) || baseStepId === "cos_motion_end") && (
                       <button
-                        onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${fullSteps.indexOf(step)}`)}
+                        onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${idx}`)}
                         className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
                           idx === (slug.includes("f1") ? 11 : 10) && !isCompleted && !isCurrent
                             ? "border-emerald-200 text-emerald-500 hover:bg-emerald-50"
@@ -507,7 +462,11 @@ export default function ProcessDetailPage() {
                         }`}
                       >
                         {idx === (slug.includes("f1") ? 11 : 10) ? <RiUserStarLine className="text-sm" /> : <RiInformationLine className="text-sm" />}
-                        {idx === (slug.includes("f1") ? 11 : 10) ? t.processDetail.prepareForInterview : t.processDetail.viewStep}
+                        {baseStepId === "cos_motion_end"
+                          ? "Ver resultado"
+                          : idx === (slug.includes("f1") ? 11 : 10)
+                            ? t.processDetail.prepareForInterview
+                            : t.processDetail.viewStep}
                       </button>
                     )}
 
@@ -530,8 +489,7 @@ export default function ProcessDetailPage() {
                                  </div>
                                  <button
                                    onClick={() => {
-                                     const actualIdx = fullSteps.indexOf(step);
-                                     const targetIdx = step.id === 'b1b2_admin_analysis' ? 0 : (step.type === 'admin_action' ? actualIdx - 1 : actualIdx);
+                                     const targetIdx = step.id === 'b1b2_admin_analysis' ? 0 : (step.type === 'admin_action' ? idx - 1 : idx);
                                      navigate(`/dashboard/processes/${slug}/onboarding?step=${targetIdx}`);
                                    }}
                                     className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-500/20 transition-all border-none"
@@ -590,7 +548,7 @@ export default function ProcessDetailPage() {
                                </div>
                               <button
                                 onClick={() => {
-                                  navigate(`/dashboard/processes/${slug}/onboarding?step=${fullSteps.indexOf(step)}`);
+                                  navigate(`/dashboard/processes/${slug}/onboarding?step=${idx}`);
                                 }}
                                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all"
                               >
@@ -708,20 +666,6 @@ export default function ProcessDetailPage() {
             </div>
           </motion.div>
 
-          <div className="p-8 rounded-3xl border border-slate-100 bg-white">
-            <h4 className="text-sm font-black text-slate-800 uppercase tracking-tight mb-4">{t.processDetail.needHelp}</h4>
-            <p className="text-[13px] text-slate-500 font-medium leading-relaxed mb-6">
-              {t.processDetail.supportDesc}
-            </p>
-            <Link
-              to="/dashboard/support"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all"
-            >
-              {t.processDetail.talkToConsultant}
-              <RiArrowRightLine />
-            </Link>
-          </div>
-
           {(() => {
             const stepData = (proc.step_data || {}) as Record<string, unknown>;
             const purchases = (stepData.purchases || []) as any[];
@@ -737,12 +681,19 @@ export default function ProcessDetailPage() {
             if (!hasPaidProposal) return null;
 
             return (
-              <SupportChat 
-                processId={proc.id} 
-                userId={user?.id || ""} 
-                role="customer" 
-                userName="Consultor Aplikei" 
-              />
+              <div className="p-8 rounded-3xl border border-slate-100 bg-white">
+                <h4 className="text-sm font-black text-slate-800 uppercase tracking-tight mb-4">{t.processDetail.needHelp}</h4>
+                <p className="text-[13px] text-slate-500 font-medium leading-relaxed mb-6">
+                  {t.processDetail.supportDesc}
+                </p>
+                <Link
+                  to="/dashboard/support"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all"
+                >
+                  {t.processDetail.talkToConsultant}
+                  <RiArrowRightLine />
+                </Link>
+              </div>
             );
           })()}
         </div>

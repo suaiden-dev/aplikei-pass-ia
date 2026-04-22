@@ -9,7 +9,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "../../../lib/supabase";
 import { processService, type UserService } from "../../../services/process.service";
-import { notificationService } from "../../../services/notification.service";
+import { cosNotificationService } from "../../../services/cos-notification.service";
 import { useT } from "../../../i18n";
 
 interface Props {
@@ -54,12 +54,12 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
       });
 
       // Notify Admin
-      await notificationService.notifyAdmin({
-        title: "📄 Novo I-20 Recebido",
-        body: `O cliente ${user.full_name || user.email} enviou o documento I-20 para análise.`,
-        serviceId: proc.id,
+      await cosNotificationService.notifyAdmin({
+        event: "i20_uploaded",
+        processId: proc.id,
         userId: user.id,
-        link: `/admin/processes/${proc.id}`,
+        clientName: user.full_name,
+        clientEmail: user.email,
       });
       
       toast.success(t.cos.i20Upload.toasts.success);

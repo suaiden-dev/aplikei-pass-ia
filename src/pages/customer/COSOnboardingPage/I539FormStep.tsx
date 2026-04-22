@@ -8,7 +8,7 @@ import {
 import { toast } from "sonner";
 import { Formik, useField, useFormikContext, Form } from "formik";
 import { processService, type UserService } from "../../../services/process.service";
-import { notificationService } from "../../../services/notification.service";
+import { cosNotificationService } from "../../../services/cos-notification.service";
 import { fillI539Form, uploadFilledI539, type I539Data } from "../../../services/i539.service";
 import type { UserAccount } from "../../../models/user.model";
 import { i539Validator, type I539FormInput } from "../../../schemas/i539.schema";
@@ -133,12 +133,11 @@ function SelectInput({ name, options, disabled, children }: {
 function YesNoGroup({ yesName, noName, disabled }: {
   yesName: string; noName: string; disabled?: boolean;
 }) {
-  const [, , helpersYes] = useField(yesName);
-  const [, , helpersNo] = useField(noName);
-  const { values } = useFormikContext<I539FormInput>();
+  const [fieldYes, , helpersYes] = useField<boolean>(yesName);
+  const [fieldNo, , helpersNo] = useField<boolean>(noName);
 
-  const yesVal = values[yesName];
-  const noVal = values[noName];
+  const yesVal = fieldYes.value;
+  const noVal = fieldNo.value;
 
   return (
     <div className="flex gap-2">
@@ -388,12 +387,12 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
           const pdfUrl = await uploadFilledI539(filledBytes, proc.id, user.id);
           await processService.updateStepData(proc.id, { i539: values, i539PdfUrl: pdfUrl });
           
-          await notificationService.notifyAdmin({
-            title: "📋 Formulário I-539 Gerado",
-            body: `O cliente ${user?.fullName || user?.email} concluiu o preenchimento e gerou o PDF do I-539.`,
-            serviceId: proc.id,
+          await cosNotificationService.notifyAdmin({
+            event: "i539_generated",
+            processId: proc.id,
             userId: user.id,
-            link: `/admin/processes/${proc.id}`,
+            clientName: user?.fullName,
+            clientEmail: user?.email,
           });
 
           onComplete();

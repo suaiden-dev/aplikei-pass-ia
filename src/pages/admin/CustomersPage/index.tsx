@@ -10,10 +10,19 @@ import {
 } from "react-icons/ri";
 import { supabase } from "../../../lib/supabase";
 import { toast } from "sonner";
-import type { UserAccount } from "../../../services/auth.service";
 import { useT, useLocale } from "../../../i18n";
 
-export interface CustomerWithStats extends UserAccount {
+interface CustomerRow {
+  id: string;
+  full_name: string;
+  email: string;
+  phone_number: string;
+  avatar_url: string | null;
+  role: string;
+  created_at: string;
+}
+
+export interface CustomerWithStats extends CustomerRow {
   productsCount: number;
   totalSpent: number;
 }
@@ -41,7 +50,7 @@ export default function CustomersPage() {
 
       if (accountsErr) throw accountsErr;
 
-      const enhancedCustomers = (accountsData as UserAccount[]).map(c => {
+      const enhancedCustomers = (accountsData as CustomerRow[]).map(c => {
         let productsCount = 0;
         let totalSpent = 0;
 

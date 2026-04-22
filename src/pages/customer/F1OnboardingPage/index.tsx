@@ -10,8 +10,6 @@ import {
   RiAlertLine,
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
-import { processService } from "../../../services/process.service";
-import { notificationService } from "../../../services/notification.service";
 import { toast } from "sonner";
 import { useT } from "../../../i18n";
 
@@ -25,20 +23,20 @@ import { F1I20UploadStep } from "./steps/F1I20UploadStep";
 import { F1FinalPreparationStep } from "./steps/F1FinalPreparationStep";
 
 import { ds160Validator, type DS160FormValues } from "../../../schemas/ds160.schema";
+import { processService } from "../../../services/process.service";
+import { notificationService } from "../../../services/notification.service";
+import type { UserService } from "../../../models";
 
-// ─── Default values ────────────────────────────────────────────────────────────
 const INITIAL_VALUES: Partial<DS160FormValues> = {
   homeCountry: "Brasil",
   securityExceptions: "nao",
 };
 
-// ─── Main Page ─────────────────────────────────────────────────────────────────
-export default function F1OnboardingPage() {
-  const t = useT("visas");
-  const { user } = useAuth();
+function useF1OnboardingController(userId: string | undefined) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+
   const isReapplication = location.pathname.includes("reaplicacao");
   const slug = isReapplication ? "visto-f1-reaplicacao" : "visto-f1";
   const stepIdx = Number(searchParams.get("step") || "0");
@@ -48,45 +46,45 @@ export default function F1OnboardingPage() {
   const [adminFeedback, setAdminFeedback] = useState<string | null>(null);
   const [savedValues, setSavedValues] = useState<Partial<DS160FormValues>>(INITIAL_VALUES);
 
-  useEffect(() => {
-    async function load() {
-      if (!user) return;
-      try {
-        const idParam = searchParams.get("id");
-        let data = null;
+  const load = async () => {
+    if (!userId) return;
+    try {
+      const idParam = searchParams.get("id");
+      let data: UserService | null = null;
 
-        if (idParam) {
-          data = await processService.getServiceById(idParam);
-          // Opcional: validar se o service pertence ao user e ao slug correto
-          if (data && (data.user_id !== user.id || data.service_slug !== slug)) {
-             data = null;
-          }
-        } else {
-          data = await processService.getUserServiceBySlug(user.id, slug);
+      if (idParam) {
+        data = await processService.getServiceById(idParam);
+        if (data && (data.user_id !== userId || data.service_slug !== slug)) {
+          data = null;
         }
-
-        if (!data) {
-          toast.error(t.onboardingPage.errorNotFound);
-          navigate("/dashboard");
-          return;
-        }
-        setProcId(data.id);
-
-        if (data.step_data) {
-          if (data.step_data.admin_feedback) {
-            setAdminFeedback(data.step_data.admin_feedback as string);
-          }
-          setSavedValues({ ...INITIAL_VALUES, ...(data.step_data as Partial<DS160FormValues>) });
-        }
-      } catch (err) {
-        console.error(err);
-        toast.error(t.onboardingPage.errorLoad);
-      } finally {
-        setIsLoading(false);
+      } else {
+        data = await processService.getUserServiceBySlug(userId, slug);
       }
+
+      if (!data) {
+        toast.error("Serviço não encontrado");
+        navigate("/dashboard");
+        return;
+      }
+      setProcId(data.id);
+
+      if (data.step_data) {
+        if (data.step_data.admin_feedback) {
+          setAdminFeedback(data.step_data.admin_feedback as string);
+        }
+        setSavedValues({ ...INITIAL_VALUES, ...(data.step_data as Partial<DS160FormValues>) });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao carregar serviço");
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
     load();
-  }, [user, navigate, slug, searchParams]);
+  }, []);
 
   const handleSubmit = async (values: Partial<DS160FormValues>) => {
     if (!procId) return;
@@ -100,28 +98,26 @@ export default function F1OnboardingPage() {
       const currentDBStep = freshProc?.current_step ?? 0;
 
       if (currentDBStep === 0) {
-        // Move to I-20 Upload (Step 1)
         await processService.approveStep(procId, 1, false);
 
-        // Notify Admin
         await notificationService.notifyAdmin({
           title: "🎓 Início de Fluxo F1",
-          body: `O cliente ${user?.fullName || user?.email} concluiu o formulário inicial de Estudante (${slug}).`,
+          body: `O cliente concluiu o formulário inicial de Estudante (${slug}).`,
           serviceId: procId,
-          userId: user?.id,
+          userId,
           link: `/admin/processes/${procId}`,
         });
 
-        toast.success(t.onboardingPage.f1.saveSuccessDocs);
+        toast.success("Documentos salvos com sucesso!");
         const idParam = searchParams.get("id");
         navigate(`/dashboard/processes/${slug}/onboarding?step=1${idParam ? `&id=${idParam}` : ""}`);
       } else {
-        toast.success(t.onboardingPage.successDraft);
-        navigate(`/dashboard/processes/${slug}`); 
+        toast.success("Rascunho salvo!");
+        navigate(`/dashboard/processes/${slug}`);
       }
     } catch (err) {
       console.error(err);
-      toast.error(t.onboardingPage.errorSave);
+      toast.error("Erro ao salvar");
     }
   };
 
@@ -129,11 +125,42 @@ export default function F1OnboardingPage() {
     if (!procId) return;
     try {
       await processService.updateStepData(procId, values as Record<string, unknown>);
-      toast.success(t.onboardingPage.successDraft);
+      toast.success("Rascunho salvo!");
     } catch {
-      toast.error(t.onboardingPage.errorDraft);
+      toast.error("Erro ao salvar rascunho");
     }
   };
+
+  return {
+    isLoading,
+    procId,
+    slug,
+    stepIdx,
+    adminFeedback,
+    savedValues,
+    isReapplication,
+    handleSubmit,
+    handleSaveDraft,
+    navigate,
+  };
+}
+
+export default function F1OnboardingPage() {
+  const t = useT("visas");
+  const { user } = useAuth();
+
+  const {
+    isLoading,
+    procId,
+    slug,
+    stepIdx,
+    adminFeedback,
+    savedValues,
+    isReapplication,
+    handleSubmit,
+    handleSaveDraft,
+    navigate,
+  } = useF1OnboardingController(user?.id);
 
   if (isLoading) {
     return (
@@ -143,12 +170,13 @@ export default function F1OnboardingPage() {
     );
   }
 
-  const title = isReapplication ? t.onboardingPage.f1.reapplicationTitle : t.onboardingPage.f1.title;
+  const title = isReapplication
+    ? t.onboardingPage.f1.reapplicationTitle
+    : t.onboardingPage.f1.title;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100/50 pb-24">
-      
-      {/* ── Sticky Header ── */}
+
       <div className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30 shadow-sm">
         <div className="max-w-4xl mx-auto px-6 h-18 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -180,7 +208,6 @@ export default function F1OnboardingPage() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-8">
 
-        {/* ── Admin Feedback Banner ── */}
         {adminFeedback && stepIdx !== 4 && stepIdx !== 1 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -251,12 +278,12 @@ export default function F1OnboardingPage() {
               onBack={() => navigate(`/dashboard/processes/${slug}`)}
            />
         ) : stepIdx === 4 ? (
-           <B1B2UserReviewSignStep 
-              procId={procId!} 
-              userId={user!.id} 
-              stepData={savedValues} 
-              onComplete={() => navigate(`/dashboard/processes/${slug}`)} 
-              onBack={() => navigate(`/dashboard/processes/${slug}`)} 
+           <B1B2UserReviewSignStep
+              procId={procId!}
+              userId={user!.id}
+              stepData={savedValues}
+              onComplete={() => navigate(`/dashboard/processes/${slug}`)}
+              onBack={() => navigate(`/dashboard/processes/${slug}`)}
            />
         ) : stepIdx === 1 ? (
            <F1I20UploadStep
@@ -267,7 +294,6 @@ export default function F1OnboardingPage() {
               onBack={() => navigate(`/dashboard/processes/${slug}`)}
            />
         ) : (
-        /* ── DS-160 Form ── */
         <Formik<Partial<DS160FormValues>>
           initialValues={savedValues}
           validate={ds160Validator}

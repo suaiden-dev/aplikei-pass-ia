@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   RiMoneyDollarCircleLine, 
   RiArrowRightLine, 
@@ -21,7 +21,7 @@ import { MdPix } from "react-icons/md";
 import { toast } from "sonner";
 import { supabase } from "../../../lib/supabase";
 import { type UserService, processService } from "../../../services/process.service";
-import { notificationService } from "../../../services/notification.service";
+import { cosNotificationService } from "../../../services/cos-notification.service";
 import { paymentService } from "../../../services/payment.service";
 import { useAuth } from "../../../hooks/useAuth";
 import { DocUploadCard } from "../../../components/DocUploadCard";
@@ -32,6 +32,7 @@ import { maskCPF, validateCPF } from "../../../utils/cpf";
 import { getServiceBySlug } from "../../../data/services";
 import { cn } from "../../../utils/cn";
 import { useT } from "../../../i18n";
+import { normalizeLegacyFinalShipStep } from "../../../utils/legacyWorkflow";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -416,8 +417,19 @@ export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps)
   const t = useT("onboarding");
   const [showCheckout, setShowCheckout] = useState(false);
   
-  const rfeService = getServiceBySlug('apoio-rfe-motion-inicio') || getServiceBySlug('analise-rfe-cos');
-  const baseAmount = parseInt(rfeService?.price.replace(/\D/g, '') || "50");
+  const [baseAmount, setBaseAmount] = useState(0);
+
+  useEffect(() => {
+    supabase
+      .from("services_prices")
+      .select("price")
+      .eq("service_id", "apoio-rfe-motion-inicio")
+      .eq("is_active", true)
+      .single()
+      .then(({ data }) => {
+        if (data?.price) setBaseAmount(parseFloat(data.price));
+      });
+  }, []);
 
   return (
     <>
@@ -487,12 +499,10 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
       
       toast.success(t?.workflows?.shared?.fileSent || "File sent!", { id: "u" });
 
-      await notificationService.notifyAdmin({
-        title: "⚠️ Nova RFE Recebida",
-        body: `O cliente submeteu a carta de RFE para o processo ${proc.id}.`,
-        serviceId: proc.id,
+      await cosNotificationService.notifyAdmin({
+        event: "rfe_letter_uploaded",
+        processId: proc.id,
         userId: proc.user_id,
-        link: `/admin/processes/${proc.id}`,
       });
 
       onComplete?.();
@@ -502,18 +512,16 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
     }
   };
 
-  const handleManualComplete = () => {
+  const handleManualComplete = async () => {
      const docs = (data.docs as Record<string, string>) || {};
      if (!docs.rfe_letter && !data.rfe_description) {
         toast.error(t?.workflows?.rfe?.instruction?.summaryLabel || "Description required");
         return;
      }
-     notificationService.notifyAdmin({
-        title: "⚠️ Descrição de RFE Enviada",
-        body: `O cliente descreveu os requisitos da RFE para o processo ${proc.id}.`,
-        serviceId: proc.id,
+     await cosNotificationService.notifyAdmin({
+        event: "rfe_description_submitted",
+        processId: proc.id,
         userId: proc.user_id,
-        link: `/admin/processes/${proc.id}`,
      });
      
      onComplete?.();
@@ -774,18 +782,19 @@ export function RFEWorkflow({ data, onRefresh }: WorkflowProps) {
 
   const service = getServiceBySlug(data.service_slug);
   const currentStep = service?.steps[activeStep];
+  const normalizedStep = currentStep ? normalizeLegacyFinalShipStep(currentStep) : undefined;
 
   const renderContent = () => {
-    if (!currentStep) return null;
+    if (!normalizedStep) return null;
 
-    switch (currentStep.id) {
+    switch (normalizedStep.id) {
       case "cos_rfe_explanation":
         return <RFEExplanationStep proc={data} />;
       case "cos_rfe_docs":
         return <RFEInstructionStep proc={data} onComplete={() => onRefresh()} />;
       case "cos_rfe_proposal":
         return <RFEAcceptProposalStep proc={data} />;
-      case "cos_rfe_final_ship":
+      case "cos_rfe_end":
         return <RFEEndStep proc={data} onComplete={() => onRefresh()} onJumpToMotion={() => onRefresh()} onJumpToNewRFE={() => onRefresh()} />;
       default:
         return (
@@ -793,7 +802,7 @@ export function RFEWorkflow({ data, onRefresh }: WorkflowProps) {
             <div className="w-20 h-20 rounded-[32px] bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-10 shadow-inner">
                <RiCheckDoubleLine className="text-4xl" />
             </div>
-            <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tight mb-4">{currentStep.title}</h2>
+            <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tight mb-4">{normalizedStep.title}</h2>
             <p className="text-slate-500 font-medium text-lg mb-10">Sua solicitação está sendo cuidada pelo nosso time especializado.</p>
             <div className="inline-flex items-center gap-3 px-6 py-3 bg-slate-50 rounded-2xl border border-slate-100">
                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>

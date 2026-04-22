@@ -25,17 +25,17 @@ import {
   RiCalendarEventLine,
   RiUser3Line,
   RiTimeLine,
-  RiChat3Line,
 } from "react-icons/ri";
-import { useAuth } from "../../../hooks/useAuth";
-import { SupportChat } from "../../../components/SupportChat";
 import { getServiceBySlug } from "../../../data/services";
+import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "../../../data/workflowTemplates";
+import { normalizeLegacyFinalShipSteps, normalizeLegacyStepId } from "../../../utils/legacyWorkflow";
 import { supabase } from "../../../lib/supabase";
 import { processService, type UserService } from "../../../services/process.service";
 import { notificationService } from "../../../services/notification.service";
 import { packageService } from "../../../services/package.service";
 import { toast } from "sonner";
 import { useT } from "../../../i18n";
+import type { StepConfig } from "../../../templates/ServiceDetailTemplate";
 
 interface ProcessWithUser extends UserService {
   user_accounts: {
@@ -67,6 +67,24 @@ interface RFEHistoryItem {
   result: "approved" | "rfe" | "denied";
   rfe_letter?: string;
   sent_at: string;
+}
+
+function buildEffectiveSteps(baseSteps: StepConfig[], history: any[]) {
+  const effectiveSteps = [...baseSteps];
+
+  history.forEach((cycle, cIdx) => {
+    const baseTemplate = cycle.steps || (cycle.type === "motion" ? MOTION_STEPS_TEMPLATE : RFE_STEPS_TEMPLATE);
+    const template = normalizeLegacyFinalShipSteps(baseTemplate as StepConfig[]);
+
+    template.forEach((step: StepConfig) => {
+      effectiveSteps.push({
+        ...step,
+        id: `${step.id}_cycle_${cIdx}`,
+      });
+    });
+  });
+
+  return effectiveSteps;
 }
 
 // ─── Process Log Panel ────────────────────────────────────────────────────────
@@ -625,8 +643,9 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
 
   useEffect(() => {
     if (data.motion_proposal_text) setText(data.motion_proposal_text as string);
-    if (data.motion_proposal_amount) setAmount(Number(data.motion_proposal_amount));
-  }, [data.motion_proposal_text, data.motion_proposal_amount, setText, setAmount]);
+    const savedAmount = data.motion_amount ?? data.motion_proposal_amount;
+    if (savedAmount !== undefined && savedAmount !== null && savedAmount !== "") setAmount(Number(savedAmount));
+  }, [data.motion_proposal_text, data.motion_amount, data.motion_proposal_amount, setText, setAmount]);
 
   const handleSendProposal = async () => {
     if (!text || amount <= 0) {
@@ -637,8 +656,10 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
     try {
       await processService.updateStepData(proc.id, {
         motion_proposal_text: text,
+        motion_amount: Number(amount),
         motion_proposal_amount: Number(amount),
-        motion_proposal_sent_at: new Date().toISOString()
+        motion_proposal_sent_at: new Date().toISOString(),
+        workflow_status: "awaiting_payment",
       });
 
       const currentStepIdx = proc.current_step ?? 0;
@@ -944,102 +965,6 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
   );
 }
 
-function MotionFinalShipPanel({ proc, onApprove, onRefresh, isActive }: { proc: ProcessWithUser; onApprove: () => void; onRefresh: () => void; isActive: boolean }) {
-  const [loading, setLoading] = useState(false);
-  const t = useT("admin");
-  const data = (proc.step_data || {}) as Record<string, unknown>;
-  const docs = (data.docs as Record<string, string>) || {};
-  const motionLetterPath = docs.motion_final_package;
-
-  const handleFileUpload = async (file: File) => {
-    setLoading(true);
-    try {
-      toast.loading(t.processDetail.motion.finalPackageLoading, { id: "ship" });
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${proc.user_id}/motion/motion_final_${crypto.randomUUID()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("profiles")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const currentDocs = (data.docs as Record<string, string>) || {};
-      await processService.updateStepData(proc.id, {
-        docs: { ...currentDocs, motion_final_package: filePath }
-      });
-
-      toast.success(t.processDetail.mrv.messages.uploadSuccess, { id: "ship" });
-      onRefresh();
-    } catch (e: unknown) {
-      const err = e as Error;
-      toast.error(t.cases.messages.errorAction + err.message, { id: "ship" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-8 mb-8 text-left">
-      <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-        <RiFileUploadLine className="text-lg" />
-        {t.processDetail.motion.finalPackageTitle}
-      </h3>
-
-      <div className="space-y-6">
-        <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl text-center">
-          {motionLetterPath ? (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 text-left">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                  <RiCheckDoubleLine className="text-xl" />
-                </div>
-                <div>
-                  <p className="text-xs font-black text-slate-800 uppercase">{t.processDetail.motion.finalPackageReady}</p>
-                  <p className="text-[10px] text-slate-400 font-bold truncate max-w-[200px]">{motionLetterPath}</p>
-                </div>
-              </div>
-              <a
-                href={supabase.storage.from('profiles').getPublicUrl(motionLetterPath).data.publicUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
-              >
-                {t.shared.confirm.replace('Confirmar', 'Ver')}
-              </a>
-            </div>
-          ) : (
-            <div className="py-4">
-              <RiFileTextLine className="text-4xl text-slate-200 mx-auto mb-3" />
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">{t.shared.table.empty}</p>
-              <label className="bg-white border border-slate-200 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-slate-50 transition-all shadow-sm inline-flex items-center gap-2">
-                <RiFileUploadLine className="text-lg" />
-                {t.processDetail.motion.selectFinalPdf}
-                <input
-                  type="file"
-                  accept=".pdf"
-                  className="hidden"
-                  onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
-                />
-              </label>
-            </div>
-          )}
-        </div>
-
-        {isActive && (
-          <button
-            onClick={() => onApprove()}
-            disabled={loading || !motionLetterPath}
-            className="w-full h-14 bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.motion.provideToClient}</>}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function RFEFinalShipPanel({ proc, onApprove, onRefresh, isActive }: { proc: ProcessWithUser; onApprove: () => void; onRefresh: () => void; isActive: boolean }) {
   const [loading, setLoading] = useState(false);
   const t = useT("admin");
@@ -1203,7 +1128,6 @@ function B1B2CredentialsPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
 
 export default function AdminProcessDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const t = useT("admin");
   const vt = useT("visas");
@@ -1269,7 +1193,11 @@ export default function AdminProcessDetailPage() {
 
   const service = getServiceBySlug(proc.service_slug);
   const currentStepIdx = proc.current_step ?? 0;
-  const currentStep = service?.steps[currentStepIdx];
+  const history = (proc.step_data?.history as any[]) || [];
+  const effectiveSteps = service ? buildEffectiveSteps(service.steps, history) : [];
+  const currentStep = effectiveSteps[currentStepIdx];
+  const currentStepBaseId = normalizeLegacyStepId(currentStep?.id);
+  const workflowStatus = String(proc.step_data?.workflow_status ?? "").toLowerCase();
 
   const handleApproveStep = async (extraData?: Record<string, unknown>) => {
     if (!service || isSubmitting) return;
@@ -1290,46 +1218,51 @@ export default function AdminProcessDetailPage() {
       }
 
       const isConsular = proc.service_slug.startsWith("visto-b1-b2") || proc.service_slug.startsWith("visto-f1");
-      const isFinal = nextStep >= service.steps.length && !isConsular;
 
       const additionalData = { ...extraData };
-      if (currentStep?.id === 'cos_analysis_presentation_letter') {
+      if (currentStepBaseId === 'cos_analysis_presentation_letter') {
         additionalData.generatedCoverLetterHTML = coverLetterHtml;
       }
+      const isFinal = nextStep >= effectiveSteps.length && !isConsular;
 
       await processService.approveStep(proc.id, nextStep, isFinal, isFinal ? 'approved' : undefined, additionalData);
 
-      if (isFinal) {
-        await notificationService.notifyClient({
-          userId: proc.user_id!,
-          serviceId: proc.id,
-          template: "process_completed_approved",
-          templateData: { service_name: service.title },
-          link: `/dashboard/processes/${proc.service_slug}`,
-        });
-      } else {
-        await notificationService.notifyClient({
-          userId: proc.user_id!,
-          serviceId: proc.id,
-          template: "step_approved",
-          templateData: { 
-            step_name: currentStep?.title,
-            next_step_name: service.steps[nextStep]?.title ?? "",
-          },
-          link: `/dashboard/processes/${proc.service_slug}`,
-        });
-      }
-
-      // se a próxima etapa para o B1/B2 ou F1 for credenciais ou criação de conta, 
+      // se a próxima etapa para o B1/B2 ou F1 for credenciais ou criação de conta,
       // certifique-se de que o card aparecerá na fila do administrador na página de listagem
-      const nextStepId = service.steps[nextStep]?.id;
+      const nextStepId = effectiveSteps[nextStep]?.id;
+      const nextStepBaseId = normalizeLegacyStepId(nextStepId);
       const isAdminTask =
-        nextStepId.includes("_admin_credentials") ||
-        nextStepId.includes("_admin_account_creation") ||
-        nextStepId.includes("_admin_analysis");
+        !!nextStepBaseId &&
+        (nextStepBaseId.includes("_admin_credentials") ||
+         nextStepBaseId.includes("_admin_account_creation") ||
+         nextStepBaseId.includes("_admin_analysis"));
 
       if (isAdminTask) {
         await processService.updateProcessStatus(proc.id, "awaiting_review");
+      }
+
+      if (proc.user_id) {
+        const serviceName = service.title ?? proc.service_slug;
+        if (isFinal) {
+          notificationService.notifyClient({
+            userId: proc.user_id,
+            serviceId: proc.id,
+            template: "process_completed_approved",
+            templateData: { service_name: serviceName },
+            link: `/dashboard/processes/${proc.service_slug}`,
+          });
+        } else {
+          notificationService.notifyClient({
+            userId: proc.user_id,
+            serviceId: proc.id,
+            template: "step_approved",
+            templateData: {
+              step_name: currentStep?.title ?? "",
+              next_step_name: service.steps[nextStep]?.title ?? "",
+            },
+            link: `/dashboard/processes/${proc.service_slug}`,
+          });
+        }
       }
 
       toast.success(isFinal ? t.cases.messages.approveFinalSuccess : t.cases.messages.approveSuccess.replace("{name}", proc.user_accounts?.full_name || "Cliente"));
@@ -1350,19 +1283,12 @@ export default function AdminProcessDetailPage() {
     try {
       const isB1B2 = proc.service_slug.startsWith("visto-b1-b2");
       const isF1 = proc.service_slug.startsWith("visto-f1");
-      const isFinal = currentStepIdx >= (service?.steps.length || 0) - 1;
+      const isFinal = currentStepIdx >= effectiveSteps.length - 1;
 
       if (isFinal) {
         await processService.rejectStep(proc.id, true, 'denied');
-        await notificationService.notifyClient({
-          userId: proc.user_id!,
-          serviceId: proc.id,
-          template: "process_completed_denied",
-          templateData: { service_name: service?.title ?? "" },
-          link: `/dashboard/processes/${proc.service_slug}`,
-        });
         toast.success(t.cases.messages.rejectFinalSuccess);
-      } else if ((isB1B2 && currentStep?.id === "b1b2_admin_final_analysis") || (isF1 && currentStep?.id === "f1_admin_final_analysis")) {
+      } else if ((isB1B2 && currentStepBaseId === "b1b2_admin_final_analysis") || (isF1 && currentStepBaseId === "f1_admin_final_analysis")) {
         // Volta para a etapa de assinatura (idx 3 no B1/B2, idx 4 no F1)
         const backIdx = isF1 ? 4 : 3;
         await processService.updateStepData(proc.id, {
@@ -1384,7 +1310,7 @@ export default function AdminProcessDetailPage() {
           link: `/dashboard/processes/${proc.service_slug}`,
         });
         toast.success(t.shared.administrativeAction); // Or better: t.cases.messages.rejectSuccess
-      } else if (isF1 && currentStep?.id === "f1_admin_analysis") {
+      } else if (isF1 && currentStepBaseId === "f1_admin_analysis") {
         // Volta para o upload do I-20 (idx 1)
         await processService.updateStepData(proc.id, {
           admin_feedback: rejectionReason,
@@ -1413,14 +1339,6 @@ export default function AdminProcessDetailPage() {
         });
 
         await processService.rejectStep(proc.id);
-        
-        await notificationService.notifyClient({
-          userId: proc.user_id!,
-          serviceId: proc.id,
-          template: "step_rejected_feedback",
-          templateData: { step_name: currentStep?.title ?? "", feedback: rejectionReason },
-          link: `/dashboard/processes/${proc.service_slug}`,
-        });
         toast.success(t.cases.messages.rejectSuccess);
       }
 
@@ -1469,8 +1387,8 @@ export default function AdminProcessDetailPage() {
 
     if (entries.length === 0) return null;
 
-    const isActive = currentStep?.id === "cos_analysis_form_docs" || currentStep?.id === "b1b2_admin_analysis";
-    const isPast = currentStep?.id === "b1b2_admin_analysis" ? currentStepIdx > 1 : currentStepIdx > 2;
+    const isActive = currentStepBaseId === "cos_analysis_form_docs" || currentStepBaseId === "b1b2_admin_analysis";
+    const isPast = currentStepBaseId === "b1b2_admin_analysis" ? currentStepIdx > 1 : currentStepIdx > 2;
 
     return (
       <CollapsibleStep
@@ -1544,7 +1462,7 @@ export default function AdminProcessDetailPage() {
     if (!pdfUrl) return null;
 
     const isSelected = selectedItems.includes('i539PdfUrl');
-    const isActive = currentStep?.id === "cos_analysis_official_forms";
+    const isActive = currentStepBaseId === "cos_analysis_official_forms";
     const isPast = currentStepIdx > 4;
 
     return (
@@ -1579,7 +1497,7 @@ export default function AdminProcessDetailPage() {
 
   const renderCoverLetterAdmin = () => {
     if (!proc.step_data?.coverLetter) return null;
-    const isActive = currentStep?.id === "cos_analysis_presentation_letter";
+    const isActive = currentStepBaseId === "cos_analysis_presentation_letter";
     const isPast = currentStepIdx > 6;
 
     return (
@@ -1612,7 +1530,7 @@ export default function AdminProcessDetailPage() {
     const g1145PdfUrl = proc.step_data?.g1145PdfUrl as string;
     const g1450PdfUrl = proc.step_data?.g1450PdfUrl as string;
     if (!g1145PdfUrl && !g1450PdfUrl) return null;
-    const isActive = currentStep?.id === `${prefix}analysis_final_forms`;
+    const isActive = currentStepBaseId === `${prefix}analysis_final_forms`;
     const isPast = currentStepIdx > 11;
 
     return (
@@ -1644,7 +1562,7 @@ export default function AdminProcessDetailPage() {
   const renderCOSDocumentsAdmin = () => {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const isActive = currentStep?.id === `${prefix}analysis_form_docs`;
+    const isActive = currentStepBaseId === `${prefix}analysis_form_docs`;
     const isPast = currentStepIdx > 2;
 
     const docs = (proc.step_data?.docs || {}) as Record<string, string>;
@@ -1684,7 +1602,7 @@ export default function AdminProcessDetailPage() {
   const renderCOSAnalysisI20SevisAdmin = () => {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const isActive = currentStep?.id === `${prefix}analysis_i20_sevis`;
+    const isActive = currentStepBaseId === `${prefix}analysis_i20_sevis`;
     const isPast = currentStepIdx > 9;
 
     const docs = (proc.step_data?.docs || {}) as Record<string, string>;
@@ -1752,7 +1670,7 @@ export default function AdminProcessDetailPage() {
 
   const renderF1DocumentsAdmin = () => {
     if (!proc.service_slug.startsWith("visto-f1")) return null;
-    const isActive = currentStep?.id === "f1_admin_analysis";
+    const isActive = currentStepBaseId === "f1_admin_analysis";
     const isPast = currentStepIdx > 2;
 
     const docs = (proc.step_data?.docs || {}) as Record<string, string>;
@@ -1803,7 +1721,7 @@ export default function AdminProcessDetailPage() {
 
   const renderF1FinalDocsAdmin = () => {
     if (!proc.service_slug.startsWith("visto-f1")) return null;
-    const isActive = currentStep?.id === "f1_admin_final_analysis";
+    const isActive = currentStepBaseId === "f1_admin_final_analysis";
     const isPast = currentStepIdx > 5;
 
     const docs = (proc.step_data?.docs || {}) as Record<string, string>;
@@ -1853,7 +1771,7 @@ export default function AdminProcessDetailPage() {
 
   const renderB1B2CredentialsAdmin = () => {
     if (!proc.service_slug.startsWith("visto-b1-b2") && !proc.service_slug.startsWith("visto-f1")) return null;
-    const isActive = currentStep?.id === "b1b2_admin_credentials" || currentStep?.id === "f1_admin_credentials";
+    const isActive = currentStepBaseId === "b1b2_admin_credentials" || currentStepBaseId === "f1_admin_credentials";
     const isPast = currentStepIdx > (proc.service_slug.startsWith("visto-f1") ? 3 : 2);
 
     if (!isActive && !isPast) return null;
@@ -1867,7 +1785,7 @@ export default function AdminProcessDetailPage() {
 
   const renderB1B2FinalDocsAdmin = () => {
     if (proc.service_slug !== "visto-b1-b2") return null;
-    const isActive = currentStep?.id === "b1b2_admin_final_analysis";
+    const isActive = currentStepBaseId === "b1b2_admin_final_analysis";
     const isPast = currentStepIdx > 4;
 
     const docs = (proc.step_data?.docs || {}) as Record<string, string>;
@@ -1947,7 +1865,7 @@ export default function AdminProcessDetailPage() {
 
   const renderB1B2CASVAdmin = () => {
     if (!proc.service_slug.startsWith("visto-b1-b2") && !proc.service_slug.startsWith("visto-f1")) return null;
-    const isActive = currentStep?.id === "b1b2_casv_scheduling" || currentStep?.id === "f1_casv_scheduling";
+    const isActive = currentStepBaseId === "b1b2_casv_scheduling" || currentStepBaseId === "f1_casv_scheduling";
     const isPast = currentStepIdx > (proc.service_slug.startsWith("visto-f1") ? 6 : 5);
     if (!isActive && !isPast) return null;
 
@@ -2027,7 +1945,7 @@ export default function AdminProcessDetailPage() {
 
   const renderB1B2AccountCreationAdmin = () => {
     if (!proc || (!proc.service_slug.startsWith("visto-b1-b2") && !proc.service_slug.startsWith("visto-f1"))) return null;
-    const isActive = currentStep?.id === "b1b2_admin_account_creation" || currentStep?.id === "f1_admin_account_creation";
+    const isActive = currentStepBaseId === "b1b2_admin_account_creation" || currentStepBaseId === "f1_admin_account_creation";
     const isPast = currentStepIdx > (proc.service_slug.startsWith("visto-f1") ? 7 : 6);
     if (!isActive && !isPast) return null;
 
@@ -2074,7 +1992,7 @@ export default function AdminProcessDetailPage() {
 
   const renderB1B2MRVSetupAdmin = () => {
     if (!proc || (!proc.service_slug.startsWith("visto-b1-b2") && !proc.service_slug.startsWith("visto-f1"))) return null;
-    const isActive = currentStep?.id === "b1b2_admin_mrv_setup" || currentStep?.id === "f1_admin_mrv_setup";
+    const isActive = currentStepBaseId === "b1b2_admin_mrv_setup" || currentStepBaseId === "f1_admin_mrv_setup";
     const isPast = currentStepIdx > (proc.service_slug.startsWith("visto-f1") ? 9 : 8);
     if (!isActive && !isPast) return null;
 
@@ -2086,7 +2004,7 @@ export default function AdminProcessDetailPage() {
   };
   const renderB1B2FinalSchedulingAdmin = () => {
     if (!proc || (!proc.service_slug.startsWith("visto-b1-b2") && !proc.service_slug.startsWith("visto-f1"))) return null;
-    const isActive = currentStep?.id === "b1b2_final_scheduling" || currentStep?.id === "f1_final_scheduling";
+    const isActive = currentStepBaseId === "b1b2_final_scheduling" || currentStepBaseId === "f1_final_scheduling";
     const isPast = currentStepIdx > (proc.service_slug.startsWith("visto-f1") ? 11 : 10);
     if (!isActive && !isPast) return null;
 
@@ -2101,7 +2019,7 @@ export default function AdminProcessDetailPage() {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
     const finalPackageUrl = proc.step_data?.finalPackagePdfUrl as string;
-    const isActive = currentStep?.id === `${prefix}final_package`;
+    const isActive = currentStepBaseId === `${prefix}final_package`;
     const isPast = currentStepIdx > 12;
 
     return (
@@ -2181,33 +2099,27 @@ export default function AdminProcessDetailPage() {
           {renderB1B2FinalSchedulingAdmin()}
 
           {/* RFE Admin Actions */}
-          {currentStep?.id === "cos_rfe_proposal" && (
+          {currentStepBaseId === "cos_rfe_proposal" && (
             <CollapsibleStep title="Proposta de RFE" icon={RiShieldCheckLine} isActive={true} isPast={false} badge="Ação Administrativa">
               <RFEProposalPanel proc={proc} onRefresh={fetchProcessData} isActive={true} />
             </CollapsibleStep>
           )}
 
           {/* Motion Admin Actions */}
-          {currentStep?.id === "cos_motion_proposal" && (
+          {(currentStepBaseId === "cos_motion_proposal" || workflowStatus === "awaiting_proposal") && (
             <CollapsibleStep title="Proposta de Motion" icon={RiShieldCheckLine} isActive={true} isPast={false} badge="Ação Administrativa">
               <MotionProposalPanel proc={proc} onRefresh={fetchProcessData} isActive={true} />
             </CollapsibleStep>
           )}
 
           {/* Shipments */}
-          {currentStep?.id === "cos_rfe_final_ship" && (
-            <CollapsibleStep title="Envio RFE" icon={RiFileUploadLine} isActive={true} isPast={false} badge="Ação Administrativa">
+          {currentStepBaseId === "cos_rfe_end" && (
+            <CollapsibleStep title="Resultado RFE" icon={RiFileUploadLine} isActive={true} isPast={false} badge="Ação Administrativa">
               <RFEFinalShipPanel proc={proc} onApprove={handleApproveStep} onRefresh={fetchProcessData} isActive={true} />
             </CollapsibleStep>
           )}
-          {currentStep?.id === "cos_motion_final_ship" && (
-            <CollapsibleStep title="Envio Motion" icon={RiFileUploadLine} isActive={true} isPast={false} badge="Ação Administrativa">
-              <MotionFinalShipPanel proc={proc} onApprove={handleApproveStep} onRefresh={fetchProcessData} isActive={true} />
-            </CollapsibleStep>
-          )}
-
           {/* Default Analysis for everything else */}
-          {currentStep?.type === "admin_action" && !["cos_rfe_proposal", "cos_motion_proposal", "cos_rfe_final_ship", "cos_motion_final_ship", "b1b2_admin_credentials", "b1b2_admin_final_analysis", "b1b2_casv_scheduling", "b1b2_admin_account_creation", "b1b2_admin_mrv_setup", "b1b2_final_scheduling"].includes(currentStep.id) && (
+          {currentStep?.type === "admin_action" && !["cos_rfe_proposal", "cos_motion_proposal", "cos_rfe_end", "b1b2_admin_credentials", "b1b2_admin_final_analysis", "b1b2_casv_scheduling", "b1b2_admin_account_creation", "b1b2_admin_mrv_setup", "b1b2_final_scheduling"].includes(currentStepBaseId || "") && (
             <div className="flex items-center gap-4 pt-4">
               <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black text-xs uppercase transition-all flex items-center justify-center gap-2">
                 <RiCloseLine className="text-xl" /> {t.analysisPanel.actions.requestMoreInfo}
@@ -2224,11 +2136,11 @@ export default function AdminProcessDetailPage() {
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-black text-slate-800 text-lg uppercase">{t.cases.table.flowActions}</h3>
               <div className="px-3 py-1 bg-primary/5 rounded-lg text-primary text-[10px] font-black uppercase tracking-widest">
-                Etapa {currentStepIdx + 1} de {service?.steps.length}
+                Etapa {currentStepIdx + 1} de {effectiveSteps.length}
               </div>
             </div>
             <div className="space-y-4">
-              {service?.steps.map((step, i) => (
+              {effectiveSteps.map((step, i) => (
                 <div key={step.id} className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${i < currentStepIdx ? 'bg-emerald-500 text-white' : i === currentStepIdx ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400'}`}>
                     {i < currentStepIdx ? <RiCheckLine /> : i + 1}
@@ -2250,29 +2162,6 @@ export default function AdminProcessDetailPage() {
             clientName={proc.user_accounts?.full_name || proc.user_accounts?.email || "Cliente"}
           />
 
-          {(() => {
-            const stepData = (proc.step_data || {}) as Record<string, unknown>;
-            const purchases = (stepData.purchases || []) as any[];
-            const hasPaidProposal = purchases.some(p => 
-              p.slug === "proposta-rfe-motion" || 
-              p.slug === "apoio-rfe-motion-inicio" || 
-              p.slug === "analise-rfe-cos" || 
-              p.slug === "apoio-rfe-cos" || 
-              p.slug === "analise-especialista-cos" ||
-              p.slug === "analise-especialista-rfe"
-            );
-
-            if (!hasPaidProposal) return null;
-
-            return (
-              <SupportChat 
-                processId={proc.id} 
-                userId={user?.id || ""} 
-                role="admin" 
-                userName={proc.user_accounts?.full_name} 
-              />
-            );
-          })()}
         </div>
       </div>
 
