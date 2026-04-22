@@ -9,15 +9,16 @@ import {
 import { DashboardView } from "../../../views/dashboard/DashboardView";
 
 function buildLabels(t: Record<string, any>): DashboardLabels {
+  const d = t.dashboard || t;
   return {
-    title: t.title,
-    welcome: t.welcome,
-    sections: t.sections,
-    products: t.products,
-    badges: t.badges,
-    status: t.status,
-    serviceCard: t.serviceCard,
-    progress: t.progress,
+    title: d.title,
+    welcome: d.welcome,
+    sections: d.sections,
+    products: d.products,
+    badges: d.badges,
+    status: d.status,
+    serviceCard: d.serviceCard,
+    progress: d.progress,
   };
 }
 
