@@ -238,6 +238,7 @@ const onboarding = {
       btns: {
         saveDraft: "Salvar Rascunho",
         generate: "Gerar Cover Letter",
+        send: "Enviar",
         advance: "Avançar Etapa",
       },
       toasts: {
@@ -437,6 +438,7 @@ const onboarding = {
         title: "Download Completo",
         desc: "Geramos um único PDF com todos os seus dados e formulários organizados na ordem correta exigida pelo USCIS.",
         btnGenerate: "Gerar Pacote Final",
+        btnWaiting: "Aguarde o download...",
         btnDownload: "Baixar Pacote Final",
         docs: {
           g1145: "G-1145 (e-Notification)",
@@ -552,6 +554,17 @@ const onboarding = {
         id: "ID:",
       },
       motion: {
+        acquisition: {
+          title: "Motion — Adquirir",
+          desc: "Contrate o serviço de Motion para reverter a negativa.",
+          howItWorks: "O que inclui",
+          features: [
+            "Revisão completa da negativa recebida.",
+            "Acesso ao fluxo guiado com suporte da equipe.",
+          ],
+          btn: "Contratar Motion",
+          secondaryBtn: "Falar com Especialista",
+        },
         explanation: {
           title: "O Caso foi Negado (Denial)",
           desc: "A negativa do USCIS não é necessariamente o fim. Podemos entrar com um **Motion to Reopen/Reconsider** para contestar a decisão com novos argumentos técnicos.",
@@ -570,22 +583,31 @@ const onboarding = {
           uploadTitle: "Carta de Negativa (USCIS)",
           uploadSubtitle: "Documento recebido pelo correio ou online",
           uploadStatus: "Negativa",
+          supportingUploadLabel: "Documentos de apoio (opcional)",
+          supportingUploadTitle: "Documentos de apoio",
+          supportingUploadSubtitle: "Evidências extras que reforcem seu caso",
+          supportingUploadStatus: "Opcional",
           btn: "Enviar para Análise",
         },
         proposal: {
           title: "Proposta para Motion",
           strategyLabel: "Estratégia para Reverter Negativa",
           defaultStrategy: "O administrador ainda não enviou a estratégia detalhada do Motion.",
-          btn: "Aceitar Proposta e Pagar",
+          btn: "Pagar e Aceitar",
+          waitingProposal: "Aguardando proposta do time.",
+          alreadyPaid: "Pagamento já confirmado.",
         },
         end: {
           packageTitle: "Seu Pacote do Motion está pronto!",
           packageDesc: "Baixe o documento final preparado pela nossa equipe.",
           downloadBtn: "Baixar Pacote de Motion",
           resultTitle: "Resultado do Motion",
-          resultDesc: "O USCIS já deu o veredito final sobre o seu Motion? Reporte abaixo para encerrarmos seu processo.",
           approved: "Aprovado",
+          approvedDesc: "Seu Motion foi aprovado.",
           denied: "Negado",
+          deniedDesc: "Seu Motion foi negado.",
+          inReview: "Em análise",
+          inReviewDesc: "Nossa equipe está analisando seu caso.",
         }
       },
       rfe: {

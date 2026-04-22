@@ -128,7 +128,7 @@ const dashboard = {
     dashboard: "Dashboard",
     cases: "My Processes",
     chat: "AI Chat",
-    support: "Support",
+    support: "Specialist",
     myAccount: "My Account",
     logout: "Log out",
     onboarding: "Onboarding",
@@ -137,15 +137,18 @@ const dashboard = {
     status: "Status",
   },
   chat: {
-    title: "AI Chat",
-    subtitle: "AI helps organize data and documents. It does not offer legal advice.",
+    title: "Specialist Chat",
+    subtitle: "Talk to a specialist about your process and next steps.",
+    emptyTitle: "No chats available",
+    emptySubtitle: "When support is activated, the conversation will appear here.",
+    emptyHint: "No active or closed chats right now.",
     initialMessage:
-      "Hello! I'm Aplikei's AI. I can help you organize your data and documents for the process. What would you like to know?\n\n**Remember:** I do not offer legal advice, do not analyze eligibility, and do not guarantee approval.",
+      "Hello! You're chatting with an Aplikei specialist. How can I help with your process?",
     placeholder: "Type your question...",
     previewResponse:
-      "Thanks for your question! The AI system will be connected in the final version. For now, this is a chat preview.",
-    aiProblem: "Sorry, I had a problem.",
-    aiError: "Error talking to AI.",
+      "Your specialist chat is ready to use.",
+    aiProblem: "Sorry, we had a problem.",
+    aiError: "Error talking to the specialist.",
   },
   uploads: {
     title: "Documents",

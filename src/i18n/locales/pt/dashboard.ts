@@ -129,7 +129,7 @@ const dashboard = {
     dashboard: "Painel",
     cases: "Meus Processos",
     chat: "Chat IA",
-    support: "Suporte",
+    support: "Especialista",
     myAccount: "Minha Conta",
     logout: "Sair",
     onboarding: "Onboarding",
@@ -138,16 +138,19 @@ const dashboard = {
     status: "Status",
   },
   chat: {
-    title: "Chat IA",
+    title: "Chat com Especialista",
     subtitle:
-      "A IA ajuda a organizar dados e documentos. Não oferece aconselhamento jurídico.",
+      "Converse com um especialista sobre seu processo e próximos passos.",
+    emptyTitle: "Nenhum chat disponível",
+    emptySubtitle: "Quando o atendimento for ativado, a conversa aparecerá aqui.",
+    emptyHint: "Sem chats ativos ou encerrados no momento.",
     initialMessage:
-      "Olá! Sou a IA da Aplikei. Posso te ajudar a organizar seus dados e documentos para o processo. O que gostaria de saber?\n\n**Lembre-se:** Eu não ofereço aconselhamento jurídico, não analiso elegibilidade e não garanto aprovação.",
+      "Olá! Você está falando com o especialista Aplikei. Como posso ajudar com seu processo?",
     placeholder: "Digite sua pergunta...",
     previewResponse:
-      "Obrigado pela sua pergunta! Para uma resposta completa, o sistema de IA será conectado na versão final. Por enquanto, este é um preview do chat.",
-    aiProblem: "Desculpe, tive um problema.",
-    aiError: "Erro ao falar com a IA.",
+      "Seu chat com o especialista já está pronto para uso.",
+    aiProblem: "Desculpe, tivemos um problema.",
+    aiError: "Erro ao falar com o especialista.",
   },
   uploads: {
     title: "Documentos",

@@ -238,6 +238,7 @@ const onboarding = {
       btns: {
         saveDraft: "Guardar Borrador",
         generate: "Generar Cover Letter",
+        send: "Enviar",
         advance: "Avanzar Etapa",
       },
       toasts: {
@@ -437,6 +438,7 @@ const onboarding = {
         title: "Descarga Completa",
         desc: "Generamos un único PDF con todos sus datos y formularios organizados en el orden correcto exigido por el USCIS.",
         btnGenerate: "Generar Paquete Final",
+        btnWaiting: "Espere la descarga...",
         btnDownload: "Descargar Paquete Final",
         docs: {
           g1145: "G-1145 (Notificación electrónica)",
@@ -509,6 +511,17 @@ const onboarding = {
         id: "ID:",
       },
       motion: {
+        acquisition: {
+          title: "Motion — Adquirir",
+          desc: "Contrate el servicio de Motion para revertir la denegación.",
+          howItWorks: "Qué incluye",
+          features: [
+            "Revisión completa de la denegación recibida.",
+            "Acceso al flujo guiado con soporte del equipo.",
+          ],
+          btn: "Contratar Motion",
+          secondaryBtn: "Hablar con un especialista",
+        },
         explanation: {
           title: "El Caso fue Denegado (Denial)",
           desc: "La denegación de USCIS no es necesariamente el final. Podemos presentar una **Motion to Reopen/Reconsider** para impugnar la decisión con nuevos argumentos técnicos.",
@@ -527,22 +540,31 @@ const onboarding = {
           uploadTitle: "Carta de Denegación (USCIS)",
           uploadSubtitle: "Documento recibido por correo o en línea",
           uploadStatus: "Denegación",
+          supportingUploadLabel: "Documentos de apoyo (opcional)",
+          supportingUploadTitle: "Documentos de apoyo",
+          supportingUploadSubtitle: "Evidencia extra que fortalece su caso",
+          supportingUploadStatus: "Opcional",
           btn: "Enviar para Análisis",
         },
         proposal: {
           title: "Propuesta para Motion",
           strategyLabel: "Estrategia para Revertir Denegación",
           defaultStrategy: "El administrador aún no ha enviado la estrategia detallada de la Motion.",
-          btn: "Aceptar Propuesta y Pagar",
+          btn: "Pagar y Aceptar",
+          waitingProposal: "Esperando la propuesta del equipo.",
+          alreadyPaid: "Pago ya confirmado.",
         },
         end: {
           packageTitle: "¡Su Paquete de Motion está listo!",
           packageDesc: "Descargue el documento final preparado por nuestro equipo.",
           downloadBtn: "Descargar Paquete de Motion",
           resultTitle: "Resultado de la Motion",
-          resultDesc: "¿USCIS ya ha dado el veredicto final sobre su Motion? Reporte a continuación para cerrar su proceso.",
           approved: "Aprobado",
+          approvedDesc: "Su Motion fue aprobada.",
           denied: "Denegado",
+          deniedDesc: "Su Motion fue denegada.",
+          inReview: "En análisis",
+          inReviewDesc: "Nuestro equipo está revisando su caso.",
         }
       },
       rfe: {

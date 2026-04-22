@@ -471,7 +471,7 @@ const admin = {
   },
   chats: {
     title: "Centro de Mensajes",
-    subtitle: "Soporte directo y seguimiento de casos",
+    subtitle: "Clientes que compraron análisis",
     searchPlaceholder: "Buscar conversación...",
     emptyState: "Sin conversaciones",
     selectChat: "Selecciona una conversación",

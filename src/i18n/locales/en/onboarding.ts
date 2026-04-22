@@ -238,6 +238,7 @@ const onboarding = {
       btns: {
         saveDraft: "Save Draft",
         generate: "Generate Cover Letter",
+        send: "Send",
         advance: "Advance",
       },
       toasts: {
@@ -437,6 +438,7 @@ const onboarding = {
         title: "Full Download",
         desc: "We generated a single PDF with all your data and forms organized in the correct order required by USCIS.",
         btnGenerate: "Generate Final Package",
+        btnWaiting: "Preparing your download...",
         btnDownload: "Download Final Package",
         docs: {
           g1145: "G-1145 (e-Notification)",
@@ -509,6 +511,17 @@ const onboarding = {
         id: "ID:",
       },
       motion: {
+        acquisition: {
+          title: "Motion — Acquire",
+          desc: "Hire the Motion service to reverse the denial.",
+          howItWorks: "What is included",
+          features: [
+            "Full review of the denial received.",
+            "Access to the guided flow with team support.",
+          ],
+          btn: "Hire Motion",
+          secondaryBtn: "Talk to a Specialist",
+        },
         explanation: {
           title: "The Case was Denied (Denial)",
           desc: "A USCIS denial is not necessarily the end. We can file a **Motion to Reopen/Reconsider** to contest the decision with new technical arguments.",
@@ -527,22 +540,31 @@ const onboarding = {
           uploadTitle: "Denial Letter (USCIS)",
           uploadSubtitle: "Document received by mail or online",
           uploadStatus: "Denial",
+          supportingUploadLabel: "Supporting documents (optional)",
+          supportingUploadTitle: "Supporting documents",
+          supportingUploadSubtitle: "Extra evidence that strengthens your case",
+          supportingUploadStatus: "Optional",
           btn: "Send for Analysis",
         },
         proposal: {
           title: "Motion Proposal",
           strategyLabel: "Strategy to Reverse Denial",
           defaultStrategy: "The administrator has not yet sent the detailed Motion strategy.",
-          btn: "Accept Proposal and Pay",
+          btn: "Pay and Accept",
+          waitingProposal: "Waiting for the team's proposal.",
+          alreadyPaid: "Payment already confirmed.",
         },
         end: {
           packageTitle: "Your Motion Package is ready!",
           packageDesc: "Download the final document prepared by our team.",
           downloadBtn: "Download Motion Package",
           resultTitle: "Motion Result",
-          resultDesc: "Has USCIS already given the final verdict on your Motion? Report below to close your process.",
           approved: "Approved",
+          approvedDesc: "Your Motion was approved.",
           denied: "Denied",
+          deniedDesc: "Your Motion was denied.",
+          inReview: "In review",
+          inReviewDesc: "Our team is reviewing your case.",
         }
       },
       rfe: {
