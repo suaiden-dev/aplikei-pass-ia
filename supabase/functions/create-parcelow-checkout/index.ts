@@ -69,6 +69,8 @@ Deno.serve(async (req: Request) => {
             'recovery-eos': { name: 'Recuperação de Caso - Motion (EOS)', price: 897 },
             'recovery-cos': { name: 'Recuperação de Caso - Motion (Troca de Status)', price: 897 },
             'motion-support': { name: 'Motion de Reconsideração', price: 897 },
+            'apoio-rfe-motion-inicio': { name: 'Análise Inicial de Motion', price: 50 },
+            'proposta-rfe-motion': { name: 'Proposta de Motion (Customizada)', price: 0 },
         };
 
         let mainPriceInfo = dbPrices?.find(p => p.service_id === slug);

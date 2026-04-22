@@ -80,7 +80,7 @@ serve(async (req) => {
       console.log(`[Webhook Success] Evento validado: ${event.type} (ID: ${event.id})`);
       console.log(`[Webhook Success] Metadata recebida:`, JSON.stringify(event.data.object.metadata));
 
-      if (event.type === "checkout.session.completed") {
+      if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
         const session = event.data.object;
         await handlePaymentSuccess({
           user_id: session.metadata.user_id || session.metadata.userId,
@@ -181,37 +181,59 @@ async function handlePaymentSuccess(data) {
     }
   }
 
-  // 1. Tentar atualizar o pedido original pelo ID
+  // 1. Tentar atualizar o pedido original pelo ID ou Fallback
+  let orderUpdated = false;
+
   if (order_id) {
-    const { data: order } = await supabase.from("orders").select("*").eq("id", order_id).maybeSingle();
+    const { data: order } = await supabase.from("orders").select("id, payment_status").eq("id", order_id).maybeSingle();
 
     if (order) {
       if (order.payment_status === "paid" || order.payment_status === "complete") {
         console.log(`[Webhook] ⚠️ Pedido ${order_id} já estava marcado como pago.`);
-        return;
-      }
-
-      const { error: updateError } = await supabase.from("orders").update({ 
-        payment_status: "paid", 
-        stripe_session_id: payment_id,
-        updated_at: new Date().toISOString() 
-      }).eq("id", order_id);
-      
-      if (updateError) {
-        console.error(`[Webhook] ❌ Falha ao atualizar pedido original: ${updateError.message}`);
+        orderUpdated = true;
       } else {
-        console.log(`[Webhook] ✅ Pedido original ${order_id} atualizado para 'paid'.`);
+        const { error: updateError } = await supabase.from("orders").update({ 
+          payment_status: "paid", 
+          stripe_session_id: payment_id,
+          updated_at: new Date().toISOString() 
+        }).eq("id", order_id);
+        
+        if (updateError) {
+          console.error(`[Webhook] ❌ Falha ao atualizar pedido original: ${updateError.message}`);
+        } else {
+          console.log(`[Webhook] ✅ Pedido original ${order_id} atualizado para 'paid'.`);
+          orderUpdated = true;
+        }
       }
     } else {
       console.warn(`[Webhook] ⚠️ Pedido original ${order_id} não encontrado.`);
     }
   }  
-  // Fallback: Se não veio order_id ou se falhou, tenta pelo match
-  if (!order_id) {
+
+  // Fallback: Se não veio order_id ou se não conseguimos atualizar pelo ID, tenta pelo match (user + slug + pending)
+  if (!orderUpdated) {
     console.log(`[Webhook] Fallback: Buscando pedido pendente por match: ${user_id} + ${service_slug}`);
-    await supabase.from("orders")
-      .update({ payment_status: "paid", stripe_session_id: payment_id })
-      .match({ user_id: user_id, product_slug: service_slug, payment_status: "pending" });
+    const { data: matchedOrder } = await supabase.from("orders")
+      .select("id")
+      .match({ user_id: user_id, product_slug: service_slug, payment_status: "pending" })
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (matchedOrder) {
+      const { error: fallbackError } = await supabase.from("orders")
+        .update({ payment_status: "paid", stripe_session_id: payment_id, updated_at: new Date().toISOString() })
+        .eq("id", matchedOrder.id);
+      
+      if (!fallbackError) {
+        console.log(`[Webhook] ✅ Pedido fallback ${matchedOrder.id} atualizado para 'paid'.`);
+        orderUpdated = true;
+      } else {
+        console.error(`[Webhook] ❌ Falha ao atualizar pedido fallback: ${fallbackError.message}`);
+      }
+    } else {
+      console.warn(`[Webhook] ❌ Nenhum pedido pendente encontrado para fallback.`);
+    }
   }
 
   if (applied_coupon_id) {

@@ -2,12 +2,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.47.10";
 import Stripe from "npm:stripe@14.14.0";
 import { applySuccessfulPayment } from "../_shared/payment-slot-logic.ts";
 
-const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") || "";
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
-const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,8 +30,34 @@ Deno.serve(async (req) => {
 
     console.log(`[VerifySession] Verificando sessão: ${session_id}`);
 
-    // 1. Busca a sessão diretamente no Stripe (SEGURANÇA TOTAL)
-    const session = await stripe.checkout.sessions.retrieve(session_id);
+    // 1. Busca a sessão diretamente no Stripe tentando todas as chaves (test/prod/default)
+    const stripeKeys = [
+      Deno.env.get("STRIPE_SECRET_KEY"),
+      Deno.env.get("STRIPE_SECRET_KEY_TEST"),
+      Deno.env.get("STRIPE_SECRET_KEY_PROD"),
+    ].filter(Boolean) as string[];
+
+    if (stripeKeys.length === 0) {
+      throw new Error("Stripe secret keys are not configured.");
+    }
+
+    let session: Stripe.Checkout.Session | null = null;
+    let lastError: Error | null = null;
+
+    for (const key of stripeKeys) {
+      try {
+        const stripe = new Stripe(key, { apiVersion: "2023-10-16" });
+        session = await stripe.checkout.sessions.retrieve(session_id);
+        lastError = null;
+        break;
+      } catch (err) {
+        lastError = err as Error;
+      }
+    }
+
+    if (!session) {
+      throw new Error(lastError?.message || "Unable to retrieve Stripe session.");
+    }
 
     if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") {
         return new Response(JSON.stringify({ 

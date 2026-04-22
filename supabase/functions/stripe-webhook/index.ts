@@ -177,7 +177,20 @@ Deno.serve(async (req: Request) => {
 
             // Handle user_services
             if (userId) {
-                if (metadata.serviceId) {
+                if (slug === 'proposta-rfe-motion') {
+                    await applySuccessfulPayment({
+                        supabase: supabaseAdmin,
+                        user_id: userId,
+                        service_slug: slug,
+                        payment_method: metadata.paymentMethod === 'pix' ? 'stripe_pix' : 'stripe_card',
+                        paid_amount: totalUSD,
+                        dependents: parseInt(metadata.dependents || '0', 10),
+                        proc_id: metadata.processId || metadata.proc_id,
+                        payment_id: session.id,
+                        order_id: order?.id || null,
+                        parent_service_slug: metadata.parent_service_slug || null,
+                    });
+                } else if (metadata.serviceId) {
                     // Specialist/action-based flows: update process_services or user_services status directly
                     let { data: psRecord } = await supabaseAdmin
                         .from('process_services')

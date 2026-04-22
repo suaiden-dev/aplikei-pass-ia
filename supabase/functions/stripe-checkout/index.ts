@@ -112,6 +112,8 @@ Deno.serve(async (req: Request) => {
             'recovery-eos': { name: 'Recuperação de Caso - Motion (EOS)', price: 897 },
             'recovery-cos': { name: 'Recuperação de Caso - Motion (Troca de Status)', price: 897 },
             'motion-support': { name: 'Motion de Reconsideração', price: 897 },
+            'apoio-rfe-motion-inicio': { name: 'Análise Inicial de Motion', price: 50 },
+            'proposta-rfe-motion': { name: 'Proposta de Motion (Customizada)', price: 0 },
             'mentoria-individual': { name: 'Mentoria Individual - 1 Simulado', price: 197 },
             'mentoria-bronze': { name: 'Mentoria Bronze - 2 Simulados', price: 397 },
             'mentoria-gold': { name: 'Mentoria Gold - 3 Simulados', price: 697 },
@@ -136,9 +138,11 @@ Deno.serve(async (req: Request) => {
         // Validação dinâmica de preço (Segurança)
         if (targetProcId) {
             const { data: procData } = await supabase.from("user_services").select("step_data").eq("id", targetProcId).single();
-            if (procData?.step_data?.motion_proposal_amount) {
-                basePriceUSD = Number(procData.step_data.motion_proposal_amount);
-            } else if (requestAmount && ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos'].includes(slug)) {
+            const motionAmount = procData?.step_data?.motion_amount ?? procData?.step_data?.motion_proposal_amount;
+            const parsedMotionAmount = Number(motionAmount);
+            if (Number.isFinite(parsedMotionAmount) && parsedMotionAmount > 0) {
+                basePriceUSD = parsedMotionAmount;
+            } else if (requestAmount && ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos', 'apoio-rfe-motion-inicio', 'proposta-rfe-motion'].includes(slug)) {
                 basePriceUSD = Number(requestAmount);
             }
         } else if (requestAmount) {

@@ -23,6 +23,7 @@ export function isAuxiliaryServiceSlug(serviceSlug: string): boolean {
     serviceSlug.startsWith("mentoria-") ||
     serviceSlug.startsWith("consultoria-") ||
     serviceSlug.includes("rfe-motion") ||
+    serviceSlug === "analise-motion" ||
     serviceSlug.includes("-support");
 }
 
@@ -341,12 +342,47 @@ export async function applySuccessfulPayment(data: {
 
   purchases.push(purchaseRecord);
 
+  // --- AUTO-ADVANCE LOGIC FOR COS/EOS (RFE & Motion) ---
+  let nextStep = currentProc.current_step;
+  const isCOSorEOS = mainServiceSlug === "troca-status" || mainServiceSlug === "extensao-status";
+  const extraMetadata: Record<string, any> = {};
+
+    if (isCOSorEOS) {
+      if (service_slug === "analise-motion") {
+        const history = Array.isArray(stepData.history) ? [...stepData.history] : [];
+        const activeCycleIndex = typeof stepData.active_cycle_index === "number"
+          ? stepData.active_cycle_index
+        : history.length - 1;
+      if (history[activeCycleIndex]) {
+        history[activeCycleIndex] = { ...history[activeCycleIndex], status: "waitingProposal" };
+      }
+      extraMetadata.history = history;
+        extraMetadata.workflow_status = "waitingProposal";
+        extraMetadata.recover = "waitingProposal";
+        extraMetadata.motion_analysis_paid = true;
+        nextStep = (currentProc.current_step ?? 0) + 1;
+      } else if (service_slug === "apoio-rfe-motion-inicio") {
+        extraMetadata.motion_initial_paid = true;
+        extraMetadata.rfe_initial_paid = true;
+        if (nextStep === 13) nextStep = 14;
+        else if (nextStep === 19) nextStep = 20;
+      } else if (service_slug === "proposta-rfe-motion") {
+        extraMetadata.motion_proposal_paid = true;
+        extraMetadata.rfe_proposal_paid = true;
+        extraMetadata.workflow_status = "in_progress";
+        extraMetadata.motion_payment_completed_at = now;
+        extraMetadata.motion_amount_paid = paid_amount ?? null;
+        nextStep = (currentProc.current_step ?? 0) + 1;
+      }
+    }
+
   await supabase
     .from("user_services")
     .update({
-      current_step: currentProc.current_step,
+      current_step: nextStep,
       step_data: {
         ...stepData,
+        ...extraMetadata,
         paid_dependents: newCount,
         purchases,
       },
