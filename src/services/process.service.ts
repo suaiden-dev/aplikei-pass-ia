@@ -1,52 +1,88 @@
-import { supabase } from "../lib/supabase";
+import { processRepository } from "../repositories";
 import { notificationService } from "./notification.service";
+import { getServiceBySlug } from "../data/services";
+import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "../data/workflowTemplates";
+import type { UserService } from "../models";
 
-export interface UserService {
-  id: string;
-  user_id: string;
-  service_slug: string;
-  status: string;
-  current_step: number | null;
-  step_data: Record<string, unknown>;
-  created_at: string;
-  updated_at: string;
+export type { UserService };
+
+export function getAnalysisChatTitle(serviceSlug?: string): string {
+  if (!serviceSlug) return "Especialista";
+
+  const meta = getServiceBySlug(serviceSlug);
+  const slug = serviceSlug.toLowerCase();
+  const title = (meta?.title || "").toLowerCase();
+
+  if (slug.includes("motion") || title.includes("motion")) return "Especialista Motion";
+  if (slug.includes("rfe") || title.includes("rfe")) return "Especialista RFE";
+  if (slug === "troca-status" || title.includes("(cos)")) return "Especialista COS";
+  if (slug === "extensao-status" || title.includes("(eos)")) return "Especialista EOS";
+  if (slug.includes("cos") || title.includes("cos")) return "Especialista COS";
+  if (title.includes("especialista")) return meta?.title || "Especialista";
+
+  return meta?.title || "Especialista";
+}
+
+export function isAnalysisServiceSlug(serviceSlug?: string): boolean {
+  if (!serviceSlug) return false;
+  const meta = getServiceBySlug(serviceSlug);
+  const title = (meta?.title || "").toLowerCase();
+  const processType = (meta?.processType || "").toLowerCase();
+
+  return (
+    serviceSlug.toLowerCase().startsWith("analise-") ||
+    title.includes("análise") ||
+    title.includes("revisão") ||
+    processType.includes("análise")
+  );
+}
+
+function getProcessLink(serviceSlug: string): string {
+  return `/dashboard/processes/${serviceSlug}`;
+}
+
+function getStepTitles(serviceSlug: string, currentStep: number | null, nextStep?: number) {
+  const serviceMeta = getServiceBySlug(serviceSlug);
+
+  return {
+    serviceName: serviceMeta?.title ?? serviceSlug,
+    currentTitle: currentStep != null ? serviceMeta?.steps[currentStep]?.title ?? "" : "",
+    nextTitle: nextStep != null ? serviceMeta?.steps[nextStep]?.title ?? "" : "",
+  };
 }
 
 export const processService = {
   async getUserServices(userId: string): Promise<UserService[]> {
-    const { data, error } = await supabase
-      .from("user_services")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
-
-    if (error) throw new Error(error.message);
-    return (data as UserService[]) ?? [];
+    return processRepository.findByUser(userId);
   },
 
   async hasActiveService(userId: string, slug: string): Promise<boolean> {
-    const { data } = await supabase
-      .from("user_services")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("service_slug", slug)
-      .in("status", ["active", "awaiting_review"])
-      .maybeSingle();
+    const services = await processRepository.findActiveByUser(userId, [slug]);
+    return services.length > 0;
+  },
 
-    return !!data;
+  async hasChatMessages(processId: string): Promise<boolean> {
+    return processRepository.hasChatMessages(processId);
+  },
+
+  async ensureChatThread(processId: string, senderId: string, content: string): Promise<boolean> {
+    const alreadyExists = await this.hasChatMessages(processId);
+    if (alreadyExists) return false;
+
+    return processRepository.createChatMessage({
+      process_id: processId,
+      sender_id: senderId,
+      sender_role: "customer",
+      content,
+    });
   },
 
   async hasAnyActiveProcess(userId: string): Promise<{ hasActive: boolean; activeSlug?: string }> {
-    const { data } = await supabase
-      .from("user_services")
-      .select("service_slug, step_data, current_step, status")
-      .eq("user_id", userId)
-      .in("status", ["active", "awaiting_review"]);
+    const services = await processRepository.findActiveByUser(userId);
 
-    if (!data || data.length === 0) return { hasActive: false };
+    if (services.length === 0) return { hasActive: false };
 
-    const trulyActive = data.filter(proc => {
-      // Ignora produtos auxiliares que não têm fluxo de progresso próprio
+    const trulyActive = services.filter(proc => {
       if (
         proc.service_slug?.toLowerCase().startsWith("analise-") ||
         proc.service_slug?.toLowerCase().startsWith("mentoria-") ||
@@ -64,7 +100,7 @@ export const processService = {
 
       const isApproved = uscisResult === 'approved' || rfeResult === 'approved' || motionResult === 'approved' || interviewResult === 'approved' || proc.status === 'completed';
       const isDenied = proc.status === 'rejected' || proc.status === 'denied' || motionResult === 'denied' || interviewResult === 'rejected' ||
-                       (rfeResult === 'denied' && currentStep >= 18 && !uscisResult) || 
+                       (rfeResult === 'denied' && currentStep >= 18 && !uscisResult) ||
                        (uscisResult === 'denied' && currentStep >= 12 && !rfeResult && !motionResult);
 
       return !isApproved && !isDenied;
@@ -74,123 +110,83 @@ export const processService = {
   },
 
   async getUserServiceBySlug(userId: string, slug: string): Promise<UserService | null> {
-    const { data } = await supabase
-      .from("user_services")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("service_slug", slug)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    return (data as UserService) ?? null;
+    return processRepository.findByUserAndSlug(userId, slug);
   },
 
   async getServiceById(id: string): Promise<UserService | null> {
-    const { data, error } = await supabase
-      .from("user_services")
-      .select(`
-        *,
-        user_accounts:user_id (full_name)
-      `)
-      .eq("id", id)
-      .maybeSingle();
-
-    if (error) throw new Error(error.message);
-    return (data as UserService) ?? null;
+    return processRepository.findByIdWithUser(id);
   },
 
   async requestStepReview(serviceId: string): Promise<void> {
     if (!serviceId) throw new Error("ID do serviço é obrigatório.");
-    
-    // Fetch info before updating to get userId and slug
-    const { data: service } = await supabase
-      .from("user_services")
-      .select("user_id, service_slug")
-      .eq("id", serviceId)
-      .single();
 
-    const { error } = await supabase
-      .from("user_services")
-      .update({ 
-        status: "awaiting_review"
-      })
-      .eq("id", serviceId);
+    const service = await processRepository.findById(serviceId);
+    if (!service) throw new Error("Serviço não encontrado");
 
-    if (error) throw new Error(error.message);
+    await processRepository.updateStatus(serviceId, 'awaiting_review');
 
-    if (service) {
-      await notificationService.notifyAdmin({
-        title: "Ação Necessária: Avaliação de Etapa",
-        body: `O cliente concluiu uma etapa no processo e aguarda sua revisão.`,
-        serviceId: serviceId,
-        userId: service.user_id,
-        link: `/admin/processes/${serviceId}`,
-      });
+    const { serviceName, currentTitle } = getStepTitles(service.service_slug, service.current_step);
+    await notificationService.notifyAdmin({
+      title: "Acao necessaria: revisar etapa",
+      body: currentTitle
+        ? `O cliente concluiu a etapa "${currentTitle}" de ${serviceName} e aguarda sua revisao.`
+        : `O cliente concluiu uma etapa de ${serviceName} e aguarda sua revisao.`,
+      serviceId: serviceId,
+      userId: service.user_id,
+      link: `/admin/processes/${serviceId}`,
+    });
 
-      await notificationService.notifyClient({
-        userId: service.user_id,
-        template: "admin_message",
-        title: "Estamos Revisando! 📝",
-        body: "Sua etapa foi enviada com sucesso para nossa equipe de análise. Aguarde a validação.",
-        serviceId: serviceId,
-        link: `/dashboard/processes/${service.service_slug}`,
-      });
-    }
+    await notificationService.notifyClient({
+      userId: service.user_id,
+      template: "admin_message",
+      title: "Estamos Revisando! 📝",
+      body: "Sua etapa foi enviada com sucesso para nossa equipe de análise. Aguarde a validação.",
+      serviceId: serviceId,
+      link: getProcessLink(service.service_slug),
+    });
   },
 
-  async approveStep(serviceId: string, nextStep: number, isFinal: boolean = false, result?: 'approved' | 'denied', additionalData?: Record<string, unknown>): Promise<void> {
+  async approveStep(
+    serviceId: string,
+    nextStep: number,
+    isFinal: boolean = false,
+    result?: 'approved' | 'denied',
+    additionalData?: Record<string, unknown>
+  ): Promise<void> {
     if (!serviceId) throw new Error("ID do serviço é obrigatório.");
-    // 1. Fetch current step_data to clear feedback
-    const { data: current } = await supabase
-      .from("user_services")
-      .select("step_data")
-      .eq("id", serviceId)
-      .single();
 
-    const newStepData = { 
-      ...(current?.step_data as Record<string, unknown> || {}),
-      ...additionalData 
+    const service = await processRepository.findById(serviceId);
+    if (!service) throw new Error("Serviço não encontrado");
+
+    const newStepData: Record<string, unknown> = {
+      ...(service.step_data as Record<string, unknown> || {}),
+      ...additionalData,
     };
     delete newStepData['admin_feedback'];
     delete newStepData['rejected_at'];
-    
+
     if (isFinal && result) {
       newStepData.motion_final_result = result;
     }
-    
-    const { error } = await supabase
-      .from("user_services")
-      .update({ 
-        step_data: newStepData,
-        current_step: nextStep,
-        status: isFinal ? "completed" : "active"
-      })
-      .eq("id", serviceId);
 
-    if (error) throw new Error(error.message);
+    await processRepository.updateStepData(serviceId, newStepData);
+    await processRepository.updateStep(serviceId, nextStep, isFinal ? "completed" : "active");
 
-    // Notify Client of Approval
     try {
-      const { data: service } = await supabase
-        .from("user_services")
-        .select("user_id, service_slug")
-        .eq("id", serviceId)
-        .single();
-        
-      if (service) {
-        await notificationService.notifyClient({
-          userId: service.user_id,
-          template: "step_approved",
-          serviceId: serviceId,
-          templateData: {
-            step_name: "Etapa Anterior",
-            next_step_name: "",
-            service_name: service.service_slug,
-          },
-          link: `/dashboard/processes/${service.service_slug}`,
-        });
-      }
+      const { serviceName, currentTitle, nextTitle } = getStepTitles(service.service_slug, service.current_step, nextStep);
+      await notificationService.notifyClient({
+        userId: service.user_id,
+        template: isFinal ? "process_completed_approved" : "step_approved",
+        serviceId: serviceId,
+        templateData: isFinal
+          ? { service_name: serviceName }
+          : {
+              step_name: currentTitle,
+              next_step_name: nextTitle,
+              service_name: serviceName,
+            },
+        link: getProcessLink(service.service_slug),
+      });
     } catch (e) {
       console.warn("[processService] Notify client of approval failed:", e);
     }
@@ -198,54 +194,44 @@ export const processService = {
 
   async rejectStep(serviceId: string, isFinal: boolean = false, result?: 'approved' | 'denied'): Promise<void> {
     if (!serviceId) throw new Error("ID do serviço é obrigatório.");
-    
+
+    const service = await processRepository.findById(serviceId);
+    if (!service) throw new Error("Serviço não encontrado");
+
     const updateData: Record<string, unknown> = {
       status: isFinal ? "completed" : "active",
     };
 
     if (isFinal && result) {
-      // Fetch current step_data to merge the result
-      const { data: current } = await supabase
-        .from("user_services")
-        .select("step_data")
-        .eq("id", serviceId)
-        .single();
-      
       updateData.step_data = {
-        ...(current?.step_data as object || {}),
-        motion_final_result: result
+        ...(service.step_data as object || {}),
+        motion_final_result: result,
       };
     }
 
-    const { error } = await supabase
-      .from("user_services")
-      .update(updateData)
-      .eq("id", serviceId);
+    if (isFinal && result) {
+      await processRepository.updateStepData(serviceId, updateData.step_data as Record<string, unknown>);
+    }
+    const newStatus = isFinal ? "completed" : "active";
+    await processRepository.updateStatus(serviceId, newStatus);
 
-    if (error) throw new Error(error.message);
-
-    // Notify Client of Rejection/Adjustment
     try {
-      const { data: service } = await supabase
-        .from("user_services")
-        .select("user_id, service_slug, step_data")
-        .eq("id", serviceId)
-        .single();
-        
-      if (service) {
-        const feedback = (service.step_data as any)?.admin_feedback || "Verifique os ajustes necessários no seu painel.";
-        
-        await notificationService.notifyClient({
-          userId: service.user_id,
-          template: "step_rejected_feedback",
-          serviceId: serviceId,
-          templateData: {
-            step_name: "Etapa Atual",
-            feedback,
-          },
-          link: `/dashboard/processes/${service.service_slug}`,
-        });
-      }
+      const feedback = (service.step_data as Record<string, unknown> | undefined)?.admin_feedback as string | undefined
+        || "Verifique os ajustes necessários no seu painel.";
+      const { serviceName, currentTitle } = getStepTitles(service.service_slug, service.current_step);
+
+      await notificationService.notifyClient({
+        userId: service.user_id,
+        template: isFinal ? "process_completed_denied" : "step_rejected_feedback",
+        serviceId: serviceId,
+        templateData: isFinal
+          ? { service_name: serviceName }
+          : {
+              step_name: currentTitle,
+              feedback,
+            },
+        link: getProcessLink(service.service_slug),
+      });
     } catch (e) {
       console.warn("[processService] Notify client of rejection failed:", e);
     }
@@ -253,33 +239,42 @@ export const processService = {
 
   async updateStepData(serviceId: string, data: Record<string, unknown>): Promise<void> {
     if (!serviceId) throw new Error("ID do serviço é obrigatório.");
-    const { data: current, error: fetchError } = await supabase
-      .from("user_services")
-      .select("step_data")
-      .eq("id", serviceId)
-      .single();
+    const success = await processRepository.updateStepData(serviceId, data);
+    if (!success) throw new Error("Falha ao atualizar step_data");
+  },
 
-    if (fetchError) throw new Error(fetchError.message);
+  async startAdditionalWorkflow(processId: string, type: 'motion' | 'rfe'): Promise<void> {
+    const service = await processRepository.findById(processId);
+    if (!service) throw new Error("Serviço não encontrado");
 
-    const newData = { ...(current.step_data as object || {}), ...data };
+    const stepData = (service.step_data || {}) as Record<string, unknown>;
+    const history = Array.isArray(stepData.history) ? [...stepData.history] : [];
 
-    const { error: updateError } = await supabase
-      .from("user_services")
-      .update({ 
-        step_data: newData
-      })
-      .eq("id", serviceId);
+    const steps = type === 'motion' ? MOTION_STEPS_TEMPLATE : RFE_STEPS_TEMPLATE;
 
-    if (updateError) throw new Error(updateError.message);
+    const newCycle = {
+      type,
+      id: crypto.randomUUID(),
+      started_at: new Date().toISOString(),
+      current_step: 0,
+      status: type === 'motion' ? 'not_started' : 'rfeInit',
+      steps,
+    };
+
+    history.push(newCycle);
+
+    await processRepository.updateStepData(processId, {
+      ...stepData,
+      recover: type === 'motion' ? 'not_started' : 'rfeInit',
+      workflow_status: type === 'motion' ? 'not_started' : 'rfeInit',
+      history,
+      active_cycle_index: history.length - 1,
+    });
   },
 
   async updateProcessStatus(serviceId: string, status: string): Promise<void> {
     if (!serviceId) throw new Error("ID do serviço é obrigatório.");
-    const { error } = await supabase
-      .from("user_services")
-      .update({ status })
-      .eq("id", serviceId);
-
-    if (error) throw new Error(error.message);
-  }
+    const success = await processRepository.updateStatus(serviceId, status as any);
+    if (!success) throw new Error("Falha ao atualizar status");
+  },
 };

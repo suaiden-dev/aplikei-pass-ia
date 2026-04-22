@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { notificationRepository } from "../repositories";
 import { buildNotifContent, type NotifLang, type NotifTemplate } from "./notification-templates";
 
 export type EmailTemplate = NotifTemplate;
@@ -41,6 +42,53 @@ export interface AppNotification {
   created_at: string;
 }
 
+type NotificationInsertPayload = Record<string, unknown>;
+
+function isMissingColumnError(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false;
+  return error.code === "42703" || (error.message?.toLowerCase().includes("column") ?? false);
+}
+
+function applyAdminRoleFilter<T extends { eq: (column: string, value: string) => T }>(
+  query: T,
+  roleColumn: "target_role" | "target_type",
+): T {
+  return query.eq(roleColumn, "admin");
+}
+
+async function insertNotification(payload: NotificationInsertPayload): Promise<void> {
+  const { error } = await supabase.from("notifications").insert(payload);
+
+  if (!error) return;
+
+  if (isMissingColumnError(error)) {
+    const { link: _link, ...payloadWithoutLink } = payload;
+    const { error: retryError } = await supabase.from("notifications").insert(payloadWithoutLink);
+    if (retryError) throw new Error(retryError.message);
+    return;
+  }
+
+  throw new Error(error.message);
+}
+
+function normalizeNotification(row: Record<string, unknown>): AppNotification {
+  return {
+    id: String(row.id ?? ""),
+    type: String(row.type ?? "system"),
+    target_role: (row.target_role ?? row.target_type ?? "client") as "admin" | "client",
+    user_id: (row.user_id as string | null | undefined) ?? null,
+    service_id: (row.service_id as string | null | undefined) ?? null,
+    title: String(row.title ?? ""),
+    message: (row.message as string | null | undefined) ?? (row.body as string | null | undefined) ?? null,
+    link: (row.link as string | null | undefined) ?? null,
+    is_read: Boolean(row.is_read),
+    send_email: Boolean(row.send_email),
+    email_sent: Boolean(row.email_sent),
+    metadata: (row.metadata as Record<string, unknown> | undefined) ?? {},
+    created_at: String(row.created_at ?? new Date().toISOString()),
+  };
+}
+
 async function getUserLang(userId: string): Promise<NotifLang> {
   const { data } = await supabase
     .from("user_accounts")
@@ -63,7 +111,7 @@ export const notificationService = {
           }, lang)
         : { title: params.title ?? "", message: params.body ?? "" };
 
-      const { error } = await supabase.from("notifications").insert({
+      await insertNotification({
         type: "client_action",
         target_role: "client",
         user_id: params.userId || null,
@@ -75,10 +123,6 @@ export const notificationService = {
         email_sent: false,
         metadata: params.templateData ?? {},
       });
-
-      if (error) {
-        console.error("[notificationService] notifyClient error:", error.message);
-      }
     } catch (e) {
       console.error("[notificationService] notifyClient failed:", e);
     }
@@ -86,7 +130,7 @@ export const notificationService = {
 
   async notifyAdmin(params: NotifyAdminParams): Promise<void> {
     try {
-      const { error } = await supabase.from("notifications").insert({
+      await insertNotification({
         type: "admin_action",
         target_role: "admin",
         user_id: params.userId || null,
@@ -98,9 +142,6 @@ export const notificationService = {
         send_email: false,
         metadata: params.metadata || {},
       });
-      if (error) {
-        console.error("[notificationService] notifyAdmin DB Error:", error);
-      }
     } catch (e) {
       console.error("[notificationService] notifyAdmin failed:", e);
     }
@@ -109,18 +150,25 @@ export const notificationService = {
   async getUnreadCount(role: "admin" | "client", userId?: string): Promise<number> {
     if (role === "client" && !userId) return 0;
 
-    const query = supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("is_read", false);
-
-    if (role === "client") {
-      query.eq("user_id", userId!);
-    } else {
-      query.eq("target_role", "admin");
+    if (role === "client" && userId) {
+      return notificationRepository.getUnreadCount(userId);
     }
 
-    const { count, error } = await query;
+    const runQuery = async (roleColumn: "target_role" | "target_type" = "target_role") => {
+      const query = supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("is_read", false);
+
+      applyAdminRoleFilter(query, roleColumn);
+      return query;
+    };
+
+    let { count, error } = await runQuery();
+
+    if (error && isMissingColumnError(error)) {
+      ({ count, error } = await runQuery("target_type"));
+    }
 
     if (error) {
       console.error("[notif] getUnreadCount error:", error.message);
@@ -131,60 +179,74 @@ export const notificationService = {
 
   async getNotifications(role: "admin" | "client", userId?: string): Promise<AppNotification[]> {
     const limit = role === "admin" ? 50 : 30;
-    const query = supabase
-      .from("notifications")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(limit);
 
-    if (role === "client") {
-      if (!userId) return [];
-      query.eq("user_id", userId);
-    } else {
-      query.eq("target_role", "admin");
+    if (role === "client" && userId) {
+      const notifications = await notificationRepository.findByUser(userId, limit);
+      return notifications.map(n => ({
+        id: n.id,
+        type: "client_action",
+        target_role: "client" as const,
+        user_id: n.user_id,
+        service_id: null,
+        title: n.title,
+        message: n.message,
+        link: n.link,
+        is_read: n.is_read,
+        send_email: n.send_email,
+        email_sent: n.email_sent,
+        metadata: {},
+        created_at: n.created_at,
+      }));
     }
 
-    const { data, error } = await query;
+    const runQuery = async (roleColumn: "target_role" | "target_type" = "target_role") => {
+      const query = supabase
+        .from("notifications")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+      applyAdminRoleFilter(query, roleColumn);
+      return query;
+    };
+
+    let { data, error } = await runQuery();
+
+    if (error && isMissingColumnError(error)) {
+      ({ data, error } = await runQuery("target_type"));
+    }
 
     if (error) {
       console.error("[notif] getNotifications error:", error.message);
     }
 
-    return (data as AppNotification[]) ?? [];
+    return ((data as Record<string, unknown>[] | null) ?? []).map(normalizeNotification);
   },
 
   async markAsRead(notificationId: string): Promise<void> {
-    const { error } = await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .eq("id", notificationId);
-
-    if (error) {
-      console.error("[notif] markAsRead error:", error.message);
-    }
+    await notificationRepository.markAsRead(notificationId);
   },
 
   async markAllAdminAsRead(): Promise<void> {
-    const { error } = await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .eq("target_role", "admin")
-      .eq("is_read", false);
+    const runUpdate = async (roleColumn: "target_role" | "target_type" = "target_role") =>
+      supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq(roleColumn, "admin")
+        .eq("is_read", false);
+
+    let { error } = await runUpdate();
+
+    if (error && isMissingColumnError(error)) {
+      ({ error } = await runUpdate("target_type"));
+    }
 
     if (error) {
       console.error("[notif] markAllAdminAsRead error:", error.message);
     }
   },
-  
-  async markAllClientAsRead(userId: string): Promise<void> {
-    const { error } = await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .eq("user_id", userId)
-      .eq("is_read", false);
 
-    if (error) {
-      console.error("[notif] markAllClientAsRead error:", error.message);
-    }
+  async markAllClientAsRead(userId: string): Promise<void> {
+    await notificationRepository.markAllAsRead(userId);
   },
 };

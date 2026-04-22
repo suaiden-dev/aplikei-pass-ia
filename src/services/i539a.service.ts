@@ -1,5 +1,6 @@
-import { PDFDocument } from "pdf-lib";
-import i539aPdfUrl from "../forms/i539a_template.pdf?url";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import i539aPdfUrl from "../forms/i539a_flat_template.pdf?url";
+import { I539A_LAYOUT } from "./i539a-layout";
 
 export type I539AData = {
   familyName?: string;
@@ -58,19 +59,53 @@ async function fetchI539APDF(): Promise<Uint8Array> {
 export async function fillI539AForm(data: I539AData): Promise<Uint8Array> {
   const bytes = await fetchI539APDF();
   const pdfDoc = await PDFDocument.load(bytes, { ignoreEncryption: true });
-  const form = pdfDoc.getForm();
+  const pages = pdfDoc.getPages();
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
   const tx = (name: string, value: string | undefined) => {
     if (!value) return;
-    try { form.getTextField(name).setText(value); } catch { /* skip */ }
+
+    const field = I539A_LAYOUT[name];
+    if (!field) return;
+
+    const [x1, y1, x2, y2] = field.rect;
+    const width = x2 - x1;
+    const height = y2 - y1;
+    const fontSize = Math.min(10, Math.max(8, height - 6));
+
+    pages[field.page - 1]?.drawText(value, {
+      x: x1 + 2,
+      y: y1 + Math.max(1, (height - fontSize) / 2),
+      size: fontSize,
+      font,
+      color: rgb(0, 0, 0),
+      maxWidth: Math.max(0, width - 4),
+    });
   };
 
   const btn = (name: string, checked: boolean | undefined) => {
-    if (checked === undefined) return;
-    try {
-      const f = form.getCheckBox(name);
-      checked ? f.check() : f.uncheck();
-    } catch { /* skip */ }
+    if (!checked) return;
+
+    const field = I539A_LAYOUT[name];
+    if (!field) return;
+
+    const [x1, y1, x2, y2] = field.rect;
+    const inset = 1.5;
+    const page = pages[field.page - 1];
+    if (!page) return;
+
+    page.drawLine({
+      start: { x: x1 + inset, y: y1 + inset },
+      end: { x: x2 - inset, y: y2 - inset },
+      thickness: 1.2,
+      color: rgb(0, 0, 0),
+    });
+    page.drawLine({
+      start: { x: x1 + inset, y: y2 - inset },
+      end: { x: x2 - inset, y: y1 + inset },
+      thickness: 1.2,
+      color: rgb(0, 0, 0),
+    });
   };
 
   // --- Part 1 ---
@@ -134,5 +169,5 @@ export async function fillI539AForm(data: I539AData): Promise<Uint8Array> {
   tx("form1[0].#subform[2].P12_SignatureApplicant[0]", data.signature);
   tx("form1[0].#subform[2].P13_DateofSignature[0]", data.signatureDate);
 
-  return await pdfDoc.save();
+  return new Uint8Array(await pdfDoc.save());
 }
