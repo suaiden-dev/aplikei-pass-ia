@@ -1,20 +1,18 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
+  RiChat3Line,
   RiSendPlane2Line,
   RiAttachmentLine,
-  RiImageLine,
   RiFilePdfLine,
   RiCheckDoubleLine,
   RiLoader4Line,
-  RiCloseLine,
   RiFileTextLine,
   RiExternalLinkLine
 } from "react-icons/ri";
 import { supabase } from "../lib/supabase";
+import { chatService } from "../services/chat-specialist.service";
 import { toast } from "sonner";
 import { cn } from "../utils/cn";
-import { useT } from "../i18n";
 
 interface Message {
   id: string;
@@ -33,10 +31,11 @@ interface SupportChatProps {
   userId: string;
   role: "admin" | "customer";
   userName?: string;
+  title?: string;
+  isClosed?: boolean;
 }
 
-export function SupportChat({ processId, userId, role, userName }: SupportChatProps) {
-  const t = useT("admin"); // Using admin translations for shared terms
+export function SupportChat({ processId, userId, role, userName, title, isClosed = false }: SupportChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -44,65 +43,48 @@ export function SupportChat({ processId, userId, role, userName }: SupportChatPr
   const [isUploading, setIsUploading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const channelRef = useRef<any>(null);
 
   // Load messages
-  const loadMessages = async () => {
+  const loadMessages = async (): Promise<boolean> => {
     try {
-      const { data, error } = await supabase
-        .from("chat_messages")
-        .select("*")
-        .eq("process_id", processId)
-        .order("created_at", { ascending: true });
-
-      if (error) {
-        // If table doesn't exist, we'll just use an empty array or mock data
-        if (error.code === "PGRST116" || error.message.includes("does not exist")) {
-          console.warn("Table chat_messages does not exist. Using mock data.");
-          setMessages([
-            {
-              id: "1",
-              process_id: processId,
-              sender_id: "system",
-              sender_role: "admin",
-              content: "Olá! Chat iniciado. Como podemos ajudar com seu processo?",
-              created_at: new Date(Date.now() - 3600000).toISOString()
-            }
-          ]);
-        } else {
-          throw error;
-        }
-      } else {
-        setMessages(data || []);
-      }
+      const data = await chatService.getMessages(processId);
+      setMessages(data || []);
+      return true;
     } catch (err) {
       console.error("Error loading messages:", err);
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadMessages();
+    let active = true;
 
-    // Subscribe to new messages
-    const channel = supabase
-      .channel(`chat-${processId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "chat_messages",
-          filter: `process_id=eq.${processId}`
-        },
-        (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
-        }
-      )
-      .subscribe();
+    const start = async () => {
+      const canSubscribe = await loadMessages();
+      if (!active || !canSubscribe) return;
+
+      if (channelRef.current) {
+        await supabase.removeChannel(channelRef.current);
+      }
+
+      const channel = chatService.subscribeToMessages(processId, (payload) => {
+        setMessages((prev) => [...prev, payload.new as Message]);
+      });
+
+      channelRef.current = channel;
+    };
+
+    void start();
 
     return () => {
-      supabase.removeChannel(channel);
+      active = false;
+      if (channelRef.current) {
+        void supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [processId]);
 
@@ -121,15 +103,12 @@ export function SupportChat({ processId, userId, role, userName }: SupportChatPr
     setNewMessage("");
 
     try {
-      const { error } = await supabase.from("chat_messages").insert({
-        process_id: processId,
-        sender_id: userId,
-        sender_role: role,
-        content: content,
-        created_at: new Date().toISOString()
+      await chatService.sendMessage({
+        processId,
+        senderId: userId,
+        senderRole: role,
+        content,
       });
-
-      if (error) throw error;
     } catch (err: any) {
       console.error("Error sending message:", err);
       // Fallback for UI if table doesn't exist
@@ -149,45 +128,13 @@ export function SupportChat({ processId, userId, role, userName }: SupportChatPr
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${processId}/${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `chat/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("profiles")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("profiles")
-        .getPublicUrl(filePath);
-
-      const { error: msgError } = await supabase.from("chat_messages").insert({
-        process_id: processId,
-        sender_id: userId,
-        sender_role: role,
+      await chatService.sendMessage({
+        processId,
+        senderId: userId,
+        senderRole: role,
         content: `Arquivo enviado: ${file.name}`,
-        file_url: publicUrl,
-        file_name: file.name,
-        file_type: file.type,
-        created_at: new Date().toISOString()
+        file,
       });
-
-      if (msgError) {
-         // Fallback UI
-         setMessages(prev => [...prev, {
-            id: Math.random().toString(),
-            process_id: processId,
-            sender_id: userId,
-            sender_role: role,
-            content: `Arquivo enviado: ${file.name}`,
-            file_url: publicUrl,
-            file_name: file.name,
-            file_type: file.type,
-            created_at: new Date().toISOString()
-         }]);
-      }
 
       toast.success("Arquivo enviado com sucesso!");
     } catch (err: any) {
@@ -207,16 +154,25 @@ export function SupportChat({ processId, userId, role, userName }: SupportChatPr
             <RiChat3Line />
           </div>
           <div>
-            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Chat Suporte</h4>
+            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">
+              {title || "Chat Especialista"}
+            </h4>
             <p className="text-[11px] font-bold text-slate-400 leading-none truncate max-w-[150px]">
-              {userName || (role === "admin" ? "Cliente" : "Consultor Aplikei")}
+              {userName || (role === "admin" ? "Cliente" : "Especialista")}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 rounded-lg border border-emerald-100">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Ativo</span>
-        </div>
+        {isClosed ? (
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 rounded-lg border border-slate-200">
+            <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Encerrado</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 rounded-lg border border-emerald-100">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Ativo</span>
+          </div>
+        )}
       </div>
 
       {/* Messages area */}
@@ -241,46 +197,57 @@ export function SupportChat({ processId, userId, role, userName }: SupportChatPr
       </div>
 
       {/* Input area */}
-      <div className="p-4 border-t border-slate-50 bg-white">
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-slate-100 hover:text-slate-600 transition-all"
-          >
-            {isUploading ? <RiLoader4Line className="animate-spin" /> : <RiAttachmentLine size={20} />}
-          </button>
-          
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Digite sua mensagem..."
-              className="w-full h-11 pl-4 pr-4 bg-slate-50 border-none rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-primary/10 transition-all"
-            />
-          </div>
+      {isClosed ? (
+        <div className="p-4 border-t border-slate-50 bg-slate-50 flex items-center justify-center gap-2">
+          <RiChat3Line className="text-slate-300 text-lg" />
+          <span className="text-xs font-bold text-slate-400">
+            {role === "admin"
+              ? "Conversa encerrada. Reabra para continuar."
+              : "Esta conversa foi encerrada pelo especialista."}
+          </span>
+        </div>
+      ) : (
+        <div className="p-4 border-t border-slate-50 bg-white">
+          <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-slate-100 hover:text-slate-600 transition-all"
+            >
+              {isUploading ? <RiLoader4Line className="animate-spin" /> : <RiAttachmentLine size={20} />}
+            </button>
 
-          <button
-            type="submit"
-            disabled={(!newMessage.trim() && !isUploading) || isSending}
-            className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
-          >
-            {isSending ? <RiLoader4Line className="animate-spin" /> : <RiSendPlane2Line size={20} />}
-          </button>
-        </form>
-        <input
-          ref={fileInputRef}
-          type="file"
-          className="hidden"
-          accept="image/*,.pdf"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleFileUpload(file);
-          }}
-        />
-      </div>
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Digite sua mensagem..."
+                className="w-full h-11 pl-4 pr-4 bg-slate-50 border-none rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-primary/10 transition-all"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={(!newMessage.trim() && !isUploading) || isSending}
+              className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
+            >
+              {isSending ? <RiLoader4Line className="animate-spin" /> : <RiSendPlane2Line size={20} />}
+            </button>
+          </form>
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept="image/*,.pdf"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileUpload(file);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

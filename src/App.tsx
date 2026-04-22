@@ -39,7 +39,6 @@ const CouponsPage            = lazyPage(() => import("./pages/admin/CouponsPage"
 const CustomerDashboardPage = lazyPage(() => import("./pages/customer/DashboardPage"));
 const MyProcessesPage       = lazyPage(() => import("./pages/customer/MyProcessesPage"));
 const ProcessDetailPage     = lazyPage(() => import("./pages/customer/ProcessDetailPage"));
-const SupportPage           = lazyPage(() => import("./pages/customer/SupportPage"));
 const AIChatPage            = lazyPage(() => import("./pages/customer/AIChatPage"));
 const COSOnboardingPage     = lazyPage(() => import("./pages/customer/COSOnboardingPage"));
 const ProfileSettingsPage   = lazyPage(() => import("./pages/customer/ProfileSettingsPage"));

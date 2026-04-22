@@ -33,6 +33,36 @@ interface NotificationProviderProps {
   role: "admin" | "client";
 }
 
+function normalizeRealtimeNotification(row: Record<string, unknown>): AppNotification {
+  return {
+    id: String(row.id ?? ""),
+    type: String(row.type ?? "system"),
+    target_role: (row.target_role ?? row.target_type ?? "client") as "admin" | "client",
+    user_id: (row.user_id as string | null | undefined) ?? null,
+    service_id: (row.service_id as string | null | undefined) ?? null,
+    title: String(row.title ?? ""),
+    message: (row.message as string | null | undefined) ?? (row.body as string | null | undefined) ?? null,
+    link: (row.link as string | null | undefined) ?? null,
+    is_read: Boolean(row.is_read),
+    send_email: Boolean(row.send_email),
+    email_sent: Boolean(row.email_sent),
+    metadata: (row.metadata as Record<string, unknown> | undefined) ?? {},
+    created_at: String(row.created_at ?? new Date().toISOString()),
+  };
+}
+
+function matchesNotificationRole(
+  row: AppNotification,
+  role: "admin" | "client",
+  userId?: string,
+): boolean {
+  if (role === "admin") {
+    return row.target_role === "admin";
+  }
+
+  return !!userId && row.user_id === userId;
+}
+
 export function NotificationProvider({ children, role }: NotificationProviderProps) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -109,7 +139,10 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
   }, []);
 
   const handleInsert = useCallback((payload: RealtimePostgresChangesPayload<AppNotification>) => {
-    const newNotif = payload.new as AppNotification;
+    const newNotif = normalizeRealtimeNotification(payload.new as unknown as Record<string, unknown>);
+    if (!matchesNotificationRole(newNotif, role, user?.id)) {
+      return;
+    }
 
     setNotifications((prev) => {
       if (prev.some((notification) => notification.id === newNotif.id)) {
@@ -127,10 +160,14 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
     }
 
     addToToastQueue(newNotif);
-  }, [addToToastQueue, cacheKey]);
+  }, [addToToastQueue, cacheKey, role, user?.id]);
 
   const handleUpdate = useCallback((payload: RealtimePostgresChangesPayload<AppNotification>) => {
-    const updated = payload.new as AppNotification;
+    const updated = normalizeRealtimeNotification(payload.new as unknown as Record<string, unknown>);
+    if (!matchesNotificationRole(updated, role, user?.id)) {
+      return;
+    }
+
     setNotifications((prev) =>
       prev.map((notification) => notification.id === updated.id ? { ...notification, ...updated } : notification),
     );
@@ -142,7 +179,7 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
         // ignore session storage issues
       }
     }
-  }, [cacheKey]);
+  }, [cacheKey, role, user?.id]);
 
   const markAsRead = useCallback(async (id: string) => {
     try {
@@ -199,23 +236,17 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
     setRealtimeStatus("connecting");
     loadHistory();
 
-    const filter = role === "client"
-      ? `user_id=eq.${user.id}`
-      : `target_role=eq.admin`;
-
     const channel = supabase
       .channel(`notif_realtime_${role}_${user.id}`)
       .on("postgres_changes", {
         event: "INSERT",
         schema: "public",
         table: "notifications",
-        filter,
       }, handleInsert)
       .on("postgres_changes", {
         event: "UPDATE",
         schema: "public",
         table: "notifications",
-        filter,
       }, handleUpdate)
       .subscribe((status, error) => {
         setRealtimeStatus(
