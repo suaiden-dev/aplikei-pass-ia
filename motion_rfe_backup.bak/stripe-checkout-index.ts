@@ -138,10 +138,8 @@ Deno.serve(async (req: Request) => {
         // Validação dinâmica de preço (Segurança)
         if (targetProcId) {
             const { data: procData } = await supabase.from("user_services").select("step_data").eq("id", targetProcId).single();
-            const motionAmount = procData?.step_data?.motion_amount ?? procData?.step_data?.motion_proposal_amount;
-            const parsedMotionAmount = Number(motionAmount);
-            if (Number.isFinite(parsedMotionAmount) && parsedMotionAmount > 0) {
-                basePriceUSD = parsedMotionAmount;
+            if (procData?.step_data?.motion_proposal_amount) {
+                basePriceUSD = Number(procData.step_data.motion_proposal_amount);
             } else if (requestAmount && ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos', 'apoio-rfe-motion-inicio', 'proposta-rfe-motion'].includes(slug)) {
                 basePriceUSD = Number(requestAmount);
             }
@@ -221,11 +219,7 @@ Deno.serve(async (req: Request) => {
                 coupon_code: coupon_code || "",
                 applied_coupon_id: appliedCouponId || "",
                 original_subtotal: subtotalUSD.toString(),
-                discount_amount: (subtotalUSD - finalSubtotalUSD).toString(),
-                netAmountUSD: finalSubtotalUSD.toString(),
-                exchange_rate: appliedExchangeRate ? appliedExchangeRate.toString() : "",
-                charged_amount: (unitAmount / 100).toString(),
-                charged_currency: currency
+                discount_amount: (subtotalUSD - finalSubtotalUSD).toString()
             },
         });
 

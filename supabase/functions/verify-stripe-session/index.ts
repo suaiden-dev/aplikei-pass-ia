@@ -79,6 +79,25 @@ Deno.serve(async (req) => {
         throw new Error("Sessão válida, mas metadados ausentes (user_id/slug).");
     }
 
+    const { data: eventRegistered, error: eventRegisterError } = await supabase
+      .rpc("register_payment_event", {
+        p_provider: "stripe_verify",
+        p_event_id: session.id,
+        p_order_id: order_id,
+        p_payment_id: session.id,
+        p_payload: {
+          session_id: session.id,
+        },
+      });
+
+    if (eventRegisterError) throw eventRegisterError;
+    if (!eventRegistered) {
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: "Pagamento já verificado anteriormente." 
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // 3. Executa a ativação (Reutilizando a lógica centralizada)
     await applySuccessfulPayment({
         user_id,

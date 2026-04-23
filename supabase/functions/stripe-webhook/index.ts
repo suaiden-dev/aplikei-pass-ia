@@ -22,19 +22,55 @@ Deno.serve(async (req: Request) => {
     try {
         const body = await req.text();
 
-        const webhookSecret = Deno.env.get(`STRIPE_WEBHOOK_SECRET_TEST`) || Deno.env.get("STRIPE_WEBHOOK_SECRET");
-        const stripeSecret = Deno.env.get(`STRIPE_SECRET_KEY_TEST`) || Deno.env.get("STRIPE_SECRET_KEY");
+        const candidates = [
+            {
+                mode: "prod",
+                webhookSecret: Deno.env.get("STRIPE_WEBHOOK_SECRET_PROD") || null,
+                stripeSecret: Deno.env.get("STRIPE_SECRET_KEY_PROD") || Deno.env.get("STRIPE_SECRET_KEY") || null,
+            },
+            {
+                mode: "test",
+                webhookSecret: Deno.env.get("STRIPE_WEBHOOK_SECRET_TEST") || null,
+                stripeSecret: Deno.env.get("STRIPE_SECRET_KEY_TEST") || Deno.env.get("STRIPE_SECRET_KEY") || null,
+            },
+            {
+                mode: "default",
+                webhookSecret: Deno.env.get("STRIPE_WEBHOOK_SECRET") || null,
+                stripeSecret: Deno.env.get("STRIPE_SECRET_KEY") || null,
+            },
+        ].filter((c) => Boolean(c.webhookSecret) && Boolean(c.stripeSecret));
 
-        const stripe = new Stripe(stripeSecret!, {
+        if (candidates.length === 0) {
+            throw new Error("Stripe secrets are not configured.");
+        }
+
+        let selected: (typeof candidates)[number] | null = null;
+        let event: Stripe.Event | null = null;
+        let lastError: Error | null = null;
+
+        for (const c of candidates) {
+            try {
+                const stripe = new Stripe(c.stripeSecret!, {
+                    apiVersion: "2023-10-16",
+                    httpClient: Stripe.createFetchHttpClient(),
+                });
+                event = await stripe.webhooks.constructEventAsync(body, signature, c.webhookSecret!);
+                selected = c;
+                lastError = null;
+                break;
+            } catch (e) {
+                lastError = e as Error;
+            }
+        }
+
+        if (!event || !selected) {
+            throw new Error(lastError?.message || "Stripe signature validation failed.");
+        }
+
+        const stripe = new Stripe(selected.stripeSecret!, {
             apiVersion: "2023-10-16",
             httpClient: Stripe.createFetchHttpClient(),
         });
-
-        const event = await stripe.webhooks.constructEventAsync(
-            body,
-            signature,
-            webhookSecret!
-        );
 
         console.log(`Processing event: ${event.type}`);
 
@@ -58,6 +94,28 @@ Deno.serve(async (req: Request) => {
                 Deno.env.get('SUPABASE_URL') ?? '',
                 Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
             );
+
+            const orderIdFromMetadata = metadata.order_id || null;
+            const { data: eventRegistered, error: eventRegisterError } = await supabaseAdmin
+                .rpc("register_payment_event", {
+                    p_provider: "stripe",
+                    p_event_id: event.id,
+                    p_order_id: orderIdFromMetadata,
+                    p_payment_id: session.id,
+                    p_payload: {
+                        type: event.type,
+                        session_id: session.id,
+                        mode: selected.mode,
+                    },
+                });
+
+            if (eventRegisterError) throw eventRegisterError;
+            if (!eventRegistered) {
+                return new Response(JSON.stringify({ received: true }), {
+                    headers: { ...corsHeaders, "Content-Type": "application/json" },
+                    status: 200,
+                });
+            }
 
             // Idempotency check
             const { data: existingOrder } = await (supabaseAdmin
@@ -173,6 +231,10 @@ Deno.serve(async (req: Request) => {
                 if (orderError) throw orderError;
                 order = data;
                 console.log(`[stripe-webhook] Upserted order by stripe_session_id: ${session.id}`);
+            }
+
+            if (metadata.applied_coupon_id) {
+                await supabaseAdmin.rpc("increment_coupon_usage", { p_coupon_id: metadata.applied_coupon_id });
             }
 
             // Handle user_services

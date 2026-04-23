@@ -109,7 +109,10 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             {/* Checkout success — protected so user is guaranteed authenticated */}
             <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
-            {/* Customer Dashboard */}
+          </Route>
+
+          {/* Customer routes */}
+          <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
             <Route element={<CustomerLayout />}>
               <Route path="/dashboard" element={<CustomerDashboardPage />} />
               <Route path="/dashboard/processes" element={<MyProcessesPage />} />
@@ -128,8 +131,10 @@ export default function App() {
               <Route path="/dashboard/ai-chat" element={<AIChatPage />} />
               <Route path="/minha-conta" element={<ProfileSettingsPage />} />
             </Route>
+          </Route>
 
-            {/* Admin */}
+          {/* Admin routes */}
+          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<OverviewPage />} />
               <Route path="/admin/payments" element={<ZellePaymentsPage />} />

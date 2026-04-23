@@ -23,7 +23,6 @@ export function isAuxiliaryServiceSlug(serviceSlug: string): boolean {
     serviceSlug.startsWith("mentoria-") ||
     serviceSlug.startsWith("consultoria-") ||
     serviceSlug.includes("rfe-motion") ||
-    serviceSlug === "analise-motion" ||
     serviceSlug.includes("-support");
 }
 
@@ -53,7 +52,7 @@ function buildPurchaseRecord(data: {
   order_id?: string | null;
 }) {
   return {
-    id: data.payment_id || data.order_id || `TRX_${Date.now()}`,
+    id: data.payment_id || `TRX_${Date.now()}`,
     method: data.payment_method || "unknown",
     amount: data.paid_amount || 0,
     dependents: data.dependents,
@@ -240,38 +239,10 @@ export async function applySuccessfulPayment(data: {
   }
 
   if (!order) {
-    if (payment_id) {
-      const { data: byPaymentRef } = await supabase
-        .from("orders")
-        .select("*")
-        .or(`stripe_session_id.eq.${payment_id},parcelow_order_id.eq.${payment_id},order_number.eq.${payment_id}`)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (byPaymentRef) {
-        const { data: updatedByPaymentRef } = await supabase
-          .from("orders")
-          .update({
-            payment_status: "paid",
-            updated_at: now,
-            ...(order_update || {}),
-          })
-          .eq("id", byPaymentRef.id)
-          .select("*")
-          .single();
-
-        order = updatedByPaymentRef || byPaymentRef;
-      }
-    }
-  }
-
-  if (!order) {
     const { data: fallbackOrder } = await supabase
       .from("orders")
       .select("*")
       .match({ user_id, product_slug: service_slug, payment_status: "pending" })
-      .gte("created_at", new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString())
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -375,34 +346,19 @@ export async function applySuccessfulPayment(data: {
   const isCOSorEOS = mainServiceSlug === "troca-status" || mainServiceSlug === "extensao-status";
   const extraMetadata: Record<string, any> = {};
 
-    if (isCOSorEOS) {
-      if (service_slug === "analise-motion") {
-        const history = Array.isArray(stepData.history) ? [...stepData.history] : [];
-        const activeCycleIndex = typeof stepData.active_cycle_index === "number"
-          ? stepData.active_cycle_index
-        : history.length - 1;
-      if (history[activeCycleIndex]) {
-        history[activeCycleIndex] = { ...history[activeCycleIndex], status: "waitingProposal" };
-      }
-      extraMetadata.history = history;
-        extraMetadata.workflow_status = "waitingProposal";
-        extraMetadata.recover = "waitingProposal";
-        extraMetadata.motion_analysis_paid = true;
-        nextStep = (currentProc.current_step ?? 0) + 1;
-      } else if (service_slug === "apoio-rfe-motion-inicio") {
-        extraMetadata.motion_initial_paid = true;
-        extraMetadata.rfe_initial_paid = true;
-        if (nextStep === 13) nextStep = 14;
-        else if (nextStep === 19) nextStep = 20;
-      } else if (service_slug === "proposta-rfe-motion") {
-        extraMetadata.motion_proposal_paid = true;
-        extraMetadata.rfe_proposal_paid = true;
-        extraMetadata.workflow_status = "in_progress";
-        extraMetadata.motion_payment_completed_at = now;
-        extraMetadata.motion_amount_paid = paid_amount ?? null;
-        nextStep = (currentProc.current_step ?? 0) + 1;
-      }
+  if (isCOSorEOS) {
+    if (service_slug === "apoio-rfe-motion-inicio") {
+      extraMetadata.motion_initial_paid = true;
+      extraMetadata.rfe_initial_paid = true;
+      if (nextStep === 13) nextStep = 14;
+      else if (nextStep === 19) nextStep = 20;
+    } else if (service_slug === "proposta-rfe-motion") {
+      extraMetadata.motion_proposal_paid = true;
+      extraMetadata.rfe_proposal_paid = true;
+      if (nextStep === 16) nextStep = 17;
+      else if (nextStep === 22) nextStep = 23;
     }
+  }
 
   await supabase
     .from("user_services")

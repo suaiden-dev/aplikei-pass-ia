@@ -80,36 +80,19 @@ serve(async (req) => {
       console.log(`[Webhook Success] Evento validado: ${event.type} (ID: ${event.id})`);
       console.log(`[Webhook Success] Metadata recebida:`, JSON.stringify(event.data.object.metadata));
 
-      if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
+      if (event.type === "checkout.session.completed") {
         const session = event.data.object;
-
-        const { data: eventRegistered, error: eventRegisterError } = await supabase
-          .rpc("register_payment_event", {
-            p_provider: "stripe",
-            p_event_id: event.id,
-            p_order_id: session.metadata.order_id || null,
-            p_payment_id: session.id,
-            p_payload: { type: event.type, session_id: session.id },
-          });
-
-        if (eventRegisterError) throw eventRegisterError;
-        if (!eventRegistered) {
-          return new Response(JSON.stringify({ received: true }), { headers: { "Content-Type": "application/json" } });
-        }
-
         await handlePaymentSuccess({
-          user_id: session.metadata.user_id || session.metadata.userId || null,
-          email: session.metadata.email || session.customer_details?.email || null,
-          fullName: session.metadata.fullName || session.customer_details?.name || null,
-          origin_url: session.metadata.origin_url || null,
+          user_id: session.metadata.user_id || session.metadata.userId,
           service_slug: session.metadata.service_slug || session.metadata.slug,
           paid_amount: session.amount_total / 100,
           dependents: parseInt(session.metadata.dependents || "0", 10),
           proc_id: session.metadata.proc_id || session.metadata.processId,
-          payment_method: session.metadata.paymentMethod === "pix" ? "stripe_pix" : "stripe_card",
+          payment_method: "stripe",
+          status: "complete",
           payment_id: session.id,
           order_id: session.metadata.order_id || null,
-          applied_coupon_id: session.metadata.applied_coupon_id || null,
+          applied_coupon_id: session.metadata.applied_coupon_id || null
         });
       }
 
@@ -174,40 +157,84 @@ serve(async (req) => {
 });
 
 async function handlePaymentSuccess(data) {
-  const { service_slug, payment_method, proc_id, paid_amount, dependents, payment_id, applied_coupon_id, order_id, parent_service_slug } = data;
-  let { user_id } = data;
+  const { user_id, service_slug, payment_method, proc_id, paid_amount, dependents, payment_id, applied_coupon_id, order_id, parent_service_slug } = data;
 
-  if (!service_slug) {
-    console.error("Dados insuficientes no webhook (service_slug ausente):", data);
-    return;
-  }
-
-  // Guest checkout: resolve user by email or create via invite
-  if (!user_id && data.email) {
-    const { data: usersData } = await supabase.auth.admin.listUsers();
-    const existingUser = usersData?.users?.find((u: any) => u.email === data.email);
-    if (existingUser) {
-      user_id = existingUser.id;
-    } else {
-      const originUrl = data.origin_url || Deno.env.get("FRONTEND_URL") || "https://aplikeipass.com";
-      const { data: authUser } = await supabase.auth.admin.inviteUserByEmail(data.email, {
-        redirectTo: `${originUrl}/auth/confirm-password`,
-        data: { full_name: data.fullName || "" },
-      });
-      if (authUser?.user) user_id = authUser.user.id;
-    }
-
-    if (user_id && order_id) {
-      await supabase.from("orders").update({ user_id }).eq("id", order_id);
-    }
-  }
-
-  if (!user_id) {
-    console.error("Não foi possível resolver user_id para o webhook:", data);
+  if (!user_id || !service_slug) {
+    console.error("Dados insuficientes no webhook:", data);
     return;
   }
 
   console.log(`🚀 [Webhook] Processando sucesso. OrderId: ${order_id || 'N/A'}, Session: ${payment_id}`);
+
+  // 🛡️ LOG DE DETECÇÃO:
+  // Em vez de deletar, vamos apenas logar se um registro duplicado for encontrado
+  if (payment_id) {
+    const { data: existingDupe } = await supabase.from("orders")
+      .select("id, product_slug, created_at")
+      .eq("stripe_session_id", payment_id)
+      .neq("id", order_id || "")
+      .maybeSingle();
+    
+    if (existingDupe) {
+      console.warn(`[DEBUG DUPLICIDADE] Detectado registro concorrente! ID: ${existingDupe.id}, Slug: ${existingDupe.product_slug}, Criado em: ${existingDupe.created_at}`);
+      console.warn(`[DEBUG DUPLICIDADE] Isso confirma que um serviço externo inseriu este dado antes do nosso webhook.`);
+    }
+  }
+
+  // 1. Tentar atualizar o pedido original pelo ID ou Fallback
+  let orderUpdated = false;
+
+  if (order_id) {
+    const { data: order } = await supabase.from("orders").select("id, payment_status").eq("id", order_id).maybeSingle();
+
+    if (order) {
+      if (order.payment_status === "paid" || order.payment_status === "complete") {
+        console.log(`[Webhook] ⚠️ Pedido ${order_id} já estava marcado como pago.`);
+        orderUpdated = true;
+      } else {
+        const { error: updateError } = await supabase.from("orders").update({ 
+          payment_status: "paid", 
+          stripe_session_id: payment_id,
+          updated_at: new Date().toISOString() 
+        }).eq("id", order_id);
+        
+        if (updateError) {
+          console.error(`[Webhook] ❌ Falha ao atualizar pedido original: ${updateError.message}`);
+        } else {
+          console.log(`[Webhook] ✅ Pedido original ${order_id} atualizado para 'paid'.`);
+          orderUpdated = true;
+        }
+      }
+    } else {
+      console.warn(`[Webhook] ⚠️ Pedido original ${order_id} não encontrado.`);
+    }
+  }  
+
+  // Fallback: Se não veio order_id ou se não conseguimos atualizar pelo ID, tenta pelo match (user + slug + pending)
+  if (!orderUpdated) {
+    console.log(`[Webhook] Fallback: Buscando pedido pendente por match: ${user_id} + ${service_slug}`);
+    const { data: matchedOrder } = await supabase.from("orders")
+      .select("id")
+      .match({ user_id: user_id, product_slug: service_slug, payment_status: "pending" })
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (matchedOrder) {
+      const { error: fallbackError } = await supabase.from("orders")
+        .update({ payment_status: "paid", stripe_session_id: payment_id, updated_at: new Date().toISOString() })
+        .eq("id", matchedOrder.id);
+      
+      if (!fallbackError) {
+        console.log(`[Webhook] ✅ Pedido fallback ${matchedOrder.id} atualizado para 'paid'.`);
+        orderUpdated = true;
+      } else {
+        console.error(`[Webhook] ❌ Falha ao atualizar pedido fallback: ${fallbackError.message}`);
+      }
+    } else {
+      console.warn(`[Webhook] ❌ Nenhum pedido pendente encontrado para fallback.`);
+    }
+  }
 
   if (applied_coupon_id) {
     console.log(`[Coupon] Consumindo cupom: ${applied_coupon_id}`);
