@@ -100,6 +100,10 @@ export default function COSOnboardingPage() {
       : 'troca-status')
   const [searchParams] = useSearchParams()
   const stepIdx = Number(searchParams.get('step') ?? '0')
+  const parentProcessId =
+    searchParams.get('id') ||
+    searchParams.get('parentId') ||
+    searchParams.get('processId')
   const service = getServiceBySlug(slug)
 
   // Translation safety guard: if locale is loading, return a refined loading state
@@ -174,6 +178,24 @@ export default function COSOnboardingPage() {
   const motionReportedResult = String(
     proc?.step_data?.motion_final_result || '',
   ).toLowerCase()
+  const uscisResult = String(
+    proc?.step_data?.uscis_official_result || '',
+  ).toLowerCase()
+  const rfeResult = String(
+    proc?.step_data?.uscis_rfe_result || '',
+  ).toLowerCase()
+  const currentProcessStep = proc?.current_step ?? 0
+  const isMotionContext =
+    uscisResult === 'denied' ||
+    uscisResult === 'rejected' ||
+    rfeResult === 'denied' ||
+    rfeResult === 'rejected' ||
+    currentProcessStep >= 19
+  const isRFEContext =
+    !isMotionContext &&
+    (uscisResult === 'rfe' ||
+      rfeResult === 'rfe' ||
+      (currentProcessStep >= 13 && currentProcessStep <= 18))
 
   const handleMotionResultReport = async (result: 'approved' | 'rejected') => {
     if (!proc) return
@@ -223,14 +245,10 @@ export default function COSOnboardingPage() {
     async function load() {
       if (!user || !slug) return
 
-      const parentId =
-        searchParams.get('id') ||
-        searchParams.get('parentId') ||
-        searchParams.get('processId')
       let data = null
 
-      if (parentId) {
-        data = await processService.getServiceById(parentId)
+      if (parentProcessId) {
+        data = await processService.getServiceById(parentProcessId)
         // Safety: verify user owns this process
         if (data && data.user_id !== user.id) {
           data = null
@@ -274,12 +292,26 @@ export default function COSOnboardingPage() {
             console.log(
               `[AutoRepair] Sincronizando slots via JSONB: ${currentInDB} -> ${totalPaidViaPurchases}`,
             )
-            await processService.updateStepData(data.id, {
+            const patchedStepData = {
+              ...((data.step_data || {}) as Record<string, unknown>),
               paid_dependents: totalPaidViaPurchases,
-            })
-            if (data.step_data)
-              data.step_data.paid_dependents = totalPaidViaPurchases
-            setProc({ ...data })
+            }
+            const patchedData: UserService = {
+              ...data,
+              step_data: patchedStepData,
+            }
+            setProc(patchedData)
+            void processService
+              .updateStepData(data.id, {
+                paid_dependents: totalPaidViaPurchases,
+              })
+              .catch((persistError) => {
+                console.warn(
+                  '[AutoRepair] Falha ao persistir paid_dependents:',
+                  persistError,
+                )
+              })
+            data = patchedData
           }
         }
       } catch (err) {
@@ -314,7 +346,44 @@ export default function COSOnboardingPage() {
       }
     }
     load()
-  }, [user, stepIdx, slug, searchParams])
+  }, [user, slug, parentProcessId, stepIdx])
+
+  useEffect(() => {
+    if (!proc) return
+    const isInRFERange = stepIdx >= 13 && stepIdx <= 18
+    const isInMotionRange = stepIdx >= 19 && stepIdx <= 24
+
+    if (isMotionContext && !isInMotionRange) {
+      const nextParams = new URLSearchParams(searchParams)
+      nextParams.set('step', '19')
+      navigate(
+        `/dashboard/processes/${slug}/onboarding?${nextParams.toString()}`,
+        {
+          replace: false,
+        },
+      )
+      return
+    }
+
+    if (isRFEContext && !isInRFERange) {
+      const nextParams = new URLSearchParams(searchParams)
+      nextParams.set('step', '13')
+      navigate(
+        `/dashboard/processes/${slug}/onboarding?${nextParams.toString()}`,
+        {
+          replace: true,
+        },
+      )
+    }
+  }, [
+    isMotionContext,
+    isRFEContext,
+    navigate,
+    proc,
+    searchParams,
+    slug,
+    stepIdx,
+  ])
 
   // Handle doc slot generation
   const getDocSlots = () => {
@@ -510,36 +579,28 @@ export default function COSOnboardingPage() {
             const motionStart = service.steps.findIndex(
               (s) => s.id === 'cos_motion_explanation',
             )
-            if (motionStart !== -1) {
-              nextStepIdx = motionStart
-              forceJump = true
-            }
+            nextStepIdx = motionStart !== -1 ? motionStart : 19
+            forceJump = true
           } else if (uscisResult === 'rfe') {
             const rfeStart = service.steps.findIndex(
               (s) => s.id === 'cos_rfe_explanation',
             )
-            if (rfeStart !== -1) {
-              nextStepIdx = rfeStart
-              forceJump = true
-            }
+            nextStepIdx = rfeStart !== -1 ? rfeStart : 13
+            forceJump = true
           }
         } else if (stepIdx === rfeEndIdx) {
           if (rfeResult === 'denied') {
             const motionStart = service.steps.findIndex(
               (s) => s.id === 'cos_motion_explanation',
             )
-            if (motionStart !== -1) {
-              nextStepIdx = motionStart
-              forceJump = true
-            }
+            nextStepIdx = motionStart !== -1 ? motionStart : 19
+            forceJump = true
           } else if (rfeResult === 'rfe') {
             const rfeStart = service.steps.findIndex(
               (s) => s.id === 'cos_rfe_explanation',
             )
-            if (rfeStart !== -1) {
-              nextStepIdx = rfeStart
-              forceJump = true
-            }
+            nextStepIdx = rfeStart !== -1 ? rfeStart : 13
+            forceJump = true
           }
         }
 
@@ -575,6 +636,17 @@ export default function COSOnboardingPage() {
 
   return (
     <div className='min-h-screen bg-[#f8fafc] flex flex-col'>
+      {isSubmitting && (
+        <div className='fixed inset-0 z-[120] bg-white/70 backdrop-blur-sm flex items-center justify-center'>
+          <div className='bg-white border border-slate-200 shadow-xl rounded-2xl px-6 py-5 flex items-center gap-3'>
+            <RiLoader4Line className='text-2xl text-primary animate-spin' />
+            <p className='text-sm font-black text-slate-700 uppercase tracking-wider'>
+              Enviando etapa...
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Top bar */}
       <div className='bg-white border-b border-slate-100 px-8 py-4 flex items-center justify-between'>
         <div>
@@ -1271,16 +1343,24 @@ export default function COSOnboardingPage() {
             )}
 
             {/* ── Step 12: Final Package ── */}
-            {stepIdx === 12 && proc && (
-              <FinalPackageStep proc={proc} onComplete={handleConcluir} />
+            {stepIdx === 12 && proc && !isMotionContext && !isRFEContext && (
+              <FinalPackageStep
+                proc={proc}
+                onComplete={handleConcluir}
+                onJumpToStep={(targetStep) => {
+                  const nextParams = new URLSearchParams(searchParams)
+                  nextParams.set('step', String(targetStep))
+                  navigate(
+                    `/dashboard/processes/${slug}/onboarding?${nextParams.toString()}`,
+                  )
+                }}
+              />
             )}
 
             {/* ── RFE Steps (Conditional on RFE) ── */}
             {(() => {
-              const uscisResult = proc?.step_data
-                ?.uscis_official_result as string
-              const isRFE = uscisResult === 'rfe'
-              if (!isRFE || stepIdx < 13 || stepIdx > 18) return null
+              const isInRFERange = stepIdx >= 13 && stepIdx <= 18
+              if (!isInRFERange || !isRFEContext) return null
 
               return (
                 <>
@@ -1311,22 +1391,8 @@ export default function COSOnboardingPage() {
 
             {/* ── Motion Steps (Conditional on Denied) ── */}
             {(() => {
-              const uscisResult = String(
-                proc?.step_data?.uscis_official_result || '',
-              ).toLowerCase()
-              const rfeResult = String(
-                proc?.step_data?.uscis_rfe_result || '',
-              ).toLowerCase()
-              const isDenied =
-                uscisResult === 'denied' ||
-                uscisResult === 'rejected' ||
-                rfeResult === 'denied' ||
-                rfeResult === 'rejected'
               const isInMotionRange = stepIdx >= 19 && stepIdx <= 24
-              const isMotionUnlocked = (proc?.current_step ?? 0) >= 19
-
-              if (!isInMotionRange || (!isDenied && !isMotionUnlocked))
-                return null
+              if (!isInMotionRange || !isMotionContext) return null
 
               return (
                 <>
@@ -1359,84 +1425,100 @@ export default function COSOnboardingPage() {
             })()}
 
             {/* ── Fallback ── */}
-            {![
-              0, 1, 3, 5, 7, 8, 10, 12, 13, 14, 16, 18, 19, 20, 22, 24,
-            ].includes(stepIdx) && (
-              <div className='p-16 text-center'>
-                <div className='w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 mx-auto mb-4'>
-                  <RiLoader4Line className='text-3xl animate-spin' />
-                </div>
-                <h2 className='text-xl font-black text-slate-900 mb-2'>
-                  Análise em Andamento
-                </h2>
-                <p className='text-sm text-slate-400 font-medium'>
-                  {service?.steps[stepIdx]?.title || 'Etapa Administrativa'}:{' '}
-                  {service?.steps[stepIdx]?.description ||
-                    'Nossa equipe está processando sua solicitação.'}
-                </p>
-                <div className='mt-8 p-4 bg-slate-50 rounded-2xl border border-slate-100 max-w-sm mx-auto'>
-                  <p className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1'>
-                    Status do Processo
-                  </p>
-                  <p className='text-xs font-bold text-slate-600'>
-                    Aguardando revisão interna de nossa equipe.
-                  </p>
-                </div>
-                <div className='mt-8 max-w-xl mx-auto rounded-3xl border border-primary/10 bg-primary/[0.03] p-6 sm:p-8 text-left'>
-                  <div className='flex items-start gap-3 mb-5'>
-                    <div className='w-10 h-10 rounded-xl bg-white border border-primary/10 text-primary flex items-center justify-center shrink-0'>
-                      <RiInformationLine className='text-xl' />
-                    </div>
-                    <div>
-                      <h3 className='text-base sm:text-lg font-black text-slate-900 tracking-tight'>
-                        Voce ja recebeu o resultado da sua Motion?
-                      </h3>
-                      <p className='text-xs sm:text-sm text-slate-500 font-medium mt-1 leading-relaxed'>
-                        Assim que tiver retorno oficial do USCIS, selecione
-                        abaixo para mantermos seu processo atualizado.
-                      </p>
-                    </div>
+            {(() => {
+              const isBaseStepRendered =
+                [0, 1, 3, 5, 7, 8, 10].includes(stepIdx) ||
+                (stepIdx === 12 && !isRFEContext && !isMotionContext)
+              const isRFEStepRendered =
+                isRFEContext && [13, 14, 16, 18].includes(stepIdx)
+              const isMotionStepRendered =
+                isMotionContext && [19, 20, 22, 24].includes(stepIdx)
+
+              if (
+                isBaseStepRendered ||
+                isRFEStepRendered ||
+                isMotionStepRendered
+              ) {
+                return null
+              }
+
+              return (
+                <div className='p-16 text-center'>
+                  <div className='w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 mx-auto mb-4'>
+                    <RiLoader4Line className='text-3xl animate-spin' />
                   </div>
-
-                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                    <button
-                      type='button'
-                      disabled={isSavingMotionResult}
-                      onClick={() => handleMotionResultReport('approved')}
-                      className='h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-60'
-                    >
-                      Aprovado
-                    </button>
-                    <button
-                      type='button'
-                      disabled={isSavingMotionResult}
-                      onClick={() => handleMotionResultReport('rejected')}
-                      className='h-12 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all disabled:opacity-60'
-                    >
-                      Reprovado
-                    </button>
-                  </div>
-
-                  <p className='mt-4 text-[11px] font-bold text-slate-500 uppercase tracking-wide'>
-                    {motionReportedResult === 'approved'
-                      ? 'Status informado: Aprovado.'
-                      : motionReportedResult === 'rejected'
-                        ? 'Status informado: Reprovado.'
-                        : 'Nenhum resultado informado ate o momento.'}
+                  <h2 className='text-xl font-black text-slate-900 mb-2'>
+                    Análise em Andamento
+                  </h2>
+                  <p className='text-sm text-slate-400 font-medium'>
+                    {service?.steps[stepIdx]?.title || 'Etapa Administrativa'}:{' '}
+                    {service?.steps[stepIdx]?.description ||
+                      'Nossa equipe está processando sua solicitação.'}
                   </p>
-
-                  {motionReportedResult === 'rejected' && (
-                    <div className='mt-4 rounded-2xl border border-red-100 bg-red-50 p-4'>
-                      <p className='text-xs font-bold text-red-700 leading-relaxed'>
-                        Lamentamos que sua Motion tenha sido reprovada, mas
-                        convidamos você a revisar nossos outros produtos e
-                        oportunidades disponíveis.
-                      </p>
+                  <div className='mt-8 p-4 bg-slate-50 rounded-2xl border border-slate-100 max-w-sm mx-auto'>
+                    <p className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1'>
+                      Status do Processo
+                    </p>
+                    <p className='text-xs font-bold text-slate-600'>
+                      Aguardando revisão interna de nossa equipe.
+                    </p>
+                  </div>
+                  <div className='mt-8 max-w-xl mx-auto rounded-3xl border border-primary/10 bg-primary/[0.03] p-6 sm:p-8 text-left'>
+                    <div className='flex items-start gap-3 mb-5'>
+                      <div className='w-10 h-10 rounded-xl bg-white border border-primary/10 text-primary flex items-center justify-center shrink-0'>
+                        <RiInformationLine className='text-xl' />
+                      </div>
+                      <div>
+                        <h3 className='text-base sm:text-lg font-black text-slate-900 tracking-tight'>
+                          Voce ja recebeu o resultado da sua Motion?
+                        </h3>
+                        <p className='text-xs sm:text-sm text-slate-500 font-medium mt-1 leading-relaxed'>
+                          Assim que tiver retorno oficial do USCIS, selecione
+                          abaixo para mantermos seu processo atualizado.
+                        </p>
+                      </div>
                     </div>
-                  )}
+
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                      <button
+                        type='button'
+                        disabled={isSavingMotionResult}
+                        onClick={() => handleMotionResultReport('approved')}
+                        className='h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-60'
+                      >
+                        Aprovado
+                      </button>
+                      <button
+                        type='button'
+                        disabled={isSavingMotionResult}
+                        onClick={() => handleMotionResultReport('rejected')}
+                        className='h-12 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all disabled:opacity-60'
+                      >
+                        Reprovado
+                      </button>
+                    </div>
+
+                    <p className='mt-4 text-[11px] font-bold text-slate-500 uppercase tracking-wide'>
+                      {motionReportedResult === 'approved'
+                        ? 'Status informado: Aprovado.'
+                        : motionReportedResult === 'rejected'
+                          ? 'Status informado: Reprovado.'
+                          : 'Nenhum resultado informado ate o momento.'}
+                    </p>
+
+                    {motionReportedResult === 'rejected' && (
+                      <div className='mt-4 rounded-2xl border border-red-100 bg-red-50 p-4'>
+                        <p className='text-xs font-bold text-red-700 leading-relaxed'>
+                          Lamentamos que sua Motion tenha sido reprovada, mas
+                          convidamos você a revisar nossos outros produtos e
+                          oportunidades disponíveis.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )
+            })()}
           </motion.div>
 
           {!isMotionResultStep && (

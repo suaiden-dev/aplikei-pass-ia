@@ -192,7 +192,7 @@ function SectionCard({ title, subtitle, icon: Icon, children }: { title: string;
 interface Props {
   proc: UserService;
   user: UserAccount;
-  onComplete: () => void;
+  onComplete: () => void | Promise<void>;
 }
 
 export default function I539FormStep({ proc, user, onComplete }: Props) {
@@ -395,7 +395,7 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
             clientEmail: user?.email,
           });
 
-          onComplete();
+          await onComplete();
           toast.success(t.cos.i539.toasts.success);
         } catch (err) {
           toast.error(err instanceof Error ? err.message : t.cos.i539.toasts.error);

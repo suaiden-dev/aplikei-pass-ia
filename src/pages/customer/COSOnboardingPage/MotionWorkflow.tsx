@@ -560,6 +560,45 @@ export function MotionExplanationStep({
 }: StepProps) {
   const t = useT('onboarding')
   const [showCheckout, setShowCheckout] = useState(false)
+  const copy = t?.workflows?.motion?.explanation
+  const serviceSlug = String(proc.service_slug || '').toLowerCase()
+  const productLabel = serviceSlug.includes('troca-status') || serviceSlug.includes('cos')
+    ? 'COS'
+    : serviceSlug.includes('extensao-status') || serviceSlug.includes('eos')
+      ? 'EOS'
+      : serviceSlug.includes('b1-b2')
+        ? 'B1/B2'
+        : 'PROCESSO'
+  const textOr = (value: unknown, fallback: string) =>
+    typeof value === 'string' && value.trim().length > 0 ? value : fallback
+  const baseTitle = textOr(copy?.title, 'Analise da Negativa')
+  const titleWithoutMotion = baseTitle
+    .replace(/\bmotion\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^\s*[-:|]\s*/, '')
+    .replace(/\s*[-:|]\s*$/, '')
+    .trim()
+  const titleWithProduct = `${productLabel} - ${titleWithoutMotion || 'Analise da Negativa'}`
+  const translatedFeatures = Array.isArray(copy?.features)
+    ? copy.features.filter(
+        (feature): feature is string =>
+          typeof feature === 'string' && feature.trim().length > 0,
+      )
+    : []
+  const features =
+    translatedFeatures.length > 0
+      ? translatedFeatures
+      : [
+          'Analise tecnica da negativa do USCIS',
+          'Orientacao dos documentos para resposta',
+          'Acompanhamento inicial para enviar a Motion',
+        ]
+  const analysisFeeTemplate = t?.workflows?.shared?.analysisFee
+  const analysisFeeText =
+    typeof analysisFeeTemplate === 'string' &&
+    analysisFeeTemplate.includes('{amount}')
+      ? analysisFeeTemplate.replace('{amount}', baseAmount.toFixed(2))
+      : `Taxa de analise: $${baseAmount.toFixed(2)}`
 
   const [baseAmount, setBaseAmount] = useState(50)
 
@@ -569,9 +608,19 @@ export function MotionExplanationStep({
       .select('price')
       .eq('service_id', 'apoio-rfe-motion-inicio')
       .eq('is_active', true)
-      .single()
-      .then(({ data }) => {
-        if (data?.price) setBaseAmount(parseFloat(data.price))
+      .limit(1)
+      .then(({ data, error }) => {
+        if (error) {
+          console.warn(
+            '[MotionExplanationStep] Failed to load base price:',
+            error.message,
+          )
+          setBaseAmount(50)
+          return
+        }
+        const firstPrice = data?.[0]?.price
+        const parsedPrice = Number(firstPrice)
+        setBaseAmount(Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 50)
       })
   }, [])
 
@@ -583,25 +632,26 @@ export function MotionExplanationStep({
             <RiErrorWarningLine className='text-4xl' />
           </div>
           <h2 className='text-3xl font-black text-slate-800 mb-4 uppercase tracking-tight'>
-            {t?.workflows?.motion?.explanation?.title}
+            {titleWithProduct}
           </h2>
           <p className='text-slate-500 leading-relaxed max-w-md mx-auto mb-10 overflow-hidden text-ellipsis line-clamp-3'>
-            {t?.workflows?.motion?.explanation?.desc}
+            {textOr(
+              copy?.desc,
+              'Contrate a analise especializada para avaliar sua negativa e definir os proximos passos com seguranca.',
+            )}
           </p>
 
           <div className='bg-slate-50 rounded-3xl p-8 mb-10 text-left border border-slate-100'>
             <h4 className='text-xs font-black text-slate-400 uppercase tracking-widest mb-4'>
-              {t?.workflows?.motion?.explanation?.howItWorks}
+              {textOr(copy?.howItWorks, 'Como funciona')}
             </h4>
             <div className='space-y-4'>
-              {t?.workflows?.motion?.explanation?.features?.map(
-                (feature: string, i: number) => (
-                  <div key={i} className='flex gap-3'>
-                    <RiCheckDoubleLine className='text-primary text-lg shrink-0 mt-1' />
-                    <p className='text-sm text-slate-600'>{feature}</p>
-                  </div>
-                ),
-              )}
+              {features.map((feature: string, i: number) => (
+                <div key={i} className='flex gap-3'>
+                  <RiCheckDoubleLine className='text-primary text-lg shrink-0 mt-1' />
+                  <p className='text-sm text-slate-600'>{feature}</p>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -609,18 +659,18 @@ export function MotionExplanationStep({
             onClick={() => setShowCheckout(true)}
             className='w-full bg-primary hover:bg-primary-hover text-white py-6 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3'
           >
-            {t?.workflows?.motion?.explanation?.btn}
+            {textOr(copy?.btn, 'Pagar analise')}
             <RiMoneyDollarCircleLine className='text-xl' />
           </button>
           <div className='mt-4 flex flex-col items-center gap-1'>
             <p className='text-[10px] text-slate-400 font-bold uppercase tracking-widest italic'>
-              {t?.workflows?.shared?.analysisFee?.replace(
-                '{amount}',
-                baseAmount.toFixed(2),
-              ) || `Fee: $${baseAmount.toFixed(2)}`}
+              {analysisFeeText}
             </p>
             <p className='text-[9px] text-primary/50 font-black uppercase tracking-tighter'>
-              {t?.workflows?.shared?.processingFees}
+              {textOr(
+                t?.workflows?.shared?.processingFees,
+                'Taxas de processamento podem variar',
+              )}
             </p>
           </div>
         </div>
@@ -760,25 +810,38 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
                 path: (data.docs as Record<string, string>)
                   ?.motion_denial_letter,
               }}
-              onChange={(key: string, file: File) => handleFileUpload(key, file)}
+              onChange={(key: string, file: File) =>
+                handleFileUpload(key, file)
+              }
             />
           </div>
 
           <div>
             <label className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block'>
-              {t?.workflows?.motion?.instruction?.supportingUploadLabel || 'Supporting docs (optional)'}
+              {t?.workflows?.motion?.instruction?.supportingUploadLabel ||
+                'Supporting docs (optional)'}
             </label>
             <DocUploadCard
               docKey='motion_supporting_docs'
-              title={t?.workflows?.motion?.instruction?.supportingUploadTitle || 'Supporting Documents'}
-              subtitle={t?.workflows?.motion?.instruction?.supportingUploadSubtitle || 'Optional evidence that helps your case'}
+              title={
+                t?.workflows?.motion?.instruction?.supportingUploadTitle ||
+                'Supporting Documents'
+              }
+              subtitle={
+                t?.workflows?.motion?.instruction?.supportingUploadSubtitle ||
+                'Optional evidence that helps your case'
+              }
               doc={{
                 file: null,
-                label: t?.workflows?.motion?.instruction?.supportingUploadStatus || 'Optional documents',
+                label:
+                  t?.workflows?.motion?.instruction?.supportingUploadStatus ||
+                  'Optional documents',
                 path: (data.docs as Record<string, string>)
                   ?.motion_supporting_docs,
               }}
-              onChange={(key: string, file: File) => handleFileUpload(key, file)}
+              onChange={(key: string, file: File) =>
+                handleFileUpload(key, file)
+              }
             />
           </div>
 
@@ -817,7 +880,8 @@ export function MotionAcceptProposalStep({
   const proposalText =
     (data.motion_proposal_text as string) ||
     t?.workflows?.motion?.proposal?.defaultStrategy
-  const proposalAmount = Number(data.motion_amount ?? data.motion_proposal_amount) || 0
+  const proposalAmount =
+    Number(data.motion_amount ?? data.motion_proposal_amount) || 0
   const alreadyPaid =
     Boolean(data.motion_payment_completed_at) ||
     Boolean(data.motion_proposal_paid) ||
@@ -860,11 +924,13 @@ export function MotionAcceptProposalStep({
 
           {alreadyPaid ? (
             <div className='mb-6 rounded-2xl bg-emerald-50 border border-emerald-100 p-4 text-sm font-semibold text-emerald-700'>
-              {t?.workflows?.motion?.proposal?.alreadyPaid || 'Pagamento já confirmado.'}
+              {t?.workflows?.motion?.proposal?.alreadyPaid ||
+                'Pagamento já confirmado.'}
             </div>
           ) : proposalAmount <= 0 ? (
             <div className='mb-6 rounded-2xl bg-amber-50 border border-amber-100 p-4 text-sm font-semibold text-amber-700'>
-              {t?.workflows?.motion?.proposal?.waitingProposal || 'Aguardando proposta do time.'}
+              {t?.workflows?.motion?.proposal?.waitingProposal ||
+                'Aguardando proposta do time.'}
             </div>
           ) : null}
 
@@ -931,7 +997,9 @@ export function MotionEndStep({ proc }: StepProps) {
   const { user } = useAuth()
   const data = (proc.step_data || {}) as Record<string, unknown>
   const [savingResult, setSavingResult] = useState(false)
-  const [chatSeeded, setChatSeeded] = useState(Boolean(data.motion_chat_started_at))
+  const [chatSeeded, setChatSeeded] = useState(
+    Boolean(data.motion_chat_started_at),
+  )
   const [localResult, setLocalResult] = useState<string>(() =>
     String(data.motion_final_result || '').toLowerCase(),
   )
@@ -943,7 +1011,8 @@ export function MotionEndStep({ proc }: StepProps) {
         .publicUrl
     : null
   const workflowStatus = String(data.workflow_status || '').toLowerCase()
-  const motionResult = localResult || String(data.motion_final_result || '').toLowerCase()
+  const motionResult =
+    localResult || String(data.motion_final_result || '').toLowerCase()
   const normalizedStatus =
     workflowStatus === 'approved' || workflowStatus === 'rejected'
       ? workflowStatus
@@ -952,10 +1021,10 @@ export function MotionEndStep({ proc }: StepProps) {
         : 'in_progress'
 
   useEffect(() => {
-    if (chatSeededRef.current || chatSeeded) return;
-    if (!user?.id) return;
+    if (chatSeededRef.current || chatSeeded) return
+    if (!user?.id) return
 
-    chatSeededRef.current = true;
+    chatSeededRef.current = true
 
     void (async () => {
       try {
@@ -963,19 +1032,19 @@ export function MotionEndStep({ proc }: StepProps) {
           proc.id,
           user.id,
           'Olá! Quero falar com o especialista sobre o resultado da minha Motion.',
-        );
+        )
 
         if (created) {
           await processService.updateStepData(proc.id, {
             motion_chat_started_at: new Date().toISOString(),
-          });
-          setChatSeeded(true);
+          })
+          setChatSeeded(true)
         }
       } catch (error) {
-        console.error('[MotionEndStep] failed to seed chat:', error);
+        console.error('[MotionEndStep] failed to seed chat:', error)
       }
-    })();
-  }, [chatSeeded, proc.id, user?.id]);
+    })()
+  }, [chatSeeded, proc.id, user?.id])
 
   return (
     <div className='max-w-2xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-700'>
@@ -1031,7 +1100,9 @@ export function MotionEndStep({ proc }: StepProps) {
         <p className='text-sm text-slate-400 font-medium max-w-sm mx-auto leading-relaxed mb-10'>
           Nos informe selecionando o botao abaixo.
         </p>
-        <div className={`rounded-3xl border p-6 ${normalizedStatus === 'approved' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : normalizedStatus === 'rejected' ? 'bg-red-50 border-red-100 text-red-700' : 'bg-amber-50 border-amber-100 text-amber-700'}`}>
+        <div
+          className={`rounded-3xl border p-6 ${normalizedStatus === 'approved' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : normalizedStatus === 'rejected' ? 'bg-red-50 border-red-100 text-red-700' : 'bg-amber-50 border-amber-100 text-amber-700'}`}
+        >
           <p className='text-xs font-black uppercase tracking-widest mb-1'>
             {normalizedStatus === 'approved'
               ? 'Aprovado'
@@ -1041,17 +1112,19 @@ export function MotionEndStep({ proc }: StepProps) {
           </p>
           <p className='text-sm font-medium leading-relaxed'>
             {normalizedStatus === 'approved'
-              ? t?.workflows?.motion?.end?.approvedDesc || 'Seu Motion foi aprovado.'
+              ? t?.workflows?.motion?.end?.approvedDesc ||
+                'Seu Motion foi aprovado.'
               : normalizedStatus === 'rejected'
-                ? t?.workflows?.motion?.end?.deniedDesc || 'Seu Motion foi rejeitado.'
+                ? t?.workflows?.motion?.end?.deniedDesc ||
+                  'Seu Motion foi rejeitado.'
                 : 'Selecione uma opcao abaixo para nos informar como foi a Motion.'}
           </p>
         </div>
 
-        <div className="mt-6 space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className='mt-6 space-y-3'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
             <button
-              type="button"
+              type='button'
               disabled={savingResult}
               onClick={async () => {
                 try {
@@ -1065,19 +1138,22 @@ export function MotionEndStep({ proc }: StepProps) {
                   setLocalResult('approved')
                   toast.success('Resultado informado como aprovado.')
                 } catch (error) {
-                  console.error('[MotionEndStep] failed to save approved result:', error)
+                  console.error(
+                    '[MotionEndStep] failed to save approved result:',
+                    error,
+                  )
                   toast.error('Nao foi possivel salvar o resultado.')
                 } finally {
                   setSavingResult(false)
                 }
               }}
-              className="h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-60"
+              className='h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-60'
             >
-              <RiCheckLine className="inline mr-2 text-base" />
+              <RiCheckLine className='inline mr-2 text-base' />
               Aprovado
             </button>
             <button
-              type="button"
+              type='button'
               disabled={savingResult}
               onClick={async () => {
                 try {
@@ -1091,15 +1167,18 @@ export function MotionEndStep({ proc }: StepProps) {
                   setLocalResult('rejected')
                   toast.success('Resultado informado como reprovado.')
                 } catch (error) {
-                  console.error('[MotionEndStep] failed to save rejected result:', error)
+                  console.error(
+                    '[MotionEndStep] failed to save rejected result:',
+                    error,
+                  )
                   toast.error('Nao foi possivel salvar o resultado.')
                 } finally {
                   setSavingResult(false)
                 }
               }}
-              className="h-12 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all disabled:opacity-60"
+              className='h-12 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all disabled:opacity-60'
             >
-              <RiCloseLine className="inline mr-2 text-base" />
+              <RiCloseLine className='inline mr-2 text-base' />
               Reprovado
             </button>
           </div>

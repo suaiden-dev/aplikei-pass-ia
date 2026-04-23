@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   RiDashboardLine,
@@ -43,6 +43,10 @@ export function CustomerLayout() {
   useEffect(() => {
     setIsSidebarOpen(false);
   }, [pathname]);
+
+  if (user?.role === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
 
   return (
     <NotificationProvider role="client">

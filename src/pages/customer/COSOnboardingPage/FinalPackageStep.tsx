@@ -483,11 +483,15 @@ export default function FinalPackageStep({
                 id: 'report',
               })
               try {
+                await processService.updateStepData(proc.id, {
+                  uscis_official_result: 'denied',
+                  uscis_reported_at: new Date().toISOString(),
+                })
                 await processService.startAdditionalWorkflow(proc.id, 'motion')
                 toast.success(t.cos.finalPackage.feedback.toasts.success, {
                   id: 'report',
                 })
-                if (onJumpToStep) onJumpToStep(13)
+                if (onJumpToStep) onJumpToStep(19)
                 else await onComplete()
               } catch (e) {
                 toast.error('Erro ao iniciar fluxo de Motion')
@@ -508,11 +512,15 @@ export default function FinalPackageStep({
                 id: 'report',
               })
               try {
+                await processService.updateStepData(proc.id, {
+                  uscis_official_result: 'rfe',
+                  uscis_reported_at: new Date().toISOString(),
+                })
                 await processService.startAdditionalWorkflow(proc.id, 'rfe')
                 toast.success(t.cos.finalPackage.feedback.toasts.success, {
                   id: 'report',
                 })
-                if (onJumpToStep) onJumpToStep(19)
+                if (onJumpToStep) onJumpToStep(13)
                 else await onComplete()
               } catch (e) {
                 toast.error('Erro ao iniciar fluxo de RFE')

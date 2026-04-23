@@ -94,16 +94,30 @@ export default function ProcessDetailPage() {
       return data;
     },
     enabled: !!user && !!slug,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
+  const interviewOutcomeForConsultation = String(
+    (proc?.step_data as Record<string, unknown> | undefined)?.interview_outcome || "",
+  ).toLowerCase();
+  const shouldCheckConsultation =
+    !!user &&
+    (slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1")) &&
+    (proc?.status === "rejected" ||
+      interviewOutcomeForConsultation === "denied" ||
+      interviewOutcomeForConsultation === "rejected");
+
   const { data: hasConsultation = false } = useQuery({
-    queryKey: ['mentoria-negativa', user?.id],
+    queryKey: ['mentoria-negativa', user?.id, slug, shouldCheckConsultation],
     queryFn: async () => {
       if (!user) return false;
       const consult = await processService.getUserServiceBySlug(user.id, "mentoria-negativa-consular");
       return !!consult && consult.status !== "cancelled";
     },
-    enabled: !!user && (slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1")),
+    enabled: shouldCheckConsultation,
   });
 
   useEffect(() => {

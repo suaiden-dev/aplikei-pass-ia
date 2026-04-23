@@ -65,6 +65,10 @@ export function useProcessDetailController({
       return data;
     },
     enabled: !!userId && !!slug,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
   const { data: hasConsultation = false } = useQuery({

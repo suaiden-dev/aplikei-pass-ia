@@ -416,8 +416,31 @@ function RFEHistoryPanel({ proc }: { proc: UserService }) {
 export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps) {
   const t = useT("onboarding");
   const [showCheckout, setShowCheckout] = useState(false);
+  const copy = t?.workflows?.rfe?.explanation;
+  const textOr = (value: unknown, fallback: string) =>
+    typeof value === "string" && value.trim().length > 0 ? value : fallback;
+  const translatedFeatures = Array.isArray(copy?.features)
+    ? copy.features.filter(
+        (feature): feature is string =>
+          typeof feature === "string" && feature.trim().length > 0,
+      )
+    : [];
+  const features =
+    translatedFeatures.length > 0
+      ? translatedFeatures
+      : [
+          "Analise tecnica da carta de RFE",
+          "Checklist claro com documentos necessarios",
+          "Orientacao para organizar e enviar sua resposta",
+        ];
   
-  const [baseAmount, setBaseAmount] = useState(0);
+  const [baseAmount, setBaseAmount] = useState(50);
+  const analysisFeeTemplate = t?.workflows?.shared?.analysisFee;
+  const analysisFeeText =
+    typeof analysisFeeTemplate === "string" &&
+    analysisFeeTemplate.includes("{amount}")
+      ? analysisFeeTemplate.replace("{amount}", baseAmount.toFixed(2))
+      : `Taxa de analise: $${baseAmount.toFixed(2)}`;
 
   useEffect(() => {
     supabase
@@ -425,9 +448,16 @@ export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps)
       .select("price")
       .eq("service_id", "apoio-rfe-motion-inicio")
       .eq("is_active", true)
-      .single()
-      .then(({ data }) => {
-        if (data?.price) setBaseAmount(parseFloat(data.price));
+      .limit(1)
+      .then(({ data, error }) => {
+        if (error) {
+          console.warn("[RFEExplanationStep] Failed to load base price:", error.message);
+          setBaseAmount(50);
+          return;
+        }
+        const firstPrice = data?.[0]?.price;
+        const parsedPrice = Number(firstPrice);
+        setBaseAmount(Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 50);
       });
   }, []);
 
@@ -440,13 +470,13 @@ export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps)
           <div className="w-20 h-20 rounded-3xl bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-8 shadow-inner">
              <RiInformationLine className="text-4xl" />
           </div>
-          <h2 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tight">{t?.workflows?.rfe?.explanation?.title}</h2>
-          <p className="text-slate-500 leading-relaxed max-w-md mx-auto mb-10 overflow-hidden" dangerouslySetInnerHTML={{ __html: t?.workflows?.rfe?.explanation?.desc || "" }} />
+          <h2 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tight">{textOr(copy?.title, "RFE - Analise da Solicitacao")}</h2>
+          <p className="text-slate-500 leading-relaxed max-w-md mx-auto mb-10 overflow-hidden" dangerouslySetInnerHTML={{ __html: textOr(copy?.desc, "Solicite a analise especializada da sua RFE para responder com estrategia e seguranca.") }} />
 
           <div className="bg-slate-50 rounded-3xl p-8 mb-10 text-left border border-slate-100">
-             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{t?.workflows?.rfe?.explanation?.howItWorks}</h4>
+             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{textOr(copy?.howItWorks, "Como funciona")}</h4>
              <div className="space-y-4">
-                {t?.workflows?.rfe?.explanation?.features?.map((f: string, i: number) => (
+                {features.map((f: string, i: number) => (
                   <div key={i} className="flex gap-3">
                     <RiCheckDoubleLine className="text-primary text-lg shrink-0 mt-1" />
                     <p className="text-sm text-slate-600">{f}</p>
@@ -459,9 +489,20 @@ export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps)
             onClick={() => setShowCheckout(true)}
             className="w-full bg-primary hover:bg-primary-hover text-white py-6 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3"
           >
-            {t?.workflows?.rfe?.explanation?.btn}
+            {textOr(copy?.btn, "Pagar analise")}
             <RiMoneyDollarCircleLine className="text-xl" />
           </button>
+          <div className="mt-4 flex flex-col items-center gap-1">
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">
+              {analysisFeeText}
+            </p>
+            <p className="text-[9px] text-primary/50 font-black uppercase tracking-tighter">
+              {textOr(
+                t?.workflows?.shared?.processingFees,
+                "Taxas de processamento podem variar",
+              )}
+            </p>
+          </div>
         </div>
 
         {showCheckout && (

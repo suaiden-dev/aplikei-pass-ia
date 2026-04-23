@@ -17,7 +17,7 @@ import { useT } from "../../../i18n";
 interface Props {
   proc: UserService;
   user: any;
-  onComplete: () => void;
+  onComplete: () => void | Promise<void>;
 }
 
 export default function SevisFeeStep({ proc, user, onComplete }: Props) {
@@ -86,7 +86,7 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
     }
     setIsSubmitting(true);
     try {
-      onComplete();
+      await onComplete();
     } catch (error) {
       toast.error(t.cos.sevisFee.toasts.error);
     } finally {

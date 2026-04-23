@@ -74,7 +74,7 @@ export interface FinalFormsData {
 interface Props {
   proc: UserService;
   user: any;
-  onComplete: () => void;
+  onComplete: () => void | Promise<void>;
 }
 
 export default function FinalFormsStep({ proc, user, onComplete }: Props) {
@@ -174,7 +174,7 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
       await processService.updateStepData(proc.id, { finalForms: data });
       await finalFormsService.generateAndUploadFinalForms(user.id, proc.id, data);
       toast.success(t.cos.finalForms.toasts.submitSuccess);
-      onComplete();
+      await onComplete();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t.cos.finalForms.toasts.submitError;
       toast.error(msg);

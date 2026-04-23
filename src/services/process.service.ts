@@ -114,7 +114,7 @@ export const processService = {
   },
 
   async getServiceById(id: string): Promise<UserService | null> {
-    return processRepository.findByIdWithUser(id);
+    return processRepository.findById(id);
   },
 
   async requestStepReview(serviceId: string): Promise<void> {
