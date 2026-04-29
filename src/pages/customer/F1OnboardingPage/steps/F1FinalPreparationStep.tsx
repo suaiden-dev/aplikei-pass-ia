@@ -152,8 +152,8 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
       }
 
       if (!purchasedMentorship || !isScheduling) return;
-      const stepData = (purchasedMentorship.step_data as any) || {};
-      const nextCount = (stepData.scheduled_count || 0) + 1;
+      const stepData = (purchasedMentorship.step_data as Record<string, unknown>) || {};
+      const nextCount = ((stepData.scheduled_count as number) || 0) + 1;
       await supabase
         .from("user_services")
         .update({
@@ -194,7 +194,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
       const data = await response.json();
       const botResponse = data.output || data.response || "Desculpe, tive um problema.";
       setChatMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: "bot", text: botResponse }]);
-    } catch (error) {
+    } catch {
       toast.error(t.onboardingPage.aiInterviewChat.errorConnecting);
     } finally {
       setIsBotTyping(false);
@@ -210,7 +210,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
         .update({
           status: outcomeStatus,
           step_data: {
-            ...((freshStepData as any) || {}),
+            ...(freshStepData || {}),
             interview_outcome: outcome,
             reported_at: new Date().toISOString()
           }
@@ -238,7 +238,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
     navigate(`/checkout/${plan.id}`);
   };
 
-  const scheduledCount = ((purchasedMentorship?.step_data as any)?.scheduled_count as number) || 0;
+  const scheduledCount = ((purchasedMentorship?.step_data as Record<string, unknown>)?.scheduled_count as number | undefined) || 0;
   const totalInterviews = purchasedMentorship?.service_slug === "mentoria-gold" ? 3 : purchasedMentorship?.service_slug === "mentoria-silver" ? 2 : 1;
   const allScheduled = scheduledCount >= totalInterviews;
 
@@ -248,61 +248,61 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
   const now = new Date();
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const isInterviewDayOrPast = (casvDate && casvDate <= todayStr) || (consuladoDate && consuladoDate <= todayStr);
-  const alreadyReported = !!(freshStepData as any)?.interview_outcome;
+  const alreadyReported = !!freshStepData?.interview_outcome;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {isAwaitingAdmin ? (
-        <div className="text-center py-12 px-6 bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 relative overflow-hidden">
+        <div className="text-center py-12 px-6 bg-card rounded-[40px] border border-border shadow-xl shadow-none relative overflow-hidden">
           <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-[28px] flex items-center justify-center mx-auto mb-8 shadow-inner">
             <RiLoader4Line className="text-4xl animate-spin" />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-4 uppercase">{t.onboardingPage.f1.awaitingSchedulingF1}</h2>
-          <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-md mx-auto mb-8">
+          <h2 className="text-2xl font-black text-text tracking-tight mb-4 uppercase">{t.onboardingPage.f1.awaitingSchedulingF1}</h2>
+          <p className="text-sm text-text-muted font-medium leading-relaxed max-w-md mx-auto mb-8">
             {t.onboardingPage.f1.awaitingSchedulingF1Desc}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-            <button onClick={() => setActiveModule("guide")} className="p-6 rounded-3xl bg-slate-50 border border-slate-100 hover:border-primary flex flex-col gap-3 group">
-              <RiBookOpenLine className="text-2xl text-slate-400 group-hover:text-primary" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">{t.onboardingPage.awaitingInterview.tools.guide.title}</span>
+            <button onClick={() => setActiveModule("guide")} className="p-6 rounded-3xl bg-bg-subtle border border-border hover:border-primary flex flex-col gap-3 group">
+              <RiBookOpenLine className="text-2xl text-text-muted group-hover:text-primary" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-text">{t.onboardingPage.awaitingInterview.tools.guide.title}</span>
             </button>
-            <button onClick={() => setActiveModule("ai")} className="p-6 rounded-3xl bg-slate-50 border border-slate-100 hover:border-primary flex flex-col gap-3 group">
-              <RiRobotLine className="text-2xl text-slate-400 group-hover:text-primary" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">{t.onboardingPage.awaitingInterview.tools.ai.title}</span>
+            <button onClick={() => setActiveModule("ai")} className="p-6 rounded-3xl bg-bg-subtle border border-border hover:border-primary flex flex-col gap-3 group">
+              <RiRobotLine className="text-2xl text-text-muted group-hover:text-primary" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-text">{t.onboardingPage.awaitingInterview.tools.ai.title}</span>
             </button>
-            <button onClick={() => setActiveModule("specialist")} className="p-6 rounded-3xl bg-slate-50 border border-slate-100 hover:border-primary flex flex-col gap-3 group">
-              <RiUserStarLine className="text-2xl text-slate-400 group-hover:text-primary" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">{t.onboardingPage.awaitingInterview.tools.specialist.title}</span>
+            <button onClick={() => setActiveModule("specialist")} className="p-6 rounded-3xl bg-bg-subtle border border-border hover:border-primary flex flex-col gap-3 group">
+              <RiUserStarLine className="text-2xl text-text-muted group-hover:text-primary" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-text">{t.onboardingPage.awaitingInterview.tools.specialist.title}</span>
             </button>
           </div>
         </div>
       ) : (
         <div className="space-y-8">
           <div className="text-center space-y-2">
-            <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase">{t.onboardingPage.f1.reportingTitle}</h2>
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">{t.onboardingPage.f1.reportingSubtitle}</p>
+            <h2 className="text-3xl font-black text-text tracking-tight uppercase">{t.onboardingPage.f1.reportingTitle}</h2>
+            <p className="text-sm font-medium text-text-muted uppercase tracking-widest">{t.onboardingPage.f1.reportingSubtitle}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40">
-               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.onboardingPage.f1.casvBiometrics}</span>
-               <p className="text-xl font-black text-slate-800 mt-1">{new Date(casvDate + "T12:00:00").toLocaleDateString(lang === 'pt' ? 'pt-BR' : lang === 'es' ? 'es-ES' : 'en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-               <div className="mt-4 pt-4 border-t border-slate-50 flex gap-6">
-                 <div><span className="text-[9px] font-black text-slate-400 uppercase">{t.onboardingPage.f1.hour}</span><p className="text-xs font-bold">{freshStepData.final_casv_time as string}</p></div>
-                 <div><span className="text-[9px] font-black text-slate-400 uppercase">{t.onboardingPage.f1.location}</span><p className="text-xs font-bold">{freshStepData.final_casv_location as string}</p></div>
+            <div className="bg-card p-8 rounded-[40px] border border-border shadow-xl shadow-none">
+               <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">{t.onboardingPage.f1.casvBiometrics}</span>
+               <p className="text-xl font-black text-text mt-1">{new Date(casvDate + "T12:00:00").toLocaleDateString(lang === 'pt' ? 'pt-BR' : lang === 'es' ? 'es-ES' : 'en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+               <div className="mt-4 pt-4 border-t border-border flex gap-6">
+                 <div><span className="text-[9px] font-black text-text-muted uppercase">{t.onboardingPage.f1.hour}</span><p className="text-xs font-bold">{freshStepData.final_casv_time as string}</p></div>
+                 <div><span className="text-[9px] font-black text-text-muted uppercase">{t.onboardingPage.f1.location}</span><p className="text-xs font-bold">{freshStepData.final_casv_location as string}</p></div>
                </div>
             </div>
-            <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40">
-               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.onboardingPage.f1.consulateDate}</span>
-               <p className="text-xl font-black text-slate-800 mt-1">{new Date(consuladoDate + "T12:00:00").toLocaleDateString(lang === 'pt' ? 'pt-BR' : lang === 'es' ? 'es-ES' : 'en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-               <div className="mt-4 pt-4 border-t border-slate-50 flex gap-6">
-                 <div><span className="text-[9px] font-black text-slate-400 uppercase">{t.onboardingPage.f1.hour}</span><p className="text-xs font-bold">{freshStepData.final_consulado_time as string}</p></div>
-                 <div><span className="text-[9px] font-black text-slate-400 uppercase">{t.onboardingPage.f1.location}</span><p className="text-xs font-bold">{freshStepData.final_consulado_location as string}</p></div>
+            <div className="bg-card p-8 rounded-[40px] border border-border shadow-xl shadow-none">
+               <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">{t.onboardingPage.f1.consulateDate}</span>
+               <p className="text-xl font-black text-text mt-1">{new Date(consuladoDate + "T12:00:00").toLocaleDateString(lang === 'pt' ? 'pt-BR' : lang === 'es' ? 'es-ES' : 'en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+               <div className="mt-4 pt-4 border-t border-border flex gap-6">
+                 <div><span className="text-[9px] font-black text-text-muted uppercase">{t.onboardingPage.f1.hour}</span><p className="text-xs font-bold">{freshStepData.final_consulado_time as string}</p></div>
+                 <div><span className="text-[9px] font-black text-text-muted uppercase">{t.onboardingPage.f1.location}</span><p className="text-xs font-bold">{freshStepData.final_consulado_location as string}</p></div>
                </div>
             </div>
           </div>
 
-          <div className="p-10 bg-slate-900 rounded-[40px] text-center space-y-8 shadow-2xl">
+          <div className="p-10 bg-card rounded-[40px] text-center space-y-8 shadow-2xl">
             {alreadyReported ? (
               <div className="space-y-6">
                  {freshStepData.interview_outcome === 'approved' ? (
@@ -317,7 +317,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
                      <h4 className="text-xl font-black uppercase text-white">{t.onboardingPage.processingStatus.outcomeRejected}</h4>
                      <div className="flex flex-col gap-3 max-w-sm mx-auto">
                         <button onClick={() => navigate('/checkout/consultoria-f1-negativa')} className="py-4 bg-primary rounded-xl font-black uppercase text-xs tracking-widest text-white">{t.onboardingPage.processingStatus.consultationSpecialist}</button>
-                        <button onClick={() => navigate('/checkout/visto-f1-reaplicacao')} className="py-4 bg-white/10 rounded-xl font-black uppercase text-xs tracking-widest text-white">{t.onboardingPage.processingStatus.restartProcess}</button>
+                        <button onClick={() => navigate('/checkout/visto-f1-reaplicacao')} className="py-4 bg-card/10 rounded-xl font-black uppercase text-xs tracking-widest text-white">{t.onboardingPage.processingStatus.restartProcess}</button>
                      </div>
                    </div>
                  )}
@@ -327,11 +327,11 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
                  <h4 className="text-xl font-black text-white uppercase">{t.onboardingPage.processingStatus.howWasOutcome}</h4>
                  <div className="flex gap-4 max-w-sm mx-auto">
                    <button onClick={() => handleReportOutcome('approved')} disabled={loading} className="flex-1 h-14 bg-emerald-500 text-white rounded-xl font-black uppercase">{t.onboardingPage.processingStatus.iWasApproved}</button>
-                   <button onClick={() => handleReportOutcome('rejected')} disabled={loading} className="flex-1 h-14 bg-white/10 text-white rounded-xl font-black uppercase">{t.onboardingPage.processingStatus.iWasRefused}</button>
+                   <button onClick={() => handleReportOutcome('rejected')} disabled={loading} className="flex-1 h-14 bg-card/10 text-white rounded-xl font-black uppercase">{t.onboardingPage.processingStatus.iWasRefused}</button>
                  </div>
               </div>
             ) : (
-                             <p className="text-slate-400 text-xs font-black uppercase tracking-widest">{t.onboardingPage.processingStatus.nextSteps}</p>
+                             <p className="text-text-muted text-xs font-black uppercase tracking-widest">{t.onboardingPage.processingStatus.nextSteps}</p>
 
             )}
           </div>
@@ -341,27 +341,27 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
       {/* Modals para Guide, AI, Specialist (similares ao B1/B2) */}
       <AnimatePresence>
         {activeModule && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-            <div className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl p-10 relative">
-               <button onClick={() => setActiveModule(null)} className="absolute top-8 right-8 text-slate-400"><RiCloseLine className="text-2xl"/></button>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-card/60 backdrop-blur-md">
+            <div className="bg-card w-full max-w-2xl rounded-[40px] shadow-2xl p-10 relative">
+               <button onClick={() => setActiveModule(null)} className="absolute top-8 right-8 text-text-muted"><RiCloseLine className="text-2xl"/></button>
                 {activeModule === "guide" && (
                   <div className="space-y-8">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center"><RiBookOpenLine className="text-2xl" /></div>
                       <div>
-                        <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{t.onboardingPage.f1.interviewGuideF1}</h3>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t.onboardingPage.f1.interviewGuideF1Desc}</p>
+                        <h3 className="text-2xl font-black text-text uppercase tracking-tight">{t.onboardingPage.f1.interviewGuideF1}</h3>
+                        <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">{t.onboardingPage.f1.interviewGuideF1Desc}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 gap-3">
                       {(t.onboardingPage.f1.interviewQuestions as {q: string, a: string}[] || []).map((item, i) => (
-                        <div key={i} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                          <p className="text-[11px] font-black text-slate-700 mb-1">{item.q}</p>
-                          <p className="text-[10px] text-slate-500 font-medium">{item.a}</p>
+                        <div key={i} className="p-4 bg-bg-subtle rounded-2xl border border-border">
+                          <p className="text-[11px] font-black text-text mb-1">{item.q}</p>
+                          <p className="text-[10px] text-text-muted font-medium">{item.a}</p>
                         </div>
                       ))}
                     </div>
-                    <div className="pt-8 border-t border-slate-100 text-center">
+                    <div className="pt-8 border-t border-border text-center">
                       <a href="/guides/f1-interview-guide.pdf" target="_blank" className="inline-flex items-center gap-3 px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all">
                         {t.onboardingPage.f1.downloadGuide} <RiArrowRightLine />
                       </a>
@@ -375,21 +375,21 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
                         <RiRobotLine className="text-2xl" />
                         <div className="absolute top-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full animate-pulse"></div>
                       </div>
-                      <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{t.onboardingPage.f1.trainingAI}</h3>
+                      <h3 className="text-2xl font-black text-text uppercase tracking-tight">{t.onboardingPage.f1.trainingAI}</h3>
                     </div>
-                    <div className="flex-1 bg-slate-100 rounded-[32px] overflow-hidden flex flex-col relative shadow-inner border border-slate-200">
+                    <div className="flex-1 bg-bg-subtle rounded-[32px] overflow-hidden flex flex-col relative shadow-inner border border-border">
                       <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4">
                         {chatMessages.map((msg) => (
                           <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                            <div className={`max-w-[85%] p-4 rounded-3xl text-xs font-bold ${msg.role === "user" ? "bg-primary text-white rounded-tr-none" : "bg-white text-slate-700 rounded-tl-none border border-slate-200"}`}>
+                            <div className={`max-w-[85%] p-4 rounded-3xl text-xs font-bold ${msg.role === "user" ? "bg-primary text-white rounded-tr-none" : "bg-card text-text rounded-tl-none border border-border"}`}>
                               {msg.text}
                             </div>
                           </div>
                         ))}
-                        {isBotTyping && <div className="flex justify-start"><div className="bg-white p-4 rounded-3xl rounded-tl-none shadow-sm flex gap-1"><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" /><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.2s]" /><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.4s]" /></div></div>}
+                        {isBotTyping && <div className="flex justify-start"><div className="bg-card p-4 rounded-3xl rounded-tl-none shadow-sm flex gap-1"><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" /><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.2s]" /><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.4s]" /></div></div>}
                       </div>
-                      <div className="p-4 bg-white border-t border-slate-200 relative flex gap-2">
-                        <input type="text" placeholder={t.onboardingPage.aiInterviewChat.placeholder} value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()} className="flex-1 px-4 py-3 bg-slate-100 rounded-xl text-xs font-bold" />
+                      <div className="p-4 bg-card border-t border-border relative flex gap-2">
+                        <input type="text" placeholder={t.onboardingPage.aiInterviewChat.placeholder} value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()} className="flex-1 px-4 py-3 bg-bg-subtle rounded-xl text-xs font-bold" />
                         <button onClick={handleSendChatMessage} className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center font-black"><RiSendPlane2Fill /></button>
                       </div>
                     </div>
@@ -399,36 +399,36 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
                   <div className="space-y-8">
                     {isScheduling ? (
                       <div className="relative">
-                        <button onClick={() => setIsScheduling(false)} className="absolute -top-12 right-0 text-[10px] font-black uppercase text-slate-400 flex items-center gap-1"><RiCloseLine /> {t.onboardingPage.backToDashboard}</button>
+                        <button onClick={() => setIsScheduling(false)} className="absolute -top-12 right-0 text-[10px] font-black uppercase text-text-muted flex items-center gap-1"><RiCloseLine /> {t.onboardingPage.backToDashboard}</button>
                         <div className="rounded-3xl overflow-hidden border h-[500px]"><InlineWidget url={calendlyUrl} styles={{ height: '500px' }} prefill={{ email: user?.email, name: user?.fullName }} /></div>
                       </div>
                     ) : purchasedMentorship ? (
                       <div className="text-center space-y-6 py-8">
                         <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto"><RiProgress3Line className="text-4xl" /></div>
                         <div>
-                          <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{t.onboardingPage.specialistTraining.mentoringTitle}</h3>
-                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{scheduledCount} {t.onboardingPage.stepOf} {totalInterviews} {t.onboardingPage.specialistTraining.scheduledLabel}</p>
+                          <h3 className="text-2xl font-black text-text uppercase tracking-tight">{t.onboardingPage.specialistTraining.mentoringTitle}</h3>
+                          <p className="text-xs text-text-muted font-bold uppercase tracking-widest">{scheduledCount} {t.onboardingPage.stepOf} {totalInterviews} {t.onboardingPage.specialistTraining.scheduledLabel}</p>
                         </div>
                         {!allScheduled ? (
-                          <button onClick={() => setIsScheduling(true)} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest">{t.onboardingPage.specialistTraining.scheduleNow} {scheduledCount + 1}ª {t.onboardingPage.specialistTraining.interviewLabel}</button>
+                           <button onClick={() => setIsScheduling(true)} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest">{t.onboardingPage.specialistTraining.scheduleNow} {scheduledCount + 1}ª {t.onboardingPage.specialistTraining.interviewLabel}</button>
                         ) : (
                           <div className="p-4 bg-emerald-50 text-emerald-800 text-[10px] font-black uppercase rounded-2xl">{t.onboardingPage.specialistTraining.allScheduled}</div>
                         )}
                       </div>
                     ) : (
                       <div className="space-y-6">
-                        <div className="text-center"><h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Mentoria com Especialista</h3></div>
+                        <div className="text-center"><h3 className="text-2xl font-black text-text uppercase tracking-tight">Mentoria com Especialista</h3></div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           {PLANS.map(plan => (
-                            <div key={plan.id} className={`p-6 rounded-[32px] border flex flex-col ${plan.best ? "bg-slate-900 border-slate-900 text-white" : "bg-slate-50"}`}>
+                             <div key={plan.id} className={`p-6 rounded-[32px] border flex flex-col ${plan.best ? "bg-slate-900 border-slate-900 text-white" : "bg-bg-subtle"}`}>
                               <span className="text-[10px] font-black uppercase mb-1">{plan.name}</span>
                               <span className="text-2xl font-black mb-4">R$ {plan.price}</span>
                               <div className="space-y-2 flex-1">
                                 {plan.features.map(f => (
-                                  <div key={f} className="flex gap-2 text-[9px] font-bold text-slate-400"><RiCheckLine className="text-emerald-500" /> {f}</div>
+                                  <div key={f} className="flex gap-2 text-[9px] font-bold text-text-muted"><RiCheckLine className="text-emerald-500" /> {f}</div>
                                 ))}
                               </div>
-                                                             <button onClick={() => handleSelectPlan(plan)} className={`mt-6 py-3 rounded-xl text-[10px] font-black uppercase ${plan.best ? "bg-primary text-white" : "bg-white border text-slate-800"}`}>{t.onboardingPage.specialistTraining.chooseThis}</button>
+                                                             <button onClick={() => handleSelectPlan(plan)} className={`mt-6 py-3 rounded-xl text-[10px] font-black uppercase ${plan.best ? "bg-primary text-white" : "bg-slate-900 border text-white"}`}>{t.onboardingPage.specialistTraining.chooseThis}</button>
                             </div>
                           ))}
                         </div>

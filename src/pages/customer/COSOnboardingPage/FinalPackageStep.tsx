@@ -138,16 +138,16 @@ export default function FinalPackageStep({
         <div className='w-24 h-24 rounded-[32px] bg-emerald-50 text-emerald-500 flex items-center justify-center mb-8 shadow-inner rotate-3 hover:rotate-0 transition-transform'>
           <RiCheckDoubleLine className='text-5xl' />
         </div>
-        <h2 className='text-4xl font-black text-slate-800 mb-4 uppercase tracking-tighter italic'>
+        <h2 className='text-4xl font-black text-text mb-4 uppercase tracking-tighter italic'>
           {t.cos.finalPackage.celebration.title}
         </h2>
         <p
-          className='text-slate-500 font-medium max-w-md mx-auto leading-relaxed mb-12'
+          className='text-text-muted font-medium max-w-md mx-auto leading-relaxed mb-12'
           dangerouslySetInnerHTML={{
             __html: t.cos.finalPackage.celebration.desc,
           }}
         />
-        <div className='bg-white rounded-[40px] border border-slate-100 p-12 shadow-xl shadow-slate-200/50 mb-12 max-w-lg w-full relative overflow-hidden group'>
+        <div className='bg-card rounded-[40px] border border-border p-12 shadow-xl shadow-none/50 mb-12 max-w-lg w-full relative overflow-hidden group'>
           <div className='absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity'>
             <RiCheckDoubleLine className='text-8xl' />
           </div>
@@ -155,10 +155,10 @@ export default function FinalPackageStep({
             <p className='text-[10px] font-black text-primary uppercase tracking-widest mb-4 italic'>
               {t.cos.finalPackage.celebration.nextStepTitle}
             </p>
-            <h3 className='text-xl font-black text-slate-800 mb-6 uppercase tracking-tight'>
+            <h3 className='text-xl font-black text-text mb-6 uppercase tracking-tight'>
               {t.cos.finalPackage.celebration.nextStepDesc}
             </h3>
-            <p className='text-sm text-slate-400 font-medium leading-relaxed'>
+            <p className='text-sm text-text-muted font-medium leading-relaxed'>
               {t.cos.finalPackage.celebration.nextStepInfo}
             </p>
           </div>
@@ -168,7 +168,7 @@ export default function FinalPackageStep({
             await processService.updateProcessStatus(proc.id, 'completed')
             window.location.href = '/dashboard'
           }}
-          className='bg-slate-900 hover:bg-black text-white px-12 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all flex items-center gap-3'
+          className='bg-slate-900 hover:bg-black text-white px-12 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-none transition-all flex items-center gap-3'
         >
           {t.cos.finalPackage.celebration.btn}
           <RiArrowRightLine className='text-xl' />
@@ -180,15 +180,15 @@ export default function FinalPackageStep({
   return (
     <div className='space-y-8 pb-32'>
       {/* Header */}
-      <div className='bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm flex items-center gap-6'>
+      <div className='bg-card rounded-[32px] border border-border p-8 shadow-sm flex items-center gap-6'>
         <div className='w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center flex-shrink-0'>
           <RiCheckDoubleLine className='text-4xl' />
         </div>
         <div>
-          <h2 className='text-2xl font-black text-slate-800 tracking-tight uppercase'>
+          <h2 className='text-2xl font-black text-text tracking-tight uppercase'>
             {t.cos.finalPackage.header.title}
           </h2>
-          <p className='text-sm font-medium text-slate-400'>
+          <p className='text-sm font-medium text-text-muted'>
             {t.cos.finalPackage.header.desc}
           </p>
         </div>
@@ -211,19 +211,19 @@ export default function FinalPackageStep({
       )}
 
       {/* Download Area */}
-      <div className='bg-white rounded-[40px] border border-slate-100 p-10 shadow-sm text-center'>
+      <div className='bg-card rounded-[40px] border border-border p-10 shadow-sm text-center'>
         <div className='w-14 h-14 rounded-2xl bg-primary/5 text-primary flex items-center justify-center mx-auto mb-5'>
           <RiFileTextLine className='text-3xl' />
         </div>
-        <h3 className='text-xl font-black text-slate-800 mb-2 uppercase tracking-tight'>
+        <h3 className='text-xl font-black text-text mb-2 uppercase tracking-tight'>
           {t.cos.finalPackage.download.title}
         </h3>
-        <p className='text-sm text-slate-400 font-medium max-w-sm mx-auto leading-relaxed mb-8'>
+        <p className='text-sm text-text-muted font-medium max-w-sm mx-auto leading-relaxed mb-8'>
           Faça o download do seu pacote e realize as assinaturas conforme
           instruções abaixo.
         </p>
         {isMerging ? (
-          <div className='flex items-center justify-center gap-3 py-5 text-slate-400'>
+          <div className='flex items-center justify-center gap-3 py-5 text-text-muted'>
             <RiLoader4Line className='text-xl animate-spin text-primary' />
             <span className='text-sm font-black uppercase tracking-widest'>
               {t.cos.finalPackage.download.btnWaiting}
@@ -241,16 +241,16 @@ export default function FinalPackageStep({
       </div>
 
       {/* Montar o Processo */}
-      <div className='bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm'>
+      <div className='bg-card rounded-[32px] border border-border p-8 shadow-sm'>
         <div className='flex items-center gap-3 mb-6'>
-          <div className='w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center'>
+          <div className='w-9 h-9 rounded-xl bg-bg-subtle text-text-muted flex items-center justify-center'>
             <RiListOrdered2 className='text-lg' />
           </div>
           <div>
-            <h3 className='text-[11px] font-black text-slate-800 uppercase tracking-widest'>
+            <h3 className='text-[11px] font-black text-text uppercase tracking-widest'>
               Montar o Processo
             </h3>
-            <p className='text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5'>
+            <p className='text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5'>
               Organize nesta ordem exata antes de enviar
             </p>
           </div>
@@ -259,7 +259,7 @@ export default function FinalPackageStep({
           {packageOrder.map((item, i) => (
             <div
               key={i}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${item.ready ? 'bg-emerald-50/50 border-emerald-100' : 'bg-slate-50 border-slate-100'}`}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${item.ready ? 'bg-emerald-50/50 border-emerald-100' : 'bg-bg-subtle border-border'}`}
             >
               <span
                 className={`text-[10px] font-black w-5 text-center shrink-0 ${item.ready ? 'text-emerald-500' : 'text-slate-300'}`}
@@ -269,33 +269,33 @@ export default function FinalPackageStep({
               {item.ready ? (
                 <RiCheckboxCircleFill className='text-emerald-500 text-base shrink-0' />
               ) : (
-                <div className='w-4 h-4 rounded-full border-2 border-slate-200 shrink-0' />
+                <div className='w-4 h-4 rounded-full border-2 border-border shrink-0' />
               )}
               <span
-                className={`text-[11px] font-black uppercase tracking-widest ${item.ready ? 'text-slate-700' : 'text-slate-400'}`}
+                className={`text-[11px] font-black uppercase tracking-widest ${item.ready ? 'text-text' : 'text-text-muted'}`}
               >
                 {item.name}
               </span>
             </div>
           ))}
         </div>
-        <p className='text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-5 text-center'>
+        <p className='text-[10px] text-text-muted font-bold uppercase tracking-widest mt-5 text-center'>
           Gere o PDF único clicando em Download acima — todos os documentos já
           estarão nesta ordem.
         </p>
       </div>
 
       {/* Assinaturas */}
-      <div className='bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm'>
+      <div className='bg-card rounded-[32px] border border-border p-8 shadow-sm'>
         <div className='flex items-center gap-3 mb-6'>
           <div className='w-9 h-9 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center'>
             <RiEditLine className='text-lg' />
           </div>
           <div>
-            <h3 className='text-[11px] font-black text-slate-800 uppercase tracking-widest'>
+            <h3 className='text-[11px] font-black text-text uppercase tracking-widest'>
               Assinaturas Necessárias
             </h3>
-            <p className='text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5'>
+            <p className='text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5'>
               Use caneta preta — assinaturas à mão
             </p>
           </div>
@@ -303,21 +303,21 @@ export default function FinalPackageStep({
 
         <div className='space-y-3'>
           {/* G-1450 */}
-          <div className='p-5 bg-slate-50 rounded-2xl border border-slate-100'>
-            <p className='text-[11px] font-black text-slate-800 uppercase tracking-widest mb-1'>
+          <div className='p-5 bg-bg-subtle rounded-2xl border border-border'>
+            <p className='text-[11px] font-black text-text uppercase tracking-widest mb-1'>
               G-1450
             </p>
-            <p className='text-[11px] text-slate-500 font-medium'>
+            <p className='text-[11px] text-text-muted font-medium'>
               Assine no campo destinado ao titular do cartão.
             </p>
           </div>
 
           {/* Cover Letter */}
-          <div className='p-5 bg-slate-50 rounded-2xl border border-slate-100'>
-            <p className='text-[11px] font-black text-slate-800 uppercase tracking-widest mb-1'>
+          <div className='p-5 bg-bg-subtle rounded-2xl border border-border'>
+            <p className='text-[11px] font-black text-text uppercase tracking-widest mb-1'>
               Cover Letter (Carta de Apresentação)
             </p>
-            <p className='text-[11px] text-slate-500 font-medium'>
+            <p className='text-[11px] text-text-muted font-medium'>
               Assine no campo do aplicante principal ao final da carta.
             </p>
           </div>
@@ -327,7 +327,7 @@ export default function FinalPackageStep({
             <p className='text-[11px] font-black text-blue-700 uppercase tracking-widest mb-2'>
               Formulário I-539 — Aplicante Principal
             </p>
-            <p className='text-[11px] text-slate-600 font-medium'>
+            <p className='text-[11px] text-text-muted font-medium'>
               📄 Pág 5, Parte 5, Item 4 — Assine com seu nome completo.
             </p>
           </div>
@@ -337,14 +337,14 @@ export default function FinalPackageStep({
             <p className='text-[11px] font-black text-blue-700 uppercase tracking-widest mb-2'>
               Formulário I-539A — Dependentes
             </p>
-            <p className='text-[11px] text-slate-600 font-medium mb-2'>
+            <p className='text-[11px] text-text-muted font-medium mb-2'>
               📄 Pág 3, Parte 4, Item 4
             </p>
             <div className='space-y-1.5 pl-3 border-l-2 border-blue-200'>
-              <p className='text-[10px] text-slate-500 font-bold uppercase tracking-wide'>
+              <p className='text-[10px] text-text-muted font-bold uppercase tracking-wide'>
                 ⬇ Menores de 14 anos → assinado pelo aplicante principal
               </p>
-              <p className='text-[10px] text-slate-500 font-bold uppercase tracking-wide'>
+              <p className='text-[10px] text-text-muted font-bold uppercase tracking-wide'>
                 ⬇ Maiores de 14 anos → o próprio dependente assina
               </p>
             </div>
@@ -353,22 +353,22 @@ export default function FinalPackageStep({
             <p className='text-[11px] font-black text-blue-700 uppercase tracking-widest mb-2'>
               Cartão de Crédito no G1450
             </p>
-            <p className='text-[11px] text-slate-600 font-medium mb-2'>
+            <p className='text-[11px] text-text-muted font-medium mb-2'>
               📄 Preencher os dados do cartão de crédito no Formulário G1450
             </p>
             <div className='space-y-1.5 pl-3 border-l-2 border-blue-200'>
-              <p className='text-[10px] text-slate-500 font-bold uppercase tracking-wide'>
+              <p className='text-[10px] text-text-muted font-bold uppercase tracking-wide'>
                 ➡️Preencher CCV, Data de Expiração e Número do Cartão.
               </p>
             </div>
           </div>
 
           {/* I-20 */}
-          <div className='p-5 bg-slate-50 rounded-2xl border border-slate-100'>
-            <p className='text-[11px] font-black text-slate-800 uppercase tracking-widest mb-1'>
+          <div className='p-5 bg-bg-subtle rounded-2xl border border-border'>
+            <p className='text-[11px] font-black text-text uppercase tracking-widest mb-1'>
               I-20 F1 e F2
             </p>
-            <p className='text-[11px] text-slate-500 font-medium'>
+            <p className='text-[11px] text-text-muted font-medium'>
               📄 Pág 1 — Sempre assinado pelo aplicante principal.
             </p>
           </div>
@@ -376,29 +376,29 @@ export default function FinalPackageStep({
       </div>
 
       {/* Endereço de Envio */}
-      <div className='bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm'>
+      <div className='bg-card rounded-[32px] border border-border p-8 shadow-sm'>
         <div className='flex items-center gap-3 mb-5'>
-          <div className='w-9 h-9 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center'>
+          <div className='w-9 h-9 rounded-xl bg-bg-subtle text-text-muted flex items-center justify-center'>
             <RiMapPinLine className='text-lg' />
           </div>
-          <h3 className='text-[11px] font-black text-slate-800 uppercase tracking-widest'>
+          <h3 className='text-[11px] font-black text-text uppercase tracking-widest'>
             Endereço de Envio (USCIS)
           </h3>
         </div>
-        <div className='bg-slate-50 rounded-2xl border border-slate-100 p-6 mb-4'>
-          <p className='text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3'>
+        <div className='bg-bg-subtle rounded-2xl border border-border p-6 mb-4'>
+          <p className='text-[11px] font-black text-text-muted uppercase tracking-widest mb-3'>
             Destinatário
           </p>
-          <p className='font-mono text-sm text-slate-700 leading-relaxed'>
+          <p className='font-mono text-sm text-text leading-relaxed'>
             U.S. Department of Homeland Security
           </p>
-          <p className='font-mono text-sm text-slate-700 leading-relaxed'>
+          <p className='font-mono text-sm text-text leading-relaxed'>
             2501 S. State Highway 121 Business
           </p>
-          <p className='font-mono text-sm text-slate-700 leading-relaxed'>
+          <p className='font-mono text-sm text-text leading-relaxed'>
             Suite 400
           </p>
-          <p className='font-mono text-sm text-slate-700 leading-relaxed'>
+          <p className='font-mono text-sm text-text leading-relaxed'>
             Lewisville, TX 75067
           </p>
         </div>
@@ -412,12 +412,12 @@ export default function FinalPackageStep({
       </div>
 
       {/* Tracking Code */}
-      <div className='bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm'>
+      <div className='bg-card rounded-[32px] border border-border p-8 shadow-sm'>
         <div className='flex items-center gap-3 mb-5'>
           <div className='w-9 h-9 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center'>
             <RiBarcodeLine className='text-lg' />
           </div>
-          <h3 className='text-[11px] font-black text-slate-800 uppercase tracking-widest'>
+          <h3 className='text-[11px] font-black text-text uppercase tracking-widest'>
             Código de Rastreamento
           </h3>
         </div>
@@ -430,26 +430,26 @@ export default function FinalPackageStep({
           }}
           onBlur={handleTrackingBlur}
           placeholder='Cole aqui o código (ex: 1Z999AA10123456784)'
-          className='w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-700 placeholder:text-slate-300 placeholder:font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all'
+          className='w-full px-5 py-4 rounded-2xl border border-border bg-bg-subtle text-sm font-bold text-text placeholder:text-slate-300 placeholder:font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all'
         />
-        <p className='text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-3'>
+        <p className='text-[10px] text-text-muted font-bold uppercase tracking-widest mt-3'>
           Salvo automaticamente ao clicar fora do campo.
         </p>
       </div>
 
       {/* USCIS Result Feedback */}
-      <div className='bg-slate-50 border border-slate-100 rounded-[32px] p-8 shadow-sm relative overflow-hidden group/feedback'>
+      <div className='bg-bg-subtle border border-border rounded-[32px] p-8 shadow-sm relative overflow-hidden group/feedback'>
         <div className='absolute top-0 right-0 p-8 opacity-5 pointer-events-none group-hover/feedback:opacity-10 transition-opacity'>
           <RiThumbUpLine className='text-8xl rotate-12' />
         </div>
         <div className='flex flex-col items-center text-center mb-8 relative z-10'>
-          <div className='w-10 h-10 rounded-full bg-white border border-slate-100 flex items-center justify-center mb-3 shadow-sm'>
+          <div className='w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center mb-3 shadow-sm'>
             <RiInformationFill className='text-primary text-base' />
           </div>
-          <h4 className='text-sm font-black text-slate-800 uppercase tracking-tight'>
+          <h4 className='text-sm font-black text-text uppercase tracking-tight'>
             {t.cos.finalPackage.feedback.title}
           </h4>
-          <p className='text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 italic'>
+          <p className='text-[10px] text-text-muted font-bold uppercase tracking-widest mt-1 italic'>
             {t.cos.finalPackage.feedback.subtitle}
           </p>
         </div>
@@ -468,12 +468,12 @@ export default function FinalPackageStep({
               })
               setShowCelebration(true)
             }}
-            className='flex flex-col items-center justify-center p-8 bg-white border border-emerald-100 rounded-[24px] hover:bg-emerald-50 hover:border-emerald-200 transition-all group/btn shadow-sm hover:shadow-md'
+            className='flex flex-col items-center justify-center p-8 bg-card border border-emerald-100 rounded-[24px] hover:bg-emerald-50 hover:border-emerald-200 transition-all group/btn shadow-sm hover:shadow-md'
           >
             <div className='w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center mb-4 group-hover/btn:scale-110 group-hover/btn:rotate-6 transition-all shadow-inner border border-emerald-100/50'>
               <RiThumbUpLine className='text-2xl' />
             </div>
-            <span className='text-[10px] font-black text-slate-700 uppercase tracking-widest'>
+            <span className='text-[10px] font-black text-text uppercase tracking-widest'>
               {t.cos.finalPackage.feedback.approved}
             </span>
           </button>
@@ -488,21 +488,22 @@ export default function FinalPackageStep({
                   uscis_reported_at: new Date().toISOString(),
                 })
                 await processService.startAdditionalWorkflow(proc.id, 'motion')
+                await processService.updateCurrentStep(proc.id, 19)
                 toast.success(t.cos.finalPackage.feedback.toasts.success, {
                   id: 'report',
                 })
                 if (onJumpToStep) onJumpToStep(19)
                 else await onComplete()
-              } catch (e) {
+              } catch {
                 toast.error('Erro ao iniciar fluxo de Motion')
               }
             }}
-            className='flex flex-col items-center justify-center p-8 bg-white border border-red-100 rounded-[24px] hover:bg-red-50 hover:border-red-200 transition-all group/btn shadow-sm hover:shadow-md'
+            className='flex flex-col items-center justify-center p-8 bg-card border border-red-100 rounded-[24px] hover:bg-red-50 hover:border-red-200 transition-all group/btn shadow-sm hover:shadow-md'
           >
             <div className='w-14 h-14 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center mb-4 group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-all shadow-inner border border-red-100/50'>
               <RiThumbDownLine className='text-2xl' />
             </div>
-            <span className='text-[10px] font-black text-slate-700 uppercase tracking-widest'>
+            <span className='text-[10px] font-black text-text uppercase tracking-widest'>
               {t.cos.finalPackage.feedback.denied}
             </span>
           </button>
@@ -517,21 +518,22 @@ export default function FinalPackageStep({
                   uscis_reported_at: new Date().toISOString(),
                 })
                 await processService.startAdditionalWorkflow(proc.id, 'rfe')
+                await processService.updateCurrentStep(proc.id, 13)
                 toast.success(t.cos.finalPackage.feedback.toasts.success, {
                   id: 'report',
                 })
                 if (onJumpToStep) onJumpToStep(13)
                 else await onComplete()
-              } catch (e) {
+              } catch {
                 toast.error('Erro ao iniciar fluxo de RFE')
               }
             }}
-            className='flex flex-col items-center justify-center p-8 bg-white border border-amber-100 rounded-[24px] hover:bg-amber-50 hover:border-amber-200 transition-all group/btn shadow-sm hover:shadow-md'
+            className='flex flex-col items-center justify-center p-8 bg-card border border-amber-100 rounded-[24px] hover:bg-amber-50 hover:border-amber-200 transition-all group/btn shadow-sm hover:shadow-md'
           >
             <div className='w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center mb-4 group-hover/btn:scale-110 group-hover/btn:rotate-12 transition-all shadow-inner border border-amber-100/50'>
               <RiSpam2Line className='text-2xl' />
             </div>
-            <span className='text-[9px] font-black text-slate-700 uppercase tracking-widest text-center leading-tight'>
+            <span className='text-[9px] font-black text-text uppercase tracking-widest text-center leading-tight'>
               {t.cos.finalPackage.feedback.rfe}
             </span>
           </button>
