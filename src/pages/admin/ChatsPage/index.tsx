@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   RiUserLine,
@@ -10,6 +11,7 @@ import {
   RiSettings3Line,
   RiLockLine,
   RiLockUnlockLine,
+  RiExternalLinkLine,
 } from "react-icons/ri";
 import { toast } from "sonner";
 import { useT } from "../../../i18n";
@@ -75,7 +77,7 @@ export default function ChatsPage() {
 
   useEffect(() => {
     const channel = chatService.subscribeToAllMessages((payload) => {
-      const msg = payload?.new;
+      const msg = payload?.new as { process_id?: string; sender_role?: string } | undefined;
       if (!msg?.process_id) return;
 
       setChats((prev) =>
@@ -270,6 +272,7 @@ export default function ChatsPage() {
 }
 
 function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: AnalysisChatItem; onClose: () => void }) {
+  const navigate = useNavigate();
   const [showSettings, setShowSettings] = useState(false);
   const [isClosed, setIsClosed] = useState<boolean | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -292,8 +295,9 @@ function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: Anal
         setIsClosed(true);
         toast.success("Chat encerrado.");
       }
-    } catch (err: any) {
-      toast.error("Erro: " + err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro desconhecido";
+      toast.error("Erro: " + message);
     } finally {
       setIsUpdating(false);
       setShowSettings(false);
@@ -351,6 +355,19 @@ function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: Anal
                     Configurações do Chat
                   </p>
                   <button
+                    onClick={() => {
+                      const prefix = window.location.pathname.startsWith("/master")
+                        ? "/master/cases"
+                        : "/admin/processes";
+                      navigate(`${prefix}/${chat.processId}`);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all border-b border-slate-50 mb-1"
+                  >
+                    <RiExternalLinkLine size={16} />
+                    Ir para o processo
+                  </button>
+
+                  <button
                     onClick={handleToggleClose}
                     disabled={isUpdating || isClosed === null}
                     className={cn(
@@ -387,6 +404,7 @@ function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: Anal
           userName={chat.fullName}
           title={chat.chatTitle}
           isClosed={isClosed}
+          serviceSlug={chat.serviceSlug}
         />
       )}
     </div>

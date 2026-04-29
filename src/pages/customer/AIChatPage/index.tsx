@@ -51,15 +51,15 @@ export default function AIChatPage() {
   }, [selected])
 
   return (
-    <div className="h-full flex flex-col bg-white overflow-hidden">
+    <div className="h-full flex flex-col bg-bg overflow-hidden">
       {/* Page header */}
-      <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
+      <div className="p-8 border-b border-border flex items-center justify-between bg-bg-subtle/50 shrink-0">
         <div>
-          <h1 className="font-display font-black text-2xl text-slate-800 tracking-tight flex items-center gap-3">
+          <h1 className="font-display font-black text-2xl text-text tracking-tight flex items-center gap-3">
             <RiChat3Line className="text-primary" />
             {t?.chat?.title || 'Mensagens'}
           </h1>
-          <p className="text-[10px] text-slate-400 mt-1 uppercase font-black tracking-widest leading-none">
+          <p className="text-[10px] text-text-muted mt-1 uppercase font-black tracking-widest leading-none">
             {t?.chat?.subtitle || 'Conversas com especialistas'}
           </p>
         </div>
@@ -67,7 +67,7 @@ export default function AIChatPage() {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Thread list */}
-        <div className="w-full md:w-80 border-r border-slate-100 flex flex-col overflow-hidden">
+        <div className="w-full md:w-80 border-r border-border flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto custom-scrollbar">
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
@@ -75,16 +75,16 @@ export default function AIChatPage() {
               </div>
             ) : threads.length === 0 ? (
               <div className="p-12 text-center">
-                <RiChat3Line className="text-4xl text-slate-100 mx-auto mb-4" />
-                <p className="text-sm font-bold text-slate-400">
+                <RiChat3Line className="text-4xl text-bg-subtle mx-auto mb-4" />
+                <p className="text-sm font-bold text-text-muted">
                   {t?.chat?.emptyTitle || 'Nenhuma conversa ainda'}
                 </p>
-                <p className="text-xs text-slate-300 mt-1">
+                <p className="text-xs text-text-muted/70 mt-1">
                   {t?.chat?.emptySubtitle || 'As conversas com especialistas aparecerão aqui'}
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-slate-50">
+              <div className="divide-y divide-border/50">
                 {threads.map((thread) => {
                   const isClosed = thread.chatClosedAt !== null
                   const isActive = selected?.processId === thread.processId
@@ -93,34 +93,34 @@ export default function AIChatPage() {
                       key={thread.processId}
                       onClick={() => setSelected(thread)}
                       className={cn(
-                        'w-full p-4 flex gap-3 text-left transition-all hover:bg-slate-50/80',
-                        isActive ? 'bg-primary/5 ring-1 ring-inset ring-primary/10' : '',
+                        'w-full p-4 flex gap-3 text-left transition-all hover:bg-bg-subtle/80',
+                        isActive ? 'bg-primary/10 ring-1 ring-inset ring-primary/20' : '',
                       )}
                     >
                       <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <RiChat3Line className={cn('text-lg', isClosed ? 'text-slate-400' : 'text-primary')} />
+                        <RiChat3Line className={cn('text-lg', isClosed ? 'text-text-muted' : 'text-primary')} />
                       </div>
                       <div className="flex-1 min-w-0 py-0.5">
                         <div className="flex items-center justify-between mb-0.5">
                           <h4 className={cn(
                             'text-xs font-black uppercase tracking-tight truncate',
-                            isActive ? 'text-primary' : 'text-slate-700',
+                            isActive ? 'text-primary' : 'text-text',
                           )}>
                             {thread.chatTitle}
                           </h4>
                           {isClosed && (
-                            <span className="flex items-center gap-1 text-[9px] font-black text-slate-400 uppercase tracking-widest shrink-0 ml-2">
+                            <span className="flex items-center gap-1 text-[9px] font-black text-text-muted uppercase tracking-widest shrink-0 ml-2">
                               <RiLockLine size={10} />
-                              Encerrado
+                              Chat encerrado
                             </span>
                           )}
                         </div>
                         {thread.lastMessage ? (
-                          <p className="text-[11px] text-slate-400 font-medium truncate">
+                          <p className="text-[11px] text-text-muted font-medium truncate">
                             {thread.lastMessage}
                           </p>
                         ) : (
-                          <p className="text-[11px] text-slate-300 font-medium italic truncate">
+                          <p className="text-[11px] text-text-muted/60 font-medium italic truncate">
                             Sem mensagens ainda
                           </p>
                         )}
@@ -134,18 +134,18 @@ export default function AIChatPage() {
         </div>
 
         {/* Chat area — desktop */}
-        <div className="hidden md:flex flex-1 bg-slate-50/30 flex-col overflow-hidden">
+        <div className="hidden md:flex flex-1 bg-bg-subtle/30 flex-col overflow-hidden">
           {selected ? (
             <ThreadView thread={selected} userId={user?.id || ''} />
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
-              <div className="w-24 h-24 rounded-[32px] bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center mb-8">
-                <RiChat3Line className="text-5xl text-slate-200" />
+              <div className="w-24 h-24 rounded-[32px] bg-card shadow-xl shadow-primary/5 flex items-center justify-center mb-8 border border-border">
+                <RiChat3Line className="text-5xl text-bg-subtle" />
               </div>
-              <h2 className="text-xl font-black text-slate-800 tracking-tight mb-2">
+              <h2 className="text-xl font-black text-text tracking-tight mb-2">
                 Selecione uma conversa
               </h2>
-              <p className="text-sm text-slate-400 max-w-xs font-medium">
+              <p className="text-sm text-text-muted max-w-xs font-medium">
                 Escolha uma das suas conversas à esquerda para continuar.
               </p>
             </div>
@@ -161,7 +161,7 @@ export default function AIChatPage() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="md:hidden fixed inset-0 z-[100] bg-white flex flex-col"
+            className="md:hidden fixed inset-0 z-[100] bg-bg flex flex-col"
           >
             <ThreadView
               thread={selected}
@@ -189,10 +189,10 @@ function ThreadView({
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Thread header */}
-      <div className="p-4 md:p-6 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+      <div className="p-4 md:p-6 bg-card border-b border-border flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           {onClose && (
-            <button onClick={onClose} className="p-2 -ml-2 text-slate-400 hover:text-slate-600">
+            <button onClick={onClose} className="p-2 -ml-2 text-text-muted hover:text-text">
               <RiCloseLine size={24} />
             </button>
           )}
@@ -200,19 +200,19 @@ function ThreadView({
             <RiChat3Line className={cn('text-lg', isClosed ? 'text-slate-400' : 'text-primary')} />
           </div>
           <div>
-            <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight leading-none mb-1">
+            <h3 className="text-sm font-black text-text uppercase tracking-tight leading-none mb-1">
               {thread.chatTitle}
             </h3>
             <div className="flex items-center gap-1.5">
               {isClosed ? (
                 <>
-                  <RiLockLine className="text-[10px] text-slate-400" />
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Encerrado</span>
+                  <RiLockLine className="text-[10px] text-text-muted" />
+                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Chat encerrado</span>
                 </>
               ) : (
                 <>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ativo</span>
+                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Chat ativo</span>
                 </>
               )}
             </div>
@@ -221,7 +221,7 @@ function ThreadView({
 
         <a
           href={`/dashboard/processes/${thread.serviceSlug}?id=${thread.processId}`}
-          className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 hover:text-primary uppercase tracking-widest transition-colors"
+          className="flex items-center gap-1.5 text-[10px] font-black text-text-muted hover:text-primary uppercase tracking-widest transition-colors"
         >
           Ver processo
           <RiArrowRightLine size={12} />
@@ -234,6 +234,7 @@ function ThreadView({
         role="customer"
         title={thread.chatTitle}
         isClosed={isClosed}
+        serviceSlug={thread.serviceSlug}
       />
     </div>
   )
