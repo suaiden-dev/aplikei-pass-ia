@@ -43,6 +43,14 @@ import { useNavigate } from 'react-router-dom'
 
 interface StepProps {
   proc: UserService
+  user?: {
+    id: string
+    email?: string
+    fullName?: string
+    full_name?: string
+    phone?: string
+    phoneNumber?: string
+  } | null
   onComplete?: () => void
 }
 
@@ -52,6 +60,7 @@ interface MotionCheckoutOverlayProps {
   amount: number
   slug: string
   proc: UserService
+  user?: StepProps['user']
   onClose: () => void
 }
 
@@ -72,11 +81,13 @@ function MotionCheckoutOverlay({
   amount,
   slug,
   proc,
+  user: propUser,
   onClose,
 }: MotionCheckoutOverlayProps) {
   const t = useT('checkout').product
   const t_onboarding = useT('onboarding')
-  const { user } = useAuth()
+  const { user: authUser } = useAuth()
+  const user = propUser ?? authUser ?? null
   const [activeMethod, setActiveMethod] = useState<PaymentTab>('card')
   const [loading, setLoading] = useState(false)
   const [parcelowCpf, setParcelowCpf] = useState('')
@@ -117,21 +128,62 @@ function MotionCheckoutOverlay({
     localStorage.setItem('checkout_slug', slug)
   }
 
-  const handlePay = async () => {
-    if (!user) return
+  const resolveCheckoutContact = async () => {
+    const stepData = (proc.step_data || {}) as Record<string, unknown>
+    const directEmail = String(user?.email || stepData.primaryEmail || '').trim()
+    const directFullName = String(user?.fullName || stepData.fullName || '').trim()
+    const directPhone = String(user?.phoneNumber || stepData.primaryPhone || '').trim()
 
+    if (directEmail) {
+      return {
+        email: directEmail,
+        fullName: directFullName || 'Cliente',
+        phone: directPhone || '0000000000',
+      }
+    }
+
+    const [{ data: account }, { data: profile }] = await Promise.all([
+      supabase
+        .from('user_accounts')
+        .select('email, full_name, phone_number')
+        .eq('id', proc.user_id)
+        .maybeSingle(),
+      supabase
+        .from('profiles')
+        .select('email, full_name, phone')
+        .eq('id', proc.user_id)
+        .maybeSingle(),
+    ])
+
+    const email = String(
+      directEmail
+        || account?.email
+        || profile?.email
+        || '',
+    ).trim()
+
+    return {
+      email,
+      fullName: String(
+        directFullName
+          || account?.full_name
+          || profile?.full_name
+          || 'Cliente',
+      ).trim(),
+      phone: String(
+        directPhone
+          || account?.phone_number
+          || profile?.phone
+          || '0000000000',
+      ).trim(),
+    }
+  }
+
+  const handlePay = async () => {
     setLoading(true)
     try {
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser()
-      const email = user.email || authUser?.email || ''
-      const fullName =
-        user.fullName || authUser?.user_metadata?.full_name || 'Cliente'
-      const phone =
-        user.phoneNumber ||
-        authUser?.user_metadata?.phone_number ||
-        '0000000000'
+      const { email, fullName, phone } = await resolveCheckoutContact()
+      const userId = user?.id || proc.user_id
 
       if (!email) {
         toast.error(t_onboarding?.toasts?.emailNotFound || 'Email not found')
@@ -148,7 +200,7 @@ function MotionCheckoutOverlay({
           phone,
           paymentMethod: activeMethod as StripePaymentMethod,
           amount,
-          userId: user.id,
+          userId,
 
           proc_id: proc.id,
           action: motionAction,
@@ -170,7 +222,7 @@ function MotionCheckoutOverlay({
           phone,
           cpf: parcelowCpf,
           amount,
-          userId: user.id,
+          userId,
           proc_id: proc.id,
         })
 
@@ -196,26 +248,26 @@ function MotionCheckoutOverlay({
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className='absolute inset-0 bg-slate-900/60 backdrop-blur-sm' />
+      <div className='absolute inset-0 bg-card/60 backdrop-blur-sm' />
 
       {/* Content */}
       <div
-        className='relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto'
+        className='relative w-full max-w-lg bg-card rounded-3xl shadow-2xl border border-border overflow-hidden animate-in fade-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto'
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className='px-8 py-6 border-b border-slate-100 flex items-center justify-between'>
+        <div className='px-8 py-6 border-b border-border flex items-center justify-between'>
           <div>
-            <h3 className='text-lg font-black text-slate-800 uppercase tracking-tight'>
+            <h3 className='text-lg font-black text-text uppercase tracking-tight'>
               {t?.title}
             </h3>
-            <p className='text-xs text-slate-400 font-bold mt-0.5'>
+            <p className='text-xs text-text-muted font-bold mt-0.5'>
               {t?.success?.confirmed}
             </p>
           </div>
           <button
             onClick={onClose}
-            className='w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all'
+            className='w-10 h-10 rounded-xl bg-bg-subtle border border-border flex items-center justify-center text-text-muted hover:text-text-muted hover:bg-bg-subtle transition-all'
           >
             <RiCloseLine className='text-xl' />
           </button>
@@ -227,7 +279,7 @@ function MotionCheckoutOverlay({
             <p className='text-[10px] font-black text-primary uppercase tracking-widest mb-1'>
               {t?.summary?.total}
             </p>
-            <h4 className='text-2xl font-black text-slate-800'>
+            <h4 className='text-2xl font-black text-text'>
               $ {amount.toFixed(2)}
             </h4>
           </div>
@@ -278,7 +330,7 @@ function MotionCheckoutOverlay({
                 className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-center transition-all duration-150 ${
                   activeMethod === m.id
                     ? 'border-primary bg-primary/5 text-primary'
-                    : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50'
+                    : 'border-border text-text-muted hover:border-slate-300 hover:bg-bg-subtle'
                 }`}
               >
                 {m.icon}
@@ -342,7 +394,7 @@ function MotionCheckoutOverlay({
                   value={parcelowCpf}
                   onChange={(e) => setParcelowCpf(maskCPF(e.target.value))}
                 />
-                <div className='flex items-center gap-1 text-[10px] text-slate-400'>
+                <div className='flex items-center gap-1 text-[10px] text-text-muted'>
                   <RiInformationLine className='text-orange-400' />
                   <span>{t?.paymentMethods?.parcelow?.cpfNotice}</span>
                 </div>
@@ -358,13 +410,13 @@ function MotionCheckoutOverlay({
                   {t?.paymentMethods?.zelle?.notice}
                 </p>
                 <div className='space-y-1'>
-                  <p className='text-sm font-bold text-slate-800'>
+                  <p className='text-sm font-bold text-text'>
                     {t?.paymentMethods?.zelle?.name} {ZELLE_NAME}
                   </p>
-                  <p className='text-sm text-slate-600 font-mono'>
+                  <p className='text-sm text-text-muted font-mono'>
                     {t?.paymentMethods?.zelle?.email} {ZELLE_EMAIL}
                   </p>
-                  <p className='text-sm text-slate-600 font-mono'>
+                  <p className='text-sm text-text-muted font-mono'>
                     {t?.paymentMethods?.zelle?.phone} {ZELLE_PHONE}
                   </p>
                 </div>
@@ -408,7 +460,7 @@ function MotionCheckoutOverlay({
               <div>
                 <Label htmlFor='motionZelleCode'>
                   {t?.paymentMethods?.zelle?.confirmationCode}{' '}
-                  <span className='text-slate-400 font-normal'>
+                  <span className='text-text-muted font-normal'>
                     {t?.paymentMethods?.zelle?.confirmationCode?.includes('(')
                       ? ''
                       : '(opcional)'}
@@ -439,7 +491,7 @@ function MotionCheckoutOverlay({
                   }}
                 />
                 {zelleProofPreview ? (
-                  <div className='mt-1.5 relative rounded-xl overflow-hidden border border-slate-200'>
+                  <div className='mt-1.5 relative rounded-xl overflow-hidden border border-border'>
                     <img
                       src={zelleProofPreview}
                       alt={t?.paymentMethods?.zelle?.uploadProof}
@@ -472,7 +524,7 @@ function MotionCheckoutOverlay({
                       const f = e.dataTransfer.files[0]
                       if (f) handleProofSelect(f)
                     }}
-                    className='mt-1.5 w-full border-2 border-dashed border-slate-200 rounded-xl py-6 flex flex-col items-center gap-2 text-slate-400 hover:border-primary/40 hover:bg-primary/3 transition-colors'
+                    className='mt-1.5 w-full border-2 border-dashed border-border rounded-xl py-6 flex flex-col items-center gap-2 text-text-muted hover:border-primary/40 hover:bg-primary/3 transition-colors'
                   >
                     <RiUploadCloud2Line className='text-2xl' />
                     <span className='text-xs font-medium'>
@@ -490,11 +542,11 @@ function MotionCheckoutOverlay({
           {activeMethod === 'zelle' && zelleDone && (
             <div className='rounded-xl bg-emerald-50 border border-emerald-100 p-5 text-center'>
               <RiCheckLine className='text-emerald-500 text-3xl mx-auto mb-2' />
-              <p className='font-bold text-slate-800 text-sm'>
+              <p className='font-bold text-text text-sm'>
                 {t?.paymentMethods?.zelle?.pendingReview?.split('!')[0]}!
               </p>
               <p
-                className='text-xs text-slate-500 mt-1 leading-relaxed'
+                className='text-xs text-text-muted mt-1 leading-relaxed'
                 dangerouslySetInnerHTML={{
                   __html:
                     t?.paymentMethods?.zelle?.pendingReview?.split('!')[1] ||
@@ -537,7 +589,7 @@ function MotionCheckoutOverlay({
             </button>
           )}
 
-          <p className='text-center text-[11px] text-slate-400 flex items-center justify-center gap-1'>
+          <p className='text-center text-[11px] text-text-muted flex items-center justify-center gap-1'>
             <RiShieldCheckLine />
             {t?.paymentMethods?.card?.notice?.includes('SSL')
               ? t?.paymentMethods?.card?.notice
@@ -549,39 +601,31 @@ function MotionCheckoutOverlay({
   )
 }
 
-// ─── MotionExplanationStep ────────────────────────────────────────────────────
+// ─── MotionAcquisitionStep ────────────────────────────────────────────────────
 
 /**
- * COSPage - Motion Explanation + $50 Upsell
+ * First Motion step - acquisition/payment entrypoint
  */
 export function MotionExplanationStep({
   proc,
-  onComplete: _onComplete,
+  user,
 }: StepProps) {
   const t = useT('onboarding')
   const [showCheckout, setShowCheckout] = useState(false)
-  const copy = t?.workflows?.motion?.explanation
-  const serviceSlug = String(proc.service_slug || '').toLowerCase()
-  const productLabel = serviceSlug.includes('troca-status') || serviceSlug.includes('cos')
-    ? 'COS'
-    : serviceSlug.includes('extensao-status') || serviceSlug.includes('eos')
-      ? 'EOS'
-      : serviceSlug.includes('b1-b2')
-        ? 'B1/B2'
-        : 'PROCESSO'
+  const copy = t?.workflows?.motion?.acquisition
+  const legacyCopy = t?.workflows?.motion?.explanation
   const textOr = (value: unknown, fallback: string) =>
     typeof value === 'string' && value.trim().length > 0 ? value : fallback
-  const baseTitle = textOr(copy?.title, 'Analise da Negativa')
-  const titleWithoutMotion = baseTitle
-    .replace(/\bmotion\b/gi, '')
-    .replace(/\s{2,}/g, ' ')
-    .replace(/^\s*[-:|]\s*/, '')
-    .replace(/\s*[-:|]\s*$/, '')
-    .trim()
-  const titleWithProduct = `${productLabel} - ${titleWithoutMotion || 'Analise da Negativa'}`
+  const textOrChain = (...values: Array<unknown>) => {
+    const firstFilled = values.find(
+      (value) => typeof value === 'string' && value.trim().length > 0,
+    )
+
+    return typeof firstFilled === 'string' ? firstFilled : ''
+  }
   const translatedFeatures = Array.isArray(copy?.features)
     ? copy.features.filter(
-        (feature): feature is string =>
+        (feature: unknown): feature is string =>
           typeof feature === 'string' && feature.trim().length > 0,
       )
     : []
@@ -589,18 +633,16 @@ export function MotionExplanationStep({
     translatedFeatures.length > 0
       ? translatedFeatures
       : [
-          'Analise tecnica da negativa do USCIS',
-          'Orientacao dos documentos para resposta',
-          'Acompanhamento inicial para enviar a Motion',
+          'Revisao completa da negativa recebida.',
+          'Acesso ao fluxo guiado com suporte da equipe.',
         ]
+  const [baseAmount, setBaseAmount] = useState(50)
   const analysisFeeTemplate = t?.workflows?.shared?.analysisFee
   const analysisFeeText =
     typeof analysisFeeTemplate === 'string' &&
     analysisFeeTemplate.includes('{amount}')
       ? analysisFeeTemplate.replace('{amount}', baseAmount.toFixed(2))
       : `Taxa de analise: $${baseAmount.toFixed(2)}`
-
-  const [baseAmount, setBaseAmount] = useState(50)
 
   useEffect(() => {
     supabase
@@ -627,29 +669,30 @@ export function MotionExplanationStep({
   return (
     <>
       <div className='max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700'>
-        <div className='bg-white rounded-[40px] border border-slate-100 p-12 shadow-sm text-center'>
+        <div className='bg-card rounded-[40px] border border-border p-12 shadow-sm text-center'>
           <div className='w-20 h-20 rounded-3xl bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-8 shadow-inner'>
             <RiErrorWarningLine className='text-4xl' />
           </div>
-          <h2 className='text-3xl font-black text-slate-800 mb-4 uppercase tracking-tight'>
-            {titleWithProduct}
+          <h2 className='text-3xl font-black text-text mb-4 uppercase tracking-tight'>
+            {textOr(copy?.title, 'Motion - Adquirir')}
           </h2>
-          <p className='text-slate-500 leading-relaxed max-w-md mx-auto mb-10 overflow-hidden text-ellipsis line-clamp-3'>
-            {textOr(
+          <p className='text-text-muted leading-relaxed max-w-md mx-auto mb-10 overflow-hidden text-ellipsis line-clamp-3'>
+            {textOrChain(
               copy?.desc,
-              'Contrate a analise especializada para avaliar sua negativa e definir os proximos passos com seguranca.',
+              legacyCopy?.desc,
+              'Contrate o servico de Motion para reverter a negativa.',
             )}
           </p>
 
-          <div className='bg-slate-50 rounded-3xl p-8 mb-10 text-left border border-slate-100'>
-            <h4 className='text-xs font-black text-slate-400 uppercase tracking-widest mb-4'>
-              {textOr(copy?.howItWorks, 'Como funciona')}
+          <div className='bg-bg-subtle rounded-3xl p-8 mb-10 text-left border border-border'>
+            <h4 className='text-xs font-black text-text-muted uppercase tracking-widest mb-4'>
+              {textOrChain(copy?.howItWorks, legacyCopy?.howItWorks, 'Como funciona')}
             </h4>
             <div className='space-y-4'>
               {features.map((feature: string, i: number) => (
                 <div key={i} className='flex gap-3'>
                   <RiCheckDoubleLine className='text-primary text-lg shrink-0 mt-1' />
-                  <p className='text-sm text-slate-600'>{feature}</p>
+                  <p className='text-sm text-text-muted'>{feature}</p>
                 </div>
               ))}
             </div>
@@ -659,11 +702,11 @@ export function MotionExplanationStep({
             onClick={() => setShowCheckout(true)}
             className='w-full bg-primary hover:bg-primary-hover text-white py-6 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3'
           >
-            {textOr(copy?.btn, 'Pagar analise')}
+            {textOrChain(copy?.btn, legacyCopy?.btn, 'Contratar Motion')}
             <RiMoneyDollarCircleLine className='text-xl' />
           </button>
           <div className='mt-4 flex flex-col items-center gap-1'>
-            <p className='text-[10px] text-slate-400 font-bold uppercase tracking-widest italic'>
+            <p className='text-[10px] text-text-muted font-bold uppercase tracking-widest italic'>
               {analysisFeeText}
             </p>
             <p className='text-[9px] text-primary/50 font-black uppercase tracking-tighter'>
@@ -682,6 +725,7 @@ export function MotionExplanationStep({
           amount={baseAmount}
           slug='apoio-rfe-motion-inicio'
           proc={proc}
+          user={user}
           onClose={() => setShowCheckout(false)}
         />
       )}
@@ -696,9 +740,43 @@ export function MotionExplanationStep({
  */
 export function MotionInstructionStep({ proc, onComplete }: StepProps) {
   const t = useT('onboarding')
-  const [reason, setReason] = useState('')
-  const [loading, setLoading] = useState(false)
   const data = (proc.step_data || {}) as Record<string, unknown>
+  const [reason, setReason] = useState(String(data.motion_reason || ''))
+  const [docs, setDocs] = useState<Record<string, string>>((data.docs as Record<string, string>) || {})
+  const [loading, setLoading] = useState(false)
+  const instructionCopy = t?.workflows?.motion?.instruction
+  const instructionTitle =
+    instructionCopy?.title || 'Motion - Suas Informacoes'
+  const instructionDescription =
+    instructionCopy?.desc ||
+    'Envie a carta de negativa e descreva o que o USCIS alegou para que nossa equipe analise o caso.'
+  const reasonLabel =
+    instructionCopy?.reasonLabel || 'Motivo da Negativa'
+  const reasonPlaceholder =
+    instructionCopy?.reasonPlaceholder ||
+    'Descreva aqui o que voce recebeu na carta de negativa...'
+  const uploadLabel =
+    instructionCopy?.uploadLabel || 'Carta de Negativa'
+  const uploadTitle =
+    instructionCopy?.uploadTitle || 'Carta de Negativa (USCIS)'
+  const uploadSubtitle =
+    instructionCopy?.uploadSubtitle || 'Documento recebido pelo correio ou online'
+  const uploadStatus = instructionCopy?.uploadStatus || 'Negativa'
+  const supportingUploadLabel =
+    instructionCopy?.supportingUploadLabel || 'Documentos de apoio (opcional)'
+  const supportingUploadTitle =
+    instructionCopy?.supportingUploadTitle || 'Documentos de apoio'
+  const supportingUploadSubtitle =
+    instructionCopy?.supportingUploadSubtitle ||
+    'Evidencias extras que reforcem seu caso'
+  const supportingUploadStatus =
+    instructionCopy?.supportingUploadStatus || 'Opcional'
+  const submitLabel = instructionCopy?.btn || 'Enviar para Analise'
+
+  useEffect(() => {
+    setReason(String(data.motion_reason || ''))
+    setDocs((data.docs as Record<string, string>) || {})
+  }, [data.motion_reason, data.docs])
 
   const handleFileUpload = async (docKey: string, file: File) => {
     try {
@@ -715,10 +793,14 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
 
       if (uploadError) throw uploadError
 
-      const currentDocs = (data.docs as Record<string, string>) || {}
+      const currentDocs = { ...docs }
+      const newDocs = { ...currentDocs, [docKey]: filePath }
+      
       await processService.updateStepData(proc.id, {
-        docs: { ...currentDocs, [docKey]: filePath },
+        docs: newDocs,
       })
+
+      setDocs(newDocs)
 
       if (docKey === 'motion_denial_letter') {
         await cosNotificationService.notifyAdmin({
@@ -747,9 +829,8 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
 
   const handleSave = async () => {
     if (!reason.trim()) {
-      toast.error(
-        t?.workflows?.motion?.instruction?.reasonLabel ||
-          'Description required',
+        toast.error(
+        reasonLabel || 'Description required',
       )
       return
     }
@@ -778,37 +859,39 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
 
   return (
     <div className='max-w-2xl mx-auto space-y-8'>
-      <div className='bg-white rounded-[40px] border border-slate-100 p-12 shadow-sm'>
-        <h3 className='text-2xl font-black text-slate-800 mb-6 uppercase tracking-tight'>
-          {t?.workflows?.motion?.instruction?.title}
+      <div className='bg-card rounded-[40px] border border-border p-12 shadow-sm'>
+        <h3 className='text-2xl font-black text-text mb-6 uppercase tracking-tight'>
+          {instructionTitle}
         </h3>
+        <p className='text-sm text-text-muted font-medium leading-relaxed mb-8'>
+          {instructionDescription}
+        </p>
 
         <div className='space-y-6'>
           <div>
-            <label className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block'>
-              {t?.workflows?.motion?.instruction?.reasonLabel}
+            <label className='text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 block'>
+              {reasonLabel}
             </label>
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className='w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none min-h-[150px]'
-              placeholder={t?.workflows?.motion?.instruction?.reasonPlaceholder}
+              className='w-full bg-bg-subtle border border-border rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none min-h-[150px]'
+              placeholder={reasonPlaceholder}
             />
           </div>
 
           <div>
-            <label className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block'>
-              {t?.workflows?.motion?.instruction?.uploadLabel}
+            <label className='text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 block'>
+              {uploadLabel}
             </label>
             <DocUploadCard
               docKey='motion_denial_letter'
-              title={t?.workflows?.motion?.instruction?.uploadTitle}
-              subtitle={t?.workflows?.motion?.instruction?.uploadSubtitle}
+              title={uploadTitle}
+              subtitle={uploadSubtitle}
               doc={{
                 file: null,
-                label: t?.workflows?.motion?.instruction?.uploadStatus,
-                path: (data.docs as Record<string, string>)
-                  ?.motion_denial_letter,
+                label: uploadStatus,
+                path: docs?.motion_denial_letter,
               }}
               onChange={(key: string, file: File) =>
                 handleFileUpload(key, file)
@@ -817,27 +900,17 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
           </div>
 
           <div>
-            <label className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block'>
-              {t?.workflows?.motion?.instruction?.supportingUploadLabel ||
-                'Supporting docs (optional)'}
+            <label className='text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 block'>
+              {supportingUploadLabel}
             </label>
             <DocUploadCard
               docKey='motion_supporting_docs'
-              title={
-                t?.workflows?.motion?.instruction?.supportingUploadTitle ||
-                'Supporting Documents'
-              }
-              subtitle={
-                t?.workflows?.motion?.instruction?.supportingUploadSubtitle ||
-                'Optional evidence that helps your case'
-              }
+              title={supportingUploadTitle}
+              subtitle={supportingUploadSubtitle}
               doc={{
                 file: null,
-                label:
-                  t?.workflows?.motion?.instruction?.supportingUploadStatus ||
-                  'Optional documents',
-                path: (data.docs as Record<string, string>)
-                  ?.motion_supporting_docs,
+                label: supportingUploadStatus,
+                path: docs?.motion_supporting_docs,
               }}
               onChange={(key: string, file: File) =>
                 handleFileUpload(key, file)
@@ -853,9 +926,7 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
               loading && 'opacity-50 cursor-not-allowed',
             )}
           >
-            {loading
-              ? t?.workflows?.shared?.saving
-              : t?.workflows?.motion?.instruction?.btn}
+            {loading ? t?.workflows?.shared?.saving || 'Salvando...' : submitLabel}
             {!loading && <RiArrowRightLine className='text-xl' />}
           </button>
         </div>
@@ -871,12 +942,14 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
  */
 export function MotionAcceptProposalStep({
   proc,
-  onComplete: _onComplete,
+  user,
 }: StepProps) {
   const t = useT('onboarding')
   const [showCheckout, setShowCheckout] = useState(false)
   const data = (proc.step_data || {}) as Record<string, unknown>
-  const purchases = (data.purchases || []) as any[]
+  const purchases = Array.isArray(data.purchases)
+    ? (data.purchases as Array<{ slug?: string }>)
+    : []
   const proposalText =
     (data.motion_proposal_text as string) ||
     t?.workflows?.motion?.proposal?.defaultStrategy
@@ -890,23 +963,23 @@ export function MotionAcceptProposalStep({
   return (
     <>
       <div className='max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700'>
-        <div className='bg-white rounded-[40px] border border-slate-100 p-12 shadow-sm text-center'>
+        <div className='bg-card rounded-[40px] border border-border p-12 shadow-sm text-center'>
           <div className='w-20 h-20 rounded-3xl bg-indigo-50 text-indigo-500 flex items-center justify-center mx-auto mb-8 shadow-inner'>
             <RiShieldCheckLine className='text-4xl' />
           </div>
-          <h2 className='text-3xl font-black text-slate-800 mb-4 uppercase tracking-tight'>
+          <h2 className='text-3xl font-black text-text mb-4 uppercase tracking-tight'>
             {t?.workflows?.motion?.proposal?.title}
           </h2>
 
           <div className='flex items-center justify-center gap-3 mb-10'>
-            <div className='h-px w-8 bg-slate-100' />
-            <p className='text-xs text-slate-400 font-bold uppercase tracking-widest'>
+            <div className='h-px w-8 bg-bg-subtle' />
+            <p className='text-xs text-text-muted font-bold uppercase tracking-widest'>
               {t?.workflows?.motion?.proposal?.strategyLabel}
             </p>
-            <div className='h-px w-8 bg-slate-100' />
+            <div className='h-px w-8 bg-bg-subtle' />
           </div>
 
-          <div className='bg-slate-50 rounded-3xl p-8 mb-10 border border-slate-100 italic text-slate-600 text-sm leading-relaxed font-serif text-center'>
+          <div className='bg-bg-subtle rounded-3xl p-8 mb-10 border border-border italic text-text-muted text-sm leading-relaxed font-serif text-center'>
             "{proposalText}"
           </div>
 
@@ -915,7 +988,7 @@ export function MotionAcceptProposalStep({
               <p className='text-[10px] font-black text-primary uppercase tracking-widest mb-1'>
                 {t?.workflows?.shared?.serviceCost}
               </p>
-              <h4 className='text-3xl font-black text-slate-800'>
+              <h4 className='text-3xl font-black text-text'>
                 $ {proposalAmount.toFixed(2)}
               </h4>
             </div>
@@ -935,19 +1008,19 @@ export function MotionAcceptProposalStep({
           ) : null}
 
           <div className='flex items-center justify-center gap-4 mb-10 px-4'>
-            <div className='flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded-lg border border-slate-100'>
-              <span className='text-[9px] font-bold text-slate-400 uppercase tracking-tight'>
+            <div className='flex items-center gap-1.5 px-2 py-1 bg-bg-subtle rounded-lg border border-border'>
+              <span className='text-[9px] font-bold text-text-muted uppercase tracking-tight'>
                 {t?.workflows?.shared?.ref}
               </span>
-              <span className='text-[10px] font-mono text-slate-500'>
+              <span className='text-[10px] font-mono text-text-muted'>
                 {proc.service_slug}
               </span>
             </div>
-            <div className='flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded-lg border border-slate-100'>
-              <span className='text-[9px] font-bold text-slate-400 uppercase tracking-tight'>
+            <div className='flex items-center gap-1.5 px-2 py-1 bg-bg-subtle rounded-lg border border-border'>
+              <span className='text-[9px] font-bold text-text-muted uppercase tracking-tight'>
                 {t?.workflows?.shared?.id}
               </span>
-              <span className='text-[10px] font-mono text-slate-500'>
+              <span className='text-[10px] font-mono text-text-muted'>
                 {proc.id.slice(0, 8)}
               </span>
             </div>
@@ -963,7 +1036,7 @@ export function MotionAcceptProposalStep({
           </button>
 
           {proposalAmount > 0 && (
-            <p className='mt-4 text-[9px] text-slate-400 font-bold uppercase tracking-widest text-center italic'>
+            <p className='mt-4 text-[9px] text-text-muted font-bold uppercase tracking-widest text-center italic'>
               {t?.workflows?.checkout?.totalWithTax?.replace(
                 '{amount}',
                 estimateCardTotal(proposalAmount).toFixed(2),
@@ -979,6 +1052,7 @@ export function MotionAcceptProposalStep({
           amount={proposalAmount}
           slug='proposta-rfe-motion'
           proc={proc}
+          user={user}
           onClose={() => setShowCheckout(false)}
         />
       )}
@@ -1019,6 +1093,9 @@ export function MotionEndStep({ proc }: StepProps) {
       : motionResult === 'approved' || motionResult === 'rejected'
         ? motionResult
         : 'in_progress'
+  const specialistMessage = chatSeeded || data.motion_chat_started_at
+    ? 'O acesso ao especialista ja foi liberado e um chat foi aberto para conduzir sua Motion.'
+    : 'Seu acesso ao especialista foi liberado. Entre no chat para conduzir sua Motion com nossa equipe.'
 
   useEffect(() => {
     if (chatSeededRef.current || chatSeeded) return
@@ -1050,13 +1127,13 @@ export function MotionEndStep({ proc }: StepProps) {
     <div className='max-w-2xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-700'>
       {motionLetterUrl && (
         <div className='bg-emerald-50 border border-emerald-100 rounded-[40px] p-8 flex flex-col items-center text-center shadow-sm'>
-          <div className='w-16 h-16 rounded-2xl bg-white text-emerald-500 flex items-center justify-center mb-4 shadow-sm'>
+          <div className='w-16 h-16 rounded-2xl bg-card text-emerald-500 flex items-center justify-center mb-4 shadow-sm'>
             <RiDownload2Line className='text-3xl' />
           </div>
-          <h3 className='text-lg font-black text-slate-800 uppercase tracking-tight'>
+          <h3 className='text-lg font-black text-text uppercase tracking-tight'>
             {t?.workflows?.motion?.end?.packageTitle}
           </h3>
-          <p className='text-xs text-slate-500 font-medium mt-1 mb-6'>
+          <p className='text-xs text-text-muted font-medium mt-1 mb-6'>
             {t?.workflows?.motion?.end?.packageDesc}
           </p>
           <a
@@ -1070,34 +1147,34 @@ export function MotionEndStep({ proc }: StepProps) {
         </div>
       )}
 
-      <div className='bg-white rounded-[40px] border border-slate-100 p-12 shadow-sm text-center'>
+      <div className='bg-card rounded-[40px] border border-border p-12 shadow-sm text-center'>
         <div className='w-20 h-20 rounded-3xl bg-primary/5 text-primary flex items-center justify-center mx-auto mb-8'>
           <RiInformationLine className='text-4xl' />
         </div>
-        <h2 className='text-2xl font-black text-slate-800 mb-3 uppercase tracking-tight'>
+        <h2 className='text-2xl font-black text-text mb-3 uppercase tracking-tight'>
           Fale com o especialista pelo chat
         </h2>
-        <p className='text-sm text-slate-400 font-medium max-w-sm mx-auto leading-relaxed mb-10'>
-          Entre em contato com o especialista para preparar e enviar sua Motion.
+        <p className='text-sm text-text-muted font-medium max-w-sm mx-auto leading-relaxed mb-10'>
+          {specialistMessage}
         </p>
         <button
           type='button'
           onClick={() => navigate('/dashboard/support')}
           className='h-12 px-8 rounded-2xl bg-primary hover:bg-primary-hover text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20 transition-all'
         >
-          Ir para o chat
+          Ir para o Specialist
           <RiArrowRightLine className='inline ml-2 text-base' />
         </button>
       </div>
 
-      <div className='bg-white rounded-[40px] border border-slate-100 p-12 shadow-sm text-center'>
+      <div className='bg-card rounded-[40px] border border-border p-12 shadow-sm text-center'>
         <div className='w-20 h-20 rounded-3xl bg-primary/5 text-primary flex items-center justify-center mx-auto mb-8'>
           <RiCheckDoubleLine className='text-4xl' />
         </div>
-        <h2 className='text-2xl font-black text-slate-800 mb-3 uppercase tracking-tight'>
+        <h2 className='text-2xl font-black text-text mb-3 uppercase tracking-tight'>
           Como foi o resultado da Motion?
         </h2>
-        <p className='text-sm text-slate-400 font-medium max-w-sm mx-auto leading-relaxed mb-10'>
+        <p className='text-sm text-text-muted font-medium max-w-sm mx-auto leading-relaxed mb-10'>
           Nos informe selecionando o botao abaixo.
         </p>
         <div
@@ -1125,7 +1202,11 @@ export function MotionEndStep({ proc }: StepProps) {
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
             <button
               type='button'
-              disabled={savingResult}
+              disabled={
+                savingResult ||
+                normalizedStatus === 'approved' ||
+                normalizedStatus === 'rejected'
+              }
               onClick={async () => {
                 try {
                   setSavingResult(true)
@@ -1154,7 +1235,11 @@ export function MotionEndStep({ proc }: StepProps) {
             </button>
             <button
               type='button'
-              disabled={savingResult}
+              disabled={
+                savingResult ||
+                normalizedStatus === 'approved' ||
+                normalizedStatus === 'rejected'
+              }
               onClick={async () => {
                 try {
                   setSavingResult(true)

@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { supabase } from "../../../lib/supabase";
 import { type UserService, processService } from "../../../services/process.service";
 import { cosNotificationService } from "../../../services/cos-notification.service";
-import { paymentService } from "../../../services/payment.service";
+import { paymentService, type StripePaymentMethod } from "../../../services/payment.service";
 import { useAuth } from "../../../hooks/useAuth";
 import { DocUploadCard } from "../../../components/DocUploadCard";
 import { ZELLE_RECIPIENT } from "../../../config/zelle";
@@ -101,7 +101,7 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayP
           email: user.email,
           fullName: user.fullName || user.email,
           phone: user.phoneNumber || '',
-          paymentMethod: activeMethod as any, // "card" | "pix"
+          paymentMethod: activeMethod as StripePaymentMethod,
           amount: amount,
           proc_id: proc.id,
           userId: user.id
@@ -182,14 +182,14 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayP
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md">
-      <div className="bg-white w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-        <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-card/60 backdrop-blur-md">
+      <div className="bg-card w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="p-8 border-b border-border flex justify-between items-center bg-bg-subtle/50">
           <div>
-            <h3 className="font-display font-black text-slate-800 text-xl uppercase tracking-tight">{t_onboarding?.workflows?.shared?.assessmentTitle}</h3>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{t_onboarding?.workflows?.shared?.assessmentSub}</p>
+            <h3 className="font-display font-black text-text text-xl uppercase tracking-tight">{t_onboarding?.workflows?.shared?.assessmentTitle}</h3>
+            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mt-1">{t_onboarding?.workflows?.shared?.assessmentSub}</p>
           </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-red-500 transition-all shadow-sm">
+          <button onClick={onClose} className="w-10 h-10 rounded-2xl bg-card border border-border flex items-center justify-center text-text-muted hover:text-red-500 transition-all shadow-sm">
             <RiCloseLine className="text-xl" />
           </button>
         </div>
@@ -218,8 +218,8 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayP
                 className={cn(
                   "flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all gap-1.5",
                   activeMethod === m.id
-                    ? "bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-200 scale-105"
-                    : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
+                    ? "bg-card border-slate-900 text-white shadow-xl shadow-none scale-105"
+                    : "bg-card border-border text-text-muted hover:border-border"
                 )}
               >
                 {m.icon}
@@ -235,24 +235,24 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayP
                     <RiInformationLine /> {t?.paymentMethods?.zelle?.notice}
                  </h4>
                  <div className="space-y-2">
-                    <p className="text-[11px] font-bold text-slate-700 flex items-center justify-between">{t?.paymentMethods?.zelle?.email} <span className="font-black text-indigo-600">{ZELLE_EMAIL}</span></p>
-                    <p className="text-[11px] font-bold text-slate-700 flex items-center justify-between">{t?.paymentMethods?.zelle?.phone} <span className="font-black text-indigo-600">{ZELLE_PHONE}</span></p>
-                    <p className="text-[11px] font-bold text-slate-700 flex items-center justify-between">{t?.paymentMethods?.zelle?.name} <span className="font-black text-indigo-600">{ZELLE_NAME}</span></p>
+                    <p className="text-[11px] font-bold text-text flex items-center justify-between">{t?.paymentMethods?.zelle?.email} <span className="font-black text-indigo-600">{ZELLE_EMAIL}</span></p>
+                    <p className="text-[11px] font-bold text-text flex items-center justify-between">{t?.paymentMethods?.zelle?.phone} <span className="font-black text-indigo-600">{ZELLE_PHONE}</span></p>
+                    <p className="text-[11px] font-bold text-text flex items-center justify-between">{t?.paymentMethods?.zelle?.name} <span className="font-black text-indigo-600">{ZELLE_NAME}</span></p>
                  </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">{t_onboarding?.workflows?.checkout?.zelle?.amountLabel}</Label>
+                    <Label className="text-[9px] font-black text-text-muted uppercase tracking-widest px-1">{t_onboarding?.workflows?.checkout?.zelle?.amountLabel}</Label>
                     <Input type="number" value={zelleAmount} onChange={(e) => setZelleAmount(e.target.value)} placeholder="0.00" className="h-11 rounded-xl text-xs font-black" />
                 </div>
                 <div className="space-y-1.5">
-                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">{t_onboarding?.workflows?.checkout?.zelle?.codeLabel}</Label>
+                    <Label className="text-[9px] font-black text-text-muted uppercase tracking-widest px-1">{t_onboarding?.workflows?.checkout?.zelle?.codeLabel}</Label>
                     <Input value={zelleCode} onChange={(e) => setZelleCode(e.target.value)} placeholder={t_onboarding?.workflows?.checkout?.zelle?.codePlaceholder} className="h-11 rounded-xl text-xs font-black" />
                 </div>
               </div>
               <div className="space-y-1.5">
-                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">{t?.paymentMethods?.zelle?.uploadProof}</Label>
-                  <label className="w-full h-24 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all relative overflow-hidden group">
+                  <Label className="text-[9px] font-black text-text-muted uppercase tracking-widest px-1">{t?.paymentMethods?.zelle?.uploadProof}</Label>
+                  <label className="w-full h-24 border-2 border-dashed border-border rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-bg-subtle transition-all relative overflow-hidden group">
                      {zelleProofPreview ? (
                         <>
                            <img src={zelleProofPreview} className="absolute inset-0 w-full h-full object-cover opacity-20" alt="Preview" />
@@ -262,7 +262,7 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayP
                      ) : (
                         <>
                            <RiQrCodeLine className="text-2xl text-slate-300 group-hover:text-primary transition-colors" />
-                           <span className="text-[9px] font-black text-slate-400 uppercase mt-1">{t?.paymentMethods?.zelle?.uploadProof}</span>
+                           <span className="text-[9px] font-black text-text-muted uppercase mt-1">{t?.paymentMethods?.zelle?.uploadProof}</span>
                         </>
                      )}
                      <input type="file" accept="image/*" className="hidden" onChange={onZelleFile} />
@@ -277,7 +277,7 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayP
                   <p className="text-[10px] font-bold text-amber-700 leading-relaxed text-center" dangerouslySetInnerHTML={{ __html: t?.paymentMethods?.parcelow?.notice || "" }} />
                </div>
                <div className="space-y-1.5">
-                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">{t?.paymentMethods?.parcelow?.cpfLabel}</Label>
+                  <Label className="text-[9px] font-black text-text-muted uppercase tracking-widest px-1">{t?.paymentMethods?.parcelow?.cpfLabel}</Label>
                   <Input 
                     value={parcelowCpf} 
                     onChange={(e) => setParcelowCpf(maskCPF(e.target.value))} 
@@ -290,8 +290,8 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayP
 
           {activeMethod === "card" && (
             <div className="space-y-4 mb-8">
-               <div className="p-5 bg-slate-50 border border-slate-100 rounded-2xl border-dashed">
-                  <p className="text-center text-xs font-bold text-slate-500" dangerouslySetInnerHTML={{ __html: t?.paymentMethods?.card?.notice || "" }} />
+               <div className="p-5 bg-bg-subtle border border-border rounded-2xl border-dashed">
+                  <p className="text-center text-xs font-bold text-text-muted" dangerouslySetInnerHTML={{ __html: t?.paymentMethods?.card?.notice || "" }} />
                </div>
             </div>
           )}
@@ -308,8 +308,8 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayP
           {activeMethod === "zelle" && zelleDone && (
             <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-5 text-center">
               <RiCheckLine className="text-emerald-500 text-3xl mx-auto mb-2" />
-              <p className="font-bold text-slate-800 text-sm">{t?.paymentMethods?.zelle?.pendingReview?.split("!")[0]}!</p>
-              <p className="text-xs text-slate-500 mt-1">{t?.paymentMethods?.zelle?.pendingReview?.split("!")[1] || t?.paymentMethods?.zelle?.pendingReview}</p>
+              <p className="font-bold text-text text-sm">{t?.paymentMethods?.zelle?.pendingReview?.split("!")[0]}!</p>
+              <p className="text-xs text-text-muted mt-1">{t?.paymentMethods?.zelle?.pendingReview?.split("!")[1] || t?.paymentMethods?.zelle?.pendingReview}</p>
             </div>
           )}
 
@@ -351,13 +351,13 @@ function RFEHistoryPanel({ proc }: { proc: UserService }) {
   return (
     <div className="max-w-2xl mx-auto mb-10">
       <div className="flex items-center gap-2 mb-4 px-1">
-        <RiHistoryLine className="text-slate-400" />
-        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">{t?.workflows?.rfe?.history?.title?.replace("{count}", String(history.length)) || `Histórico (${history.length})`}</h3>
+        <RiHistoryLine className="text-text-muted" />
+        <h3 className="text-xs font-black text-text-muted uppercase tracking-widest">{t?.workflows?.rfe?.history?.title?.replace("{count}", String(history.length)) || `Histórico (${history.length})`}</h3>
       </div>
       
       <div className="grid grid-cols-1 gap-3">
         {history.map((hist, idx) => (
-          <div key={idx} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div key={idx} className="bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className={cn(
                 "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
@@ -369,7 +369,7 @@ function RFEHistoryPanel({ proc }: { proc: UserService }) {
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">{t?.workflows?.rfe?.history?.cycle?.replace("{count}", String(idx + 1)) || `Ciclo #${idx + 1}`}</span>
+                  <span className="text-[10px] font-black text-text-muted uppercase tracking-tight">{t?.workflows?.rfe?.history?.cycle?.replace("{count}", String(idx + 1)) || `Ciclo #${idx + 1}`}</span>
                   <span className={cn(
                     "text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tight",
                     hist.result === "approved" ? "bg-emerald-100 text-emerald-700" :
@@ -378,7 +378,7 @@ function RFEHistoryPanel({ proc }: { proc: UserService }) {
                     {hist.result === "approved" ? t?.workflows?.rfe?.history?.statusApproved : hist.result === "rfe" ? t?.workflows?.rfe?.history?.statusRfe : t?.workflows?.rfe?.history?.statusDenied}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium line-clamp-1 italic">"{hist.proposal_text}"</p>
+                <p className="text-xs text-text-muted font-medium line-clamp-1 italic">"{hist.proposal_text}"</p>
               </div>
             </div>
             
@@ -388,7 +388,7 @@ function RFEHistoryPanel({ proc }: { proc: UserService }) {
                   href={supabase.storage.from('profiles').getPublicUrl(hist.rfe_letter).data.publicUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl font-bold text-[10px] uppercase tracking-widest border border-slate-200 transition-all flex items-center gap-2"
+                  className="px-4 py-2 bg-bg-subtle hover:bg-bg-subtle text-text-muted rounded-xl font-bold text-[10px] uppercase tracking-widest border border-border transition-all flex items-center gap-2"
                 >
                   <RiExternalLinkLine className="text-sm" /> {t?.workflows?.rfe?.history?.btnRfe || "RFE"}
                 </a>
@@ -413,7 +413,7 @@ function RFEHistoryPanel({ proc }: { proc: UserService }) {
 
 // ─── RFEExplanationStep ───────────────────────────────────────────────────────
 
-export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps) {
+export function RFEExplanationStep({ proc }: StepProps) {
   const t = useT("onboarding");
   const [showCheckout, setShowCheckout] = useState(false);
   const copy = t?.workflows?.rfe?.explanation;
@@ -421,7 +421,7 @@ export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps)
     typeof value === "string" && value.trim().length > 0 ? value : fallback;
   const translatedFeatures = Array.isArray(copy?.features)
     ? copy.features.filter(
-        (feature): feature is string =>
+        (feature: unknown): feature is string =>
           typeof feature === "string" && feature.trim().length > 0,
       )
     : [];
@@ -466,20 +466,20 @@ export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps)
       <RFEHistoryPanel proc={proc} />
       
       <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="bg-white rounded-[40px] border border-slate-100 p-12 shadow-sm text-center">
+        <div className="bg-card rounded-[40px] border border-border p-12 shadow-sm text-center">
           <div className="w-20 h-20 rounded-3xl bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-8 shadow-inner">
              <RiInformationLine className="text-4xl" />
           </div>
-          <h2 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tight">{textOr(copy?.title, "RFE - Analise da Solicitacao")}</h2>
-          <p className="text-slate-500 leading-relaxed max-w-md mx-auto mb-10 overflow-hidden" dangerouslySetInnerHTML={{ __html: textOr(copy?.desc, "Solicite a analise especializada da sua RFE para responder com estrategia e seguranca.") }} />
+          <h2 className="text-3xl font-black text-text mb-4 uppercase tracking-tight">{textOr(copy?.title, "RFE - Analise da Solicitacao")}</h2>
+          <p className="text-text-muted leading-relaxed max-w-md mx-auto mb-10 overflow-hidden" dangerouslySetInnerHTML={{ __html: textOr(copy?.desc, "Solicite a analise especializada da sua RFE para responder com estrategia e seguranca.") }} />
 
-          <div className="bg-slate-50 rounded-3xl p-8 mb-10 text-left border border-slate-100">
-             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{textOr(copy?.howItWorks, "Como funciona")}</h4>
+          <div className="bg-bg-subtle rounded-3xl p-8 mb-10 text-left border border-border">
+             <h4 className="text-xs font-black text-text-muted uppercase tracking-widest mb-4">{textOr(copy?.howItWorks, "Como funciona")}</h4>
              <div className="space-y-4">
                 {features.map((f: string, i: number) => (
                   <div key={i} className="flex gap-3">
                     <RiCheckDoubleLine className="text-primary text-lg shrink-0 mt-1" />
-                    <p className="text-sm text-slate-600">{f}</p>
+                    <p className="text-sm text-text-muted">{f}</p>
                   </div>
                 ))}
              </div>
@@ -493,7 +493,7 @@ export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps)
             <RiMoneyDollarCircleLine className="text-xl" />
           </button>
           <div className="mt-4 flex flex-col items-center gap-1">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">
+            <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest italic">
               {analysisFeeText}
             </p>
             <p className="text-[9px] text-primary/50 font-black uppercase tracking-tighter">
@@ -523,9 +523,13 @@ export function RFEExplanationStep({ proc, onComplete: _onComplete }: StepProps)
 export function RFEInstructionStep({ proc, onComplete }: StepProps) {
   const t = useT("onboarding");
   const data = (proc.step_data || {}) as Record<string, unknown>;
+  const [docs, setDocs] = useState<Record<string, string>>((data.docs as Record<string, string>) || {});
+  const [loading, setLoading] = useState(false);
+  const [description, setDescription] = useState(data.rfe_description as string || "");
 
   const handleFileUpload = async (file: File) => {
     try {
+      setLoading(true);
       toast.loading(t?.workflows?.shared?.sendingFile || "Sending...", { id: "u" });
       const fileExt = file.name.split(".").pop();
       const filePath = `${proc.user_id}/rfe/rfe_letter_${crypto.randomUUID()}.${fileExt}`;
@@ -533,10 +537,14 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
       const { error: uploadError } = await supabase.storage.from("profiles").upload(filePath, file);
       if (uploadError) throw uploadError;
 
-      const currentDocs = (data.docs as Record<string, string>) || {};
+      const currentDocs = { ...docs };
+      const newDocs = { ...currentDocs, rfe_letter: filePath };
+      
       await processService.updateStepData(proc.id, {
-        docs: { ...currentDocs, rfe_letter: filePath }
+        docs: newDocs
       });
+
+      setDocs(newDocs);
       
       toast.success(t?.workflows?.shared?.fileSent || "File sent!", { id: "u" });
 
@@ -550,22 +558,36 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
     } catch (e: unknown) {
       const err = e as Error;
       toast.error(err.message, { id: "u" });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleManualComplete = async () => {
-     const docs = (data.docs as Record<string, string>) || {};
-     if (!docs.rfe_letter && !data.rfe_description) {
+     if (!docs.rfe_letter && !description.trim()) {
         toast.error(t?.workflows?.rfe?.instruction?.summaryLabel || "Description required");
         return;
      }
-     await cosNotificationService.notifyAdmin({
-        event: "rfe_description_submitted",
-        processId: proc.id,
-        userId: proc.user_id,
-     });
      
-     onComplete?.();
+     setLoading(true);
+     try {
+       // Save description if changed
+       if (description !== data.rfe_description) {
+         await processService.updateStepData(proc.id, { rfe_description: description });
+       }
+       await cosNotificationService.notifyAdmin({
+          event: "rfe_description_submitted",
+          processId: proc.id,
+          userId: proc.user_id,
+       });
+       
+       onComplete?.();
+     } catch (e: unknown) {
+       const err = e as Error;
+       toast.error(err.message);
+     } finally {
+       setLoading(false);
+     }
   };
 
   return (
@@ -574,8 +596,8 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
          <div className="w-16 h-16 rounded-2xl bg-primary/5 text-primary flex items-center justify-center mx-auto mb-6">
             <RiDownload2Line className="text-3xl" />
          </div>
-         <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-3">{t?.workflows?.rfe?.instruction?.title}</h3>
-         <p className="text-sm font-medium text-slate-400">{t?.workflows?.rfe?.instruction?.desc}</p>
+         <h3 className="text-2xl font-black text-text uppercase tracking-tight mb-3">{t?.workflows?.rfe?.instruction?.title}</h3>
+         <p className="text-sm font-medium text-text-muted">{t?.workflows?.rfe?.instruction?.desc}</p>
       </div>
 
       <div className="space-y-6">
@@ -585,36 +607,33 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
           doc={{
             file: null,
             label: t?.workflows?.rfe?.instruction?.uploadSubtitle,
-            path: (data.docs as Record<string, string>)?.rfe_letter
+            path: docs?.rfe_letter
           }}
           onChange={(_key, file) => handleFileUpload(file)}
         />
 
         <div className="relative py-4 flex items-center">
-           <div className="flex-grow border-t border-slate-100"></div>
+           <div className="flex-grow border-t border-border"></div>
            <span className="flex-shrink mx-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">{t?.workflows?.rfe?.instruction?.orDescribe}</span>
-           <div className="flex-grow border-t border-slate-100"></div>
+           <div className="flex-grow border-t border-border"></div>
         </div>
 
-        <div className="space-y-2">
-           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">{t?.workflows?.rfe?.instruction?.summaryLabel}</Label>
-           <textarea
-             className="w-full h-32 rounded-2xl border border-slate-100 p-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 transition-all outline-none resize-none bg-slate-50/50"
-             placeholder={t?.workflows?.rfe?.instruction?.summaryPlaceholder}
-             defaultValue={data.rfe_description as string || ""}
-             onBlur={async (e) => {
-               if (e.target.value !== data.rfe_description) {
-                 await processService.updateStepData(proc.id, { rfe_description: e.target.value });
-               }
-             }}
-           />
-        </div>
+         <div className="space-y-2">
+            <Label className="text-[10px] font-black text-text-muted uppercase tracking-widest px-1">{t?.workflows?.rfe?.instruction?.summaryLabel}</Label>
+            <textarea
+              className="w-full h-32 rounded-2xl border border-border p-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 transition-all outline-none resize-none bg-bg-subtle/50"
+              placeholder={t?.workflows?.rfe?.instruction?.summaryPlaceholder}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+         </div>
 
         <button 
           onClick={handleManualComplete}
-          className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-black transition-all flex items-center justify-center gap-3"
+          disabled={loading}
+          className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-none hover:bg-black transition-all flex items-center justify-center gap-3 disabled:opacity-50"
         >
-          {t?.workflows?.shared?.confirmBtn}
+          {loading ? t?.workflows?.shared?.sendingFile : t?.workflows?.shared?.confirmBtn}
           <RiArrowRightLine className="text-xl" />
         </button>
       </div>
@@ -624,7 +643,7 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
 
 // ─── RFEAcceptProposalStep ───────────────────────────────────────────────────
 
-export function RFEAcceptProposalStep({ proc, onComplete: _onComplete }: StepProps) {
+export function RFEAcceptProposalStep({ proc }: StepProps) {
   const t = useT("onboarding");
   const data = (proc.step_data || {}) as Record<string, unknown>;
   const [showCheckout, setShowCheckout] = useState(false);
@@ -636,25 +655,25 @@ export function RFEAcceptProposalStep({ proc, onComplete: _onComplete }: StepPro
          <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-6">
             <RiShieldCheckLine className="text-3xl" />
          </div>
-         <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-3">{t?.workflows?.rfe?.proposal?.title}</h3>
-         <p className="text-sm font-medium text-slate-400">{t?.workflows?.rfe?.proposal?.desc}</p>
+         <h3 className="text-2xl font-black text-text uppercase tracking-tight mb-3">{t?.workflows?.rfe?.proposal?.title}</h3>
+         <p className="text-sm font-medium text-text-muted">{t?.workflows?.rfe?.proposal?.desc}</p>
       </div>
 
-      <div className="bg-white border border-slate-100 rounded-[40px] p-10 shadow-sm">
-        <div className="bg-slate-50 rounded-3xl p-8 mb-8 border border-slate-100/50">
-           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{t?.workflows?.shared?.actionPlan}</h4>
-           <p className="text-sm text-slate-600 leading-relaxed italic whitespace-pre-wrap">
+      <div className="bg-card border border-border rounded-[40px] p-10 shadow-sm">
+        <div className="bg-bg-subtle rounded-3xl p-8 mb-8 border border-border/50">
+           <h4 className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-4">{t?.workflows?.shared?.actionPlan}</h4>
+           <p className="text-sm text-text-muted leading-relaxed italic whitespace-pre-wrap">
               "{ (data.rfe_proposal_text as string) || t?.workflows?.shared?.waitingAnalysis}"
            </p>
         </div>
 
         <div className="grid grid-cols-2 gap-6 mb-10">
-           <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100/50">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t?.workflows?.shared?.serviceCost}</span>
+           <div className="p-6 bg-bg-subtle rounded-3xl border border-border/50">
+              <span className="text-[9px] font-black text-text-muted uppercase tracking-widest block mb-1">{t?.workflows?.shared?.serviceCost}</span>
               <span className="text-2xl font-black text-primary">${Number(data.rfe_proposal_amount || 0).toFixed(2)}</span>
            </div>
-           <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100/50">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Status</span>
+           <div className="p-6 bg-bg-subtle rounded-3xl border border-border/50">
+              <span className="text-[9px] font-black text-text-muted uppercase tracking-widest block mb-1">Status</span>
               <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">{t?.workflows?.shared?.strategyReady}</span>
            </div>
         </div>
@@ -726,9 +745,9 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE }:
         // Reset steps to restart RFE flow
         await processService.updateStepData(proc.id, {
           ...updateData,
-          current_step: 13, // Step 13 is RFE Explanation
           uscis_official_result: 'rfe' 
         });
+        await processService.updateCurrentStep(proc.id, 13);
         toast.success(t?.toasts?.resetRfe || "Reset RFE");
         onJumpToNewRFE?.();
       } else if (outcome === 'denied') {
@@ -736,8 +755,8 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE }:
         await processService.updateStepData(proc.id, {
           ...updateData,
           uscis_official_result: 'denied',
-          current_step: 19 // Step 19 is Motion Explanation
         });
+        await processService.updateCurrentStep(proc.id, 19);
         toast.error(t?.toasts?.deniedMotion || "Denied");
         onJumpToMotion?.();
       }
@@ -753,11 +772,11 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE }:
     <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-700">
       {rfeFinalUrl && (
         <div className="bg-emerald-50 border border-emerald-100 rounded-[40px] p-8 flex flex-col items-center text-center shadow-sm">
-           <div className="w-16 h-16 rounded-2xl bg-white text-emerald-500 flex items-center justify-center mb-4 shadow-sm">
+           <div className="w-16 h-16 rounded-2xl bg-card text-emerald-500 flex items-center justify-center mb-4 shadow-sm">
               <RiDownload2Line className="text-3xl" />
            </div>
-           <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{t?.workflows?.rfe?.end?.packageTitle}</h3>
-           <p className="text-xs text-slate-500 font-medium mt-1 mb-6">{t?.workflows?.rfe?.end?.packageDesc}</p>
+           <h3 className="text-lg font-black text-text uppercase tracking-tight">{t?.workflows?.rfe?.end?.packageTitle}</h3>
+           <p className="text-xs text-text-muted font-medium mt-1 mb-6">{t?.workflows?.rfe?.end?.packageDesc}</p>
            <a 
             href={rfeFinalUrl} 
             target="_blank" 
@@ -769,19 +788,19 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE }:
         </div>
       )}
 
-      <div className="bg-white rounded-[40px] border border-slate-100 p-12 shadow-sm text-center">
+      <div className="bg-card rounded-[40px] border border-border p-12 shadow-sm text-center">
         <div className="w-20 h-20 rounded-3xl bg-primary/5 text-primary flex items-center justify-center mx-auto mb-8">
            <RiCheckDoubleLine className="text-4xl" />
         </div>
-        <h2 className="text-2xl font-black text-slate-800 mb-3 uppercase tracking-tight">{t?.workflows?.rfe?.end?.resultTitle}</h2>
-        <p className="text-sm text-slate-400 font-medium max-w-sm mx-auto leading-relaxed mb-10">
+        <h2 className="text-2xl font-black text-text mb-3 uppercase tracking-tight">{t?.workflows?.rfe?.end?.resultTitle}</h2>
+        <p className="text-sm text-text-muted font-medium max-w-sm mx-auto leading-relaxed mb-10">
           {t?.workflows?.rfe?.end?.resultDesc}
         </p>
 
         <div className="grid grid-cols-3 gap-4">
           <button
             onClick={() => handleRFEOutcome('approved')}
-            disabled={loading}
+            disabled={loading || !!data.uscis_rfe_result}
             className="flex flex-col items-center justify-center p-6 bg-emerald-50 border border-emerald-100 rounded-3xl hover:bg-emerald-100 transition-all group"
           >
             <RiCheckDoubleLine className="text-2xl text-emerald-500 mb-3 group-hover:scale-110 transition-transform" />
@@ -790,7 +809,7 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE }:
 
           <button
             onClick={() => handleRFEOutcome('rfe')}
-            disabled={loading}
+            disabled={loading || !!data.uscis_rfe_result}
             className="flex flex-col items-center justify-center p-6 bg-amber-50 border border-amber-100 rounded-3xl hover:bg-amber-100 transition-all group"
           >
             <RiTimeLine className="text-2xl text-amber-500 mb-3 group-hover:scale-110 transition-transform" />
@@ -799,7 +818,7 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE }:
 
           <button
             onClick={() => handleRFEOutcome('denied')}
-            disabled={loading}
+            disabled={loading || !!data.uscis_rfe_result}
             className="flex flex-col items-center justify-center p-6 bg-red-50 border border-red-100 rounded-3xl hover:bg-red-100 transition-all group"
           >
             <RiSpam2Line className="text-2xl text-red-500 mb-3 group-hover:scale-110 transition-transform" />
@@ -843,11 +862,11 @@ export function RFEWorkflow({ data, onRefresh }: WorkflowProps) {
             <div className="w-20 h-20 rounded-[32px] bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-10 shadow-inner">
                <RiCheckDoubleLine className="text-4xl" />
             </div>
-            <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tight mb-4">{normalizedStep.title}</h2>
-            <p className="text-slate-500 font-medium text-lg mb-10">Sua solicitação está sendo cuidada pelo nosso time especializado.</p>
-            <div className="inline-flex items-center gap-3 px-6 py-3 bg-slate-50 rounded-2xl border border-slate-100">
+            <h2 className="text-3xl font-black text-text uppercase tracking-tight mb-4">{normalizedStep.title}</h2>
+            <p className="text-text-muted font-medium text-lg mb-10">Sua solicitação está sendo cuidada pelo nosso time especializado.</p>
+            <div className="inline-flex items-center gap-3 px-6 py-3 bg-bg-subtle rounded-2xl border border-border">
                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Aguardando Avaliação Administrativa</span>
+               <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Aguardando Avaliação Administrativa</span>
             </div>
           </div>
         );

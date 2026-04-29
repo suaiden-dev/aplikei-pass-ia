@@ -24,6 +24,7 @@ import {
 import { getServiceBySlug } from '../../../data/services'
 import { toast } from 'sonner'
 import { supabase } from '../../../lib/supabase'
+import { getSessionSafe } from '../../../lib/supabase'
 import I539FormStep from './I539FormStep'
 import CoverLetterStep from './CoverLetterStep'
 import FinalFormsStep from './FinalFormsStep'
@@ -77,7 +78,7 @@ const CURRENT_VISA_OPTIONS: { label: string; icon: string; color: string }[] = [
   { label: 'J1/J2', icon: '🔄', color: 'text-violet-500' },
   { label: 'L1/L2', icon: '📋', color: 'text-orange-500' },
   { label: 'R1/R2', icon: '🏛️', color: 'text-red-500' },
-  { label: 'Other', icon: '···', color: 'text-slate-400' },
+  { label: 'Other', icon: '···', color: 'text-text-muted' },
 ]
 
 const TARGET_VISA_OPTIONS: { label: string; icon: string; color: string }[] = [
@@ -105,27 +106,6 @@ export default function COSOnboardingPage() {
     searchParams.get('parentId') ||
     searchParams.get('processId')
   const service = getServiceBySlug(slug)
-
-  // Translation safety guard: if locale is loading, return a refined loading state
-  if (!t || !t.cos) {
-    return (
-      <div className='min-h-screen flex items-center justify-center bg-slate-50'>
-        <div className='flex flex-col items-center gap-4 text-center p-12 bg-white rounded-[40px] shadow-sm border border-slate-100 animate-in fade-in zoom-in-95'>
-          <div className='w-16 h-16 rounded-3xl bg-primary/5 flex items-center justify-center text-primary shadow-inner'>
-            <RiLoader4Line className='text-3xl animate-spin' />
-          </div>
-          <div>
-            <p className='text-xs font-black text-slate-800 uppercase tracking-widest'>
-              Sincronizando Traduções
-            </p>
-            <p className='text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter'>
-              Preparando interface personalizada...
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   // Safety guard: this component is only for COS products.
   // If somehow the generic :slug route catches a B1/B2 request, redirect immediately.
@@ -185,6 +165,7 @@ export default function COSOnboardingPage() {
     proc?.step_data?.uscis_rfe_result || '',
   ).toLowerCase()
   const currentProcessStep = proc?.current_step ?? 0
+  const isRecoveryRangeStep = stepIdx >= 13 && stepIdx <= 24
   const isMotionContext =
     uscisResult === 'denied' ||
     uscisResult === 'rejected' ||
@@ -264,7 +245,10 @@ export default function COSOnboardingPage() {
       // --- AUTO-REPAIR: Sincronizar slots pagos com o histórico de compras (purchases) ---
       try {
         if (data.step_data?.purchases) {
-          const purchases = data.step_data.purchases as any[]
+          const purchases = data.step_data.purchases as Array<{
+            dependents?: number | string
+            slug?: string
+          }>
           let totalPaidViaPurchases = 0
 
           purchases.forEach((p) => {
@@ -355,7 +339,11 @@ export default function COSOnboardingPage() {
 
     if (isMotionContext && !isInMotionRange) {
       const nextParams = new URLSearchParams(searchParams)
-      nextParams.set('step', '19')
+      const motionStep =
+        currentProcessStep >= 19 && currentProcessStep <= 24
+          ? currentProcessStep
+          : 19
+      nextParams.set('step', String(motionStep))
       navigate(
         `/dashboard/processes/${slug}/onboarding?${nextParams.toString()}`,
         {
@@ -367,7 +355,11 @@ export default function COSOnboardingPage() {
 
     if (isRFEContext && !isInRFERange) {
       const nextParams = new URLSearchParams(searchParams)
-      nextParams.set('step', '13')
+      const rfeStep =
+        currentProcessStep >= 13 && currentProcessStep <= 18
+          ? currentProcessStep
+          : 13
+      nextParams.set('step', String(rfeStep))
       navigate(
         `/dashboard/processes/${slug}/onboarding?${nextParams.toString()}`,
         {
@@ -384,6 +376,27 @@ export default function COSOnboardingPage() {
     slug,
     stepIdx,
   ])
+
+  // Translation safety guard: if locale is loading, return a refined loading state
+  if (!t || !t.cos) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-bg-subtle'>
+        <div className='flex flex-col items-center gap-4 text-center p-12 bg-card rounded-[40px] shadow-sm border border-border animate-in fade-in zoom-in-95'>
+          <div className='w-16 h-16 rounded-3xl bg-primary/5 flex items-center justify-center text-primary shadow-inner'>
+            <RiLoader4Line className='text-3xl animate-spin' />
+          </div>
+          <div>
+            <p className='text-xs font-black text-text uppercase tracking-widest'>
+              Sincronizando Traduções
+            </p>
+            <p className='text-[10px] font-bold text-text-muted mt-1 uppercase tracking-tighter'>
+              Preparando interface personalizada...
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // Handle doc slot generation
   const getDocSlots = () => {
@@ -510,6 +523,19 @@ export default function COSOnboardingPage() {
       }
 
       if (stepIdx === 1) {
+        if (!user?.id) {
+          throw new Error(
+            'Sessão expirada. Por favor, recarregue a página e tente novamente.',
+          )
+        }
+
+        const session = await getSessionSafe()
+        if (!session?.user?.id) {
+          throw new Error(
+            'Sessão expirada. Faça login novamente antes de enviar os documentos.',
+          )
+        }
+
         const currentDocs =
           (proc.step_data?.docs as Record<string, string>) || {}
         const updatedDocs: Record<string, string> = { ...currentDocs }
@@ -519,11 +545,16 @@ export default function COSOnboardingPage() {
           const doc = docs[slot.key]
           if (doc?.file) {
             const fileExt = doc.file.name.split('.').pop()
-            const filePath = `${user!.id}/cos/${slot.key}.${fileExt}`
+            const filePath = `${session.user.id}/cos/${slot.key}.${fileExt}`
+            let uploadError = null
 
-            const { error: uploadError } = await supabase.storage
+            const result = await supabase.storage
               .from('profiles')
-              .upload(filePath, doc.file, { upsert: true })
+              .upload(filePath, doc.file, {
+                upsert: true,
+                contentType: doc.file.type,
+              })
+            uploadError = result.error
 
             if (uploadError)
               throw new Error(
@@ -577,7 +608,7 @@ export default function COSOnboardingPage() {
         if (stepIdx === finalPackageIdx) {
           if (uscisResult === 'denied') {
             const motionStart = service.steps.findIndex(
-              (s) => s.id === 'cos_motion_explanation',
+              (s) => s.id === 'cos_motion_acquisition',
             )
             nextStepIdx = motionStart !== -1 ? motionStart : 19
             forceJump = true
@@ -591,7 +622,7 @@ export default function COSOnboardingPage() {
         } else if (stepIdx === rfeEndIdx) {
           if (rfeResult === 'denied') {
             const motionStart = service.steps.findIndex(
-              (s) => s.id === 'cos_motion_explanation',
+              (s) => s.id === 'cos_motion_acquisition',
             )
             nextStepIdx = motionStart !== -1 ? motionStart : 19
             forceJump = true
@@ -609,17 +640,19 @@ export default function COSOnboardingPage() {
 
         const currentDBStep = freshProc.current_step ?? 0
         const isCorrection = !!freshProc.step_data?.admin_feedback
+        const isMotionEnd = nextStep?.id === 'cos_motion_end'
+        const shouldRequestReview =
+          !isMotionEnd &&
+          (isCorrection || nextStep?.type === 'admin_action' || isFinal)
 
         // Allow update if advancing OR if it's an explicit jump (even backward)
         if (nextStepIdx > currentDBStep || forceJump) {
-          await processService.approveStep(proc.id, nextStepIdx, isFinal)
+          await processService.approveStep(proc.id, nextStepIdx, isFinal, undefined, undefined, {
+            notifyClient: !shouldRequestReview,
+          })
         }
 
-        const isMotionEnd = nextStep?.id === 'cos_motion_end'
-        if (
-          !isMotionEnd &&
-          (isCorrection || nextStep?.type === 'admin_action' || isFinal)
-        ) {
+        if (shouldRequestReview) {
           await processService.requestStepReview(proc.id)
         }
         toast.success(t.cos?.toasts?.stepSent)
@@ -637,10 +670,10 @@ export default function COSOnboardingPage() {
   return (
     <div className='min-h-screen bg-[#f8fafc] flex flex-col'>
       {isSubmitting && (
-        <div className='fixed inset-0 z-[120] bg-white/70 backdrop-blur-sm flex items-center justify-center'>
-          <div className='bg-white border border-slate-200 shadow-xl rounded-2xl px-6 py-5 flex items-center gap-3'>
+        <div className='fixed inset-0 z-[120] bg-card/70 backdrop-blur-sm flex items-center justify-center'>
+          <div className='bg-card border border-border shadow-xl rounded-2xl px-6 py-5 flex items-center gap-3'>
             <RiLoader4Line className='text-2xl text-primary animate-spin' />
-            <p className='text-sm font-black text-slate-700 uppercase tracking-wider'>
+            <p className='text-sm font-black text-text uppercase tracking-wider'>
               Enviando etapa...
             </p>
           </div>
@@ -648,12 +681,12 @@ export default function COSOnboardingPage() {
       )}
 
       {/* Top bar */}
-      <div className='bg-white border-b border-slate-100 px-8 py-4 flex items-center justify-between'>
+      <div className='bg-card border-b border-border px-8 py-4 flex items-center justify-between'>
         <div>
-          <h1 className='text-xl font-black text-slate-900 tracking-tight'>
+          <h1 className='text-xl font-black text-text tracking-tight'>
             {t.cos?.title}
           </h1>
-          <p className='text-xs text-slate-400 font-medium mt-0.5'>
+          <p className='text-xs text-text-muted font-medium mt-0.5'>
             {t.cos?.subtitle}{' '}
             <span className='text-primary font-black uppercase tracking-widest ml-1'>
               {t.cos?.badge}
@@ -670,16 +703,16 @@ export default function COSOnboardingPage() {
             initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.22 }}
-            className='bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden'
+            className='bg-card rounded-2xl border border-border shadow-sm overflow-hidden'
           >
             {/* ── Step 0: COS Application Form ── */}
             {stepIdx === 0 && (
               <>
-                <div className='px-8 py-6 border-b border-slate-100'>
-                  <h2 className='text-xl font-black text-slate-900 tracking-tight'>
+                <div className='px-8 py-6 border-b border-border'>
+                  <h2 className='text-xl font-black text-text tracking-tight'>
                     {t.cos.form.title}
                   </h2>
-                  <p className='text-sm text-slate-400 font-medium mt-1'>
+                  <p className='text-sm text-text-muted font-medium mt-1'>
                     {t.cos.form.desc}
                   </p>
                 </div>
@@ -687,7 +720,7 @@ export default function COSOnboardingPage() {
                 <div className='px-8 py-6 space-y-8'>
                   {/* Current visa */}
                   <div>
-                    <label className='text-sm font-bold text-slate-700 mb-3 flex items-center gap-1'>
+                    <label className='text-sm font-bold text-text mb-3 flex items-center gap-1'>
                       {t.cos.form.currentVisaLabel}{' '}
                       <span className='text-red-500'>*</span>
                     </label>
@@ -707,8 +740,8 @@ export default function COSOnboardingPage() {
                                   ? 'border-red-500 bg-red-50 text-red-700'
                                   : 'border-primary bg-primary/5 text-primary'
                                 : isRejected
-                                  ? 'border-red-100 bg-red-50/30 text-slate-400'
-                                  : 'border-slate-100 text-slate-600 hover:border-slate-200 hover:bg-slate-50'
+                                  ? 'border-red-100 bg-red-50/30 text-text-muted'
+                                  : 'border-border text-text-muted hover:border-border hover:bg-bg-subtle'
                             } ${isReadOnly ? 'cursor-default opacity-80' : 'cursor-pointer'}`}
                           >
                             <span
@@ -728,7 +761,7 @@ export default function COSOnboardingPage() {
 
                   {/* Target visa */}
                   <div>
-                    <label className='text-sm font-bold text-slate-700 mb-3 flex items-center gap-1'>
+                    <label className='text-sm font-bold text-text mb-3 flex items-center gap-1'>
                       {t.cos.form.targetVisaLabel}{' '}
                       <span className='text-red-500'>*</span>
                     </label>
@@ -748,8 +781,8 @@ export default function COSOnboardingPage() {
                                   ? 'border-red-500 bg-red-50 text-red-700'
                                   : 'border-primary bg-primary/5 text-primary'
                                 : isRejected
-                                  ? 'border-red-100 bg-red-50/30 text-slate-400'
-                                  : 'border-slate-100 text-slate-600 hover:border-slate-200 hover:bg-slate-50'
+                                  ? 'border-red-100 bg-red-50/30 text-text-muted'
+                                  : 'border-border text-text-muted hover:border-border hover:bg-bg-subtle'
                             } ${isReadOnly ? 'cursor-default opacity-80' : 'cursor-pointer'}`}
                           >
                             <span
@@ -769,7 +802,7 @@ export default function COSOnboardingPage() {
 
                   {/* I-94 Date */}
                   <div>
-                    <label className='text-sm font-bold text-slate-700 mb-2 flex items-center gap-1'>
+                    <label className='text-sm font-bold text-text mb-2 flex items-center gap-1'>
                       {t.cos.form.i94DateLabel}{' '}
                       <span className='text-red-500'>*</span>
                     </label>
@@ -778,10 +811,10 @@ export default function COSOnboardingPage() {
                       value={i94Date}
                       onChange={(e) => setI94Date(e.target.value)}
                       disabled={isReadOnly}
-                      className={`border rounded-xl px-4 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all w-full sm:w-64 disabled:text-slate-500 ${
+                      className={`border rounded-xl px-4 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all w-full sm:w-64 disabled:text-text-muted ${
                         isFieldRejected('i94Date')
                           ? 'border-red-500 bg-red-50 text-red-700'
-                          : 'border-slate-200 bg-white text-slate-700 disabled:bg-slate-50'
+                          : 'border-border bg-card text-text disabled:bg-bg-subtle'
                       }`}
                     />
                     <div className='mt-4 text-primary font-bold text-xs uppercase tracking-widest pl-1'>
@@ -799,13 +832,13 @@ export default function COSOnboardingPage() {
 
                       <Dialog>
                         <DialogTrigger asChild>
-                          <button className='text-xs text-slate-500 font-bold hover:text-primary transition-colors flex items-center gap-1'>
+                          <button className='text-xs text-text-muted font-bold hover:text-primary transition-colors flex items-center gap-1'>
                             <RiInformationLine className='text-sm' />{' '}
                             {t.cos.form.i94TutorialLink}
                           </button>
                         </DialogTrigger>
-                        <DialogContent className='max-w-2xl bg-white p-0 overflow-hidden border-none rounded-3xl shadow-2xl'>
-                          <DialogHeader className='p-8 bg-slate-900 border-b border-slate-800'>
+                        <DialogContent className='max-w-2xl bg-card p-0 overflow-hidden border-none rounded-3xl shadow-2xl'>
+                          <DialogHeader className='p-8 bg-card border-b border-border'>
                             <DialogTitle className='text-xl font-black text-white tracking-tight flex items-center gap-3'>
                               <div className='w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white'>
                                 <RiInformationLine className='text-2xl' />
@@ -817,17 +850,17 @@ export default function COSOnboardingPage() {
                           <div className='p-8 space-y-12 max-h-[70vh] overflow-y-auto custom-scrollbar'>
                             {/* Step 1 */}
                             <div className='flex gap-6'>
-                              <div className='flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center font-black text-slate-900'>
+                              <div className='flex-shrink-0 w-10 h-10 rounded-full bg-bg-subtle border-2 border-border flex items-center justify-center font-black text-text'>
                                 1
                               </div>
                               <div className='flex-1 space-y-4'>
-                                <p className='text-base font-black text-slate-800 tracking-tight leading-relaxed'>
+                                <p className='text-base font-black text-text tracking-tight leading-relaxed'>
                                   {t.cos.form.i94Tutorial.step1}
-                                  <span className='block text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest'>
+                                  <span className='block text-xs font-bold text-text-muted mt-1 uppercase tracking-widest'>
                                     {t.cos.form.i94Tutorial.step1Sub}
                                   </span>
                                 </p>
-                                <div className='rounded-2xl overflow-hidden border border-slate-100 shadow-sm'>
+                                <div className='rounded-2xl overflow-hidden border border-border shadow-sm'>
                                   <img
                                     src={imgTutor1}
                                     alt='Accept Terms'
@@ -839,17 +872,17 @@ export default function COSOnboardingPage() {
 
                             {/* Step 2 */}
                             <div className='flex gap-6'>
-                              <div className='flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center font-black text-slate-900'>
+                              <div className='flex-shrink-0 w-10 h-10 rounded-full bg-bg-subtle border-2 border-border flex items-center justify-center font-black text-text'>
                                 2
                               </div>
                               <div className='flex-1 space-y-4'>
-                                <p className='text-base font-black text-slate-800 tracking-tight leading-relaxed'>
+                                <p className='text-base font-black text-text tracking-tight leading-relaxed'>
                                   {t.cos.form.i94Tutorial.step2}
-                                  <span className='block text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest'>
+                                  <span className='block text-xs font-bold text-text-muted mt-1 uppercase tracking-widest'>
                                     {t.cos.form.i94Tutorial.step2Sub}
                                   </span>
                                 </p>
-                                <div className='rounded-2xl overflow-hidden border border-slate-100 shadow-sm'>
+                                <div className='rounded-2xl overflow-hidden border border-border shadow-sm'>
                                   <img
                                     src={imgTutor2}
                                     alt='Upload/Camera Document'
@@ -861,17 +894,17 @@ export default function COSOnboardingPage() {
 
                             {/* Step 3 */}
                             <div className='flex gap-6'>
-                              <div className='flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center font-black text-slate-900'>
+                              <div className='flex-shrink-0 w-10 h-10 rounded-full bg-bg-subtle border-2 border-border flex items-center justify-center font-black text-text'>
                                 3
                               </div>
                               <div className='flex-1 space-y-4'>
-                                <p className='text-base font-black text-slate-800 tracking-tight leading-relaxed'>
+                                <p className='text-base font-black text-text tracking-tight leading-relaxed'>
                                   {t.cos.form.i94Tutorial.step3}
-                                  <span className='block text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest'>
+                                  <span className='block text-xs font-bold text-text-muted mt-1 uppercase tracking-widest'>
                                     {t.cos.form.i94Tutorial.step3Sub}
                                   </span>
                                 </p>
-                                <div className='rounded-2xl overflow-hidden border border-slate-100 shadow-sm'>
+                                <div className='rounded-2xl overflow-hidden border border-border shadow-sm'>
                                   <img
                                     src={imgTutor3}
                                     alt='Fill in fields'
@@ -910,20 +943,20 @@ export default function COSOnboardingPage() {
                         <div className='space-y-6'>
                           <div className='flex items-center justify-between'>
                             <div>
-                              <h3 className='text-base font-black text-slate-800 flex items-center gap-2'>
+                              <h3 className='text-base font-black text-text flex items-center gap-2'>
                                 {t.cos.form.dependents.title}
                                 <span
                                   className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
                                     hasPaidSlots
                                       ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                                      : 'bg-slate-100 text-slate-500 border border-slate-200'
+                                      : 'bg-bg-subtle text-text-muted border border-border'
                                   }`}
                                 >
                                   {dependents.length} / {paidDependents}{' '}
                                   {t.cos.form.dependents.slots}
                                 </span>
                               </h3>
-                              <p className='text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-0.5'>
+                              <p className='text-[11px] text-text-muted font-bold uppercase tracking-wider mt-0.5'>
                                 {hasPaidSlots
                                   ? t.cos.form.dependents.paidFor.replace(
                                       '{count}',
@@ -938,8 +971,8 @@ export default function COSOnboardingPage() {
                                 disabled={reachedLimit}
                                 className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-md ${
                                   reachedLimit
-                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-200'
-                                    : 'bg-slate-900 text-white hover:bg-slate-800 shadow-slate-200'
+                                    ? 'bg-bg-subtle text-text-muted cursor-not-allowed shadow-none border border-border'
+                                    : 'bg-card text-white hover:bg-slate-800 shadow-none'
                                 }`}
                               >
                                 <RiAddLine className='text-base' />{' '}
@@ -961,10 +994,10 @@ export default function COSOnboardingPage() {
                                   <RiAddLine className='text-xl' />
                                 </div>
                                 <div>
-                                  <p className='text-xs font-black text-slate-800 uppercase tracking-tight'>
+                                  <p className='text-xs font-black text-text uppercase tracking-tight'>
                                     {t.cos.form.dependents.needMoreSlots}
                                   </p>
-                                  <p className='text-[11px] text-slate-500 font-medium leading-tight'>
+                                  <p className='text-[11px] text-text-muted font-medium leading-tight'>
                                     {t.cos.form.dependents.addFamilyPrompt}
                                   </p>
                                 </div>
@@ -982,7 +1015,7 @@ export default function COSOnboardingPage() {
                                 </button>
                                 <button
                                   onClick={() => window.location.reload()}
-                                  className='w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all'
+                                  className='w-full sm:w-auto px-5 py-2.5 rounded-xl border border-border text-text-muted text-[10px] font-black uppercase tracking-widest hover:bg-bg-subtle transition-all'
                                 >
                                   🔄 Atualizar Slots
                                 </button>
@@ -994,7 +1027,7 @@ export default function COSOnboardingPage() {
                     })()}
 
                     {dependents.length === 0 && (
-                      <div className='text-center py-12 border-2 border-dashed border-slate-100 rounded-2xl'>
+                      <div className='text-center py-12 border-2 border-dashed border-border rounded-2xl'>
                         <p className='text-xs text-slate-300 font-bold uppercase tracking-widest leading-loose'>
                           {t.cos.form.dependents.noDependents}
                         </p>
@@ -1015,7 +1048,7 @@ export default function COSOnboardingPage() {
                         return (
                           <div
                             key={dep.id}
-                            className='relative p-7 rounded-2xl border border-slate-100 bg-slate-50/50 shadow-sm'
+                            className='relative p-7 rounded-2xl border border-border bg-bg-subtle/50 shadow-sm'
                           >
                             {!isReadOnly && (
                               <button
@@ -1028,7 +1061,7 @@ export default function COSOnboardingPage() {
 
                             <div className='grid grid-cols-2 gap-x-6 gap-y-5'>
                               <div className='col-span-2 sm:col-span-1'>
-                                <label className='block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2'>
+                                <label className='block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2'>
                                   {t.cos.form.dependents.fullName}
                                 </label>
                                 <input
@@ -1044,12 +1077,12 @@ export default function COSOnboardingPage() {
                                   placeholder={
                                     t.cos.form.dependents.passportPlaceholder
                                   }
-                                  className='w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all disabled:bg-slate-50 disabled:text-slate-500'
+                                  className='w-full bg-card border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-text outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all disabled:bg-bg-subtle disabled:text-text-muted'
                                 />
                               </div>
 
                               <div className='col-span-2 sm:col-span-1'>
-                                <label className='block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2'>
+                                <label className='block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2'>
                                   {t.cos.form.dependents.relationship}
                                 </label>
                                 <select
@@ -1065,7 +1098,7 @@ export default function COSOnboardingPage() {
                                         | 'other',
                                     )
                                   }
-                                  className='w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all appearance-none cursor-pointer disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-default'
+                                  className='w-full bg-card border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-text outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all appearance-none cursor-pointer disabled:bg-bg-subtle disabled:text-text-muted disabled:cursor-default'
                                 >
                                   <option value=''>
                                     {t.cos.form.dependents.select}
@@ -1083,7 +1116,7 @@ export default function COSOnboardingPage() {
                               </div>
 
                               <div>
-                                <label className='block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2'>
+                                <label className='block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2'>
                                   {t.cos.form.dependents.dob}
                                 </label>
                                 <input
@@ -1097,12 +1130,12 @@ export default function COSOnboardingPage() {
                                       e.target.value,
                                     )
                                   }
-                                  className='w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all disabled:bg-slate-50 disabled:text-slate-500'
+                                  className='w-full bg-card border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-text outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all disabled:bg-bg-subtle disabled:text-text-muted'
                                 />
                               </div>
 
                               <div>
-                                <label className='block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2'>
+                                <label className='block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2'>
                                   {t.cos.form.dependents.i94Exp}
                                 </label>
                                 <input
@@ -1116,13 +1149,13 @@ export default function COSOnboardingPage() {
                                       e.target.value,
                                     )
                                   }
-                                  className='w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all disabled:bg-slate-50 disabled:text-slate-500'
+                                  className='w-full bg-card border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-text outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all disabled:bg-bg-subtle disabled:text-text-muted'
                                 />
                               </div>
 
                               {dep.relation === 'spouse' && (
                                 <div className='col-span-2'>
-                                  <label className='block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-primary'>
+                                  <label className='block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2 text-primary'>
                                     {t.cos.form.dependents.marriageDate}
                                   </label>
                                   <input
@@ -1136,7 +1169,7 @@ export default function COSOnboardingPage() {
                                         e.target.value,
                                       )
                                     }
-                                    className='w-full bg-white border border-primary/20 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all disabled:bg-slate-50 disabled:text-slate-500'
+                                    className='w-full bg-card border border-primary/20 rounded-xl px-4 py-2.5 text-sm font-bold text-text outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all disabled:bg-bg-subtle disabled:text-text-muted'
                                   />
                                 </div>
                               )}
@@ -1179,15 +1212,15 @@ export default function COSOnboardingPage() {
             {/* ── Step 1: Document Uploads ── */}
             {stepIdx === 1 && (
               <>
-                <div className='px-8 py-6 border-b border-slate-100 flex items-center gap-3'>
+                <div className='px-8 py-6 border-b border-border flex items-center gap-3'>
                   <div className='w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500'>
                     <MdPerson className='text-xl' />
                   </div>
                   <div>
-                    <h2 className='text-xl font-black text-slate-900 tracking-tight'>
+                    <h2 className='text-xl font-black text-text tracking-tight'>
                       {t.cos.docs.title}
                     </h2>
-                    <p className='text-sm text-slate-400 font-medium mt-0.5'>
+                    <p className='text-sm text-text-muted font-medium mt-0.5'>
                       {t.cos.docs.desc}
                     </p>
                   </div>
@@ -1197,10 +1230,10 @@ export default function COSOnboardingPage() {
                   <div className='flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100'>
                     <RiInformationLine className='text-blue-500 text-xl shrink-0 mt-0.5' />
                     <div>
-                      <p className='text-sm font-black text-slate-800'>
+                      <p className='text-sm font-black text-text'>
                         {t.cos.docs.i94Instructions}
                       </p>
-                      <p className='text-xs text-slate-500 font-medium mt-0.5'>
+                      <p className='text-xs text-text-muted font-medium mt-0.5'>
                         {t.cos.docs.i94InstructionsDesc}
                       </p>
                       <a
@@ -1221,11 +1254,11 @@ export default function COSOnboardingPage() {
                     <div key={cat}>
                       <div className='flex items-center gap-2 mb-4'>
                         {cat.includes('Financial') ? (
-                          <MdAccountBalance className='text-slate-400 text-base' />
+                          <MdAccountBalance className='text-text-muted text-base' />
                         ) : (
-                          <MdPerson className='text-slate-400 text-base' />
+                          <MdPerson className='text-text-muted text-base' />
                         )}
-                        <span className='text-[11px] font-black text-slate-400 uppercase tracking-widest'>
+                        <span className='text-[11px] font-black text-text-muted uppercase tracking-widest'>
                           {cat}
                         </span>
                       </div>
@@ -1259,11 +1292,11 @@ export default function COSOnboardingPage() {
             {/* ── Step 3: I-539 Official Form ── */}
             {stepIdx === 3 && proc && user && (
               <div className='px-8 py-6'>
-                <div className='mb-6 border-b border-slate-100 pb-6'>
-                  <h2 className='text-xl font-black text-slate-900 tracking-tight'>
+                <div className='mb-6 border-b border-border pb-6'>
+                  <h2 className='text-xl font-black text-text tracking-tight'>
                     {t.cos.i539.labels.header}
                   </h2>
-                  <p className='text-sm text-slate-400 font-medium mt-1'>
+                  <p className='text-sm text-text-muted font-medium mt-1'>
                     {t.cos.i539.labels.fillInstruction}
                   </p>
                 </div>
@@ -1278,11 +1311,11 @@ export default function COSOnboardingPage() {
             {/* ── Step 5: Cover Letter Questionnaire ── */}
             {stepIdx === 5 && proc && user && (
               <div className='px-8 py-6'>
-                <div className='mb-6 border-b border-slate-100 pb-6'>
-                  <h2 className='text-xl font-black text-slate-900 tracking-tight'>
+                <div className='mb-6 border-b border-border pb-6'>
+                  <h2 className='text-xl font-black text-text tracking-tight'>
                     Cover Letter Questionnaire
                   </h2>
-                  <p className='text-sm text-slate-400 font-medium mt-1'>
+                  <p className='text-sm text-text-muted font-medium mt-1'>
                     Please answer the questions below to help us generate your
                     presentation letter for USCIS.
                   </p>
@@ -1298,11 +1331,11 @@ export default function COSOnboardingPage() {
             {/* ── Step 7: I-20 Upload ── */}
             {stepIdx === 7 && proc && user && (
               <div className='px-8 py-6'>
-                <div className='mb-6 border-b border-slate-100 pb-6'>
-                  <h2 className='text-xl font-black text-slate-900 tracking-tight'>
+                <div className='mb-6 border-b border-border pb-6'>
+                  <h2 className='text-xl font-black text-text tracking-tight'>
                     {t.cos.i20Upload.title}
                   </h2>
-                  <p className='text-sm text-slate-400 font-medium mt-1'>
+                  <p className='text-sm text-text-muted font-medium mt-1'>
                     {t.cos.i20Upload.desc}
                   </p>
                 </div>
@@ -1317,11 +1350,11 @@ export default function COSOnboardingPage() {
             {/* ── Step 8: SEVIS Fee ── */}
             {stepIdx === 8 && proc && user && (
               <div className='px-8 py-6 pb-24'>
-                <div className='mb-6 border-b border-slate-100 pb-6'>
-                  <h2 className='text-xl font-black text-slate-900 tracking-tight'>
+                <div className='mb-6 border-b border-border pb-6'>
+                  <h2 className='text-xl font-black text-text tracking-tight'>
                     {t.cos.sevisFee.title}
                   </h2>
-                  <p className='text-sm text-slate-400 font-medium mt-1'>
+                  <p className='text-sm text-text-muted font-medium mt-1'>
                     {t.cos.sevisFee.desc}
                   </p>
                 </div>
@@ -1399,6 +1432,7 @@ export default function COSOnboardingPage() {
                   {stepIdx === 19 && proc && (
                     <MotionExplanationStep
                       proc={proc}
+                      user={user}
                       onComplete={handleConcluir}
                     />
                   )}
@@ -1406,6 +1440,7 @@ export default function COSOnboardingPage() {
                   {stepIdx === 20 && proc && (
                     <MotionInstructionStep
                       proc={proc}
+                      user={user}
                       onComplete={handleConcluir}
                     />
                   )}
@@ -1413,12 +1448,13 @@ export default function COSOnboardingPage() {
                   {stepIdx === 22 && proc && (
                     <MotionAcceptProposalStep
                       proc={proc}
+                      user={user}
                       onComplete={handleConcluir}
                     />
                   )}
 
                   {stepIdx === 24 && proc && (
-                    <MotionEndStep proc={proc} onComplete={handleConcluir} />
+                    <MotionEndStep proc={proc} user={user} onComplete={handleConcluir} />
                   )}
                 </>
               )
@@ -1426,6 +1462,22 @@ export default function COSOnboardingPage() {
 
             {/* ── Fallback ── */}
             {(() => {
+              if (!proc && isRecoveryRangeStep) {
+                return (
+                  <div className='p-16 text-center'>
+                    <div className='w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 mx-auto mb-4'>
+                      <RiLoader4Line className='text-3xl animate-spin' />
+                    </div>
+                    <h2 className='text-xl font-black text-text mb-2'>
+                      Carregando etapa
+                    </h2>
+                    <p className='text-sm text-text-muted font-medium'>
+                      Estamos sincronizando o fluxo do seu processo.
+                    </p>
+                  </div>
+                )
+              }
+
               const isBaseStepRendered =
                 [0, 1, 3, 5, 7, 8, 10].includes(stepIdx) ||
                 (stepIdx === 12 && !isRFEContext && !isMotionContext)
@@ -1447,32 +1499,33 @@ export default function COSOnboardingPage() {
                   <div className='w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 mx-auto mb-4'>
                     <RiLoader4Line className='text-3xl animate-spin' />
                   </div>
-                  <h2 className='text-xl font-black text-slate-900 mb-2'>
-                    Análise em Andamento
+                  <h2 className='text-xl font-black text-text mb-2'>
+                    Qual foi o resultado?
                   </h2>
-                  <p className='text-sm text-slate-400 font-medium'>
-                    {service?.steps[stepIdx]?.title || 'Etapa Administrativa'}:{' '}
-                    {service?.steps[stepIdx]?.description ||
-                      'Nossa equipe está processando sua solicitação.'}
+                  <p className='text-sm text-text-muted font-medium'>
+                    Se você já recebeu o retorno oficial do USCIS, nos informe
+                    abaixo para prosseguirmos com seu processo.
                   </p>
-                  <div className='mt-8 p-4 bg-slate-50 rounded-2xl border border-slate-100 max-w-sm mx-auto'>
-                    <p className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1'>
-                      Status do Processo
+                  <div className='mt-8 p-4 bg-bg-subtle rounded-2xl border border-border max-w-sm mx-auto'>
+                    <p className='text-[10px] font-black text-text-muted uppercase tracking-widest mb-1'>
+                      Aguardando seu feedback
                     </p>
-                    <p className='text-xs font-bold text-slate-600'>
-                      Aguardando revisão interna de nossa equipe.
+                    <p className='text-xs font-bold text-text-muted'>
+                      {proc?.step_data?.motion_final_result 
+                        ? `Status informado: ${String(proc.step_data.motion_final_result).toUpperCase()}`
+                        : "Selecione uma das opções abaixo."}
                     </p>
                   </div>
                   <div className='mt-8 max-w-xl mx-auto rounded-3xl border border-primary/10 bg-primary/[0.03] p-6 sm:p-8 text-left'>
                     <div className='flex items-start gap-3 mb-5'>
-                      <div className='w-10 h-10 rounded-xl bg-white border border-primary/10 text-primary flex items-center justify-center shrink-0'>
+                      <div className='w-10 h-10 rounded-xl bg-card border border-primary/10 text-primary flex items-center justify-center shrink-0'>
                         <RiInformationLine className='text-xl' />
                       </div>
                       <div>
-                        <h3 className='text-base sm:text-lg font-black text-slate-900 tracking-tight'>
+                        <h3 className='text-base sm:text-lg font-black text-text tracking-tight'>
                           Voce ja recebeu o resultado da sua Motion?
                         </h3>
-                        <p className='text-xs sm:text-sm text-slate-500 font-medium mt-1 leading-relaxed'>
+                        <p className='text-xs sm:text-sm text-text-muted font-medium mt-1 leading-relaxed'>
                           Assim que tiver retorno oficial do USCIS, selecione
                           abaixo para mantermos seu processo atualizado.
                         </p>
@@ -1482,7 +1535,7 @@ export default function COSOnboardingPage() {
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                       <button
                         type='button'
-                        disabled={isSavingMotionResult}
+                        disabled={isSavingMotionResult || !!proc?.step_data?.motion_final_result}
                         onClick={() => handleMotionResultReport('approved')}
                         className='h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-60'
                       >
@@ -1490,7 +1543,7 @@ export default function COSOnboardingPage() {
                       </button>
                       <button
                         type='button'
-                        disabled={isSavingMotionResult}
+                        disabled={isSavingMotionResult || !!proc?.step_data?.motion_final_result}
                         onClick={() => handleMotionResultReport('rejected')}
                         className='h-12 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all disabled:opacity-60'
                       >
@@ -1498,7 +1551,7 @@ export default function COSOnboardingPage() {
                       </button>
                     </div>
 
-                    <p className='mt-4 text-[11px] font-bold text-slate-500 uppercase tracking-wide'>
+                    <p className='mt-4 text-[11px] font-bold text-text-muted uppercase tracking-wide'>
                       {motionReportedResult === 'approved'
                         ? 'Status informado: Aprovado.'
                         : motionReportedResult === 'rejected'
@@ -1525,7 +1578,7 @@ export default function COSOnboardingPage() {
             <div className='flex items-center justify-between mt-6'>
               <button
                 onClick={() => navigate(`/dashboard/processes/${slug}`)}
-                className='flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-slate-100 text-sm font-black text-slate-500 hover:bg-slate-50 hover:border-slate-200 transition-all'
+                className='flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-border text-sm font-black text-text-muted hover:bg-bg-subtle hover:border-border transition-all'
               >
                 <RiArrowLeftSLine className='text-lg' />{' '}
                 {t.cos.btns.back || 'Back'}
@@ -1553,7 +1606,7 @@ export default function COSOnboardingPage() {
                     disabled={!canSubmit || isSubmitting}
                     className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-black transition-all ${
                       !canSubmit || isSubmitting
-                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        ? 'bg-slate-200 text-text-muted cursor-not-allowed'
                         : 'bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20'
                     }`}
                   >
