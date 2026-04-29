@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MaintenancePage: React.FC = () => {
-  const [lang, setLang] = useState<'pt' | 'en'>('pt');
+  const [lang, setLang] = useState<'pt' | 'en' | 'es'>('pt');
 
   const content = {
     pt: {
@@ -30,6 +30,19 @@ const MaintenancePage: React.FC = () => {
         { title: 'Security', desc: 'Protected and auditable data' }
       ],
       footer: '© 2026 Aplikei • All rights reserved'
+    },
+    es: {
+      badge: 'Próximamente',
+      title: 'Estamos evolucionando su experiencia',
+      subtitle: 'La plataforma Aplikei aún está en desarrollo y no ha sido lanzada oficialmente.',
+      description: 'Estamos trabajando intensamente para traer nuevas funcionalidades y la máxima claridad para su proceso de visa americana. Nuestro equipo está refinando cada detalle.',
+      status: 'Desarrollo Activo',
+      features: [
+        { title: 'IA Generativa', desc: 'Consultoría inteligente 24/7' },
+        { title: 'Flujos Claros', desc: 'Onboarding intuitivo' },
+        { title: 'Seguridad', desc: 'Datos protegidos y auditables' }
+      ],
+      footer: '© 2026 Aplikei • Todos los derechos reservados'
     }
   };
 
@@ -39,7 +52,7 @@ const MaintenancePage: React.FC = () => {
     <div className="min-h-screen bg-[#0A0A0B] flex flex-col items-center justify-center p-4 text-white font-sans overflow-hidden relative">
       {/* Language Switcher */}
       <div className="absolute top-8 right-8 z-50 flex gap-2">
-        {(['pt', 'en'] as const).map((l) => (
+        {(['pt', 'en', 'es'] as const).map((l) => (
           <button
             key={l}
             onClick={() => setLang(l)}
