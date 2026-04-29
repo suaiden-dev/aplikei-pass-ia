@@ -175,7 +175,7 @@ export default function F1OnboardingPage() {
     : t.onboardingPage.f1.title;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100/50 pb-24">
+    <div className="min-h-screen bg-bg pb-24">
 
       <div className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-30 shadow-sm">
         <div className="max-w-4xl mx-auto px-6 h-18 py-4 flex items-center justify-between">

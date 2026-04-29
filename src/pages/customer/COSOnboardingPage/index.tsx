@@ -668,7 +668,7 @@ export default function COSOnboardingPage() {
   }
 
   return (
-    <div className='min-h-screen bg-[#f8fafc] flex flex-col'>
+    <div className='min-h-screen bg-bg flex flex-col'>
       {isSubmitting && (
         <div className='fixed inset-0 z-[120] bg-card/70 backdrop-blur-sm flex items-center justify-center'>
           <div className='bg-card border border-border shadow-xl rounded-2xl px-6 py-5 flex items-center gap-3'>
