@@ -14,10 +14,7 @@ export interface UseServiceStateResult {
 }
 
 export function useServiceState() {
-  const createServiceState = useCallback((
-    _options: UseServiceStateOptions,
-    _fetchFn: () => Promise<UserService | null>
-  ): UseServiceStateResult => {
+  const createServiceState = useCallback((): UseServiceStateResult => {
     return {
       service: null,
       isLoading: false,

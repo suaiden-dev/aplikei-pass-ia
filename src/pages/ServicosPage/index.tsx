@@ -39,7 +39,7 @@ export default function ServicosPage() {
   const isServiceActive = (slug: string) => activeMap[slug] !== false;
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-bg min-h-screen">
       {/* Hero Section */}
       <section className="bg-highlight pt-32 pb-24 px-8 lg:px-16 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
@@ -65,7 +65,7 @@ export default function ServicosPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-xl text-slate-400 max-w-2xl font-medium mb-12 italic"
+            className="text-xl text-text-muted opacity-80 max-w-2xl font-medium mb-12 italic"
           >
             {p.hero.description}
           </motion.p>
@@ -92,10 +92,10 @@ export default function ServicosPage() {
                   >
                     <Link
                       to={active ? `/checkout/${service.slug}` : "#"}
-                      className={`group relative bg-white rounded-[40px] p-8 border transition-all duration-500 flex flex-col h-full overflow-hidden ${
+                      className={`group relative bg-card rounded-[40px] p-8 border transition-all duration-500 flex flex-col h-full overflow-hidden ${
                         active
-                          ? "border-slate-100 shadow-xl shadow-slate-200/50 hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2"
-                          : "border-slate-200 opacity-70 grayscale cursor-not-allowed"
+                          ? "border-border shadow-xl shadow-primary/5 hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2"
+                          : "border-border/50 opacity-70 grayscale cursor-not-allowed"
                       }`}
                     >
                       {!active && (
@@ -105,7 +105,7 @@ export default function ServicosPage() {
                         </div>
                       )}
 
-                      <div className="w-full h-40 rounded-2xl overflow-hidden mb-8 border border-slate-50 relative">
+                      <div className="w-full h-40 rounded-2xl overflow-hidden mb-8 border border-border relative">
                         <img 
                           src={service.heroImage} 
                           alt={service.title} 
@@ -116,18 +116,18 @@ export default function ServicosPage() {
                         )}
                       </div>
 
-                      <h3 className={`text-2xl font-black mb-4 tracking-tight leading-[1.1] ${active ? "text-slate-800" : "text-slate-500"}`}>
+                      <h3 className={`text-2xl font-black mb-4 tracking-tight leading-[1.1] ${active ? "text-text" : "text-text-muted"}`}>
                         {service.title}
                       </h3>
                       
-                      <p className="text-slate-500 mb-8 leading-relaxed text-sm font-medium flex-1 italic line-clamp-3 group-hover:line-clamp-none transition-all duration-300">
+                      <p className="text-text-muted mb-8 leading-relaxed text-sm font-medium flex-1 italic line-clamp-3 group-hover:line-clamp-none transition-all duration-300">
                         {service.subtitle}
                       </p>
 
-                      <div className="pt-8 border-t border-slate-50 flex items-center justify-between mt-auto">
+                      <div className="pt-8 border-t border-border flex items-center justify-between mt-auto">
                         <div>
-                          <p className="text-xs font-bold text-slate-400 line-through mb-1 uppercase tracking-widest">{service.originalPrice}</p>
-                          <p className={`text-2xl font-black ${active ? "text-primary" : "text-slate-400"}`}>
+                          <p className="text-xs font-bold text-text-muted opacity-50 line-through mb-1 uppercase tracking-widest">{service.originalPrice}</p>
+                          <p className={`text-2xl font-black ${active ? "text-primary" : "text-text-muted"}`}>
                             {service.price}
                           </p>
                         </div>
@@ -145,24 +145,24 @@ export default function ServicosPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-32 px-8 lg:px-16 bg-slate-50">
+      <section className="py-32 px-8 lg:px-16 bg-bg-subtle">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-4xl lg:text-5xl font-black text-primary mb-6 tracking-tighter">
               {p.faq.title}
             </h2>
-            <p className="text-slate-500 font-medium italic">
+            <p className="text-text-muted font-medium italic">
               {p.faq.subtitle}
             </p>
           </div>
           
           <Accordion type="single" collapsible className="space-y-6">
-            {p.faq.items.map((item: any, idx: number) => (
-              <AccordionItem key={idx} value={`item-${idx}`} className="bg-white px-8 py-4 rounded-3xl border border-slate-100 shadow-sm">
-                <AccordionTrigger className="text-left font-black text-xl text-slate-800 hover:text-primary transition-colors hover:no-underline">
+            {p.faq.items.map((item: { q: string; a: string }, idx: number) => (
+              <AccordionItem key={idx} value={`item-${idx}`} className="bg-card px-8 py-4 rounded-3xl border border-border shadow-sm">
+                <AccordionTrigger className="text-left font-black text-xl text-text hover:text-primary transition-colors hover:no-underline">
                   {item.q}
                 </AccordionTrigger>
-                <AccordionContent className="text-lg text-slate-500 font-medium leading-relaxed pt-4 italic">
+                <AccordionContent className="text-lg text-text-muted font-medium leading-relaxed pt-4 italic">
                   {item.a}
                 </AccordionContent>
               </AccordionItem>

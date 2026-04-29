@@ -16,7 +16,7 @@ export default function Privacy() {
                 </p>
                 
                 <div className="mt-10 space-y-10">
-                    {p.sections.map((s: any, i: number) => (
+                    {p.sections.map((s: { title: string; content: string }, i: number) => (
                         <section key={i} className="group">
                             <h2 className="font-display text-xl font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-3">
                                 <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary text-sm font-bold group-hover:bg-primary group-hover:text-white transition-colors">

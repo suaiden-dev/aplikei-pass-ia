@@ -1,184 +1,103 @@
-import { useState, useEffect, useRef, type ReactNode } from "react";
-import { supabase } from "../../lib/supabase";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { UserAccount } from "../../models/user.model";
 import type { User } from "@supabase/supabase-js";
-import { AuthContext } from "./context";
+import { AuthContext, type AuthStatus } from "./context";
+import {
+  authService,
+  buildFallbackAccount,
+  subscribeToAuthChanges,
+} from "../../services/auth.service";
+import { getSessionSafe } from "../../lib/supabase";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserAccount | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const profileCreateAttempted = useRef(false);
-  const fetchPromise = useRef<Promise<void> | null>(null);
+  const [status, setStatus] = useState<AuthStatus>("loading");
+  const [accountHydrated, setAccountHydrated] = useState(false);
 
-  const fetchAccount = async (userId: string, authUser?: User): Promise<void> => {
-    if (fetchPromise.current) {
-      return fetchPromise.current;
+  const hydrateAccount = useCallback(async (authUser: User | null) => {
+    if (!authUser) {
+      setUser(null);
+      setStatus("anonymous");
+      setAccountHydrated(true);
+      return;
     }
 
-    const performFetch = async () => {
-      // Safety timeout: don't wait more than 5 seconds for DB profile
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Timeout")), 10000)
-      );
+    // Define fallback inicial para evitar flicker
+    setUser(current => current || buildFallbackAccount(authUser));
+    setStatus("authenticated");
+    setAccountHydrated(false);
 
-      try {
-        const fetchOp = (async () => {
-          const { data: existingData, error } = await supabase
-            .from("user_accounts")
-            .select("*")
-            .eq("id", userId)
-            .maybeSingle();
+    try {
+      const account = await authService.resolveAccount(authUser);
+      setUser(account);
+    } catch (error) {
+      console.error("[AuthContext] Failed to hydrate account:", error);
+      setUser(buildFallbackAccount(authUser));
+    } finally {
+      setAccountHydrated(true);
+    }
+  }, []);
 
-          let data = existingData;
-
-          if (error) {
-            console.error("[AuthContext] fetchAccount error:", error.message);
-            if (authUser) setUser(buildFallbackUser(authUser));
-            return;
-          }
-
-          if (!data && authUser && !profileCreateAttempted.current) {
-            profileCreateAttempted.current = true;
-            const { data: newData, error: insertError } = await supabase
-              .from("user_accounts")
-              .insert({
-                id: userId,
-                full_name: authUser.user_metadata?.full_name || "Usuário",
-                email: authUser.email,
-                phone_number: authUser.user_metadata?.phone_number || "",
-                role: "customer",
-              })
-              .select()
-              .maybeSingle();
-
-            if (insertError) {
-              console.error("[AuthContext] Erro ao criar perfil:", insertError.message);
-              if (authUser) setUser(buildFallbackUser(authUser));
-              return;
-            }
-            data = newData;
-          }
-
-          if (!data) {
-            if (authUser) setUser(buildFallbackUser(authUser));
-            return;
-          }
-
-          profileCreateAttempted.current = false;
-          setUser({
-            id: data.id,
-            fullName: data.full_name,
-            email: data.email ?? "",
-            phoneNumber: data.phone_number ?? "",
-            avatarUrl: data.avatar_url ?? null,
-            passportPhotoUrl: data.passport_photo_url ?? null,
-            role: data.role,
-            createdAt: data.created_at,
-            updatedAt: data.updated_at,
-          });
-        })();
-
-        await Promise.race([fetchOp, timeoutPromise]);
-      } catch (err) {
-        console.warn("[AuthContext] Profile fetch failed or timed out, using fallback:", err);
-        if (authUser) setUser(buildFallbackUser(authUser));
-      } finally {
-        fetchPromise.current = null;
-      }
-    };
-
-    fetchPromise.current = performFetch();
-    return fetchPromise.current;
-  };
+  const refreshAccount = useCallback(async () => {
+    const session = await getSessionSafe();
+    if (session?.user) {
+      await hydrateAccount(session.user);
+    }
+  }, [hydrateAccount]);
 
   useEffect(() => {
-    // 1. Check for initial session immediately
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        fetchAccount(session.user.id, session.user).finally(() => {
-          setIsLoading(false);
-        });
-      } else {
-        setIsLoading(false);
-      }
-    });
+    let isActive = true;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-    // 2. Set up a STABLE listener for subsequent events
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_OUT") {
-        setUser(null);
-        profileCreateAttempted.current = false;
-        setIsLoading(false);
+    // Escuta mudanças na autenticação (login, logout, token refresh).
+    // Use o session recebido do onAuthStateChange para evitar chamadas
+    // duplicadas ao getSession() que podem bater rate limit.
+    const unsubscribe = subscribeToAuthChanges((event, session) => {
+      if (!isActive) return;
+      if (debounceTimer) clearTimeout(debounceTimer);
+
+      if (event === "SIGNED_OUT" || !session) {
+        debounceTimer = setTimeout(() => {
+          if (!isActive) return;
+          void hydrateAccount(null);
+        }, 100);
         return;
       }
 
-      if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session?.user) {
-        try {
-          await fetchAccount(session.user.id, session.user);
-        } catch (err) {
-          console.error("[AuthContext] Error in onAuthStateChange handler:", err);
-        } finally {
-          setIsLoading(false);
-        }
-      } else if (event === "INITIAL_SESSION") {
-        setIsLoading(false);
-      }
+      debounceTimer = setTimeout(() => {
+        if (!isActive) return;
+        void hydrateAccount(session.user);
+      }, 300);
     });
 
     return () => {
-      subscription.unsubscribe();
+      isActive = false;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      unsubscribe();
     };
-  }, []);
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session?.user) {
-            fetchAccount(session.user.id, session.user);
-          }
-        });
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, []);
+  }, [hydrateAccount]);
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    profileCreateAttempted.current = false;
+    await authService.logout();
+    hydrateAccount(null);
   };
 
-  // Debug state changes
-  useEffect(() => {
-    if (user) {
-      console.log("[AuthContext] User state updated:", user.email, "Role:", user.role);
-    }
-  }, [user]);
+  const isLoading = status === "loading";
+  const isAuthenticated = status === "authenticated" && !!user;
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, logout, refreshAccount: () => {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) fetchAccount(session.user.id, session.user);
-      });
-    } }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        status,
+        isAuthenticated,
+        isLoading,
+        accountHydrated,
+        logout,
+        refreshAccount,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
-}
-
-function buildFallbackUser(authUser: User): UserAccount {
-  return {
-    id: authUser.id,
-    fullName: authUser.user_metadata?.full_name || "Usuário",
-    email: authUser.email || "",
-    phoneNumber: authUser.user_metadata?.phone_number || "",
-    avatarUrl: null,
-    passportPhotoUrl: null,
-    role: authUser.user_metadata?.role || "customer",
-    createdAt: authUser.created_at,
-    updatedAt: authUser.updated_at || authUser.created_at,
-  };
 }

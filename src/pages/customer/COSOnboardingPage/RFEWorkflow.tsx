@@ -14,8 +14,7 @@ import {
   RiTimeLine,
   RiCheckLine,
   RiLoader4Line,
-  RiHistoryLine,
-  RiExternalLinkLine
+  RiHistoryLine
 } from "react-icons/ri";
 import { MdPix } from "react-icons/md";
 import { toast } from "sonner";
@@ -44,6 +43,15 @@ interface StepProps {
 }
 
 type PaymentTab = "card" | "pix" | "zelle" | "parcelow";
+
+interface RFECycle {
+  cycle: number;
+  status: string;
+  started_at: string;
+  result: string | null;
+  paid_at: string | null;
+  closed_at: string | null;
+}
 
 interface RFEHistoryItem {
   proposal_text: string;
@@ -344,68 +352,114 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayP
 function RFEHistoryPanel({ proc }: { proc: UserService }) {
   const t = useT("onboarding");
   const data = (proc.step_data || {}) as Record<string, unknown>;
-  const history = (data.rfe_history as RFEHistoryItem[]) || [];
+  const cycles = (data.rfe_cycles as RFECycle[]) || [];
+  const legacyHistory = (data.rfe_history as RFEHistoryItem[]) || [];
 
-  if (history.length === 0) return null;
+  // If we have no cycles and no legacy history, hide the panel
+  if (cycles.length === 0 && legacyHistory.length === 0) return null;
 
   return (
-    <div className="max-w-2xl mx-auto mb-10">
-      <div className="flex items-center gap-2 mb-4 px-1">
+    <div className="max-w-2xl mx-auto mt-12 pt-12 border-t border-border/50">
+      <div className="flex items-center gap-2 mb-6 px-1">
         <RiHistoryLine className="text-text-muted" />
-        <h3 className="text-xs font-black text-text-muted uppercase tracking-widest">{t?.workflows?.rfe?.history?.title?.replace("{count}", String(history.length)) || `Histórico (${history.length})`}</h3>
+        <h3 className="text-xs font-black text-text-muted uppercase tracking-widest">
+          {t?.workflows?.rfe?.history?.title?.replace("{count}", String(Math.max(cycles.length, legacyHistory.length))) || `Histórico de Ciclos`}
+        </h3>
       </div>
       
-      <div className="grid grid-cols-1 gap-3">
-        {history.map((hist, idx) => (
-          <div key={idx} className="bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                hist.result === "approved" ? "bg-emerald-50 text-emerald-500" :
-                hist.result === "rfe" ? "bg-amber-50 text-amber-500" : "bg-red-50 text-red-500"
-              )}>
-                {hist.result === "approved" ? <RiCheckDoubleLine className="text-xl" /> :
-                 hist.result === "rfe" ? <RiTimeLine className="text-xl" /> : <RiSpam2Line className="text-xl" />}
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[10px] font-black text-text-muted uppercase tracking-tight">{t?.workflows?.rfe?.history?.cycle?.replace("{count}", String(idx + 1)) || `Ciclo #${idx + 1}`}</span>
-                  <span className={cn(
-                    "text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tight",
-                    hist.result === "approved" ? "bg-emerald-100 text-emerald-700" :
-                    hist.result === "rfe" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
-                  )}>
-                    {hist.result === "approved" ? t?.workflows?.rfe?.history?.statusApproved : hist.result === "rfe" ? t?.workflows?.rfe?.history?.statusRfe : t?.workflows?.rfe?.history?.statusDenied}
-                  </span>
+      <div className="grid grid-cols-1 gap-4">
+        {cycles.map((cycle, idx) => {
+          const isCompleted = cycle.status === 'completed' || !!cycle.result;
+          const result = cycle.result;
+          const label = cycle.status === 'awaiting_payment' ? "Aguardando Pagamento" : 
+                        cycle.status === 'paid' ? "Em Análise" : 
+                        cycle.status === 'rfeInit' ? "Iniciado" :
+                        isCompleted ? (result === 'approved' ? "Aprovado" : result === 'denied' ? "Negado" : "Nova RFE") : "Em Andamento";
+
+          return (
+            <div key={`cycle-${idx}`} className="bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 overflow-hidden relative">
+              {cycle.status === 'paid' && (
+                <div className="absolute top-0 left-0 w-1 h-full bg-amber-400"></div>
+              )}
+              <div className="flex items-center gap-4">
+                <div className={cn(
+                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                  result === "approved" ? "bg-emerald-50 text-emerald-500" :
+                  result === "rfe" ? "bg-amber-50 text-amber-500" : 
+                  result === "denied" ? "bg-red-50 text-red-500" : "bg-bg-subtle text-text-muted"
+                )}>
+                  {result === "approved" ? <RiCheckDoubleLine className="text-xl" /> :
+                   result === "rfe" ? <RiTimeLine className="text-xl" /> : 
+                   result === "denied" ? <RiSpam2Line className="text-xl" /> : <RiLoader4Line className="text-xl animate-spin" />}
                 </div>
-                <p className="text-xs text-text-muted font-medium line-clamp-1 italic">"{hist.proposal_text}"</p>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[10px] font-black text-text-muted uppercase tracking-tight">
+                      {t?.workflows?.rfe?.history?.cycle?.replace("{count}", String(cycle.cycle)) || `Ciclo #${cycle.cycle}`}
+                    </span>
+                    <span className={cn(
+                      "text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tight",
+                      result === "approved" ? "bg-emerald-100 text-emerald-700" :
+                      result === "rfe" ? "bg-amber-100 text-amber-700" : 
+                      result === "denied" ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-600"
+                    )}>
+                      {label}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-text-muted font-medium italic">
+                    Iniciado em {new Date(cycle.started_at).toLocaleDateString()}
+                    {cycle.closed_at && ` • Finalizado em ${new Date(cycle.closed_at).toLocaleDateString()}`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action buttons (only if completed and has files) */}
+              <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+                 {/* Here we could find matching legacy history or cycle-specific files if stored */}
+                 {/* For now, we use the index to match legacy history for file links */}
+                 {legacyHistory[idx] && (
+                   <>
+                     {legacyHistory[idx].rfe_letter && (
+                       <a 
+                         href={supabase.storage.from('profiles').getPublicUrl(legacyHistory[idx].rfe_letter!).data.publicUrl}
+                         target="_blank"
+                         rel="noreferrer"
+                         className="px-3 py-1.5 bg-bg-subtle hover:bg-bg-subtle text-text-muted rounded-lg font-bold text-[9px] uppercase tracking-widest border border-border transition-all flex items-center gap-2"
+                       >
+                         RFE
+                       </a>
+                     )}
+                     {legacyHistory[idx].rfe_final_package && (
+                       <a 
+                         href={supabase.storage.from('profiles').getPublicUrl(legacyHistory[idx].rfe_final_package!).data.publicUrl}
+                         target="_blank"
+                         rel="noreferrer"
+                         className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg font-bold text-[9px] uppercase tracking-widest border border-emerald-100 transition-all flex items-center gap-2"
+                       >
+                         Package
+                       </a>
+                     )}
+                   </>
+                 )}
               </div>
             </div>
-            
-            <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
-              {hist.rfe_letter && (
-                <a 
-                  href={supabase.storage.from('profiles').getPublicUrl(hist.rfe_letter).data.publicUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-4 py-2 bg-bg-subtle hover:bg-bg-subtle text-text-muted rounded-xl font-bold text-[10px] uppercase tracking-widest border border-border transition-all flex items-center gap-2"
-                >
-                  <RiExternalLinkLine className="text-sm" /> {t?.workflows?.rfe?.history?.btnRfe || "RFE"}
-                </a>
-              )}
-              {hist.rfe_final_package && (
-                <a 
-                  href={supabase.storage.from('profiles').getPublicUrl(hist.rfe_final_package).data.publicUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl font-bold text-[10px] uppercase tracking-widest border border-emerald-100 transition-all flex items-center gap-2"
-                >
-                  <RiDownload2Line className="text-sm" /> {t?.workflows?.rfe?.history?.btnPackage || "Package"}
-                </a>
-              )}
-            </div>
+          );
+        }).reverse()}
+
+        {/* Fallback for legacy history without cycles (migration period) */}
+        {cycles.length === 0 && legacyHistory.map((hist, idx) => (
+          <div key={`legacy-${idx}`} className="bg-card border border-border rounded-2xl p-6 shadow-sm flex items-center justify-between gap-4">
+             <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-bg-subtle text-text-muted flex items-center justify-center">
+                   <RiHistoryLine />
+                </div>
+                <div>
+                   <span className="text-[10px] font-black text-text-muted uppercase tracking-tight">Histórico Legado</span>
+                   <p className="text-xs font-medium text-text-muted">{hist.result === 'approved' ? 'Aprovado' : hist.result === 'denied' ? 'Negado' : 'RFE'}</p>
+                </div>
+             </div>
           </div>
-        )).reverse() as React.ReactNode[]}
+        ))}
       </div>
     </div>
   );
@@ -702,17 +756,52 @@ export function RFEAcceptProposalStep({ proc }: StepProps) {
 // ─── RFEEndStep ─────────────────────────────────────────────────────────────
 
 export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE }: StepProps) {
-  const t = useT("onboarding");
-  const [loading, setLoading] = useState(false);
+  const t = useT('onboarding');
+  const { user } = useAuth();
   const data = (proc.step_data || {}) as Record<string, unknown>;
-  const docs = (data.docs as Record<string, string>) || {};
-  const rfeFinalPath = docs.rfe_final_package;
+  const [loading, setLoading] = useState(false);
+  const [chatSeeded, setChatSeeded] = useState(Boolean(data.rfe_chat_started_at));
+  
+  const rfeFinalPath = (data.docs as Record<string, string>)?.rfe_final_package;
   const rfeFinalUrl = rfeFinalPath ? supabase.storage.from('profiles').getPublicUrl(rfeFinalPath).data.publicUrl : null;
+
+  useEffect(() => {
+    if (chatSeeded || !user?.id) return;
+
+    void (async () => {
+      try {
+        const stepData = (proc.step_data || {}) as Record<string, unknown>;
+        if (!stepData.rfe_chat_started_at) {
+          const content = `Olá! Recebi minha RFE e já organizei os documentos. O pacote de resposta está pronto para revisão final.`;
+          await processService.ensureChatThread(proc.id, proc.user_id, content, true);
+          await processService.updateStepData(proc.id, {
+            rfe_chat_started_at: new Date().toISOString(),
+          });
+          setChatSeeded(true);
+        }
+      } catch (error) {
+        console.error('[RFEEndStep] failed to seed chat:', error);
+      }
+    })();
+  }, [chatSeeded, proc.id, user?.id, proc.step_data, proc.user_id]);
 
   const handleRFEOutcome = async (outcome: 'approved' | 'rfe' | 'denied') => {
     setLoading(true);
     try {
       // 1. Store the historical item from this cycle
+      const cycles = (data.rfe_cycles as RFECycle[]) || [];
+      const activeIndex = (Number(data.active_rfe_cycle) || 1) - 1;
+      
+      const updatedCycles = [...cycles];
+      if (updatedCycles[activeIndex]) {
+        updatedCycles[activeIndex] = {
+          ...updatedCycles[activeIndex],
+          status: 'completed',
+          result: outcome,
+          closed_at: new Date().toISOString()
+        };
+      }
+
       const history = (data.rfe_history as RFEHistoryItem[]) || [];
       const newHistoryItem: RFEHistoryItem = {
         proposal_text: data.rfe_proposal_text as string,
@@ -728,6 +817,7 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE }:
       // 2. Prepare update data
       const updateData: Record<string, unknown> = {
         rfe_history: updatedHistory,
+        rfe_cycles: updatedCycles,
         // Reset current cycle data for future cycles if needed
         rfe_proposal_text: null,
         rfe_proposal_amount: null,
@@ -736,29 +826,26 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE }:
         uscis_rfe_result: outcome
       };
 
+      // 3. Apply updates and transition
       if (outcome === 'approved') {
         await processService.updateStepData(proc.id, updateData);
         await processService.updateProcessStatus(proc.id, 'completed');
         toast.success(t?.toasts?.finishSuccess || "Finished");
         onComplete?.();
-      } else if (outcome === 'rfe') {
-        // Reset steps to restart RFE flow
-        await processService.updateStepData(proc.id, {
-          ...updateData,
-          uscis_official_result: 'rfe' 
-        });
-        await processService.updateCurrentStep(proc.id, 13);
-        toast.success(t?.toasts?.resetRfe || "Reset RFE");
-        onJumpToNewRFE?.();
-      } else if (outcome === 'denied') {
-        // Jump to Motion flow
-        await processService.updateStepData(proc.id, {
-          ...updateData,
-          uscis_official_result: 'denied',
-        });
-        await processService.updateCurrentStep(proc.id, 19);
-        toast.error(t?.toasts?.deniedMotion || "Denied");
-        onJumpToMotion?.();
+      } else {
+        // For 'rfe' or 'denied', we use the centralized workflow starter
+        // But first we must ensure the history/cycles from current updateData are persisted
+        await processService.updateStepData(proc.id, updateData);
+        
+        if (outcome === 'rfe') {
+          await processService.startAdditionalWorkflow(proc.id, 'rfe');
+          toast.success(t?.toasts?.resetRfe || "Reset RFE");
+          onJumpToNewRFE?.();
+        } else {
+          await processService.startAdditionalWorkflow(proc.id, 'motion');
+          toast.error(t?.toasts?.deniedMotion || "Denied");
+          onJumpToMotion?.();
+        }
       }
     } catch (e: unknown) {
       const err = e as Error;
@@ -874,8 +961,11 @@ export function RFEWorkflow({ data, onRefresh }: WorkflowProps) {
   };
 
   return (
-    <div className="min-h-[50vh]">
-      {renderContent()}
+    <div className="min-h-[50vh] flex flex-col">
+      <div className="flex-grow">
+        {renderContent()}
+      </div>
+      <RFEHistoryPanel proc={data} />
     </div>
   );
 }

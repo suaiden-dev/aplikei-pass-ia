@@ -37,28 +37,28 @@ export function DocUploadCard({ docKey, title, subtitle, doc, onChange, isReadOn
         disabled={isReadOnly}
         className={`group relative w-full rounded-2xl border-2 border-dashed flex flex-col items-center justify-between p-6 transition-all min-h-[220px] ${
           showAsRejected
-            ? "border-red-500 bg-red-50/50 shadow-lg shadow-red-100"
+            ? "border-red-500 bg-red-500/10 shadow-lg shadow-red-500/5"
             : isUploaded
-              ? "border-emerald-400 bg-emerald-50/50"
-              : "border-slate-200 hover:border-primary hover:bg-blue-50/30 bg-white"
+              ? "border-emerald-500 bg-emerald-500/10"
+              : "border-border hover:border-primary hover:bg-primary/5 bg-card"
         } ${isReadOnly ? "cursor-default opacity-80" : "cursor-pointer"}`}
       >
         <div className="flex-1 flex flex-col items-center justify-center w-full text-center">
           {showAsRejected ? (
-            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-3 animate-pulse shadow-sm">
+            <div className="w-14 h-14 rounded-full bg-red-500/20 flex items-center justify-center mb-3 animate-pulse shadow-sm">
               <RiErrorWarningLine className="text-3xl text-red-500" />
             </div>
           ) : isUploaded ? (
-            <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mb-3 shadow-inner">
+            <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3 shadow-inner">
               <RiCheckDoubleLine className="text-3xl text-emerald-500" />
             </div>
           ) : (
-            <div className="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center mb-3 group-hover:bg-primary/10 transition-colors">
-              <RiUploadCloud2Line className="text-3xl text-slate-300 group-hover:text-primary transition-colors" />
+            <div className="w-14 h-14 rounded-full bg-bg-subtle flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+              <RiUploadCloud2Line className="text-3xl text-text-muted/40 group-hover:text-primary transition-colors" />
             </div>
           )}
           <span className={`text-[10px] font-black uppercase tracking-widest text-center px-2 ${
-            showAsRejected ? "text-red-600" : isUploaded ? "text-emerald-600" : "text-slate-400 group-hover:text-primary"
+            showAsRejected ? "text-red-500" : isUploaded ? "text-emerald-500" : "text-text-muted group-hover:text-primary"
           }`}>
             {showAsRejected 
               ? t.docUpload.needsCorrection 
@@ -68,12 +68,12 @@ export function DocUploadCard({ docKey, title, subtitle, doc, onChange, isReadOn
           </span>
         </div>
 
-        <div className="w-full pt-4 border-t border-slate-100 mt-4 text-left">
-          <p className="text-[11px] font-black leading-tight truncate uppercase tracking-tight text-slate-800">{title}</p>
+        <div className="w-full pt-4 border-t border-border mt-4 text-left">
+          <p className="text-[11px] font-black leading-tight truncate uppercase tracking-tight text-text">{title}</p>
           {subtitle ? (
-            <p className="text-[9px] text-slate-400 font-bold mt-0.5 leading-snug line-clamp-2 uppercase tracking-tighter italic">{subtitle}</p>
+            <p className="text-[9px] text-text-muted font-bold mt-0.5 leading-snug line-clamp-2 uppercase tracking-tighter italic">{subtitle}</p>
           ) : (
-             <p className="text-[9px] text-slate-300 font-bold mt-0.5 leading-snug uppercase tracking-tighter italic">{t.docUpload.requiredDocument}</p>
+             <p className="text-[9px] text-text-muted/60 font-bold mt-0.5 leading-snug uppercase tracking-tighter italic">{t.docUpload.requiredDocument}</p>
           )}
         </div>
 

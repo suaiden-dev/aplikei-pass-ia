@@ -132,10 +132,10 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
       )}
 
       <div className="text-center max-w-2xl mx-auto mb-10">
-        <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-3">
+        <h2 className="text-3xl font-black text-text tracking-tight mb-3">
           {t.onboardingPage.f1.i20UploadTitle}
         </h2>
-        <p className="text-slate-500 font-medium text-sm leading-relaxed">
+        <p className="text-text-muted font-medium text-sm leading-relaxed">
           {t.onboardingPage.f1.i20UploadDesc}
         </p>
       </div>
@@ -150,27 +150,27 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
           return (
             <div 
               key={doc.type}
-              className={`relative bg-white rounded-[32px] border transition-all p-10 text-center flex flex-col items-center group
-                ${isUploaded ? 'border-emerald-100 bg-emerald-50/20' : 'border-slate-100 hover:border-primary/20 hover:bg-slate-50'}
+              className={`relative bg-card rounded-[32px] border transition-all p-10 text-center flex flex-col items-center group
+                ${isUploaded ? 'border-emerald-100 bg-emerald-50/20' : 'border-border hover:border-primary/20 hover:bg-bg-subtle'}
                 ${isRejected ? 'border-red-200 bg-red-50/30 ring-1 ring-red-100' : ''}
               `}
             >
               <div className={`w-20 h-20 rounded-2xl mb-6 flex items-center justify-center transition-all
-                ${isUploaded ? 'bg-emerald-500 text-white' : 'bg-slate-50 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary'}
+                ${isUploaded ? 'bg-emerald-500 text-white' : 'bg-bg-subtle text-text-muted group-hover:bg-primary/10 group-hover:text-primary'}
                 ${isRejected ? 'bg-red-500 text-white' : ''}
               `}>
                 {isUploading ? <RiLoader4Line className="text-4xl animate-spin" /> : <Icon className="text-4xl" />}
               </div>
 
-              <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-2">{doc.label}</h3>
-              <p className="text-sm text-slate-400 font-bold leading-relaxed mb-8">
+              <h3 className="text-lg font-black text-text uppercase tracking-tight mb-2">{doc.label}</h3>
+              <p className="text-sm text-text-muted font-bold leading-relaxed mb-8">
                 {doc.desc}
               </p>
 
               <label className="mt-auto w-full">
                 <div className={`px-6 py-4 rounded-xl border-2 border-dashed text-xs font-black uppercase tracking-widest transition-all cursor-pointer
-                  ${isUploaded ? 'border-emerald-200 bg-white text-emerald-600' : 'border-slate-100 bg-slate-50/50 hover:border-primary/40 hover:bg-white text-slate-400'}
-                  ${isRejected ? 'border-red-300 bg-white text-red-500' : ''}
+                  ${isUploaded ? 'border-emerald-200 bg-card text-emerald-600' : 'border-border bg-bg-subtle/50 hover:border-primary/40 hover:bg-card text-text-muted'}
+                  ${isRejected ? 'border-red-300 bg-card text-red-500' : ''}
                 `}>
                   {isUploading ? t.onboardingPage.uploadingBtn : isUploaded ? (isRejected ? t.onboardingPage.f1.resubmitFile : t.onboardingPage.fileSent) : t.onboardingPage.f1.selectFile}
                 </div>
@@ -198,7 +198,7 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
           type="button"
           onClick={onBack}
           disabled={isSubmitting}
-          className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all font-mono"
+          className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-border text-text-muted font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all font-mono"
         >
           {t.onboardingPage.backToDashboard}
         </button>

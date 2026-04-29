@@ -1,4 +1,4 @@
-import { supabase } from "../lib/supabase";
+import { getSessionSafe, supabase } from "../lib/supabase";
 import { notificationRepository } from "../repositories";
 import { buildNotifContent, type NotifLang, type NotifTemplate } from "./notification-templates";
 
@@ -57,18 +57,29 @@ function applyAdminRoleFilter<T extends { eq: (column: string, value: string) =>
 }
 
 async function insertNotification(payload: NotificationInsertPayload): Promise<void> {
-  const { error } = await supabase.from("notifications").insert(payload);
+  const cachedSession = await getSessionSafe();
+  const accessToken = cachedSession?.access_token ?? null;
+  const expiresAtMs = cachedSession?.expires_at ? cachedSession.expires_at * 1000 : null;
 
-  if (!error) return;
-
-  if (isMissingColumnError(error)) {
-    const { link: _link, ...payloadWithoutLink } = payload;
-    const { error: retryError } = await supabase.from("notifications").insert(payloadWithoutLink);
-    if (retryError) throw new Error(retryError.message);
-    return;
+  if (!accessToken || (expiresAtMs !== null && expiresAtMs <= Date.now() + 60_000)) {
+    throw new Error("Auth session unavailable");
   }
 
-  throw new Error(error.message);
+  const { error } = await supabase.functions.invoke("send-notification", {
+    body: payload,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (error) {
+    const maybeHttpError = error as { name?: string; context?: { status?: number } };
+    if (maybeHttpError.name === "FunctionsHttpError" && maybeHttpError.context?.status) {
+      throw new Error(`HTTP ${maybeHttpError.context.status}`);
+    }
+
+    throw new Error(error.message);
+  }
 }
 
 function normalizeNotification(row: Record<string, unknown>): AppNotification {
@@ -124,6 +135,17 @@ export const notificationService = {
         metadata: params.templateData ?? {},
       });
     } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      if (
+        message.includes("Auth session unavailable")
+        || message.includes("Unauthorized")
+        || message.includes("HTTP 401")
+        || message.includes("HTTP 403")
+        || message.includes("HTTP 429")
+      ) {
+        return;
+      }
+
       console.error("[notificationService] notifyClient failed:", e);
     }
   },
@@ -143,6 +165,17 @@ export const notificationService = {
         metadata: params.metadata || {},
       });
     } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      if (
+        message.includes("Auth session unavailable")
+        || message.includes("Unauthorized")
+        || message.includes("HTTP 401")
+        || message.includes("HTTP 403")
+        || message.includes("HTTP 429")
+      ) {
+        return;
+      }
+
       console.error("[notificationService] notifyAdmin failed:", e);
     }
   },

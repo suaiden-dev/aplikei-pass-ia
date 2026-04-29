@@ -13,7 +13,6 @@ serve(async (req) => {
     try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
         const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-        const n8nWebhookUrl = Deno.env.get("N8N_ZELLE_WEBHOOK_URL");
 
         if (!supabaseUrl || !supabaseKey) throw new Error("Supabase configuration missing.");
 
@@ -161,9 +160,9 @@ serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Zelle Payment Error:", err);
-        return new Response(JSON.stringify({ error: err.message }), {
+        return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }), {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

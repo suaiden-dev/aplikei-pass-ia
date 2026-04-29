@@ -69,7 +69,7 @@ interface RFEHistoryItem {
   sent_at: string;
 }
 
-function buildEffectiveSteps(baseSteps: StepConfig[], history: any[]) {
+function buildEffectiveSteps(baseSteps: StepConfig[], history: Array<{ type?: string; steps?: unknown[] }>) {
   const effectiveSteps = [...baseSteps];
 
   history.forEach((cycle, cIdx) => {
@@ -89,8 +89,17 @@ function buildEffectiveSteps(baseSteps: StepConfig[], history: any[]) {
 
 // ─── Process Log Panel ────────────────────────────────────────────────────────
 // ─── Purchases History Panel ──────────────────────────────────────────────────
-function PurchasesPanel({ stepData }: { stepData: any }) {
-  const purchases = (stepData?.purchases || []) as any[];
+function PurchasesPanel({ stepData }: { stepData: Record<string, unknown> }) {
+  const purchases = (stepData?.purchases || []) as Array<{
+    id?: string;
+    slug?: string;
+    created_at?: string;
+    date?: string;
+    amount_usd?: number;
+    amount?: number;
+    method?: string;
+    dependents?: number;
+  }>;
   const paidDependents = parseInt(String(stepData?.paid_dependents ?? 0), 10);
 
   const t = useT("admin");
@@ -119,18 +128,18 @@ function PurchasesPanel({ stepData }: { stepData: any }) {
             <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-primary/20 transition-all">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-[10px] font-black text-primary uppercase tracking-widest">{p.method}</span>
-                <span className="text-[10px] text-slate-400 font-bold">{formatDate(p.date)}</span>
+                <span className="text-[10px] text-slate-400 font-bold">{formatDate(p.date || p.created_at || '')}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-black text-slate-800 leading-none mb-1">{p.slug}</p>
                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-                    ID: <span className="text-slate-700">{p.id.length > 20 ? p.id.substring(0, 15) + '...' : p.id}</span>
+                    ID: <span className="text-slate-700">{p.id ? (p.id.length > 20 ? p.id.substring(0, 15) + '...' : p.id) : 'N/A'}</span>
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-black text-slate-900 leading-none mb-1">${p.amount?.toFixed(2)}</p>
-                  {p.dependents > 0 && (
+                  <p className="text-sm font-black text-slate-900 leading-none mb-1">${(p.amount ?? p.amount_usd ?? 0).toFixed(2)}</p>
+                  {(p.dependents ?? 0) > 0 && (
                      <p className="text-[9px] text-emerald-600 font-black uppercase">+{p.dependents} {t.processDetail.purchases.dependents}</p>
                   )}
                 </div>
@@ -633,7 +642,7 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
   const [loading, setLoading] = useState(false);
   const t = useT("admin");
   const data = (proc.step_data || {}) as Record<string, unknown>;
-  const purchases = (data.purchases || []) as any[];
+  const purchases = (data.purchases || []) as Array<{ slug?: string }>;
   const hasPaidProposal = purchases.some(p => p.slug === "proposta-rfe-motion" || p.slug === "apoio-rfe-motion-inicio" || p.slug === "analise-especialista-cos");
 
   const clientReason = data.motion_reason as string;
@@ -774,7 +783,7 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
   const [loading, setLoading] = useState(false);
   const t = useT("admin");
   const data = (proc.step_data || {}) as Record<string, unknown>;
-  const purchases = (data.purchases || []) as any[];
+  const purchases = (data.purchases || []) as Array<{ slug?: string }>;
   const hasPaidProposal = purchases.some(p => p.slug === "proposta-rfe-motion" || p.slug === "apoio-rfe-motion-inicio" || p.slug === "analise-rfe-cos" || p.slug === "apoio-rfe-cos");
 
   const clientDescription = data.rfe_description as string;
@@ -1151,7 +1160,7 @@ export default function AdminProcessDetailPage() {
         .from("user_services")
         .select(`
           *,
-          user_accounts!user_id (full_name, email)
+          user_accounts:profiles (full_name, email)
         `)
         .eq("id", id)
         .single();
@@ -1193,7 +1202,7 @@ export default function AdminProcessDetailPage() {
 
   const service = getServiceBySlug(proc.service_slug);
   const currentStepIdx = proc.current_step ?? 0;
-  const history = (proc.step_data?.history as any[]) || [];
+  const history = (proc.step_data?.history as Array<{ type?: string; steps?: unknown[] }>) || [];
   const effectiveSteps = service ? buildEffectiveSteps(service.steps, history) : [];
   const currentStep = effectiveSteps[currentStepIdx];
   const currentStepBaseId = normalizeLegacyStepId(currentStep?.id);

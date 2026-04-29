@@ -92,10 +92,7 @@ Deno.serve(async (req) => {
 
     if (eventRegisterError) throw eventRegisterError;
     if (!eventRegistered) {
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: "Pagamento já verificado anteriormente." 
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      console.log(`[VerifySession] Evento já registrado; garantindo ativação da sessão: ${session.id}`);
     }
 
     // 3. Executa a ativação (Reutilizando a lógica centralizada)

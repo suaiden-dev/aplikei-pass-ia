@@ -1,4 +1,4 @@
-export type UserRole = "admin" | "customer";
+export type UserRole = "admin" | "customer" | "master" | "seller";
 
 // Espelho da tabela public.user_accounts no Supabase
 export interface UserAccount {

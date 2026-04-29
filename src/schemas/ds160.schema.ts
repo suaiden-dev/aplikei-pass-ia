@@ -218,4 +218,4 @@ export const DS160Schema = z
 
 export type DS160FormValues = z.infer<typeof DS160Schema>;
 
-export const ds160Validator = zodValidate(DS160Schema as any);
+export const ds160Validator = zodValidate(DS160Schema as z.ZodTypeAny);

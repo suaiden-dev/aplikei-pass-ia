@@ -11,57 +11,57 @@ export const packageService = {
       const proc = await processService.getUserServiceBySlug(userId, "troca-status");
       if (!proc || !proc.step_data) throw new Error("Process data not found");
 
-      const data = proc.step_data as any;
-      const docs = (data.docs || {}) as Record<string, any>;
+      const data = proc.step_data as Record<string, unknown>;
+      const docs = (data.docs || {}) as Record<string, unknown>;
 
       // 1. Build the ordered list of URLs/Paths to merge
       const mergeQueue: { label: string; url?: string }[] = [
-        { label: "G-1145", url: data.g1145PdfUrl as string },
-        { label: "G-1450", url: data.g1450PdfUrl as string },
-        { label: "I-539", url: data.i539PdfUrl as string },
+        { label: "G-1145", url: data.g1145PdfUrl as string | undefined },
+        { label: "G-1450", url: data.g1450PdfUrl as string | undefined },
+        { label: "I-539", url: data.i539PdfUrl as string | undefined },
       ];
 
       // Dependents I-539A (if any)
       if (data.dependents && Array.isArray(data.dependents)) {
         // TODO: Generate I-539A from template when available
         // For now, if user uploaded a custom I-539A, use it
-        if (docs.i539A) mergeQueue.push({ label: "I-539A", url: this.getPublicUrl(docs.i539A) });
+        if (docs.i539A) mergeQueue.push({ label: "I-539A", url: this.getPublicUrl(docs.i539A as string) });
       }
 
       // Main I-94
-      if (docs.i94) mergeQueue.push({ label: "I-94 Principal", url: this.getPublicUrl(docs.i94) });
+      if (docs.i94) mergeQueue.push({ label: "I-94 Principal", url: this.getPublicUrl(docs.i94 as string) });
 
       // Dependent I-94s
       Object.keys(docs).filter(k => k.startsWith("i94_dep_")).forEach(k => {
-        mergeQueue.push({ label: "I-94 Dependent", url: this.getPublicUrl(docs[k]) });
+        mergeQueue.push({ label: "I-94 Dependent", url: this.getPublicUrl(docs[k] as string) });
       });
 
       // F1/F2 specific
-      if (docs.i20Upload) mergeQueue.push({ label: "I-20 F1", url: this.getPublicUrl(docs.i20Upload) });
-      if (docs.i20UploadDep) mergeQueue.push({ label: "I-20 F2", url: this.getPublicUrl(docs.i20UploadDep) });
-      if (docs.sevisFee) mergeQueue.push({ label: "SEVIS Fee Receipt", url: this.getPublicUrl(docs.sevisFee) });
+      if (docs.i20Upload) mergeQueue.push({ label: "I-20 F1", url: this.getPublicUrl(docs.i20Upload as string) });
+      if (docs.i20UploadDep) mergeQueue.push({ label: "I-20 F2", url: this.getPublicUrl(docs.i20UploadDep as string) });
+      if (docs.sevisFee) mergeQueue.push({ label: "SEVIS Fee Receipt", url: this.getPublicUrl(docs.sevisFee as string) });
 
       // Financial
-      if (docs.bankStatement) mergeQueue.push({ label: "Bank Statement", url: this.getPublicUrl(docs.bankStatement) });
+      if (docs.bankStatement) mergeQueue.push({ label: "Bank Statement", url: this.getPublicUrl(docs.bankStatement as string) });
 
       // Cover Letter (Currently HTML in DB, we'd need a PDF version)
       // For now, if there's a stored PDF URL, use it
       if (data.coverLetterPdfUrl) mergeQueue.push({ label: "Cover Letter", url: data.coverLetterPdfUrl as string });
 
       // Passports
-      if (docs.passportVisa) mergeQueue.push({ label: "Passport Principal", url: this.getPublicUrl(docs.passportVisa) });
+      if (docs.passportVisa) mergeQueue.push({ label: "Passport Principal", url: this.getPublicUrl(docs.passportVisa as string) });
       Object.keys(docs).filter(k => k.startsWith("passportVisa_dep_")).forEach(k => {
-        mergeQueue.push({ label: "Passport Dependent", url: this.getPublicUrl(docs[k]) });
+        mergeQueue.push({ label: "Passport Dependent", url: this.getPublicUrl(docs[k] as string) });
       });
 
       // Certificates
-      if (docs.marriageCertificate) mergeQueue.push({ label: "Marriage Certificate", url: this.getPublicUrl(docs.marriageCertificate) });
+      if (docs.marriageCertificate) mergeQueue.push({ label: "Marriage Certificate", url: this.getPublicUrl(docs.marriageCertificate as string) });
       Object.keys(docs).filter(k => k.startsWith("birthCertificate_dep_")).forEach(k => {
-        mergeQueue.push({ label: "Birth Certificate", url: this.getPublicUrl(docs[k]) });
+        mergeQueue.push({ label: "Birth Certificate", url: this.getPublicUrl(docs[k] as string) });
       });
 
       // Residence
-      if (docs.proofBrazil) mergeQueue.push({ label: "Proof of Residence", url: this.getPublicUrl(docs.proofBrazil) });
+      if (docs.proofBrazil) mergeQueue.push({ label: "Proof of Residence", url: this.getPublicUrl(docs.proofBrazil as string) });
 
       // 2. Perform the Merge
       const masterDoc = await PDFDocument.create();
@@ -113,8 +113,9 @@ export const packageService = {
       });
 
       return publicUrl;
-    } catch (e: any) {
-      throw new Error(e.message || "Failed to merge package");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Failed to merge package";
+      throw new Error(message);
     }
   },
 

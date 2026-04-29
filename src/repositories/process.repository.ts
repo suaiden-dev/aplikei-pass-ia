@@ -26,7 +26,7 @@ export const processRepository = {
   async findByIdWithUser(id: string): Promise<UserServiceWithUser | null> {
     const { data, error } = await supabase
       .from('user_services')
-      .select('*, user_accounts:user_id(full_name)')
+      .select('*, user_accounts:profiles(full_name)')
       .eq('id', id)
       .single();
 

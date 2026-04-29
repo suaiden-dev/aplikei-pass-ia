@@ -2,6 +2,12 @@ import { useFormikContext, Field, ErrorMessage } from "formik";
 import type { DS160FormValues } from "../../../../schemas/ds160.schema";
 import { useT } from "../../../../i18n";
 
+type VisasOnboardingFormText = {
+  onboardingPage: {
+    form: Record<string, string>;
+  };
+};
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const FieldError = ({ name }: { name: string }) => (
@@ -28,12 +34,12 @@ const FormInput = ({
   placeholder?: string;
   required?: boolean;
 }) => {
-  const { errors, touched } = useFormikContext<any>();
+  const { errors, touched } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+      <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
         {label} {required && <span className="text-primary">*</span>}
       </label>
       <Field
@@ -41,10 +47,10 @@ const FormInput = ({
         name={name}
         type={type}
         placeholder={placeholder}
-        className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-slate-800 placeholder:text-slate-300 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${
+        className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${
           hasError
-            ? "border-red-300 bg-red-50/50 focus:border-red-400"
-            : "border-slate-200 bg-white focus:border-primary"
+            ? "border-red-500/50 bg-red-500/5 focus:border-red-500"
+            : "border-border bg-bg-subtle focus:border-primary"
         }`}
       />
       <FieldError name={name} />
@@ -65,12 +71,12 @@ const FormTextarea = ({
   required?: boolean;
   rows?: number;
 }) => {
-  const { errors, touched } = useFormikContext<any>();
+  const { errors, touched } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+      <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
         {label} {required && <span className="text-primary">*</span>}
       </label>
       <Field
@@ -79,10 +85,10 @@ const FormTextarea = ({
         name={name}
         placeholder={placeholder}
         rows={rows}
-        className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-slate-800 placeholder:text-slate-300 transition-all outline-none focus:ring-2 focus:ring-primary/20 resize-none ${
+        className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 resize-none ${
           hasError
-            ? "border-red-300 bg-red-50/50 focus:border-red-400"
-            : "border-slate-200 bg-white focus:border-primary"
+            ? "border-red-500/50 bg-red-500/5 focus:border-red-500"
+            : "border-border bg-bg-subtle focus:border-primary"
         }`}
       />
       <FieldError name={name} />
@@ -101,23 +107,23 @@ const FormSelect = ({
   options: { value: string; label: string }[];
   required?: boolean;
 }) => {
-  const { errors, touched } = useFormikContext<any>();
+  const { errors, touched } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
-  const t = useT("visas");
+  const t = useT("visas") as VisasOnboardingFormText;
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+      <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
         {label} {required && <span className="text-primary">*</span>}
       </label>
       <Field
         as="select"
         id={name}
         name={name}
-        className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-slate-800 transition-all outline-none focus:ring-2 focus:ring-primary/20 appearance-none bg-[url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23888'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")] bg-[length:18px] bg-no-repeat bg-[right_12px_center] pr-10 ${
+        className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text transition-all outline-none focus:ring-2 focus:ring-primary/20 appearance-none bg-[url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23888'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")] bg-[length:18px] bg-no-repeat bg-[right_12px_center] pr-10 ${
           hasError
-            ? "border-red-300 bg-red-50/50 focus:border-red-400"
-            : "border-slate-200 bg-white focus:border-primary"
+            ? "border-red-500/50 bg-red-500/5 focus:border-red-500"
+            : "border-border bg-bg-subtle focus:border-primary"
         }`}
       >
         <option value="">{t.onboardingPage.form.selectPlaceholder}</option>
@@ -141,26 +147,26 @@ const YesNo = ({
   label: string;
   required?: boolean;
 }) => {
-  const { errors, touched } = useFormikContext<any>();
+  const { errors, touched } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
-  const t = useT("visas");
+  const t = useT("visas") as VisasOnboardingFormText;
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+      <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
         {label} {required && <span className="text-primary">*</span>}
       </p>
       <div role="group" className="flex gap-3">
         <label className="flex-1 cursor-pointer">
           <Field type="radio" name={name} value="sim" className="sr-only peer" />
-          <span className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-bold transition-all peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary border-slate-200 text-slate-500 hover:border-slate-300">
+          <span className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-bold transition-all peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary border-border bg-bg-subtle text-text-muted hover:border-border/80">
             <span className="w-2 h-2 rounded-full border border-current" />
             {t.onboardingPage.form.yes}
           </span>
         </label>
         <label className="flex-1 cursor-pointer">
           <Field type="radio" name={name} value="nao" className="sr-only peer" />
-          <span className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-bold transition-all peer-checked:border-slate-800 peer-checked:bg-slate-50 peer-checked:text-slate-800 border-slate-200 text-slate-500 hover:border-slate-300">
+          <span className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-bold transition-all peer-checked:border-text peer-checked:bg-bg-subtle peer-checked:text-text border-border bg-bg-subtle text-text-muted hover:border-border/80">
             <span className="w-2 h-2 rounded-full border border-current" />
             {t.onboardingPage.form.no}
           </span>
@@ -183,13 +189,13 @@ const RadioGroup = ({
   options: { value: string; label: string }[];
   required?: boolean;
 }) => {
-  const { errors, touched } = useFormikContext<any>();
+  const { errors, touched } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
 
   return (
     <div className="space-y-2">
       {label && (
-        <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+        <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
           {label} {required && <span className="text-primary">*</span>}
         </p>
       )}
@@ -197,7 +203,7 @@ const RadioGroup = ({
         {options.map((opt) => (
           <label key={opt.value} className="flex-1 min-w-[100px] cursor-pointer">
             <Field type="radio" name={name} value={opt.value} className="sr-only peer" />
-            <span className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-bold transition-all peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary border-slate-200 text-slate-500 hover:border-slate-300">
+            <span className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-bold transition-all peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary border-border bg-bg-subtle text-text-muted hover:border-border/80">
               <span className="w-2 h-2 rounded-full border border-current" />
               {opt.label}
             </span>
@@ -220,20 +226,20 @@ const Section = ({
 }) => (
   <div className="relative">
     <div className="mb-6">
-      <h3 className="text-base font-black text-slate-800 uppercase tracking-wide">{title}</h3>
-      {subtitle && <p className="text-xs text-slate-400 font-medium mt-1">{subtitle}</p>}
+      <h3 className="text-base font-black text-text uppercase tracking-wide">{title}</h3>
+      {subtitle && <p className="text-xs text-text-muted font-medium mt-1">{subtitle}</p>}
     </div>
     <div className="space-y-5">{children}</div>
   </div>
 );
 
-const Divider = () => <div className="border-t border-slate-100 my-8" />;
+const Divider = () => <div className="border-t border-border my-8" />;
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export const DS160SingleFormStep = () => {
   const { values } = useFormikContext<DS160FormValues>();
-  const t = useT("visas");
+  const t = useT("visas") as VisasOnboardingFormText;
 
   return (
     <div className="space-y-8">
@@ -241,14 +247,14 @@ export const DS160SingleFormStep = () => {
       {/* ── 1. Entrevista ── */}
       <Section title={t.onboardingPage.form.interviewLocationTitle} subtitle={t.onboardingPage.form.interviewLocationSubtitle}>
         <div className="space-y-2">
-          <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+          <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
             {t.onboardingPage.form.interviewLocationLabel} <span className="text-primary">*</span>
           </p>
           <div role="group" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {["Brasilia", "Rio de Janeiro", "São Paulo", "Recife", "Porto Alegre"].map((city) => (
               <label key={city} className="cursor-pointer">
                 <Field type="radio" name="interviewLocation" value={city} className="sr-only peer" />
-                <span className="flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold text-center transition-all peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary border-slate-200 text-slate-500 hover:border-slate-300 h-full">
+                <span className="flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold text-center transition-all peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary border-border bg-bg-subtle text-text-muted hover:border-border/80 h-full">
                   {city}
                 </span>
               </label>
@@ -335,7 +341,7 @@ export const DS160SingleFormStep = () => {
 
         <YesNo name="lostPassport" label={t.onboardingPage.form.lostPassport} required />
         {values.lostPassport === "sim" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
             <FormInput name="lostPassportNumber" label={t.onboardingPage.form.lostPassportNumberLabel} required />
             <FormInput name="lostPassportExpanation" label={t.onboardingPage.form.briefExplanationLabel} placeholder={t.onboardingPage.form.briefExplanationPlaceholder} required />
           </div>
@@ -361,7 +367,7 @@ export const DS160SingleFormStep = () => {
         <YesNo name="specificTravelPlan" label={t.onboardingPage.form.specificTravelPlan} required />
 
         {values.specificTravelPlan === "sim" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <FormInput name="arrivalDate" label={t.onboardingPage.form.arrivalDateLabel} type="date" required />
             <FormInput name="arrivalFlight" label={t.onboardingPage.form.arrivalFlightLabel} placeholder={t.onboardingPage.form.arrivalFlightPlaceholder} />
             <FormInput name="arrivalCity" label={t.onboardingPage.form.arrivalCityLabel} required />
@@ -373,15 +379,15 @@ export const DS160SingleFormStep = () => {
         )}
 
         {values.specificTravelPlan === "nao" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <FormInput name="estArrivalDate" label={t.onboardingPage.form.estArrivalDateLabel} type="date" required />
             <FormInput name="estStayLength" label={t.onboardingPage.form.estStayLengthLabel} placeholder={t.onboardingPage.form.estStayLengthPlaceholder} />
           </div>
         )}
 
         <div>
-          <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">{t.onboardingPage.form.usStayAddressLabel}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-4">{t.onboardingPage.form.usStayAddressLabel}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <div className="sm:col-span-2">
               <FormInput name="usStayName" label={t.onboardingPage.form.usStayNameLabel} placeholder={t.onboardingPage.form.usStayNamePlaceholder} required />
             </div>
@@ -406,7 +412,7 @@ export const DS160SingleFormStep = () => {
         />
 
         {values.payingTrip && values.payingTrip !== "eu" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <FormInput name="payerName" label={t.onboardingPage.form.payerNameLabel} required />
             <FormInput name="payerRelation" label={t.onboardingPage.form.payerRelationLabel} placeholder={t.onboardingPage.form.payerRelationPlaceholder} required />
             <FormInput name="payerPhone" label={t.onboardingPage.form.phoneLabel} />
@@ -422,7 +428,7 @@ export const DS160SingleFormStep = () => {
         <YesNo name="travelingWithOthers" label={t.onboardingPage.form.travelingWithOthers} required />
 
         {values.travelingWithOthers === "sim" && (
-          <div className="space-y-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="space-y-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <YesNo name="travelGroup" label={t.onboardingPage.form.travelGroup} />
             <FormTextarea
               name="companionsDetails"
@@ -440,7 +446,7 @@ export const DS160SingleFormStep = () => {
       <Section title={t.onboardingPage.form.previousTravelTitle}>
         <YesNo name="beenToUS" label={t.onboardingPage.form.beenToUS} required />
         {values.beenToUS === "sim" && (
-          <div className="space-y-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="space-y-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <FormTextarea
               name="previousVisitsDetails"
               label={t.onboardingPage.form.previousVisitsDetailsLabel}
@@ -453,7 +459,7 @@ export const DS160SingleFormStep = () => {
 
         <YesNo name="hadUSVisa" label={t.onboardingPage.form.hadUSVisa} required />
         {values.hadUSVisa === "sim" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <FormInput name="lastVisaDate" label={t.onboardingPage.form.lastVisaDateLabel} type="date" required />
             <FormInput name="lastVisaNumber" label={t.onboardingPage.form.lastVisaNumberLabel} placeholder={t.onboardingPage.form.lastVisaNumberPlaceholder} />
             <FormSelect name="sameVisaType" label={t.onboardingPage.form.sameVisaType} options={[{value:"sim",label:t.onboardingPage.form.yes},{value:"nao",label:t.onboardingPage.form.no}]} />
@@ -528,8 +534,8 @@ export const DS160SingleFormStep = () => {
       {/* ── 9. Família ── */}
       <Section title={t.onboardingPage.form.familyInfoTitle}>
         <div>
-          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">{t.onboardingPage.form.fatherLabel}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <p className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-4">{t.onboardingPage.form.fatherLabel}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <FormInput name="fatherName" label={t.onboardingPage.form.fatherNameLabel} />
             <FormInput name="fatherBirth" label={t.onboardingPage.form.birthDateLabel} type="date" />
             <div className="sm:col-span-2">
@@ -544,8 +550,8 @@ export const DS160SingleFormStep = () => {
         </div>
 
         <div>
-          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">{t.onboardingPage.form.motherLabel}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <p className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-4">{t.onboardingPage.form.motherLabel}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <FormInput name="motherName" label={t.onboardingPage.form.motherNameLabel} />
             <FormInput name="motherBirth" label={t.onboardingPage.form.birthDateLabel} type="date" />
             <div className="sm:col-span-2">
@@ -562,8 +568,8 @@ export const DS160SingleFormStep = () => {
         <YesNo name="otherRelInUS" label={t.onboardingPage.form.otherRelInUS} />
 
         <div>
-          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">{t.onboardingPage.form.spouseLabel}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <p className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-4">{t.onboardingPage.form.spouseLabel}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <FormInput name="spouseName" label={t.onboardingPage.form.fullNameLabel} />
             <FormInput name="spouseBirth" label={t.onboardingPage.form.birthDateLabel} type="date" />
             <FormInput name="spouseCity" label={t.onboardingPage.form.birthCityLabel} />
@@ -580,8 +586,8 @@ export const DS160SingleFormStep = () => {
       {/* ── 10. Trabalho e Educação ── */}
       <Section title={t.onboardingPage.form.workEducationTitle}>
         <div>
-          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">{t.onboardingPage.form.currentJobLabel}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <p className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-4">{t.onboardingPage.form.currentJobLabel}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <FormInput name="primaryJobSector" label={t.onboardingPage.form.jobSectorLabel} placeholder={t.onboardingPage.form.jobSectorPlaceholder} required />
             <FormInput name="primaryJobEntity" label={t.onboardingPage.form.jobEntityLabel} required />
             <div className="sm:col-span-2">
@@ -597,7 +603,7 @@ export const DS160SingleFormStep = () => {
 
         <YesNo name="employedLast5Y" label={t.onboardingPage.form.employedLast5Y} required />
         {values.employedLast5Y === "sim" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <FormInput name="prevEmployerName" label={t.onboardingPage.form.prevEmployerNameLabel} required />
             <FormInput name="prevEmployerTitle" label={t.onboardingPage.form.prevEmployerTitleLabel} />
             <FormInput name="prevEmployerStart" label={t.onboardingPage.form.startDateLabel} type="date" />
@@ -610,7 +616,7 @@ export const DS160SingleFormStep = () => {
 
         <YesNo name="higherEducation" label={t.onboardingPage.form.higherEducation} required />
         {values.higherEducation === "sim" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <div className="sm:col-span-2">
               <FormInput name="eduName" label={t.onboardingPage.form.eduNameLabel} required />
             </div>
@@ -628,7 +634,7 @@ export const DS160SingleFormStep = () => {
 
         <YesNo name="servedMilitary" label={t.onboardingPage.form.servedMilitary} required />
         {values.servedMilitary === "sim" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
             <FormInput name="militaryBranch" label={t.onboardingPage.form.militaryBranchLabel} placeholder={t.onboardingPage.form.militaryBranchPlaceholder} />
             <FormInput name="militarySpecialty" label={t.onboardingPage.form.militarySpecialtyLabel} />
           </div>
@@ -642,8 +648,8 @@ export const DS160SingleFormStep = () => {
         title={t.onboardingPage.form.securityQuestionsTitle}
         subtitle={t.onboardingPage.form.securityQuestionsSubtitle}
       >
-        <div className="p-5 bg-amber-50 border border-amber-100 rounded-2xl space-y-4">
-          <p className="text-sm font-medium text-amber-800 leading-relaxed">
+        <div className="p-5 bg-amber-500/10 border border-amber-500/20 rounded-2xl space-y-4">
+          <p className="text-sm font-medium text-amber-500 leading-relaxed">
             {t.onboardingPage.form.securityExceptionsPrompt}
           </p>
           <YesNo name="securityExceptions" label="" />

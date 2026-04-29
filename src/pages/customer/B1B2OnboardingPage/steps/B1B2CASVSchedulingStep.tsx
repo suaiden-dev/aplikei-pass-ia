@@ -15,6 +15,22 @@ import { notificationService } from "../../../../services/notification.service";
 import { toast } from "sonner";
 import { useT, useLocale } from "../../../../i18n";
 
+type ConsulateInfo = {
+  city: string;
+  state: string;
+  address: string;
+  phone: string;
+};
+
+type VisasSchedulingText = {
+  onboardingPage: {
+    common: Record<string, string>;
+    scheduling: Record<string, string> & {
+      consulates?: Record<string, ConsulateInfo>;
+    };
+  };
+};
+
 interface B1B2CASVSchedulingStepProps {
   procId: string;
   stepData: Record<string, unknown>;
@@ -23,10 +39,10 @@ interface B1B2CASVSchedulingStepProps {
 }
 
 export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }: B1B2CASVSchedulingStepProps) {
-  const t = useT("visas");
+  const t = useT("visas") as VisasSchedulingText;
   const { lang } = useLocale();
   const consulado = (stepData.interviewLocation as string) || "";
-  const info = t.onboardingPage.scheduling.consulates?.[consulado as keyof typeof t.onboardingPage.scheduling.consulates];
+  const info = t.onboardingPage.scheduling.consulates?.[consulado];
 
   // Prefer a date already saved, else empty
   const savedDate = (stepData.casv_preferred_date as string) || "";
@@ -86,19 +102,19 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
         <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 shadow-inner">
           <RiCalendarLine className="text-3xl" />
         </div>
-        <h2 className="text-2xl font-black text-slate-800 tracking-tight">{t.onboardingPage.scheduling.title}</h2>
-        <p className="text-sm font-medium text-slate-400 mt-2 max-w-xl mx-auto">
+        <h2 className="text-2xl font-black text-text tracking-tight">{t.onboardingPage.scheduling.title}</h2>
+        <p className="text-sm font-medium text-text-muted mt-2 max-w-xl mx-auto">
           {t.onboardingPage.scheduling.subtitle}
         </p>
       </div>
 
       {/* ── Consulado Info Card ── */}
-      <div className="bg-white rounded-[28px] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
-        <div className="px-8 py-5 border-b border-slate-50 flex items-center gap-3">
+      <div className="bg-card rounded-[28px] border border-border shadow-xl shadow-none overflow-hidden">
+        <div className="px-8 py-5 border-b border-border flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
             <RiMapPin2Line className="text-primary text-lg" />
           </div>
-          <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest">{t.onboardingPage.scheduling.yourConsulate}</h3>
+          <h3 className="text-xs font-black text-text uppercase tracking-widest">{t.onboardingPage.scheduling.yourConsulate}</h3>
         </div>
 
         <div className="p-8">
@@ -107,15 +123,15 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
               <div className="text-5xl shrink-0">{flag}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-2">
-                  <h4 className="text-xl font-black text-slate-800">
+                  <h4 className="text-xl font-black text-text">
                     {info.city}
                   </h4>
                   <span className="px-2.5 py-0.5 rounded-full bg-primary/5 border border-primary/10 text-[10px] font-black text-primary uppercase tracking-widest">
                     {info.state}
                   </span>
                 </div>
-                <p className="text-sm font-medium text-slate-500">{info.address}</p>
-                <p className="text-xs text-slate-400 font-bold mt-1">{info.phone}</p>
+                <p className="text-sm font-medium text-text-muted">{info.address}</p>
+                <p className="text-xs text-text-muted font-bold mt-1">{info.phone}</p>
               </div>
             </div>
           ) : (
@@ -159,20 +175,20 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
       </motion.div>
 
       {/* ── Date Picker ── */}
-      <div className="bg-white rounded-[28px] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
-        <div className="px-8 py-5 border-b border-slate-50 flex items-center gap-3">
+      <div className="bg-card rounded-[28px] border border-border shadow-xl shadow-none overflow-hidden">
+        <div className="px-8 py-5 border-b border-border flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-sky-50 flex items-center justify-center">
             <RiCalendarLine className="text-sky-500 text-lg" />
           </div>
           <div>
-            <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest">{t.onboardingPage.scheduling.preferredDate}</h3>
-            <p className="text-[10px] text-slate-400 font-bold mt-0.5">{t.onboardingPage.scheduling.preferredDateNote}</p>
+            <h3 className="text-xs font-black text-text uppercase tracking-widest">{t.onboardingPage.scheduling.preferredDate}</h3>
+            <p className="text-[10px] text-text-muted font-bold mt-0.5">{t.onboardingPage.scheduling.preferredDateNote}</p>
           </div>
         </div>
 
         <div className="p-8 space-y-6">
           <div className="max-w-xs">
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+            <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">
               {t.onboardingPage.scheduling.interviewDateLabel} <span className="text-primary">*</span>
             </label>
             <input
@@ -180,7 +196,7 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
               min={minDate}
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white text-sm font-black text-slate-800 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 transition-all"
+              className="w-full px-4 py-3.5 rounded-xl border border-border bg-card text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 transition-all"
             />
           </div>
 
@@ -216,12 +232,12 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
       </div>
 
       {/* ── Footer Actions ── */}
-      <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
         <button
           type="button"
           onClick={onBack}
           disabled={isSubmitting}
-          className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50"
+          className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-border text-text-muted font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-50"
         >
           {t.onboardingPage.common.back}
         </button>

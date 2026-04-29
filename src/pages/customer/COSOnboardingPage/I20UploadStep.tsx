@@ -14,15 +14,34 @@ import { useT } from "../../../i18n";
 
 interface Props {
   proc: UserService;
-  user: any;
+  user: {
+    id: string;
+    email?: string;
+    fullName?: string;
+    full_name?: string;
+    phone?: string;
+    phoneNumber?: string;
+  };
   onComplete: () => void | Promise<void>;
 }
 
-export default function I20UploadStep({ proc, user, onComplete }: Props) {
-  const t = useT("onboarding");
-  const [i20Path, setI20Path] = useState<string>("");
+type OnboardingI20UploadText = {
+  cos: {
+    i20Upload: {
+      title: string;
+      desc: string;
+      footer: string;
+      nextBtn: string;
+      toasts: Record<string, string>;
+      statusCard: Record<string, string>;
+      uploadBox: Record<string, string>;
+    };
+  };
+};
 
-  if (!t || !t.cos) return null;
+export default function I20UploadStep({ proc, user, onComplete }: Props) {
+  const t = useT("onboarding") as OnboardingI20UploadText;
+  const [i20Path, setI20Path] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -32,6 +51,8 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
       setI20Path(docs.i20_document);
     }
   }, [proc]);
+
+  if (!t || !t.cos) return null;
 
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
@@ -58,13 +79,14 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
         event: "i20_uploaded",
         processId: proc.id,
         userId: user.id,
-        clientName: user.full_name,
+        clientName: user.fullName ?? user.full_name,
         clientEmail: user.email,
       });
       
       toast.success(t.cos.i20Upload.toasts.success);
-    } catch (error: any) {
-      toast.error(t.cos.i20Upload.toasts.error + ": " + error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t.cos.i20Upload.toasts.error;
+      toast.error(`${t.cos.i20Upload.toasts.error}: ${message}`);
     } finally {
       setIsUploading(false);
     }
@@ -78,7 +100,7 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
     setIsSubmitting(true);
     try {
       await onComplete();
-    } catch (error) {
+    } catch {
       toast.error(t.cos.i20Upload.toasts.error);
     } finally {
       setIsSubmitting(false);
@@ -101,11 +123,11 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-8">
+      <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden p-8">
         <div className="max-w-md mx-auto">
           {i20Path ? (
             <div className="bg-emerald-50 border-2 border-emerald-100 rounded-2xl p-6 text-center animate-in fade-in zoom-in-95">
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <div className="w-16 h-16 bg-card rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
                 <RiCheckLine className="text-3xl text-emerald-500" />
               </div>
               <h4 className="text-sm font-black text-emerald-900 uppercase tracking-widest mb-1">{t.cos.i20Upload.statusCard.received}</h4>
@@ -116,7 +138,7 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
                   href={supabase.storage.from("profiles").getPublicUrl(i20Path).data.publicUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex-1 px-4 py-3 bg-white border border-emerald-200 rounded-xl text-[10px] font-black text-emerald-700 uppercase tracking-widest hover:bg-emerald-100 transition-all"
+                  className="flex-1 px-4 py-3 bg-card border border-emerald-200 rounded-xl text-[10px] font-black text-emerald-700 uppercase tracking-widest hover:bg-emerald-100 transition-all"
                 >
                   {t.cos.i20Upload.statusCard.view}
                 </a>
@@ -133,12 +155,12 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
               </div>
             </div>
           ) : (
-            <div className="border-2 border-dashed border-slate-200 rounded-3xl p-10 text-center hover:border-violet-300 hover:bg-violet-50/10 transition-all group">
+            <div className="border-2 border-dashed border-border rounded-3xl p-10 text-center hover:border-violet-300 hover:bg-violet-50/10 transition-all group">
               <RiFileUploadLine className="text-5xl text-slate-200 mx-auto mb-4 group-hover:text-violet-300 transition-colors" />
-              <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">{t.cos.i20Upload.uploadBox.select}</h4>
-              <p className="text-xs text-slate-400 font-medium mb-8">{t.cos.i20Upload.uploadBox.formats}</p>
+              <h4 className="text-sm font-black text-text uppercase tracking-widest mb-2">{t.cos.i20Upload.uploadBox.select}</h4>
+              <p className="text-xs text-text-muted font-medium mb-8">{t.cos.i20Upload.uploadBox.formats}</p>
               
-              <label className="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all cursor-pointer shadow-xl shadow-slate-200">
+              <label className="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all cursor-pointer shadow-xl shadow-slate-200/50">
                 {isUploading ? <RiLoader4Line className="animate-spin text-lg" /> : <RiFileUploadLine className="text-lg" />}
                 {isUploading ? t.cos.i20Upload.uploadBox.uploading : t.cos.i20Upload.uploadBox.btn}
                 <input 
@@ -154,8 +176,8 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-6 border-t border-slate-100">
-        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest flex items-center gap-2">
+      <div className="flex items-center justify-between pt-6 border-t border-border">
+        <p className="text-[10px] text-text-muted font-black uppercase tracking-widest flex items-center gap-2">
           <RiInformationLine className="text-sm" />
           {t.cos.i20Upload.footer}
         </p>

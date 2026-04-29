@@ -8,7 +8,7 @@ import {
   RiAlertLine
 } from "react-icons/ri";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNotifications } from "../../contexts/NotificationContext";
+import { useNotifications } from "../../hooks/useNotifications";
 import { cn } from "../../utils/cn";
 import { AppNotification } from "../../services/notification.service";
 
@@ -18,7 +18,7 @@ interface NotificationBellProps {
   align?: "left" | "right";
 }
 
-export function NotificationBell({ role, theme = "dark", align = "right" }: NotificationBellProps) {
+export function NotificationBell({ role, align = "right" }: NotificationBellProps) {
   const { 
     notifications, 
     unreadCount, 
@@ -44,31 +44,20 @@ export function NotificationBell({ role, theme = "dark", align = "right" }: Noti
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
-  const buttonClasses = cn(
-    "relative p-2 rounded-xl transition-all duration-200",
-    theme === "dark" 
-      ? "bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white" 
-      : "bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800"
-  );
-
-  const ringClass = theme === "dark" ? "ring-slate-900" : "ring-white";
-
   return (
     <div className="relative" ref={containerRef}>
       {/* Trigger Bell */}
-        <button 
-          onClick={() => {
-            setIsOpen(!isOpen);
-          }}
-          className={buttonClasses}
-          aria-label="Notificações"
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "relative p-2 rounded-xl transition-all duration-200 border",
+          "bg-bg-subtle hover:bg-primary/10 text-text-muted hover:text-primary border-border"
+        )}
+        aria-label="Notificações"
       >
         <RiNotification3Line size={20} />
         {unreadCount > 0 && (
-          <span className={cn(
-            "absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[9px] font-black text-white shadow-sm ring-2",
-            ringClass
-            )}>
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[9px] font-black text-white shadow-sm ring-2 ring-bg">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -89,13 +78,13 @@ export function NotificationBell({ role, theme = "dark", align = "right" }: Noti
             exit={{ opacity: 0, y: 10, scale: 0.96 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
             className={cn(
-              "fixed sm:absolute top-16 sm:top-full mt-2 sm:mt-3 left-4 right-4 sm:left-auto sm:right-auto sm:w-[340px] bg-white rounded-[24px] shadow-2xl border border-slate-100 overflow-hidden z-[100] flex flex-col",
+              "fixed sm:absolute top-16 sm:top-full mt-2 sm:mt-3 left-4 right-4 sm:left-auto sm:right-auto sm:w-[340px] bg-card rounded-[24px] shadow-2xl border border-border overflow-hidden z-[100] flex flex-col",
               align === "right" ? "sm:right-0" : "sm:left-0"
             )}
           >
             {/* Header */}
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h3 className="text-sm font-black text-slate-800 tracking-tight uppercase">Notificações</h3>
+            <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-bg-subtle/50">
+              <h3 className="text-sm font-black text-text tracking-tight uppercase">Notificações</h3>
               {unreadCount > 0 && (
                 <button 
                   onClick={() => markAllAsRead()}
@@ -111,11 +100,11 @@ export function NotificationBell({ role, theme = "dark", align = "right" }: Noti
             <div className="flex-1 overflow-y-auto max-h-[400px] custom-scrollbar p-2">
               {notifications.length === 0 ? (
                 <div className="text-center py-10 px-4">
-                  <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-300">
+                  <div className="w-12 h-12 rounded-full bg-bg-subtle border border-border flex items-center justify-center mx-auto mb-3 text-text-muted">
                     <RiNotification3Line size={24} />
                   </div>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-tight">Sem notificações</p>
-                  <p className="text-[10px] font-medium text-slate-400 mt-1 uppercase tracking-widest">Tudo em dia!</p>
+                  <p className="text-xs font-bold text-text uppercase tracking-tight">Sem notificações</p>
+                  <p className="text-[10px] font-medium text-text-muted mt-1 uppercase tracking-widest">Tudo em dia!</p>
                 </div>
               ) : (
                 <div className="space-y-1">
@@ -140,8 +129,8 @@ export function NotificationBell({ role, theme = "dark", align = "right" }: Noti
 
             {/* Footer */}
             {role === "admin" && (
-              <div className="p-3 bg-slate-50/50 border-t border-slate-100 text-center">
-                <button className="text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors">
+              <div className="p-3 bg-bg-subtle/50 border-t border-border text-center">
+                <button className="text-[10px] font-black text-text-muted hover:text-text uppercase tracking-widest transition-colors">
                   Ver log completo
                 </button>
               </div>
@@ -178,15 +167,15 @@ function NotificationItem({
   };
   
   const getIconColor = () => {
-    if (notification.is_read) return "bg-slate-100 text-slate-400";
+    if (notification.is_read) return "bg-bg-subtle text-text-muted";
     
     switch (notification.type) {
       case "admin_action":
         return "bg-primary text-white shadow-sm shadow-primary/20";
       case "client_action":
-        return "bg-emerald-500 text-white shadow-sm shadow-emerald-500/20";
+        return "bg-success text-white shadow-sm shadow-success/20";
       case "system":
-        return "bg-amber-500 text-white shadow-sm shadow-amber-500/20";
+        return "bg-warning text-white shadow-sm shadow-warning/20";
       default:
         return "bg-primary text-white shadow-sm shadow-primary/20";
     }
@@ -198,7 +187,7 @@ function NotificationItem({
       className={cn(
         "w-full text-left p-3 rounded-2xl transition-all border group",
         notification.is_read 
-          ? "bg-transparent border-transparent hover:bg-slate-50"
+          ? "bg-transparent border-transparent hover:bg-bg-subtle"
           : "bg-primary/5 border-primary/10 hover:bg-primary/10",
         notification.link ? "cursor-pointer" : "cursor-default",
       )}
@@ -216,17 +205,17 @@ function NotificationItem({
         <div className="flex-1 min-w-0">
           <h4 className={cn(
             "text-xs font-bold truncate tracking-tight uppercase",
-            notification.is_read ? "text-slate-600" : "text-slate-900"
+            notification.is_read ? "text-text-muted" : "text-text"
           )}>
             {notification.title}
           </h4>
           <p className={cn(
             "text-[11px] leading-snug mt-0.5",
-            notification.is_read ? "text-slate-500 line-clamp-2" : "text-slate-700 font-medium line-clamp-3"
+            notification.is_read ? "text-text-muted line-clamp-2" : "text-text font-medium line-clamp-3"
           )}>
             {notification.message}
           </p>
-          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mt-2">
+          <span className="text-[9px] font-black text-text-muted uppercase tracking-widest block mt-2">
             {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(notification.created_at))}
           </span>
         </div>

@@ -21,7 +21,18 @@ export interface COSOnboardingLabels {
   onboarding: Record<string, string>;
 }
 
-function getCycleTemplate(cycle: any): StepConfig[] {
+interface WorkflowCycle {
+  type?: string;
+  steps?: StepConfig[];
+  [key: string]: unknown;
+}
+
+interface PurchaseRecord {
+  dependents?: number | string;
+  slug?: string;
+}
+
+function getCycleTemplate(cycle: WorkflowCycle): StepConfig[] {
   const baseTemplate = cycle.steps || (cycle.type === 'motion' ? MOTION_STEPS_TEMPLATE : RFE_STEPS_TEMPLATE);
   const template = baseTemplate as StepConfig[];
   return normalizeLegacyFinalShipSteps(template);
@@ -57,12 +68,12 @@ export interface UseCOSOnboardingControllerResult {
   canSubmitStep0: boolean;
   canSubmitStep1: boolean;
   baseSteps: StepConfig[];
-  history: any[];
+  history: WorkflowCycle[];
   effectiveSteps: StepConfig[];
   dynamicStep: StepConfig | undefined;
   dynamicStepId: string;
   dynamicCycleIndex: number;
-  activeCycle: any | null;
+  activeCycle: WorkflowCycle | null;
   currentDynamicBaseId: string;
   activeCycleTemplate: StepConfig[];
   cycleStepIdx: number;
@@ -106,7 +117,10 @@ export function useCOSOnboardingController({
   });
 
   const hasFeedback = !!proc?.step_data?.admin_feedback;
-  const rejectedItems = (proc?.step_data?.rejected_items as string[]) || [];
+  const rejectedItems = useMemo(
+    () => (proc?.step_data?.rejected_items as string[]) || [],
+    [proc?.step_data?.rejected_items]
+  );
 
   const isFieldRejected = useCallback(
     (key: string) => hasFeedback && rejectedItems.includes(key),
@@ -119,7 +133,10 @@ export function useCOSOnboardingController({
   const canSubmitStep1 = Object.values(docs).every(d => d.file !== null || d.path);
 
   const baseSteps = useMemo(() => service?.steps || [], [service]);
-  const history = useMemo(() => (proc?.step_data?.history as any[]) || [], [proc]);
+  const history = useMemo(
+    () => (proc?.step_data?.history as WorkflowCycle[]) || [],
+    [proc?.step_data?.history]
+  );
 
   const effectiveSteps = useMemo(() => {
     const steps = [...baseSteps];
@@ -165,7 +182,7 @@ export function useCOSOnboardingController({
 
     try {
       if (data.step_data?.purchases) {
-        const purchases = data.step_data.purchases as any[];
+        const purchases = data.step_data.purchases as PurchaseRecord[];
         let totalPaidViaPurchases = 0;
 
         purchases.forEach(p => {
@@ -218,7 +235,13 @@ export function useCOSOnboardingController({
   }, [userId, slug, searchParams]);
 
   useEffect(() => {
-    loadProc();
+    const loadTimerId = window.setTimeout(() => {
+      void loadProc();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(loadTimerId);
+    };
   }, [loadProc]);
 
   useEffect(() => {

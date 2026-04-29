@@ -4,11 +4,11 @@ import { toast } from "sonner";
 import { zodValidate } from "../../utils/zodValidate";
 import { motion } from "framer-motion";
 import { Shield } from "lucide-react";
-import { Button } from "../../components/Button";
-import { Input } from "../../components/Input";
-import { Label } from "../../components/Label";
-import { Checkbox } from "../../components/CheckBox";
-import PhoneInput from "../../components/PhoneInput";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Checkbox } from "../../components/ui/checkbox";
+import { PhoneInput } from "../../components/ui/phone-input";
 import { authService } from "../../services/auth.service";
 import { getSignUpSchema } from "../../schemas/auth.schema";
 import { useT } from "../../i18n";
@@ -45,17 +45,19 @@ export default function SignUp() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md rounded-md border border-border bg-card p-8 shadow-card"
+        className="w-full max-w-md rounded-[32px] border border-border bg-card p-8 sm:p-10 shadow-2xl shadow-primary/5"
       >
         <div className="text-center">
-          <Link to="/" className="font-display text-title font-bold text-primary text-3xl">Aplikei</Link>
-          <h1 className="mt-8 font-display text-2xl font-bold text-foreground">{t.signup.title}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{t.signup.subtitle}</p>
+          <Link to="/" className="inline-block group mb-6">
+            <img src="/logo.png" alt="Aplikei" className="h-10 w-auto group-hover:scale-105 transition-transform" />
+          </Link>
+          <h1 className="font-display text-2xl font-black text-text tracking-tight leading-none">{t.signup.title}</h1>
+          <p className="mt-3 text-sm font-medium text-text-muted">{t.signup.subtitle}</p>
         </div>
 
         <form className="mt-8 space-y-5" onSubmit={formik.handleSubmit}>
           <div>
-            <Label htmlFor="fullName">{t.signup.fullName}</Label>
+            <Label htmlFor="fullName" className="text-text">{t.signup.fullName}</Label>
             <Input
               id="fullName"
               name="fullName"
@@ -66,12 +68,12 @@ export default function SignUp() {
               onBlur={formik.handleBlur}
             />
             {formik.touched.fullName && formik.errors.fullName && (
-              <p className="text-xs text-red-500 mt-1">{formik.errors.fullName}</p>
+              <p className="text-xs text-danger mt-1">{formik.errors.fullName}</p>
             )}
           </div>
 
           <div>
-            <Label htmlFor="email">{t.signup.email}</Label>
+            <Label htmlFor="email" className="text-text">{t.signup.email}</Label>
             <Input
               id="email"
               name="email"
@@ -83,12 +85,12 @@ export default function SignUp() {
               onBlur={formik.handleBlur}
             />
             {formik.touched.email && formik.errors.email && (
-              <p className="text-xs text-red-500 mt-1">{formik.errors.email}</p>
+              <p className="text-xs text-danger mt-1">{formik.errors.email}</p>
             )}
           </div>
 
           <div>
-            <Label htmlFor="password">{t.signup.password}</Label>
+            <Label htmlFor="password" title={t.signup.password} className="text-text">{t.signup.password}</Label>
             <Input
               id="password"
               name="password"
@@ -100,25 +102,27 @@ export default function SignUp() {
               onBlur={formik.handleBlur}
             />
             {formik.touched.password && formik.errors.password && (
-              <p className="text-xs text-red-500 mt-1">{formik.errors.password}</p>
+              <p className="text-xs text-danger mt-1">{formik.errors.password}</p>
             )}
           </div>
 
           <div>
-            <Label className="mb-2 block">{t.signup.phone}</Label>
+            <Label className="mb-2 block text-text">{t.signup.phone}</Label>
             <PhoneInput
               name="phoneNumber"
               value={formik.values.phoneNumber}
               onChange={(val) => formik.setFieldValue("phoneNumber", val)}
               onBlur={() => formik.setFieldTouched("phoneNumber", true)}
-              error={formik.touched.phoneNumber ? formik.errors.phoneNumber : undefined}
             />
+            {formik.touched.phoneNumber && formik.errors.phoneNumber && (
+              <p className="text-xs text-danger mt-1">{formik.errors.phoneNumber as string}</p>
+            )}
           </div>
 
-          <div className="rounded-xl border-2 border-amber-300/30 bg-amber-50/40 p-4">
+          <div className="rounded-xl border border-warning/20 bg-warning/5 p-4">
             <div className="flex items-start gap-3">
-              <Shield className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-              <p className="text-[11px] text-foreground/70 leading-relaxed">
+              <Shield className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+              <p className="text-[11px] text-text-muted leading-relaxed">
                 {t.signup.securityNotice}
               </p>
             </div>
@@ -135,7 +139,7 @@ export default function SignUp() {
                 formik.setFieldTouched("terms", true);
               }}
             />
-            <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+            <label htmlFor="terms" className="text-xs text-text-muted leading-relaxed cursor-pointer">
               {t.signup.acceptTerms}{" "}
               <Link to="/legal/terms" className="text-primary hover:underline font-bold">{t.signup.termsLink}</Link>,{" "}
               <Link to="/legal/privacy" className="text-primary hover:underline font-bold">{t.signup.privacyLink}</Link> e{" "}
@@ -143,7 +147,7 @@ export default function SignUp() {
             </label>
           </div>
           {formik.touched.terms && formik.errors.terms && (
-            <p className="text-xs text-red-500 -mt-3">{formik.errors.terms as string}</p>
+            <p className="text-xs text-danger -mt-3">{formik.errors.terms as string}</p>
           )}
 
           <Button type="submit" disabled={formik.isSubmitting} className="w-full h-11 text-lg font-bold">
@@ -151,7 +155,7 @@ export default function SignUp() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
+        <p className="mt-6 text-center text-sm text-text-muted">
           {t.signup.hasAccount}{" "}
           <Link to="/login" className="font-medium text-primary hover:underline">{t.signup.loginLink}</Link>
         </p>

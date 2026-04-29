@@ -63,7 +63,23 @@ function buildPurchaseRecord(data: {
   };
 }
 
-async function getProcessServiceSlug(supabase: any, processId: string | null | undefined): Promise<string | null> {
+function hasMatchingPurchaseRecord(
+  purchases: unknown,
+  purchaseRecord: ReturnType<typeof buildPurchaseRecord>,
+): boolean {
+  if (!Array.isArray(purchases)) return false;
+
+  return purchases.some((purchase) => {
+    const row = purchase as Record<string, unknown>;
+    return row?.id === purchaseRecord.id ||
+      (purchaseRecord.order_id && row?.order_id === purchaseRecord.order_id);
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseClient = any;
+
+async function getProcessServiceSlug(supabase: SupabaseClient, processId: string | null | undefined): Promise<string | null> {
   if (!processId) return null;
 
   const { data } = await supabase
@@ -76,7 +92,7 @@ async function getProcessServiceSlug(supabase: any, processId: string | null | u
 }
 
 async function resolveTargetProcessId(data: {
-  supabase: any;
+  supabase: SupabaseClient;
   user_id: string;
   service_slug: string;
   proc_id?: string | null;
@@ -133,7 +149,7 @@ async function resolveTargetProcessId(data: {
 }
 
 async function syncParentOrderMetadata(data: {
-  supabase: any;
+  supabase: SupabaseClient;
   user_id: string;
   targetProcId: string;
   parentServiceSlug: string;
@@ -148,25 +164,25 @@ async function syncParentOrderMetadata(data: {
     .eq("user_id", user_id)
     .order("created_at", { ascending: false });
 
-  const parentOrder = (orders || []).find((order: any) => {
-    const metadata = order.payment_metadata || {};
+  const parentOrder = (orders || []).find((order: Record<string, unknown>) => {
+    const metadata = (order.payment_metadata as Record<string, unknown>) || {};
     const metadataProcId = metadata.proc_id || metadata.processId || metadata.parent_process_id;
 
-    return !isAuxiliaryServiceSlug(order.product_slug) &&
+    return !isAuxiliaryServiceSlug(order.product_slug as string) &&
       order.product_slug === parentServiceSlug &&
       (
         metadataProcId === targetProcId ||
-        (!metadataProcId && FINAL_ORDER_STATUSES.includes(order.payment_status))
+        (!metadataProcId && FINAL_ORDER_STATUSES.includes(order.payment_status as string))
       );
   });
 
   if (!parentOrder) return;
 
-  const metadata = parentOrder.payment_metadata || {};
+  const metadata = (parentOrder.payment_metadata as Record<string, unknown>) || {};
   const existingPurchases = Array.isArray(metadata.dependent_slot_purchases)
     ? metadata.dependent_slot_purchases
     : [];
-  const hasPurchase = existingPurchases.some((purchase: any) => purchase?.id === purchaseRecord.id);
+  const hasPurchase = existingPurchases.some((purchase: unknown) => (purchase as Record<string, unknown>)?.id === purchaseRecord.id);
   const previousCount = parseCount(metadata.paid_dependents ?? metadata.dependents, 0);
 
   await supabase
@@ -187,8 +203,66 @@ async function syncParentOrderMetadata(data: {
     .eq("id", parentOrder.id);
 }
 
+async function findExistingStandalonePurchaseProcess(data: {
+  supabase: SupabaseClient;
+  user_id: string;
+  service_slug: string;
+  purchaseRecord: ReturnType<typeof buildPurchaseRecord>;
+}) {
+  const { supabase, user_id, service_slug, purchaseRecord } = data;
+
+  const { data: candidates } = await supabase
+    .from("user_services")
+    .select("id, step_data, created_at")
+    .eq("user_id", user_id)
+    .eq("service_slug", service_slug)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  return (candidates || []).find((candidate: Record<string, unknown>) => {
+    const stepData = (candidate.step_data as Record<string, unknown>) || {};
+    return hasMatchingPurchaseRecord(stepData.purchases, purchaseRecord);
+  }) || null;
+}
+
+async function ensureLegacyProfileForUser(supabase: SupabaseClient, userId: string): Promise<void> {
+  const { data: existingProfile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (profileError) throw profileError;
+  if (existingProfile) return;
+
+  const { data: account, error: accountError } = await supabase
+    .from("user_accounts")
+    .select("id, full_name, email, phone_number, avatar_url, passport_photo_url, updated_at")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (accountError) throw accountError;
+  if (!account) {
+    throw new Error(`Cannot create user service: user ${userId} was not found in user_accounts`);
+  }
+
+  const { error: insertProfileError } = await supabase
+    .from("profiles")
+    .upsert({
+      id: account.id,
+      full_name: account.full_name,
+      email: account.email,
+      phone: account.phone_number,
+      avatar_url: account.avatar_url,
+      passport_photo_url: account.passport_photo_url,
+      updated_at: account.updated_at || new Date().toISOString(),
+    }, { onConflict: "id" });
+
+  if (insertProfileError) throw insertProfileError;
+}
+
 export async function applySuccessfulPayment(data: {
-  supabase: any;
+  supabase: SupabaseClient;
   user_id: string;
   service_slug: string;
   payment_method?: string | null;
@@ -212,7 +286,7 @@ export async function applySuccessfulPayment(data: {
   } = data;
 
   const now = new Date().toISOString();
-  let order: any = null;
+  let order: Record<string, unknown> | null = null;
 
   if (order_id) {
     const { data: existingOrder } = await supabase
@@ -321,15 +395,18 @@ export async function applySuccessfulPayment(data: {
   });
 
   if (!targetProcId) {
-    const { data: existingByPurchase } = await supabase
-      .from("user_services")
-      .select("id")
-      .contains("step_data->purchases", [{ id: purchaseRecord.id }])
-      .maybeSingle();
+    await ensureLegacyProfileForUser(supabase, user_id);
+
+    const existingByPurchase = await findExistingStandalonePurchaseProcess({
+      supabase,
+      user_id,
+      service_slug,
+      purchaseRecord,
+    });
 
     if (existingByPurchase) return;
 
-    await supabase.from("user_services").insert({
+    const { error: insertServiceError } = await supabase.from("user_services").insert({
       user_id,
       service_slug,
       status: "active",
@@ -340,6 +417,8 @@ export async function applySuccessfulPayment(data: {
       },
       data: {},
     });
+
+    if (insertServiceError) throw insertServiceError;
 
     return;
   }
@@ -355,7 +434,7 @@ export async function applySuccessfulPayment(data: {
   const stepData = currentProc.step_data || {};
   const purchases = Array.isArray(stepData.purchases) ? [...stepData.purchases] : [];
 
-  if (purchaseRecord.id && purchases.some((purchase: any) => purchase?.id === purchaseRecord.id)) {
+  if (purchaseRecord.id && purchases.some((purchase: unknown) => (purchase as Record<string, unknown>)?.id === purchaseRecord.id)) {
     return;
   }
 
@@ -373,7 +452,7 @@ export async function applySuccessfulPayment(data: {
   // --- AUTO-ADVANCE LOGIC FOR COS/EOS (RFE & Motion) ---
   let nextStep = currentProc.current_step;
   const isCOSorEOS = mainServiceSlug === "troca-status" || mainServiceSlug === "extensao-status";
-  const extraMetadata: Record<string, any> = {};
+  const extraMetadata: Record<string, unknown> = {};
 
     if (isCOSorEOS) {
       if (service_slug === "analise-motion") {
@@ -392,14 +471,60 @@ export async function applySuccessfulPayment(data: {
       } else if (service_slug === "apoio-rfe-motion-inicio") {
         extraMetadata.motion_initial_paid = true;
         extraMetadata.rfe_initial_paid = true;
-        if (nextStep === 13) nextStep = 14;
-        else if (nextStep === 19) nextStep = 20;
+        const uscisResult = String(stepData.uscis_official_result || "").toLowerCase();
+        const rfeResult = String(stepData.uscis_rfe_result || "").toLowerCase();
+        const isMotionFlow =
+          uscisResult === "denied" ||
+          uscisResult === "rejected" ||
+          rfeResult === "denied" ||
+          rfeResult === "rejected" ||
+          (nextStep ?? 0) >= 19;
+
+        if (isMotionFlow) nextStep = Math.max(nextStep ?? 0, 20);
+        else if (nextStep === 13) nextStep = 14;
+
+        // Update RFE Cycle status
+        const rfeCycles = Array.isArray(stepData.rfe_cycles) ? [...stepData.rfe_cycles] : [];
+        const activeRfeIdx = (Number(stepData.active_rfe_cycle) || 1) - 1;
+        if (rfeCycles[activeRfeIdx]) {
+          rfeCycles[activeRfeIdx] = { 
+            ...rfeCycles[activeRfeIdx], 
+            status: 'paid', 
+            paid_at: now 
+          };
+        }
+        extraMetadata.rfe_cycles = rfeCycles;
       } else if (service_slug === "proposta-rfe-motion") {
-        extraMetadata.motion_proposal_paid = true;
-        extraMetadata.rfe_proposal_paid = true;
+        const uscisResult = String(stepData.uscis_official_result || "").toLowerCase();
+        const rfeResult = String(stepData.uscis_rfe_result || "").toLowerCase();
+        const isMotionFlow =
+          uscisResult === "denied" ||
+          uscisResult === "rejected" ||
+          rfeResult === "denied" ||
+          rfeResult === "rejected" ||
+          (nextStep ?? 0) >= 19;
+
+        if (isMotionFlow) {
+          extraMetadata.motion_proposal_paid = true;
+          extraMetadata.motion_payment_completed_at = now;
+          extraMetadata.motion_amount_paid = paid_amount ?? null;
+        } else {
+          extraMetadata.rfe_proposal_paid = true;
+          
+          // Update RFE Cycle status
+          const rfeCycles = Array.isArray(stepData.rfe_cycles) ? [...stepData.rfe_cycles] : [];
+          const activeRfeIdx = (Number(stepData.active_rfe_cycle) || 1) - 1;
+          if (rfeCycles[activeRfeIdx]) {
+            rfeCycles[activeRfeIdx] = { 
+              ...rfeCycles[activeRfeIdx], 
+              status: 'paid', 
+              paid_at: now 
+            };
+          }
+          extraMetadata.rfe_cycles = rfeCycles;
+        }
+        
         extraMetadata.workflow_status = "in_progress";
-        extraMetadata.motion_payment_completed_at = now;
-        extraMetadata.motion_amount_paid = paid_amount ?? null;
         nextStep = (currentProc.current_step ?? 0) + 1;
       }
     }

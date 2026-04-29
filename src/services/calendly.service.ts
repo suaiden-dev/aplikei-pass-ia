@@ -38,7 +38,7 @@ export const calendlyService = {
       if (!eventsResponse.ok) throw new Error("Failed to fetch Calendly event types");
       const { collection } = await eventsResponse.json();
 
-      return collection.map((item: any) => ({
+      return collection.map((item: { name: string; scheduling_url: string; active: boolean; slug: string }) => ({
         name: item.name,
         scheduling_url: item.scheduling_url,
         active: item.active,

@@ -5,29 +5,12 @@ import { applySuccessfulPayment } from "../_shared/payment-slot-logic.ts";
 import { buildNotifContent, getUserLang } from "../_shared/notif-templates.ts";
 
 const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") || "";
-const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET") || "";
-const NOTIFICATIONS_WEBHOOK = Deno.env.get("NOTIFICATIONS_WEBHOOK_URL");
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
-
-async function sendAlert(message: string, metadata: any = {}) {
-  if (!NOTIFICATIONS_WEBHOOK) return;
-  try {
-    await fetch(NOTIFICATIONS_WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text: `🚨 *Erro Fatal no Webhook (Payment)*\n*Erro:* ${message}\n*Email:* ${metadata.email || 'unknown'}\n*Payload:* ${JSON.stringify(metadata)}`
-      })
-    });
-  } catch (e) {
-    console.error("Failed to send alert:", e);
-  }
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -185,7 +168,7 @@ async function handlePaymentSuccess(data) {
   // Guest checkout: resolve user by email or create via invite
   if (!user_id && data.email) {
     const { data: usersData } = await supabase.auth.admin.listUsers();
-    const existingUser = usersData?.users?.find((u: any) => u.email === data.email);
+    const existingUser = usersData?.users?.find((u: Record<string, unknown>) => u.email === data.email);
     if (existingUser) {
       user_id = existingUser.id;
     } else {

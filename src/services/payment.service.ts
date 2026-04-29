@@ -208,7 +208,7 @@ export const paymentService = {
     if (error) {
       console.error('[PaymentService] Stripe error:', error)
       // Try to extract error message from error object if it's a FunctionsHttpError
-      const errorDetail = (error as any).context?.message || error.message
+      const errorDetail = (error as { context?: { message?: string }; message: string }).context?.message || error.message
       throw new Error(errorDetail || 'Erro ao processar Stripe Checkout')
     }
 
@@ -463,10 +463,8 @@ export const paymentService = {
     timeoutMs: number = 20000,
     orderId?: string | null,
   ): Promise<boolean> {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    const userEmail = session?.user?.email
+    const { data: { user } } = await supabase.auth.getUser();
+    const userEmail = user?.email;
     if (!userEmail && !orderId) return false
 
     const startTime = Date.now()

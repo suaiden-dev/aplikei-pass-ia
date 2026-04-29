@@ -16,7 +16,7 @@ export interface CoverLetterData {
 }
 
 export const coverLetterService = {
-  generateHTML(data: CoverLetterData, user: any): string {
+  generateHTML(data: CoverLetterData, user: { fullName?: string; address?: string }): string {
     const today = new Date().toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",

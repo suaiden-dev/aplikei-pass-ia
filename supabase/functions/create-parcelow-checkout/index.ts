@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 
 const corsHeaders = {
@@ -52,7 +51,7 @@ Deno.serve(async (req: Request) => {
 
         // 2. Buscar preços na nova tabela services_prices
         const dependentId = DEPENDENT_SERVICE_MAP[slug] || 'dependente-b1-b2';
-        const { data: dbPrices, error: dbError } = await supabase
+        const { data: dbPrices } = await supabase
             .from("services_prices")
             .select("service_id, name, price")
             .in("service_id", [slug, dependentId]);
@@ -251,7 +250,6 @@ Deno.serve(async (req: Request) => {
                 });
 
                 if (!authRes.ok) {
-                    const errBody = await authRes.text();
                     throw new Error(`Falha na autenticação Parcelow (${authRes.status}).`);
                 }
 

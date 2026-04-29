@@ -1,30 +1,13 @@
-import { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback, type ReactNode } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, type ReactNode } from "react";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { notificationService, AppNotification } from "../services/notification.service";
 import { useAuth } from "../hooks/useAuth";
-
-export interface ToastItem {
-  id: string;               // Unique toast UUID
-  notificationId: string;   // The actual notification DB ID
-  title: string;
-  message?: string | null;
-  type: "admin_action" | "client_action" | "system";
-  link?: string | null;
-  createdAt: string;
-}
-
-export interface NotificationContextValue {
-  notifications: AppNotification[];
-  unreadCount: number;
-  activeToasts: ToastItem[];
-  realtimeStatus: "connecting" | "connected" | "disconnected";
-  markAsRead: (id: string) => Promise<void>;
-  markAllAsRead: () => Promise<void>;
-  dismissToast: (toastId: string) => void;
-}
-
-const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
+import {
+  NotificationContext,
+  type NotificationContextValue,
+  type ToastItem,
+} from "./NotificationContext/context";
 
 const MAX_TOASTS = 3;
 
@@ -77,7 +60,7 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
   );
 
   const loadHistory = useCallback(async () => {
-    if (!user || !cacheKey) return;
+    if (!user?.id || !cacheKey) return;
 
     try {
       const cached = sessionStorage.getItem(cacheKey);
@@ -103,7 +86,8 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
     } catch (error) {
       console.error("[NotificationContext] Error loading history:", error);
     }
-  }, [cacheKey, role, user]);
+  // user?.id (primitive) instead of user (object) prevents re-runs when same user re-authenticates
+  }, [cacheKey, role, user?.id]);
 
   const addToToastQueue = useCallback((notif: AppNotification) => {
     const item: ToastItem = {
@@ -138,9 +122,11 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
     });
   }, []);
 
+  const userId = user?.id;
+
   const handleInsert = useCallback((payload: RealtimePostgresChangesPayload<AppNotification>) => {
     const newNotif = normalizeRealtimeNotification(payload.new as unknown as Record<string, unknown>);
-    if (!matchesNotificationRole(newNotif, role, user?.id)) {
+    if (!matchesNotificationRole(newNotif, role, userId)) {
       return;
     }
 
@@ -160,11 +146,11 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
     }
 
     addToToastQueue(newNotif);
-  }, [addToToastQueue, cacheKey, role, user?.id]);
+  }, [addToToastQueue, cacheKey, role, userId]);
 
   const handleUpdate = useCallback((payload: RealtimePostgresChangesPayload<AppNotification>) => {
     const updated = normalizeRealtimeNotification(payload.new as unknown as Record<string, unknown>);
-    if (!matchesNotificationRole(updated, role, user?.id)) {
+    if (!matchesNotificationRole(updated, role, userId)) {
       return;
     }
 
@@ -179,7 +165,7 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
         // ignore session storage issues
       }
     }
-  }, [cacheKey, role, user?.id]);
+  }, [cacheKey, role, userId]);
 
   const markAsRead = useCallback(async (id: string) => {
     try {
@@ -221,10 +207,16 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
 
   useEffect(() => {
     if (!user) {
-      setActiveToasts([]);
       toastQueueRef.current = [];
-      setNotifications([]);
-      setRealtimeStatus("disconnected");
+      const resetTimerId = window.setTimeout(() => {
+        setActiveToasts([]);
+        setNotifications([]);
+        setRealtimeStatus("disconnected");
+      }, 0);
+
+      return () => {
+        window.clearTimeout(resetTimerId);
+      };
     }
   }, [user]);
 
@@ -233,8 +225,10 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
       return;
     }
 
-    setRealtimeStatus("connecting");
-    loadHistory();
+    const loadTimerId = window.setTimeout(() => {
+      setRealtimeStatus("connecting");
+      void loadHistory();
+    }, 0);
 
     const channel = supabase
       .channel(`notif_realtime_${role}_${user.id}`)
@@ -262,9 +256,10 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
       });
 
     return () => {
+      window.clearTimeout(loadTimerId);
       supabase.removeChannel(channel);
     };
-  }, [handleInsert, handleUpdate, loadHistory, role, user]);
+  }, [handleInsert, handleUpdate, loadHistory, role, userId]);
 
   const value: NotificationContextValue = {
     notifications,
@@ -281,12 +276,4 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
       {children}
     </NotificationContext.Provider>
   );
-}
-
-export function useNotifications() {
-  const context = useContext(NotificationContext);
-  if (context === undefined) {
-    throw new Error("useNotifications must be used within a NotificationProvider");
-  }
-  return context;
 }

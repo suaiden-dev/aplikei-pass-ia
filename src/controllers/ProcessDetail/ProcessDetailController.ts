@@ -28,7 +28,10 @@ export interface UseProcessDetailControllerResult {
   hasConsultation: boolean;
   currentStepIndexInFull: number;
   stepData: Record<string, unknown>;
-  history: any[];
+  history: Array<{
+    type?: string;
+    steps?: unknown[];
+  }>;
   handleCompleteStep: () => Promise<void>;
   refetch: () => void;
   slug: string;
@@ -124,7 +127,10 @@ export function useProcessDetailController({
   const targetVisa = stepData.targetVisa as string | undefined;
   const showF1Steps = isCOS ? (targetVisa === "F1") : true;
   const stepsToSkip = [`${prefix}i20_upload`, `${prefix}sevis_fee`, `${prefix}analysis_i20_sevis`];
-  const history = (stepData.history as any[]) || [];
+  const history = (stepData.history as Array<{
+    type?: string;
+    steps?: unknown[];
+  }>) || [];
 
   return {
     proc,

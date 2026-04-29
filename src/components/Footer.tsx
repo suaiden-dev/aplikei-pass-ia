@@ -7,30 +7,24 @@ export const Footer = () => {
   return (
     <footer className="bg-highlight px-8 lg:px-16 pt-20 pb-8">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-16 pb-16 border-b border-slate-800 text-center lg:text-left">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-16 pb-16 border-b border-white/10 text-center lg:text-left">
           <div>
             <Link to="/" className="flex items-center justify-center lg:justify-start gap-2.5 mb-6">
-              <img src="/logo.png" alt="Aplikei" className="h-8 w-auto object-contain" />
+              <span className="text-white font-black text-xl tracking-tight">Aplikei</span>
             </Link>
-            <p className="text-slate-400 text-sm leading-relaxed mb-8">
-              {t.description}
-            </p>
+            <p className="text-slate-400 text-sm leading-relaxed mb-8">{t.description}</p>
             <div className="flex items-center justify-center lg:justify-start gap-4">
-              <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                <FaTwitter size={18} />
-              </a>
-              <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                <FaInstagram size={18} />
-              </a>
+              <a href="#" className="text-slate-400 hover:text-white transition-colors"><FaTwitter size={18} /></a>
+              <a href="#" className="text-slate-400 hover:text-white transition-colors"><FaInstagram size={18} /></a>
             </div>
           </div>
           <div>
             <h4 className="text-white font-bold text-xs uppercase tracking-widest mb-7">{t.services}</h4>
             <ul className="space-y-4">
-              <li><Link to="/cadastro" className="text-slate-400 hover:text-white text-sm transition-colors">{t.vistoB1B2}</Link></li>
-              <li><Link to="/cadastro" className="text-slate-400 hover:text-white text-sm transition-colors">{t.vistoF1}</Link></li>
-              <li><Link to="/cadastro" className="text-slate-400 hover:text-white text-sm transition-colors">{t.extensaoStatus}</Link></li>
-              <li><Link to="/cadastro" className="text-slate-400 hover:text-white text-sm transition-colors">{t.trocaStatus}</Link></li>
+              <li><Link to="/servicos/visto-b1-b2" className="text-slate-400 hover:text-white text-sm transition-colors">{t.vistoB1B2}</Link></li>
+              <li><Link to="/servicos/visto-f1" className="text-slate-400 hover:text-white text-sm transition-colors">{t.vistoF1}</Link></li>
+              <li><Link to="/servicos/extensao-status" className="text-slate-400 hover:text-white text-sm transition-colors">{t.extensaoStatus}</Link></li>
+              <li><Link to="/servicos/troca-status" className="text-slate-400 hover:text-white text-sm transition-colors">{t.trocaStatus}</Link></li>
             </ul>
           </div>
           <div>
@@ -44,27 +38,17 @@ export const Footer = () => {
           <div>
             <h4 className="text-white font-bold text-xs uppercase tracking-widest mb-7">{t.contact}</h4>
             <ul className="space-y-4">
-              <li>
-                <a href="mailto:contato@aplikei.com.br" className="text-slate-400 hover:text-white text-sm transition-colors">
-                  contato@aplikei.com.br
-                </a>
-              </li>
-              <li>
-                <a href="tel:+5511989890005" className="text-slate-400 hover:text-white text-sm transition-colors">
-                  +55 (11) 98989-0005
-                </a>
-              </li>
+              <li><a href="mailto:contato@aplikei.com.br" className="text-slate-400 hover:text-white text-sm transition-colors">contato@aplikei.com.br</a></li>
+              <li><a href="tel:+5511989890005" className="text-slate-400 hover:text-white text-sm transition-colors">+55 (11) 98989-0005</a></li>
             </ul>
           </div>
         </div>
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-          <p className="text-slate-500 text-xs text-balance">
-            © 2026 Aplikei Technologies. {t.allRightsReserved}
-          </p>
+          <p className="text-slate-500 text-xs text-balance">© 2026 Aplikei Technologies. {t.allRightsReserved}</p>
           <div className="flex flex-wrap justify-center sm:justify-end items-center gap-4 sm:gap-6">
             <Link to="/legal/terms" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">{t.terms}</Link>
-            <Link to="/legal/privacy" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">{t.privacy || "Privacy"}</Link>
-            <Link to="/legal/refund" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">{t.refund || "Refund"}</Link>
+            <Link to="/legal/privacy" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">{t.privacy}</Link>
+            <Link to="/legal/refund" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">{t.refund}</Link>
           </div>
         </div>
       </div>

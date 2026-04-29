@@ -38,10 +38,42 @@ serve(async (req) => {
     }
 
     const payload = await req.json();
+    const rawUserId = typeof payload.user_id === "string" && payload.user_id.trim().length > 0
+      ? payload.user_id.trim()
+      : null;
+
+    if (rawUserId) {
+      const { data: existingProfile, error: profileLookupError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", rawUserId)
+        .maybeSingle();
+
+      if (profileLookupError) {
+        throw profileLookupError;
+      }
+
+      if (!existingProfile) {
+        const profileSeed = {
+          id: rawUserId,
+          email: typeof payload.client_email === "string" ? payload.client_email : null,
+          full_name: typeof payload.client_name === "string" ? payload.client_name : null,
+        };
+
+        const { error: profileInsertError } = await supabase
+          .from("profiles")
+          .upsert(profileSeed, { onConflict: "id" });
+
+        if (profileInsertError) {
+          throw profileInsertError;
+        }
+      }
+    }
+
     const notification = {
       type: payload.type ?? "system",
       target_role: payload.target_role ?? payload.target_type ?? "client",
-      user_id: payload.user_id ?? null,
+      user_id: rawUserId,
       service_id: payload.service_id ?? null,
       title: payload.title ?? "",
       message: payload.message ?? payload.body ?? null,

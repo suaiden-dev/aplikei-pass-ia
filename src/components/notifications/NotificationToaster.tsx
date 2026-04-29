@@ -1,6 +1,6 @@
 
 import { AnimatePresence } from "framer-motion";
-import { useNotifications } from "../../contexts/NotificationContext";
+import { useNotifications } from "../../hooks/useNotifications";
 import { NotificationToast } from "./NotificationToast";
 
 export function NotificationToaster() {

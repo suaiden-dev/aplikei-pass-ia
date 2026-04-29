@@ -1,4 +1,3 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 import Stripe from "https://esm.sh/stripe@14.16.0";
 
 const corsHeaders = {
@@ -38,7 +37,7 @@ Deno.serve(async (req) => {
     let host = "";
     try {
       host = new URL(origin_url || req.headers.get("referer") || "").hostname;
-    } catch (e) {
+    } catch {
       console.warn("Could not determine host from origin_url or referer");
     }
 

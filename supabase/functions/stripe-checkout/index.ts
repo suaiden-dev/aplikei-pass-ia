@@ -138,10 +138,11 @@ Deno.serve(async (req: Request) => {
         // Validação dinâmica de preço (Segurança)
         if (targetProcId) {
             const { data: procData } = await supabase.from("user_services").select("step_data").eq("id", targetProcId).single();
+            const rfeAmount = procData?.step_data?.rfe_proposal_amount;
             const motionAmount = procData?.step_data?.motion_amount ?? procData?.step_data?.motion_proposal_amount;
-            const parsedMotionAmount = Number(motionAmount);
-            if (Number.isFinite(parsedMotionAmount) && parsedMotionAmount > 0) {
-                basePriceUSD = parsedMotionAmount;
+            const parsedAmount = Number(rfeAmount ?? motionAmount);
+            if (Number.isFinite(parsedAmount) && parsedAmount > 0) {
+                basePriceUSD = parsedAmount;
             } else if (requestAmount && ['rfe-support', 'motion-support', 'suporte-rfe-eos', 'suporte-rfe-cos', 'recovery-eos', 'recovery-cos', 'analise-especialista-cos', 'apoio-rfe-motion-inicio', 'proposta-rfe-motion'].includes(slug)) {
                 basePriceUSD = Number(requestAmount);
             }

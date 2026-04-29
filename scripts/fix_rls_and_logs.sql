@@ -1,97 +1,215 @@
-BEGIN;
+begin;
 
 -- =====================================================================
--- 1. FIX NOTIFICATIONS RLS
--- O problema: auth.role() foi deprecated no Supabase. A policy de INSERT
--- precisar ser recriada usando a sintaxe correta.
+-- 1. HELPER RLS
+-- Evita recursão infinita em policies que consultam public.user_accounts.
 -- =====================================================================
 
--- Remove as policies antigas que podem estar bloqueando inserts
-DROP POLICY IF EXISTS "authenticated_can_insert" ON public.notifications;
-DROP POLICY IF EXISTS "owner_can_update_read" ON public.notifications;
-DROP POLICY IF EXISTS "admins_can_insert" ON public.notifications;
-DROP POLICY IF EXISTS "service_role_full_access" ON public.notifications;
-
--- Cria policies novas e corretas
--- Qualquer usuário autenticado pode inserir notificações (frontend e funções)
-CREATE POLICY "authenticated_can_insert" ON public.notifications
-  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
-
--- Admin pode ver todas as notificações target_role = admin
-CREATE POLICY "admins_see_admin_notifications" ON public.notifications
-  FOR SELECT USING (
-    target_role = 'admin' AND
-    EXISTS (
-      SELECT 1 FROM public.user_accounts
-      WHERE id = auth.uid() AND role = 'admin'
-    )
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.user_accounts ua
+    where ua.id = auth.uid()
+      and ua.role = 'admin'
   );
+$$;
 
--- Cliente vê suas próprias notificações
-CREATE POLICY "clients_see_own_notifications" ON public.notifications
-  FOR SELECT USING (
-    target_role = 'client' AND user_id = auth.uid()
-  );
-
--- Qualquer autenticado pode marcar como lida
-CREATE POLICY "owner_can_update_read" ON public.notifications
-  FOR UPDATE USING (auth.uid() IS NOT NULL);
+grant execute on function public.is_admin() to authenticated, anon, service_role;
 
 -- =====================================================================
--- 2. FIX PROCESS_LOGS RLS
--- A tabela process_logs precisa ser legível pelo admin e escrita
--- pelo sistema (trigger via SECURITY DEFINER não precisa de policy para INSERT)
--- mas SELECT precisa de policy para o admin ver os logs.
+-- 2. USER_ACCOUNTS
 -- =====================================================================
 
-DROP POLICY IF EXISTS "admins_can_read_logs" ON public.process_logs;
-DROP POLICY IF EXISTS "service_role_can_read_logs" ON public.process_logs;
-DROP POLICY IF EXISTS "all_auth_can_read" ON public.process_logs;
+alter table public.user_accounts enable row level security;
 
--- Admin pode ver todos os logs
-CREATE POLICY "admins_can_read_logs" ON public.process_logs
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public.user_accounts
-      WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
+drop policy if exists "user_accounts_select_own" on public.user_accounts;
+drop policy if exists "user_accounts_insert_own" on public.user_accounts;
+drop policy if exists "user_accounts_update_own" on public.user_accounts;
+drop policy if exists "user_accounts_admin_select_all" on public.user_accounts;
+drop policy if exists "user_accounts_admin_update_all" on public.user_accounts;
+drop policy if exists "Users can view their own profile" on public.user_accounts;
+drop policy if exists "Users can insert their own profile" on public.user_accounts;
+drop policy if exists "Users can update their own profile" on public.user_accounts;
+drop policy if exists "Admins can view all profiles" on public.user_accounts;
+drop policy if exists "Admins can update all profiles" on public.user_accounts;
+drop policy if exists "admin can read all accounts" on public.user_accounts;
+drop policy if exists "user can read own account" on public.user_accounts;
+drop policy if exists "user can update own account" on public.user_accounts;
+
+create policy "user_accounts_select_own"
+on public.user_accounts
+for select
+to authenticated
+using (id = auth.uid());
+
+create policy "user_accounts_insert_own"
+on public.user_accounts
+for insert
+to authenticated
+with check (id = auth.uid());
+
+create policy "user_accounts_update_own"
+on public.user_accounts
+for update
+to authenticated
+using (id = auth.uid())
+with check (id = auth.uid());
+
+create policy "user_accounts_admin_select_all"
+on public.user_accounts
+for select
+to authenticated
+using (public.is_admin());
+
+create policy "user_accounts_admin_update_all"
+on public.user_accounts
+for update
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());
 
 -- =====================================================================
--- 3. GARANTE QUE A FUNÇÃO QUE POPULA OS LOGS É SECURITY DEFINER
--- (necessário para que o trigger possa inserir mesmo que o usuário
--- logado não tenha permissão direta de INSERT na tabela)
+-- 3. NOTIFICATIONS
 -- =====================================================================
-CREATE OR REPLACE FUNCTION public.log_user_service_changes()
-RETURNS trigger AS $$
-BEGIN
-  IF (OLD.current_step IS DISTINCT FROM NEW.current_step) OR (OLD.status IS DISTINCT FROM NEW.status) THEN
-    INSERT INTO public.process_logs (
-      user_service_id,
-      previous_step,
-      new_step,
-      previous_status,
-      new_status,
-      created_at
-    ) VALUES (
-      NEW.id,
-      OLD.current_step,
-      NEW.current_step,
-      OLD.status,
-      NEW.status,
-      NOW()
-    );
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Recria o gatilho limpo
-DROP TRIGGER IF EXISTS log_step_change_trigger ON public.user_services;
+alter table public.notifications enable row level security;
 
-CREATE TRIGGER log_step_change_trigger
-AFTER UPDATE ON public.user_services
-FOR EACH ROW
-EXECUTE FUNCTION public.log_user_service_changes();
+drop policy if exists "authenticated_can_insert" on public.notifications;
+drop policy if exists "owner_can_update_read" on public.notifications;
+drop policy if exists "clients_can_update_own_notifications" on public.notifications;
+drop policy if exists "admins_can_update_admin_notifications" on public.notifications;
+drop policy if exists "admins_see_admin_notifications" on public.notifications;
+drop policy if exists "clients_see_own_notifications" on public.notifications;
+drop policy if exists "admins_can_insert" on public.notifications;
+drop policy if exists "service_role_full_access" on public.notifications;
 
-COMMIT;
+create policy "authenticated_can_insert"
+on public.notifications
+for insert
+to authenticated
+with check (auth.uid() is not null);
+
+create policy "admins_see_admin_notifications"
+on public.notifications
+for select
+to authenticated
+using (
+  target_role = 'admin'
+  and public.is_admin()
+);
+
+create policy "clients_see_own_notifications"
+on public.notifications
+for select
+to authenticated
+using (
+  target_role = 'client'
+  and user_id = auth.uid()
+);
+
+create policy "clients_can_update_own_notifications"
+on public.notifications
+for update
+to authenticated
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+create policy "admins_can_update_admin_notifications"
+on public.notifications
+for update
+to authenticated
+using (
+  target_role = 'admin'
+  and public.is_admin()
+)
+with check (
+  target_role = 'admin'
+  and public.is_admin()
+);
+
+-- =====================================================================
+-- 4. STORAGE: BUCKET profiles
+-- =====================================================================
+
+insert into storage.buckets (id, name, public)
+values ('profiles', 'profiles', true)
+on conflict (id) do update
+set public = excluded.public;
+
+drop policy if exists "profiles_bucket_public_read" on storage.objects;
+drop policy if exists "profiles_bucket_user_insert_own_folder" on storage.objects;
+drop policy if exists "profiles_bucket_user_update_own_folder" on storage.objects;
+drop policy if exists "profiles_bucket_user_delete_own_folder" on storage.objects;
+drop policy if exists "profiles_bucket_admin_manage_all" on storage.objects;
+
+create policy "profiles_bucket_public_read"
+on storage.objects
+for select
+to public
+using (bucket_id = 'profiles');
+
+create policy "profiles_bucket_user_insert_own_folder"
+on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'profiles'
+  and split_part(name, '/', 1) = auth.uid()::text
+);
+
+create policy "profiles_bucket_user_update_own_folder"
+on storage.objects
+for update
+to authenticated
+using (
+  bucket_id = 'profiles'
+  and split_part(name, '/', 1) = auth.uid()::text
+)
+with check (
+  bucket_id = 'profiles'
+  and split_part(name, '/', 1) = auth.uid()::text
+);
+
+create policy "profiles_bucket_user_delete_own_folder"
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'profiles'
+  and split_part(name, '/', 1) = auth.uid()::text
+);
+
+create policy "profiles_bucket_admin_manage_all"
+on storage.objects
+for all
+to authenticated
+using (
+  bucket_id = 'profiles'
+  and public.is_admin()
+)
+with check (
+  bucket_id = 'profiles'
+  and public.is_admin()
+);
+
+-- =====================================================================
+-- 5. PROCESS_LOGS
+-- =====================================================================
+
+drop policy if exists "admins_can_read_logs" on public.process_logs;
+drop policy if exists "service_role_can_read_logs" on public.process_logs;
+drop policy if exists "all_auth_can_read" on public.process_logs;
+
+create policy "admins_can_read_logs"
+on public.process_logs
+for select
+to authenticated
+using (public.is_admin());
+
+commit;

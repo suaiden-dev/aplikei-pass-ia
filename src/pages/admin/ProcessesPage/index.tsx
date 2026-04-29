@@ -46,7 +46,7 @@ export default function AdminProcessesPage() {
         .from("user_services")
         .select(`
           *,
-          user_accounts!user_id (full_name, email)
+          user_accounts:profiles (full_name, email)
         `)
         .order("created_at", { ascending: false });
 

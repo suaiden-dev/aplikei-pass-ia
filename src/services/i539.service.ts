@@ -96,7 +96,11 @@ export async function fillI539Form(
     if (checked === undefined) return;
     try {
       const f = form.getCheckBox(name);
-      checked ? f.check() : f.uncheck();
+      if (checked) {
+        f.check();
+      } else {
+        f.uncheck();
+      }
     } catch { /* skip */ }
   };
 

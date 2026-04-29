@@ -6,21 +6,40 @@ import { LanguageProvider } from '../../../i18n/LanguageContext'
 
 const mockProc = {
   id: 'proc-123',
-  step_data: {},
-} as any
+  step_data: {
+    targetVisa: 'F-1 (Academic Student)',
+    i539: {
+      streetName: '123 Main St',
+      city: 'Orlando',
+      state: 'FL',
+      zipCode: '32801',
+      dateOfBirth: '05/15/1990',
+      countryOfCitizenship: 'Brazil',
+      countryOfBirth: 'Brazil',
+      dateOfArrival: '01/10/2024',
+      i94Number: '12345678901',
+      passportNumber: 'AB123456',
+      passportExpirationDate: '05/15/2030',
+      currentStatus: 'B-2',
+      newStatusDropdown: 'F-1 (Academic Student)',
+      daytimePhone: '(321) 555-1234',
+      email: 'john@example.com',
+    },
+  },
+}
 
 const mockUser = {
   id: 'user-123',
   fullName: 'John Doe',
   phoneNumber: '', // Set to empty to test typing clearly
   email: 'john@example.com',
-} as any
+}
 
 const mockOnComplete = vi.fn()
 
 vi.mock('../../../i18n', () => ({
-  LanguageProvider: ({ children }: any) => <>{children}</>,
-  useT: (ns: string) => {
+  LanguageProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useT: () => {
     // Return a mock object that matches the usage in I539FormStep
     return {
       cos: {
@@ -128,18 +147,28 @@ describe('I539FormStep', () => {
     removeItem: vi.fn(),
     clear: vi.fn(),
   })
+  vi.stubGlobal('scrollTo', vi.fn())
 
-  test('should render and have blank Preparer Information by default', () => {
+  async function goToStep(stepNumber: number) {
+    const user = userEvent.setup()
+
+    for (let current = 1; current < stepNumber; current += 1) {
+      await user.click(screen.getByRole('button', { name: /Proxima etapa/i }))
+    }
+  }
+
+  test('should render and have blank Preparer Information by default', async () => {
     render(
       <LanguageProvider>
         <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
       </LanguageProvider>
     )
-    
-    // Check Preparer Information fields
-    const preparerFamilyName = screen.getByLabelText(/Family Name/i, { selector: '[name="preparerFamilyName"]' })
-    const preparerGivenName = screen.getByLabelText(/Given Name/i, { selector: '[name="preparerGivenName"]' })
-    
+
+    await goToStep(5)
+
+    const preparerFamilyName = document.querySelector('input[name="preparerFamilyName"]') as HTMLInputElement
+    const preparerGivenName = document.querySelector('input[name="preparerGivenName"]') as HTMLInputElement
+
     expect(preparerFamilyName).toHaveValue('')
     expect(preparerGivenName).toHaveValue('')
   })
@@ -151,10 +180,11 @@ describe('I539FormStep', () => {
         <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
       </LanguageProvider>
     )
-    
-    const daytimePhone = screen.getByLabelText(/Daytime Phone/i, { selector: '[name="daytimePhone"]' })
-    
-    // Use clear to ensure we start from empty
+
+    await goToStep(5)
+
+    const daytimePhone = document.querySelector('input[name="daytimePhone"]') as HTMLInputElement
+
     await user.clear(daytimePhone)
     await user.type(daytimePhone, '1234567890')
     expect(daytimePhone).toHaveValue('(123) 456-7890')
@@ -166,9 +196,11 @@ describe('I539FormStep', () => {
         <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
       </LanguageProvider>
     )
-    
-    const dobInput = screen.getByLabelText(/Date of Birth/i, { selector: '[name="dateOfBirth"]' })
-    
+
+    await goToStep(2)
+
+    const dobInput = document.querySelector('input[name="dateOfBirth"]') as HTMLInputElement
+
     fireEvent.change(dobInput, { target: { value: '1990-05-15' } })
     expect(dobInput).toHaveValue('1990-05-15')
   })
@@ -180,16 +212,13 @@ describe('I539FormStep', () => {
         <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
       </LanguageProvider>
     )
-    
-    const submitButtons = screen.getAllByRole('button', { name: /Enviar Formulário/i })
-    const submitButton = submitButtons[submitButtons.length - 1] // Use the last one (usually the sticky bar)
-    
-    // Clear required fields
+
+    const nextButton = screen.getByRole('button', { name: /Proxima etapa/i })
     const familyNameInput = screen.getByLabelText(/Family Name/i, { selector: '[name="familyName"]' })
     await user.clear(familyNameInput)
-    
-    await user.click(submitButton)
-    
+
+    await user.click(nextButton)
+
     await waitFor(() => {
       expect(screen.getByText(/Family Name is required/i)).toBeInTheDocument()
     })

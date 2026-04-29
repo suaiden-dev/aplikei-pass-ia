@@ -216,7 +216,7 @@ export async function listFormFields(pdfBytes?: Uint8Array): Promise<RawField[]>
   // pdfjs-dist is better for reading encrypted USCIS PDFs
   const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs" as string);
   const data = pdfBytes ?? new Uint8Array(fs.readFileSync(CACHE_PATH));
-  const doc = await (getDocument as Function)({ data, useSystemFonts: true }).promise;
+  const doc = await (getDocument as (params: { data: Uint8Array; useSystemFonts: boolean }) => { promise: Promise<unknown> })({ data, useSystemFonts: true }).promise;
 
   const fields: RawField[] = [];
   for (let i = 1; i <= doc.numPages; i++) {
@@ -255,7 +255,11 @@ export async function fillI539Form(data: I539Data, pdfBytes?: Uint8Array): Promi
     if (checked === undefined) return;
     try {
       const f = form.getCheckBox(name);
-      checked ? f.check() : f.uncheck();
+      if (checked) {
+        f.check();
+      } else {
+        f.uncheck();
+      }
     } catch { /* skip */ }
   };
 

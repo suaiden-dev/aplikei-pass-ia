@@ -35,6 +35,7 @@ serve(async (req) => {
         p_event_id: `${payload.payment_id}:${payload.response}`,
         p_order_id: null,
         p_payment_id: payload.payment_id,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         p_payload: payload as any,
       });
 
@@ -77,7 +78,7 @@ serve(async (req) => {
 
     if (!userId && email) {
       const { data: usersData } = await supabase.auth.admin.listUsers();
-      const existingUser = usersData?.users?.find((u: any) => u.email === email);
+      const existingUser = usersData?.users?.find((u: Record<string, unknown>) => u.email === email);
 
       if (existingUser) {
         userId = existingUser.id;
@@ -121,8 +122,8 @@ serve(async (req) => {
       JSON.stringify({ message: "Pagamento processado e servico ativado.", status: "approved" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 },
     );
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), {
+  } catch (err: unknown) {
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

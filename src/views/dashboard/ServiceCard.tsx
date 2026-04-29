@@ -82,8 +82,8 @@ export function ServiceCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: 0.2 + index * 0.07 }}
       className={cn(
-        "flex flex-col rounded-[32px] border bg-white shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group",
-        isOwned ? "border-emerald-200" : "border-slate-100"
+        "flex flex-col rounded-[32px] border bg-card shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group",
+        isOwned ? "border-emerald-500/30" : "border-border"
       )}
     >
       <div className={cn("h-2 w-full bg-gradient-to-r", isOwned ? "from-emerald-400 to-emerald-600" : cfg.accent)} />
@@ -95,38 +95,38 @@ export function ServiceCard({
           </div>
           <div className="min-w-0 flex-1 w-full">
             <div className="flex flex-col xl:flex-row flex-wrap items-start justify-between gap-3 mb-1.5">
-              <h3 className="font-display font-black text-slate-800 text-xl leading-tight uppercase tracking-tight break-words">
+              <h3 className="font-display font-black text-text text-xl leading-tight uppercase tracking-tight break-words">
                 {labels.products[service.slug]?.label || service.title}
               </h3>
               {isOwned ? (
-                <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full uppercase tracking-widest shrink-0 flex items-center gap-1">
+                <span className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full uppercase tracking-widest shrink-0 flex items-center gap-1">
                   <RiCheckLine className="text-[12px]" />
                   {labels.badges.active}
                 </span>
               ) : isActive === false ? (
-                <span className="text-[10px] font-black text-slate-400 bg-slate-50 border border-slate-200 px-3 py-1 rounded-full uppercase tracking-widest shrink-0 flex items-center gap-1">
+                <span className="text-[10px] font-black text-text-muted bg-bg-subtle border border-border px-3 py-1 rounded-full uppercase tracking-widest shrink-0 flex items-center gap-1">
                   <RiCloseLine className="text-[12px]" />
                   {labels.badges.soldOut}
                 </span>
               ) : (
-                <span className="text-[10px] font-black text-primary bg-primary/5 border border-primary/20 px-3 py-1 rounded-full uppercase tracking-widest shrink-0 flex items-center gap-1">
+                <span className="text-[10px] font-black text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full uppercase tracking-widest shrink-0 flex items-center gap-1">
                   <RiFlashlightFill className="text-[12px]" />
                   {labels.badges.available}
                 </span>
               )}
             </div>
-            <p className="text-[11px] font-bold text-slate-400 tracking-widest uppercase">
+            <p className="text-[11px] font-bold text-text-muted tracking-widest uppercase">
               {labels.products[service.slug]?.category || cfg.category}
             </p>
           </div>
         </div>
 
-        <p className="text-[14px] text-slate-500 font-medium leading-relaxed mb-10">
+        <p className="text-[14px] text-text-muted font-medium leading-relaxed mb-10">
           {service.subtitle}
         </p>
 
-        <div className="rounded-3xl bg-slate-50/80 p-6 sm:p-8 mb-10 flex-1 border border-slate-100">
-          <div className="text-[11px] font-black text-slate-400 tracking-widest uppercase mb-5 flex items-center gap-2">
+        <div className="rounded-3xl bg-bg-subtle/80 p-6 sm:p-8 mb-10 flex-1 border border-border">
+          <div className="text-[11px] font-black text-text-muted tracking-widest uppercase mb-5 flex items-center gap-2">
             <div className={cn("w-2 h-2 rounded-full", isOwned ? "bg-emerald-500" : "bg-primary")} />
             {labels.serviceCard.includedFeatures}
           </div>
@@ -134,7 +134,7 @@ export function ServiceCard({
             {features.map((f) => (
               <li key={f} className="flex items-center gap-3">
                 <RiCheckboxCircleFill className={cn("text-[20px] shrink-0", isOwned ? "text-emerald-500" : "text-primary")} />
-                <span className="text-[13px] text-slate-600 font-bold uppercase tracking-tight">{f}</span>
+                <span className="text-[13px] text-text font-bold uppercase tracking-tight">{f}</span>
               </li>
             ))}
           </ul>
@@ -151,7 +151,7 @@ export function ServiceCard({
         ) : isActive === false ? (
           <button
             disabled
-            className="flex items-center justify-center gap-3 w-full py-5 rounded-2xl bg-slate-100 text-slate-400 text-[14px] font-black uppercase tracking-[0.1em] cursor-not-allowed border border-slate-200"
+            className="flex items-center justify-center gap-3 w-full py-5 rounded-2xl bg-bg-subtle text-text-muted text-[14px] font-black uppercase tracking-[0.1em] cursor-not-allowed border border-border"
           >
             {labels.serviceCard.unavailable}
             <MdTimer className="text-xl" />
@@ -163,7 +163,7 @@ export function ServiceCard({
               className={cn(
                 "flex items-center justify-center gap-3 w-full py-5 rounded-2xl text-[14px] font-black uppercase tracking-[0.1em] transition-all shadow-lg",
                 hasActiveProcess
-                  ? "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200 shadow-none pointer-events-none"
+                  ? "bg-bg-subtle text-text-muted cursor-not-allowed border border-border shadow-none pointer-events-none"
                   : "bg-primary hover:bg-primary-hover text-white shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
               )}
             >
@@ -171,9 +171,9 @@ export function ServiceCard({
               <RiArrowRightLine className="text-xl" />
             </Link>
             {hasActiveProcess && (
-              <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-slate-800 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none shadow-xl">
+              <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-highlight text-white text-[10px] font-bold rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none shadow-xl border border-border">
                 {labels.serviceCard.finishCurrentFirst}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-highlight" />
               </div>
             )}
           </div>

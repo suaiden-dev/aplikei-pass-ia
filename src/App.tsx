@@ -1,7 +1,10 @@
 import { lazy, Suspense, type ComponentType } from "react";
 import { Routes, Route } from "react-router-dom";
 import { PublicLayout } from "./layouts/PublicLayout";
-import { AdminLayout } from "./layouts/AdminLayout";
+import { AuthLayout } from "./layouts/AuthLayout";
+import { MasterDashboardLayout } from "./layouts/MasterDashboardLayout";
+import { AdminDashboardLayout } from "./layouts/AdminDashboardLayout";
+import { SellerDashboardLayout } from "./layouts/SellerDashboardLayout";
 import { CustomerLayout } from "./layouts/CustomerLayout";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -25,7 +28,7 @@ const CheckoutSuccessPage = lazyPage(() => import("./pages/CheckoutSuccessPage")
 const ComoFuncionaPage    = lazyPage(() => import("./pages/ComoFuncionaPage"));
 const ServicosPage        = lazyPage(() => import("./pages/ServicosPage"));
 
-// Admin
+// Admin/Master/Seller
 const CustomersPage          = lazyPage(() => import("./pages/admin/CustomersPage"));
 const OverviewPage           = lazyPage(() => import("./pages/admin/OverviewPage"));
 const ZellePaymentsPage      = lazyPage(() => import("./pages/admin/ZellePaymentsPage"));
@@ -67,6 +70,14 @@ const queryClient = new QueryClient({
   },
 });
 
+function PageLoader() {
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-bg">
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+    </div>
+  );
+}
+
 export default function App() {
   const { isLanguageLoading } = useLocale();
 
@@ -81,11 +92,7 @@ export default function App() {
           <LogoLoader />
         </div>
       )}
-      <Suspense fallback={
-        <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
-          <LogoLoader />
-        </div>
-      }>
+      <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Rotas públicas — com Navbar e Footer */}
           <Route element={<PublicLayout />}>
@@ -93,8 +100,6 @@ export default function App() {
             <Route path="/servicos" element={<ServicosPage />} />
             <Route path="/servicos/:slug" element={<ServiceDetailPage />} />
             <Route path="/como-funciona" element={<ComoFuncionaPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/cadastro" element={<SignUpPage />} />
             <Route path="/checkout/:slug" element={<CheckoutPage />} />
             
             {/* Legal Routes */}
@@ -105,14 +110,18 @@ export default function App() {
             <Route path="/legal/contract-terms" element={<ContractTerms />} />
           </Route>
 
+          {/* Rotas de Autenticação */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/cadastro" element={<SignUpPage />} />
+          </Route>
+
           {/* Rotas protegidas — exigem autenticação */}
           <Route element={<ProtectedRoute />}>
             {/* Checkout success — protected so user is guaranteed authenticated */}
             <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
-          </Route>
 
-          {/* Customer routes */}
-          <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
+            {/* Customer routes */}
             <Route element={<CustomerLayout />}>
               <Route path="/dashboard" element={<CustomerDashboardPage />} />
               <Route path="/dashboard/processes" element={<MyProcessesPage />} />
@@ -131,19 +140,37 @@ export default function App() {
               <Route path="/dashboard/ai-chat" element={<AIChatPage />} />
               <Route path="/minha-conta" element={<ProfileSettingsPage />} />
             </Route>
-          </Route>
 
-          {/* Admin routes */}
-          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-            <Route element={<AdminLayout />}>
-              <Route path="/admin" element={<OverviewPage />} />
-              <Route path="/admin/payments" element={<ZellePaymentsPage />} />
-              <Route path="/admin/customers" element={<CustomersPage />} />
-              <Route path="/admin/processes" element={<AdminProcessesPage />} />
-              <Route path="/admin/processes/:id" element={<AdminProcessDetailPage />} />
-              <Route path="/admin/chats" element={<AdminChatsPage />} />
-              <Route path="/admin/products" element={<ProductsPage />} />
-              <Route path="/admin/coupons" element={<CouponsPage />} />
+            {/* Master routes */}
+            <Route path="/master" element={<MasterDashboardLayout />}>
+              <Route index element={<OverviewPage />} />
+              <Route path="payments" element={<ZellePaymentsPage />} />
+              <Route path="customers" element={<CustomersPage />} />
+              <Route path="cases" element={<AdminProcessesPage />} />
+              <Route path="cases/:id" element={<AdminProcessDetailPage />} />
+              <Route path="chats" element={<AdminChatsPage />} />
+              <Route path="products" element={<ProductsPage />} />
+              <Route path="coupons" element={<CouponsPage />} />
+            </Route>
+
+            {/* Admin routes */}
+            <Route path="/admin" element={<AdminDashboardLayout />}>
+              <Route index element={<OverviewPage />} />
+              <Route path="payments" element={<ZellePaymentsPage />} />
+              <Route path="customers" element={<CustomersPage />} />
+              <Route path="processes" element={<AdminProcessesPage />} />
+              <Route path="processes/:id" element={<AdminProcessDetailPage />} />
+              <Route path="chats" element={<AdminChatsPage />} />
+              <Route path="products" element={<ProductsPage />} />
+              <Route path="coupons" element={<CouponsPage />} />
+            </Route>
+
+            {/* Seller routes */}
+            <Route path="/seller" element={<SellerDashboardLayout />}>
+              <Route path="payments" element={<ZellePaymentsPage />} />
+              <Route path="chats" element={<AdminChatsPage />} />
+              <Route path="customers" element={<CustomersPage />} />
+              <Route path="coupons" element={<CouponsPage />} />
             </Route>
           </Route>
 

@@ -22,7 +22,7 @@ import { packageService } from '../../../services/package.service'
 import {
   RiThumbUpLine,
   RiThumbDownLine,
-  RiSpam2Line,
+  RiTimeLine,
   RiInformationFill,
 } from 'react-icons/ri'
 import { useT } from '../../../i18n'
@@ -531,9 +531,9 @@ export default function FinalPackageStep({
             className='flex flex-col items-center justify-center p-8 bg-card border border-amber-100 rounded-[24px] hover:bg-amber-50 hover:border-amber-200 transition-all group/btn shadow-sm hover:shadow-md'
           >
             <div className='w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center mb-4 group-hover/btn:scale-110 group-hover/btn:rotate-12 transition-all shadow-inner border border-amber-100/50'>
-              <RiSpam2Line className='text-2xl' />
+              <RiTimeLine className='text-2xl' />
             </div>
-            <span className='text-[9px] font-black text-text uppercase tracking-widest text-center leading-tight'>
+            <span className='text-[10px] font-black text-text uppercase tracking-widest text-center leading-tight'>
               {t.cos.finalPackage.feedback.rfe}
             </span>
           </button>

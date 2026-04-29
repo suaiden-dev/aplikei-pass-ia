@@ -5,6 +5,7 @@ import { HeroSection } from "../../components/HeroSection";
 import { FAQSection } from "../../components/FAQSection";
 import { TestimonialsSection } from "../../components/TestimonialsSection";
 import { HowItWorksSection } from "../../components/HowItWorksSection";
+import { getDefaultRouteForRole } from "../../routes/authRedirect";
 // Remove ServicesSection import
 
 const avatars = [
@@ -23,10 +24,8 @@ export default function HomePage() {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    // Redirect logic: if authenticated and loading is finished, go to target page
     if (!isLoading && isAuthenticated && user) {
-      const target = user.role === "admin" ? "/admin" : "/dashboard";
-      navigate(target, { replace: true });
+      navigate(getDefaultRouteForRole(user.role), { replace: true });
     }
   }, [isAuthenticated, isLoading, user, navigate]);
 

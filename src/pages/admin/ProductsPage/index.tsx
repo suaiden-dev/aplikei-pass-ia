@@ -264,7 +264,15 @@ export default function ProductsPage() {
     setIsLoading(false);
   }, [t]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const loadTimerId = window.setTimeout(() => {
+      void load();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(loadTimerId);
+    };
+  }, [load]);
 
   // Group by category
   const grouped = products.reduce<Record<string, ServicePrice[]>>((acc, p) => {

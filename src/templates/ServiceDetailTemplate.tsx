@@ -39,6 +39,39 @@ export interface ServiceData {
   faq: { q: string; a: string }[];
 }
 
+interface ServiceDetailLabels {
+  perDependent: string;
+  dependentsDesc: string;
+  concludeProcess: string;
+  getStarted: string;
+  successRate: string;
+  overview: string;
+  forWhom: string;
+  notForWhom: string;
+  included: string;
+  faq: string;
+  legalDisclaimer: string;
+  disclaimer: string;
+  journeySteps?: MarketingStep[];
+}
+
+interface CatalogEntry {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  forWhom?: string[];
+  notForWhom?: string[];
+  included?: string[];
+  faq?: { q: string; a: string }[];
+  marketingSteps?: MarketingStep[];
+}
+
+interface MarketingStep {
+  title: string;
+  desc?: string;
+  description?: string;
+}
+
 interface ServiceDetailTemplateProps {
   service: ServiceData | null;
   heroImage: string;
@@ -62,17 +95,18 @@ export default function ServiceDetailTemplate({
 }: ServiceDetailTemplateProps) {
   const tServices = useT("services");
   const tVisas = useT("visas");
-  const labels = tServices.serviceDetail;
-  const catalogEntry = service ? (tVisas.catalog as any)?.[service.slug] : null;
+  const labels = tServices.serviceDetail as ServiceDetailLabels;
+  const catalog = tVisas.catalog as Record<string, CatalogEntry> | undefined;
+  const catalogEntry = service ? catalog?.[service.slug] : null;
 
-  const displayTitle = catalogEntry?.title || service?.title;
-  const displaySubtitle = catalogEntry?.subtitle || service?.subtitle;
-  const displayDescription = catalogEntry?.description || service?.description;
-  const displayForWhom = catalogEntry?.forWhom || service?.forWhom || [];
-  const displayNotForWhom = catalogEntry?.notForWhom || service?.notForWhom || [];
-  const displayIncluded = catalogEntry?.included || service?.included || [];
+  const displayTitle = catalogEntry?.title as string | undefined || service?.title;
+  const displaySubtitle = catalogEntry?.subtitle as string | undefined || service?.subtitle;
+  const displayDescription = catalogEntry?.description as string | undefined || service?.description;
+  const displayForWhom = catalogEntry?.forWhom as string[] | undefined || service?.forWhom || [];
+  const displayNotForWhom = catalogEntry?.notForWhom as string[] | undefined || service?.notForWhom || [];
+  const displayIncluded = catalogEntry?.included as string[] | undefined || service?.included || [];
 
-  const displayFaq = catalogEntry?.faq || service?.faq || [];
+  const displayFaq = catalogEntry?.faq as { q: string; a: string }[] | undefined || service?.faq || [];
   const { user } = useAuth();
   const [hasActiveProcess, setHasActiveProcess] = useState(false);
 
@@ -269,7 +303,7 @@ export default function ServiceDetailTemplate({
         <div className="relative space-y-14 max-w-4xl mx-auto">
           <div className="absolute left-[24px] top-4 bottom-4 w-1.5 bg-slate-100 rounded-full"></div>
           
-          {(catalogEntry?.marketingSteps || tServices.serviceDetail?.journeySteps || []).map((step: any, i: number) => (
+          {(catalogEntry?.marketingSteps || labels.journeySteps || []).map((step: MarketingStep, i: number) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, x: -20 }}
@@ -283,7 +317,7 @@ export default function ServiceDetailTemplate({
               </div>
               <div className="pt-1.5">
                 <h4 className="font-black text-2xl mb-2 text-slate-900 leading-tight">{step.title}</h4>
-                <p className="text-slate-500 text-lg leading-relaxed italic font-medium">{step.desc}</p>
+                <p className="text-slate-500 text-lg leading-relaxed italic font-medium">{step.desc || step.description}</p>
               </div>
             </motion.div>
           ))}
@@ -292,7 +326,7 @@ export default function ServiceDetailTemplate({
 
       {/* Conversion CTA */}
       <ServiceCTA 
-        visaType={displayTitle} 
+        visaType={displayTitle || service.title} 
         checkoutUrl={hasActiveProcess ? "#" : `/checkout/${service.slug}`} 
         slug={service.slug}
       />

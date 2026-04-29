@@ -9,20 +9,54 @@ export interface UserUpdateInput {
   passport_photo_url?: string | null;
 }
 
+export interface UserCreateInput {
+  id: string;
+  full_name: string;
+  email: string;
+  phone_number: string;
+  role: UserRole;
+}
+
+interface UserAccountRow {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  phone_number: string | null;
+  avatar_url: string | null;
+  passport_photo_url: string | null;
+  role: UserRole;
+  created_at: string;
+  updated_at: string;
+}
+
+function mapUserAccountRow(row: UserAccountRow): UserAccount {
+  return {
+    id: row.id,
+    fullName: row.full_name ?? '',
+    email: row.email ?? '',
+    phoneNumber: row.phone_number ?? '',
+    avatarUrl: row.avatar_url,
+    passportPhotoUrl: row.passport_photo_url,
+    role: row.role,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 export const userRepository = {
   async findById(id: string): Promise<UserAccount | null> {
     const { data, error } = await supabase
       .from('user_accounts')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('[userRepository.findById]', error);
       return null;
     }
 
-    return data as UserAccount;
+    return data ? mapUserAccountRow(data as UserAccountRow) : null;
   },
 
   async findByEmail(email: string): Promise<UserAccount | null> {
@@ -30,15 +64,29 @@ export const userRepository = {
       .from('user_accounts')
       .select('*')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      if (error.code === 'PGRST116') return null;
       console.error('[userRepository.findByEmail]', error);
       return null;
     }
 
-    return data as UserAccount;
+    return data ? mapUserAccountRow(data as UserAccountRow) : null;
+  },
+
+  async create(input: UserCreateInput): Promise<UserAccount | null> {
+    const { data, error } = await supabase
+      .from('user_accounts')
+      .insert(input)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('[userRepository.create]', error);
+      return null;
+    }
+
+    return mapUserAccountRow(data as UserAccountRow);
   },
 
   async update(id: string, input: UserUpdateInput): Promise<UserAccount | null> {
@@ -57,7 +105,7 @@ export const userRepository = {
       return null;
     }
 
-    return data as UserAccount;
+    return mapUserAccountRow(data as UserAccountRow);
   },
 
   async getRole(id: string): Promise<UserRole | null> {

@@ -7,7 +7,7 @@ import {
   RiAlertLine, 
   RiCloseLine 
 } from "react-icons/ri";
-import { ToastItem } from "../../contexts/NotificationContext";
+import type { ToastItem } from "../../contexts/NotificationContext/context";
 
 interface NotificationToastProps {
   toast: ToastItem;

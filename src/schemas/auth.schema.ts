@@ -1,6 +1,15 @@
 import { z } from "zod";
 
-export const getLoginSchema = (t: any = {}) => z.object({
+interface ValidationMessages {
+  required?: string;
+  emailInvalid?: string;
+  passwordMin?: string;
+  nameMin?: string;
+  phoneInvalid?: string;
+  acceptTerms?: string;
+}
+
+export const getLoginSchema = (t: ValidationMessages = {}) => z.object({
   email: z
     .string()
     .min(1, t?.required || "Required")
@@ -11,7 +20,7 @@ export const getLoginSchema = (t: any = {}) => z.object({
     .min(6, t?.passwordMin || "Must be at least 6 characters"),
 });
 
-export const getSignUpSchema = (t: any = {}) => z.object({
+export const getSignUpSchema = (t: ValidationMessages = {}) => z.object({
   fullName: z
     .string()
     .min(1, t?.required || "Required")

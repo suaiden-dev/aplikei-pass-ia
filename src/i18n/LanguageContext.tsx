@@ -9,6 +9,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useRef,
   type ReactNode,
 } from "react";
 import { supabase } from "../lib/supabase";
@@ -17,11 +18,18 @@ import {
   Language,
   LocaleTranslations,
 } from "./types";
+import { subscribeToAuthChanges } from "../services/auth.service";
 
 import { LanguageContext } from "./context";
 import { localeCache, localeLoaders } from "./lib";
 
+function unwrapLocaleModule(module: unknown): Omit<LocaleTranslations, "_lang"> {
+  const moduleRecord = module as { default?: Omit<LocaleTranslations, "_lang"> } & Omit<LocaleTranslations, "_lang">;
+  return moduleRecord.default ?? moduleRecord;
+}
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
+  const currentUserIdRef = useRef<string | null>(null);
   const [lang, setLangState] = useState<Language>(() => {
     const saved = localStorage.getItem("aplikei-lang");
     return (saved as Language) || "en";
@@ -36,7 +44,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const loaderPath = `./locales/${currentLang}/index.ts`;
     const mod = localeLoaders[loaderPath];
     if (mod) {
-      const data = (mod as any).default || mod;
+      const data = unwrapLocaleModule(mod);
       return { _lang: currentLang, ...data } as LocaleTranslations;
     }
     return null;
@@ -60,7 +68,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       }
 
       // With { eager: true }, localeModule is the actual content
-      const data = (localeModule as any).default || localeModule;
+      const data = unwrapLocaleModule(localeModule);
 
       const loaded: LocaleTranslations = {
         _lang: targetLang,
@@ -85,12 +93,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("aplikei-lang", newLang);
       setLangState(newLang);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      const userId = currentUserIdRef.current;
+      if (userId) {
         supabase
           .from("user_accounts")
           .update({ preferred_language: newLang })
-          .eq("id", user.id)
+          .eq("id", userId)
           .then(({ error }) => {
             if (error) {
               console.warn("[i18n] Failed to persist lang to DB:", error.message);
@@ -102,23 +110,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
-
-      supabase
-        .from("user_accounts")
-        .select("preferred_language")
-        .eq("id", user.id)
-        .single()
-        .then(({ data }) => {
-          const dbLang = data?.preferred_language as Language | undefined;
-          if (dbLang && dbLang !== lang) {
-            localStorage.setItem("aplikei-lang", dbLang);
-            setLangState(dbLang);
-          }
-        });
+    const unsubscribe = subscribeToAuthChanges((_, session) => {
+      currentUserIdRef.current = session?.user?.id ?? null;
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    return unsubscribe;
   }, []);
 
   useEffect(() => {

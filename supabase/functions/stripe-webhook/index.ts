@@ -67,18 +67,13 @@ Deno.serve(async (req: Request) => {
             throw new Error(lastError?.message || "Stripe signature validation failed.");
         }
 
-        const stripe = new Stripe(selected.stripeSecret!, {
-            apiVersion: "2023-10-16",
-            httpClient: Stripe.createFetchHttpClient(),
-        });
-
         console.log(`Processing event: ${event.type}`);
 
         const relevantEvents = ["checkout.session.completed", "checkout.session.async_payment_succeeded"];
 
         if (relevantEvents.includes(event.type)) {
-            const session = event.data.object as any;
-            const metadata = session.metadata;
+            const session = event.data.object as Record<string, unknown>;
+            const metadata = session.metadata as Record<string, unknown> | undefined;
 
             if (!metadata) throw new Error("No metadata in session");
 
@@ -111,10 +106,7 @@ Deno.serve(async (req: Request) => {
 
             if (eventRegisterError) throw eventRegisterError;
             if (!eventRegistered) {
-                return new Response(JSON.stringify({ received: true }), {
-                    headers: { ...corsHeaders, "Content-Type": "application/json" },
-                    status: 200,
-                });
+                console.log(`[stripe-webhook] Event already registered; ensuring activation for session: ${session.id}`);
             }
 
             // Idempotency check
@@ -125,8 +117,7 @@ Deno.serve(async (req: Request) => {
                 .maybeSingle() as any);
 
             if (existingOrder && existingOrder.payment_status === 'paid') {
-                console.log(`Order already processed for session: ${session.id}`);
-                return new Response(JSON.stringify({ received: true }), { status: 200 });
+                console.log(`Order already paid; ensuring service activation for session: ${session.id}`);
             }
 
             // PIX: wait for async confirmation

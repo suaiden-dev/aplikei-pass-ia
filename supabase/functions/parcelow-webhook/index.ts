@@ -20,7 +20,7 @@ Deno.serve(async (req: Request) => {
   try {
     const payload = await req.json();
     const eventType = safeString(payload?.event);
-    const parcelowOrder = payload?.order as any;
+    const parcelowOrder = payload?.order as Record<string, unknown>;
 
     const parcelowOrderId = safeString(parcelowOrder?.id);
     if (!parcelowOrderId) {
@@ -145,7 +145,7 @@ Deno.serve(async (req: Request) => {
 
     if (!userId && email) {
       const { data: usersData } = await supabase.auth.admin.listUsers();
-      const existingAuthUser = usersData?.users?.find((u: any) => u.email === email);
+      const existingAuthUser = usersData?.users?.find((u: Record<string, unknown>) => u.email === email);
 
       if (existingAuthUser) {
         userId = existingAuthUser.id;

@@ -44,9 +44,9 @@ export default function CheckoutSuccessPage() {
     if (!t || !slug) return;
 
     (async () => {
-      const { data: { session: authSession } } = await supabase.auth.getSession();
-      const hasSession = !!authSession?.user?.id;
       const hasOrderReference = !!orderId || !!sessionId;
+      const { data: { user } } = await supabase.auth.getUser();
+      const hasSession = !!user?.id;
 
       if (!hasSession && !hasOrderReference) {
         setErrorMsg(t.sessionExpired);
@@ -89,7 +89,7 @@ export default function CheckoutSuccessPage() {
   if (!t) return null;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4 py-16">
+    <div className="min-h-screen bg-bg flex items-center justify-center px-4 py-16">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -105,10 +105,10 @@ export default function CheckoutSuccessPage() {
             <div className="flex justify-center mb-6">
               <RiErrorWarningLine className="text-amber-400 text-[72px]" />
             </div>
-            <h1 className="font-display text-2xl font-black text-slate-800 mb-2">
+            <h1 className="font-display text-2xl font-black text-text mb-2">
               {t.errorTitle}
             </h1>
-            <p className="text-slate-500 text-sm mb-4">
+            <p className="text-text-muted text-sm mb-4">
               {t.errorDesc}
             </p>
             {errorMsg && (
@@ -145,28 +145,28 @@ export default function CheckoutSuccessPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
             >
-              <h1 className="font-display text-3xl font-black text-slate-800 mb-2">
+              <h1 className="font-display text-3xl font-black text-text mb-2">
                 {t.confirmed}
               </h1>
               {service && (
-                <p className="text-slate-500 text-sm mb-1">
-                  <span className="font-semibold text-slate-700">{service.title}</span>
+                <p className="text-text-muted text-sm mb-1">
+                  <span className="font-semibold text-text">{service.title}</span>
                 </p>
               )}
-              <p className="text-slate-400 text-sm">{t.activated}</p>
+              <p className="text-text-muted opacity-80 text-sm">{t.activated}</p>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
-              className="mt-8 rounded-2xl bg-slate-50 border border-slate-100 p-6 text-left space-y-4"
+              className="mt-8 rounded-2xl bg-bg-subtle border border-border p-6 text-left space-y-4"
             >
               <div className="flex items-start gap-3">
                 <RiMailLine className="text-primary text-xl mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">{t.checkEmail}</p>
-                  <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                  <p className="text-sm font-semibold text-text">{t.checkEmail}</p>
+                  <p className="text-xs text-text-muted mt-0.5 leading-relaxed">
                     {t.checkEmailDesc}
                   </p>
                 </div>
@@ -174,8 +174,8 @@ export default function CheckoutSuccessPage() {
               <div className="flex items-start gap-3">
                 <RiDashboardLine className="text-primary text-xl mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">{t.accessDashboard}</p>
-                  <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                  <p className="text-sm font-semibold text-text">{t.accessDashboard}</p>
+                  <p className="text-xs text-text-muted mt-0.5 leading-relaxed">
                     {t.accessDashboardDesc}
                   </p>
                 </div>
@@ -190,7 +190,7 @@ export default function CheckoutSuccessPage() {
             >
               <Link
                 to="/dashboard"
-                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-[#1649c0] transition-colors shadow-lg shadow-primary/20"
+                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20"
               >
                 <RiDashboardLine />
                 {t.goDashboard}
@@ -198,7 +198,7 @@ export default function CheckoutSuccessPage() {
               </Link>
               <Link
                 to="/"
-                className="w-full py-3.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors text-center"
+                className="w-full py-3.5 rounded-xl border border-border text-text-muted font-semibold text-sm hover:bg-bg-subtle transition-colors text-center"
               >
                 {t.backHome}
               </Link>

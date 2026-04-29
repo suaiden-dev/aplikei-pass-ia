@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Core types for the Aplikei i18n system.
  *
@@ -8,12 +9,7 @@
  *  - TranslationKeys is derived from `pt` — the canonical source of truth
  */
 
-// ─────────────────────────────────────────
-// Primitive types
-// ─────────────────────────────────────────
-
 export type Language = "en" | "pt" | "es";
-
 export type TranslationNamespace =
   | "common"
   | "auth"
@@ -35,30 +31,25 @@ export type TranslationNamespace =
 // Locale structure
 // ─────────────────────────────────────────
 
-/**
- * A single namespace payload — an arbitrarily nested object with string
- * (or primitive) leaf values. Arrays of objects are also allowed for
- * sections like faq.items or testimonials.items.
- */
 export type LocaleNamespace = Record<string, any>;
 
 export interface LocaleTranslations {
   _lang: Language;
-  common: Record<string, any>;
-  auth: Record<string, any>;
-  dashboard: Record<string, any>;
-  visas: Record<string, any>;
-  nav: Record<string, any>;
-  landing: Record<string, any>;
-  checkout: Record<string, any>;
-  admin: Record<string, any>;
-  tracking: Record<string, any>;
-  services: Record<string, any>;
-  howItWorks: Record<string, any>;
-  footer: Record<string, any>;
-  legal: Record<string, any>;
-  validation: Record<string, any>;
-  onboarding: Record<string, any>;
+  common: LocaleNamespace;
+  auth: LocaleNamespace;
+  dashboard: LocaleNamespace;
+  visas: LocaleNamespace;
+  nav: LocaleNamespace;
+  landing: LocaleNamespace;
+  checkout: LocaleNamespace;
+  admin: LocaleNamespace;
+  tracking: LocaleNamespace;
+  services: LocaleNamespace;
+  howItWorks: LocaleNamespace;
+  footer: LocaleNamespace;
+  legal: LocaleNamespace;
+  validation: LocaleNamespace;
+  onboarding: LocaleNamespace;
 }
 
 // ─────────────────────────────────────────

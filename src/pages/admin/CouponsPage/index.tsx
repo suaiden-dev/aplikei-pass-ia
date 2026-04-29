@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useFormik } from "formik";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
@@ -50,7 +50,7 @@ export default function CouponsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const fetchCoupons = async () => {
+  const fetchCoupons = useCallback(async () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -60,16 +60,17 @@ export default function CouponsPage() {
 
       if (error) throw error;
       setCoupons(data || []);
-    } catch (err: any) {
-      toast.error(t.messages.createError.replace("{{error}}", err.message));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro desconhecido";
+      toast.error(t.messages.createError.replace("{{error}}", message));
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [t.messages.createError]);
 
   useEffect(() => {
     fetchCoupons();
-  }, []);
+  }, [fetchCoupons]);
 
   const stats = {
     total: coupons.length,
@@ -92,8 +93,9 @@ export default function CouponsPage() {
         .replace("{{status}}", !currentStatus ? t.status.active : t.status.inactive)
       );
       fetchCoupons();
-    } catch (err: any) {
-      toast.error(t.messages.toggleError.replace("{{error}}", err.message));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro desconhecido";
+      toast.error(t.messages.toggleError.replace("{{error}}", message));
     }
   };
 
@@ -143,8 +145,9 @@ export default function CouponsPage() {
         setIsModalOpen(false);
         formik.resetForm();
         fetchCoupons();
-      } catch (err: any) {
-        toast.error(t.messages.createError.replace("{{error}}", err.message));
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Erro desconhecido";
+        toast.error(t.messages.createError.replace("{{error}}", message));
       }
     }
   });

@@ -26,8 +26,8 @@ export default function ResetPassword() {
     const passwordMismatch = password.length > 0 && confirmPassword.length > 0 && password !== confirmPassword;
 
     useEffect(() => {
-        authService.getSession().then((session: any) => {
-            if (!session?.user) {
+        authService.hasSession().then((hasSession) => {
+            if (!hasSession) {
                 setErrorMessage(p.noSession);
                 setTimeout(() => navigate("/login"), 4000); // Changed fallback to /login since /forgot-password might not exist
             }

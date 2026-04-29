@@ -31,7 +31,12 @@ export default function OverviewPage() {
   const [pagamentosPendentes, setPagamentosPendentes] = useState<number>(0);
   const [monthlyRevenue, setMonthlyRevenue] = useState<{ month: string, value: number }[]>([]);
   const [serviceDistribution, setServiceDistribution] = useState<{ label: string, percent: number, color: string }[]>([]);
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<Array<{
+    action: string;
+    detail: string;
+    time: string;
+    dot: string;
+  }>>([]);
 
   const defaultStats: StatCard[] = [
     {
@@ -119,7 +124,7 @@ export default function OverviewPage() {
         monthlyMap[monthKey] = 0;
       }
 
-      [...approvedZelle, ...paidStripe].forEach((p: any) => {
+      [...approvedZelle, ...paidStripe].forEach((p: { amount?: number; total_price_usd?: number; created_at: string }) => {
         const val = Number(p.amount || p.total_price_usd) || 0;
         totalAllTime += val;
         const pDate = new Date(p.created_at);
@@ -333,7 +338,7 @@ export default function OverviewPage() {
   );
 }
 
-function DonutChart({ serviceDistribution }: { serviceDistribution: any[] }) {
+function DonutChart({ serviceDistribution }: { serviceDistribution: Array<{ label: string; percent: number; color: string }> }) {
   const size = 160;
   const strokeWidth = 26;
   const radius = (size - strokeWidth) / 2;

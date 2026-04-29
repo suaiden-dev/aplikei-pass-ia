@@ -177,21 +177,21 @@ export default function F1OnboardingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100/50 pb-24">
 
-      <div className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30 shadow-sm">
+      <div className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-30 shadow-sm">
         <div className="max-w-4xl mx-auto px-6 h-18 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               type="button"
               onClick={() => navigate(`/dashboard/processes/${slug}`)}
-              className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-700"
+              className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-bg-subtle transition-colors text-text-muted hover:text-text"
             >
               <RiArrowLeftLine className="text-xl" />
             </button>
             <div>
-              <h1 className="text-sm font-black text-slate-800 uppercase tracking-tight">
+              <h1 className="text-sm font-black text-text uppercase tracking-tight">
                 {stepIdx === 0 ? t.onboardingPage.f1.ds160Step : t.onboardingPage.f1.supportDocsStep}
               </h1>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+              <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">
                 {title} — {t.onboardingPage.stepLabel} {stepIdx + 1}
               </p>
             </div>
@@ -239,17 +239,17 @@ export default function F1OnboardingPage() {
               onComplete={() => navigate(`/dashboard/processes/${slug}`)}
            />
         ) : stepIdx === 9 ? (
-          <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl p-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-card rounded-[32px] border border-border shadow-xl p-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
              <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
                 <RiLoader4Line className="text-3xl animate-spin" />
              </div>
-             <h3 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tight">{t.onboardingPage.consularFee}</h3>
-             <p className="text-sm text-slate-500 font-medium mb-6 leading-relaxed">
+             <h3 className="text-xl font-black text-text mb-2 uppercase tracking-tight">{t.onboardingPage.consularFee}</h3>
+             <p className="text-sm text-text-muted font-medium mb-6 leading-relaxed">
                 <strong>{t.onboardingPage.slipGeneratingByTeam}</strong>
                 <br />
                 {t.onboardingPage.f1.mrvF1Desc}
              </p>
-             <button onClick={() => navigate(`/dashboard/processes/${slug}`)} className="px-8 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all font-mono">{t.onboardingPage.backToDashboard}</button>
+             <button onClick={() => navigate(`/dashboard/processes/${slug}`)} className="px-8 py-3 rounded-xl border border-border text-text-muted font-bold text-[10px] uppercase tracking-widest hover:bg-bg-subtle transition-all font-mono">{t.onboardingPage.backToDashboard}</button>
           </div>
         ) : stepIdx === 8 ? (
            <B1B2UserConfirmEmailStep
@@ -258,17 +258,17 @@ export default function F1OnboardingPage() {
               onBack={() => navigate(`/dashboard/processes/${slug}`)}
            />
         ) : stepIdx === 7 ? (
-          <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl p-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-card rounded-[32px] border border-border shadow-xl p-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
              <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
                 <RiLoader4Line className="text-3xl animate-spin" />
              </div>
-             <h3 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tight">{t.onboardingPage.reviewSign.accountCreation}</h3>
-             <p className="text-sm text-slate-500 font-medium mb-6 leading-relaxed">
+             <h3 className="text-xl font-black text-text mb-2 uppercase tracking-tight">{t.onboardingPage.reviewSign.accountCreation}</h3>
+             <p className="text-sm text-text-muted font-medium mb-6 leading-relaxed">
                 <strong>{t.onboardingPage.f1.creationNoticeF1}</strong>
                 <br />
                 {t.onboardingPage.f1.creationLongDesc}
              </p>
-             <button onClick={() => navigate(`/dashboard/processes/${slug}`)} className="px-8 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-[10px] uppercase tracking-widest">{t.onboardingPage.backToDashboard}</button>
+             <button onClick={() => navigate(`/dashboard/processes/${slug}`)} className="px-8 py-3 rounded-xl border border-border text-text-muted font-bold text-[10px] uppercase tracking-widest">{t.onboardingPage.backToDashboard}</button>
           </div>
         ) : stepIdx === 6 ? (
            <B1B2CASVSchedulingStep
@@ -315,12 +315,12 @@ export default function F1OnboardingPage() {
                     </div>
                   </motion.div>
                 )}
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
+                <div className="bg-card rounded-3xl border border-border shadow-xl shadow-none overflow-hidden">
                   <div className="p-6 sm:p-10 space-y-0">
                     <DS160SingleFormStep />
                   </div>
-                  <div className="px-6 sm:px-10 py-6 bg-slate-50/70 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <button type="button" onClick={() => handleSaveDraft(values)} disabled={isSubmitting} className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50">{t.onboardingPage.saveDraft}</button>
+                  <div className="px-6 sm:px-10 py-6 bg-bg-subtle/70 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <button type="button" onClick={() => handleSaveDraft(values)} disabled={isSubmitting} className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-border text-text-muted font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-50">{t.onboardingPage.saveDraft}</button>
                     <button type="submit" disabled={isSubmitting} className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50">
                       {isSubmitting ? <RiLoader4Line className="animate-spin text-lg" /> : <>{t.onboardingPage.f1.finalAndSendDocs} <RiArrowRightLine className="text-lg" /></>}
                     </button>

@@ -1,44 +1,69 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Button } from "../../components/Button";
-import { Input } from "../../components/Input";
-import { Label } from "../../components/Label";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import { authService } from "../../services/auth.service";
 import { getLoginSchema } from "../../schemas/auth.schema";
 import { zodValidate } from "../../utils/zodValidate";
 import { useAuth } from "../../hooks/useAuth";
 import { useT } from "../../i18n";
+import {
+  getRedirectPathAfterLogin,
+  type AuthRedirectState,
+} from "../../routes/authRedirect";
 
 export default function Login() {
   const [isWelcoming, setIsWelcoming] = useState(false);
+
   const t = useT("auth");
   const v = useT("validation");
+
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { user, isAuthenticated, isLoading } = useAuth();
 
+  const redirectState = location.state as AuthRedirectState | null;
+
   useEffect(() => {
-    // Redirect logic: if authenticated and loading is finished, go to target page
+    // ✅ Navegação baseada em estado REAL
     if (!isLoading && isAuthenticated && user) {
-      const target = user.role === "admin" ? "/admin" : "/dashboard";
-      navigate(target, { replace: true });
+      navigate(getRedirectPathAfterLogin(user, redirectState), {
+        replace: true,
+      });
     }
-  }, [isAuthenticated, isLoading, user, navigate]);
+
+    // ✅ Evita overlay preso
+    if (!isLoading && !isAuthenticated) {
+      setIsWelcoming(false);
+    }
+  }, [isAuthenticated, isLoading, navigate, redirectState, user]);
 
   const formik = useFormik({
     initialValues: { email: "", password: "" },
     validate: zodValidate(getLoginSchema(v)),
     onSubmit: async (values, { setSubmitting }) => {
+
       try {
-        await authService.login(values);
-        setIsWelcoming(true);
+        const result = await authService.login(values);
+
+        // ✅ só ativa welcome se sessão realmente existe
+        if (result.session) {
+          setIsWelcoming(true);
+        }
+
         toast.success(t.login.success || "Login realizado com sucesso!");
-        // We stay in 'isWelcoming' state for a bit before navigation triggers automatically via useEffect
-        setTimeout(() => setSubmitting(false), 3000);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : (t.login.error || "Erro ao entrar. Tente novamente."));
+        toast.error(
+          err instanceof Error
+            ? err.message
+            : t.login.error || "Erro ao entrar. Tente novamente.",
+        );
+      } finally {
         setSubmitting(false);
       }
     },
@@ -49,14 +74,14 @@ export default function Login() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md relative overflow-hidden rounded-[32px] border-2 border-slate-100 bg-white p-8 sm:p-12 shadow-2xl shadow-primary/5"
+        className="w-full max-w-md relative overflow-hidden rounded-[32px] border border-border bg-card p-8 sm:p-12 shadow-2xl shadow-primary/5"
       >
         {/* Welcome Overlay */}
         {isWelcoming && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center p-8 text-center"
+            className="absolute inset-0 z-50 bg-card flex flex-col items-center justify-center p-8 text-center"
           >
             <motion.div
               initial={{ scale: 0.5, rotate: -20, opacity: 0 }}
@@ -65,19 +90,21 @@ export default function Login() {
             >
               <img src="/logo.png" alt="Aplikei" className="h-20 w-auto mb-6" />
             </motion.div>
-            <motion.h2 
+
+            <motion.h2
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="font-display font-black text-2xl text-slate-800 leading-none mb-3"
+              className="font-display font-black text-2xl text-text leading-none mb-3"
             >
               {t.login.welcomeMessage || "Bem-vindo de volta!"}
             </motion.h2>
+
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="text-xs font-bold text-slate-400 uppercase tracking-widest"
+              className="text-xs font-bold text-text-muted uppercase tracking-widest"
             >
               Acessando sua conta com clareza
             </motion.p>
@@ -86,15 +113,28 @@ export default function Login() {
 
         <div className="text-center">
           <Link to="/" className="inline-block group">
-            <img src="/logo.png" alt="Aplikei" className="h-12 w-auto group-hover:scale-105 transition-transform" />
+            <img
+              src="/logo.png"
+              alt="Aplikei"
+              className="h-12 w-auto group-hover:scale-105 transition-transform"
+            />
           </Link>
-          <h1 className="mt-10 font-display text-2xl font-black text-slate-800 tracking-tight leading-none">{t.login.title}</h1>
-          <p className="mt-3 text-sm font-medium text-slate-500">{t.login.subtitle}</p>
+
+          <h1 className="mt-10 font-display text-2xl font-black text-text tracking-tight leading-none">
+            {t.login.title}
+          </h1>
+
+          <p className="mt-3 text-sm font-medium text-text-muted">
+            {t.login.subtitle}
+          </p>
         </div>
 
         <form className="mt-8 space-y-5" onSubmit={formik.handleSubmit}>
           <div>
-            <Label htmlFor="email">{t.login.email}</Label>
+            <Label htmlFor="email" className="text-text">
+              {t.login.email}
+            </Label>
+
             <Input
               id="email"
               name="email"
@@ -105,18 +145,26 @@ export default function Login() {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
             />
+
             {formik.touched.email && formik.errors.email && (
-              <p className="text-xs text-red-500 mt-1">{formik.errors.email}</p>
+              <p className="text-xs text-danger mt-1">{formik.errors.email}</p>
             )}
           </div>
 
           <div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">{t.login.password}</Label>
-              <Link to="/recuperar-senha" className="text-xs text-primary hover:underline">
+              <Label htmlFor="password" className="text-text">
+                {t.login.password}
+              </Label>
+
+              <Link
+                to="/recuperar-senha"
+                className="text-xs text-primary hover:underline"
+              >
                 {t.login.forgotPassword}
               </Link>
             </div>
+
             <Input
               id="password"
               name="password"
@@ -127,19 +175,33 @@ export default function Login() {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
             />
+
             {formik.touched.password && formik.errors.password && (
-              <p className="text-xs text-red-500 mt-1">{formik.errors.password}</p>
+              <p className="text-xs text-danger mt-1">
+                {formik.errors.password}
+              </p>
             )}
           </div>
 
-          <Button type="submit" disabled={formik.isSubmitting} className="w-full h-11 text-lg font-bold">
-            {formik.isSubmitting ? (t.login.submitting || "Entrando...") : t.login.submit}
+          <Button
+            type="submit"
+            disabled={formik.isSubmitting || isLoading}
+            className="w-full h-11 text-lg font-bold"
+          >
+            {formik.isSubmitting
+              ? t.login.submitting || "Entrando..."
+              : t.login.submit}
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
+        <p className="mt-6 text-center text-sm text-text-muted">
           {t.login.noAccount}{" "}
-          <Link to="/cadastro" className="font-medium text-primary hover:underline">{t.login.createAccount}</Link>
+          <Link
+            to="/cadastro"
+            className="font-medium text-primary hover:underline"
+          >
+            {t.login.createAccount}
+          </Link>
         </p>
       </motion.div>
     </div>

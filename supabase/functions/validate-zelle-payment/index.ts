@@ -97,10 +97,10 @@ serve(async (req) => {
                     ? await supabase.from("orders").select("payment_metadata").eq("id", payment.visa_order_id).single()
                     : { data: null };
                 
-                const meta = order?.payment_metadata as any;
+                const meta = (order?.payment_metadata as Record<string, unknown>) || {};
                 const dependentsCount = parseInt(String(meta?.dependents ?? 0), 10);
-                const proc_id = meta?.proc_id || meta?.processId;
-                const parent_service_slug = meta?.parent_service_slug || null;
+                const proc_id = (meta?.proc_id || meta?.processId) as string | undefined;
+                const parent_service_slug = (meta?.parent_service_slug as string | null) || null;
 
                 await applySuccessfulPayment({
                     user_id: payment.user_id,
@@ -211,10 +211,10 @@ serve(async (req) => {
             );
         }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[validate-zelle-payment] Error:", err);
         return new Response(
-            JSON.stringify({ error: err.message }),
+            JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }),
             { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
     }

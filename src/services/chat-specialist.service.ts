@@ -30,9 +30,13 @@ export interface SpecialistChatThread {
   lastMessage?: string | null
 }
 
+function createRealtimeChannelName(scope: string) {
+  return `${scope}:${crypto.randomUUID()}`
+}
+
 function isMotionOrCOSProcess(proc: UserService): boolean {
   const stepData = (proc.step_data || {}) as Record<string, unknown>
-  const history = Array.isArray(stepData.history) ? (stepData.history as any[]) : []
+  const history = Array.isArray(stepData.history) ? (stepData.history as Array<Record<string, unknown>>) : []
 
   return (
     proc.service_slug.startsWith('troca-status') ||
@@ -53,8 +57,8 @@ const PROPOSAL_SLUGS = new Set([
 ])
 
 function hasProposalPaid(stepData: Record<string, unknown>): boolean {
-  const purchases = Array.isArray(stepData.purchases) ? (stepData.purchases as any[]) : []
-  if (purchases.some((p) => PROPOSAL_SLUGS.has(p?.slug))) return true
+  const purchases = Array.isArray(stepData.purchases) ? (stepData.purchases as Array<Record<string, unknown>>) : []
+  if (purchases.some((p) => PROPOSAL_SLUGS.has(p?.slug as string))) return true
   // fallback: check direct flags set by payment webhook
   return Boolean(
     stepData.motion_payment_completed_at ||
@@ -130,9 +134,9 @@ export const chatService = {
     if (error) throw new Error(error.message)
   },
 
-  subscribeToMessages(processId: string, callback: (payload: any) => void) {
+  subscribeToMessages(processId: string, callback: (payload: Record<string, unknown>) => void) {
     return supabase
-      .channel(`chat:${processId}`)
+      .channel(createRealtimeChannelName(`chat:${processId}`))
       .on(
         'postgres_changes',
         {
@@ -146,9 +150,9 @@ export const chatService = {
       .subscribe()
   },
 
-  subscribeToAllMessages(callback: (payload: any) => void) {
+  subscribeToAllMessages(callback: (payload: Record<string, unknown>) => void) {
     return supabase
-      .channel('chat:all')
+      .channel(createRealtimeChannelName('chat:all'))
       .on(
         'postgres_changes',
         {
@@ -177,11 +181,11 @@ export const chatService = {
       unreadByProcess[id] = 0
     })
 
-    ;(data || []).forEach((row: any) => {
+    ;(data || []).forEach((row: Record<string, unknown>) => {
       if (row.sender_role === 'admin') {
-        unreadByProcess[row.process_id] = 0
+        unreadByProcess[row.process_id as string] = 0
       } else if (row.sender_role === 'customer') {
-        unreadByProcess[row.process_id] = (unreadByProcess[row.process_id] || 0) + 1
+        unreadByProcess[row.process_id as string] = (unreadByProcess[row.process_id as string] || 0) + 1
       }
     })
 
@@ -237,21 +241,21 @@ export const chatService = {
 
     if (error) throw new Error(error.message)
 
-    const services = (data || []) as any[]
+    const services = (data || []) as Array<Record<string, unknown>>
     const candidates = services.filter((row) =>
       isCustomerChatEligible({
-        id: row.id,
-        user_id: row.user_id,
-        service_slug: row.service_slug,
-        status: row.status,
-        step_data: row.step_data || {},
-        current_step: row.current_step ?? null,
-        created_at: row.created_at,
-        updated_at: row.created_at,
+        id: row.id as string,
+        user_id: row.user_id as string,
+        service_slug: row.service_slug as string,
+        status: row.status as string,
+        step_data: (row.step_data as Record<string, unknown>) || {},
+        current_step: (row.current_step as number | null) ?? null,
+        created_at: row.created_at as string,
+        updated_at: row.created_at as string,
       }),
     )
 
-    const processIds = candidates.map((row) => row.id)
+    const processIds = candidates.map((row) => row.id as string)
     if (!processIds.length) return []
 
     const { data: chatRows, error: chatError } = await supabase
@@ -260,23 +264,23 @@ export const chatService = {
       .in('process_id', processIds)
 
     if (chatError) throw new Error(chatError.message)
-    const activeProcessIds = new Set((chatRows || []).map((row: any) => row.process_id))
+    const activeProcessIds = new Set((chatRows || []).map((row: Record<string, unknown>) => row.process_id as string))
 
     const threads: SpecialistChatThread[] = []
     candidates.forEach((row) => {
-      if (!activeProcessIds.has(row.id)) return
-      const account = row.user_accounts
+      if (!activeProcessIds.has(row.id as string)) return
+      const account = row.user_accounts as Record<string, unknown> | undefined
       if (!account) return
 
       threads.push({
-        processId: row.id,
-        userId: row.user_id,
-        serviceSlug: row.service_slug,
-        chatTitle: getAnalysisChatTitle(row.service_slug),
-        fullName: account.full_name || 'Sem Nome',
-        email: account.email || '',
-        avatarUrl: account.avatar_url || null,
-        createdAt: row.created_at,
+        processId: row.id as string,
+        userId: row.user_id as string,
+        serviceSlug: row.service_slug as string,
+        chatTitle: getAnalysisChatTitle(row.service_slug as string),
+        fullName: (account.full_name as string | undefined) || 'Sem Nome',
+        email: (account.email as string | undefined) || '',
+        avatarUrl: (account.avatar_url as string | null | undefined) ?? null,
+        createdAt: row.created_at as string,
       })
     })
 
@@ -292,23 +296,23 @@ export const chatService = {
 
     if (error) throw new Error(error.message)
 
-    const services = (data || []) as any[]
+    const services = (data || []) as Array<Record<string, unknown>>
     const eligible = services.filter((row) =>
       isCustomerChatEligible({
-        id: row.id,
-        user_id: row.user_id,
-        service_slug: row.service_slug,
-        status: row.status,
-        step_data: row.step_data || {},
-        current_step: row.current_step ?? null,
-        created_at: row.created_at,
-        updated_at: row.created_at,
+        id: row.id as string,
+        user_id: row.user_id as string,
+        service_slug: row.service_slug as string,
+        status: row.status as string,
+        step_data: (row.step_data as Record<string, unknown>) || {},
+        current_step: (row.current_step as number | null) ?? null,
+        created_at: row.created_at as string,
+        updated_at: row.created_at as string,
       }),
     )
 
     if (!eligible.length) return []
 
-    const processIds = eligible.map((r) => r.id)
+    const processIds = eligible.map((r) => r.id as string)
 
     // get last message per process
     const { data: msgs } = await supabase
@@ -318,9 +322,9 @@ export const chatService = {
       .order('created_at', { ascending: false })
 
     const lastMsgByProcess = new Map<string, string>()
-    ;(msgs || []).forEach((m: any) => {
-      if (!lastMsgByProcess.has(m.process_id)) {
-        lastMsgByProcess.set(m.process_id, m.content)
+    ;(msgs || []).forEach((m: Record<string, unknown>) => {
+      if (!lastMsgByProcess.has(m.process_id as string)) {
+        lastMsgByProcess.set(m.process_id as string, m.content as string)
       }
     })
 
@@ -330,20 +334,20 @@ export const chatService = {
       const { data: closedRows } = await supabase
         .from('user_services')
         .select('id, chat_closed_at')
-        .in('id', eligible.map((r) => r.id))
-      ;(closedRows || []).forEach((r: any) => closedMap.set(r.id, r.chat_closed_at ?? null))
+        .in('id', eligible.map((r) => r.id as string))
+      ;(closedRows || []).forEach((r: Record<string, unknown>) => closedMap.set(r.id as string, (r.chat_closed_at as string | null) ?? null))
     } catch {
       // column not yet migrated — treat all as open
     }
 
     return eligible.map((row) => ({
-      processId: row.id,
-      userId: row.user_id,
-      serviceSlug: row.service_slug,
-      chatTitle: getAnalysisChatTitle(row.service_slug),
-      createdAt: row.created_at,
-      chatClosedAt: closedMap.get(row.id) ?? null,
-      lastMessage: lastMsgByProcess.get(row.id) ?? null,
+      processId: row.id as string,
+      userId: row.user_id as string,
+      serviceSlug: row.service_slug as string,
+      chatTitle: getAnalysisChatTitle(row.service_slug as string),
+      createdAt: row.created_at as string,
+      chatClosedAt: closedMap.get(row.id as string) ?? null,
+      lastMessage: lastMsgByProcess.get(row.id as string) ?? null,
     }))
   },
 
@@ -355,7 +359,7 @@ export const chatService = {
       .single()
 
     if (error) return null
-    return (data as any)?.chat_closed_at ?? null
+    return (data as Record<string, unknown> | null)?.chat_closed_at as string | null ?? null
   },
 
   async closeChat(processId: string): Promise<void> {

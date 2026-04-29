@@ -132,17 +132,17 @@ function PriceSummary({
   const pixTotal = (isPix || isParcelow) ? estimatePixTotal(subtotal, FALLBACK_EXCHANGE_RATE) : null;
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-2.5 text-sm">
+    <div className="rounded-2xl border border-border bg-bg-subtle p-4 space-y-2.5 text-sm">
       {!isUpgrade && (
-        <div className="flex justify-between text-slate-600">
+        <div className="flex justify-between text-text-muted">
           <span>{t.summary.mainService}</span>
-          <span className="font-semibold">US$ {baseUSD.toFixed(2)}</span>
+          <span className="font-semibold text-text">US$ {baseUSD.toFixed(2)}</span>
         </div>
       )}
       {dependents > 0 && (
-        <div className="flex justify-between text-slate-600">
+        <div className="flex justify-between text-text-muted">
           <span>{isUpgrade ? `${t.summary.slotsCount} (${dependents}x)` : t.summary.dependentsCount.replace("{{count}}", dependents.toString())}</span>
-          <span className="font-semibold">US$ {(dependents * depUSD).toFixed(2)}</span>
+          <span className="font-semibold text-text">US$ {(dependents * depUSD).toFixed(2)}</span>
         </div>
       )}
       
@@ -153,17 +153,17 @@ function PriceSummary({
         </div>
       )}
 
-      <div className="h-px bg-slate-200" />
+      <div className="h-px bg-border" />
 
       {isCard && cardTotal && (
         <>
-          <div className="flex justify-between text-slate-500 text-xs">
+          <div className="flex justify-between text-text-muted text-xs">
             <span className="flex items-center gap-1">
               <RiInformationLine /> {t.summary.stripeFee}
             </span>
             <span>+ US$ {(cardTotal - subtotal).toFixed(2)}</span>
           </div>
-          <div className="flex justify-between font-black text-slate-800 text-base">
+          <div className="flex justify-between font-black text-text text-base">
             <span>{t.summary.total}</span>
             <span>US$ {cardTotal.toFixed(2)}</span>
           </div>
@@ -172,24 +172,24 @@ function PriceSummary({
 
       {isPix && pixTotal && (
         <>
-          <div className="flex justify-between text-slate-500 text-xs">
+          <div className="flex justify-between text-text-muted text-xs">
             <span className="flex items-center gap-1">
               <RiInformationLine /> {t.summary.exchangeTax}
             </span>
             <span>~R$ {pixTotal.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between font-black text-slate-800 text-base">
+          <div className="flex justify-between font-black text-text text-base">
             <span>{t.summary.total}</span>
             <span>R$ {pixTotal.toFixed(2)}</span>
           </div>
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-text-muted/60 italic">
             {t.summary.estimatedNotice}
           </p>
         </>
       )}
 
       {(method === "zelle" || method === "parcelow") && (
-        <div className="flex justify-between font-black text-slate-800 text-base">
+        <div className="flex justify-between font-black text-text text-base">
           <span>{t.summary.subtotal}</span>
           <span>US$ {subtotal.toFixed(2)}</span>
         </div>
@@ -437,7 +437,7 @@ export default function CheckoutPage() {
 
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] py-10 px-4">
+    <div className="min-h-screen bg-bg py-10 px-4">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* ── High-Impact Scarcity Banner (Reference Match) ── */}
         <motion.div
@@ -510,16 +510,16 @@ export default function CheckoutPage() {
             className="lg:col-span-2 space-y-4"
           >
             {/* Service card */}
-            <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-5">
+            <div className="rounded-2xl bg-card border border-border shadow-sm p-5">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center">
                   <RiShieldCheckLine className="text-primary text-xl" />
                 </div>
                 <div>
-                  <p className="font-display font-bold text-slate-800 text-sm leading-tight">
+                  <p className="font-display font-bold text-text text-sm leading-tight">
                     {service!.title}
                   </p>
-                  <p className="text-[11px] text-slate-400">{service!.processType}</p>
+                  <p className="text-[11px] text-text-muted">{service!.processType}</p>
                 </div>
               </div>
 
@@ -527,28 +527,28 @@ export default function CheckoutPage() {
                 {service.included.slice(0, 4).map((item) => (
                   <div key={item} className="flex items-start gap-2">
                     <RiCheckLine className="text-primary text-sm mt-0.5 shrink-0" />
-                    <span className="text-xs text-slate-600 leading-snug">{item.split(":")[0]}</span>
+                    <span className="text-xs text-text-muted leading-snug">{item.split(":")[0]}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="flex items-end gap-2 pt-3 border-t border-slate-100">
-                <span className="text-2xl font-black text-slate-800">{service.price}</span>
-                <span className="text-xs text-slate-400 line-through mb-0.5">{service.originalPrice}</span>
-                <span className="ml-auto text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+              <div className="flex items-end gap-2 pt-3 border-t border-border">
+                <span className="text-2xl font-black text-text">{service.price}</span>
+                <span className="text-xs text-text-muted line-through mb-0.5">{service.originalPrice}</span>
+                <span className="ml-auto text-[10px] font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-tighter">
                   {t.summary.offLabel}
                 </span>
               </div>
             </div>
 
             {/* Dependents / Upgrade Slots */}
-            <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-5">
+            <div className="rounded-2xl bg-card border border-border shadow-sm p-5">
               <div className="flex items-center justify-between mb-1">
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">
+                  <p className="text-sm font-semibold text-text">
                     {isUpgrade ? t.dependents.slotsLabel : t.dependents.label}
                   </p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-text-muted">
                     {isUpgrade 
                       ? t.dependents.perSlot.replace("{{price}}", service.price) 
                       : t.dependents.perPerson.replace("{{price}}", service.dependentPrice)}
@@ -558,18 +558,18 @@ export default function CheckoutPage() {
                   <button
                     type="button"
                     onClick={() => setDependents(Math.max(isUpgrade ? 1 : 0, dependents - 1))}
-                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 disabled:opacity-40 transition-colors"
+                    className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle disabled:opacity-40 transition-colors"
                     disabled={dependents <= (isUpgrade ? 1 : 0)}
                   >
-                    <RiSubtractLine className="text-slate-600" />
+                    <RiSubtractLine className="text-text-muted" />
                   </button>
-                  <span className="w-4 text-center font-bold text-slate-800">{dependents}</span>
+                  <span className="w-4 text-center font-bold text-text">{dependents}</span>
                   <button
                     type="button"
                     onClick={() => setDependents(Math.min(10, dependents + 1))}
-                    className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-all font-mono"
+                    className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle transition-all font-mono"
                   >
-                    <RiAddLine className="text-slate-600" />
+                    <RiAddLine className="text-text-muted" />
                   </button>
                 </div>
               </div>
@@ -587,8 +587,8 @@ export default function CheckoutPage() {
              />
 
              {/* Coupon field */}
-             <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-4">
-               <Label className="text-xs text-slate-500 mb-2 block">{t.coupon.label}</Label>
+             <div className="rounded-2xl bg-card border border-border shadow-sm p-4">
+               <Label className="text-xs text-text-muted mb-2 block">{t.coupon.label}</Label>
                <div className="flex gap-2">
                  <div className="relative flex-1">
                    <Input
@@ -615,7 +615,7 @@ export default function CheckoutPage() {
                      type="button"
                      onClick={handleApplyCoupon}
                      disabled={isValidatingCoupon || !couponInput.trim()}
-                     className="h-10 px-4 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-700 disabled:opacity-50 transition-all shadow-sm shadow-slate-200"
+                     className="h-10 px-4 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-hover disabled:opacity-50 transition-all shadow-sm shadow-primary/10"
                    >
                      {isValidatingCoupon ? t.coupon.applying : t.coupon.apply}
                    </button>
@@ -634,11 +634,11 @@ export default function CheckoutPage() {
           >
             <form
               onSubmit={formik.handleSubmit}
-              className="rounded-2xl bg-white border border-slate-100 shadow-sm p-6 space-y-6"
+              className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-6"
             >
               {/* Customer info */}
               <div>
-                <h2 className="font-display font-bold text-slate-800 text-base mb-4">
+                <h2 className="font-display font-bold text-text text-base mb-4">
                   {t.userData.title}
                 </h2>
                 <div className="space-y-4">
@@ -701,7 +701,7 @@ export default function CheckoutPage() {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                       />
-                      <p className="text-[10px] text-slate-400 mt-1">
+                      <p className="text-[10px] text-text-muted mt-1 italic">
                         {t.userData.passwordAutoNotice}
                       </p>
                       {formik.touched.password && formik.errors.password && (
@@ -714,7 +714,7 @@ export default function CheckoutPage() {
 
               {/* Payment method tabs */}
               <div>
-                <h2 className="font-display font-bold text-slate-800 text-base mb-3">
+                <h2 className="font-display font-bold text-text text-base mb-3">
                   {t.paymentMethods.title}
                 </h2>
                 <div className="grid grid-cols-4 gap-2 mb-4">
@@ -733,15 +733,15 @@ export default function CheckoutPage() {
                         activeMethod === m.id
                           ? "border-primary bg-primary/5 text-primary"
                           : m.available
-                          ? "border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50"
-                          : "border-slate-100 text-slate-300 cursor-not-allowed"
+                          ? "border-border text-text-muted hover:border-primary/50 hover:bg-bg-subtle"
+                          : "border-border/50 text-text-muted/40 cursor-not-allowed"
                       }`}
                     >
                       {m.icon}
                       <span className="text-[11px] font-bold leading-none">{m.label}</span>
                       <span className="text-[9px] font-medium leading-none opacity-70">{m.sublabel}</span>
                       {!m.available && (
-                        <span className="absolute -top-1.5 -right-1 text-[8px] font-black bg-slate-200 text-slate-400 px-1 py-0.5 rounded-full leading-none">
+                        <span className="absolute -top-1.5 -right-1 text-[8px] font-black bg-bg-subtle text-text-muted px-1 py-0.5 rounded-full leading-none border border-border">
                           {t.paymentMethods.soon}
                         </span>
                       )}
@@ -758,10 +758,10 @@ export default function CheckoutPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -4 }}
                       transition={{ duration: 0.15 }}
-                      className="flex items-start gap-2.5 rounded-xl bg-blue-50 border border-blue-100 p-3"
+                      className="flex items-start gap-2.5 rounded-xl bg-primary/5 border border-primary/20 p-3"
                     >
-                      <RiBankCardLine className="text-blue-500 mt-0.5 shrink-0" />
-                      <p className="text-xs text-blue-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.card.notice }} />
+                       <RiBankCardLine className="text-primary mt-0.5 shrink-0" />
+                      <p className="text-xs text-text leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.card.notice }} />
                     </motion.div>
                   )}
                   {activeMethod === "pix" && (
@@ -771,10 +771,10 @@ export default function CheckoutPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -4 }}
                       transition={{ duration: 0.15 }}
-                      className="flex items-start gap-2.5 rounded-xl bg-emerald-50 border border-emerald-100 p-3"
+                      className="flex items-start gap-2.5 rounded-xl bg-success/5 border border-success/20 p-3"
                     >
-                      <RiQrCodeLine className="text-emerald-500 mt-0.5 shrink-0" />
-                      <p className="text-xs text-emerald-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.pix.notice }} />
+                      <RiQrCodeLine className="text-success mt-0.5 shrink-0" />
+                      <p className="text-xs text-text leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.pix.notice }} />
                     </motion.div>
                   )}
 
@@ -788,9 +788,9 @@ export default function CheckoutPage() {
                       className="flex flex-col gap-4"
                     >
                       {/* Info box */}
-                      <div className="flex items-start gap-2.5 rounded-xl bg-orange-50 border border-orange-100 p-3">
-                        <RiTimeLine className="text-orange-500 mt-0.5 shrink-0" />
-                        <p className="text-xs text-orange-800 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.parcelow.notice }} />
+                      <div className="flex items-start gap-2.5 rounded-xl bg-warning/5 border border-warning/20 p-3">
+                        <RiTimeLine className="text-warning mt-0.5 shrink-0" />
+                        <p className="text-xs text-text leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.parcelow.notice }} />
                       </div>
 
                       {/* CPF Field */}
@@ -809,8 +809,8 @@ export default function CheckoutPage() {
                           }}
                           onBlur={formik.handleBlur}
                         />
-                        <div className="flex items-center gap-1 text-[10px] text-slate-400">
-                          <RiInformationLine className="text-orange-400" />
+                        <div className="flex items-center gap-1 text-[10px] text-text-muted">
+                          <RiInformationLine className="text-amber-500" />
                           <span>{t.paymentMethods.parcelow.cpfNotice}</span>
                         </div>
                       </div>
@@ -827,14 +827,14 @@ export default function CheckoutPage() {
                       className="space-y-4"
                     >
                       {/* Recipient info */}
-                      <div className="rounded-xl bg-violet-50 border border-violet-100 p-4">
-                        <p className="text-[11px] font-bold text-violet-500 uppercase tracking-widest mb-2">
+                      <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
+                        <p className="text-[11px] font-bold text-primary uppercase tracking-widest mb-2">
                           {t.paymentMethods.zelle.notice}
                         </p>
                         <div className="space-y-1">
-                          <p className="text-sm font-bold text-slate-800">{t.paymentMethods.zelle.name} {ZELLE_NAME}</p>
-                          <p className="text-sm text-slate-600 font-mono">{t.paymentMethods.zelle.email} {ZELLE_EMAIL}</p>
-                          <p className="text-sm text-slate-600 font-mono">{t.paymentMethods.zelle.phone} {ZELLE_PHONE}</p>
+                          <p className="text-sm font-bold text-text">{t.paymentMethods.zelle.name} {ZELLE_NAME}</p>
+                          <p className="text-sm text-text-muted font-mono">{t.paymentMethods.zelle.email} {ZELLE_EMAIL}</p>
+                          <p className="text-sm text-text-muted font-mono">{t.paymentMethods.zelle.phone} {ZELLE_PHONE}</p>
                         </div>
                         <p className="text-[11px] text-violet-500 mt-2 leading-snug">
                           {t.paymentMethods.zelle.confirmTitle}
@@ -855,7 +855,7 @@ export default function CheckoutPage() {
                           }}
                         />
                         {zelleProofPreview ? (
-                          <div className="mt-1.5 relative rounded-xl overflow-hidden border border-slate-200">
+                          <div className="mt-1.5 relative rounded-xl overflow-hidden border border-border">
                             <img
                               src={zelleProofPreview}
                               alt={t.paymentMethods.zelle.uploadProof}
@@ -886,7 +886,7 @@ export default function CheckoutPage() {
                               const f = e.dataTransfer.files[0];
                               if (f) handleProofSelect(f);
                             }}
-                            className="mt-1.5 w-full border-2 border-dashed border-slate-200 rounded-xl py-6 flex flex-col items-center gap-2 text-slate-400 hover:border-primary/40 hover:bg-primary/3 transition-colors"
+                            className="mt-1.5 w-full border-2 border-dashed border-border rounded-xl py-6 flex flex-col items-center gap-2 text-text-muted hover:border-primary/40 hover:bg-primary/5 transition-colors"
                           >
                             <RiUploadCloud2Line className="text-2xl" />
                             <span className="text-xs font-medium">{t.paymentMethods.zelle.uploadProof}</span>
@@ -904,15 +904,15 @@ export default function CheckoutPage() {
                       animate={{ opacity: 1, scale: 1 }}
                       className={`rounded-xl border p-5 text-center ${
                         zelleAutoApproved
-                          ? "bg-emerald-50 border-emerald-200"
-                          : "bg-amber-50 border-amber-200"
+                          ? "bg-emerald-500/10 border-emerald-500/20"
+                          : "bg-amber-500/10 border-amber-500/20"
                       }`}
                     >
                       {zelleAutoApproved ? (
                         <>
                           <RiCheckLine className="text-emerald-500 text-3xl mx-auto mb-2" />
-                          <p className="font-bold text-slate-800 text-sm">🎉 Pagamento Aprovado!</p>
-                          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                          <p className="font-bold text-text text-sm">🎉 Pagamento Aprovado!</p>
+                          <p className="text-xs text-text-muted mt-1 leading-relaxed">
                             Seu comprovante foi verificado automaticamente e seu serviço já está ativo no painel.
                           </p>
                           <button
@@ -926,12 +926,12 @@ export default function CheckoutPage() {
                       ) : (
                         <>
                           <RiCheckLine className="text-amber-500 text-3xl mx-auto mb-2" />
-                          <p className="font-bold text-slate-800 text-sm">{t.paymentMethods.zelle.pendingReview.split("!")[0]}!</p>
-                          <p className="text-xs text-slate-500 mt-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.zelle.pendingReview.split("!")[1] || t.paymentMethods.zelle.pendingReview }} />
+                          <p className="font-bold text-text text-sm">{t.paymentMethods.zelle.pendingReview.split("!")[0]}!</p>
+                          <p className="text-xs text-text-muted mt-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.zelle.pendingReview.split("!")[1] || t.paymentMethods.zelle.pendingReview }} />
                           <button
                             type="button"
                             onClick={() => navigate("/dashboard")}
-                            className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-amber-600 text-white rounded-xl font-bold text-xs"
+                            className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-amber-500 text-white rounded-xl font-bold text-xs"
                           >
                             {t.paymentMethods.zelle.goDashboard}
                           </button>
@@ -947,7 +947,7 @@ export default function CheckoutPage() {
                 <button
                   type="submit"
                   disabled={isRedirecting || formik.isSubmitting}
-                  className="flex items-center justify-center gap-2.5 w-full py-4 rounded-xl bg-primary text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-primary/20 hover:bg-[#1649c0] hover:shadow-xl hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center justify-center gap-2.5 w-full py-4 rounded-xl bg-primary text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-primary/20 hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isRedirecting ? (
                     <>
@@ -967,7 +967,7 @@ export default function CheckoutPage() {
                 </button>
               )}
 
-              <p className="text-center text-[11px] text-slate-400 flex items-center justify-center gap-1">
+              <p className="text-center text-[11px] text-text-muted flex items-center justify-center gap-1">
                 <RiShieldCheckLine />
                 {t.paymentMethods.card.notice.includes("SSL") ? t.paymentMethods.card.notice : "Protected by 256-bit SSL encryption."}
               </p>
