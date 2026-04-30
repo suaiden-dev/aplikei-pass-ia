@@ -171,12 +171,12 @@ export default function CouponsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="text-left">
-          <h1 className="text-2xl font-bold font-display text-slate-800">{t.title}</h1>
-          <p className="text-sm text-slate-500">{t.subtitle}</p>
+          <h1 className="text-2xl font-bold font-display text-text">{t.title}</h1>
+          <p className="text-sm text-text-muted">{t.subtitle}</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center justify-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
+          className="flex items-center justify-center gap-2 bg-text text-bg px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-text/90 transition-all shadow-lg shadow-black/5"
         >
           <RiAddLine className="text-lg" />
           {t.createNew}
@@ -186,49 +186,49 @@ export default function CouponsPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: t.stats.total, value: stats.total, icon: RiTicket2Line, color: "text-blue-600", bg: "bg-blue-50" },
-          { label: t.stats.active, value: stats.active, icon: RiSettings4Line, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { label: t.stats.expired, value: stats.expired, icon: RiHistoryLine, color: "text-amber-600", bg: "bg-amber-50" },
-          { label: t.stats.totalUses, value: stats.totalUses, icon: RiRefreshLine, color: "text-purple-600", bg: "bg-purple-50" },
+          { label: t.stats.total, value: stats.total, icon: RiTicket2Line, color: "text-blue-500", bg: "bg-blue-500/10" },
+          { label: t.stats.active, value: stats.active, icon: RiSettings4Line, color: "text-success", bg: "bg-success/10" },
+          { label: t.stats.expired, value: stats.expired, icon: RiHistoryLine, color: "text-warning", bg: "bg-warning/10" },
+          { label: t.stats.totalUses, value: stats.totalUses, icon: RiRefreshLine, color: "text-purple-500", bg: "bg-purple-500/10" },
         ].map((stat, i) => (
-          <div key={i} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div key={i} className="bg-card p-5 rounded-2xl border border-border shadow-sm flex items-center gap-4">
             <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
               <stat.icon size={22} />
             </div>
             <div className="text-left">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{stat.label}</p>
-              <p className="text-2xl font-black text-slate-800 leading-none mt-1">{stat.value}</p>
+              <p className="text-xs font-bold text-text-muted uppercase tracking-wider">{stat.label}</p>
+              <p className="text-2xl font-black text-text leading-none mt-1">{stat.value}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">{t.table.code}</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">{t.table.type}</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">{t.table.value}</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">{t.table.uses}</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">{t.table.expiresAt}</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">{t.table.status}</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">{t.table.actions}</th>
+              <tr className="bg-bg-subtle/50 border-b border-border">
+                <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-widest">{t.table.code}</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-widest">{t.table.type}</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-widest">{t.table.value}</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-widest">{t.table.uses}</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-widest">{t.table.expiresAt}</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-widest">{t.table.status}</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-widest text-right">{t.table.actions}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
-              <AnimatePresence>
+            <tbody className="divide-y divide-border">
+              <AnimatePresence mode="wait">
                 {isLoading ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-slate-400 italic">
+                  <tr key="loading">
+                    <td colSpan={7} className="px-6 py-12 text-center text-text-muted italic">
                       {tShared.loading}
                     </td>
                   </tr>
                 ) : coupons.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-slate-400 italic">
+                  <tr key="empty">
+                    <td colSpan={7} className="px-6 py-12 text-center text-text-muted italic">
                       {t.table.noResults}
                     </td>
                   </tr>
@@ -243,33 +243,33 @@ export default function CouponsPage() {
                         key={coupon.id} 
                         initial={{ opacity: 0 }} 
                         animate={{ opacity: 1 }}
-                        className="hover:bg-slate-50/50 transition-colors"
+                        className="hover:bg-bg-subtle/50 transition-colors"
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-xs">
+                            <span className="font-mono font-bold text-text bg-bg-subtle px-2 py-0.5 rounded text-xs">
                               {coupon.code}
                             </span>
                             <button 
                                 onClick={() => copyToClipboard(coupon.code)}
-                                className="text-slate-300 hover:text-primary transition-colors"
+                                className="text-text-muted hover:text-primary transition-colors"
                             >
                               <RiFileCopyLine size={14} />
                             </button>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-xs font-semibold text-slate-600">
+                        <td className="px-6 py-4 text-xs font-semibold text-text-muted">
                           {coupon.discount_type === "percentage" ? t.form.percentage : t.form.fixed}
                         </td>
                         <td className="px-6 py-4">
-                          <span className="text-sm font-black text-slate-800">
+                          <span className="text-sm font-black text-text">
                             {coupon.discount_type === "percentage" ? `${coupon.discount_value}%` : `$${coupon.discount_value.toFixed(2)}`}
                           </span>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-700">{coupon.uses_count} / {coupon.max_uses || t.table.unlimited}</span>
-                            <div className="w-20 h-1 bg-slate-100 rounded-full mt-1 overflow-hidden">
+                            <span className="text-xs font-bold text-text">{coupon.uses_count} / {coupon.max_uses || t.table.unlimited}</span>
+                            <div className="w-20 h-1 bg-bg-subtle rounded-full mt-1 overflow-hidden">
                               <div 
                                 className="h-full bg-primary" 
                                 style={{ width: `${Math.min(100, (coupon.uses_count / (coupon.max_uses || 100)) * 100)}%` }} 
@@ -277,7 +277,7 @@ export default function CouponsPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-xs text-slate-500">
+                        <td className="px-6 py-4 text-xs text-text-muted">
                           {new Date(coupon.expires_at).toLocaleDateString()}
                           <span className="block text-[10px] opacity-60">
                             {new Date(coupon.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -285,10 +285,10 @@ export default function CouponsPage() {
                         </td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter ${
-                            isActive ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : 
-                            isExpired ? "bg-amber-50 text-amber-600 border border-amber-100" :
-                            isDepleted ? "bg-rose-50 text-rose-600 border border-rose-100" :
-                            "bg-slate-100 text-slate-400 border border-slate-200"
+                            isActive ? "bg-success/10 text-success border border-success/20" : 
+                            isExpired ? "bg-warning/10 text-warning border border-warning/20" :
+                            isDepleted ? "bg-danger/10 text-danger border border-danger/20" :
+                            "bg-bg-subtle text-text-muted border border-border"
                           }`}>
                             {isActive ? t.status.active : isExpired ? t.status.expired : isDepleted ? t.status.depleted : t.status.inactive}
                           </span>
@@ -297,7 +297,7 @@ export default function CouponsPage() {
                           <button
                             onClick={() => handleToggleStatus(coupon.id, coupon.is_active, coupon.code)}
                             className={`p-2 rounded-lg transition-colors ${
-                                coupon.is_active ? "text-slate-400 hover:text-amber-500 hover:bg-amber-50" : "text-slate-300 hover:text-emerald-500 hover:bg-emerald-50"
+                                coupon.is_active ? "text-text-muted hover:text-warning hover:bg-warning/10" : "text-text-muted hover:text-success hover:bg-success/10"
                             }`}
                             title={coupon.is_active ? t.table.deactivate : t.table.activate}
                           >
@@ -323,25 +323,25 @@ export default function CouponsPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-bg/60 backdrop-blur-sm"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="relative w-full max-w-xl bg-card rounded-3xl border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
               {/* Modal Header */}
-              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                <h3 className="font-display font-bold text-slate-800 text-lg flex items-center gap-2">
+              <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-bg-subtle/50">
+                <h3 className="font-display font-bold text-text text-lg flex items-center gap-2">
                   <RiTicket2Line className="text-primary" />
                   {t.createNew}
                 </h3>
                 <button 
                     onClick={() => setIsModalOpen(false)}
-                    className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                    className="p-2 hover:bg-bg-subtle rounded-full transition-colors"
                 >
-                  <RiCloseLine size={20} className="text-slate-400" />
+                  <RiCloseLine size={20} className="text-text-muted" />
                 </button>
               </div>
 
@@ -351,7 +351,7 @@ export default function CouponsPage() {
                   {/* Code */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="code">{t.form.code}</Label>
+                      <Label htmlFor="code" className="text-text">{t.form.code}</Label>
                       <div className="flex gap-2">
                         <Input
                           id="code"
@@ -359,28 +359,28 @@ export default function CouponsPage() {
                           placeholder={t.form.codePlaceholder}
                           value={formik.values.code}
                           onChange={formik.handleChange}
-                          className="uppercase font-mono uppercase"
+                          className="uppercase font-mono bg-bg-subtle border-border text-text"
                         />
                         <button
                           type="button"
                           onClick={generateRandomCode}
-                          className="px-3 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
+                          className="px-3 rounded-xl border border-border text-text-muted hover:bg-bg-subtle transition-colors"
                           title={t.form.generateRandom}
                         >
                           <RiRefreshLine />
                         </button>
                       </div>
                       {formik.touched.code && formik.errors.code && (
-                        <p className="text-[10px] text-red-500">{formik.errors.code}</p>
+                        <p className="text-[10px] text-danger">{formik.errors.code}</p>
                       )}
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label htmlFor="discount_type">{t.form.discountType}</Label>
+                      <Label htmlFor="discount_type" className="text-text">{t.form.discountType}</Label>
                       <select
                         id="discount_type"
                         name="discount_type"
-                        className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                        className="w-full h-11 px-4 rounded-xl border border-border bg-bg-subtle text-sm text-text focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                         value={formik.values.discount_type}
                         onChange={formik.handleChange}
                       >
@@ -393,7 +393,7 @@ export default function CouponsPage() {
                   {/* Value & Max Uses */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="discount_value">{t.form.value}</Label>
+                      <Label htmlFor="discount_value" className="text-text">{t.form.value}</Label>
                       <Input
                         id="discount_value"
                         name="discount_value"
@@ -401,10 +401,11 @@ export default function CouponsPage() {
                         placeholder={t.form.valuePlaceholder}
                         value={formik.values.discount_value}
                         onChange={formik.handleChange}
+                        className="bg-bg-subtle border-border text-text"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="max_uses">{t.form.maxUses}</Label>
+                      <Label htmlFor="max_uses" className="text-text">{t.form.maxUses}</Label>
                       <Input
                         id="max_uses"
                         name="max_uses"
@@ -412,13 +413,14 @@ export default function CouponsPage() {
                         placeholder={t.form.maxUsesPlaceholder}
                         value={formik.values.max_uses}
                         onChange={formik.handleChange}
+                        className="bg-bg-subtle border-border text-text"
                       />
                     </div>
                   </div>
 
                   {/* Expiration */}
-                  <div className="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <Label className="flex items-center gap-2">
+                  <div className="space-y-3 p-4 bg-bg-subtle rounded-2xl border border-border">
+                    <Label className="flex items-center gap-2 text-text">
                       <RiCalendarLine className="text-primary" />
                       {t.form.expiration}
                     </Label>
@@ -430,8 +432,8 @@ export default function CouponsPage() {
                           onClick={() => formik.setFieldValue("expiration_type", key)}
                           className={`py-2 px-1 rounded-lg text-[10px] font-bold border transition-all ${
                             formik.values.expiration_type === key 
-                              ? "bg-slate-900 text-white border-slate-900" 
-                              : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
+                              ? "bg-text text-bg border-text" 
+                              : "bg-card text-text-muted border-border hover:border-text/30"
                           }`}
                         >
                           {label}
@@ -444,14 +446,14 @@ export default function CouponsPage() {
                         name="custom_date"
                         value={formik.values.custom_date}
                         onChange={formik.handleChange}
-                        className="mt-2"
+                        className="mt-2 bg-card border-border text-text"
                       />
                     )}
                   </div>
 
                   {/* Min Purchase */}
                   <div className="space-y-1.5">
-                    <Label htmlFor="min_purchase_usd">{t.form.minPurchase}</Label>
+                    <Label htmlFor="min_purchase_usd" className="text-text">{t.form.minPurchase}</Label>
                     <Input
                       id="min_purchase_usd"
                       name="min_purchase_usd"
@@ -459,24 +461,25 @@ export default function CouponsPage() {
                       placeholder={t.form.minPurchasePlaceholder}
                       value={formik.values.min_purchase_usd}
                       onChange={formik.handleChange}
+                      className="bg-bg-subtle border-border text-text"
                     />
                   </div>
 
                   {/* Applicable Slugs (Simple multiselect) */}
                   <div className="space-y-1.5">
-                    <Label>{t.form.applicableSlugs}</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border border-slate-100 rounded-xl bg-white">
-                      <label className="flex items-center gap-2 p-1 hover:bg-slate-50 rounded cursor-pointer">
+                    <Label className="text-text">{t.form.applicableSlugs}</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border border-border rounded-xl bg-bg-subtle">
+                      <label className="flex items-center gap-2 p-1 hover:bg-card rounded cursor-pointer">
                         <input
                           type="checkbox"
                           checked={formik.values.applicable_slugs.length === 0}
                           onChange={() => formik.setFieldValue("applicable_slugs", [])}
-                          className="rounded text-primary"
+                          className="rounded text-primary bg-card border-border"
                         />
-                        <span className="text-xs text-slate-600">{t.form.allServices}</span>
+                        <span className="text-xs text-text-muted">{t.form.allServices}</span>
                       </label>
                       {servicesData.map(s => (
-                        <label key={s.slug} className="flex items-center gap-2 p-1 hover:bg-slate-50 rounded cursor-pointer">
+                        <label key={s.slug} className="flex items-center gap-2 p-1 hover:bg-card rounded cursor-pointer">
                           <input
                             type="checkbox"
                             checked={formik.values.applicable_slugs.includes(s.slug)}
@@ -486,9 +489,9 @@ export default function CouponsPage() {
                                 : formik.values.applicable_slugs.filter(slug => slug !== s.slug);
                               formik.setFieldValue("applicable_slugs", next);
                             }}
-                            className="rounded text-primary"
+                            className="rounded text-primary bg-card border-border"
                           />
-                          <span className="text-xs text-slate-600 truncate">{s.title}</span>
+                          <span className="text-xs text-text-muted truncate">{s.title}</span>
                         </label>
                       ))}
                     </div>
@@ -497,11 +500,11 @@ export default function CouponsPage() {
               </div>
 
               {/* Modal Footer */}
-              <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3">
+              <div className="p-6 border-t border-border bg-bg-subtle/50 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-6 py-2.5 rounded-xl font-bold text-sm text-slate-500 hover:bg-slate-100 transition-colors"
+                  className="px-6 py-2.5 rounded-xl font-bold text-sm text-text-muted hover:bg-bg-subtle transition-colors"
                 >
                   {tShared.cancel}
                 </button>
@@ -509,7 +512,7 @@ export default function CouponsPage() {
                   type="submit"
                   form="coupon-form"
                   disabled={formik.isSubmitting}
-                  className="px-8 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 flex items-center gap-2"
+                  className="px-8 py-2.5 rounded-xl bg-text text-bg font-bold text-sm hover:bg-text/90 transition-all shadow-lg shadow-black/5 flex items-center gap-2"
                 >
                   {formik.isSubmitting ? (
                     <motion.div 

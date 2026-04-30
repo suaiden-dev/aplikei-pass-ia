@@ -44,8 +44,8 @@ export default function OverviewPage() {
       label: t.overview.stats.customers,
       value: 0,
       icon: RiTeamLine,
-      iconBg: "bg-blue-50",
-      iconColor: "text-primary",
+      iconBg: "bg-info/10",
+      iconColor: "text-info",
     },
     {
       id: "revenue",
@@ -53,8 +53,8 @@ export default function OverviewPage() {
       value: "$0.00",
       subtitle: t.overview.stats.revenueSubtitle,
       icon: RiMoneyDollarCircleLine,
-      iconBg: "bg-green-50",
-      iconColor: "text-green-600",
+      iconBg: "bg-success/10",
+      iconColor: "text-success",
     },
     {
       id: "pending_payments",
@@ -62,16 +62,16 @@ export default function OverviewPage() {
       value: 0,
       subtitle: t.overview.stats.pendingSubtitle,
       icon: RiBankCardLine,
-      iconBg: "bg-amber-50",
-      iconColor: "text-amber-600",
+      iconBg: "bg-warning/10",
+      iconColor: "text-warning",
     },
     {
       id: "sellers",
       label: t.overview.stats.activeSellers,
       value: 0,
       icon: RiLineChartLine,
-      iconBg: "bg-purple-50",
-      iconColor: "text-purple-600",
+      iconBg: "bg-primary/10",
+      iconColor: "text-primary",
     },
     {
       id: "partners",
@@ -79,8 +79,8 @@ export default function OverviewPage() {
       value: 0,
       subtitle: t.overview.stats.partnersSubtitle,
       icon: RiTimeLine,
-      iconBg: "bg-rose-50",
-      iconColor: "text-rose-500",
+      iconBg: "bg-danger/10",
+      iconColor: "text-danger",
     },
   ];
 
@@ -202,10 +202,10 @@ export default function OverviewPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: i * 0.06 }}
-              className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col gap-3"
+              className="bg-card rounded-2xl border border-border shadow-sm p-5 flex flex-col gap-3"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">
                   {card.label}
                 </span>
                 <span className={`p-2 rounded-xl ${card.iconBg}`}>
@@ -213,11 +213,11 @@ export default function OverviewPage() {
                 </span>
               </div>
               <div className="text-left">
-                <p className="text-2xl font-bold font-display text-slate-800 leading-none">
+                <p className="text-2xl font-bold font-display text-text leading-none">
                   {card.value}
                 </p>
                 {card.subtitle && (
-                  <p className="text-xs text-slate-400 mt-1 leading-snug">{card.subtitle}</p>
+                  <p className="text-xs text-text-muted mt-1 leading-snug">{card.subtitle}</p>
                 )}
               </div>
             </motion.div>
@@ -232,17 +232,17 @@ export default function OverviewPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: 0.3 }}
-          className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6"
+          className="lg:col-span-2 bg-card rounded-2xl border border-border shadow-sm p-6"
         >
           <div className="flex items-center justify-between mb-1">
             <div className="text-left">
-              <h2 className="font-display font-semibold text-slate-800 text-base">
+              <h2 className="font-display font-semibold text-text text-base">
                 {t.overview.charts.monthlyRevenue}
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">Jan – Jun 2026</p>
+              <p className="text-xs text-text-muted mt-0.5">Jan – Jun 2026</p>
             </div>
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-600 bg-green-50 px-2.5 py-1 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success bg-success/10 px-2.5 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
               {t.overview.charts.growth.replace('{{percent}}', '14')}
             </span>
           </div>
@@ -252,7 +252,7 @@ export default function OverviewPage() {
               const heightPct = (item.value / maxRevenue) * 100;
               return (
                 <div key={item.month} className="flex flex-col items-center gap-1 flex-1">
-                  <span className="text-[10px] text-slate-400 font-medium">
+                  <span className="text-[10px] text-text-muted font-medium">
                     ${(item.value / 1000).toFixed(1)}k
                   </span>
                   <motion.div
@@ -262,7 +262,7 @@ export default function OverviewPage() {
                     style={{ height: `${heightPct}%`, originY: 1 }}
                     className="w-full rounded-t-md bg-primary opacity-80 hover:opacity-100 transition-opacity cursor-default"
                   />
-                  <span className="text-[11px] text-slate-500">{item.month}</span>
+                  <span className="text-[11px] text-text-muted">{item.month}</span>
                 </div>
               );
             })}
@@ -274,22 +274,22 @@ export default function OverviewPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: 0.4 }}
-          className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col"
+          className="bg-card rounded-2xl border border-border shadow-sm p-6 flex flex-col"
         >
-          <h2 className="font-display font-semibold text-slate-800 text-base mb-1 text-left">
+          <h2 className="font-display font-semibold text-text text-base mb-1 text-left">
             {t.overview.charts.serviceDistribution}
           </h2>
-          <p className="text-xs text-slate-400 mb-4 text-left">{t.overview.charts.byVisaType}</p>
+          <p className="text-xs text-text-muted mb-4 text-left">{t.overview.charts.byVisaType}</p>
 
           <div className="flex flex-col items-center gap-4 flex-1 justify-center">
             <div className="relative">
               <DonutChart serviceDistribution={serviceDistribution} />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
-                  <p className="text-xl font-bold font-display text-slate-800 leading-none">
+                  <p className="text-xl font-bold font-display text-text leading-none">
                     100%
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{t.overview.charts.total}</p>
+                  <p className="text-[10px] text-text-muted mt-0.5">{t.overview.charts.total}</p>
                 </div>
               </div>
             </div>
@@ -302,8 +302,8 @@ export default function OverviewPage() {
                     className="w-2.5 h-2.5 rounded-sm shrink-0"
                     style={{ backgroundColor: seg.color }}
                   />
-                  <span className="text-xs text-slate-600 font-medium">{seg.label}</span>
-                  <span className="text-xs text-slate-400 ml-auto">{seg.percent}%</span>
+                  <span className="text-xs text-text font-medium">{seg.label}</span>
+                  <span className="text-xs text-text-muted ml-auto">{seg.percent}%</span>
                 </div>
               ))}
             </div>
@@ -316,20 +316,20 @@ export default function OverviewPage() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.5 }}
-        className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6"
+        className="bg-card rounded-2xl border border-border shadow-sm p-6"
       >
-        <h2 className="font-display font-semibold text-slate-800 text-base mb-4 text-left">
+        <h2 className="font-display font-semibold text-text text-base mb-4 text-left">
           {t.overview.recentActivity.title}
         </h2>
         <div className="flex flex-col gap-3">
           {recentActivity.map((item, i) => (
-            <div key={i} className="flex items-start gap-4 py-2.5 border-b border-slate-50 last:border-0">
+            <div key={i} className="flex items-start gap-4 py-2.5 border-b border-border last:border-0">
               <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${item.dot}`} />
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-sm font-medium text-slate-700">{item.action}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{item.detail}</p>
+                <p className="text-sm font-medium text-text">{item.action}</p>
+                <p className="text-xs text-text-muted mt-0.5">{item.detail}</p>
               </div>
-              <span className="text-xs text-slate-400 whitespace-nowrap shrink-0">{item.time}</span>
+              <span className="text-xs text-text-muted whitespace-nowrap shrink-0">{item.time}</span>
             </div>
           ))}
         </div>
@@ -362,7 +362,7 @@ function DonutChart({ serviceDistribution }: { serviceDistribution: Array<{ labe
         cy={center}
         r={radius}
         fill="none"
-        stroke="#f1f5f9"
+        stroke="var(--bg-subtle)"
         strokeWidth={strokeWidth}
       />
       {/* Segments */}

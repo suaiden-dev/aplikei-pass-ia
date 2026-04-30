@@ -93,27 +93,27 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
 
   return (
     <tr
-      className={`border-b border-slate-100 last:border-0 transition-colors group ${
-        isActive ? "hover:bg-slate-50/40" : "bg-slate-50/60 opacity-70"
+      className={`border-b border-border last:border-0 transition-colors group ${
+        isActive ? "hover:bg-bg-subtle/40" : "bg-bg-subtle/60 opacity-70"
       }`}
     >
       {/* Service ID */}
       <td className="px-6 py-4 text-left">
-        <span className="font-mono text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-lg">
+        <span className="font-mono text-xs bg-bg-subtle text-text-muted px-2 py-1 rounded-lg">
           {product.service_id}
         </span>
       </td>
 
       {/* Name */}
       <td className="px-6 py-4 text-left">
-        <p className={`text-sm font-semibold ${isActive ? "text-slate-800" : "text-slate-400 font-bold"}`}>
+        <p className={`text-sm font-semibold ${isActive ? "text-text" : "text-text-muted font-bold"}`}>
           {product.name}
         </p>
       </td>
 
       {/* Currency */}
       <td className="px-6 py-4 text-left">
-        <span className="text-xs font-bold text-slate-400 uppercase">{product.currency}</span>
+        <span className="text-xs font-bold text-text-muted uppercase">{product.currency}</span>
       </td>
 
       {/* Price */}
@@ -128,7 +128,7 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
               className="flex items-center gap-2"
             >
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm font-bold">$</span>
                 <input
                   type="number"
                   step="0.01"
@@ -137,23 +137,23 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
                   onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") handleCancel(); }}
                   autoFocus
-                  className="pl-7 pr-3 py-1.5 w-28 rounded-lg border-2 border-primary/40 text-sm font-bold text-slate-800 focus:outline-none focus:border-primary"
+                  className="pl-7 pr-3 py-1.5 w-28 rounded-lg border-2 border-primary/40 bg-card text-sm font-bold text-text focus:outline-none focus:border-primary"
                 />
               </div>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center hover:bg-emerald-200 disabled:opacity-50 transition-colors"
+                className="w-7 h-7 rounded-lg bg-success/10 text-success flex items-center justify-center hover:bg-success/20 disabled:opacity-50 transition-colors"
               >
                 {saving ? (
-                  <span className="w-3 h-3 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                  <span className="w-3 h-3 border-2 border-success border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <RiCheckLine className="text-sm" />
                 )}
               </button>
               <button
                 onClick={handleCancel}
-                className="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-colors"
+                className="w-7 h-7 rounded-lg bg-bg-subtle text-text-muted flex items-center justify-center hover:bg-border/30 transition-colors"
               >
                 <RiCloseLine className="text-sm" />
               </button>
@@ -166,12 +166,12 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
               exit={{ opacity: 0 }}
               className="flex items-center gap-3"
             >
-              <span className={`text-base font-black ${isActive ? "text-primary" : "text-slate-400"}`}>
+              <span className={`text-base font-black ${isActive ? "text-primary" : "text-text-muted"}`}>
                 ${product.price.toFixed(2)}
               </span>
               <button
                 onClick={() => setEditing(true)}
-                className="opacity-0 group-hover:opacity-100 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold text-slate-500 hover:bg-slate-100 transition-all font-black uppercase tracking-widest"
+                className="opacity-0 group-hover:opacity-100 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold text-text-muted hover:bg-bg-subtle transition-all font-black uppercase tracking-widest"
               >
                 <RiEditLine />
                 {t.products.table.edit}
@@ -186,8 +186,8 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
         <span
           className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${
             isActive
-              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-              : "bg-slate-100 text-slate-400 border-slate-200"
+              ? "bg-success/10 text-success border-success/20"
+              : "bg-bg-subtle text-text-muted border-border"
           }`}
         >
           {isActive ? <RiEyeLine className="text-xs" /> : <RiEyeOffLine className="text-xs" />}
@@ -203,8 +203,8 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
           title={isActive ? t.products.table.deactivate : t.products.table.activate}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50 ${
             isActive
-              ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
-              : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200"
+              ? "bg-danger/10 text-danger hover:bg-danger/20 border border-danger/20"
+              : "bg-success/10 text-success hover:bg-success/20 border border-success/20"
           }`}
         >
           {toggling ? (
@@ -292,10 +292,10 @@ export default function ProductsPage() {
     <div className="p-8 w-full">
       {/* Header */}
       <div className="mb-8 text-left">
-        <h1 className="font-display text-3xl font-black text-slate-800 uppercase tracking-tight">
+        <h1 className="font-display text-3xl font-black text-text uppercase tracking-tight">
           {t.products.title}
         </h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <p className="text-sm text-text-muted mt-1">
           {t.products.subtitle}
         </p>
       </div>
@@ -307,29 +307,29 @@ export default function ProductsPage() {
             label: t.products.stats.totalProducts,
             value: products.length,
             icon: RiPriceTag3Line,
-            bg: "bg-blue-50",
-            color: "text-primary",
+            bg: "bg-info/10",
+            color: "text-info",
           },
           {
             label: t.products.stats.activeCount,
             value: activeCount,
             icon: RiEyeLine,
-            bg: "bg-emerald-50",
-            color: "text-emerald-600",
+            bg: "bg-success/10",
+            color: "text-success",
           },
           {
             label: t.products.stats.inactiveCount,
             value: inactiveCount,
             icon: RiEyeOffLine,
-            bg: "bg-red-50",
-            color: "text-red-500",
+            bg: "bg-danger/10",
+            color: "text-danger",
           },
           {
             label: t.products.stats.avgTicket,
             value: `$${(totalRevenue / Math.max(mainServices.length, 1)).toFixed(0)}`,
             icon: RiMoneyDollarCircleLine,
-            bg: "bg-violet-50",
-            color: "text-violet-600",
+            bg: "bg-primary/10",
+            color: "text-primary",
           },
         ].map((s, i) => {
           const Icon = s.icon;
@@ -339,14 +339,14 @@ export default function ProductsPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4"
+              className="bg-card rounded-2xl border border-border shadow-sm p-5 flex items-center gap-4"
             >
               <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center shrink-0`}>
                 <Icon className={`text-lg ${s.color}`} />
               </div>
               <div className="text-left">
-                <p className="text-2xl font-black text-slate-800 leading-none">{s.value}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
+                <p className="text-2xl font-black text-text leading-none">{s.value}</p>
+                <p className="text-xs text-text-muted mt-0.5">{s.label}</p>
               </div>
             </motion.div>
           );
@@ -361,10 +361,10 @@ export default function ProductsPage() {
       ) : (
         <div className="space-y-6">
           {Object.entries(grouped).map(([category, items]) => (
-            <div key={category} className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h2 className="font-display font-black text-slate-700 text-sm uppercase tracking-tight">{category}</h2>
-                <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-widest">
+            <div key={category} className="bg-card rounded-2xl border border-border shadow-xl shadow-black/5 overflow-hidden">
+              <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+                <h2 className="font-display font-black text-text text-sm uppercase tracking-tight">{category}</h2>
+                <span className="text-[10px] font-black text-text-muted bg-bg-subtle px-3 py-1 rounded-full uppercase tracking-widest">
                   {items.length === 1 
                     ? t.products.table.itemCount.replace('{{count}}', '1') 
                     : t.products.table.itemsCount.replace('{{count}}', String(items.length))}
@@ -373,9 +373,9 @@ export default function ProductsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-slate-50 bg-slate-50/50">
+                    <tr className="border-b border-border bg-bg-subtle/50">
                       {[t.products.table.serviceId, t.products.table.name, t.products.table.currency, t.products.table.price, t.products.table.status, t.products.table.actions].map((h) => (
-                        <th key={h} className="px-6 py-4 text-left text-[10px] font-black text-slate-400 tracking-widest uppercase">
+                        <th key={h} className="px-6 py-4 text-left text-[10px] font-black text-text-muted tracking-widest uppercase">
                           {h}
                         </th>
                       ))}
@@ -393,7 +393,7 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <p className="mt-8 text-[10px] font-black text-slate-400 text-center uppercase tracking-widest opacity-60">
+      <p className="mt-8 text-[10px] font-black text-text-muted text-center uppercase tracking-widest opacity-60">
         {t.products.footerHint}
       </p>
     </div>

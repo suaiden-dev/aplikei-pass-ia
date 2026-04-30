@@ -27,7 +27,7 @@ export const coverLetterService = {
     const address = user.address || "Applicant Address";
 
     return `
-      <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.6; color: #000; padding: 40px; max-width: 800px; margin: auto;">
+      <div style="font-family: 'Times New Roman', Times, serif; line-height: 1.6; padding: 40px; max-width: 800px; margin: auto;">
         <div style="text-align: right; margin-bottom: 40px;">
           <p><strong>${fullName}</strong></p>
           <p>${address}</p>

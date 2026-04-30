@@ -4,18 +4,28 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RiArrowUpLine } from "react-icons/ri";
 
 export function ScrollToTop() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const [isVisible, setIsVisible] = useState(false);
 
-  // Scroll to top on route change
+  // Scroll to top on route change (including search params for onboarding steps)
   useEffect(() => {
     setTimeout(() => {
+      // Standard window scroll
       window.scrollTo({
         top: 0,
         behavior: "smooth",
       });
+
+      // Dashboard container scroll
+      const containers = document.querySelectorAll(".overflow-y-auto");
+      containers.forEach((container) => {
+        container.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      });
     }, 100);
-  }, [pathname]);
+  }, [pathname, search]);
 
   // Handle scroll visibility for the button
   useEffect(() => {

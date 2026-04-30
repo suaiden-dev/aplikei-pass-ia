@@ -1227,8 +1227,8 @@ export default function COSOnboardingPage() {
                 </div>
 
                 <div className='px-8 py-6 space-y-8'>
-                  <div className='flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100'>
-                    <RiInformationLine className='text-blue-500 text-xl shrink-0 mt-0.5' />
+                  <div className='flex items-start gap-3 p-4 rounded-xl bg-info/10 border border-info/20'>
+                    <RiInformationLine className='text-info text-xl shrink-0 mt-0.5' />
                     <div>
                       <p className='text-sm font-black text-text'>
                         {t.cos.docs.i94Instructions}

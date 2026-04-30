@@ -2,7 +2,6 @@ import { useEffect, useState, type ElementType, type ReactNode } from "react";
 import {
   RiArrowLeftLine,
   RiArrowRightLine,
-  RiCheckLine,
   RiFilePdf2Line,
   RiInformationLine,
   RiLoader4Line,
@@ -21,6 +20,7 @@ import {
   MdRecordVoiceOver,
   MdSecurity,
 } from "react-icons/md";
+import { StepTimeline } from "../../../components/StepTimeline";
 import { Form, Formik, getIn, useField, useFormikContext } from "formik";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../components/ui/tooltip";
@@ -36,6 +36,16 @@ const US_STATES = [
   "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT",
   "VT", "VA", "WA", "WV", "WI", "WY", "DC",
 ];
+
+const formatPhone = (val?: string) => {
+  if (!val) return "";
+  const cleaned = val.replace(/\D/g, "");
+  if (cleaned.length <= 10) {
+    return cleaned.replace(/^(\d{3})(\d{3})(\d{4}).*/, "($1) $2-$3");
+  } else {
+    return cleaned.replace(/^(\d{2})(\d{5})(\d{4}).*/, "+$1 ($2) $3");
+  }
+};
 
 type StepDefinition = {
   id: string;
@@ -261,89 +271,6 @@ function SectionCard({
   );
 }
 
-function StepSummaryCard({
-  current,
-  steps,
-}: {
-  current: number;
-  steps: Array<Pick<StepDefinition, "id" | "title" | "icon">>;
-}) {
-  const resolvedSteps = steps;
-  const resolvedTotal = resolvedSteps.length || 1;
-  const progress = Math.round((current / resolvedTotal) * 100);
-  const currentStep = resolvedSteps[current - 1] ?? resolvedSteps[0];
-
-  return (
-    <div className="rounded-[32px] border border-border/80 bg-card shadow-[0_20px_60px_rgba(15,23,42,0.06)] overflow-hidden">
-      <div className="px-6 py-6 border-b border-border bg-[linear-gradient(135deg,rgba(26,86,219,0.06),rgba(255,255,255,0.96))] flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary">I-539 workflow</p>
-          <h2 className="text-2xl font-black text-text tracking-tight mt-1">{currentStep?.title}</h2>
-        </div>
-
-        <div className="min-w-[160px] lg:text-right">
-            <p className="text-[11px] font-black uppercase tracking-widest text-text-muted">Progresso interno</p>
-          <div className="mt-2 flex items-end gap-2 lg:justify-end">
-            <p className="text-3xl font-black text-text">{progress}%</p>
-            <p className="text-xs font-black uppercase tracking-widest text-text-muted pb-1">
-              {current}/{resolvedTotal}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-6 py-6">
-        <div className="h-2.5 rounded-full bg-bg-subtle overflow-hidden">
-          <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
-        </div>
-
-        <div className="mt-6 overflow-x-auto pb-2">
-          <div className="flex min-w-max items-start">
-            {resolvedSteps.map((step, idx) => {
-            const stepNumber = idx + 1;
-            const isLast = idx === resolvedSteps.length - 1;
-            const isCurrent = stepNumber === current;
-            const isComplete = stepNumber < current;
-
-            return (
-              <div key={step.id} className="flex items-start">
-                <div className="flex min-w-[176px] flex-col">
-                  <div className="flex items-center">
-                    <div
-                      className={`relative z-10 flex h-11 w-11 items-center justify-center rounded-full border-4 text-sm font-black transition-all ${
-                        isCurrent
-                          ? "border-primary/15 bg-primary text-white shadow-lg shadow-primary/20"
-                          : isComplete
-                            ? "border-emerald-100 bg-emerald-500 text-white"
-                            : "border-border bg-card text-text-muted"
-                      }`}
-                    >
-                      {isComplete ? <RiCheckLine className="text-lg" /> : <step.icon className="text-xl" />}
-                    </div>
-
-                    {!isLast && (
-                      <div className="mx-2 h-[3px] w-12 rounded-full bg-slate-200 overflow-hidden">
-                        <div className={`h-full rounded-full ${isComplete ? "bg-emerald-500" : "bg-slate-200"}`} />
-                      </div>
-                    )}
-                  </div>
-
-                </div>
-              </div>
-            );
-          })}
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-2xl border border-border bg-bg-subtle/80 px-4 py-3">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">Etapa atual</p>
-          <p className="mt-1 text-sm font-bold text-text">{currentStep?.title}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 interface Props {
   proc: UserService;
   user: UserAccount;
@@ -357,7 +284,7 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
   const [activeStepIndex, setActiveStepIndex] = useState(0);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById("i539-top")?.scrollIntoView({ behavior: "smooth" });
   }, [activeStepIndex]);
 
   if (!t || !t.cos) return null;
@@ -465,11 +392,11 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
     q18Yes: saved.q18Yes ?? false, q18No: saved.q18No ?? true,
     q19Yes: saved.q19Yes ?? false, q19No: saved.q19No ?? true,
     q20Yes: saved.q20Yes ?? false, q20No: saved.q20No ?? true,
-    daytimePhone: saved.daytimePhone ?? user.phoneNumber ?? "",
-    mobilePhone: saved.mobilePhone ?? user.phoneNumber ?? "",
+    daytimePhone: saved.daytimePhone ?? formatPhone(user.phoneNumber) ?? "",
+    mobilePhone: saved.mobilePhone ?? formatPhone(user.phoneNumber) ?? "",
     email: saved.email ?? user.email ?? "",
     signature: saved.signature ?? "",
-    signatureDate: saved.signatureDate || new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }),
+    signatureDate: saved.signatureDate || "",
     interpreterFamilyName: saved.interpreterFamilyName ?? "",
     interpreterGivenName: saved.interpreterGivenName ?? "",
     interpreterPhone: saved.interpreterPhone ?? "",
@@ -514,8 +441,8 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
         daytimePhone: (savedDep.daytimePhone as string) || "",
         mobilePhone: (savedDep.mobilePhone as string) || "",
         email: (savedDep.email as string) || "",
-        signature: (savedDep.signature as string) || "",
-        signatureDate: (savedDep.signatureDate as string) || new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }),
+        signature: "",
+        signatureDate: "",
         q1Yes: (savedDep.q1Yes as boolean) || false, q1No: (savedDep.q1No as boolean) ?? true,
         q2Yes: (savedDep.q2Yes as boolean) || false, q2No: (savedDep.q2No as boolean) ?? true,
         q3Yes: (savedDep.q3Yes as boolean) || false, q3No: (savedDep.q3No as boolean) ?? true,
@@ -541,6 +468,7 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
     <Formik
       initialValues={initialValues}
       validate={validate}
+      enableReinitialize
       onSubmit={async (values) => {
         setIsGenerating(true);
         try {
@@ -1012,8 +940,8 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
                     <Field label={t.cos.i539.labels.language} name="interpreterLanguage" tooltip={t.cos.i539.labels.language}><TextInput name="interpreterLanguage" /></Field>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-                    <Field label={t.cos.i539.labels.signature} name="interpreterSignature" tooltip={I539_TOOLTIPS.preparerSignature}><TextInput name="interpreterSignature" /></Field>
-                    <Field label={t.cos.i539.labels.date} name="interpreterSignatureDate" tooltip={I539_TOOLTIPS.preparerSignatureDate}><TextInput name="interpreterSignatureDate" type="date" /></Field>
+                    <Field label={t.cos.i539.labels.signature} name="interpreterSignature" tooltip={I539_TOOLTIPS.preparerSignature}><TextInput name="interpreterSignature" disabled /></Field>
+                    <Field label={t.cos.i539.labels.date} name="interpreterSignatureDate" tooltip={I539_TOOLTIPS.preparerSignatureDate}><TextInput name="interpreterSignatureDate" type="date" disabled /></Field>
                   </div>
                 </SectionCard>
 
@@ -1029,8 +957,8 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
                     <Field label={t.cos.i539.labels.email} name="preparerEmail" tooltip={I539_TOOLTIPS.preparerEmail}><TextInput name="preparerEmail" /></Field>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-                    <Field label={t.cos.i539.labels.signature} name="preparerSignature" tooltip={I539_TOOLTIPS.preparerSignature}><TextInput name="preparerSignature" /></Field>
-                    <Field label={t.cos.i539.labels.date} name="preparerSignatureDate" tooltip={I539_TOOLTIPS.preparerSignatureDate}><TextInput name="preparerSignatureDate" type="date" /></Field>
+                    <Field label={t.cos.i539.labels.signature} name="preparerSignature" tooltip={I539_TOOLTIPS.preparerSignature}><TextInput name="preparerSignature" disabled /></Field>
+                    <Field label={t.cos.i539.labels.date} name="preparerSignatureDate" tooltip={I539_TOOLTIPS.preparerSignatureDate}><TextInput name="preparerSignatureDate" type="date" disabled /></Field>
                   </div>
                 </SectionCard>
               </>
@@ -1196,11 +1124,9 @@ export default function I539FormStep({ proc, user, onComplete }: Props) {
         };
 
         return (
-          <Form className="space-y-4 pb-20">
-            <StepSummaryCard
-              current={activeStepIndex + 1}
-              steps={stepDefinitions.map((step) => ({ id: step.id, title: step.title, icon: step.icon }))}
-            />
+          <Form className="space-y-6 pb-24">
+            <div id="i539-top" className="scroll-mt-20" />
+            <StepTimeline current={activeStepIndex + 1} steps={stepDefinitions} />
 
             <div className="pt-4">
               {currentStep.render()}

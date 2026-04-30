@@ -348,10 +348,10 @@ function MotionCheckoutOverlay({
         {/* Method-specific info */}
         <div className='px-8 pt-3 pb-6 space-y-4'>
           {activeMethod === 'card' && (
-            <div className='flex items-start gap-2.5 rounded-xl bg-blue-50 border border-blue-100 p-3'>
-              <RiBankCardLine className='text-blue-500 mt-0.5 shrink-0' />
+            <div className='flex items-start gap-2.5 rounded-xl bg-info/10 border border-info/20 p-3'>
+              <RiBankCardLine className='text-info mt-0.5 shrink-0' />
               <p
-                className='text-xs text-blue-700 leading-relaxed'
+                className='text-xs text-info leading-relaxed'
                 dangerouslySetInnerHTML={{
                   __html: t?.paymentMethods?.card?.notice || '',
                 }}
@@ -360,10 +360,10 @@ function MotionCheckoutOverlay({
           )}
 
           {activeMethod === 'pix' && (
-            <div className='flex items-start gap-2.5 rounded-xl bg-emerald-50 border border-emerald-100 p-3'>
-              <RiQrCodeLine className='text-emerald-500 mt-0.5 shrink-0' />
+            <div className='flex items-start gap-2.5 rounded-xl bg-success/10 border border-success/20 p-3'>
+              <RiQrCodeLine className='text-success mt-0.5 shrink-0' />
               <p
-                className='text-xs text-emerald-700 leading-relaxed'
+                className='text-xs text-success leading-relaxed'
                 dangerouslySetInnerHTML={{
                   __html: t?.paymentMethods?.pix?.notice || '',
                 }}
@@ -373,10 +373,10 @@ function MotionCheckoutOverlay({
 
           {activeMethod === 'parcelow' && (
             <div className='space-y-4'>
-              <div className='flex items-start gap-2.5 rounded-xl bg-orange-50 border border-orange-100 p-3'>
-                <RiTimeLine className='text-orange-500 mt-0.5 shrink-0' />
+              <div className='flex items-start gap-2.5 rounded-xl bg-warning/10 border border-warning/20 p-3'>
+                <RiTimeLine className='text-warning mt-0.5 shrink-0' />
                 <p
-                  className='text-xs text-orange-800 leading-relaxed'
+                  className='text-xs text-warning leading-relaxed'
                   dangerouslySetInnerHTML={{
                     __html: t?.paymentMethods?.parcelow?.notice || '',
                   }}
@@ -395,7 +395,7 @@ function MotionCheckoutOverlay({
                   onChange={(e) => setParcelowCpf(maskCPF(e.target.value))}
                 />
                 <div className='flex items-center gap-1 text-[10px] text-text-muted'>
-                  <RiInformationLine className='text-orange-400' />
+                  <RiInformationLine className='text-warning' />
                   <span>{t?.paymentMethods?.parcelow?.cpfNotice}</span>
                 </div>
               </div>
@@ -405,8 +405,8 @@ function MotionCheckoutOverlay({
           {activeMethod === 'zelle' && !zelleDone && (
             <div className='space-y-4'>
               {/* Recipient info */}
-              <div className='rounded-xl bg-violet-50 border border-violet-100 p-4'>
-                <p className='text-[11px] font-bold text-violet-500 uppercase tracking-widest mb-2'>
+              <div className='rounded-xl bg-primary/10 border border-primary/20 p-4'>
+                <p className='text-[11px] font-bold text-primary uppercase tracking-widest mb-2'>
                   {t?.paymentMethods?.zelle?.notice}
                 </p>
                 <div className='space-y-1'>
@@ -420,7 +420,7 @@ function MotionCheckoutOverlay({
                     {t?.paymentMethods?.zelle?.phone} {ZELLE_PHONE}
                   </p>
                 </div>
-                <p className='text-[11px] text-violet-500 mt-2 leading-snug'>
+                <p className='text-[11px] text-primary mt-2 leading-snug'>
                   {t?.paymentMethods?.zelle?.confirmTitle}
                 </p>
               </div>
@@ -540,8 +540,8 @@ function MotionCheckoutOverlay({
           )}
 
           {activeMethod === 'zelle' && zelleDone && (
-            <div className='rounded-xl bg-emerald-50 border border-emerald-100 p-5 text-center'>
-              <RiCheckLine className='text-emerald-500 text-3xl mx-auto mb-2' />
+            <div className='rounded-xl bg-success/10 border border-success/20 p-5 text-center'>
+              <RiCheckLine className='text-success text-3xl mx-auto mb-2' />
               <p className='font-bold text-text text-sm'>
                 {t?.paymentMethods?.zelle?.pendingReview?.split('!')[0]}!
               </p>
@@ -556,7 +556,7 @@ function MotionCheckoutOverlay({
               <button
                 type='button'
                 onClick={onClose}
-                className='flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs'
+                className='flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-success text-white rounded-xl font-bold text-xs'
               >
                 {t?.paymentMethods?.zelle?.goDashboard}
               </button>
@@ -670,7 +670,7 @@ export function MotionExplanationStep({
     <>
       <div className='max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700'>
         <div className='bg-card rounded-[40px] border border-border p-12 shadow-sm text-center'>
-          <div className='w-20 h-20 rounded-3xl bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-8 shadow-inner'>
+          <div className='w-20 h-20 rounded-3xl bg-danger/10 text-danger flex items-center justify-center mx-auto mb-8 shadow-inner'>
             <RiErrorWarningLine className='text-4xl' />
           </div>
           <h2 className='text-3xl font-black text-text mb-4 uppercase tracking-tight'>

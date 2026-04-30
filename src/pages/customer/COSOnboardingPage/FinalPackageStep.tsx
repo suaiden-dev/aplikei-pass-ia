@@ -135,7 +135,7 @@ export default function FinalPackageStep({
   if (showCelebration) {
     return (
       <div className='min-h-[60vh] flex flex-col items-center justify-center text-center px-8 animate-in fade-in zoom-in-95 duration-1000'>
-        <div className='w-24 h-24 rounded-[32px] bg-emerald-50 text-emerald-500 flex items-center justify-center mb-8 shadow-inner rotate-3 hover:rotate-0 transition-transform'>
+        <div className='w-24 h-24 rounded-[32px] bg-success/10 text-success flex items-center justify-center mb-8 shadow-inner rotate-3 hover:rotate-0 transition-transform'>
           <RiCheckDoubleLine className='text-5xl' />
         </div>
         <h2 className='text-4xl font-black text-text mb-4 uppercase tracking-tighter italic'>
@@ -181,7 +181,7 @@ export default function FinalPackageStep({
     <div className='space-y-8 pb-32'>
       {/* Header */}
       <div className='bg-card rounded-[32px] border border-border p-8 shadow-sm flex items-center gap-6'>
-        <div className='w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center flex-shrink-0'>
+        <div className='w-16 h-16 rounded-2xl bg-success/10 text-success flex items-center justify-center flex-shrink-0'>
           <RiCheckDoubleLine className='text-4xl' />
         </div>
         <div>
@@ -196,14 +196,14 @@ export default function FinalPackageStep({
 
       {/* Deadline Alert */}
       {deadline && (
-        <div className='bg-red-50 border border-red-100 rounded-[24px] p-6 flex items-start gap-4'>
-          <RiAlertFill className='text-red-500 text-2xl shrink-0 mt-0.5' />
+        <div className='bg-danger/10 border border-danger/20 rounded-[24px] p-6 flex items-start gap-4'>
+          <RiAlertFill className='text-danger text-2xl shrink-0 mt-0.5' />
           <div>
-            <p className='text-[11px] font-black text-red-600 uppercase tracking-widest mb-1'>
+            <p className='text-[11px] font-black text-danger uppercase tracking-widest mb-1'>
               Data Limite de Envio
             </p>
-            <p className='text-xl font-black text-red-700'>{deadline}</p>
-            <p className='text-[11px] text-red-500 font-bold mt-1 uppercase tracking-wide'>
+            <p className='text-xl font-black text-danger'>{deadline}</p>
+            <p className='text-[11px] text-danger/80 font-bold mt-1 uppercase tracking-wide'>
               1 semana antes da data de permanência autorizada do I-94
             </p>
           </div>
@@ -259,15 +259,15 @@ export default function FinalPackageStep({
           {packageOrder.map((item, i) => (
             <div
               key={i}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${item.ready ? 'bg-emerald-50/50 border-emerald-100' : 'bg-bg-subtle border-border'}`}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${item.ready ? 'bg-success/5 border-success/10' : 'bg-bg-subtle border-border'}`}
             >
               <span
-                className={`text-[10px] font-black w-5 text-center shrink-0 ${item.ready ? 'text-emerald-500' : 'text-slate-300'}`}
+                className={`text-[10px] font-black w-5 text-center shrink-0 ${item.ready ? 'text-success' : 'text-slate-300'}`}
               >
                 {i + 1}
               </span>
               {item.ready ? (
-                <RiCheckboxCircleFill className='text-emerald-500 text-base shrink-0' />
+                <RiCheckboxCircleFill className='text-success text-base shrink-0' />
               ) : (
                 <div className='w-4 h-4 rounded-full border-2 border-border shrink-0' />
               )}
@@ -288,7 +288,7 @@ export default function FinalPackageStep({
       {/* Assinaturas */}
       <div className='bg-card rounded-[32px] border border-border p-8 shadow-sm'>
         <div className='flex items-center gap-3 mb-6'>
-          <div className='w-9 h-9 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center'>
+          <div className='w-9 h-9 rounded-xl bg-info/10 text-info flex items-center justify-center'>
             <RiEditLine className='text-lg' />
           </div>
           <div>
@@ -323,8 +323,8 @@ export default function FinalPackageStep({
           </div>
 
           {/* I-539 */}
-          <div className='p-5 bg-blue-50/50 rounded-2xl border border-blue-100'>
-            <p className='text-[11px] font-black text-blue-700 uppercase tracking-widest mb-2'>
+          <div className='p-5 bg-info/5 rounded-2xl border border-info/10'>
+            <p className='text-[11px] font-black text-info uppercase tracking-widest mb-2'>
               Formulário I-539 — Aplicante Principal
             </p>
             <p className='text-[11px] text-text-muted font-medium'>
@@ -333,14 +333,14 @@ export default function FinalPackageStep({
           </div>
 
           {/* I-539A */}
-          <div className='p-5 bg-blue-50/50 rounded-2xl border border-blue-100'>
-            <p className='text-[11px] font-black text-blue-700 uppercase tracking-widest mb-2'>
+          <div className='p-5 bg-info/5 rounded-2xl border border-info/10'>
+            <p className='text-[11px] font-black text-info uppercase tracking-widest mb-2'>
               Formulário I-539A — Dependentes
             </p>
             <p className='text-[11px] text-text-muted font-medium mb-2'>
               📄 Pág 3, Parte 4, Item 4
             </p>
-            <div className='space-y-1.5 pl-3 border-l-2 border-blue-200'>
+            <div className='space-y-1.5 pl-3 border-l-2 border-info/30'>
               <p className='text-[10px] text-text-muted font-bold uppercase tracking-wide'>
                 ⬇ Menores de 14 anos → assinado pelo aplicante principal
               </p>
@@ -349,14 +349,14 @@ export default function FinalPackageStep({
               </p>
             </div>
           </div>
-          <div className='p-5 bg-blue-50/50 rounded-2xl border border-blue-100'>
-            <p className='text-[11px] font-black text-blue-700 uppercase tracking-widest mb-2'>
+          <div className='p-5 bg-info/5 rounded-2xl border border-info/10'>
+            <p className='text-[11px] font-black text-info uppercase tracking-widest mb-2'>
               Cartão de Crédito no G1450
             </p>
             <p className='text-[11px] text-text-muted font-medium mb-2'>
               📄 Preencher os dados do cartão de crédito no Formulário G1450
             </p>
-            <div className='space-y-1.5 pl-3 border-l-2 border-blue-200'>
+            <div className='space-y-1.5 pl-3 border-l-2 border-info/30'>
               <p className='text-[10px] text-text-muted font-bold uppercase tracking-wide'>
                 ➡️Preencher CCV, Data de Expiração e Número do Cartão.
               </p>
@@ -402,9 +402,9 @@ export default function FinalPackageStep({
             Lewisville, TX 75067
           </p>
         </div>
-        <div className='flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-2xl p-4'>
-          <RiTruckLine className='text-amber-500 text-lg shrink-0 mt-0.5' />
-          <p className='text-[11px] text-amber-700 font-bold uppercase tracking-wide'>
+        <div className='flex items-start gap-3 bg-warning/10 border border-warning/20 rounded-2xl p-4'>
+          <RiTruckLine className='text-warning text-lg shrink-0 mt-0.5' />
+          <p className='text-[11px] text-warning font-bold uppercase tracking-wide'>
             Sugestão: enviar via FedEx com entrega em 24h (express delivery) com
             número de rastreamento.
           </p>
@@ -414,7 +414,7 @@ export default function FinalPackageStep({
       {/* Tracking Code */}
       <div className='bg-card rounded-[32px] border border-border p-8 shadow-sm'>
         <div className='flex items-center gap-3 mb-5'>
-          <div className='w-9 h-9 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center'>
+          <div className='w-9 h-9 rounded-xl bg-success/10 text-success flex items-center justify-center'>
             <RiBarcodeLine className='text-lg' />
           </div>
           <h3 className='text-[11px] font-black text-text uppercase tracking-widest'>
@@ -468,9 +468,9 @@ export default function FinalPackageStep({
               })
               setShowCelebration(true)
             }}
-            className='flex flex-col items-center justify-center p-8 bg-card border border-emerald-100 rounded-[24px] hover:bg-emerald-50 hover:border-emerald-200 transition-all group/btn shadow-sm hover:shadow-md'
+            className='flex flex-col items-center justify-center p-8 bg-card border border-success/20 rounded-[24px] hover:bg-success/10 hover:border-success/30 transition-all group/btn shadow-sm hover:shadow-md'
           >
-            <div className='w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center mb-4 group-hover/btn:scale-110 group-hover/btn:rotate-6 transition-all shadow-inner border border-emerald-100/50'>
+            <div className='w-14 h-14 rounded-2xl bg-success/10 text-success flex items-center justify-center mb-4 group-hover/btn:scale-110 group-hover/btn:rotate-6 transition-all shadow-inner border border-success/10'>
               <RiThumbUpLine className='text-2xl' />
             </div>
             <span className='text-[10px] font-black text-text uppercase tracking-widest'>
@@ -498,9 +498,9 @@ export default function FinalPackageStep({
                 toast.error('Erro ao iniciar fluxo de Motion')
               }
             }}
-            className='flex flex-col items-center justify-center p-8 bg-card border border-red-100 rounded-[24px] hover:bg-red-50 hover:border-red-200 transition-all group/btn shadow-sm hover:shadow-md'
+            className='flex flex-col items-center justify-center p-8 bg-card border border-danger/20 rounded-[24px] hover:bg-danger/10 hover:border-danger/30 transition-all group/btn shadow-sm hover:shadow-md'
           >
-            <div className='w-14 h-14 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center mb-4 group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-all shadow-inner border border-red-100/50'>
+            <div className='w-14 h-14 rounded-2xl bg-danger/10 text-danger flex items-center justify-center mb-4 group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-all shadow-inner border border-danger/10'>
               <RiThumbDownLine className='text-2xl' />
             </div>
             <span className='text-[10px] font-black text-text uppercase tracking-widest'>
@@ -528,9 +528,9 @@ export default function FinalPackageStep({
                 toast.error('Erro ao iniciar fluxo de RFE')
               }
             }}
-            className='flex flex-col items-center justify-center p-8 bg-card border border-amber-100 rounded-[24px] hover:bg-amber-50 hover:border-amber-200 transition-all group/btn shadow-sm hover:shadow-md'
+            className='flex flex-col items-center justify-center p-8 bg-card border border-warning/20 rounded-[24px] hover:bg-warning/10 hover:border-warning/30 transition-all group/btn shadow-sm hover:shadow-md'
           >
-            <div className='w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center mb-4 group-hover/btn:scale-110 group-hover/btn:rotate-12 transition-all shadow-inner border border-amber-100/50'>
+            <div className='w-14 h-14 rounded-2xl bg-warning/10 text-warning flex items-center justify-center mb-4 group-hover/btn:scale-110 group-hover/btn:rotate-12 transition-all shadow-inner border border-warning/10'>
               <RiTimeLine className='text-2xl' />
             </div>
             <span className='text-[10px] font-black text-text uppercase tracking-widest text-center leading-tight'>

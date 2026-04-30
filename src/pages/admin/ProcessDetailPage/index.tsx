@@ -20,7 +20,6 @@ import {
   RiHistoryLine,
   RiArrowRightLine,
   RiCalendarLine,
-  RiMailCheckLine,
   RiBarcodeLine,
   RiCalendarEventLine,
   RiUser3Line,
@@ -107,40 +106,40 @@ function PurchasesPanel({ stepData }: { stepData: Record<string, unknown> }) {
     new Date(dt).toLocaleString(t.shared.locale || "pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
 
   return (
-    <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-6">
+    <div className="bg-card rounded-[32px] border border-border shadow-sm p-6">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center">
-            <RiMoneyDollarCircleLine className="text-white text-sm" />
+          <div className="w-8 h-8 rounded-xl bg-success flex items-center justify-center">
+            <RiMoneyDollarCircleLine className="text-primary text-sm" />
           </div>
-          <h3 className="font-black text-slate-800 text-sm uppercase tracking-tight">{t.processDetail.purchases.title}</h3>
+          <h3 className="font-black text-text text-sm uppercase tracking-tight">{t.processDetail.purchases.title}</h3>
         </div>
-        <div className="px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-emerald-100">
+        <div className="px-2.5 py-1 bg-success/10 text-success rounded-lg text-[10px] font-black uppercase tracking-widest border border-success/20">
            {paidDependents} {t.processDetail.purchases.slotsPaid}
         </div>
       </div>
 
       {purchases.length === 0 ? (
-        <p className="text-xs text-slate-400 text-center py-6 font-medium italic">{t.processDetail.purchases.noPurchases}</p>
+        <p className="text-xs text-text-muted text-center py-6 font-medium italic">{t.processDetail.purchases.noPurchases}</p>
       ) : (
         <div className="space-y-4 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
           {purchases.map((p, idx) => (
-            <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-primary/20 transition-all">
+            <div key={idx} className="p-4 rounded-2xl bg-bg-subtle border border-border hover:border-primary/20 transition-all">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-[10px] font-black text-primary uppercase tracking-widest">{p.method}</span>
-                <span className="text-[10px] text-slate-400 font-bold">{formatDate(p.date || p.created_at || '')}</span>
+                <span className="text-[10px] text-text-muted font-bold">{formatDate(p.date || p.created_at || '')}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-black text-slate-800 leading-none mb-1">{p.slug}</p>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-                    ID: <span className="text-slate-700">{p.id ? (p.id.length > 20 ? p.id.substring(0, 15) + '...' : p.id) : 'N/A'}</span>
+                  <p className="text-xs font-black text-text leading-none mb-1">{p.slug}</p>
+                  <p className="text-[10px] text-text-muted font-bold uppercase tracking-tight">
+                    ID: <span className="text-text">{p.id ? (p.id.length > 20 ? p.id.substring(0, 15) + '...' : p.id) : 'N/A'}</span>
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-black text-slate-900 leading-none mb-1">${(p.amount ?? p.amount_usd ?? 0).toFixed(2)}</p>
+                  <p className="text-sm font-black text-text leading-none mb-1">${(p.amount ?? p.amount_usd ?? 0).toFixed(2)}</p>
                   {(p.dependents ?? 0) > 0 && (
-                     <p className="text-[9px] text-emerald-600 font-black uppercase">+{p.dependents} {t.processDetail.purchases.dependents}</p>
+                     <p className="text-[9px] text-success font-black uppercase">+{p.dependents} {t.processDetail.purchases.dependents}</p>
                   )}
                 </div>
               </div>
@@ -192,8 +191,8 @@ function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientN
   };
 
   const getActorColor = (log: ProcessLog) => {
-    if (log.actor_role === "admin") return "bg-violet-100 text-violet-700 border border-violet-200";
-    return "bg-sky-100 text-sky-700 border border-sky-200";
+    if (log.actor_role === "admin") return "bg-primary/10 text-primary border border-primary/20";
+    return "bg-info/10 text-info border border-info/20";
   };
 
   const getActionDescription = (log: ProcessLog) => {
@@ -217,41 +216,41 @@ function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientN
   };
 
   return (
-    <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-6">
+    <div className="bg-card rounded-[32px] border border-border shadow-sm p-6">
       <div className="flex items-center gap-3 mb-5">
-        <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center">
-          <RiTimeLine className="text-white text-sm" />
+        <div className="w-8 h-8 rounded-xl bg-text flex items-center justify-center">
+          <RiTimeLine className="text-bg text-sm" />
         </div>
-        <h3 className="font-black text-slate-800 text-sm uppercase tracking-tight">{t.processDetail.logs.title}</h3>
+        <h3 className="font-black text-text text-sm uppercase tracking-tight">{t.processDetail.logs.title}</h3>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-8">
-          <RiLoader4Line className="animate-spin text-2xl text-slate-300" />
+          <RiLoader4Line className="animate-spin text-2xl text-text-muted" />
         </div>
       ) : logs.length === 0 ? (
-        <p className="text-xs text-slate-400 text-center py-6 font-medium">{t.processDetail.logs.noLogs}</p>
+        <p className="text-xs text-text-muted text-center py-6 font-medium">{t.processDetail.logs.noLogs}</p>
       ) : (
         <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
           {logs.map((log) => (
             <div key={log.id} className="flex gap-3 items-start">
-              <div className="mt-1 w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                <RiUser3Line className="text-slate-400 text-xs" />
+              <div className="mt-1 w-6 h-6 rounded-full bg-bg-subtle flex items-center justify-center shrink-0">
+                <RiUser3Line className="text-text-muted text-xs" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${getActorColor(log)}`}>
                     {getActorLabel(log)}
                   </span>
-                  <span className="text-[9px] text-slate-400 font-bold">{formatDate(log.created_at)}</span>
+                  <span className="text-[9px] text-text-muted font-bold">{formatDate(log.created_at)}</span>
                 </div>
-                <p className="text-[11px] text-slate-700 font-bold">{getActionDescription(log)}</p>
-                <div className="text-[10px] text-slate-400 font-medium space-y-0.5 mt-0.5">
+                <p className="text-[11px] text-text font-bold">{getActionDescription(log)}</p>
+                <div className="text-[10px] text-text-muted font-medium space-y-0.5 mt-0.5">
                   {log.previous_step !== log.new_step && (
-                    <p>{t.processDetail.logs.labels.step} <span className="text-slate-600 font-black">{(log.previous_step ?? 0) + 1}</span> → <span className="text-primary font-black">{(log.new_step ?? 0) + 1}</span></p>
+                    <p>{t.processDetail.logs.labels.step} <span className="text-text font-black">{(log.previous_step ?? 0) + 1}</span> → <span className="text-primary font-black">{(log.new_step ?? 0) + 1}</span></p>
                   )}
                   {log.previous_status !== log.new_status && (
-                    <p>{t.processDetail.logs.labels.status}: <span className="text-slate-500 font-black">{getStatusLabel(log.previous_status)}</span> → <span className="text-slate-700 font-black">{getStatusLabel(log.new_status)}</span></p>
+                    <p>{t.processDetail.logs.labels.status}: <span className="text-text-muted font-black">{getStatusLabel(log.previous_status)}</span> → <span className="text-text font-black">{getStatusLabel(log.new_status)}</span></p>
                   )}
                 </div>
               </div>
@@ -282,24 +281,24 @@ function CollapsibleStep({
   const t = useT("admin");
 
   return (
-    <div className={`bg-white rounded-[32px] border transition-all mb-8 overflow-hidden ${isActive ? 'border-primary/30 shadow-xl shadow-primary/5' : 'border-slate-100 shadow-sm opacity-80'}`}>
+    <div className={`bg-card rounded-[32px] border transition-all mb-8 overflow-hidden ${isActive ? 'border-primary/30 shadow-xl shadow-primary/5' : 'border-border shadow-sm opacity-80'}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-8 py-6 flex items-center justify-between hover:bg-slate-50 transition-colors"
+        className="w-full px-8 py-6 flex items-center justify-between hover:bg-bg-subtle transition-colors"
       >
         <div className="flex items-center gap-4">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isActive ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110' : isPast ? 'bg-emerald-50 text-emerald-500' : 'bg-slate-100 text-slate-400'}`}>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isActive ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110' : isPast ? 'bg-success/10 text-success' : 'bg-bg-subtle text-text-muted'}`}>
             {isPast ? <RiCheckLine className="text-xl" /> : <Icon className="text-xl" />}
           </div>
           <div className="text-left">
-            <h3 className={`text-xs font-black uppercase tracking-widest ${isActive ? 'text-slate-800' : 'text-slate-400'}`}>{title}</h3>
-            {isPast && <p className="text-[10px] text-emerald-500 font-black uppercase mt-0.5 tracking-tighter">{t.processDetail.steps.completed}</p>}
+            <h3 className={`text-xs font-black uppercase tracking-widest ${isActive ? 'text-text' : 'text-text-muted'}`}>{title}</h3>
+            {isPast && <p className="text-[10px] text-success font-black uppercase mt-0.5 tracking-tighter">{t.processDetail.steps.completed}</p>}
             {isActive && <p className="text-[10px] text-primary font-black uppercase mt-0.5 tracking-tighter">{t.processDetail.steps.awaitingAction}</p>}
           </div>
         </div>
         <div className="flex items-center gap-4">
-          {badge && <span className="px-3 py-1 bg-amber-50 rounded-lg border border-amber-100 text-[9px] font-black text-amber-600 uppercase tracking-widest">{badge}</span>}
-          <RiArrowDownSLine className={`text-xl text-slate-300 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+          {badge && <span className="px-3 py-1 bg-warning/10 rounded-lg border border-warning/20 text-[9px] font-black text-warning uppercase tracking-widest">{badge}</span>}
+          <RiArrowDownSLine className={`text-xl text-text-muted transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
         </div>
       </button>
 
@@ -309,7 +308,7 @@ function CollapsibleStep({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="border-t border-slate-50"
+            className="border-t border-border"
           >
             <div className="p-8">
               {children}
@@ -373,67 +372,68 @@ function MRVSetupPanel({ proc, onApprove, onRefresh, isActive }: { proc: Process
       await processService.updateStepData(proc.id, payload);
       await onApprove();
       onRefresh();
-    } catch (err: unknown) {
-      toast.error((err as Error).message);
+      toast.success(t.processDetail.mrv.messages.finishSuccess);
+    } catch (e: unknown) {
+      toast.error((e as Error).message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.processDetail.mrv.loginLabel}</label>
+          <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">{t.processDetail.mrv.loginLabel}</label>
           <input
             type="text"
             value={login}
             onChange={(e) => setLogin(e.target.value)}
             disabled={!isActive}
-            className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold text-slate-800 outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+            className="w-full px-5 py-4 rounded-2xl bg-bg-subtle border border-border text-sm font-bold text-text outline-none focus:ring-4 focus:ring-primary/10 transition-all"
             placeholder={t.processDetail.mrv.loginPlaceholder}
           />
         </div>
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t.processDetail.mrv.passwordLabel}</label>
+          <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">{t.processDetail.mrv.passwordLabel}</label>
           <input
             type="text"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={!isActive}
-            className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold text-slate-800 outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+            className="w-full px-5 py-4 rounded-2xl bg-bg-subtle border border-border text-sm font-bold text-text outline-none focus:ring-4 focus:ring-primary/10 transition-all"
             placeholder={t.processDetail.mrv.passwordPlaceholder}
           />
         </div>
       </div>
 
-      <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl">
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{t.processDetail.mrv.voucherLabel}</p>
+      <div className="p-6 bg-bg-subtle border border-border rounded-2xl">
+        <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-4">{t.processDetail.mrv.voucherLabel}</p>
         <div className="flex flex-col items-center justify-center py-6 text-left">
           {boletoPath ? (
             <div className="flex items-center gap-4 w-full text-left">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-success/10 text-success flex items-center justify-center">
                 <RiBarcodeLine className="text-2xl" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-black text-slate-800 uppercase">{t.processDetail.mrv.voucherSent}</p>
-                <p className="text-[10px] text-slate-400 truncate">{boletoPath.split('/').pop()}</p>
+                <p className="text-xs font-black text-text uppercase">{t.processDetail.mrv.voucherSent}</p>
+                <p className="text-[10px] text-text-muted truncate">{boletoPath.split('/').pop()}</p>
               </div>
               <div className="flex gap-2">
                 <a
                   href={supabase.storage.from("profiles").getPublicUrl(boletoPath).data.publicUrl}
                   target="_blank" rel="noreferrer"
-                  className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-black uppercase"
+                  className="px-4 py-2 bg-card border border-border rounded-lg text-[10px] font-black text-text uppercase"
                 >{t.shared.confirm.replace('Confirmar', 'Ver')}</a>
                 {isActive && (
-                  <button onClick={() => setBoletoPath("")} className="px-4 py-2 bg-red-50 text-red-500 rounded-lg text-[10px] font-black uppercase">{t.shared.cancel.replace('Cancelar', 'Remover')}</button>
+                  <button onClick={() => setBoletoPath("")} className="px-4 py-2 bg-danger/10 text-danger rounded-lg text-[10px] font-black uppercase">{t.shared.cancel.replace('Cancelar', 'Remover')}</button>
                 )}
               </div>
             </div>
           ) : (
             <>
-              <RiBarcodeLine className="text-4xl text-slate-300 mb-4" />
-              <label className="px-8 py-3 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2">
+              <RiBarcodeLine className="text-4xl text-border mb-4" />
+              <label className="px-8 py-3 bg-card border border-border rounded-xl text-[10px] font-black text-text uppercase tracking-widest cursor-pointer hover:bg-bg-subtle transition-all shadow-sm flex items-center gap-2">
                 <RiFileUploadLine />
                 {uploading ? <RiLoader4Line className="animate-spin text-lg" /> : t.processDetail.mrv.selectVoucher}
                 <input type="file" accept=".pdf" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} disabled={!isActive} />
@@ -531,28 +531,28 @@ function FinalSchedulingPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
               <RiShieldCheckLine className="text-2xl" />
             </div>
             <div className="text-left">
-              <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest">{t.processDetail.scheduling.upsellTitle}</h4>
+              <h4 className="text-[10px] font-black text-text uppercase tracking-widest">{t.processDetail.scheduling.upsellTitle}</h4>
               <p className="text-xs text-amber-600 font-bold uppercase">{upsellPlan}</p>
             </div>
           </div>
-          <div className="px-4 py-2 bg-white rounded-xl border border-amber-100 text-[10px] font-black text-amber-600 uppercase">
+          <div className="px-4 py-2 bg-card rounded-xl border border-warning/20 text-[10px] font-black text-warning uppercase">
             {t.processDetail.scheduling.upsellAction}
           </div>
         </div>
       )}
 
-      <div className="flex items-center gap-4 p-2 bg-slate-50 rounded-2xl border border-slate-100">
+      <div className="flex items-center gap-4 p-2 bg-bg-subtle rounded-2xl border border-border">
         <button
           disabled={!canEdit}
           onClick={() => setSameLocation(true)}
-          className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${sameLocation ? 'bg-white shadow-sm text-primary' : 'text-slate-400'}`}
+          className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${sameLocation ? 'bg-card shadow-sm text-primary' : 'text-text-muted'}`}
         >
           {t.processDetail.scheduling.sameLocation}
         </button>
         <button
           disabled={!canEdit}
           onClick={() => setSameLocation(false)}
-          className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!sameLocation ? 'bg-white shadow-sm text-primary' : 'text-slate-400'}`}
+          className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!sameLocation ? 'bg-card shadow-sm text-primary' : 'text-text-muted'}`}
         >
           {t.processDetail.scheduling.differentLocations}
         </button>
@@ -560,7 +560,7 @@ function FinalSchedulingPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
         <div className="space-y-6">
-          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+          <h4 className="text-[10px] font-black text-text-muted uppercase tracking-widest flex items-center gap-2">
             <RiCalendarEventLine className="text-lg text-primary" /> {t.processDetail.scheduling.casvData}
           </h4>
           <div className="space-y-4">
@@ -569,14 +569,14 @@ function FinalSchedulingPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
               value={casvDate}
               onChange={e => setCasvDate(e.target.value)}
               disabled={!canEdit}
-              className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold text-slate-800 outline-none"
+              className="w-full px-5 py-4 rounded-2xl bg-bg-subtle border border-border text-sm font-bold text-text outline-none"
             />
             <input
               type="time"
               value={casvTime}
               onChange={e => setCasvTime(e.target.value)}
               disabled={!canEdit}
-              className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold text-slate-800 outline-none"
+              className="w-full px-5 py-4 rounded-2xl bg-bg-subtle border border-border text-sm font-bold text-text outline-none"
             />
             <input
               type="text"
@@ -584,14 +584,14 @@ function FinalSchedulingPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
               value={casvLocation}
               onChange={e => setCasvLocation(e.target.value)}
               disabled={!canEdit}
-              className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold text-slate-800 outline-none"
+              className="w-full px-5 py-4 rounded-2xl bg-bg-subtle border border-border text-sm font-bold text-text outline-none"
             />
           </div>
         </div>
 
         {!sameLocation && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+            <h4 className="text-[10px] font-black text-text-muted uppercase tracking-widest flex items-center gap-2">
               <RiCalendarEventLine className="text-lg text-primary" /> {t.processDetail.scheduling.consulateData}
             </h4>
             <div className="space-y-4">
@@ -600,14 +600,14 @@ function FinalSchedulingPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
                 value={consuladoDate}
                 onChange={e => setConsuladoDate(e.target.value)}
                 disabled={!canEdit}
-                className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold text-slate-800 outline-none"
+                className="w-full px-5 py-4 rounded-2xl bg-bg-subtle border border-border text-sm font-bold text-text outline-none"
               />
               <input
                 type="time"
                 value={consuladoTime}
                 onChange={e => setConsuladoTime(e.target.value)}
                 disabled={!canEdit}
-                className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold text-slate-800 outline-none"
+                className="w-full px-5 py-4 rounded-2xl bg-bg-subtle border border-border text-sm font-bold text-text outline-none"
               />
               <input
                 type="text"
@@ -615,7 +615,7 @@ function FinalSchedulingPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
                 value={consuladoLocation}
                 onChange={e => setConsuladoLocation(e.target.value)}
                 disabled={!canEdit}
-                className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold text-slate-800 outline-none"
+                className="w-full px-5 py-4 rounded-2xl bg-bg-subtle border border-border text-sm font-bold text-text outline-none"
               />
             </div>
           </div>
@@ -687,9 +687,9 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
   };
 
   return (
-    <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-8 mb-8">
-      <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-50">
-        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+    <div className="bg-card rounded-[32px] border border-border shadow-sm p-8 mb-8">
+      <div className="flex items-center justify-between mb-8 pb-6 border-b border-border/50">
+        <h3 className="text-xs font-black text-text-muted uppercase tracking-widest flex items-center gap-2">
           <RiShieldCheckLine className="text-lg" />
           {t.processDetail.motion.panelTitle}
         </h3>
@@ -705,33 +705,33 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
         </div>
       </div>
 
-      <div className="bg-slate-50 rounded-3xl p-6 mb-8 border border-slate-100/50">
+      <div className="bg-bg-subtle rounded-3xl p-6 mb-8 border border-border">
         <div className="flex items-center gap-3 mb-4 text-left">
           <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
             <RiInformationLine className="text-lg" />
           </div>
-          <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t.processDetail.motion.clientInstructions}</h4>
+          <h4 className="text-[10px] font-black text-text-muted uppercase tracking-widest">{t.processDetail.motion.clientInstructions}</h4>
         </div>
 
         <div className="space-y-4 text-left">
-          <div className="bg-white p-4 rounded-2xl border border-slate-100">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t.processDetail.motion.clientReason}</p>
-            <p className="text-sm font-bold text-slate-700 italic">
+          <div className="bg-card p-4 rounded-2xl border border-border">
+            <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">{t.processDetail.motion.clientReason}</p>
+            <p className="text-sm font-bold text-text italic">
               {clientReason || t.processDetail.motion.noReason}
             </p>
           </div>
 
           {denialLetterUrl && (
-            <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-100">
+            <div className="flex items-center justify-between bg-card p-4 rounded-2xl border border-border">
               <div className="flex items-center gap-3">
                 <RiFileTextLine className="text-xl text-primary" />
-                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{t.processDetail.motion.denialLetter}</span>
+                <span className="text-[10px] font-black text-text uppercase tracking-widest">{t.processDetail.motion.denialLetter}</span>
               </div>
               <a
                 href={denialLetterUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2"
+                className="px-4 py-2 bg-text text-bg rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-text/90 transition-all flex items-center gap-2"
               >
                 <RiExternalLinkLine className="text-sm" /> {t.shared.confirm.replace('Confirmar', 'Ver')}
               </a>
@@ -742,24 +742,24 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
 
       <div className="space-y-6 text-left">
         <div>
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">{t.processDetail.motion.strategyLabel}</label>
+          <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2 px-1">{t.processDetail.motion.strategyLabel}</label>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={t.processDetail.motion.strategyPlaceholder}
-            className="w-full h-32 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm font-medium outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none"
+            className="w-full h-32 rounded-2xl border border-border bg-bg-subtle p-4 text-sm font-medium text-text outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none"
           />
         </div>
         <div>
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">{t.processDetail.motion.amountLabel}</label>
+          <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2 px-1">{t.processDetail.motion.amountLabel}</label>
           <div className="relative">
-            <RiMoneyDollarCircleLine className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl" />
+            <RiMoneyDollarCircleLine className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-xl" />
             <input
               type="number"
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value))}
               placeholder="0.00"
-              className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-sm font-black outline-none focus:ring-4 focus:ring-primary/5 transition-all"
+              className="w-full bg-bg-subtle border border-border rounded-2xl py-4 pl-12 pr-4 text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/5 transition-all"
             />
           </div>
         </div>
@@ -833,51 +833,51 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
   };
 
   return (
-    <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-8 mb-8 text-left">
-      <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-50">
-        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+    <div className="bg-card rounded-[32px] border border-border shadow-sm p-8 mb-8 text-left">
+      <div className="flex items-center justify-between mb-8 pb-6 border-b border-border/50">
+        <h3 className="text-xs font-black text-text-muted uppercase tracking-widest flex items-center gap-2">
           <RiShieldCheckLine className="text-lg" />
           {t.processDetail.rfe.panelTitle}
         </h3>
         <div className="flex gap-2">
            {hasPaidProposal && (
-             <div className="px-3 py-1 bg-emerald-50 rounded-lg border border-emerald-100 text-[9px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1">
+             <div className="px-3 py-1 bg-success/10 rounded-lg border border-success/20 text-[9px] font-black text-success uppercase tracking-widest flex items-center gap-1">
                <RiCheckDoubleLine /> {t.shared.paid}
              </div>
            )}
-           <div className="px-3 py-1 bg-amber-50 rounded-lg border border-amber-100 text-[9px] font-black text-amber-600 uppercase tracking-widest">
+           <div className="px-3 py-1 bg-warning/10 rounded-lg border border-warning/20 text-[9px] font-black text-warning uppercase tracking-widest">
              {t.shared.administrativeAction}
            </div>
         </div>
       </div>
 
-      <div className="bg-slate-50 rounded-3xl p-6 mb-8 border border-slate-100/50">
+      <div className="bg-bg-subtle rounded-3xl p-6 mb-8 border border-border/50">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
             <RiInformationLine className="text-lg" />
           </div>
-          <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t.processDetail.rfe.infoTitle}</h4>
+          <h4 className="text-[10px] font-black text-text-muted uppercase tracking-widest">{t.processDetail.rfe.infoTitle}</h4>
         </div>
 
         <div className="space-y-4">
-          <div className="bg-white p-4 rounded-2xl border border-slate-100">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t.processDetail.rfe.clientDescription}</p>
-            <p className="text-sm font-bold text-slate-700 italic">
+          <div className="bg-card p-4 rounded-2xl border border-border">
+            <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">{t.processDetail.rfe.clientDescription}</p>
+            <p className="text-sm font-bold text-text italic">
               {clientDescription || t.processDetail.motion.noReason}
             </p>
           </div>
 
           {rfeLetterUrl && (
-            <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-100">
+            <div className="flex items-center justify-between bg-card p-4 rounded-2xl border border-border">
               <div className="flex items-center gap-3">
                 <RiFileTextLine className="text-xl text-primary" />
-                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{t.processDetail.rfe.officialLetter}</span>
+                <span className="text-[10px] font-black text-text uppercase tracking-widest">{t.processDetail.rfe.officialLetter}</span>
               </div>
               <a
                 href={rfeLetterUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2"
+                className="px-4 py-2 bg-text text-bg rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-text/90 transition-all flex items-center gap-2"
               >
                 <RiExternalLinkLine className="text-sm" /> {t.shared.confirm.replace('Confirmar', 'Ver')}
               </a>
@@ -888,24 +888,24 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
 
       <div className="space-y-6">
         <div>
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">{t.processDetail.rfe.strategyLabel}</label>
+          <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2 px-1">{t.processDetail.rfe.strategyLabel}</label>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={t.processDetail.rfe.strategyPlaceholder}
-            className="w-full h-32 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm font-medium outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none"
+            className="w-full h-32 rounded-2xl border border-border bg-bg-subtle p-4 text-sm font-medium text-text outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none"
           />
         </div>
         <div>
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">{t.processDetail.rfe.amountLabel}</label>
+          <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2 px-1">{t.processDetail.rfe.amountLabel}</label>
           <div className="relative">
-            <RiMoneyDollarCircleLine className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl" />
+            <RiMoneyDollarCircleLine className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-xl" />
             <input
               type="number"
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value))}
               placeholder="0.00"
-              className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-sm font-black outline-none focus:ring-4 focus:ring-primary/5 transition-all"
+              className="w-full bg-bg-subtle border border-border rounded-2xl py-4 pl-12 pr-4 text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/5 transition-all"
             />
           </div>
         </div>
@@ -925,31 +925,30 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
           if (history.length === 0) return null;
 
           return (
-            <div className="mt-8 pt-8 border-t border-slate-100">
+            <div className="mt-8 pt-8 border-t border-border">
               <div className="flex items-center gap-2 mb-4 px-1">
-                <RiHistoryLine className="text-slate-400" />
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t.processDetail.rfe.historyTitle} ({history.length})</h3>
+                <RiHistoryLine className="text-text-muted" />
+                <h3 className="text-xs font-bold text-text-muted uppercase tracking-widest">{t.processDetail.rfe.historyTitle} ({history.length})</h3>
               </div>
-
               <div className="space-y-3">
                 {[...history].reverse().map((hist, idx) => (
-                  <div key={idx} className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <div key={idx} className="bg-bg-subtle rounded-2xl p-5 border border-border">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{t.processDetail.rfe.cycle} #{history.length - idx}</span>
-                      <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${hist.result === 'approved' ? 'bg-emerald-100 text-emerald-600' :
-                          hist.result === 'rfe' ? 'bg-amber-100 text-amber-600' :
-                            'bg-red-100 text-red-600'
+                      <span className="text-[9px] font-black text-text-muted uppercase tracking-tighter">{t.processDetail.rfe.cycle} #{history.length - idx}</span>
+                      <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${hist.result === 'approved' ? 'bg-success/10 text-success' :
+                          hist.result === 'rfe' ? 'bg-warning/10 text-warning' :
+                            'bg-danger/10 text-danger'
                         }`}>
                         {hist.result === 'approved' ? t.processDetail.rfe.resultApproved : hist.result === 'rfe' ? t.processDetail.rfe.resultNewRfe : t.processDetail.rfe.resultRejected}
                       </span>
                     </div>
 
-                    <p className="text-xs text-slate-600 italic mb-3 leading-relaxed line-clamp-2">"{hist.proposal_text}"</p>
+                    <p className="text-xs text-text-muted italic mb-3 leading-relaxed line-clamp-2">"{hist.proposal_text}"</p>
 
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-200/60">
+                    <div className="flex items-center justify-between pt-3 border-t border-border">
                       <div className="flex flex-col">
-                        <span className="text-[8px] font-bold text-slate-400 uppercase">{t.processDetail.rfe.amount}</span>
-                        <span className="text-[10px] font-black text-slate-700">${Number(hist.proposal_amount).toFixed(2)}</span>
+                        <span className="text-[8px] font-bold text-text-muted uppercase">{t.processDetail.rfe.amount}</span>
+                        <span className="text-[10px] font-black text-text">${Number(hist.proposal_amount).toFixed(2)}</span>
                       </div>
 
                       {hist.rfe_letter && (
@@ -1010,23 +1009,23 @@ function RFEFinalShipPanel({ proc, onApprove, onRefresh, isActive }: { proc: Pro
   };
 
   return (
-    <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-8 mb-8 text-left">
-      <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+    <div className="bg-card rounded-[32px] border border-border shadow-sm p-8 mb-8 text-left">
+      <h3 className="text-xs font-black text-text-muted uppercase tracking-widest mb-6 flex items-center gap-2">
         <RiFileUploadLine className="text-lg" />
         {t.processDetail.rfe.finalPackageTitle}
       </h3>
 
       <div className="space-y-6">
-        <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl text-center">
+        <div className="p-6 bg-bg-subtle border border-border rounded-2xl text-center">
           {rfeFinalPath ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 text-left">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-success/10 text-success flex items-center justify-center">
                   <RiCheckDoubleLine className="text-xl" />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-slate-800 uppercase">{t.processDetail.rfe.finalPackageReady}</p>
-                  <p className="text-[10px] text-slate-400 font-bold truncate max-w-[200px]">{rfeFinalPath}</p>
+                  <p className="text-xs font-black text-text uppercase">{t.processDetail.rfe.finalPackageReady}</p>
+                  <p className="text-[10px] text-text-muted font-bold truncate max-w-[200px]">{rfeFinalPath}</p>
                 </div>
               </div>
               <a
@@ -1040,9 +1039,9 @@ function RFEFinalShipPanel({ proc, onApprove, onRefresh, isActive }: { proc: Pro
             </div>
           ) : (
             <div className="py-4">
-              <RiFileTextLine className="text-4xl text-slate-200 mx-auto mb-3" />
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">{t.shared.table.empty}</p>
-              <label className="bg-white border border-slate-200 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-slate-50 transition-all shadow-sm inline-flex items-center gap-2">
+              <RiFileTextLine className="text-4xl text-border mx-auto mb-3" />
+              <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-6">{t.shared.table.empty}</p>
+              <label className="bg-card border border-border px-6 py-3 rounded-xl text-[10px] font-black text-text uppercase tracking-widest cursor-pointer hover:bg-bg-subtle transition-all shadow-sm inline-flex items-center gap-2">
                 <RiFileUploadLine className="text-lg" />
                 {t.processDetail.rfe.selectFinalPdf}
                 <input
@@ -1060,7 +1059,7 @@ function RFEFinalShipPanel({ proc, onApprove, onRefresh, isActive }: { proc: Pro
           <button
             onClick={() => onApprove()}
             disabled={loading || !rfeFinalPath}
-            className="w-full h-14 bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full h-14 bg-success text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-success/90 shadow-xl shadow-success/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.rfe.provideToClient}</>}
           </button>
@@ -1107,26 +1106,26 @@ function B1B2CredentialsPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
   };
 
   return (
-    <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-8 mb-8 text-left">
-      <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+    <div className="bg-card rounded-[32px] border border-border shadow-sm p-8 mb-8 text-left">
+      <h3 className="text-xs font-black text-text-muted uppercase tracking-widest mb-6 flex items-center gap-2">
         <RiShieldCheckLine className="text-lg" />
         {t.processDetail.credentials.title}
       </h3>
       <div className="space-y-4">
         <div>
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">{t.processDetail.credentials.appId}</label>
-          <input type="text" value={appId} onChange={e => setAppId(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-black outline-none focus:ring-4 focus:ring-primary/5 transition-all uppercase" placeholder="Ex: AA00XXXXXX" />
+          <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2 px-1">{t.processDetail.credentials.appId}</label>
+          <input type="text" value={appId} onChange={e => setAppId(e.target.value)} className="w-full bg-bg-subtle border border-border rounded-2xl p-4 text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/5 transition-all uppercase" placeholder="Ex: AA00XXXXXX" />
         </div>
         <div>
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">{t.processDetail.credentials.motherName}</label>
-          <input type="text" value={motherName} onChange={e => setMotherName(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-black outline-none focus:ring-4 focus:ring-primary/5 transition-all uppercase" placeholder="Ex: SILVA" />
+          <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2 px-1">{t.processDetail.credentials.motherName}</label>
+          <input type="text" value={motherName} onChange={e => setMotherName(e.target.value)} className="w-full bg-bg-subtle border border-border rounded-2xl p-4 text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/5 transition-all uppercase" placeholder="Ex: SILVA" />
         </div>
         <div>
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">{t.processDetail.credentials.birthYear}</label>
-          <input type="text" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-black outline-none focus:ring-4 focus:ring-primary/5 transition-all" placeholder="Ex: 1990" />
+          <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2 px-1">{t.processDetail.credentials.birthYear}</label>
+          <input type="text" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="w-full bg-bg-subtle border border-border rounded-2xl p-4 text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/5 transition-all" placeholder="Ex: 1990" />
         </div>
         {isActive && (
-          <button onClick={handleSaveAndApprove} disabled={loading} className="w-full h-14 bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50">
+          <button onClick={handleSaveAndApprove} disabled={loading} className="w-full h-14 bg-success text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-success/90 shadow-xl shadow-success/20 transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50">
             {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.credentials.sendBtn}</>}
           </button>
         )}
@@ -1168,7 +1167,8 @@ export default function AdminProcessDetailPage() {
       if (error) throw error;
       setProc(data as ProcessWithUser);
       if (data?.step_data?.generatedCoverLetterHTML) {
-        setCoverLetterHtml(data.step_data.generatedCoverLetterHTML);
+        const rawHtml = data.step_data.generatedCoverLetterHTML as string;
+        setCoverLetterHtml(rawHtml.replace(/color:\s*#000;?/gi, '').replace(/color:\s*black;?/gi, ''));
       }
     } catch (err: unknown) {
       console.error("Error loading process:", err);
@@ -1185,7 +1185,7 @@ export default function AdminProcessDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-bg">
         <RiLoader4Line className="text-4xl text-primary animate-spin" />
       </div>
     );
@@ -1193,8 +1193,8 @@ export default function AdminProcessDetailPage() {
 
   if (!proc) {
     return (
-      <div className="p-12 text-center">
-        <p className="text-slate-400">{t.cases.messages.loadError}</p>
+      <div className="p-12 text-center bg-bg min-h-screen">
+        <p className="text-text-muted">{t.cases.messages.loadError}</p>
         <button onClick={() => navigate("/admin/processes")} className="mt-4 text-primary font-bold">{t.shared.back}</button>
       </div>
     );
@@ -1412,13 +1412,13 @@ export default function AdminProcessDetailPage() {
             const isSelected = selectedItems.includes(key);
 
             return (
-              <div key={key} className={`${isArray ? 'col-span-full' : 'border-b border-slate-100 pb-4'}`}>
+              <div key={key} className={`${isArray ? 'col-span-full' : 'border-b border-border pb-4'}`}>
                 <div className="flex justify-between items-center mb-3 px-1">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight">{key.replace(/([A-Z])/g, ' $1')}</p>
+                  <p className="text-[10px] font-black text-text-muted uppercase tracking-tight">{key.replace(/([A-Z])/g, ' $1')}</p>
                   {isActive && (
                     <button
                       onClick={() => toggleItem(key)}
-                      className={`p-1.5 rounded-lg transition-all ${isSelected ? 'bg-red-500 text-white shadow-lg shadow-red-200' : 'text-slate-300 hover:bg-slate-100'}`}
+                      className={`p-1.5 rounded-lg transition-all ${isSelected ? 'bg-danger text-white shadow-lg shadow-danger/20' : 'text-text-muted hover:bg-bg-subtle'}`}
                       title="Marcar para correção"
                     >
                       <RiErrorWarningLine className="text-sm" />
@@ -1429,32 +1429,32 @@ export default function AdminProcessDetailPage() {
                 {isArray ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {(value as unknown[]).map((item, idx) => (
-                      <div key={idx} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
-                        <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-3">
+                      <div key={idx} className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
+                        <div className="flex items-center justify-between mb-4 border-b border-border/50 pb-3">
                           <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-[11px] font-black">
                               {idx + 1}
                             </div>
-                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-tight">{t.shared.registration}</span>
+                            <span className="text-[10px] font-black text-text uppercase tracking-tight">{t.shared.registration}</span>
                           </div>
                         </div>
                         <div className="space-y-3">
                           {typeof item === 'object' && item !== null ? (
                             Object.entries(item as Record<string, unknown>).filter(([k]) => k !== 'id').map(([k, v]) => (
                               <div key={k} className="flex justify-between items-start gap-4 text-[11px]">
-                                <span className="text-slate-400 font-bold uppercase shrink-0">{k.replace(/([A-Z])/g, ' $1')}:</span>
-                                <span className="text-slate-700 font-black text-right">{String(v)}</span>
+                                <span className="text-text-muted font-bold uppercase shrink-0">{k.replace(/([A-Z])/g, ' $1')}:</span>
+                                <span className="text-text font-black text-right">{String(v)}</span>
                               </div>
                             ))
                           ) : (
-                            <div className="text-[11px] text-slate-700 font-black">{String(item)}</div>
+                            <div className="text-[11px] text-text font-black">{String(item)}</div>
                           )}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm font-bold text-slate-700 px-1">
+                  <p className="text-sm font-bold text-text px-1">
                     {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                   </p>
                 )}
@@ -1482,18 +1482,18 @@ export default function AdminProcessDetailPage() {
         isPast={isPast}
       >
         <div className="flex flex-col md:flex-row gap-6">
-          <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isSelected ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-100'}`}>
-            <div className="w-16 h-16 bg-red-100 text-red-500 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+          <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+            <div className="w-16 h-16 bg-danger/10 text-danger rounded-2xl flex items-center justify-center mb-4 shadow-sm">
               <RiFileTextLine className="text-3xl" />
             </div>
-            <h4 className="font-black text-slate-800 text-lg mb-1">{t.processDetail.officialForms.i539Form}</h4>
-            <p className="text-xs text-slate-500 font-medium mb-6">{t.processDetail.officialForms.digitalDocDesc}</p>
+            <h4 className="font-black text-text text-lg mb-1">{t.processDetail.officialForms.i539Form}</h4>
+            <p className="text-xs text-text-muted font-medium mb-6">{t.processDetail.officialForms.digitalDocDesc}</p>
             <div className="flex gap-3 w-full">
-              <a href={pdfUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+              <a href={pdfUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                 <RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}
               </a>
               {isActive && (
-                <button onClick={() => toggleItem('i539PdfUrl')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isSelected ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'}`}>
+                <button onClick={() => toggleItem('i539PdfUrl')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                   <RiErrorWarningLine className="text-sm" /> {t.processDetail.officialForms.reject}
                 </button>
               )}
@@ -1513,7 +1513,7 @@ export default function AdminProcessDetailPage() {
       <CollapsibleStep title={t.processDetail.coverLetter.title || "Análise: Cover Letter"} icon={RiFileTextLine} isActive={isActive} isPast={isPast}>
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h4 className="font-black text-slate-800 text-lg">{t.processDetail.coverLetter.finalLetter}</h4>
+            <h4 className="font-black text-text text-lg">{t.processDetail.coverLetter.finalLetter}</h4>
             {isActive && (
               <button onClick={() => handleGenerateCoverLetter()} disabled={isGeneratingCoverLetter} className="bg-primary text-white text-xs font-black uppercase tracking-widest px-6 py-3 rounded-xl flex items-center gap-2 disabled:opacity-50">
                 {isGeneratingCoverLetter ? <RiLoader4Line className="animate-spin text-lg" /> : <RiFileTextLine className="text-lg" />}
@@ -1525,8 +1525,8 @@ export default function AdminProcessDetailPage() {
             contentEditable={isActive}
             suppressContentEditableWarning={true}
             onBlur={(e) => isActive && setCoverLetterHtml(e.currentTarget.innerHTML)}
-            className={`w-full min-h-[500px] bg-white border border-slate-200 rounded-2xl p-8 overflow-y-auto shadow-sm prose prose-sm max-w-none text-slate-700 ${isActive ? 'outline-none focus:ring-4 focus:ring-primary/20' : 'opacity-80'}`}
-            dangerouslySetInnerHTML={{ __html: coverLetterHtml }}
+            className={`w-full min-h-[500px] bg-card border border-border rounded-2xl p-8 overflow-y-auto shadow-sm prose prose-sm dark:prose-invert max-w-none text-text dark:text-white ${isActive ? 'outline-none focus:ring-4 focus:ring-primary/20' : 'opacity-80'}`}
+            dangerouslySetInnerHTML={{ __html: coverLetterHtml.replace(/color:\s*#000;?/gi, '').replace(/color:\s*black;?/gi, '') }}
           />
         </div>
       </CollapsibleStep>
@@ -1546,21 +1546,21 @@ export default function AdminProcessDetailPage() {
       <CollapsibleStep title={`${t.processDetail.finalForms?.g1145} / ${t.processDetail.finalForms?.g1450}`} icon={RiBankCardLine} isActive={isActive} isPast={isPast}>
         <div className="space-y-6">
           {g1145PdfUrl && (
-            <div className="flex items-center justify-between p-6 bg-slate-50 border border-slate-200 rounded-2xl">
+            <div className="flex items-center justify-between p-6 bg-bg-subtle border border-border rounded-2xl">
               <div className="flex items-center gap-4">
-                <RiFileTextLine className="text-2xl text-blue-600" />
-                <h4 className="text-sm font-black text-slate-800">G-1145</h4>
+                <RiFileTextLine className="text-2xl text-info" />
+                <h4 className="text-sm font-black text-text">G-1145</h4>
               </div>
-              <a href={g1145PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-blue-600 text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
+              <a href={g1145PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-info text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
             </div>
           )}
           {g1450PdfUrl && (
-            <div className="flex items-center justify-between p-6 bg-slate-50 border border-slate-200 rounded-2xl">
+            <div className="flex items-center justify-between p-6 bg-bg-subtle border border-border rounded-2xl">
               <div className="flex items-center gap-4">
-                <RiBankCardLine className="text-2xl text-indigo-600" />
-                <h4 className="text-sm font-black text-slate-800">G-1450</h4>
+                <RiBankCardLine className="text-2xl text-primary" />
+                <h4 className="text-sm font-black text-text">G-1450</h4>
               </div>
-              <a href={g1450PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-indigo-600 text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
+              <a href={g1450PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-primary text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
             </div>
           )}
         </div>
@@ -1586,18 +1586,18 @@ export default function AdminProcessDetailPage() {
             const isSelected = selectedItems.includes(`docs.${key}`);
 
             return (
-              <div key={key} className={`p-4 rounded-2xl border transition-all ${isSelected ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-100'}`}>
+              <div key={key} className={`p-4 rounded-2xl border transition-all ${isSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-tight truncate pr-2">
+                  <h4 className="text-[10px] font-black text-text uppercase tracking-tight truncate pr-2">
                     {key.replace(/_/g, ' ')}
                   </h4>
                   {isActive && (
-                    <button onClick={() => toggleItem(`docs.${key}`)} className={`p-1.5 rounded-lg transition-all ${isSelected ? 'bg-red-500 text-white' : 'text-slate-300 hover:bg-slate-100'}`}>
+                    <button onClick={() => toggleItem(`docs.${key}`)} className={`p-1.5 rounded-lg transition-all ${isSelected ? 'bg-danger text-white' : 'text-text-muted hover:bg-bg-subtle'}`}>
                       <RiErrorWarningLine className="text-sm" />
                     </button>
                   )}
                 </div>
-                <a href={url} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 text-[9px] font-black uppercase tracking-widest py-2 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+                <a href={url} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                   {t.processDetail.officialForms.viewPdf}
                 </a>
               </div>
@@ -1625,17 +1625,17 @@ export default function AdminProcessDetailPage() {
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {i20Url && (
-              <div className={`p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${selectedItems.includes('docs.i20_document') ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-100'}`}>
-                <div className="w-16 h-16 bg-violet-100 text-violet-500 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+              <div className={`p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${selectedItems.includes('docs.i20_document') ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+                <div className="w-16 h-16 bg-info/10 text-info rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <RiFileTextLine className="text-3xl" />
                 </div>
-                <h4 className="font-black text-slate-800 text-sm mb-1 uppercase">Formulário I-20</h4>
+                <h4 className="font-black text-text text-sm mb-1 uppercase">Formulário I-20</h4>
                 <div className="flex gap-2 w-full mt-4">
-                  <a href={i20Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+                  <a href={i20Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                     {t.processDetail.officialForms.viewPdf}
                   </a>
                   {isActive && (
-                    <button onClick={() => toggleItem('docs.i20_document')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.i20_document') ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'}`}>
+                    <button onClick={() => toggleItem('docs.i20_document')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.i20_document') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                       {t.processDetail.i20Sevis.rejectBtn}
                     </button>
                   )}
@@ -1643,17 +1643,17 @@ export default function AdminProcessDetailPage() {
               </div>
             )}
             {sevisUrl && (
-              <div className={`p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${selectedItems.includes('docs.sevis_receipt') ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-100'}`}>
-                <div className="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+              <div className={`p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${selectedItems.includes('docs.sevis_receipt') ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+                <div className="w-16 h-16 bg-success/10 text-success rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <RiMoneyDollarCircleLine className="text-3xl" />
                 </div>
-                <h4 className="font-black text-slate-800 text-sm mb-1 uppercase">Recibo SEVIS</h4>
+                <h4 className="font-black text-text text-sm mb-1 uppercase">Recibo SEVIS</h4>
                 <div className="flex gap-2 w-full mt-4">
-                  <a href={sevisUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+                  <a href={sevisUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                     {t.processDetail.officialForms.viewPdf}
                   </a>
                   {isActive && (
-                    <button onClick={() => toggleItem('docs.sevis_receipt')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.sevis_receipt') ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'}`}>
+                    <button onClick={() => toggleItem('docs.sevis_receipt')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.sevis_receipt') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                       {t.processDetail.i20Sevis.rejectBtn}
                     </button>
                   )}
@@ -1661,13 +1661,12 @@ export default function AdminProcessDetailPage() {
               </div>
             )}
           </div>
-
           {isActive && (
-            <div className="flex items-center gap-4 pt-4 border-t border-slate-100">
-              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-red-200 hover:text-red-500 hover:bg-red-50">
+            <div className="flex items-center gap-4 pt-4 border-t border-border">
+              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10">
                 <RiCloseLine className="text-xl" /> {t.processDetail.i20Sevis.requestCorrection}
               </button>
-              <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-emerald-500 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-emerald-200">
+              <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-success text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-success/20">
                 {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.i20Sevis.approveBtn}</>}
               </button>
             </div>
@@ -1694,17 +1693,17 @@ export default function AdminProcessDetailPage() {
         <div className="flex flex-col gap-6">
           <div className="max-w-md">
             {i20Url && (
-              <div className={`p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isI20Selected ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-100'}`}>
-                <div className="w-16 h-16 bg-violet-100 text-violet-500 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+              <div className={`p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isI20Selected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+                <div className="w-16 h-16 bg-info/10 text-info rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <RiFileTextLine className="text-3xl" />
                 </div>
-                <h4 className="font-black text-slate-800 text-sm mb-1 uppercase">Formulário I-20</h4>
+                <h4 className="font-black text-text text-sm mb-1 uppercase">Formulário I-20</h4>
                 <div className="flex gap-2 w-full mt-4">
-                  <a href={i20Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+                  <a href={i20Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                     {t.processDetail.officialForms.viewPdf}
                   </a>
                   {isActive && (
-                    <button onClick={() => toggleItem('docs.i20_document')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${isI20Selected ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'}`}>
+                    <button onClick={() => toggleItem('docs.i20_document')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${isI20Selected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                       {t.processDetail.i20Sevis.rejectBtn}
                     </button>
                   )}
@@ -1712,10 +1711,9 @@ export default function AdminProcessDetailPage() {
               </div>
             )}
           </div>
-
           {isActive && (
-            <div className="flex items-center gap-4 pt-4 border-t border-slate-100">
-              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-red-200 hover:text-red-500 hover:bg-red-50">
+            <div className="flex items-center gap-4 pt-4 border-t border-border">
+              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10">
                 <RiCloseLine className="text-xl" /> {t.processDetail.i20Sevis.requestCorrection}
               </button>
               <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-primary text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/20">
@@ -1747,29 +1745,29 @@ export default function AdminProcessDetailPage() {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col md:flex-row gap-6">
             {ds160Url && (
-              <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isDsSelected ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-100'}`}>
-                <div className="w-16 h-16 bg-blue-100 text-blue-500 rounded-2xl flex items-center justify-center mb-4 shadow-sm"><RiFileTextLine className="text-3xl" /></div>
-                <h4 className="font-black text-slate-800 text-lg mb-1">{t.processDetail.f1FinalDocs.ds160Signed}</h4>
+              <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isDsSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+                <div className="w-16 h-16 bg-info/10 text-info rounded-2xl flex items-center justify-center mb-4 shadow-sm"><RiFileTextLine className="text-3xl" /></div>
+                <h4 className="font-black text-text text-lg mb-1">{t.processDetail.f1FinalDocs.ds160Signed}</h4>
                 <div className="flex gap-3 w-full mt-4">
-                  <a href={ds160Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-slate-50 transition-all shadow-sm"><RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}</a>
-                  {isActive && <button onClick={() => toggleItem('docs.ds160_assinada')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'}`}><RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}</button>}
+                  <a href={ds160Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm"><RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}</a>
+                  {isActive && <button onClick={() => toggleItem('docs.ds160_assinada')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}</button>}
                 </div>
               </div>
             )}
             {comprovanteUrl && (
-              <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isComprovanteSelected ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-100'}`}>
-                <div className="w-16 h-16 bg-indigo-100 text-indigo-500 rounded-2xl flex items-center justify-center mb-4 shadow-sm"><RiFileTextLine className="text-3xl" /></div>
-                <h4 className="font-black text-slate-800 text-lg mb-1">{t.processDetail.f1FinalDocs.finalProof}</h4>
+              <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isComprovanteSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+                <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-4 shadow-sm"><RiFileTextLine className="text-3xl" /></div>
+                <h4 className="font-black text-text text-lg mb-1">{t.processDetail.f1FinalDocs.finalProof}</h4>
                 <div className="flex gap-3 w-full mt-4">
-                  <a href={comprovanteUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-slate-50 transition-all shadow-sm"><RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}</a>
-                  {isActive && <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'}`}><RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}</button>}
+                  <a href={comprovanteUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm"><RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}</a>
+                  {isActive && <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}</button>}
                 </div>
               </div>
             )}
           </div>
           {isActive && (
-            <div className="flex items-center gap-4 pt-4 border-t border-slate-100">
-              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-red-200 hover:text-red-500 hover:bg-red-50"><RiCloseLine className="text-xl" /> {t.processDetail.i20Sevis.requestCorrection}</button>
+            <div className="flex items-center gap-4 pt-4 border-t border-border">
+              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"><RiCloseLine className="text-xl" /> {t.processDetail.i20Sevis.requestCorrection}</button>
               <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-primary text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/20">{isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.f1FinalDocs.approveBtn}</>}</button>
             </div>
           )}
@@ -1811,17 +1809,17 @@ export default function AdminProcessDetailPage() {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col md:flex-row gap-6">
             {ds160Url && (
-              <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isDsSelected ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-100'}`}>
-                <div className="w-16 h-16 bg-blue-100 text-blue-500 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+              <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isDsSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+                <div className="w-16 h-16 bg-info/10 text-info rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <RiFileTextLine className="text-3xl" />
                 </div>
-                <h4 className="font-black text-slate-800 text-lg mb-1">{t.processDetail.f1FinalDocs.ds160Signed}</h4>
+                <h4 className="font-black text-text text-lg mb-1">{t.processDetail.f1FinalDocs.ds160Signed}</h4>
                 <div className="flex gap-3 w-full mt-4">
-                  <a href={ds160Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+                  <a href={ds160Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                     <RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}
                   </a>
                   {isActive && (
-                    <button onClick={() => toggleItem('docs.ds160_assinada')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'}`}>
+                    <button onClick={() => toggleItem('docs.ds160_assinada')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                       <RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}
                     </button>
                   )}
@@ -1830,17 +1828,17 @@ export default function AdminProcessDetailPage() {
             )}
 
             {comprovanteUrl && (
-              <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isComprovanteSelected ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-100'}`}>
-                <div className="w-16 h-16 bg-indigo-100 text-indigo-500 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+              <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isComprovanteSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+                <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <RiFileTextLine className="text-3xl" />
                 </div>
-                <h4 className="font-black text-slate-800 text-lg mb-1">{t.processDetail.b1b2FinalDocs.ceacProof}</h4>
+                <h4 className="font-black text-text text-lg mb-1">{t.processDetail.f1FinalDocs.finalProof}</h4>
                 <div className="flex gap-3 w-full mt-4">
-                  <a href={comprovanteUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
+                  <a href={comprovanteUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                     <RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}
                   </a>
                   {isActive && (
-                    <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'}`}>
+                    <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                       <RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}
                     </button>
                   )}
@@ -1849,19 +1847,18 @@ export default function AdminProcessDetailPage() {
             )}
           </div>
 
-          {/* Ações de aprovação / rejeição para etapa 5 */}
           {isActive && (
-            <div className="flex items-center gap-4 pt-4 border-t border-slate-100">
+            <div className="flex items-center gap-4 pt-4 border-t border-border">
               <button
                 onClick={() => setShowRejectionModal(true)}
-                className="flex-1 h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-red-200 hover:text-red-500 hover:bg-red-50"
+                className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
               >
                 <RiCloseLine className="text-xl" /> {t.processDetail.i20Sevis.requestCorrection}
               </button>
               <button
                 onClick={() => handleApproveStep()}
                 disabled={isSubmitting}
-                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-emerald-500/20"
+                className="flex-1 bg-success hover:bg-success/90 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-success/20"
               >
                 {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.b1b2FinalDocs.approveBtn}</>}
               </button>
@@ -1899,49 +1896,46 @@ export default function AdminProcessDetailPage() {
         badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}
       >
         <div className="space-y-6">
-          {/* Consulado */}
-          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">{t.processDetail.casv.selectedConsulate}</p>
+          <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
+            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3">{t.processDetail.casv.selectedConsulate}</p>
             {consuladoInfo ? (
               <div className="flex items-center gap-4">
                 <span className="text-4xl">{consuladoInfo.flag}</span>
                 <div>
-                  <h4 className="font-black text-slate-800 text-base">{consuladoInfo.cidade}</h4>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{consuladoInfo.estado}</p>
+                  <h4 className="font-black text-text text-base">{consuladoInfo.cidade}</h4>
+                  <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{consuladoInfo.estado}</p>
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-slate-500 font-medium">{t.processDetail.casv.noConsulate}</p>
+              <p className="text-sm text-text-muted font-medium">{t.processDetail.casv.noConsulate}</p>
             )}
           </div>
 
-          {/* Data solicitada */}
-          <div className="p-5 rounded-2xl bg-sky-50 border border-sky-100">
-            <p className="text-[10px] font-black text-sky-800 uppercase tracking-widest mb-1">{t.processDetail.casv.preferredDate}</p>
+          <div className="p-5 rounded-2xl bg-info/10 border border-info/20">
+            <p className="text-[10px] font-black text-info uppercase tracking-widest mb-1">{t.processDetail.casv.preferredDate}</p>
             {casvDate ? (
-              <p className="text-lg font-black text-slate-800">
+              <p className="text-lg font-black text-text">
                 {new Date(casvDate + "T12:00:00").toLocaleDateString("pt-BR", {
                   weekday: "long", day: "2-digit", month: "long", year: "numeric",
                 })}
               </p>
             ) : (
-              <p className="text-sm text-slate-400 italic">{t.processDetail.casv.noDate}</p>
+              <p className="text-sm text-text-muted italic">{t.processDetail.casv.noDate}</p>
             )}
           </div>
 
-          {/* Ações */}
           {isActive && proc.status === "awaiting_review" && casvDate && (
-            <div className="flex items-center gap-4 pt-2 border-t border-slate-100">
+            <div className="flex items-center gap-4 pt-2 border-t border-border">
               <button
                 onClick={() => setShowRejectionModal(true)}
-                className="flex-1 h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-red-200 hover:text-red-500 hover:bg-red-50"
+                className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
               >
                 <RiCloseLine className="text-xl" /> {t.processDetail.casv.requestAdjustment}
               </button>
               <button
                 onClick={() => handleApproveStep()}
                 disabled={isSubmitting}
-                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-emerald-500/20"
+                className="flex-1 bg-success hover:bg-success/90 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-success/20"
               >
                 {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.casv.confirmBtn}</>}
               </button>
@@ -1960,29 +1954,29 @@ export default function AdminProcessDetailPage() {
 
     const email = (proc.step_data?.primaryEmail || proc.user_accounts?.email || "Não informado") as string;
     const name = (proc.step_data?.fullName || proc.user_accounts?.full_name || "Não informado") as string;
-    const phone = (proc.step_data?.primaryPhone || proc.user_accounts?.phone || "Não informado") as string;
+    const phone = (proc.step_data?.phone || "Não informado") as string;
 
     return (
-      <CollapsibleStep title={t.processDetail.accountCreation.title} icon={RiMailCheckLine} isActive={isActive} isPast={isPast} badge={t.overview.stats.administrativeAction}>
+      <CollapsibleStep title={t.processDetail.accountCreation.title} icon={RiUser3Line} isActive={isActive} isPast={isPast} badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}>
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-left">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nome Completo</p>
-              <p className="text-sm font-bold text-slate-800">{name || "Não informado"}</p>
+            <div className="p-4 rounded-xl bg-bg-subtle border border-border text-left">
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Nome Completo</p>
+              <p className="text-sm font-bold text-text">{name || "Não informado"}</p>
             </div>
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-left">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">E-mail</p>
-              <p className="text-sm font-bold text-slate-800">{email || "Não informado"}</p>
+            <div className="p-4 rounded-xl bg-bg-subtle border border-border text-left">
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">E-mail</p>
+              <p className="text-sm font-bold text-text">{email || "Não informado"}</p>
             </div>
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-left">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Telefone</p>
-              <p className="text-sm font-bold text-slate-800">{phone || "Não informado"}</p>
+            <div className="p-4 rounded-xl bg-bg-subtle border border-border text-left">
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Telefone</p>
+              <p className="text-sm font-bold text-text">{phone || "Não informado"}</p>
             </div>
           </div>
 
           {isActive && (
-            <div className="pt-4 border-t border-slate-100 text-left">
-              <p className="text-xs text-slate-500 font-medium mb-4 italic">
+            <div className="pt-4 border-t border-border text-left">
+              <p className="text-xs text-text-muted font-medium mb-4 italic">
                 {t.processDetail.accountCreation.instruction}
               </p>
               <button
@@ -2034,8 +2028,8 @@ export default function AdminProcessDetailPage() {
     return (
       <CollapsibleStep title={`${proc.service_slug === 'extensao-status' ? 'EOS' : 'COS'} Final Package`} icon={RiCheckDoubleLine} isActive={isActive} isPast={isPast}>
         {!finalPackageUrl ? (
-          <div className="text-center py-10 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[28px]">
-            <RiFileTextLine className="text-4xl text-slate-300 mx-auto mb-4" />
+          <div className="text-center py-10 bg-bg-subtle border-2 border-dashed border-border rounded-[28px]">
+            <RiFileTextLine className="text-4xl text-text-muted/30 mx-auto mb-4" />
             <button
               onClick={async () => {
                 try {
@@ -2055,14 +2049,14 @@ export default function AdminProcessDetailPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="flex items-center justify-between p-6 bg-emerald-50 border border-emerald-100 rounded-2xl">
+            <div className="flex items-center justify-between p-6 bg-success/10 border border-success/20 rounded-2xl">
               <div className="flex items-center gap-4">
-                <RiCheckDoubleLine className="text-2xl text-emerald-600" />
-                <h4 className="text-sm font-black text-slate-800">Pacote Final Pronto</h4>
+                <RiCheckDoubleLine className="text-2xl text-success" />
+                <h4 className="text-sm font-black text-text">Pacote Final Pronto</h4>
               </div>
               <div className="flex gap-2">
-                <a href={finalPackageUrl} target="_blank" rel="noreferrer" className="bg-white border border-slate-200 px-6 py-2.5 rounded-xl font-black text-[10px] uppercase flex items-center gap-2"><RiDownload2Line /> {t.processDetail.finalPackage.reviewPdf}</a>
-                <button onClick={() => handleApproveStep()} className="px-8 py-2.5 bg-emerald-500 text-white font-black text-[10px] uppercase rounded-xl transition-all">{t.processDetail.finalPackage.approveBtn}</button>
+                <a href={finalPackageUrl} target="_blank" rel="noreferrer" className="bg-card border border-border text-text px-6 py-2.5 rounded-xl font-black text-[10px] uppercase flex items-center gap-2"><RiDownload2Line /> {t.processDetail.finalPackage.reviewPdf}</a>
+                <button onClick={() => handleApproveStep()} className="px-8 py-2.5 bg-success text-white font-black text-[10px] uppercase rounded-xl transition-all">{t.processDetail.finalPackage.approveBtn}</button>
               </div>
             </div>
           </div>
@@ -2072,19 +2066,19 @@ export default function AdminProcessDetailPage() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto pb-24">
+    <div className="p-8 max-w-6xl mx-auto pb-24 bg-bg min-h-screen">
       <div className="flex items-start justify-between mb-12">
         <div className="flex items-center gap-6">
-          <button onClick={() => navigate("/admin/processes")} className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary transition-all shadow-sm">
+          <button onClick={() => navigate("/admin/processes")} className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-text-muted hover:text-primary transition-all shadow-sm">
             <RiArrowLeftLine className="text-xl" />
           </button>
           <div>
-            <h1 className="font-display font-black text-3xl text-slate-800 tracking-tight">{proc.user_accounts?.full_name}</h1>
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{service?.title}</p>
+            <h1 className="font-display font-black text-3xl text-text tracking-tight">{proc.user_accounts?.full_name}</h1>
+            <p className="text-xs text-text-muted font-bold uppercase tracking-wider">{service?.title}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm text-slate-500 text-[10px] font-black uppercase tracking-widest">
-          <RiCalendarLine className="text-slate-400" />
+        <div className="flex items-center gap-3 bg-card px-5 py-3 rounded-2xl border border-border shadow-sm text-text-muted text-[10px] font-black uppercase tracking-widest">
+          <RiCalendarLine className="text-text-muted" />
           <span className="flex items-center gap-1.5">{new Date(proc.created_at).toLocaleDateString()}</span>
         </div>
       </div>
@@ -2107,33 +2101,30 @@ export default function AdminProcessDetailPage() {
           {renderB1B2MRVSetupAdmin()}
           {renderB1B2FinalSchedulingAdmin()}
 
-          {/* RFE Admin Actions */}
           {currentStepBaseId === "cos_rfe_proposal" && (
             <CollapsibleStep title="Proposta de RFE" icon={RiShieldCheckLine} isActive={true} isPast={false} badge="Ação Administrativa">
               <RFEProposalPanel proc={proc} onRefresh={fetchProcessData} isActive={true} />
             </CollapsibleStep>
           )}
 
-          {/* Motion Admin Actions */}
           {(currentStepBaseId === "cos_motion_proposal" || workflowStatus === "awaiting_proposal") && (
             <CollapsibleStep title="Proposta de Motion" icon={RiShieldCheckLine} isActive={true} isPast={false} badge="Ação Administrativa">
               <MotionProposalPanel proc={proc} onRefresh={fetchProcessData} isActive={true} />
             </CollapsibleStep>
           )}
 
-          {/* Shipments */}
           {currentStepBaseId === "cos_rfe_end" && (
             <CollapsibleStep title="Resultado RFE" icon={RiFileUploadLine} isActive={true} isPast={false} badge="Ação Administrativa">
               <RFEFinalShipPanel proc={proc} onApprove={handleApproveStep} onRefresh={fetchProcessData} isActive={true} />
             </CollapsibleStep>
           )}
-          {/* Default Analysis for everything else */}
+
           {currentStep?.type === "admin_action" && !["cos_rfe_proposal", "cos_motion_proposal", "cos_rfe_end", "b1b2_admin_credentials", "b1b2_admin_final_analysis", "b1b2_casv_scheduling", "b1b2_admin_account_creation", "b1b2_admin_mrv_setup", "b1b2_final_scheduling"].includes(currentStepBaseId || "") && (
             <div className="flex items-center gap-4 pt-4">
-              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black text-xs uppercase transition-all flex items-center justify-center gap-2">
+              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase transition-all flex items-center justify-center gap-2">
                 <RiCloseLine className="text-xl" /> {t.analysisPanel.actions.requestMoreInfo}
               </button>
-              <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white h-14 rounded-2xl font-black text-xs uppercase transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+              <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-success hover:bg-success/90 text-white h-14 rounded-2xl font-black text-xs uppercase transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                 {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.cases.actions.approve}</>}
               </button>
             </div>
@@ -2141,9 +2132,9 @@ export default function AdminProcessDetailPage() {
         </div>
 
         <div className="space-y-8">
-          <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-8">
+          <div className="bg-card rounded-[32px] border border-border shadow-sm p-8">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="font-black text-slate-800 text-lg uppercase">{t.cases.table.flowActions}</h3>
+              <h3 className="font-black text-text text-lg uppercase">{t.cases.table.flowActions}</h3>
               <div className="px-3 py-1 bg-primary/5 rounded-lg text-primary text-[10px] font-black uppercase tracking-widest">
                 Etapa {currentStepIdx + 1} de {effectiveSteps.length}
               </div>
@@ -2151,10 +2142,10 @@ export default function AdminProcessDetailPage() {
             <div className="space-y-4">
               {effectiveSteps.map((step, i) => (
                 <div key={step.id} className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${i < currentStepIdx ? 'bg-emerald-500 text-white' : i === currentStepIdx ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400'}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${i < currentStepIdx ? 'bg-success text-white' : i === currentStepIdx ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/20' : 'bg-bg-subtle text-text-muted'}`}>
                     {i < currentStepIdx ? <RiCheckLine /> : i + 1}
                   </div>
-                  <span className={`text-[11px] font-bold uppercase tracking-tight transition-all ${i <= currentStepIdx ? 'text-slate-700' : 'text-slate-400'}`}>
+                  <span className={`text-[11px] font-bold uppercase tracking-tight transition-all ${i <= currentStepIdx ? 'text-text' : 'text-text-muted'}`}>
                     {vt.processSteps[step.id]?.title || step.title}
                   </span>
                 </div>
@@ -2162,33 +2153,30 @@ export default function AdminProcessDetailPage() {
             </div>
           </div>
 
-          {/* Purchases Panel */}
           <PurchasesPanel stepData={proc?.step_data} />
 
-          {/* Process Log Panel */}
           <ProcessLogPanel
             serviceId={proc.id}
             clientName={proc.user_accounts?.full_name || proc.user_accounts?.email || "Cliente"}
           />
-
         </div>
       </div>
 
       <AnimatePresence>
         {showRejectionModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowRejectionModal(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-lg bg-white rounded-[32px] p-8 shadow-2xl">
-              <h3 className="font-display font-black text-slate-800 text-xl mb-4">{t.analysisPanel.actions.requestMoreInfo}</h3>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowRejectionModal(false)} className="absolute inset-0 bg-bg/80 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-lg bg-card border border-border rounded-[32px] p-8 shadow-2xl">
+              <h3 className="font-display font-black text-text text-xl mb-4">{t.analysisPanel.actions.requestMoreInfo}</h3>
               <textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder={t.analysisPanel.finalMessagePlaceholder}
-                className="w-full h-40 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm font-medium outline-none mb-6 resize-none"
+                className="w-full h-40 rounded-2xl border border-border bg-bg-subtle p-4 text-sm font-medium text-text outline-none mb-6 resize-none"
               />
               <div className="flex gap-4">
-                <button onClick={() => setShowRejectionModal(false)} className="flex-1 h-12 font-black text-[10px] uppercase">{t.shared.cancel}</button>
-                <button onClick={handleRejectStep} disabled={!rejectionReason || isSubmitting} className="flex-[2] h-12 bg-red-500 text-white rounded-xl font-black text-[10px] uppercase">
+                <button onClick={() => setShowRejectionModal(false)} className="flex-1 h-12 font-black text-[10px] text-text-muted uppercase">{t.shared.cancel}</button>
+                <button onClick={handleRejectStep} disabled={!rejectionReason || isSubmitting} className="flex-[2] h-12 bg-danger text-white rounded-xl font-black text-[10px] uppercase">
                   {t.cases.actions.reject}
                 </button>
               </div>

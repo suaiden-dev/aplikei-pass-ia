@@ -97,22 +97,22 @@ function ProofLightbox({ url, name, onClose }: { url: string; name: string; onCl
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-xl w-full"
+        className="bg-card rounded-2xl shadow-2xl overflow-hidden max-w-xl w-full"
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-          <p className="text-sm font-bold text-slate-800">{t.payments.modals.proofTitle.replace('{{name}}', name)}</p>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <p className="text-sm font-bold text-text">{t.payments.modals.proofTitle.replace('{{name}}', name)}</p>
           <div className="flex items-center gap-3">
             <a href={url} target="_blank" rel="noopener noreferrer"
                className="flex items-center gap-1 text-xs text-primary hover:underline">
               <RiExternalLinkLine /> {t.payments.modals.openOriginal}
             </a>
             <button onClick={onClose}
-              className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors">
+              className="w-7 h-7 rounded-lg hover:bg-bg-subtle flex items-center justify-center text-text-muted transition-colors">
               <RiCloseLine />
             </button>
           </div>
         </div>
-        <img src={url} alt="Comprovante" className="w-full max-h-[70vh] object-contain bg-slate-50" />
+        <img src={url} alt="Comprovante" className="w-full max-h-[70vh] object-contain bg-bg-subtle" />
       </motion.div>
     </div>
   );
@@ -140,27 +140,27 @@ function RejectModal({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md"
+        className="bg-card rounded-2xl shadow-2xl p-6 w-full max-w-md"
       >
-        <h3 className="font-display font-bold text-slate-800 text-lg mb-1">{t.payments.modals.rejectTitle}</h3>
-        <p className="text-sm text-slate-400 mb-4 text-left">
-          <strong className="text-slate-600">{payment.clientName}</strong> — {fmtCurrency(payment.amount)}
+        <h3 className="font-display font-bold text-text text-lg mb-1">{t.payments.modals.rejectTitle}</h3>
+        <p className="text-sm text-text-muted mb-4 text-left">
+          <strong className="text-text">{payment.clientName}</strong> — {fmtCurrency(payment.amount)}
         </p>
-        <label className="block text-xs font-semibold text-slate-600 mb-1.5 text-left">{t.payments.modals.reasonLabel}</label>
+        <label className="block text-xs font-semibold text-text mb-1.5 text-left">{t.payments.modals.reasonLabel}</label>
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           rows={3}
           placeholder={t.payments.modals.reasonPlaceholder}
-          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 resize-none focus:outline-none focus:ring-2 focus:ring-red-200"
+          className="w-full rounded-xl border border-border bg-bg-subtle px-3 py-2.5 text-sm text-text resize-none focus:outline-none focus:ring-2 focus:ring-danger/20"
         />
         <div className="flex gap-3 mt-4">
           <button onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+            className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-text-muted hover:bg-bg-subtle transition-colors">
             {tShared?.rejection?.cancel || "Cancelar"}
           </button>
           <button onClick={() => onConfirm(reason || t.payments.messages.rejectedByAdmin)}
-            className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors">
+            className="flex-1 py-2.5 rounded-xl bg-danger text-white text-sm font-bold hover:bg-danger/90 transition-colors">
             {(tShared?.confirm || "Confirmar").replace('Confirmar', tShared?.rejection?.confirm || "Rejeitar")}
           </button>
         </div>
@@ -202,11 +202,11 @@ function PaymentRow({
   }, [t]);
 
   return (
-    <tr className="border-b border-slate-100 last:border-0 hover:bg-slate-50/40 transition-colors">
+    <tr className="border-b border-border last:border-0 hover:bg-bg-subtle/40 transition-colors">
       {/* Cliente */}
       <td className="px-6 py-4 text-left">
-        <p className="font-semibold text-slate-800 text-sm">{p.clientName || t.payments.table.noClientName}</p>
-        {p.clientEmail && <p className="text-xs text-slate-400 mt-0.5">{p.clientEmail}</p>}
+        <p className="font-semibold text-text text-sm">{p.clientName || t.payments.table.noClientName}</p>
+        {p.clientEmail && <p className="text-xs text-text-muted mt-0.5">{p.clientEmail}</p>}
       </td>
 
       {/* Serviço */}
@@ -215,12 +215,12 @@ function PaymentRow({
           {p.serviceName}
         </span>
         {p.expectedAmount && (
-          <p className="text-[10px] text-slate-400 mt-1">
+          <p className="text-[10px] text-text-muted mt-1">
             {t.payments.table.expected.replace('{{amount}}', fmtCurrency(p.expectedAmount))}
           </p>
         )}
         {p.confirmationCode && (
-          <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
+          <p className="text-[10px] text-text-muted mt-0.5 font-mono">
             {t.payments.table.code.replace('{{code}}', p.confirmationCode)}
           </p>
         )}
@@ -228,7 +228,7 @@ function PaymentRow({
 
       {/* Pagamento */}
       <td className="px-6 py-4 text-left">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+        <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-0.5">
           {methodLabel(p.method)}
         </p>
         <p className="font-black text-primary text-lg leading-tight">
@@ -236,22 +236,22 @@ function PaymentRow({
         </p>
         {p.proofUrl && (
           <button onClick={onViewProof}
-            className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-primary transition-colors mt-1">
+            className="flex items-center gap-1 text-[10px] text-text-muted hover:text-primary transition-colors mt-1">
             <RiImageLine className="text-xs" /> {t.payments.table.viewProof}
           </button>
         )}
         {p.source === "stripe" && p.paymentStatus && (
-          <p className="flex items-center gap-1 text-[10px] text-emerald-500 font-bold uppercase mt-1">
+          <p className="flex items-center gap-1 text-[10px] text-success font-bold uppercase mt-1">
             <RiCheckboxCircleLine className="text-xs" /> {t.payments.table.statusSuffix.replace('{{status}}', p.paymentStatus)}
           </p>
         )}
         {p.couponCode && (
-          <div className="mt-1.5 p-1.5 bg-emerald-50 border border-emerald-100 rounded-lg">
-            <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest leading-none mb-1">CUPOM APLICADO</p>
+          <div className="mt-1.5 p-1.5 bg-success/10 border border-success/20 rounded-lg">
+            <p className="text-[9px] font-black text-success uppercase tracking-widest leading-none mb-1">CUPOM APLICADO</p>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] font-bold text-slate-700 font-mono">{p.couponCode}</span>
+              <span className="text-[10px] font-bold text-text font-mono">{p.couponCode}</span>
               {p.discountAmount ? (
-               <span className="text-[10px] font-black text-emerald-600">-{fmtCurrency(p.discountAmount)}</span>
+               <span className="text-[10px] font-black text-success">-{fmtCurrency(p.discountAmount)}</span>
               ) : null}
             </div>
           </div>
@@ -266,7 +266,7 @@ function PaymentRow({
               onClick={onApprove}
               disabled={busy}
               title={(tShared?.confirm || "Confirmar").replace('Confirmar', 'Aprovar')}
-              className="w-9 h-9 rounded-full border-2 border-emerald-500 text-emerald-500 flex items-center justify-center hover:bg-emerald-50 disabled:opacity-40 transition-colors"
+              className="w-9 h-9 rounded-full border-2 border-success text-success flex items-center justify-center hover:bg-success/10 disabled:opacity-40 transition-colors"
             >
               <RiCheckboxCircleLine className="text-xl" />
             </button>
@@ -274,19 +274,19 @@ function PaymentRow({
               onClick={onReject}
               disabled={busy}
               title={tShared?.rejection?.confirm || "Rejeitar"}
-              className="w-9 h-9 rounded-full border-2 border-red-400 text-red-400 flex items-center justify-center hover:bg-red-50 disabled:opacity-40 transition-colors"
+              className="w-9 h-9 rounded-full border-2 border-danger text-danger flex items-center justify-center hover:bg-danger/10 disabled:opacity-40 transition-colors"
             >
               <RiCloseCircleLine className="text-xl" />
             </button>
           </div>
         )}
         {tab === "pending" && p.source === "stripe" && (
-           <p className="text-[10px] text-slate-400 italic">
+           <p className="text-[10px] text-text-muted italic">
              {t.payments.table.autoProcessing || 'Processamento Automático'}
            </p>
         )}
         {tab === "rejected" && p.adminNotes && (
-          <p className="text-xs text-slate-400 max-w-[160px] text-right">{p.adminNotes}</p>
+          <p className="text-xs text-text-muted max-w-[160px] text-right">{p.adminNotes}</p>
         )}
       </td>
     </tr>
@@ -571,24 +571,24 @@ export default function ZellePaymentsPage() {
       <div className="p-8 w-full">
         {/* Header */}
         <div className="mb-8 text-left">
-          <h1 className="font-display text-3xl font-black text-slate-800 uppercase tracking-tight">
+          <h1 className="font-display text-3xl font-black text-text uppercase tracking-tight">
             {t.payments.title}
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-text-muted mt-1">
             {t.payments.subtitle}
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex items-end gap-6 border-b border-slate-200 mb-6">
+        <div className="flex items-end gap-6 border-b border-border mb-6">
           {TABS.map(({ key, label }) => (
             <button
               key={key}
               onClick={() => { setTab(key); setSearch(""); }}
               className={`pb-3 text-sm font-semibold transition-colors ${
                 tab === key
-                  ? "text-slate-800 border-b-2 border-slate-800 -mb-px"
-                  : "text-slate-400 hover:text-slate-600"
+                  ? "text-text border-b-2 border-primary -mb-px"
+                  : "text-text-muted hover:text-text"
               }`}
             >
               {label}
@@ -597,17 +597,17 @@ export default function ZellePaymentsPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
           {/* Search */}
-          <div className="px-6 py-4 border-b border-slate-100">
+          <div className="px-6 py-4 border-b border-border">
             <div className="relative max-w-xs group">
-              <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
+              <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" />
               <input
                 type="text"
                 placeholder={t.payments.searchPlaceholder}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/30 transition-all"
+                className="w-full pl-9 pr-4 py-2 bg-bg-subtle rounded-xl border border-border text-sm text-text focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/30 transition-all"
               />
             </div>
           </div>
@@ -618,17 +618,17 @@ export default function ZellePaymentsPage() {
               <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="py-16 text-center text-sm text-slate-400">
+            <div className="py-16 text-center text-sm text-text-muted">
               {(tShared?.table?.empty || "Nenhum item encontrado").replace('Nenhum item encontrado', t.payments.title.toLowerCase())}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/50">
+                  <tr className="border-b border-border bg-bg-subtle/50">
                     {[t.payments.table.customer, t.payments.table.serviceName, t.payments.table.payment, t.payments.table.actions].map((h) => (
                       <th key={h}
-                        className="px-6 py-3 text-left text-xs font-black text-slate-400 tracking-widest uppercase">
+                        className="px-6 py-3 text-left text-xs font-black text-text-muted tracking-widest uppercase">
                         {h}
                       </th>
                     ))}

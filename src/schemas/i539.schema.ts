@@ -278,7 +278,6 @@ export const I539ValidationSchema = z.object({
   if (data.interpreterFamilyName && data.interpreterFamilyName.trim().length > 1) {
     if (!data.interpreterPhone) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Required / Obrigatório", path: ["interpreterPhone"] });
     if (!data.interpreterLanguage) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Required / Obrigatório", path: ["interpreterLanguage"] });
-    if (!data.interpreterSignature) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Required / Obrigatório", path: ["interpreterSignature"] });
   }
 
   // 7. Preparer: Only require signature/phone if the name is NOT the default organization "Aplikei"
@@ -286,7 +285,6 @@ export const I539ValidationSchema = z.object({
   if (data.preparerFamilyName && data.preparerFamilyName.trim() !== "" && data.preparerFamilyName !== "Aplikei") {
     if (!data.preparerPhone) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Required / Obrigatório", path: ["preparerPhone"] });
     else if (!PHONE_REGEX.test(data.preparerPhone)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid format / Formato inválido", path: ["preparerPhone"] });
-    if (!data.preparerSignature) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Required / Obrigatório", path: ["preparerSignature"] });
   }
 
   // 8. Status Expiration: If not D/S, then statusExpirationDate is required

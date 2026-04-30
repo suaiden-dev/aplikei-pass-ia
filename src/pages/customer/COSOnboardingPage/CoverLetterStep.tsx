@@ -16,6 +16,7 @@ import {
 } from "react-icons/md";
 import { toast } from "sonner";
 import { useT } from "../../../i18n";
+import { StepTimeline } from "../../../components/StepTimeline";
 import { coverLetterService } from "../../../services/cover_letter.service";
 import { processService, type UserService } from "../../../services/process.service";
 
@@ -73,71 +74,6 @@ type StepConfig = {
   }>;
 };
 
-function StepTimeline({
-  current,
-  steps,
-}: {
-  current: number;
-  steps: Array<Pick<StepConfig, "id" | "title">>;
-}) {
-  const progress = Math.round((current / steps.length) * 100);
-  const currentStep = steps[current - 1] ?? steps[0];
-
-  return (
-    <div className="rounded-[24px] border border-border/80 bg-card shadow-sm overflow-hidden">
-      <div className="px-4 py-4">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-sm font-black text-text tracking-tight">{currentStep?.title}</h2>
-          <p className="text-xs font-black text-text-muted">
-            {current}/{steps.length}
-          </p>
-        </div>
-
-        <div className="h-2 rounded-full bg-bg-subtle overflow-hidden">
-          <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
-        </div>
-
-        <div className="mt-4 overflow-x-auto pb-1">
-          <div className="flex min-w-max items-start">
-            {steps.map((step, idx) => {
-              const stepNumber = idx + 1;
-              const isCurrent = stepNumber === current;
-              const isComplete = stepNumber < current;
-              const isLast = idx === steps.length - 1;
-
-              return (
-                <div key={step.id} className="flex items-start">
-                  <div className="flex min-w-[88px] flex-col">
-                    <div className="flex items-center">
-                      <div
-                        className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-black transition-all ${
-                          isCurrent
-                            ? "border-primary/15 bg-primary text-white shadow-lg shadow-primary/20"
-                            : isComplete
-                              ? "border-emerald-100 bg-emerald-500 text-white"
-                              : "border-border bg-card text-text-muted"
-                        }`}
-                      >
-                        {isComplete ? <RiCheckDoubleLine className="text-base" /> : stepNumber}
-                      </div>
-
-                      {!isLast && (
-                        <div className="mx-2 h-[3px] w-10 rounded-full bg-slate-200 overflow-hidden">
-                          <div className={`h-full rounded-full ${isComplete ? "bg-emerald-500" : "bg-slate-200"}`} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function TextAreaField({
   label,
   value,
@@ -182,7 +118,7 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
   }, [proc, user]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById("cover-letter-top")?.scrollIntoView({ behavior: "smooth" });
   }, [activeStepIndex]);
 
   if (!t || !t.cos) return null;
@@ -304,6 +240,7 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
 
   return (
     <div className="space-y-6 pb-24">
+      <div id="cover-letter-top" className="scroll-mt-24" />
       <StepTimeline
         current={activeStepIndex + 1}
         steps={steps.map((step) => ({ id: step.id, title: step.title }))}

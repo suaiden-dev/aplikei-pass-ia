@@ -12,6 +12,7 @@ import {
   RiSave3Line,
 } from "react-icons/ri";
 import type { IconType } from "react-icons";
+import { StepTimeline } from "../../../components/StepTimeline";
 import { processService, type UserService } from "../../../services/process.service";
 import { finalFormsService } from "../../../services/final_forms.service";
 import { useT } from "../../../i18n";
@@ -142,71 +143,6 @@ type StepConfig = {
   icon: IconType;
 };
 
-function StepTimeline({
-  current,
-  steps,
-}: {
-  current: number;
-  steps: StepConfig[];
-}) {
-  const progress = Math.round((current / steps.length) * 100);
-  const currentStep = steps[current - 1] ?? steps[0];
-
-  return (
-    <div className="rounded-[24px] border border-border/80 bg-card shadow-sm overflow-hidden">
-      <div className="px-4 py-4">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-sm font-black text-text tracking-tight">{currentStep?.title}</h2>
-          <p className="text-xs font-black text-text-muted">
-            {current}/{steps.length}
-          </p>
-        </div>
-
-        <div className="h-2 rounded-full bg-bg-subtle overflow-hidden">
-          <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
-        </div>
-
-        <div className="mt-4 overflow-x-auto pb-1">
-          <div className="flex min-w-max items-start">
-            {steps.map((step, idx) => {
-              const stepNumber = idx + 1;
-              const isCurrent = stepNumber === current;
-              const isComplete = stepNumber < current;
-              const isLast = idx === steps.length - 1;
-
-              return (
-                <div key={step.id} className="flex items-start">
-                  <div className="flex min-w-[88px] flex-col">
-                    <div className="flex items-center">
-                      <div
-                        className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-black transition-all ${
-                          isCurrent
-                            ? "border-primary/15 bg-primary text-white shadow-lg shadow-primary/20"
-                            : isComplete
-                              ? "border-emerald-100 bg-emerald-500 text-white"
-                              : "border-border bg-card text-text-muted"
-                        }`}
-                      >
-                        {isComplete ? <RiCheckDoubleLine className="text-base" /> : stepNumber}
-                      </div>
-
-                      {!isLast && (
-                        <div className="mx-2 h-[3px] w-10 rounded-full bg-slate-200 overflow-hidden">
-                          <div className={`h-full rounded-full ${isComplete ? "bg-emerald-500" : "bg-slate-200"}`} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function FinalFormsStep({ proc, user, onComplete }: Props) {
   const t = useT("onboarding") as OnboardingFinalFormsText;
   const [data, setData] = useState<FinalFormsData>({
@@ -265,7 +201,7 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
   }, [proc, user]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById("final-forms-top")?.scrollIntoView({ behavior: "smooth" });
   }, [activeStepIndex]);
 
   if (!t || !t.cos) return null;
@@ -387,12 +323,13 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
 
   return (
     <div className="space-y-6 pb-24">
+      <div id="final-forms-top" className="scroll-mt-24" />
       <StepTimeline current={activeStepIndex + 1} steps={steps} />
 
       {activeStepIndex === 0 && (
         <div className="bg-card p-6 rounded-3xl shadow-sm border border-border">
           <div className="flex items-center gap-3 mb-5 border-b border-border pb-5">
-            <div className="w-10 h-10 rounded-full border border-blue-100 bg-blue-50 text-blue-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full border border-info/20 bg-info/10 text-info flex items-center justify-center">
               <RiNotification4Line className="text-lg" />
             </div>
             <div>
@@ -401,8 +338,8 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
             </div>
           </div>
 
-          <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex gap-3 text-sm font-medium text-blue-800 mb-6">
-            <RiInformationLine className="text-blue-500 text-xl shrink-0" />
+          <div className="bg-info/5 p-4 rounded-xl border border-info/10 flex gap-3 text-sm font-medium text-info mb-6">
+            <RiInformationLine className="text-info text-xl shrink-0" />
             {t.cos.finalForms.g1145.info}
           </div>
 
@@ -450,7 +387,7 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
       {activeStepIndex === 1 && (
         <div className="bg-card p-6 rounded-3xl shadow-sm border border-border">
           <div className="flex items-center gap-3 mb-5 border-b border-border pb-5">
-            <div className="w-10 h-10 rounded-full border border-indigo-100 bg-indigo-50 text-indigo-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full border border-primary/20 bg-primary/10 text-primary flex items-center justify-center">
               <RiInformationLine className="text-lg" />
             </div>
             <div>
@@ -461,8 +398,8 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
             </div>
           </div>
 
-          <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100 flex gap-3 text-sm font-medium text-amber-800 mb-6">
-            <RiInformationLine className="text-amber-500 text-xl shrink-0" />
+          <div className="bg-warning/5 p-4 rounded-xl border border-warning/10 flex gap-3 text-sm font-medium text-warning mb-6">
+            <RiInformationLine className="text-warning text-xl shrink-0" />
             {t.cos.finalForms.g1450.info}
           </div>
 
@@ -503,7 +440,7 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
       {activeStepIndex === 2 && (
         <div className="bg-card p-6 rounded-3xl shadow-sm border border-border">
           <div className="flex items-center gap-3 mb-5 border-b border-border pb-5">
-            <div className="w-10 h-10 rounded-full border border-indigo-100 bg-indigo-50 text-indigo-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full border border-primary/20 bg-primary/10 text-primary flex items-center justify-center">
               <RiBankCardLine className="text-lg" />
             </div>
             <div>
@@ -533,7 +470,7 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
               />
             </div>
 
-            <div className="md:col-span-3 bg-red-50 border border-red-100 p-4 rounded-xl flex gap-3 text-xs font-bold text-red-700">
+            <div className="md:col-span-3 bg-danger/10 border border-danger/20 p-4 rounded-xl flex gap-3 text-xs font-bold text-danger">
               <RiErrorWarningLine className="text-lg shrink-0" />
               {t.cos.finalForms.g1450.securityWarning}
             </div>
@@ -569,7 +506,7 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
       {activeStepIndex === 3 && (
         <div className="bg-card p-6 rounded-3xl shadow-sm border border-border">
           <div className="flex items-center gap-3 mb-5 border-b border-border pb-5">
-            <div className="w-10 h-10 rounded-full border border-indigo-100 bg-indigo-50 text-indigo-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full border border-primary/20 bg-primary/10 text-primary flex items-center justify-center">
               <RiBankCardLine className="text-lg" />
             </div>
             <div>
@@ -788,7 +725,7 @@ function Input({
         onBlur={onBlur}
         placeholder={placeholder}
         readOnly={readOnly}
-        className={`w-full bg-bg-subtle/50 border ${error ? "border-red-500 ring-4 ring-red-500/10" : "border-border"} rounded-xl px-4 py-3 text-sm font-bold text-text outline-none focus:ring-4 ${error ? "focus:ring-red-500/10 focus:border-red-500" : "focus:ring-primary/10 focus:border-primary"} transition-all focus:bg-card ${readOnly ? "bg-bg-subtle cursor-not-allowed opacity-60" : ""}`}
+        className={`w-full bg-bg-subtle/50 border ${error ? "border-danger ring-4 ring-danger/10" : "border-border"} rounded-xl px-4 py-3 text-sm font-bold text-text outline-none focus:ring-4 ${error ? "focus:ring-danger/10 focus:border-danger" : "focus:ring-primary/10 focus:border-primary"} transition-all focus:bg-card ${readOnly ? "bg-bg-subtle cursor-not-allowed opacity-60" : ""}`}
       />
     </div>
   );
