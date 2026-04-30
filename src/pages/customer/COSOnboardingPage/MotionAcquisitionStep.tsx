@@ -45,30 +45,30 @@ export function MotionAcquisitionStep({ proc, onComplete }: Props) {
 
   return (
     <div className='max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700'>
-      <div className='bg-card rounded-[40px] border border-border p-12 shadow-sm text-center'>
+      <div className='bg-white rounded-[40px] border border-slate-100 p-12 shadow-sm text-center'>
         <div className='w-20 h-20 rounded-3xl bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-8 shadow-inner'>
           <RiErrorWarningLine className='text-4xl' />
         </div>
 
-        <h2 className='text-3xl font-black text-text mb-4 uppercase tracking-tight'>
+        <h2 className='text-3xl font-black text-slate-800 mb-4 uppercase tracking-tight'>
           {acquisitionCopy?.title || 'Motion — Adquirir'}
         </h2>
 
-        <p className='text-text-muted leading-relaxed max-w-md mx-auto mb-10'>
+        <p className='text-slate-500 leading-relaxed max-w-md mx-auto mb-10'>
           {acquisitionCopy?.desc ||
             acquisitionCopy?.description ||
             'Contrate o serviço de Motion para reverter a negativa.'}
         </p>
 
-        <div className='bg-bg-subtle rounded-3xl p-8 mb-10 text-left border border-border'>
-          <h4 className='text-xs font-black text-text-muted uppercase tracking-widest mb-4'>
+        <div className='bg-slate-50 rounded-3xl p-8 mb-10 text-left border border-slate-100'>
+          <h4 className='text-xs font-black text-slate-400 uppercase tracking-widest mb-4'>
             {acquisitionCopy?.howItWorks || 'Como funciona'}
           </h4>
           <div className='space-y-4'>
             {features.map((feature: string, i: number) => (
               <div key={i} className='flex gap-3'>
                 <RiCheckDoubleLine className='text-primary text-lg shrink-0 mt-1' />
-                <p className='text-sm text-text-muted'>{feature}</p>
+                <p className='text-sm text-slate-600'>{feature}</p>
               </div>
             ))}
           </div>
@@ -99,14 +99,14 @@ export function MotionAcquisitionStep({ proc, onComplete }: Props) {
             onClick={() => {
               window.location.href = 'https://wa.me/message/APLIKEISUPPORT'
             }}
-            className='w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-none transition-all flex items-center justify-center gap-3'
+            className='w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-slate-200 transition-all flex items-center justify-center gap-3'
           >
             {acquisitionCopy?.secondaryBtn || 'Falar com Especialista'}
             <RiMessage3Line className='text-xl' />
           </button>
         </div>
 
-        <p className='mt-8 text-[10px] text-text-muted font-medium italic'>
+        <p className='mt-8 text-[10px] text-slate-400 font-medium italic'>
           ID do Processo: {proc.id.slice(0, 8).toUpperCase()}
         </p>
       </div>

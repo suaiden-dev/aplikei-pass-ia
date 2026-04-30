@@ -15,6 +15,11 @@ export const DS160Schema = z
     isBrazilian: yesNo(),
 
     // 2. Dados Pessoais
+    surname: requiredString("Surname é obrigatório"),
+    givenName: requiredString("Given Name é obrigatório"),
+    fullNameNativeAlphabet: optionalString(),
+    hasTelecodeForName: yesNo(),
+    maternalGrandmotherName: requiredString("O nome da mãe da sua mãe é obrigatório"),
     fullName: requiredString("Nome completo é obrigatório (conforme passaporte)"),
     hasOtherNames: yesNo(),
     otherNames: optionalString(),

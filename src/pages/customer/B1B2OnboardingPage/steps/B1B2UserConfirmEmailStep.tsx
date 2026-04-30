@@ -42,10 +42,10 @@ export function B1B2UserConfirmEmailStep({ procId, onComplete, onBack }: B1B2Use
         <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-inner">
           <RiMailCheckLine className="text-3xl" />
         </div>
-        <h2 className="text-2xl font-black text-text tracking-tight">
+        <h2 className="text-2xl font-black text-slate-800 tracking-tight">
           {t.onboardingPage.emailConfirmation.title}
         </h2>
-        <p className="text-sm font-medium text-text-muted mt-2 max-w-xl mx-auto">
+        <p className="text-sm font-medium text-slate-400 mt-2 max-w-xl mx-auto">
           {t.onboardingPage.emailConfirmation.desc}
         </p>
       </div>
@@ -66,31 +66,31 @@ export function B1B2UserConfirmEmailStep({ procId, onComplete, onBack }: B1B2Use
       </div>
 
       {/* Example Image */}
-      <div className="bg-card rounded-[32px] border border-border shadow-xl overflow-hidden">
-        <div className="px-8 py-5 border-b border-border">
-          <h3 className="text-xs font-black text-text uppercase tracking-widest">
+      <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl overflow-hidden">
+        <div className="px-8 py-5 border-b border-slate-50">
+          <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest">
             {t.onboardingPage.emailConfirmation.exampleEmail}
           </h3>
-          <p className="text-[10px] text-text-muted font-bold mt-0.5">
+          <p className="text-[10px] text-slate-400 font-bold mt-0.5">
             {t.onboardingPage.emailConfirmation.exampleAppearance}
           </p>
         </div>
-        <div className="p-4 bg-bg-subtle flex justify-center">
+        <div className="p-4 bg-slate-50 flex justify-center">
           <img
             src={confirmationEmailImg}
             alt={t.onboardingPage.emailConfirmation.exampleEmail}
-            className="rounded-xl border border-border max-w-full shadow-sm"
+            className="rounded-xl border border-slate-200 max-w-full shadow-sm"
           />
         </div>
       </div>
 
       {/* Footer Actions */}
-      <div className="pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
         <button
           type="button"
           onClick={onBack}
           disabled={isSubmitting}
-          className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-border text-text-muted font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-50"
+          className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50"
         >
           {t.onboardingPage.previous}
         </button>

@@ -99,10 +99,10 @@ export default function ProfileSettingsPage() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-12"
       >
-        <h1 className="font-display font-black text-[32px] text-text leading-tight tracking-tight">
+        <h1 className="font-display font-black text-[32px] text-slate-900 leading-tight tracking-tight">
           Minha Conta
         </h1>
-        <p className="text-base font-medium text-text-muted mt-2">
+        <p className="text-base font-medium text-slate-500 mt-2">
           Gerencie suas informações pessoais e configurações de perfil.
         </p>
       </motion.div>
@@ -117,7 +117,7 @@ export default function ProfileSettingsPage() {
             )}>
               <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
             </div>
-            <label className="absolute bottom-0 right-0 w-10 h-10 bg-primary text-white rounded-xl shadow-lg border-2 border-card flex items-center justify-center cursor-pointer hover:bg-primary-hover transition-all scale-100 hover:scale-110">
+            <label className="absolute bottom-0 right-0 w-10 h-10 bg-primary text-white rounded-xl shadow-lg border-2 border-white flex items-center justify-center cursor-pointer hover:bg-primary-hover transition-all scale-100 hover:scale-110">
               <RiCameraFill className="text-xl" />
               <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} disabled={isUploading} />
             </label>
@@ -127,7 +127,7 @@ export default function ProfileSettingsPage() {
               </div>
             )}
           </div>
-          <p className="text-[11px] font-black text-text-muted uppercase tracking-widest mt-6">
+          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-6">
             Foto de Perfil
           </p>
         </div>
@@ -139,7 +139,7 @@ export default function ProfileSettingsPage() {
               <div>
                 <Label htmlFor="fullName">Nome Completo</Label>
                 <div className="relative">
-                  <RiUser3Line className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-lg" />
+                  <RiUser3Line className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
                   <Input
                     id="fullName"
                     className={cn("pl-12", formik.touched.fullName && formik.errors.fullName && "border-red-500")}
@@ -155,7 +155,7 @@ export default function ProfileSettingsPage() {
               <div>
                 <Label htmlFor="email">E-mail</Label>
                 <div className="relative">
-                  <RiMailLine className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-lg" />
+                  <RiMailLine className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
                   <Input
                     id="email"
                     className={cn("pl-12", formik.touched.email && formik.errors.email && "border-red-500")}
@@ -176,7 +176,7 @@ export default function ProfileSettingsPage() {
               <div>
                 <Label htmlFor="phoneNumber">Telefone / WhatsApp</Label>
                 <div className="relative">
-                  <RiPhoneLine className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-lg" />
+                  <RiPhoneLine className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
                   <Input
                     id="phoneNumber"
                     className={cn("pl-12", formik.touched.phoneNumber && formik.errors.phoneNumber && "border-red-500")}
@@ -196,7 +196,7 @@ export default function ProfileSettingsPage() {
                 disabled={formik.isSubmitting || !formik.dirty}
                 className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg
                   ${(formik.isSubmitting || !formik.dirty)
-                    ? 'bg-bg-subtle text-text-muted cursor-not-allowed shadow-none'
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                     : 'bg-primary text-white hover:bg-primary-hover shadow-primary/20 scale-[1.02] active:scale-95'
                   }
                 `}
@@ -214,52 +214,17 @@ export default function ProfileSettingsPage() {
           </form>
 
           {/* Tips Section */}
-          <div className="p-6 rounded-2xl bg-bg-subtle border border-border flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center shrink-0">
+          <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
               <RiInformationLine className="text-xl" />
             </div>
             <div>
-              <h4 className="text-xs font-black text-text uppercase tracking-tight mb-1">Dica de Segurança</h4>
-              <p className="text-[12px] text-text-muted font-medium leading-relaxed">
+              <h4 className="text-xs font-black text-slate-800 uppercase tracking-tight mb-1">Dica de Segurança</h4>
+              <p className="text-[12px] text-slate-500 font-medium leading-relaxed">
                 Ao alterar seu e-mail, seu login será atualizado automaticamente. Você precisará confirmar a mudança através de um link enviado para o novo endereço.
               </p>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Language Section */}
-      <div className="mt-16 pt-12 border-t border-border">
-        <h3 className="font-display font-black text-xl text-text tracking-tight mb-2">Preferências de Idioma</h3>
-        <p className="text-sm font-medium text-text-muted mb-6">Escolha o idioma da sua interface.</p>
-        
-        <div className="bg-primary/5 border border-primary/10 rounded-[32px] p-10 flex flex-col items-center text-center">
-          <div className="w-16 h-16 rounded-2xl bg-card border border-border shadow-sm flex items-center justify-center mb-6">
-            <RiLoader4Line className="text-3xl text-primary animate-spin" />
-          </div>
-          <h4 className="text-base font-black text-text uppercase tracking-tight mb-2">Estamos evoluindo a sua experiência</h4>
-          <p className="text-sm text-text-muted font-medium max-w-md mx-auto mb-10">
-            A funcionalidade de troca de idiomas ainda está em desenvolvimento para garantir a melhor tradução técnica de todos os formulários da USCIS.
-          </p>
-          
-          <div className="flex flex-wrap justify-center gap-4 opacity-60 grayscale pointer-events-none scale-90 sm:scale-100">
-            <div className="px-6 py-3 rounded-2xl bg-card border border-border flex items-center gap-3 shadow-sm">
-              <span className="text-2xl">🇧🇷</span>
-              <span className="text-sm font-black text-text uppercase tracking-widest">Português</span>
-            </div>
-            <div className="px-6 py-3 rounded-2xl bg-card border border-border flex items-center gap-3 shadow-sm">
-              <span className="text-2xl">🇺🇸</span>
-              <span className="text-sm font-black text-text uppercase tracking-widest">English</span>
-            </div>
-            <div className="px-6 py-3 rounded-2xl bg-card border border-border flex items-center gap-3 shadow-sm">
-              <span className="text-2xl">🇪🇸</span>
-              <span className="text-sm font-black text-text uppercase tracking-widest">Español</span>
-            </div>
-          </div>
-          
-          <p className="mt-8 text-[10px] font-black text-primary uppercase tracking-[0.2em] animate-pulse">
-            Em breve disponível
-          </p>
         </div>
       </div>
     </div>

@@ -2,10 +2,10 @@ import { useState } from "react";
 import { NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
 import { Menu, LogOut, Moon, Sun, ShieldCheck, X } from "lucide-react";
-import { Button } from "../components/ui/button";
+import { Button } from "../components/Button";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../contexts/useTheme";
-import type { UserRole as UserAccountRole } from "../models/user.model";
+import type { UserAccountRole } from "../models/users-account";
 import { getDashboardPathForRole } from "../services/auth.service";
 import { cn } from "../utils/cn";
 
@@ -129,14 +129,14 @@ export function RoleDashboardLayout({
         <div className="mt-6 rounded-[1.5rem] border border-border bg-highlight p-4 text-white">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary/80">Modo operacao</p>
           <p className="mt-2 font-display text-xl font-black tracking-[-0.03em]">{spotlightTitle}</p>
-          <p className="mt-2 text-sm text-white/70">{spotlightDescription}</p>
+          <p className="mt-2 text-sm text-slate-300">{spotlightDescription}</p>
         </div>
       </aside>
 
       {mobileMenuOpen ? (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-bg/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/40 lg:hidden"
           onClick={() => setMobileMenuOpen(false)}
           aria-label="Fechar menu lateral"
         />

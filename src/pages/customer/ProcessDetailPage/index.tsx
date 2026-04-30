@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MdLanguage, MdSchool, MdHistory, MdSyncAlt } from "react-icons/md";
@@ -18,7 +18,7 @@ import {
   RiFlagLine,
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
-import { calculateProcessProgress, processService } from "../../../services/process.service";
+import { processService, type UserService } from "../../../services/process.service";
 import { getServiceBySlug } from "../../../data/services";
 import { supabase } from "../../../lib/supabase";
 import { toast } from "sonner";
@@ -27,10 +27,9 @@ import { cn } from "../../../utils/cn";
 import { useT } from "../../../i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { StepConfig } from "../../../templates/ServiceDetailTemplate";
-import { normalizeLegacyFinalShipSteps } from "../../../utils/legacyWorkflow";
 import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "../../../data/workflowTemplates";
+import { normalizeLegacyFinalShipSteps } from "../../../utils/legacyWorkflow";
 import { Skeleton } from "../../../components/ui/skeleton";
-import { shouldPromptForIdentityPhoto } from "./identityPhotoPrompt";
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,
@@ -42,24 +41,39 @@ const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>
 const slugConfig: Record<string, {
   bg: string; icon: string; gradient: string; label: string; category: string; iconName: string;
 }> = {
-  "visto-b1-b2":             { bg: "bg-primary/10",   icon: "text-primary",    gradient: "from-sky-400 to-sky-600",       label: "B1/B2 VISA",         category: "TOURISM/BUSINESS",  iconName: "MdLanguage" },
-  "visto-b1-b2-reaplicacao": { bg: "bg-primary/10",   icon: "text-primary",    gradient: "from-sky-400 to-sky-600",       label: "B1/B2 REAPLICAÇÃO",  category: "TOURISM/BUSINESS",  iconName: "MdLanguage" },
-  "visto-f1":                { bg: "bg-violet-500/10", icon: "text-violet-500", gradient: "from-violet-400 to-violet-600", label: "F-1 VISA",           category: "STUDENT/ACADEMIC",  iconName: "MdSchool" },
-  "visto-f1-reaplicacao":    { bg: "bg-violet-500/10", icon: "text-violet-500", gradient: "from-violet-400 to-violet-600", label: "F-1 REAPLICAÇÃO", category: "STUDENT/ACADEMIC",  iconName: "MdSchool" },
-  "extensao-status":         { bg: "bg-blue-500/10",   icon: "text-blue-500",   gradient: "from-blue-400 to-blue-600",     label: "EXTENSÃO STATUS",    category: "EXTEND STAY",       iconName: "MdHistory" },
-  "troca-status":            { bg: "bg-indigo-500/10", icon: "text-indigo-500", gradient: "from-indigo-400 to-indigo-600", label: "TROCA STATUS",       category: "CHANGE OF STATUS",  iconName: "MdSyncAlt" },
+  "visto-b1-b2":             { bg: "bg-sky-50",    icon: "text-sky-500",    gradient: "from-sky-400 to-sky-600",       label: "B1/B2 VISA",         category: "TOURISM/BUSINESS",  iconName: "MdLanguage" },
+  "visto-b1-b2-reaplicacao": { bg: "bg-sky-50",    icon: "text-sky-500",    gradient: "from-sky-400 to-sky-600",       label: "B1/B2 REAPLICAÇÃO",  category: "TOURISM/BUSINESS",  iconName: "MdLanguage" },
+  "visto-f1":                { bg: "bg-violet-50", icon: "text-violet-500", gradient: "from-violet-400 to-violet-600", label: "F-1 VISA",           category: "STUDENT/ACADEMIC",  iconName: "MdSchool" },
+  "visto-f1-reaplicacao":    { bg: "bg-violet-50", icon: "text-violet-500", gradient: "from-violet-400 to-violet-600", label: "F-1 REAPLICAÇÃO", category: "STUDENT/ACADEMIC",  iconName: "MdSchool" },
+  "extensao-status":         { bg: "bg-blue-50",   icon: "text-blue-500",   gradient: "from-blue-400 to-blue-600",     label: "EXTENSÃO STATUS",    category: "EXTEND STAY",       iconName: "MdHistory" },
+  "troca-status":            { bg: "bg-indigo-50", icon: "text-indigo-500", gradient: "from-indigo-400 to-indigo-600", label: "TROCA STATUS",       category: "CHANGE OF STATUS",  iconName: "MdSyncAlt" },
 };
+function calculatePhaseProgress(proc: UserService, totalSteps: number, isCOS: boolean): number {
+  const step = proc.current_step ?? 0;
+
+  if (proc.status === 'completed') return 100;
+
+  const isSpecialVisa = !isCOS && (proc.service_slug?.startsWith("visto-b1-b2") || proc.service_slug?.startsWith("visto-f1"));
+  const maxProgress = isSpecialVisa ? 95 : 99;
+  return Math.min(maxProgress, Math.round((step / (totalSteps || 1)) * 100));
+}
 
 export default function ProcessDetailPage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const [searchParams] = useSearchParams();
   const t = useT("visas");
-  const { user, refreshAccount, status, accountHydrated } = useAuth();
+  const { user, refreshAccount } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const lastRealtimeInvalidateRef = useRef(0);
 
   const [isUpdating, setIsUpdating] = useState(false);
+  const [hasPhoto, setHasPhoto] = useState(false);
+
+  useEffect(() => {
+    if (user?.passportPhotoUrl || user?.avatarUrl) {
+      setHasPhoto(true);
+    }
+  }, [user]);
 
   const service = slug ? getServiceBySlug(slug) : null;
   const cfg = slug ? slugConfig[slug] : null;
@@ -121,12 +135,6 @@ export default function ProcessDetailPage() {
           filter: `id=eq.${proc.id}`
         },
         () => {
-          const now = Date.now();
-          if (now - lastRealtimeInvalidateRef.current < 3_000) {
-            return;
-          }
-
-          lastRealtimeInvalidateRef.current = now;
           console.log("[ProcessDetail] Realtime update detected, refetching...");
           queryClient.invalidateQueries({ queryKey: ['process-detail', slug, searchParams.get("id")] });
         }
@@ -180,7 +188,7 @@ export default function ProcessDetailPage() {
   if (!service || !proc) {
     return (
       <div className="p-12 text-center">
-        <h1 className="text-2xl font-bold text-text">{t.processDetail.processNotFound}</h1>
+        <h1 className="text-2xl font-bold text-slate-800">{t.processDetail.processNotFound}</h1>
         <Link to="/dashboard/processes" className="text-primary font-bold mt-4 inline-block">{t.processDetail.back}</Link>
       </div>
     );
@@ -192,8 +200,6 @@ export default function ProcessDetailPage() {
 
   const stepData = proc.step_data || {};
   const uscisResult = stepData.uscis_official_result as string;
-  const rfeResult = stepData.uscis_rfe_result as string;
-  const motionResult = stepData.motion_final_result as string;
   const targetVisa = stepData.targetVisa as string;
   const showF1Steps = isCOS ? (targetVisa === "F1") : true;
   const stepsToSkip = [`${prefix}i20_upload`, `${prefix}sevis_fee`, `${prefix}analysis_i20_sevis`];
@@ -205,32 +211,6 @@ export default function ProcessDetailPage() {
   const history = Array.isArray(stepData.history)
     ? (stepData.history as Array<{ type?: string; steps?: StepConfig[] }>)
     : [];
-  const hasRfeCycle = history.some((cycle) => cycle.type === "rfe");
-  const hasMotionCycle = history.some((cycle) => cycle.type === "motion");
-  const motionInitialPaid = Boolean(stepData.motion_initial_paid);
-  const motionContext =
-    uscisResult === "denied" ||
-    uscisResult === "rejected" ||
-    rfeResult === "denied" ||
-    rfeResult === "rejected" ||
-    motionInitialPaid ||
-    (currentStepIndexInFull >= 19 && currentStepIndexInFull <= 24);
-  const rfeContext =
-    !motionContext &&
-    (uscisResult === "rfe" ||
-      rfeResult === "rfe" ||
-      (currentStepIndexInFull >= 13 && currentStepIndexInFull <= 18));
-
-  if (isCOS && motionContext && !hasRfeCycle) {
-    steps.push(...RFE_STEPS_TEMPLATE);
-  }
-
-  if (isCOS && motionContext && !hasMotionCycle) {
-    steps.push(...MOTION_STEPS_TEMPLATE);
-  } else if (isCOS && rfeContext && !hasRfeCycle) {
-    steps.push(...RFE_STEPS_TEMPLATE);
-  }
-
   history.forEach((cycle, cIdx) => {
     const baseTemplate = cycle.steps || (cycle.type === 'motion' ? MOTION_STEPS_TEMPLATE : RFE_STEPS_TEMPLATE);
     const template = normalizeLegacyFinalShipSteps(baseTemplate as StepConfig[]);
@@ -240,10 +220,7 @@ export default function ProcessDetailPage() {
   });
 
   // currentStepIndex = position of current_step inside the expanded steps array
-  let currentStepIndex = Math.min(
-    currentStepIndexInFull,
-    Math.max(steps.length - 1, 0),
-  );
+  let currentStepIndex = Math.min(currentStepIndexInFull, steps.length);
 
   // Se o processo está marcado como finalizado E com sucesso, forçamos o índice para o fim
   if (proc.status === 'completed') {
@@ -251,6 +228,9 @@ export default function ProcessDetailPage() {
   }
 
   // --- LOGICA DE RESULTADO FINAL (Sincronizada) ---
+  const rfeResult = stepData.uscis_rfe_result as string;
+  const motionResult = stepData.motion_final_result as string;
+
   const interviewOutcome = stepData.interview_outcome as string;
   const isDenied = proc.status === 'rejected' ||
                    interviewOutcome === 'rejected' ||
@@ -265,13 +245,7 @@ export default function ProcessDetailPage() {
                      (proc.status === 'completed' && !isDenied && !uscisResult?.includes('denied'));
 
   const isFinalized = proc.status === 'completed' || isApproved || isDenied;
-  const progressPercent = isFinalized ? 100 : calculateProcessProgress(proc, steps.length);
-  const shouldPromptForIdentityPhotoOverlay = shouldPromptForIdentityPhoto(
-    user,
-    proc,
-    status,
-    accountHydrated,
-  );
+  const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, steps.length, isCOS);
 
   return (
     <div className="p-12 max-w-[1200px]">
@@ -284,7 +258,7 @@ export default function ProcessDetailPage() {
       >
         <Link
           to="/dashboard/processes"
-          className="inline-flex items-center gap-2 text-sm font-bold text-text-muted hover:text-text transition-colors"
+          className="inline-flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-slate-700 transition-colors"
         >
           <RiArrowLeftLine />
           {t.processDetail.myCases}
@@ -301,7 +275,7 @@ export default function ProcessDetailPage() {
           {/* Decorative stuff logic */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl" />
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-            <div className="w-20 h-20 rounded-[28px] bg-card text-emerald-500 flex items-center justify-center shrink-0 shadow-xl">
+            <div className="w-20 h-20 rounded-[28px] bg-white text-emerald-500 flex items-center justify-center shrink-0 shadow-xl">
               <RiCheckboxCircleFill className="text-5xl" />
             </div>
             <div className="text-center md:text-left">
@@ -319,7 +293,7 @@ export default function ProcessDetailPage() {
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 p-6 rounded-[24px] bg-red-500/10 border border-red-500/20 flex items-start gap-4 shadow-sm"
+          className="mb-8 p-6 rounded-[24px] bg-red-50 border border-red-100 flex items-start gap-4 shadow-sm"
         >
           <div className="w-10 h-10 rounded-xl bg-red-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-red-500/20">
             <RiErrorWarningLine className="text-xl" />
@@ -331,7 +305,7 @@ export default function ProcessDetailPage() {
             {Array.isArray(stepData.rejected_items) && (stepData.rejected_items as string[]).length > 0 && (
               <div className="mb-4 flex flex-wrap gap-2">
                 {(stepData.rejected_items as string[]).map((item: string) => (
-                  <span key={item} className="px-2 py-1 rounded-lg bg-bg-subtle border border-red-500/20 text-red-500 text-[9px] font-black uppercase tracking-tight shadow-sm">
+                  <span key={item} className="px-2 py-1 rounded-lg bg-white border border-red-200 text-red-700 text-[9px] font-black uppercase tracking-tight shadow-sm">
                     {item.replace('docs.', 'DOC: ').replace(/([A-Z])/g, ' $1')}
                   </span>
                 ))}
@@ -361,7 +335,7 @@ export default function ProcessDetailPage() {
         <motion.div
            initial={{ opacity: 0, y: 20 }}
            animate={{ opacity: 1, y: 0 }}
-           className="mb-12 p-10 rounded-[40px] bg-slate-900 dark:bg-bg-subtle text-white dark:text-text overflow-hidden relative group border border-border"
+           className="mb-12 p-10 rounded-[40px] bg-slate-900 text-white overflow-hidden relative group"
         >
            {/* Decoration */}
            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32" />
@@ -429,14 +403,14 @@ export default function ProcessDetailPage() {
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-6 mb-12"
           >
-            <div className={`w-16 h-16 rounded-2xl ${cfg?.bg ?? "bg-bg-subtle"} flex items-center justify-center border border-border shadow-sm`}>
-              <Icon className={`text-3xl ${cfg?.icon ?? "text-text-muted"}`} />
+            <div className={`w-16 h-16 rounded-2xl ${cfg?.bg ?? "bg-slate-50"} flex items-center justify-center border border-black/5 shadow-sm`}>
+              <Icon className={`text-3xl ${cfg?.icon ?? "text-slate-400"}`} />
             </div>
             <div>
-              <h1 className="font-display font-black text-[28px] text-text leading-tight tracking-tight">
+              <h1 className="font-display font-black text-[28px] text-slate-900 leading-tight tracking-tight">
                 {t.processDetail.services?.[slug]?.label || cfg?.label || service.title}
               </h1>
-              <p className="text-[11px] font-bold text-text-muted tracking-widest uppercase mt-1">
+              <p className="text-[11px] font-bold text-slate-400 tracking-widest uppercase mt-1">
                 {t.processDetail.services?.[slug]?.category || cfg?.category || "Guia Completo"}
               </p>
             </div>
@@ -464,10 +438,10 @@ export default function ProcessDetailPage() {
                   transition={{ delay: idx * 0.05 }}
                   className={`relative flex items-start gap-5 p-6 rounded-2xl border transition-all ${
                     isCurrent 
-                      ? "bg-card border-primary shadow-lg shadow-primary/5 ring-1 ring-primary/20" 
+                      ? "bg-white border-primary shadow-lg shadow-primary/5 ring-1 ring-primary/20" 
                       : isCompleted
-                      ? "bg-bg-subtle/50 border-border opacity-80"
-                      : "bg-card border-border opacity-50"
+                      ? "bg-slate-50/50 border-slate-100 opacity-80"
+                      : "bg-white border-slate-100 opacity-50"
                   }`}
                 >
                   <div className="mt-1">
@@ -478,17 +452,17 @@ export default function ProcessDetailPage() {
                         {idx + 1}
                       </div>
                     ) : (
-                      <RiCheckboxBlankCircleLine className="text-2xl text-border" />
+                      <RiCheckboxBlankCircleLine className="text-2xl text-slate-200" />
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <h3 className={`text-sm font-bold uppercase tracking-tight mb-1 ${
-                      isCurrent ? "text-primary" : "text-text"
+                      isCurrent ? "text-primary" : "text-slate-700"
                     }`}>
                       {t.processSteps?.[step.id]?.title || step.title}
                     </h3>
-                    <p className="text-[13px] text-text-muted font-medium leading-relaxed">
+                    <p className="text-[13px] text-slate-500 font-medium leading-relaxed">
                       {t.processSteps?.[step.id]?.description || step.description}
                     </p>
 
@@ -499,8 +473,8 @@ export default function ProcessDetailPage() {
                         onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${idx}`)}
                         className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
                           idx === (slug.includes("f1") ? 11 : 10) && !isCompleted && !isCurrent
-                            ? "border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10"
-                            : "border-border text-text-muted hover:border-primary hover:text-primary bg-card"
+                            ? "border-emerald-200 text-emerald-500 hover:bg-emerald-50"
+                            : "border-slate-200 text-slate-400 hover:border-primary hover:text-primary bg-white"
                         }`}
                       >
                         {idx === (slug.includes("f1") ? 11 : 10) ? <RiUserStarLine className="text-sm" /> : <RiInformationLine className="text-sm" />}
@@ -516,7 +490,7 @@ export default function ProcessDetailPage() {
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mt-6 p-6 rounded-xl bg-bg-subtle border border-border"
+                        className="mt-6 p-6 rounded-xl bg-slate-50 border border-slate-200"
                       >
                         {/* Consular or COS products: specialized onboarding flow */}
                         {isCOS || slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1") ? (
@@ -540,29 +514,11 @@ export default function ProcessDetailPage() {
                                    {t.processDetail.fixProblems}
                                  </button>
                                </div>
-                              ) : isCOS && baseStepId === "cos_motion_end" ? (
-                                <div className="space-y-4">
+                             ) : (
+                                <div className="space-y-6">
                                   <div className="flex items-start gap-3">
-                                    <RiInformationLine className="text-primary text-xl shrink-0 mt-0.5" />
-                                    <p className="text-xs text-text-muted font-medium leading-normal">
-                                      {stepData.motion_chat_started_at
-                                        ? "O acesso ao especialista já foi liberado e um chat foi aberto para conduzir sua Motion."
-                                        : "Seu acesso ao especialista foi liberado. Entre no chat para conduzir sua Motion com nossa equipe."}
-                                    </p>
-                                  </div>
-                                  <button
-                                    onClick={() => navigate("/dashboard/support")}
-                                    className="w-full py-3 rounded-xl border-2 border-primary/20 text-primary font-black text-[11px] uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all flex items-center justify-center gap-2 shadow-sm"
-                                  >
-                                    <RiArrowRightLine className="text-base" />
-                                    Ir para Specialist
-                                  </button>
-                                </div>
-                              ) : (
-                                 <div className="space-y-6">
-                                   <div className="flex items-start gap-3">
-                                     <RiTimeLine className="text-primary text-xl shrink-0 mt-0.5" />
-                                    <p className="text-xs text-text-muted font-medium leading-normal">
+                                    <RiTimeLine className="text-primary text-xl shrink-0 mt-0.5" />
+                                    <p className="text-xs text-slate-600 font-medium leading-normal">
                                       {slug.startsWith("visto-b1-b2") && idx === 6 
                                         ? t.processDetail.accountCreationNoticeDesc
                                         : slug.startsWith("visto-b1-b2") && idx === 8
@@ -713,7 +669,7 @@ export default function ProcessDetailPage() {
                   {progressPercent}%
                 </span>
               </div>
-              <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercent}%` }}
@@ -743,14 +699,14 @@ export default function ProcessDetailPage() {
             if (!hasPaidProposal) return null;
 
             return (
-              <div className="p-8 rounded-3xl border border-border bg-card">
-                <h4 className="text-sm font-black text-text uppercase tracking-tight mb-4">{t.processDetail.needHelp}</h4>
-                <p className="text-[13px] text-text-muted font-medium leading-relaxed mb-6">
+              <div className="p-8 rounded-3xl border border-slate-100 bg-white">
+                <h4 className="text-sm font-black text-slate-800 uppercase tracking-tight mb-4">{t.processDetail.needHelp}</h4>
+                <p className="text-[13px] text-slate-500 font-medium leading-relaxed mb-6">
                   {t.processDetail.supportDesc}
                 </p>
                 <Link
                   to="/dashboard/support"
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-border text-text font-black text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all"
                 >
                   {t.processDetail.talkToConsultant}
                   <RiArrowRightLine />
@@ -760,10 +716,11 @@ export default function ProcessDetailPage() {
           })()}
         </div>
       </div>
-      {shouldPromptForIdentityPhotoOverlay && (
+      {user && proc && !hasPhoto && (proc.current_step ?? 0) === 0 && (
         <PhotoUploadOverlay
-          userId={user!.id}
+          userId={user.id}
           onSuccess={() => {
+            setHasPhoto(true);
             if (refreshAccount) refreshAccount();
           }}
           onClose={() => navigate("/dashboard")}

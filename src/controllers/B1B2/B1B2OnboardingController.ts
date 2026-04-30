@@ -134,6 +134,17 @@ export function useB1B2OnboardingController({
 
       try {
         const payload: Record<string, unknown> = { ...values };
+        const birthYear =
+          typeof values.birthDate === 'string' && values.birthDate
+            ? values.birthDate.slice(0, 4)
+            : '';
+
+        if (typeof values.maternalGrandmotherName === 'string') {
+          payload.ds160_security_answer = values.maternalGrandmotherName;
+        }
+        if (birthYear) {
+          payload.ds160_birth_date = birthYear;
+        }
         delete payload.admin_feedback;
         delete payload.rejected_items;
 
@@ -171,7 +182,20 @@ export function useB1B2OnboardingController({
       if (!procId) return;
 
       try {
-        await processService.updateStepData(procId, values as Record<string, unknown>);
+        const payload: Record<string, unknown> = { ...values };
+        const birthYear =
+          typeof values.birthDate === 'string' && values.birthDate
+            ? values.birthDate.slice(0, 4)
+            : '';
+
+        if (typeof values.maternalGrandmotherName === 'string') {
+          payload.ds160_security_answer = values.maternalGrandmotherName;
+        }
+        if (birthYear) {
+          payload.ds160_birth_date = birthYear;
+        }
+
+        await processService.updateStepData(procId, payload);
         toast.success(labels.successDraft);
       } catch {
         toast.error(labels.errorDraft);

@@ -37,10 +37,14 @@ export interface WorkflowStep {
   status: StepStatus;
 }
 
+export type USCISOutcome = 'approved' | 'denied' | 'rfe';
+export type MotionOutcome = 'approved' | 'rejected';
+export type RFEOutcome = 'approved' | 'rfe' | 'denied';
+
 export interface ProcessResults {
-  uscis_official_result?: string;
-  uscis_rfe_result?: string;
-  motion_final_result?: string;
+  uscis_official_result?: USCISOutcome;
+  uscis_rfe_result?: RFEOutcome;
+  motion_final_result?: MotionOutcome;
   interview_outcome?: string;
   admin_feedback?: string;
   rejected_at?: string;

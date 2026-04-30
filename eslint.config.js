@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'motion_rfe_backup.bak/**', 'scratch/**']),
+  globalIgnores(['dist']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -16,7 +16,6 @@ export default defineConfig([
       reactRefresh.configs.vite,
     ],
     languageOptions: {
-      ecmaVersion: 2020,
       globals: globals.browser,
     },
   },

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -20,6 +20,7 @@ import { useAuth } from "../../../../hooks/useAuth";
 import { supabase } from "../../../../lib/supabase";
 import { calendlyService } from "../../../../services/calendly.service";
 import { useT, useLocale } from "../../../../i18n";
+import { useInterviewTrainingController } from "../../../../controllers/shared/useInterviewTrainingController";
 
 interface B1B2FinalPreparationStepProps {
   procId: string;
@@ -51,20 +52,22 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   const [isSchedulingConsultation, setIsSchedulingConsultation] = useState(false);
   const [consultationUrl, setConsultationUrl] = useState<string>("");
 
-  // Chatbot State
-  const [chatMessages, setChatMessages] = useState<{ id: string, role: "user" | "bot", text: string }[]>([
-    { id: "1", role: "bot", text: t.onboardingPage.aiInterviewChat.initialMessage }
-  ]);
-  const [chatInput, setChatInput] = useState("");
-  const [isBotTyping, setIsBotTyping] = useState(false);
-  const [sessionId] = useState(() => Math.random().toString(36).substring(2, 11));
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [chatMessages, isBotTyping]);
+  const {
+    messages: chatMessages,
+    input: chatInput,
+    setInput: setChatInput,
+    isSending: isBotTyping,
+    scrollRef,
+    sendMessage: handleSendChatMessage,
+  } = useInterviewTrainingController({
+    initialMessage: t.onboardingPage.aiInterviewChat.initialMessage,
+    processId: procId,
+    userId: user?.id,
+    lang,
+    ds160: freshStepData,
+    visaType: "B1/B2",
+    errorMessage: t.onboardingPage.aiInterviewChat.errorConnecting,
+  });
 
   useEffect(() => {
     async function checkMentorship() {
@@ -187,42 +190,6 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
     },
   });
 
-  const handleSendChatMessage = async () => {
-    if (!chatInput.trim() || isBotTyping) return;
-
-    const userMessage = chatInput.trim();
-    setChatInput("");
-    setChatMessages(prev => [...prev, { id: Date.now().toString(), role: "user", text: userMessage }]);
-    setIsBotTyping(true);
-
-    try {
-      const response = await fetch(import.meta.env.VITE_N8N_BOT_INTERVIEW, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userMessage,
-          userId: user?.id,
-          processId: procId,
-          lang: "pt",
-          sessionId: sessionId,
-          ds160: freshStepData
-        })
-      });
-
-      if (!response.ok) throw new Error(t.onboardingPage.aiInterviewChat.errorMessage);
-
-      const data = await response.json();
-      const botResponse = data.output || data.response || data.text || "Desculpe, não consegui processar sua mensagem agora.";
-
-      setChatMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: "bot", text: botResponse }]);
-    } catch (error) {
-      console.error("Chat Error:", error);
-      toast.error(t.onboardingPage.aiInterviewChat.errorConnecting);
-    } finally {
-      setIsBotTyping(false);
-    }
-  };
-
   const interviewOutcome = freshStepData?.interview_outcome as string | undefined;
   const isDenied = interviewOutcome === 'rejected' || interviewOutcome === 'denied';
 
@@ -303,25 +270,25 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
     }
   };
 
-  const RenderPreparationGrid = () => (
+  const preparationGrid = (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
       <button
         onClick={() => setActiveModule("guide")}
-        className="p-6 rounded-3xl bg-bg-subtle border border-border hover:border-primary transition-all text-left flex flex-col gap-3 group"
+        className="p-6 rounded-3xl bg-slate-50 border border-slate-100 hover:border-primary transition-all text-left flex flex-col gap-3 group"
       >
-        <RiBookOpenLine className="text-2xl text-text-muted group-hover:text-primary transition-colors" />
-        <span className="text-[10px] font-black uppercase tracking-widest text-text">{t.onboardingPage.awaitingInterview.tools.guide.title}</span>
+        <RiBookOpenLine className="text-2xl text-slate-400 group-hover:text-primary transition-colors" />
+        <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">{t.onboardingPage.awaitingInterview.tools.guide.title}</span>
       </button>
       <button
         onClick={() => setActiveModule("ai")}
-        className="p-6 rounded-3xl bg-bg-subtle border border-border hover:border-primary transition-all text-left flex flex-col gap-3 group"
+        className="p-6 rounded-3xl bg-slate-50 border border-slate-100 hover:border-primary transition-all text-left flex flex-col gap-3 group"
       >
-        <RiRobotLine className="text-2xl text-text-muted group-hover:text-primary transition-colors" />
-        <span className="text-[10px] font-black uppercase tracking-widest text-text">{t.onboardingPage.awaitingInterview.tools.ai.title}</span>
+        <RiRobotLine className="text-2xl text-slate-400 group-hover:text-primary transition-colors" />
+        <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">{t.onboardingPage.awaitingInterview.tools.ai.title}</span>
       </button>
       <button
         onClick={() => setActiveModule("specialist")}
-        className={`p-6 rounded-3xl border transition-all text-left flex flex-col gap-3 group relative overflow-hidden ${purchasedMentorship ? "bg-emerald-50 border-emerald-100" : "bg-bg-subtle border-border hover:border-primary"
+        className={`p-6 rounded-3xl border transition-all text-left flex flex-col gap-3 group relative overflow-hidden ${purchasedMentorship ? "bg-emerald-50 border-emerald-100" : "bg-slate-50 border-slate-100 hover:border-primary"
           }`}
       >
         {purchasedMentorship ? (
@@ -338,8 +305,8 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
           </>
         ) : (
           <>
-            <RiUserStarLine className="text-2xl text-text-muted group-hover:text-primary transition-colors" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-text">{t.onboardingPage.awaitingInterview.tools.specialist.title}</span>
+            <RiUserStarLine className="text-2xl text-slate-400 group-hover:text-primary transition-colors" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">{t.onboardingPage.awaitingInterview.tools.specialist.title}</span>
           </>
         )}
       </button>
@@ -349,12 +316,12 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   return (
     <div className="space-y-8 animate-in fade-in duration-500">      {isAwaitingAdmin && (
         <div className="p-8 bg-blue-50 border border-blue-100 rounded-[40px] text-center space-y-4 shadow-xl shadow-blue-500/5 animate-in slide-in-from-top-4 duration-500">
-          <div className="w-12 h-12 bg-card text-blue-500 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+          <div className="w-12 h-12 bg-white text-blue-500 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
             <RiLoader4Line className="text-2xl animate-spin" />
           </div>
           <div>
-            <h2 className="text-xl font-black text-text uppercase tracking-tight">{t.onboardingPage.awaitingInterview.awaitingFinalScheduling}</h2>
-            <p className="text-xs text-text-muted font-medium max-w-sm mx-auto mt-1">
+            <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">{t.onboardingPage.awaitingInterview.awaitingFinalScheduling}</h2>
+            <p className="text-xs text-slate-500 font-medium max-w-sm mx-auto mt-1">
               {t.onboardingPage.awaitingInterview.awaitingFinalSchedulingDesc}
             </p>
           </div>
@@ -362,59 +329,59 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       )}
 
       {/* Main Tools Section - Always Visible */}
-      <div className="bg-card p-12 rounded-[40px] border border-border shadow-xl shadow-none">
+      <div className="bg-white p-12 rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40">
         <div className="text-center mb-10">
-          <h3 className="text-2xl font-black text-text uppercase tracking-tight">{t.onboardingPage.awaitingInterview.preparationResources}</h3>
-          <p className="text-sm text-text-muted font-medium max-w-md mx-auto mt-2">
+          <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{t.onboardingPage.awaitingInterview.preparationResources}</h3>
+          <p className="text-sm text-slate-500 font-medium max-w-md mx-auto mt-2">
             {t.onboardingPage.awaitingInterview.preparationResourcesDesc}
           </p>
         </div>
-        <RenderPreparationGrid />
+        {preparationGrid}
       </div>
 
       {!isAwaitingAdmin && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* CASV/CONSULATE DATES DETAILS (Original content moved here) */}
-          <div className="bg-card p-8 rounded-[40px] border border-border shadow-xl shadow-none relative overflow-hidden">
+          <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 relative overflow-hidden">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center">
                 <RiInformationLine className="text-2xl" />
               </div>
               <div>
-                <h3 className="text-xs font-black text-text-muted uppercase tracking-widest">{t.onboardingPage.awaitingInterview.casv}</h3>
-                <p className="text-lg font-black text-text">{new Date(casvDate + "T12:00:00").toLocaleDateString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : "en-US", { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">{t.onboardingPage.awaitingInterview.casv}</h3>
+                <p className="text-lg font-black text-slate-800">{new Date(casvDate + "T12:00:00").toLocaleDateString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : "en-US", { day: '2-digit', month: 'long', year: 'numeric' })}</p>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
               <div>
-                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">{t.onboardingPage.awaitingInterview.time}</p>
-                <p className="text-sm font-bold text-text">{freshStepData.final_casv_time as string}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t.onboardingPage.awaitingInterview.time}</p>
+                <p className="text-sm font-bold text-slate-800">{freshStepData.final_casv_time as string}</p>
               </div>
               <div>
-                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">{t.onboardingPage.awaitingInterview.location}</p>
-                <p className="text-sm font-bold text-text leading-tight">{freshStepData.final_casv_location as string}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t.onboardingPage.awaitingInterview.location}</p>
+                <p className="text-sm font-bold text-slate-800 leading-tight">{freshStepData.final_casv_location as string}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-card p-8 rounded-[40px] border border-border shadow-xl shadow-none relative overflow-hidden">
+          <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 relative overflow-hidden">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center">
                 <RiCalendarCheckLine className="text-2xl" />
               </div>
               <div>
-                <h3 className="text-xs font-black text-text-muted uppercase tracking-widest">{t.onboardingPage.awaitingInterview.consulate}</h3>
-                <p className="text-lg font-black text-text">{new Date(consuladoDate + "T12:00:00").toLocaleDateString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : "en-US", { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">{t.onboardingPage.awaitingInterview.consulate}</h3>
+                <p className="text-lg font-black text-slate-800">{new Date(consuladoDate + "T12:00:00").toLocaleDateString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : "en-US", { day: '2-digit', month: 'long', year: 'numeric' })}</p>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
               <div>
-                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">{t.onboardingPage.awaitingInterview.time}</p>
-                <p className="text-sm font-bold text-text">{freshStepData.final_consulado_time as string}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t.onboardingPage.awaitingInterview.time}</p>
+                <p className="text-sm font-bold text-slate-800">{freshStepData.final_consulado_time as string}</p>
               </div>
               <div>
-                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">{t.onboardingPage.awaitingInterview.location}</p>
-                <p className="text-sm font-bold text-text leading-tight">{freshStepData.final_consulado_location as string}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t.onboardingPage.awaitingInterview.location}</p>
+                <p className="text-sm font-bold text-slate-800 leading-tight">{freshStepData.final_consulado_location as string}</p>
               </div>
             </div>
           </div>
@@ -423,7 +390,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
 
       {/* Outcome Section if applicable */}
       {isInterviewDayOrPast && (
-        <div className="p-10 bg-card rounded-[40px] text-center space-y-8 shadow-2xl border border-primary/20 relative overflow-hidden group">
+        <div className="p-10 bg-slate-900 rounded-[40px] text-center space-y-8 shadow-2xl border border-primary/20 relative overflow-hidden group">
           {/* outcome logic remains as it was inside this block */}
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
 
@@ -436,10 +403,10 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                         <RiCheckLine className="text-5xl" />
                       </div>
                       <h4 className="text-3xl font-black text-white uppercase tracking-tight">{t.onboardingPage.processingStatus.outcomeApproved}</h4>
-                      <p className="text-text-muted font-medium max-w-sm mx-auto">{t.onboardingPage.processingStatus.outcomeApprovedDesc}</p>
+                      <p className="text-slate-400 font-medium max-w-sm mx-auto">{t.onboardingPage.processingStatus.outcomeApprovedDesc}</p>
                       <button
                         onClick={() => navigate('/dashboard')}
-                        className="w-full h-14 bg-card text-text rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary transition-all shadow-xl"
+                        className="w-full h-14 bg-white text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary transition-all shadow-xl"
                       >
                         {t.onboardingPage.processingStatus.backToStart}
                       </button>
@@ -451,19 +418,19 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                       </div>
                       <div className="space-y-2">
                         <h4 className="text-2xl font-black text-white uppercase tracking-tight">{t.onboardingPage.processingStatus.outcomeRejected}</h4>
-                        <p className="text-sm text-text-muted font-medium max-w-sm mx-auto">{t.onboardingPage.processingStatus.outcomeRejectedDesc}</p>
+                        <p className="text-sm text-slate-400 font-medium max-w-sm mx-auto">{t.onboardingPage.processingStatus.outcomeRejectedDesc}</p>
                       </div>
 
                       <div className="grid grid-cols-1 gap-4 pt-4">
                         <button
                           onClick={() => navigate('/checkout/visto-b1-b2')}
-                          className="p-6 bg-card/5 border border-white/10 rounded-3xl text-left hover:bg-card/10 transition-all group/opt relative overflow-hidden"
+                          className="p-6 bg-white/5 border border-white/10 rounded-3xl text-left hover:bg-white/10 transition-all group/opt relative overflow-hidden"
                         >
                           <div className="relative z-10">
                             <h5 className="text-white font-black uppercase text-xs tracking-widest mb-1 group-hover/opt:text-primary transition-colors">{t.onboardingPage.processingStatus.restartProcess}</h5>
-                            <p className="text-[10px] text-text-muted font-medium leading-relaxed">{t.onboardingPage.processingStatus.restartProcessDesc}</p>
+                            <p className="text-[10px] text-slate-500 font-medium leading-relaxed">{t.onboardingPage.processingStatus.restartProcessDesc}</p>
                           </div>
-                          <RiArrowRightLine className="absolute right-6 top-1/2 -translate-y-1/2 text-text group-hover/opt:text-primary group-hover/opt:translate-x-1 transition-all" />
+                          <RiArrowRightLine className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-700 group-hover/opt:text-primary group-hover/opt:translate-x-1 transition-all" />
                         </button>
 
                         {purchasedConsultation ? (
@@ -498,7 +465,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
 
                       <button
                         onClick={() => navigate('/dashboard')}
-                        className="text-[10px] font-black text-text-muted uppercase tracking-widest hover:text-white transition-colors"
+                        className="text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-white transition-colors"
                       >
                         {t.onboardingPage.processingStatus.backToStart}
                       </button>
@@ -509,7 +476,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                 <div className="space-y-6">
                   <div className="relative">
                     <h4 className="text-2xl font-black text-white uppercase tracking-tight mb-2">{t.onboardingPage.processingStatus.theBigDay}</h4>
-                    <p className="text-sm text-text-muted font-medium max-w-md mx-auto leading-relaxed">
+                    <p className="text-sm text-slate-400 font-medium max-w-md mx-auto leading-relaxed">
                       {t.onboardingPage.processingStatus.howWasOutcome}
                     </p>
                   </div>
@@ -525,7 +492,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                     <button
                       disabled={loading}
                       onClick={() => handleReportOutcome('rejected')}
-                      className="h-16 bg-card/10 text-white border border-white/10 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-card/20 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                      className="h-16 bg-white/10 text-white border border-white/10 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-white/20 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
                     >
                       {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCloseLine className="text-xl" /> {t.onboardingPage.processingStatus.iWasRefused}</>}
                     </button>
@@ -537,20 +504,20 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
 
       <AnimatePresence>
         {isSchedulingConsultation && consultationUrl && (
-          <div className="fixed inset-0 bg-card z-[200] flex flex-col animate-in fade-in duration-300">
-            <div className="h-20 flex items-center justify-between px-8 border-b bg-card">
+          <div className="fixed inset-0 bg-white z-[200] flex flex-col animate-in fade-in duration-300">
+            <div className="h-20 flex items-center justify-between px-8 border-b bg-white">
               <div>
-                <h3 className="text-lg font-black text-text uppercase tracking-tight">{t.onboardingPage.specialistTraining.bronzePackage}</h3>
-                <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">{t.onboardingPage.processingStatus.outcomeRejected}</p>
+                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{t.onboardingPage.specialistTraining.bronzePackage}</h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t.onboardingPage.processingStatus.outcomeRejected}</p>
               </div>
               <button 
                 onClick={() => setIsSchedulingConsultation(false)} 
-                className="w-12 h-12 rounded-full bg-bg-subtle flex items-center justify-center text-text-muted hover:text-rose-500 transition-all shadow-sm"
+                className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all shadow-sm"
               >
                 <RiCloseLine className="text-2xl" />
               </button>
             </div>
-            <div className="flex-1 w-full overflow-hidden bg-bg-subtle">
+            <div className="flex-1 w-full overflow-hidden bg-slate-50">
               <InlineWidget 
                 url={consultationUrl} 
                 styles={{ height: '100%', width: '100%' }} 
@@ -565,12 +532,12 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-50 flex items-start justify-center bg-card md:bg-card/60 md:backdrop-blur-md overflow-hidden"
+            className="fixed inset-0 z-50 flex items-start justify-center bg-white md:bg-slate-900/60 md:backdrop-blur-md overflow-hidden"
           >
-            <div className="bg-card w-full h-full md:h-auto md:max-w-2xl md:rounded-[40px] shadow-2xl relative flex flex-col pt-16 md:pt-0 md:max-h-[90vh]">
+            <div className="bg-white w-full h-full md:h-auto md:max-w-2xl md:rounded-[40px] shadow-2xl relative flex flex-col pt-16 md:pt-0 md:max-h-[90vh]">
               <button 
                 onClick={() => setActiveModule(null)} 
-                className="fixed md:absolute top-4 right-4 md:top-8 md:right-8 w-10 h-10 rounded-full bg-bg-subtle flex items-center justify-center text-text-muted hover:text-red-500 transition-all z-[60]"
+                className="fixed md:absolute top-4 right-4 md:top-8 md:right-8 w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-red-500 transition-all z-[60]"
               >
                 <RiCloseLine className="text-xl" />
               </button>
@@ -580,8 +547,8 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center"><RiBookOpenLine className="text-2xl" /></div>
                       <div>
-                        <h3 className="text-2xl font-black text-text uppercase tracking-tight">{t.onboardingPage.awaitingInterview.tools.guide.title}</h3>
-                        <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">{t.onboardingPage.awaitingInterview.tools.guide.desc}</p>
+                        <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{t.onboardingPage.awaitingInterview.tools.guide.title}</h3>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t.onboardingPage.awaitingInterview.tools.guide.desc}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 gap-3">
@@ -590,13 +557,13 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                         { q: "Onde você vai se hospedar?", a: "Tenha o endereço do hotel ou da casa de amigos/parentes em mãos." },
                         { q: "Quem vai pagar pela sua viagem?", a: "Se for você, demonstre estabilidade. Se for um sponsor, explique a relação." }
                       ].map((item, i) => (
-                        <div key={i} className="p-4 bg-bg-subtle rounded-2xl border border-border">
-                          <p className="text-[11px] font-black text-text mb-1">{item.q}</p>
-                          <p className="text-[10px] text-text-muted font-medium">{item.a}</p>
+                        <div key={i} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                          <p className="text-[11px] font-black text-slate-700 mb-1">{item.q}</p>
+                          <p className="text-[10px] text-slate-500 font-medium">{item.a}</p>
                         </div>
                       ))}
                     </div>
-                    <div className="pt-8 border-t border-border text-center">
+                    <div className="pt-8 border-t border-slate-100 text-center">
                       <a href="/guides/b1b2-interview-guide.pdf" target="_blank" className="inline-flex items-center gap-3 px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all">
                         {t.onboardingPage.specialistTraining.downloadGuide} <RiArrowRightLine />
                       </a>
@@ -610,21 +577,21 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                         <RiRobotLine className="text-2xl" />
                         <div className="absolute top-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full animate-pulse"></div>
                       </div>
-                      <h3 className="text-2xl font-black text-text uppercase tracking-tight">{t.onboardingPage.aiInterviewChat.practiceTitle}</h3>
+                      <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{t.onboardingPage.aiInterviewChat.practiceTitle}</h3>
                     </div>
-                    <div className="flex-1 bg-bg-subtle rounded-[32px] overflow-hidden flex flex-col relative shadow-inner border border-border">
+                    <div className="flex-1 bg-slate-100 rounded-[32px] overflow-hidden flex flex-col relative shadow-inner border border-slate-200">
                       <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4">
                         {chatMessages.map((msg) => (
                           <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                            <div className={`max-w-[85%] p-4 rounded-3xl text-xs font-bold ${msg.role === "user" ? "bg-primary text-white rounded-tr-none" : "bg-card text-text rounded-tl-none border border-border"}`}>
+                            <div className={`max-w-[85%] p-4 rounded-3xl text-xs font-bold ${msg.role === "user" ? "bg-primary text-white rounded-tr-none" : "bg-white text-slate-700 rounded-tl-none border border-slate-200"}`}>
                               {msg.text}
                             </div>
                           </div>
                         ))}
-                        {isBotTyping && <div className="flex justify-start"><div className="bg-card p-4 rounded-3xl rounded-tl-none shadow-sm flex gap-1"><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" /><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.2s]" /><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.4s]" /></div></div>}
+                        {isBotTyping && <div className="flex justify-start"><div className="bg-white p-4 rounded-3xl rounded-tl-none shadow-sm flex gap-1"><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" /><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.2s]" /><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.4s]" /></div></div>}
                       </div>
-                      <div className="p-4 bg-card border-t border-border relative flex gap-2">
-                        <input type="text" placeholder={t.onboardingPage.aiInterviewChat.placeholder} value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()} className="flex-1 px-4 py-3 bg-bg-subtle rounded-xl text-xs font-bold" />
+                      <div className="p-4 bg-white border-t border-slate-200 relative flex gap-2">
+                        <input type="text" placeholder={t.onboardingPage.aiInterviewChat.placeholder} value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()} className="flex-1 px-4 py-3 bg-slate-100 rounded-xl text-xs font-bold" />
                         <button onClick={handleSendChatMessage} className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center"><RiSendPlane2Fill /></button>
                       </div>
                     </div>
@@ -638,8 +605,8 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                           <div className="text-center space-y-6 py-8">
                             <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto"><RiHistoryLine className="text-4xl" /></div>
                             <div>
-                              <h3 className="text-2xl font-black text-text uppercase tracking-tight">{t.onboardingPage.specialistTraining.mentoringTitle}</h3>
-                              <p className="text-xs text-text-muted font-bold uppercase tracking-widest">{scheduledCount} {t.onboardingPage.stepOf} {totalInterviews} {t.onboardingPage.specialistTraining.scheduledLabel}</p>
+                              <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{t.onboardingPage.specialistTraining.mentoringTitle}</h3>
+                              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{scheduledCount} {t.onboardingPage.stepOf} {totalInterviews} {t.onboardingPage.specialistTraining.scheduledLabel}</p>
                             </div>
                             {!allScheduled ? (
                               <button onClick={() => setIsScheduling(true)} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest">{t.onboardingPage.specialistTraining.scheduleNow} {scheduledCount + 1}ª {t.onboardingPage.specialistTraining.interviewLabel}</button>
@@ -649,18 +616,18 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                           </div>
                         ) : (
                           <div className="space-y-6">
-                            <div className="text-center"><h3 className="text-2xl font-black text-text uppercase tracking-tight">{t.onboardingPage.specialistTraining.mentoringTitle}</h3></div>
+                            <div className="text-center"><h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{t.onboardingPage.specialistTraining.mentoringTitle}</h3></div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                               {PLANS.map(plan => (
-                                <div key={plan.id} className={`p-6 rounded-[32px] border flex flex-col ${plan.best ? "bg-slate-900 border-slate-900 text-white" : "bg-bg-subtle"}`}>
+                                <div key={plan.id} className={`p-6 rounded-[32px] border flex flex-col ${plan.best ? "bg-slate-900 border-slate-900 text-white" : "bg-slate-50"}`}>
                                   <span className="text-[10px] font-black uppercase mb-1">{plan.name}</span>
                                   <span className="text-2xl font-black mb-4">R$ {plan.price}</span>
                                   <div className="space-y-2 flex-1">
                                     {plan.features.map(f => (
-                                      <div key={f} className="flex gap-2 text-[9px] font-bold text-text-muted"><RiCheckLine className="text-emerald-500" /> {f}</div>
+                                      <div key={f} className="flex gap-2 text-[9px] font-bold text-slate-400"><RiCheckLine className="text-emerald-500" /> {f}</div>
                                     ))}
                                   </div>
-                                  <button onClick={() => handleSelectPlan(plan)} className={`mt-6 py-3 rounded-xl text-[10px] font-black uppercase ${plan.best ? "bg-primary text-white" : "bg-slate-900 border text-white"}`}>{t.onboardingPage.specialistTraining.chooseThis}</button>
+                                  <button onClick={() => handleSelectPlan(plan)} className={`mt-6 py-3 rounded-xl text-[10px] font-black uppercase ${plan.best ? "bg-primary text-white" : "bg-white border text-slate-800"}`}>{t.onboardingPage.specialistTraining.chooseThis}</button>
                                 </div>
                               ))}
                             </div>
@@ -679,20 +646,20 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
 
       {/* Calendly Full-screen Overlay - Dedicated to avoid scroll/click issues on mobile */}
       {isScheduling && calendlyUrl && (
-        <div className="fixed inset-0 bg-card z-[200] flex flex-col animate-in fade-in duration-300">
-          <div className="h-20 flex items-center justify-between px-8 border-b bg-card">
+        <div className="fixed inset-0 bg-white z-[200] flex flex-col animate-in fade-in duration-300">
+          <div className="h-20 flex items-center justify-between px-8 border-b bg-white">
             <div>
-              <h3 className="text-lg font-black text-text uppercase tracking-tight">{t.onboardingPage.specialistTraining.mentoringTitle}</h3>
-              <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">{scheduledCount + 1}ª {t.onboardingPage.specialistTraining.interviewLabel}</p>
+              <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{t.onboardingPage.specialistTraining.mentoringTitle}</h3>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{scheduledCount + 1}ª {t.onboardingPage.specialistTraining.interviewLabel}</p>
             </div>
             <button 
               onClick={() => setIsScheduling(false)} 
-              className="w-12 h-12 rounded-full bg-bg-subtle flex items-center justify-center text-text-muted hover:text-rose-500 transition-all shadow-sm"
+              className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all shadow-sm"
             >
               <RiCloseLine className="text-2xl" />
             </button>
           </div>
-          <div className="flex-1 w-full overflow-hidden bg-bg-subtle">
+          <div className="flex-1 w-full overflow-hidden bg-slate-50">
             <InlineWidget 
               url={calendlyUrl} 
               styles={{ height: '100%', width: '100%' }} 

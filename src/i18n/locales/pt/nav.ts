@@ -15,5 +15,4 @@ const nav = {
   goToDashboard: "Ir para o Painel",
   goToAdmin: "Ir para o Admin",
 };
-
 export default nav;

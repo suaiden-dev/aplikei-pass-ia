@@ -6,3 +6,4 @@ export * from './workflow.model';
 export * from './chat.model';
 export * from './ds160.model';
 export * from './i539.model';
+export * from './interview-training.model';

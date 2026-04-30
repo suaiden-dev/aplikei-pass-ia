@@ -1,6 +1,5 @@
 import { useParams } from "react-router-dom";
-import { MdVerified, MdLanguage, MdSchool, MdHistory, MdSyncAlt, MdGroupAdd } from "react-icons/md";
-import { RiUserVoiceLine } from "react-icons/ri";
+import { MdVerified, MdLanguage, MdSchool, MdHistory, MdSyncAlt } from "react-icons/md";
 import type { IconType } from "react-icons";
 import ServiceDetailTemplate from "../../templates/ServiceDetailTemplate";
 import { getServiceBySlug } from "../../data/services";
@@ -11,14 +10,11 @@ const heroIconMap: Record<string, IconType> = {
   MdSchool,
   MdHistory,
   MdSyncAlt,
-  MdGroupAdd,
-  RiUserVoiceLine,
 };
 
 export default function ServiceDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const service = slug ? getServiceBySlug(slug) : null;
-
   const HeroIcon = service ? (heroIconMap[service.heroIconName] ?? MdVerified) : MdVerified;
 
   return (

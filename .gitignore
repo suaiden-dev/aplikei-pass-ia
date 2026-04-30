@@ -11,7 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
-scripts-dev/
+.env
+.env.*
+!**/.env.example
 
 # Editor directories and files
 .vscode/*
@@ -23,15 +25,3 @@ scripts-dev/
 *.njsproj
 *.sln
 *.sw?
-
-# Environment variables
-.env
-.env.*
-!.env.example
-
-# I-539 script artifacts (generated locally, not needed in repo)
-scripts/i539_original.pdf
-scripts/i539_decrypted.pdf
-scripts/i539_filled_sample.pdf
-scripts/i539_fields.json
-temp/

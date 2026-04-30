@@ -1,26 +1,36 @@
-/**
- * Utility functions for formatting strings, numbers and dates.
- */
+const currencyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  maximumFractionDigits: 0,
+});
 
-/**
- * Formats a number as a currency string.
- * Default is USD for US based visa processes.
- */
-export function formatCurrency(
-  value: number,
-  currency: string = "USD",
-  locale: string = "en-US"
-) {
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: currency,
-  }).format(value);
+const compactNumberFormatter = new Intl.NumberFormat("pt-BR", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+const percentFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "percent",
+  maximumFractionDigits: 1,
+});
+
+const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
+  day: "2-digit",
+  month: "short",
+});
+
+export function formatCurrency(value: number) {
+  return currencyFormatter.format(value);
 }
 
-/**
- * Formats a date string.
- */
-export function formatDate(date: string | Date, locale: string = "pt-BR") {
-  const d = typeof date === "string" ? new Date(date) : date;
-  return new Intl.DateTimeFormat(locale).format(d);
+export function formatCompactNumber(value: number) {
+  return compactNumberFormatter.format(value);
+}
+
+export function formatPercent(value: number) {
+  return percentFormatter.format(value);
+}
+
+export function formatDate(value: string) {
+  return dateFormatter.format(new Date(value));
 }

@@ -1,12 +1,7 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
 import { HeroSection } from "../../components/HeroSection";
 import { FAQSection } from "../../components/FAQSection";
 import { TestimonialsSection } from "../../components/TestimonialsSection";
 import { HowItWorksSection } from "../../components/HowItWorksSection";
-import { getDefaultRouteForRole } from "../../routes/authRedirect";
-// Remove ServicesSection import
 
 const avatars = [
   "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
@@ -20,15 +15,6 @@ const heroImage =
   "https://images.unsplash.com/photo-1526253038957-bce54e05968e?q=80&w=2070&auto=format&fit=crop";
 
 export default function HomePage() {
-  const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading } = useAuth();
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated && user) {
-      navigate(getDefaultRouteForRole(user.role), { replace: true });
-    }
-  }, [isAuthenticated, isLoading, user, navigate]);
-
   return (
     <>
       <HeroSection heroImage={heroImage} avatars={avatars} />

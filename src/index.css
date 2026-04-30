@@ -22,21 +22,6 @@
   --color-warning:      var(--warning);
   --color-danger:       var(--danger);
   --color-info:         var(--info);
-
-  /* Common Shadcn/Tailwind mappings */
-  --color-background:   var(--bg);
-  --color-foreground:   var(--text);
-  --color-muted:        var(--bg-subtle);
-  --color-muted-foreground: var(--text-muted);
-  --color-accent:       var(--bg-subtle);
-  --color-accent-foreground: var(--text);
-  --color-input:        var(--border);
-  --color-ring:         var(--primary);
-  --color-destructive:  var(--danger);
-  --color-destructive-foreground: #FFFFFF;
-  --color-primary-foreground: #FFFFFF;
-  --color-secondary:    var(--bg-subtle);
-  --color-secondary-foreground: var(--text);
 }
 
 /* ─── Light theme (padrão) ───────────────────────────────────── */
@@ -63,19 +48,19 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --bg:             #020617;
-  --bg-subtle:      #0F172A;
-  --card:           #0F172A;
-  --highlight:      #000000;
-  --text:           #FFFFFF;
-  --text-muted:     #CBD5E1;
-  --border:         #1E293B;
-  --primary:        #3B82F6;
-  --primary-hover:  #60A5FA;
-  --success:        #22C55E;
-  --warning:        #F59E0B;
-  --danger:         #EF4444;
-  --info:           #38BDF8;
+  --bg:             #0F172A;
+  --bg-subtle:      #1E293B;
+  --card:           #1E293B;
+  --highlight:      #020617;
+  --text:           #F1F5F9;
+  --text-muted:     #94A3B8;
+  --border:         #334155;
+  --primary:        #1A56DB;
+  --primary-hover:  #2563EB;
+  --success:        #16A34A;
+  --warning:        #D97706;
+  --danger:         #DC2626;
+  --info:           #0284C7;
 }
 
 /* ─── Accordion animations ───────────────────────────────────── */

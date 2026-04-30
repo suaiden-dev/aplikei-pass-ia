@@ -1,42 +1,26 @@
-import './index.css'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import { Toaster } from 'sonner'
-import { AuthProvider } from './contexts/AuthContext'
-import { LanguageProvider } from './i18n/LanguageContext'
-import { ThemeProvider } from './contexts/ThemeContext'
-import App from './App.tsx'
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "sonner";
+import "./index.css";
+import App from "./App";
+import { LanguageProvider } from "./i18n";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { AuthProvider } from "./contexts/AuthContext";
 
-const app = (
+const queryClient = new QueryClient();
+
+createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
-    <LanguageProvider>
-      <AuthProvider>
-        <ThemeProvider>
-          <App />
-        </ThemeProvider>
-        <Toaster
-        position="top-right"
-        closeButton
-        toastOptions={{
-          style: {
-            background: "#0F172A",
-            color: "#F8FAFC",
-            border: "1px solid rgba(255,255,255,0.08)",
-            fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-            fontSize: "14px",
-            fontWeight: "500",
-            borderRadius: "12px",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-          },
-          classNames: {
-            success: "!border-l-4 !border-l-[#1a56db]",
-            error: "!border-l-4 !border-l-red-500",
-          },
-        }}
-      />
-      </AuthProvider>
-    </LanguageProvider>
-  </BrowserRouter>
-)
-
-createRoot(document.getElementById('root')!).render(app)
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <App />
+            <Toaster richColors position="top-right" />
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </BrowserRouter>,
+);

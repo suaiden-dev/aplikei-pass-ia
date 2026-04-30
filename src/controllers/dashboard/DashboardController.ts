@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
-import { calculateProcessProgress, processService, type UserService } from '../../services/process.service';
+import { processService, type UserService } from '../../services/process.service';
 import { servicesData, type ServiceMeta } from '../../data/services';
 
 export interface ActiveProcess {
@@ -67,6 +67,16 @@ export interface UseDashboardControllerResult {
   refetch: () => void;
 }
 
+function calculatePhaseProgress(proc: UserService, totalSteps: number): number {
+  const step = proc.current_step ?? 0;
+
+  if (proc.status === 'completed') return 100;
+
+  const isConsular = proc.service_slug.startsWith("visto-b1-b2") || proc.service_slug.startsWith("visto-f1");
+  const maxProgress = isConsular ? 95 : 99;
+  return Math.min(maxProgress, Math.round((step / (totalSteps || 1)) * 100));
+}
+
 function isAnalysisSlug(slug: string): boolean {
   const lower = slug.toLowerCase();
   return (
@@ -111,8 +121,8 @@ export function useDashboardController({
   useEffect(() => {
     if (!userId) return;
 
-    const channel = supabase
-      .channel(`dashboard-realtime-${userId}`)
+    const channel1 = supabase
+      .channel(`dashboard-realtime-legacy-${userId}`)
       .on(
         'postgres_changes',
         {
@@ -127,8 +137,25 @@ export function useDashboardController({
       )
       .subscribe();
 
+    const channel2 = supabase
+      .channel(`dashboard-realtime-workflow-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'aplikei',
+          table: 'user_product_instances',
+          filter: `user_id=eq.${userId}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['user-services', userId] });
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channel1);
+      supabase.removeChannel(channel2);
     };
   }, [userId, queryClient]);
 
@@ -195,7 +222,7 @@ export function useDashboardController({
         return {
           proc,
           service,
-          progress: isFinalized ? 100 : calculateProcessProgress(proc, totalSteps),
+          progress: isFinalized ? 100 : calculatePhaseProgress(proc, totalSteps),
           isApproved,
           isDenied,
           isFinalized,

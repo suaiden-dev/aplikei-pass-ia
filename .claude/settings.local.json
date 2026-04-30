@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(supabase --version)",
+      "Read(//home/vileladev/www/aplikei/**)",
+      "Read(//home/vileladev/www/**)"
+    ]
+  }
+}

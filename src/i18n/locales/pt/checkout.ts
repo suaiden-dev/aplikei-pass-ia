@@ -149,6 +149,7 @@ const checkout = {
     },
     placeOrder: "Finalizar Pedido",
     redirecting: "Processando...",
+    errorProcessing: "Erro ao processar pagamento. Por favor, tente novamente.",
     statusUnavailable: {
       title: "Serviço indisponível",
       desc: "Este guia está temporariamente indisponível para contratação. Você será redirecionado ao seu dashboard.",

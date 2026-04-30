@@ -1,285 +1,171 @@
-import { getSessionSafe, supabase } from "../lib/supabase";
-import { notificationRepository } from "../repositories";
-import { buildNotifContent, type NotifLang, type NotifTemplate } from "./notification-templates";
+import {
+  insertNotificationRecord,
+  listNotificationRecords,
+  markNotificationAsRead,
+  markNotificationsAsRead,
+} from "../database/notifications.database";
+import { emitPortalEvent } from "../mocks/customer-portal";
+import {
+  type Notification,
+  type NotificationCategory,
+  type NotificationKind,
+  type NotificationQueryRole,
+  type NotificationTemplate,
+  type NotifyAdminOptions,
+  type NotifyCustomerOptions,
+} from "../models/notification.model";
 
-export type EmailTemplate = NotifTemplate;
-
-export interface NotifyClientParams {
-  userId?: string;
+export interface NotifyClientParams extends NotifyCustomerOptions {
   clientEmail?: string;
   clientName?: string;
-  template?: NotifTemplate;
-  title?: string;
-  body?: string;
-  serviceId?: string;
-  templateData?: Record<string, string>;
-  sendEmail?: boolean;
-  link?: string;
 }
 
-export interface NotifyAdminParams {
-  title: string;
-  body?: string;
-  serviceId?: string;
-  userId?: string;
-  metadata?: Record<string, unknown>;
-  link?: string;
+export type NotifyAdminParams = NotifyAdminOptions;
+export type AppNotification = Notification;
+
+function publishNotificationEvent(notification: AppNotification) {
+  emitPortalEvent("aplikei:notifications:changed", { notification });
 }
 
-export interface AppNotification {
-  id: string;
-  type: string;
-  target_role: "admin" | "client";
-  user_id: string | null;
-  service_id: string | null;
-  title: string;
-  message: string | null;
-  link: string | null;
-  is_read: boolean;
-  send_email: boolean;
-  email_sent: boolean;
-  metadata: Record<string, unknown>;
-  created_at: string;
-}
-
-type NotificationInsertPayload = Record<string, unknown>;
-
-function isMissingColumnError(error: { code?: string; message?: string } | null): boolean {
-  if (!error) return false;
-  return error.code === "42703" || (error.message?.toLowerCase().includes("column") ?? false);
-}
-
-function applyAdminRoleFilter<T extends { eq: (column: string, value: string) => T }>(
-  query: T,
-  roleColumn: "target_role" | "target_type",
-): T {
-  return query.eq(roleColumn, "admin");
-}
-
-async function insertNotification(payload: NotificationInsertPayload): Promise<void> {
-  const cachedSession = await getSessionSafe();
-  const accessToken = cachedSession?.access_token ?? null;
-  const expiresAtMs = cachedSession?.expires_at ? cachedSession.expires_at * 1000 : null;
-
-  if (!accessToken || (expiresAtMs !== null && expiresAtMs <= Date.now() + 60_000)) {
-    throw new Error("Auth session unavailable");
-  }
-
-  const { error } = await supabase.functions.invoke("send-notification", {
-    body: payload,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (error) {
-    const maybeHttpError = error as { name?: string; context?: { status?: number } };
-    if (maybeHttpError.name === "FunctionsHttpError" && maybeHttpError.context?.status) {
-      throw new Error(`HTTP ${maybeHttpError.context.status}`);
-    }
-
-    throw new Error(error.message);
+function resolveCustomerTemplate(
+  template?: NotificationTemplate,
+): Pick<AppNotification, "type" | "kind" | "category"> {
+  switch (template) {
+    case "step_approved":
+      return { type: "client_action", kind: "customer_step_approved", category: "process" };
+    case "step_rejected_feedback":
+      return { type: "client_action", kind: "customer_step_rejected_feedback", category: "process" };
+    case "process_completed_approved":
+    case "process_completed_denied":
+      return { type: "client_action", kind: "customer_process_completed", category: "process" };
+    case "new_chat_message":
+      return { type: "client_action", kind: "customer_chat_message", category: "chat" };
+    case "payment_received":
+      return { type: "client_action", kind: "customer_payment_received", category: "payment" };
+    case "payment_failed":
+      return { type: "system", kind: "customer_payment_failed", category: "payment" };
+    case "admin_message":
+    default:
+      return { type: "client_action", kind: "customer_admin_message", category: "system" };
   }
 }
 
-function normalizeNotification(row: Record<string, unknown>): AppNotification {
+function inferAdminKind(params: NotifyAdminParams): {
+  kind: NotificationKind;
+  category: NotificationCategory;
+} {
+  if (params.kind && params.category) {
+    return {
+      kind: params.kind,
+      category: params.category,
+    };
+  }
+
+  const haystack = `${params.title} ${params.body ?? ""}`.toLowerCase();
+
+  if (haystack.includes("checkout")) {
+    return {
+      kind: params.kind ?? "admin_customer_checkout_started",
+      category: params.category ?? "payment",
+    };
+  }
+
+  if (haystack.includes("comprovante") || haystack.includes("zelle")) {
+    return {
+      kind: params.kind ?? "admin_customer_payment_proof",
+      category: params.category ?? "payment",
+    };
+  }
+
+  if (haystack.includes("etapa") || haystack.includes("revis")) {
+    return {
+      kind: params.kind ?? "admin_customer_step_submitted",
+      category: params.category ?? "process",
+    };
+  }
+
   return {
-    id: String(row.id ?? ""),
-    type: String(row.type ?? "system"),
-    target_role: (row.target_role ?? row.target_type ?? "client") as "admin" | "client",
-    user_id: (row.user_id as string | null | undefined) ?? null,
-    service_id: (row.service_id as string | null | undefined) ?? null,
-    title: String(row.title ?? ""),
-    message: (row.message as string | null | undefined) ?? (row.body as string | null | undefined) ?? null,
-    link: (row.link as string | null | undefined) ?? null,
-    is_read: Boolean(row.is_read),
-    send_email: Boolean(row.send_email),
-    email_sent: Boolean(row.email_sent),
-    metadata: (row.metadata as Record<string, unknown> | undefined) ?? {},
-    created_at: String(row.created_at ?? new Date().toISOString()),
+    kind: params.kind ?? "admin_customer_message",
+    category: params.category ?? "system",
   };
-}
-
-async function getUserLang(userId: string): Promise<NotifLang> {
-  const { data } = await supabase
-    .from("user_accounts")
-    .select("preferred_language")
-    .eq("id", userId)
-    .maybeSingle();
-
-  return (data?.preferred_language as NotifLang) ?? "en";
 }
 
 export const notificationService = {
   async notifyClient(params: NotifyClientParams): Promise<void> {
-    try {
-      const lang = params.userId ? await getUserLang(params.userId) : "en";
-      const { title, message } = params.template
-        ? buildNotifContent(params.template, {
-            ...(params.templateData ?? {}),
-            title: params.title ?? "",
-            body: params.body ?? "",
-          }, lang)
-        : { title: params.title ?? "", message: params.body ?? "" };
+    const templateConfig = resolveCustomerTemplate(params.template);
+    const notification = insertNotificationRecord({
+      type: params.kind ? "client_action" : templateConfig.type,
+      kind: params.kind ?? templateConfig.kind,
+      category: params.category ?? templateConfig.category,
+      target_role: "customer",
+      user_id: params.userId,
+      actor_user_id: params.actorUserId ?? null,
+      actor_role: params.actorRole ?? "admin",
+      service_id: params.serviceId ?? null,
+      title: params.title ?? "Atualização do processo",
+      message: params.body ?? null,
+      link: params.link ?? null,
+      send_email: params.sendEmail ?? false,
+      metadata: params.templateData ?? {},
+    });
 
-      await insertNotification({
-        type: "client_action",
-        target_role: "client",
-        user_id: params.userId || null,
-        service_id: params.serviceId || null,
-        title,
-        message,
-        link: params.link ?? null,
-        send_email: params.sendEmail ?? true,
-        email_sent: false,
-        metadata: params.templateData ?? {},
-      });
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      if (
-        message.includes("Auth session unavailable")
-        || message.includes("Unauthorized")
-        || message.includes("HTTP 401")
-        || message.includes("HTTP 403")
-        || message.includes("HTTP 429")
-      ) {
-        return;
-      }
+    publishNotificationEvent(notification);
+  },
 
-      console.error("[notificationService] notifyClient failed:", e);
-    }
+  async notifyCustomer(params: NotifyCustomerOptions): Promise<void> {
+    await this.notifyClient(params);
   },
 
   async notifyAdmin(params: NotifyAdminParams): Promise<void> {
-    try {
-      await insertNotification({
-        type: "admin_action",
-        target_role: "admin",
-        user_id: params.userId || null,
-        service_id: params.serviceId || null,
-        title: params.title,
-        message: params.body || null,
-        link: params.link ?? null,
-        email_sent: false,
-        send_email: false,
-        metadata: params.metadata || {},
-      });
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      if (
-        message.includes("Auth session unavailable")
-        || message.includes("Unauthorized")
-        || message.includes("HTTP 401")
-        || message.includes("HTTP 403")
-        || message.includes("HTTP 429")
-      ) {
-        return;
-      }
+    const adminConfig = inferAdminKind(params);
+    const notification = insertNotificationRecord({
+      type: "admin_action",
+      target_role: "admin",
+      user_id: params.userId ?? null,
+      actor_user_id: params.actorUserId ?? params.userId ?? null,
+      actor_role: params.actorRole ?? "customer",
+      kind: adminConfig.kind,
+      category: adminConfig.category,
+      service_id: params.serviceId ?? null,
+      title: params.title,
+      message: params.body ?? null,
+      link: params.link ?? null,
+      send_email: false,
+      metadata: params.metadata ?? {},
+    });
 
-      console.error("[notificationService] notifyAdmin failed:", e);
-    }
+    publishNotificationEvent(notification);
   },
 
-  async getUnreadCount(role: "admin" | "client", userId?: string): Promise<number> {
-    if (role === "client" && !userId) return 0;
-
-    if (role === "client" && userId) {
-      return notificationRepository.getUnreadCount(userId);
-    }
-
-    const runQuery = async (roleColumn: "target_role" | "target_type" = "target_role") => {
-      const query = supabase
-        .from("notifications")
-        .select("id", { count: "exact", head: true })
-        .eq("is_read", false);
-
-      applyAdminRoleFilter(query, roleColumn);
-      return query;
-    };
-
-    let { count, error } = await runQuery();
-
-    if (error && isMissingColumnError(error)) {
-      ({ count, error } = await runQuery("target_type"));
-    }
-
-    if (error) {
-      console.error("[notif] getUnreadCount error:", error.message);
-    }
-
-    return count ?? 0;
+  async getUnreadCount(role: NotificationQueryRole, userId?: string): Promise<number> {
+    return listNotificationRecords({
+      role,
+      userId,
+      unreadOnly: true,
+    }).length;
   },
 
-  async getNotifications(role: "admin" | "client", userId?: string): Promise<AppNotification[]> {
-    const limit = role === "admin" ? 50 : 30;
-
-    if (role === "client" && userId) {
-      const notifications = await notificationRepository.findByUser(userId, limit);
-      return notifications.map(n => ({
-        id: n.id,
-        type: "client_action",
-        target_role: "client" as const,
-        user_id: n.user_id,
-        service_id: null,
-        title: n.title,
-        message: n.message,
-        link: n.link,
-        is_read: n.is_read,
-        send_email: n.send_email,
-        email_sent: n.email_sent,
-        metadata: {},
-        created_at: n.created_at,
-      }));
-    }
-
-    const runQuery = async (roleColumn: "target_role" | "target_type" = "target_role") => {
-      const query = supabase
-        .from("notifications")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(limit);
-
-      applyAdminRoleFilter(query, roleColumn);
-      return query;
-    };
-
-    let { data, error } = await runQuery();
-
-    if (error && isMissingColumnError(error)) {
-      ({ data, error } = await runQuery("target_type"));
-    }
-
-    if (error) {
-      console.error("[notif] getNotifications error:", error.message);
-    }
-
-    return ((data as Record<string, unknown>[] | null) ?? []).map(normalizeNotification);
+  async getNotifications(role: NotificationQueryRole, userId?: string): Promise<AppNotification[]> {
+    return listNotificationRecords({
+      role,
+      userId,
+    });
   },
 
   async markAsRead(notificationId: string): Promise<void> {
-    await notificationRepository.markAsRead(notificationId);
+    markNotificationAsRead(notificationId);
   },
 
   async markAllAdminAsRead(): Promise<void> {
-    const runUpdate = async (roleColumn: "target_role" | "target_type" = "target_role") =>
-      supabase
-        .from("notifications")
-        .update({ is_read: true })
-        .eq(roleColumn, "admin")
-        .eq("is_read", false);
-
-    let { error } = await runUpdate();
-
-    if (error && isMissingColumnError(error)) {
-      ({ error } = await runUpdate("target_type"));
-    }
-
-    if (error) {
-      console.error("[notif] markAllAdminAsRead error:", error.message);
-    }
+    markNotificationsAsRead({
+      role: "admin",
+    });
   },
 
   async markAllClientAsRead(userId: string): Promise<void> {
-    await notificationRepository.markAllAsRead(userId);
+    markNotificationsAsRead({
+      role: "customer",
+      userId,
+    });
   },
 };

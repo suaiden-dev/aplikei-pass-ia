@@ -15,20 +15,7 @@ const common = {
   back: "Voltar",
   next: "Próximo",
   finish: "Finalizar",
-  docUpload: {
-    uploadFile: "Enviar Arquivo",
-    fileSelected: "Arquivo Selecionado",
-    newFileSelected: "Novo Arquivo Selecionado",
-    needsCorrection: "Correção Necessária",
-    requiredDocument: "Documento Obrigatório",
-    ready: "PRONTO",
-    updated: "ATUALIZADO",
-    pending: "PENDENTE",
-    sending: "Enviando...",
-    selectFile: "Selecionar Arquivo",
-    selectPdf: "Selecionar Arquivo PDF",
-    fileSent: "Arquivo Enviado",
-  },
+  successRate: "Taxa de Aprovação",
   howItWorksPage: {
     hero: {
       tag: "Como Funciona",
@@ -48,7 +35,23 @@ const common = {
       subtitle: "Não deixe seu sonho nas mãos da sorte. Use a plataforma que organiza e valida cada detalhe para você.",
       button: "Ver vistos disponíveis"
     }
+  },
+  servicesPage: {
+    hero: {
+      tag: "Serviços",
+      title: "Escolha o visto certo para o seu momento",
+      subtitle: "Compare os guias principais e siga o caminho ideal com clareza."
+    },
+    sectionTitle: "Vistos principais",
+    sectionSubtitle: "Selecionamos os serviços mais procurados para facilitar sua escolha.",
+    cardCta: "Ver detalhes",
+    startNow: "Começar agora",
+    features: [
+      "Passo a passo guiado",
+      "Checklist de documentos",
+      "Próximas etapas claras"
+    ]
   }
 };
-
+export { common };
 export default common;

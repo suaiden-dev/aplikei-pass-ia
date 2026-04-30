@@ -87,10 +87,10 @@ export default function CustomerDashboardPage() {
         transition={{ duration: 0.25 }}
         className="mb-8 md:mb-12"
       >
-        <h1 className="font-display font-black text-2xl md:text-[32px] text-text leading-tight tracking-tight">
+        <h1 className="font-display font-black text-2xl md:text-[32px] text-slate-900 leading-tight tracking-tight">
           {labels.title}
         </h1>
-        <p className="text-base font-medium text-text-muted mt-2">
+        <p className="text-base font-medium text-slate-500 mt-2">
           {labels.welcome.split("!")[0]}
           {user?.fullName ? `, ${user.fullName.split(" ")[0]}` : ""}!
           {labels.welcome.split("!")[1]}
