@@ -7,7 +7,7 @@ const nav = {
   serviceCOS: "Troca de Status",
   serviceEOS: "Extensão de Status",
   login: "Entrar",
-  getStarted: "Agendar demo",
+  getStarted: "Contato",
   dashboard: "Painel",
   adminPanel: "Painel Admin",
   payments: "Pagamentos",
