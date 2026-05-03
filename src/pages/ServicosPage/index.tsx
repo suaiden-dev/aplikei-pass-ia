@@ -3,9 +3,10 @@ import { motion } from "framer-motion";
 import { FiArrowRight } from "react-icons/fi";
 import { MdCheckCircle, MdVerified, MdLanguage, MdSchool, MdHistory, MdSyncAlt } from "react-icons/md";
 import type { IconType } from "react-icons";
-import { useT } from "../../i18n";
+import { useT, useLocale } from "../../i18n";
 import { getCustomerProcessStartPath } from "../../utils/customer-process-start";
 import { getServiceBySlug, type ServiceMeta } from "../../data/services";
+import { getServiceLocale } from "../../data/services.i18n";
 
 const heroIconMap: Record<string, IconType> = {
   MdVerified,
@@ -22,11 +23,12 @@ const featuredServiceSlugs = [
   "troca-status",
 ] as const;
 
-const featuredServices = featuredServiceSlugs
+const featuredServicesBase = featuredServiceSlugs
   .map((slug) => getServiceBySlug(slug))
   .filter((service): service is ServiceMeta => Boolean(service));
 
 export default function ServicosPage() {
+  const { lang } = useLocale();
   const t = useT("common");
   const p = t.servicesPage as {
     hero?: { tag?: string; title?: string; subtitle?: string };
@@ -36,6 +38,12 @@ export default function ServicosPage() {
     startNow?: string;
     features?: string[];
   };
+
+  // Merge localized text on top of base service data
+  const featuredServices = featuredServicesBase.map((svc) => ({
+    ...svc,
+    ...(getServiceLocale(svc.slug, lang) ?? {}),
+  }));
 
   return (
     <div className="bg-bg text-text">
@@ -166,9 +174,6 @@ export default function ServicosPage() {
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full bg-primary/10 text-primary">
                           {service.processType}
                         </span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full bg-bg-subtle text-text-muted border border-border">
-                          {service.price}
-                        </span>
                       </div>
                       <h3 className="mt-4 text-2xl font-black text-text leading-tight">{service.title}</h3>
                       <p className="mt-3 text-text-muted leading-relaxed">{service.subtitle}</p>
@@ -186,15 +191,9 @@ export default function ServicosPage() {
                   <div className="mt-8 flex flex-col sm:flex-row gap-3">
                     <Link
                       to={`/servicos/${service.slug}`}
-                      className="flex-1 rounded-2xl border border-border bg-card px-5 py-4 text-center font-black text-text hover:bg-bg-subtle transition-colors"
+                      className="w-full rounded-2xl bg-primary px-5 py-5 text-center font-black text-white shadow-lg shadow-primary/20 hover:bg-primary-hover transition-colors"
                     >
-                      {p.cardCta ?? "Ver detalhes"}
-                    </Link>
-                    <Link
-                      to={startPath}
-                      className="flex-1 rounded-2xl bg-primary px-5 py-4 text-center font-black text-white shadow-lg shadow-primary/20 hover:bg-primary-hover transition-colors"
-                    >
-                      {p.startNow ?? "Começar agora"}
+                      {p.cardCta ?? "Saiba mais sobre este visto"}
                     </Link>
                   </div>
                 </motion.article>

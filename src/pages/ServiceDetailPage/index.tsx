@@ -3,6 +3,8 @@ import { MdVerified, MdLanguage, MdSchool, MdHistory, MdSyncAlt } from "react-ic
 import type { IconType } from "react-icons";
 import ServiceDetailTemplate from "../../templates/ServiceDetailTemplate";
 import { getServiceBySlug } from "../../data/services";
+import { getServiceLocale } from "../../data/services.i18n";
+import { useLocale } from "../../i18n";
 
 const heroIconMap: Record<string, IconType> = {
   MdVerified,
@@ -14,7 +16,16 @@ const heroIconMap: Record<string, IconType> = {
 
 export default function ServiceDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const service = slug ? getServiceBySlug(slug) : null;
+  const { lang } = useLocale();
+
+  const baseService = slug ? getServiceBySlug(slug) : null;
+  const localized   = slug ? getServiceLocale(slug, lang) : null;
+
+  // Merge: localized fields take precedence, rest comes from source data
+  const service = baseService
+    ? { ...baseService, ...(localized ?? {}) }
+    : null;
+
   const HeroIcon = service ? (heroIconMap[service.heroIconName] ?? MdVerified) : MdVerified;
 
   return (

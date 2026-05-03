@@ -87,26 +87,28 @@ export default function ServiceDetailTemplate({
               </p>
             </div>
             <div className="flex flex-col items-center lg:items-start gap-6">
-              <div className="flex items-baseline gap-4 justify-center lg:justify-start">
-                <span className="text-4xl sm:text-5xl font-black text-primary">{service.price}</span>
-                <span className="text-xl text-text-muted line-through font-bold">{service.originalPrice}</span>
-              </div>
-              <div className="flex items-center gap-4 p-5 bg-card border border-border rounded-2xl shadow-sm max-w-sm text-left">
-                <div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center shrink-0">
-                  <MdGroupAdd className="text-primary text-2xl" />
+              <div className="flex items-center gap-4 p-6 bg-primary/5 border border-primary/10 rounded-2xl shadow-sm max-w-sm text-left">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                  <MdVerified className="text-primary text-2xl" />
                 </div>
                 <div>
-                  <p className="text-primary font-bold text-sm">+{service.dependentPrice} {str("perDependent", "por dependente")}</p>
-                  <p className="text-text-muted text-xs font-medium">{str("dependentsDesc")}</p>
+                  <p className="text-primary font-black text-sm uppercase tracking-wider">{str("b2bSolution", "Solução para Escritórios")}</p>
+                  <p className="text-text-muted text-xs font-medium leading-relaxed">
+                    {str("b2bDesc", "Padronize a coleta de dados e aumente a produtividade do seu time.")}
+                  </p>
                 </div>
               </div>
             </div>
-            <Link to={startPath} className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:px-12 py-8 bg-highlight text-white rounded-xl text-xl font-black hover:shadow-2xl hover:-translate-y-1 transition-all border-none flex items-center justify-center gap-2">
-                {str("getStarted", "Começar Agora")}
+
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+              <Link 
+                to="/cadastro" 
+                className="w-full sm:px-10 py-5 bg-primary text-white rounded-xl text-lg font-black hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
+              >
+                {str("scheduleDemo", "Agendar Demonstração")}
                 <FiArrowRight size={22} />
-              </Button>
-            </Link>
+              </Link>
+            </div>
           </motion.div>
 
           <motion.div

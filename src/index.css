@@ -122,74 +122,80 @@
   color-scheme: dark;
 
   /* Legacy tokens */
-  --bg:             #0F172A;
-  --bg-subtle:      #1E293B;
-  --card:           #1E293B;
-  --highlight:      #020617;
-  --text:           #F1F5F9;
-  --text-muted:     #94A3B8;
-  --border:         #334155;
-  --primary:        #1A56DB;
-  --primary-hover:  #2563EB;
-  --success:        #16A34A;
-  --warning:        #D97706;
-  --danger:         #DC2626;
-  --info:           #0284C7;
+  --bg:             #0d1117;
+  --bg-subtle:      #161b27;
+  --card:           #1e2a3e;
+  --highlight:      #060c18;
+  --text:           #dce6f7;
+  --text-muted:     #8fa8cc;
+  --border:         #263450;
+  --primary:        #3b82f6;
+  --primary-hover:  #60a5fa;
+  --success:        #22c55e;
+  --warning:        #f59e0b;
+  --danger:         #f87171;
+  --info:           #38bdf8;
 
-  /* B2B Material Design 3 — dark palette */
-  --color-background:               #111318;
-  --color-surface:                  #111318;
-  --color-surface-dim:              #111318;
-  --color-surface-bright:           #37393e;
-  --color-surface-container-lowest: #0c0e13;
-  --color-surface-container-low:    #191c20;
-  --color-surface-container:        #1d2024;
-  --color-surface-container-high:   #282a2f;
-  --color-surface-container-highest:#32353a;
-  --color-surface-variant:          #434654;
-  --color-surface-tint:             #b2c5ff;
+  /* ── B2B Surface scale (deep indigo-navy) ── */
+  --color-background:               #0d1117;
+  --color-surface:                  #0d1117;
+  --color-surface-dim:              #080c12;
+  --color-surface-bright:           #1e2a3e;
+  --color-surface-container-lowest: #07090f;
+  --color-surface-container-low:    #111827;
+  --color-surface-container:        #161f30;
+  --color-surface-container-high:   #1e2a3e;
+  --color-surface-container-highest:#253249;
+  --color-surface-variant:          #263450;
+  --color-surface-tint:             #93b4ff;
 
-  --color-on-background:            #e2e2e9;
-  --color-on-surface:               #e2e2e9;
-  --color-on-surface-variant:       #c3c6d6;
-  --color-inverse-surface:          #e2e2e9;
-  --color-inverse-on-surface:       #2e3038;
+  /* ── Text on surface ── */
+  --color-on-background:            #dce6f7;
+  --color-on-surface:               #dce6f7;
+  --color-on-surface-variant:       #a8bcd8;
+  --color-inverse-surface:          #dce6f7;
+  --color-inverse-on-surface:       #161f30;
 
-  --color-primary:                  #b2c5ff;
-  --color-primary-container:        #4d7cff;
-  --color-on-primary:               #002785;
-  --color-on-primary-container:     #dae2ff;
-  --color-primary-fixed:            #dae2ff;
-  --color-primary-fixed-dim:        #b2c5ff;
-  --color-on-primary-fixed:         #001848;
-  --color-on-primary-fixed-variant: #0040a2;
-  --color-inverse-primary:          #0052cc;
+  /* ── Primary — electric blue ── */
+  --color-primary:                  #93b4ff;
+  --color-primary-container:        #2563eb;
+  --color-on-primary:               #001253;
+  --color-on-primary-container:     #dce6ff;
+  --color-primary-fixed:            #dce6ff;
+  --color-primary-fixed-dim:        #93b4ff;
+  --color-on-primary-fixed:         #001253;
+  --color-on-primary-fixed-variant: #1a4bcc;
+  --color-inverse-primary:          #1a4bcc;
 
-  --color-secondary:                #c3cad9;
-  --color-secondary-container:      #404754;
-  --color-on-secondary:             #2c3243;
-  --color-on-secondary-container:   #dfe2f2;
-  --color-secondary-fixed:          #dce2f3;
-  --color-secondary-fixed-dim:      #c0c7d6;
-  --color-on-secondary-fixed:       #151c27;
-  --color-on-secondary-fixed-variant:#404754;
+  /* ── Secondary — steel blue ── */
+  --color-secondary:                #8fa8cc;
+  --color-secondary-container:      #1e3354;
+  --color-on-secondary:             #0d1e35;
+  --color-on-secondary-container:   #c8dcf5;
+  --color-secondary-fixed:          #c8dcf5;
+  --color-secondary-fixed-dim:      #8fa8cc;
+  --color-on-secondary-fixed:       #071020;
+  --color-on-secondary-fixed-variant:#1e3354;
 
-  --color-tertiary:                 #ffb59b;
-  --color-tertiary-container:       #7b2600;
-  --color-on-tertiary:              #5b1500;
-  --color-on-tertiary-container:    #ffdbd0;
-  --color-tertiary-fixed:           #ffdbcf;
-  --color-tertiary-fixed-dim:       #ffb59b;
-  --color-on-tertiary-fixed:        #380d00;
-  --color-on-tertiary-fixed-variant:#812800;
+  /* ── Tertiary — soft amber ── */
+  --color-tertiary:                 #f9a74b;
+  --color-tertiary-container:       #7a3d00;
+  --color-on-tertiary:              #3d1e00;
+  --color-on-tertiary-container:    #ffddb8;
+  --color-tertiary-fixed:           #ffddb8;
+  --color-tertiary-fixed-dim:       #f9a74b;
+  --color-on-tertiary-fixed:        #2a1200;
+  --color-on-tertiary-fixed-variant:#7a3d00;
 
-  --color-error:                    #ffb4ab;
-  --color-error-container:          #93000a;
-  --color-on-error:                 #690005;
+  /* ── Error — soft red ── */
+  --color-error:                    #ff8c8c;
+  --color-error-container:          #7a1010;
+  --color-on-error:                 #3d0000;
   --color-on-error-container:       #ffdad6;
 
-  --color-outline:                  #8d909f;
-  --color-outline-variant:          #434654;
+  /* ── Outline ── */
+  --color-outline:                  #4a6080;
+  --color-outline-variant:          #263450;
 }
 
 /* ─── Accordion animations ───────────────────────────────────── */
@@ -212,8 +218,22 @@
 }
 
 [data-theme="dark"] .glass-card {
-  background: rgba(29, 32, 36, 0.85);
-  border: 1px solid rgba(67, 70, 84, 0.5);
+  background: rgba(22, 31, 48, 0.88);
+  border: 1px solid rgba(38, 52, 80, 0.6);
+}
+
+/* ─── Dark: adapta cards com bg-white hardcoded ────────────────── */
+[data-theme="dark"] .bg-white {
+  background-color: var(--color-surface-container-high) !important;
+}
+
+[data-theme="dark"] .border-outline-variant {
+  border-color: var(--color-outline-variant);
+}
+
+[data-theme="dark"] .shadow-sm,
+[data-theme="dark"] .shadow-md {
+  --tw-shadow-color: rgba(0, 0, 0, 0.4);
 }
 
 .material-symbols-outlined {

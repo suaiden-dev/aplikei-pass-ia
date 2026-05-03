@@ -16,6 +16,7 @@ export const Navbar = () => {
   const location = useLocation();
   const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
   const isMenuOpen = menuOpenPath === location.pathname;
+  const isDark = theme === "dark";
 
   const closeMenu = () => setMenuOpenPath(null);
   const toggleMenu = () =>
@@ -29,15 +30,22 @@ export const Navbar = () => {
   const navLinks = [
     { to: "/como-funciona", label: t.howItWorks },
     { to: "/servicos", label: t.services },
-    { to: "/servicos/visto-b1-b2", label: "B1/B2" },
-    { to: "/servicos/visto-f1", label: "F-1" },
-    { to: "/servicos/troca-status", label: "COS" },
-    { to: "/servicos/extensao-status", label: "EOS" },
+    { to: "/servicos/visto-b1-b2", label: t.serviceB1B2 },
+    { to: "/servicos/visto-f1", label: t.serviceF1 },
+    { to: "/servicos/troca-status", label: t.serviceCOS },
+    { to: "/servicos/extensao-status", label: t.serviceEOS },
   ];
 
   return (
     <>
-      <nav className="bg-highlight/95 backdrop-blur px-6 xl:px-16 py-4 flex items-center justify-between sticky top-0 z-[100] border-b border-white/8 shadow-[0_1px_0_rgba(255,255,255,0.04)]">
+      <nav
+        className={cn(
+          "backdrop-blur px-6 xl:px-16 py-4 flex items-center justify-between sticky top-0 z-[100] border-b transition-colors duration-300",
+          isDark
+            ? "bg-[#0d1117]/95 border-white/8 shadow-[0_1px_0_rgba(255,255,255,0.04)]"
+            : "bg-white/95 border-outline-variant shadow-sm",
+        )}
+      >
         <div className="flex items-center gap-10">
           <Link to="/" className="flex items-center gap-2.5 z-[110] relative">
             <img
@@ -54,10 +62,14 @@ export const Navbar = () => {
                 className={({ isActive }) =>
                   cn(
                     "font-display relative pb-1 text-[0.98rem] font-semibold tracking-[-0.015em] transition-colors duration-200",
-                    "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-primary after:transition-transform after:duration-200 after:origin-left",
+                    "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-primary-container after:transition-transform after:duration-200 after:origin-left",
                     isActive
-                      ? "text-white after:scale-x-100"
-                      : "text-slate-400 hover:text-white after:scale-x-0 hover:after:scale-x-100",
+                      ? isDark
+                        ? "text-white after:scale-x-100"
+                        : "text-primary-container after:scale-x-100"
+                      : isDark
+                        ? "text-slate-400 hover:text-white after:scale-x-0 hover:after:scale-x-100"
+                        : "text-on-surface-variant hover:text-on-surface after:scale-x-0 hover:after:scale-x-100",
                   )
                 }
               >
@@ -69,10 +81,24 @@ export const Navbar = () => {
 
         <div className="hidden xl:flex items-center gap-4">
           {/* Language selector — flags */}
-          <div className="flex items-center gap-1 border border-slate-600 rounded-full px-2 py-1">
+          <div
+            className={cn(
+              "flex items-center gap-1 rounded-full px-2 py-1 border",
+              isDark ? "border-slate-600" : "border-outline-variant",
+            )}
+          >
             {(["pt", "en", "es"] as Language[]).map((l, i) => (
               <React.Fragment key={l}>
-                {i > 0 && <span className="text-slate-600 text-[10px]">|</span>}
+                {i > 0 && (
+                  <span
+                    className={cn(
+                      "text-[10px]",
+                      isDark ? "text-slate-600" : "text-outline-variant",
+                    )}
+                  >
+                    |
+                  </span>
+                )}
                 <button
                   onClick={() => setLang(l)}
                   title={l.toUpperCase()}
@@ -90,15 +116,20 @@ export const Navbar = () => {
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            className="w-9 h-9 flex items-center justify-center rounded-full border border-slate-700 text-slate-400 hover:text-white hover:border-slate-400 transition-colors"
+            className={cn(
+              "w-9 h-9 flex items-center justify-center rounded-full border transition-colors",
+              isDark
+                ? "border-slate-700 text-slate-400 hover:text-white hover:border-slate-400"
+                : "border-outline-variant text-on-surface-variant hover:text-on-surface hover:border-outline",
+            )}
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? <RiSunLine size={16} /> : <RiMoonLine size={16} />}
+            {isDark ? <RiSunLine size={16} /> : <RiMoonLine size={16} />}
           </button>
 
           <Link
             to="/cadastro"
-            className="font-display px-5 py-2.5 bg-primary text-white text-sm font-bold tracking-[-0.015em] rounded-xl hover:bg-primary-hover transition-all shadow-md"
+            className="font-display px-5 py-2.5 bg-primary-container text-white text-sm font-bold tracking-[-0.015em] rounded-xl hover:opacity-90 transition-all shadow-md"
           >
             {t.getStarted}
           </Link>
@@ -106,7 +137,12 @@ export const Navbar = () => {
 
         {/* Mobile toggle */}
         <button
-          className="xl:hidden z-[110] rounded-lg border border-primary/15 p-2 text-primary hover:bg-primary/10 transition-colors"
+          className={cn(
+            "xl:hidden z-[110] rounded-lg border p-2 transition-colors",
+            isDark
+              ? "border-primary/15 text-primary hover:bg-primary/10"
+              : "border-outline-variant text-on-surface-variant hover:bg-surface-container",
+          )}
           onClick={toggleMenu}
           aria-label="Toggle menu"
         >
@@ -122,7 +158,10 @@ export const Navbar = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-highlight z-[90] flex flex-col pt-24 px-6 pb-6 overflow-y-auto"
+            className={cn(
+              "fixed inset-0 z-[90] flex flex-col pt-24 px-6 pb-6 overflow-y-auto",
+              isDark ? "bg-[#0d1117]" : "bg-white",
+            )}
           >
             <div className="flex flex-col gap-6 flex-1 justify-center items-center text-center">
               {navLinks.map(({ to, label }) => (
@@ -133,7 +172,11 @@ export const Navbar = () => {
                   className={({ isActive }) =>
                     cn(
                       "font-display text-2xl font-black py-2 uppercase tracking-[0.04em] transition-colors",
-                      isActive ? "text-primary" : "text-slate-300 hover:text-white",
+                      isActive
+                        ? "text-primary-container"
+                        : isDark
+                          ? "text-slate-300 hover:text-white"
+                          : "text-on-surface-variant hover:text-on-surface",
                     )
                   }
                 >
@@ -143,38 +186,68 @@ export const Navbar = () => {
             </div>
             <div className="mt-8 flex flex-col items-center gap-5">
               {/* Flags mobile */}
-              <div className="flex items-center gap-3 border border-slate-600 rounded-full px-4 py-2">
+              <div
+                className={cn(
+                  "flex items-center gap-3 rounded-full px-4 py-2 border",
+                  isDark ? "border-slate-600" : "border-outline-variant",
+                )}
+              >
                 {(["pt", "en", "es"] as Language[]).map((l, i) => (
                   <React.Fragment key={l}>
-                    {i > 0 && <span className="text-slate-600 font-bold">|</span>}
+                    {i > 0 && (
+                      <span
+                        className={cn(
+                          "font-bold",
+                          isDark ? "text-slate-600" : "text-outline",
+                        )}
+                      >
+                        |
+                      </span>
+                    )}
                     <button
                       onClick={() => setLang(l)}
-                      className={cn("text-2xl transition-opacity", lang === l ? "opacity-100" : "opacity-40")}
+                      className={cn(
+                        "text-2xl transition-opacity",
+                        lang === l ? "opacity-100" : "opacity-40",
+                      )}
                     >
                       {FLAG[l]}
                     </button>
                   </React.Fragment>
                 ))}
               </div>
+
               {/* Theme toggle mobile */}
               <button
                 onClick={toggleTheme}
-                className="flex items-center gap-2 px-4 py-2 border border-slate-600 rounded-full text-slate-300 hover:text-white transition-colors text-sm font-medium"
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 border rounded-full transition-colors text-sm font-medium",
+                  isDark
+                    ? "border-slate-600 text-slate-300 hover:text-white"
+                    : "border-outline-variant text-on-surface-variant hover:text-on-surface",
+                )}
               >
-                {theme === "dark" ? <RiSunLine size={16} /> : <RiMoonLine size={16} />}
-                {theme === "dark" ? "Light mode" : "Dark mode"}
+                {isDark ? <RiSunLine size={16} /> : <RiMoonLine size={16} />}
+                {isDark ? "Light mode" : "Dark mode"}
               </button>
+
               <Link
                 to="/cadastro"
                 onClick={closeMenu}
-                className="w-full text-center px-6 py-4 bg-primary text-white text-lg font-black rounded-2xl hover:bg-primary-hover transition-all shadow-lg"
+                className="w-full text-center px-6 py-4 bg-primary-container text-white text-lg font-black rounded-2xl hover:opacity-90 transition-all shadow-lg"
               >
                 {t.getStarted}
               </Link>
+
               <Link
                 to="/login"
                 onClick={closeMenu}
-                className="w-full text-center px-6 py-4 bg-white/5 border border-white/10 text-white text-lg font-black rounded-2xl hover:bg-white/10 transition-all"
+                className={cn(
+                  "w-full text-center px-6 py-4 border text-lg font-black rounded-2xl transition-all",
+                  isDark
+                    ? "bg-white/5 border-white/10 text-white hover:bg-white/10"
+                    : "bg-surface-container border-outline-variant text-on-surface hover:bg-surface-container-high",
+                )}
               >
                 {t.login}
               </Link>

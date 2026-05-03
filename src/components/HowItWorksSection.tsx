@@ -8,7 +8,7 @@ export const HowItWorksSection = () => {
   if (!steps) return null;
 
   return (
-    <section className="py-12 bg-white">
+    <section className="py-12 bg-surface-container-lowest">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
           <motion.h2 
@@ -36,10 +36,10 @@ export const HowItWorksSection = () => {
                 className="flex flex-col items-center text-center group"
               >
                 <div 
-                  className={`w-16 h-16 rounded-full border-4 flex items-center justify-center mb-4 font-h3 transition-colors ${
+                  className={`w-16 h-16 rounded-full border-2 flex items-center justify-center mb-4 font-h3 transition-colors ${
                     isLast 
-                      ? 'bg-primary-container border-primary-fixed text-white shadow-lg' 
-                      : 'bg-white border-surface-container-highest text-primary-container group-hover:border-primary-container shadow-sm'
+                      ? 'bg-primary-container border-primary-container text-white shadow-lg shadow-primary-container/20' 
+                      : 'bg-primary-fixed border-primary-container text-primary-container group-hover:bg-primary-container group-hover:text-white shadow-sm'
                   }`}
                 >
                   {step.number}
