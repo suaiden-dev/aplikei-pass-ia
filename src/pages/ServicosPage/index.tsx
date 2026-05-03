@@ -124,7 +124,6 @@ export default function ServicosPage() {
                         </span>
                       </div>
                       <p className="mt-4 text-lg font-black text-text leading-tight">{service.title}</p>
-                      <p className="mt-2 text-sm text-text-muted">{service.price}</p>
                       <div className="mt-4 h-1.5 w-full rounded-full bg-border overflow-hidden">
                         <div className="h-full w-3/4 rounded-full bg-primary" />
                       </div>
