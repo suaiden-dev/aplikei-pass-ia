@@ -1,52 +1,52 @@
 import { motion } from "framer-motion";
-import { FaStar, FaQuoteLeft } from "react-icons/fa";
 import { useT } from "../i18n";
 
-interface TestimonialsSectionProps {
-  avatars: string[];
-}
-
-export const TestimonialsSection = ({ avatars }: TestimonialsSectionProps) => {
+export const TestimonialsSection = () => {
   const t = useT("landing");
-  const testimonials = t.testimonials?.items || [];
+
+  if (!t.testimonials) return null;
 
   return (
-    <section className="py-40 px-8 lg:px-16 bg-card overflow-hidden">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-4xl lg:text-5xl font-extrabold text-center mb-32 text-primary">
-          {t.testimonials?.title}
-        </h2>
-        <div className="grid md:grid-cols-3 gap-12 relative">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/5 rounded-full blur-3xl -z-10" />
-          {testimonials.map((item: { quote: string; author: string; role?: string }, idx: number) => (
+    <section className="py-12 bg-surface-container-low">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-12">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="font-h2 text-h2 text-on-surface"
+          >
+            {t.testimonials.title}
+          </motion.h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {t.testimonials.items.map((item: any, idx: number) => (
             <motion.div
               key={idx}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
-              className="bg-card p-10 rounded-[2.5rem] border border-border shadow-xl flex flex-col justify-between hover:-translate-y-2 transition-transform duration-300 relative z-10 text-center items-center lg:text-left lg:items-stretch"
+              transition={{ delay: idx * 0.2 }}
+              className="bg-white p-12 rounded-2xl shadow-sm border border-outline-variant relative"
             >
-              <div className="flex flex-col items-center lg:items-start">
-                <div className="flex items-center justify-center lg:justify-start gap-1 mb-6">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <FaStar key={i} className="text-amber-400" size={16} />
-                  ))}
+              <span className="material-symbols-outlined text-surface-container-highest text-6xl absolute top-6 right-6 opacity-50">
+                format_quote
+              </span>
+              <p 
+                className="font-body-lg text-on-surface italic mb-8 relative z-10"
+                dangerouslySetInnerHTML={{ __html: item.quote }}
+              />
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-surface-container-highest overflow-hidden">
+                  <img
+                    alt={item.author}
+                    className="w-full h-full object-cover"
+                    src={item.image}
+                  />
                 </div>
-                <FaQuoteLeft className="text-primary/20 mb-4" size={32} />
-                <p className="text-lg text-text-muted leading-relaxed font-medium italic">"{item.quote}"</p>
-              </div>
-              <div className="flex flex-col lg:flex-row items-center text-center lg:text-left gap-4 pt-8 mt-8 border-t border-border w-full">
-                <img
-                  alt={item.author}
-                  className="w-14 h-14 rounded-full border-4 border-card shadow-md grayscale hover:grayscale-0 transition-all duration-500"
-                  src={avatars[idx]}
-                />
                 <div>
-                  <h4 className="font-bold text-primary">{item.author}</h4>
-                  <p className="text-xs font-bold text-text-muted uppercase tracking-widest">
-                    {item.role || (idx === 0 ? "F-1 Student" : idx === 1 ? "B1/B2 Visitor" : "J-1 Exchange")}
-                  </p>
+                  <h5 className="font-label-md text-on-surface">{item.author}</h5>
+                  <p className="text-label-sm text-secondary">{item.role}</p>
                 </div>
               </div>
             </motion.div>

@@ -1,40 +1,141 @@
 const landing = {
   hero: {
-    badge: "Vista Previa de la Plataforma Aplikei",
-    title: "Aplikei: tu Visa Americana con",
-    titleHighlight: "claridad",
-    subtitle: "Obtén una guía digital paso a paso para visas de Turismo (B1/B2), Estudiante (F-1) y Visitante de Intercambio (J-1) de EE.UU., además de herramientas con IA para organizar tus documentos y generar un paquete de aplicación listo para imprimir.",
-    getStarted: "Empezar ahora",
-    viewPlans: "Ver Planes y Precios",
-    approvedCount: "Más de 12.000 solicitantes atendidos",
-    imageAlt: "Estudiantes internacionales juntos",
-    cta: "Ver Planes y Precios →",
-    ctaSecondary: "Cómo funciona",
-    stats: { satisfaction: "Satisfacción", success: "Aprobación", support: "Soporte 24/7" }
+    badge: "IA Migratoria de Próxima Generación",
+    title: "La plataforma completa para gestión de procesos de visa",
+    subtitle: "Automatice tareas, organice documentos y escale su firma con la eficiencia de la Inteligencia Artificial aplicada al derecho migratorio.",
+    cta: "Agendar demostración",
+    ctaSecondary: "Hablar con especialista",
+    trustedBy: "Trusted by leaders",
+  },
+  problem: {
+    title: "Problemas que resolvemos",
+    subtitle: "Entendemos las complejidades operativas que impiden el crecimiento de las firmas de inmigración.",
+    items: [
+      {
+        icon: "account_tree",
+        title: "Procesos desorganizados",
+        description: "Flujos de trabajo fragmentados entre correos, carpetas locales y mensajes instantáneos que generan caos operativo."
+      },
+      {
+        icon: "error",
+        title: "Control manual",
+        description: "Hojas de cálculo y notas susceptibles a errores humanos críticos."
+      },
+      {
+        icon: "timer_off",
+        title: "Tiempo perdido",
+        description: "Horas gastadas en tareas puramente burocráticas."
+      },
+      {
+        icon: "assignment_late",
+        title: "Falta de estandarización",
+        description: "Inconsistencia en la entrega final que puede comprometer la credibilidad de su firma ante las autoridades y clientes."
+      }
+    ],
+    simulationLabel: "Simulación de inconsistencia documental"
+  },
+  solution: {
+    title: "Su operación en otro nivel",
+    items: [
+      {
+        icon: "hub",
+        title: "Centralización",
+        description: "Un único lugar para gestionar todos los casos, documentos y comunicaciones con el cliente."
+      },
+      {
+        icon: "auto_fix_high",
+        title: "Automatización con IA",
+        badge: "-70% TIEMPO",
+        description: "Utilice modelos neuronales entrenados en derecho migratorio para completar formularios complejos en segundos."
+      },
+      {
+        icon: "verified_user",
+        title: "Listos para enviar (Ready-to-go)",
+        description: "Paquetes estructurados para diversos tipos de visas, garantizando que ningún elemento esencial sea olvidado."
+      }
+    ]
+  },
+  howItWorks: {
+    title: "Cómo Funciona",
+    steps: [
+      {
+        number: "1",
+        title: "Registro",
+        description: "Importe los datos básicos de su cliente."
+      },
+      {
+        number: "2",
+        title: "Recopilación automatizada",
+        description: "Portal del cliente inteligente para envío de documentos."
+      },
+      {
+        number: "3",
+        title: "Organización y validación",
+        description: "La IA valida si los documentos son correctos."
+      },
+      {
+        number: "4",
+        title: "Generación con IA",
+        description: "Llenado automático de peticiones y formularios."
+      },
+      {
+        number: "5",
+        title: "Entrega final",
+        description: "Protocolo listo para presentación oficial."
+      }
+    ]
+  },
+  benefits: {
+    title: "Excelencia institucional garantizada en cada proceso.",
+    items: [
+      {
+        icon: "trending_up",
+        title: "Ganancia de productividad",
+        description: "Atienda 3x más clientes con el mismo equipo operativo."
+      },
+      {
+        icon: "security",
+        title: "Reducción de errores",
+        description: "Minimización de RFEs mediante validación doble automatizada."
+      },
+      {
+        icon: "dynamic_feed",
+        title: "Escalabilidad",
+        description: "Expanda su volumen de casos sin perder el control de calidad."
+      },
+      {
+        icon: "workspace_premium",
+        title: "Estandarización",
+        description: "Garantice que todos los procesos sigan el más alto rigor jurídico."
+      }
+    ],
+    stats: {
+      number: "10k+",
+      label: "Procesos automatizados con éxito"
+    }
   },
   testimonials: {
-    title: "Confiado por Solicitantes Como Tú",
+    title: "Lo que dicen los expertos",
     items: [
-      { quote: "La guía fue super detallada y la IA me ahorró horas organizando papeleo. Finalmente, una herramienta que organiza todo por ti.", author: "Maria S.", role: "Estudiante F-1" },
-      { quote: "Estaba muy confundida sobre los documentos de la visa F-1. El checklist de Aplikei se aseguró de que no olvidara nada.", author: "Carlos R.", role: "Visitante B1/B2" },
-      { quote: "Gran valor. No es un abogado, pero me dio la claridad que necesitaba para preparar mi propia solicitud B1/B2.", author: "David K.", role: "Intercambista J-1" }
+      {
+        quote: "La implementación de Aplikei transformó drásticamente nuestra entrega. <span class='text-primary-container font-semibold'>Redujimos en un 60% el tiempo operativo</span> de preparación documental para el EB-1 y EB-2 NIW.",
+        author: "Ricardo Mendes",
+        role: "Socio Director, Mendes Lex",
+        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuA66Qf9xmZaF-q5wdDes52yBwYSGfeJaamYjvVDCHinkORL9QjIUp7BtxhIZKoG1aJNCy0cuJFxfV2fKkVoHV8KUNFRFUeXJFB0V6II6TaRKS2jAprznp1c_iYCZy2lrflkvs6QRuJBV_7YDcBxjyEJLvhs3yjoIm9WgXkYfmjLSAlTp0F03bMlhRbu7ommCkQXykR1_tSm6hFmzVvcKZSR2vQUG5ykpXPr8Al72mBOshFx-cWlYqmYGQAk8_ZlwrvBqQC6_-CiSCA"
+      },
+      {
+        quote: "Finalmente una plataforma que entiende la burocracia de las visas americanas. La automatización de formularios de Aplikei es quirúrgica y extremadamente confiable.",
+        author: "Juliana Costa",
+        role: "Operations Lead, GlobalVisa",
+        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCRBZcOBtBtlonl3FJ66uby_UFAFoJakBneHCBdK5FyntC9maX1P8aWelsIE-08vJd-MoxTZwbHCUdcbJ3OT_pvCrH8uAk-Ain--kgOpzfASoD4tvFzVcINapKmlC6w2-u4sTzz_YRYdrtyDOX5Z8w0amjLFkBHFMaqw8dKkaUHu5YqbUVllIFHkgMI-ALWTp6Sr1sGG8wa0a3RNjyFWtqsavyWEywz2tHdh4hEt7kKeV7RkNR7WOdUODETir2rRlMRR6sGbi-Ifmg"
+      }
     ]
   },
-  faq: {
-    title: "Preguntas frecuentes",
-    items: [
-      { q: "¿Por cuánto tiempo tengo acceso a la herramienta de IA?", a: "Tienes acceso por 90 días desde la compra — tiempo suficiente para reunir tus documentos y armar tu paquete." },
-      { q: "¿Qué tipos de visa cubren actualmente?", a: "Actualmente tenemos guías para visas de Turismo (B1/B2), Estudiante (F-1) y Visitante de Intercambio (J-1) de EE.UU." },
-      { q: "¿Qué pasa si no estoy satisfecho con la guía?", a: "Ofrecemos garantía de devolución de 14 días si no has comenzado a usar la herramienta de IA." },
-      { q: "¿Aún necesito un abogado?", a: "No somos un despacho de abogados y no podemos brindar asesoría legal. Si tu caso es complejo, recomendamos consultar con un abogado de inmigración calificado." },
-      { q: "¿Es Aplikei un despacho de abogados?", a: "No. Aplikei es una plataforma de guías digitales con IA. No ofrecemos asesoría legal, representación legal, ni garantizamos la aprobación." },
-      { q: "¿Mis datos están seguros?", a: "Sí. Usamos cifrado y seguimos buenas prácticas de seguridad para proteger tus datos." }
-    ]
-  },
-  disclaimers: {
-    title: "Avisos importantes",
-    items: ["Aplikei no es un despacho de abogados.", "No ofrecemos asesoría legal.", "No garantizamos la aprobación de visas.", "No representamos al cliente ante consulados o USCIS."],
-    viewAll: "Ver todos los avisos →"
+  finalCta: {
+    title: "¿Listo para escalar su operación?",
+    description: "Únase a las firmas que ya han automatizado más de 10.000 procesos con precisión jurídica y tecnología de punta.",
+    button: "Agendar demostración",
+    disclaimer: "Sin compromiso. Prueba gratuita por 14 días para nuevos socios."
   }
 };
 export default landing;

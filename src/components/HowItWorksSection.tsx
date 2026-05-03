@@ -2,33 +2,55 @@ import { motion } from "framer-motion";
 import { useT } from "../i18n";
 
 export const HowItWorksSection = () => {
-  const t = useT("howItWorks");
-  const steps = t.steps;
+  const t = useT("landing");
+  const steps = t.howItWorks?.steps;
+
+  if (!steps) return null;
 
   return (
-    <section className="py-24 px-8 lg:px-16 bg-bg-subtle">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center max-w-4xl mx-auto mb-20 text-balance">
-          <p className="text-primary font-bold tracking-widest uppercase text-xs mb-8">{t.subtitle}</p>
-          <h2 className="text-4xl lg:text-5xl font-black text-primary">{t.title}</h2>
+    <section className="py-12 bg-white">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-12">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="font-h2 text-h2 text-on-surface mb-2"
+          >
+            {t.howItWorks.title}
+          </motion.h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
-          {(steps || []).map((step: { title: string; desc: string }, index: number) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-card rounded-3xl p-8 border border-border shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col items-center text-center lg:items-start lg:text-left"
-            >
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary text-white font-black text-lg mb-8 shadow-lg shadow-primary/20">
-                {String(index + 1).padStart(2, "0")}
-              </div>
-              <h3 className="text-xl font-black mb-4 text-text tracking-tight leading-tight">{step.title}</h3>
-              <p className="text-text-muted leading-relaxed text-sm font-medium">{step.desc}</p>
-            </motion.div>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 relative">
+          {/* Line connector for desktop */}
+          <div className="hidden md:block absolute top-12 left-0 w-full h-[2px] bg-surface-container-highest -z-10"></div>
+          
+          {steps.map((step: any, index: number) => {
+            const isLast = index === steps.length - 1;
+            return (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="flex flex-col items-center text-center group"
+              >
+                <div 
+                  className={`w-16 h-16 rounded-full border-4 flex items-center justify-center mb-4 font-h3 transition-colors ${
+                    isLast 
+                      ? 'bg-primary-container border-primary-fixed text-white shadow-lg' 
+                      : 'bg-white border-surface-container-highest text-primary-container group-hover:border-primary-container shadow-sm'
+                  }`}
+                >
+                  {step.number}
+                </div>
+                <h4 className={`font-label-md text-on-surface mb-1 ${isLast ? 'font-bold' : ''}`}>
+                  {step.title}
+                </h4>
+                <p className="font-body-sm text-secondary">{step.description}</p>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
