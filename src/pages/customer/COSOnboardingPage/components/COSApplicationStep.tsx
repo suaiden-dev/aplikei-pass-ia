@@ -4,8 +4,8 @@ import {
   RiErrorWarningLine,
   RiInformationLine,
 } from 'react-icons/ri'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../../../components/ui/dialog'
-import { DatePicker } from '../../../../components/ui/DatePicker'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../../../components/atoms/dialog'
+import { DatePicker } from '../../../../components/molecules/DatePicker'
 import imgTutor1 from '../../../../assets/tutor_i94/arrastar_ate_o_final_para_aceitar.png'
 import imgTutor2 from '../../../../assets/tutor_i94/fazerupload_ou_usar_a_camera_do_documento.png'
 import imgTutor3 from '../../../../assets/tutor_i94/preencher_campos.png'

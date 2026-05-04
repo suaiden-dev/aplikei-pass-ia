@@ -1,25 +1,44 @@
-import { useNavigate } from 'react-router-dom'
-import { RiArrowLeftLine, RiLoader4Line } from 'react-icons/ri'
-import { useAuth } from '../../../hooks/useAuth'
-import { useT } from '../../../i18n'
+import { Formik, Form } from "formik";
+import { motion } from "framer-motion";
 import {
-  useF1OnboardingController,
-} from '../../../controllers/F1/F1OnboardingController'
-import { AdminFeedbackBanner } from '../../../views/components/AdminFeedbackBanner'
-import { F1StepContent, type F1ViewLabels } from './components/F1StepContent'
+  RiArrowRightLine,
+  RiArrowLeftLine,
+  RiLoader4Line,
+  RiErrorWarningLine,
+  RiAlertLine,
+} from "react-icons/ri";
+import { useAuth } from "../../../hooks/useAuth";
+import { useT } from "../../../i18n";
+
+import { DS160SingleFormStep } from "../B1B2OnboardingPage/steps/DS160SingleFormStep";
+import { B1B2UserReviewSignStep } from "../B1B2OnboardingPage/steps/B1B2UserReviewSignStep";
+import { B1B2CASVSchedulingStep } from "../B1B2OnboardingPage/steps/B1B2CASVSchedulingStep";
+import { B1B2UserConfirmEmailStep } from "../B1B2OnboardingPage/steps/B1B2UserConfirmEmailStep";
+import { B1B2MRVPaymentStep } from "../B1B2OnboardingPage/steps/B1B2MRVPaymentStep";
+
+import { F1I20UploadStep } from "./steps/F1I20UploadStep";
+import { F1FinalPreparationStep } from "./steps/F1FinalPreparationStep";
+
+import { ds160Validator, type DS160FormValues } from "../../../features/onboarding/b1b2/schemas/ds160.schema";
+import { useF1Onboarding } from "../../../features/onboarding/f1/hooks/useF1Onboarding";
 
 export default function F1OnboardingPage() {
   const t = useT('visas') as F1ViewLabels
   const { user } = useAuth()
   const navigate = useNavigate()
 
-  const controller = useF1OnboardingController({
-    userId: user?.id,
-    labels: t,
-  })
-
-  const { isLoading, procId, slug, stepIdx, adminFeedback, savedValues } =
-    controller
+  const {
+    isLoading,
+    procId,
+    slug,
+    stepIdx,
+    adminFeedback,
+    savedValues,
+    isReapplication,
+    handleSubmit,
+    handleSaveDraft,
+    navigate,
+  } = useF1Onboarding(user?.id);
 
   if (isLoading) {
     return (

@@ -1,0 +1,467 @@
+import { supabase } from "../../../shared/lib/supabase";
+import { notifyAdmin, notifyClient } from "../../notifications/lib/notify";
+import { getServiceBySlug } from "../../../data/services";
+import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "../types";
+import type { UserService, ProcessStatus } from "../types";
+
+export type { UserService };
+
+// ── Supabase helpers ──────────────────────────────────────────────────────────
+
+async function findServiceById(id: string): Promise<UserService | null> {
+  const { data } = await supabase
+    .from("user_services")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  return (data as UserService | null) ?? null;
+}
+
+async function dbUpdateStep(
+  id: string,
+  step: number,
+  status: ProcessStatus,
+): Promise<boolean> {
+  const { error } = await supabase
+    .from("user_services")
+    .update({ current_step: step, status })
+    .eq("id", id);
+  return !error;
+}
+
+async function dbUpdateStatus(id: string, status: ProcessStatus): Promise<boolean> {
+  const { error } = await supabase
+    .from("user_services")
+    .update({ status })
+    .eq("id", id);
+  return !error;
+}
+
+async function dbUpdateStepData(
+  id: string,
+  stepData: Record<string, unknown>,
+): Promise<boolean> {
+  const { error } = await supabase
+    .from("user_services")
+    .update({ step_data: stepData })
+    .eq("id", id);
+  return !error;
+}
+
+// ── COS recovery normalization ────────────────────────────────────────────────
+
+const COS_RECOVERY_STEPS = {
+  rfeStart: 13,
+  rfeInstruction: 14,
+  motionAcquire: 19,
+  motionInstruction: 20,
+  motionProposal: 21,
+  motionAcceptProposal: 22,
+  motionEnd: 23,
+};
+
+function hasPurchase(stepData: Record<string, unknown>, slugs: string[]): boolean {
+  const purchases = Array.isArray(stepData.purchases)
+    ? (stepData.purchases as Array<{ slug?: string }>)
+    : [];
+  return purchases.some((p) => p.slug && slugs.includes(p.slug));
+}
+
+function getNormalizedCOSRecoveryStep(service: UserService): number | null {
+  if (service.service_slug !== "troca-status" && service.service_slug !== "extensao-status") {
+    return null;
+  }
+
+  const stepData = (service.step_data || {}) as Record<string, unknown>;
+  const currentStep = service.current_step ?? 0;
+  const uscisResult = String(stepData.uscis_official_result || "").toLowerCase();
+  const rfeResult = String(stepData.uscis_rfe_result || "").toLowerCase();
+  const workflowStatus = String(stepData.workflow_status || "").toLowerCase();
+  const isDenied =
+    uscisResult === "denied" ||
+    uscisResult === "rejected" ||
+    rfeResult === "denied" ||
+    rfeResult === "rejected";
+
+  if (!isDenied) {
+    if (uscisResult !== "rfe" && rfeResult !== "rfe") return null;
+
+    const rfeInitialPaid =
+      Boolean(stepData.rfe_initial_paid) ||
+      hasPurchase(stepData, ["apoio-rfe-motion-inicio", "analise-rfe-cos", "apoio-rfe-cos"]);
+    const rfeTarget = rfeInitialPaid
+      ? COS_RECOVERY_STEPS.rfeInstruction
+      : COS_RECOVERY_STEPS.rfeStart;
+    return currentStep < rfeTarget ? rfeTarget : null;
+  }
+
+  const motionInitialPaid =
+    Boolean(stepData.motion_initial_paid) ||
+    Boolean(stepData.motion_analysis_paid) ||
+    hasPurchase(stepData, ["apoio-rfe-motion-inicio", "analise-motion", "analise-especialista-cos"]);
+  const motionReasonSubmitted =
+    Boolean(stepData.motion_reason) || workflowStatus === "awaiting_proposal";
+  const motionProposalSent =
+    Boolean(stepData.motion_proposal_sent_at) || workflowStatus === "awaiting_payment";
+  const motionProposalPaid =
+    Boolean(stepData.motion_proposal_paid) ||
+    Boolean(stepData.motion_payment_completed_at);
+  const motionFinished = Boolean(stepData.motion_final_result);
+
+  let targetStep = COS_RECOVERY_STEPS.motionAcquire;
+  if (motionInitialPaid) targetStep = COS_RECOVERY_STEPS.motionInstruction;
+  if (motionReasonSubmitted) targetStep = COS_RECOVERY_STEPS.motionProposal;
+  if (motionProposalSent) targetStep = COS_RECOVERY_STEPS.motionAcceptProposal;
+  if (motionProposalPaid) targetStep = COS_RECOVERY_STEPS.motionEnd;
+  if (motionFinished) targetStep = 24;
+
+  return currentStep < targetStep ? targetStep : null;
+}
+
+async function normalizeCOSRecoveryStep(
+  service: UserService | null,
+): Promise<UserService | null> {
+  if (!service) return null;
+  const normalizedStep = getNormalizedCOSRecoveryStep(service);
+  if (normalizedStep == null) return service;
+  const ok = await dbUpdateStep(service.id, normalizedStep, "active");
+  if (!ok) return service;
+  return { ...service, current_step: normalizedStep, status: "active" };
+}
+
+// ── Step title helpers ────────────────────────────────────────────────────────
+
+function getStepTitles(serviceSlug: string, currentStep: number | null, nextStep?: number) {
+  const serviceMeta = getServiceBySlug(serviceSlug);
+  return {
+    serviceName: serviceMeta?.title ?? serviceSlug,
+    currentTitle: currentStep != null ? (serviceMeta?.steps[currentStep]?.title ?? "") : "",
+    nextTitle: nextStep != null ? (serviceMeta?.steps[nextStep]?.title ?? "") : "",
+  };
+}
+
+function getProcessLink(serviceSlug: string): string {
+  return `/dashboard/processes/${serviceSlug}`;
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+export async function getUserServices(userId: string): Promise<UserService[]> {
+  const { data } = await supabase
+    .from("user_services")
+    .select("*")
+    .eq("user_id", userId);
+  const services = (data as UserService[] | null) ?? [];
+  return Promise.all(
+    services.map((s) => normalizeCOSRecoveryStep(s) as Promise<UserService>),
+  );
+}
+
+export async function hasActiveService(userId: string, slug: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("user_services")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("service_slug", slug)
+    .not("status", "in", "(completed,cancelled,rejected,denied)");
+  return (data?.length ?? 0) > 0;
+}
+
+export async function hasAnyActiveProcess(
+  userId: string,
+): Promise<{ hasActive: boolean; activeSlug?: string }> {
+  const { data } = await supabase
+    .from("user_services")
+    .select("*")
+    .eq("user_id", userId)
+    .not("status", "in", "(completed,cancelled,rejected,denied)");
+  const services = (data as UserService[] | null) ?? [];
+
+  if (services.length === 0) return { hasActive: false };
+
+  const trulyActive = services.filter((proc) => {
+    if (
+      proc.service_slug?.toLowerCase().startsWith("analise-") ||
+      proc.service_slug?.toLowerCase().startsWith("mentoria-") ||
+      proc.service_slug?.toLowerCase().startsWith("consultoria-") ||
+      proc.service_slug?.toLowerCase().startsWith("dependente-adicional-")
+    ) return false;
+
+    const stepData = (proc.step_data || {}) as Record<string, unknown>;
+    const currentStep = proc.current_step ?? 0;
+    const uscisResult = stepData.uscis_official_result as string;
+    const rfeResult = stepData.uscis_rfe_result as string;
+    const motionResult = stepData.motion_final_result as string;
+    const interviewResult = stepData.interview_outcome as string;
+
+    const isApproved =
+      uscisResult === "approved" ||
+      rfeResult === "approved" ||
+      motionResult === "approved" ||
+      interviewResult === "approved" ||
+      proc.status === "completed";
+    const isDenied =
+      proc.status === "rejected" ||
+      proc.status === "denied" ||
+      motionResult === "denied" ||
+      interviewResult === "rejected" ||
+      (rfeResult === "denied" && currentStep >= 18 && !uscisResult) ||
+      (uscisResult === "denied" && currentStep >= 12 && !rfeResult && !motionResult);
+
+    return !isApproved && !isDenied;
+  });
+
+  return { hasActive: trulyActive.length > 0, activeSlug: trulyActive[0]?.service_slug };
+}
+
+export async function getUserServiceBySlug(
+  userId: string,
+  slug: string,
+): Promise<UserService | null> {
+  const { data } = await supabase
+    .from("user_services")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("service_slug", slug)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return normalizeCOSRecoveryStep((data as UserService | null) ?? null);
+}
+
+export async function getServiceById(id: string): Promise<UserService | null> {
+  return normalizeCOSRecoveryStep(await findServiceById(id));
+}
+
+export async function updateStepData(
+  serviceId: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  if (!serviceId) throw new Error("ID do serviço é obrigatório.");
+  const ok = await dbUpdateStepData(serviceId, data);
+  if (!ok) throw new Error("Falha ao atualizar step_data");
+}
+
+export async function updateCurrentStep(
+  serviceId: string,
+  step: number,
+  status: ProcessStatus = "active",
+): Promise<void> {
+  if (!serviceId) throw new Error("ID do serviço é obrigatório.");
+  const ok = await dbUpdateStep(serviceId, step, status);
+  if (!ok) throw new Error("Falha ao atualizar etapa atual");
+}
+
+export async function updateProcessStatus(
+  serviceId: string,
+  status: string,
+): Promise<void> {
+  if (!serviceId) throw new Error("ID do serviço é obrigatório.");
+  const ok = await dbUpdateStatus(serviceId, status as ProcessStatus);
+  if (!ok) throw new Error("Falha ao atualizar status");
+}
+
+export async function requestStepReview(serviceId: string): Promise<void> {
+  if (!serviceId) throw new Error("ID do serviço é obrigatório.");
+
+  const service = await findServiceById(serviceId);
+  if (!service) throw new Error("Serviço não encontrado");
+
+  await dbUpdateStatus(serviceId, "awaiting_review");
+
+  const { serviceName, currentTitle } = getStepTitles(service.service_slug, service.current_step);
+  await notifyAdmin({
+    title: "Acao necessaria: revisar etapa",
+    body: currentTitle
+      ? `O cliente concluiu a etapa "${currentTitle}" de ${serviceName} e aguarda sua revisao.`
+      : `O cliente concluiu uma etapa de ${serviceName} e aguarda sua revisao.`,
+    serviceId,
+    userId: service.user_id ?? undefined,
+    link: `/admin/processes/${serviceId}`,
+  });
+
+  await notifyClient({
+    userId: service.user_id ?? undefined,
+    template: "admin_message",
+    title: "Estamos Revisando!",
+    body: "Sua etapa foi enviada com sucesso para nossa equipe de análise. Aguarde a validação.",
+    serviceId,
+    link: getProcessLink(service.service_slug),
+  });
+}
+
+export async function approveStep(
+  serviceId: string,
+  nextStep: number,
+  isFinal: boolean = false,
+  result?: "approved" | "denied",
+  additionalData?: Record<string, unknown>,
+  options?: { notifyClient?: boolean },
+): Promise<void> {
+  if (!serviceId) throw new Error("ID do serviço é obrigatório.");
+
+  const service = await findServiceById(serviceId);
+  if (!service) throw new Error("Serviço não encontrado");
+
+  const newStepData: Record<string, unknown> = {
+    ...((service.step_data as Record<string, unknown>) || {}),
+    ...additionalData,
+  };
+  delete newStepData["admin_feedback"];
+  delete newStepData["rejected_at"];
+
+  if (isFinal && result) {
+    newStepData.motion_final_result = result;
+  }
+
+  await dbUpdateStepData(serviceId, newStepData);
+  await dbUpdateStep(serviceId, nextStep, isFinal ? "completed" : "active");
+
+  if (options?.notifyClient !== false) {
+    try {
+      const { serviceName, currentTitle, nextTitle } = getStepTitles(
+        service.service_slug,
+        service.current_step,
+        nextStep,
+      );
+      await notifyClient({
+        userId: service.user_id ?? undefined,
+        template: isFinal ? "process_completed_approved" : "step_approved",
+        serviceId,
+        templateData: isFinal
+          ? { service_name: serviceName }
+          : {
+              step_name: currentTitle,
+              next_step_name: nextTitle,
+              service_name: serviceName,
+            },
+        link: getProcessLink(service.service_slug),
+      });
+    } catch (e) {
+      console.warn("[processOps] Notify client of approval failed:", e);
+    }
+  }
+}
+
+export async function rejectStep(
+  serviceId: string,
+  isFinal: boolean = false,
+  result?: "approved" | "denied",
+): Promise<void> {
+  if (!serviceId) throw new Error("ID do serviço é obrigatório.");
+
+  const service = await findServiceById(serviceId);
+  if (!service) throw new Error("Serviço não encontrado");
+
+  if (isFinal && result) {
+    await dbUpdateStepData(serviceId, {
+      ...((service.step_data as object) || {}),
+      motion_final_result: result,
+    });
+  }
+
+  await dbUpdateStatus(serviceId, isFinal ? "completed" : "active");
+
+  try {
+    const feedback =
+      ((service.step_data as Record<string, unknown> | undefined)?.admin_feedback as
+        | string
+        | undefined) ?? "Verifique os ajustes necessários no seu painel.";
+    const { serviceName, currentTitle } = getStepTitles(
+      service.service_slug,
+      service.current_step,
+    );
+
+    await notifyClient({
+      userId: service.user_id ?? undefined,
+      template: isFinal ? "process_completed_denied" : "step_rejected_feedback",
+      serviceId,
+      templateData: isFinal
+        ? { service_name: serviceName }
+        : { step_name: currentTitle, feedback },
+      link: getProcessLink(service.service_slug),
+    });
+  } catch (e) {
+    console.warn("[processOps] Notify client of rejection failed:", e);
+  }
+}
+
+export async function startAdditionalWorkflow(
+  processId: string,
+  type: "motion" | "rfe",
+): Promise<void> {
+  const service = await findServiceById(processId);
+  if (!service) throw new Error("Serviço não encontrado");
+
+  const stepData = (service.step_data || {}) as Record<string, unknown>;
+  const history = Array.isArray(stepData.history) ? [...stepData.history] : [];
+
+  const steps = type === "motion" ? MOTION_STEPS_TEMPLATE : RFE_STEPS_TEMPLATE;
+
+  const newCycle = {
+    type,
+    id: crypto.randomUUID(),
+    started_at: new Date().toISOString(),
+    current_step: 0,
+    status: type === "motion" ? "not_started" : "rfeInit",
+    steps,
+  };
+
+  history.push(newCycle);
+
+  const rfeCycles = Array.isArray(stepData.rfe_cycles) ? [...stepData.rfe_cycles] : [];
+  if (type === "rfe") {
+    rfeCycles.push({
+      cycle: rfeCycles.length + 1,
+      status: "awaiting_payment",
+      started_at: new Date().toISOString(),
+      result: null,
+      paid_at: null,
+      closed_at: null,
+    });
+  }
+
+  const targetStep =
+    type === "motion" ? COS_RECOVERY_STEPS.motionAcquire : COS_RECOVERY_STEPS.rfeStart;
+
+  await dbUpdateStepData(processId, {
+    ...stepData,
+    recover: type === "motion" ? "not_started" : "rfeInit",
+    workflow_status: type === "motion" ? "not_started" : "rfeInit",
+    history,
+    active_cycle_index: history.length - 1,
+    rfe_cycles: rfeCycles,
+    active_rfe_cycle: type === "rfe" ? rfeCycles.length : stepData.active_rfe_cycle,
+  });
+
+  await dbUpdateStep(processId, targetStep, "active");
+}
+
+export async function hasChatMessages(processId: string): Promise<boolean> {
+  const { count } = await supabase
+    .from("chat_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("process_id", processId);
+  return (count ?? 0) > 0;
+}
+
+export async function ensureChatThread(
+  processId: string,
+  senderId: string,
+  content: string,
+  force = false,
+): Promise<boolean> {
+  if (!force) {
+    const alreadyExists = await hasChatMessages(processId);
+    if (alreadyExists) return false;
+  }
+
+  const { error } = await supabase.from("chat_messages").insert({
+    process_id: processId,
+    sender_id: senderId,
+    sender_role: "customer",
+    content,
+  });
+
+  return !error;
+}

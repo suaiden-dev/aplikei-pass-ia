@@ -10,7 +10,7 @@ import { useT } from '../../../i18n'
 import {
   processService,
   type UserService,
-} from '../../../services/process.service'
+} from '../../../features/process/lib/processOps'
 
 interface Props {
   proc: UserService

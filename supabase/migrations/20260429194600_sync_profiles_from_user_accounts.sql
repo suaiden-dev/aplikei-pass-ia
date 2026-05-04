@@ -17,7 +17,7 @@ select
   ua.profile_url,
   ua.passport_photo_url,
   coalesce(ua.updated_at, now())
-from aplikei.users_accounts ua
+from public.users_accounts ua
 on conflict (id) do update
 set
   full_name = coalesce(excluded.full_name, public.profiles.full_name),
@@ -31,7 +31,7 @@ create or replace function public.sync_profile_from_users_account()
 returns trigger
 language plpgsql
 security definer
-set search_path = public, aplikei
+set search_path = public
 as $$
 begin
   insert into public.profiles (
@@ -65,10 +65,10 @@ begin
 end;
 $$;
 
-drop trigger if exists tr_sync_profile_from_users_account on aplikei.users_accounts;
+drop trigger if exists tr_sync_profile_from_users_account on public.users_accounts;
 create trigger tr_sync_profile_from_users_account
 after insert or update of name, email, phone, profile_url, passport_photo_url, updated_at
-on aplikei.users_accounts
+on public.users_accounts
 for each row
 execute function public.sync_profile_from_users_account();
 

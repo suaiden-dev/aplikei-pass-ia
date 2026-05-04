@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { RiMoonLine, RiSunLine } from "react-icons/ri";
-import { AuthBrand } from "../components/auth/AuthBrand";
+import { AuthBrand } from "../components/molecules/AuthBrand";
 import { useTheme } from "../contexts/useTheme";
 import { useLocale, type Language } from "../i18n";
 import { useAuth } from "../hooks/useAuth";

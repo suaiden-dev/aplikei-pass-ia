@@ -16,8 +16,40 @@ const admin = {
     },
     registration: "Registro",
     paid: "Pago",
+    roleLabels: {
+      master: "Master",
+      admin: "Administrador",
+      admin_lawyer: "Advogado Admin",
+      manager: "Gerente",
+      seller: "Vendedor",
+      customer: "Cliente"
+    }
+  },
+  nav: {
+    dashboard: "Dashboard",
+    matters: "Processos",
+    revenue: "Financeiro",
+    lawyers: "Advogados",
+    products: "Produtos",
+    chats: "Mensagens",
+    customers: "Clientes",
+    coupons: "Cupons",
+    roles: "Funções",
+    caseLaw: "Jurisprudência",
+    documents: "Documentos",
+    billing: "Faturamento",
+    analytics: "Análises",
+    settings: "Configurações"
   },
   overview: {
+    title: "Master Overview",
+    description: "Métricas financeiras e operacionais de alto nível",
+    sections: {
+      revenueTrajectory: "Trajetória de Receita",
+      revenueSplit: "Divisão de Receita",
+      topLawyers: "Top AdminLawyers",
+      productDistribution: "Distribuição de Produtos"
+    },
     stats: {
       customers: "Clientes",
       totalRevenue: "Receita Total",
@@ -97,6 +129,7 @@ const admin = {
       awaitingAction: "Aguardando sua ação",
     },
     mrv: {
+      title: "Taxa MRV e Acesso ao Consulado",
       loginLabel: "Login Consulado (E-mail)",
       loginPlaceholder: "E-mail da conta consular",
       passwordLabel: "Senha Consulado",
@@ -111,6 +144,7 @@ const admin = {
       }
     },
     scheduling: {
+      title: "Agendamento Final (CASV/Consulado)",
       upsellTitle: "Plano Upsell Adquirido",
       upsellAction: "Intervir Conforme Plano",
       sameLocation: "Mesmo Local",
@@ -158,6 +192,11 @@ const admin = {
         resultNewRfe: "Nova RFE",
         resultRejected: "Reprovado",
         amount: "Valor:",
+        finalPackageLoading: "Enviando pacote final da RFE...",
+        finalPackageTitle: "Envio do Pacote Final (RFE)",
+        finalPackageReady: "Pacote final de RFE pronto",
+        selectFinalPdf: "Selecionar PDF Final",
+        provideToClient: "Disponibilizar ao Cliente",
      },
      credentials: {
         title: "Credenciais CEAC / Application ID",
@@ -260,6 +299,14 @@ const admin = {
         labels: {
            step: "Etapa",
            status: "Status",
+        },
+        messages: {
+           aiCoverLetterSuccess: "Cover Letter gerada com sucesso pela IA!",
+        aiCoverLetterLoading: "IA gerando cover letter...",
+        fillBioAndStrategy: "Por favor, preencha a biografia e estratégia.",
+        generateError: "Erro ao gerar: ",
+        finalPackageGenerating: "Gerando pacote final...",
+        finalPackageGenerated: "Pacote gerado!",
         }
      }
   },
@@ -305,7 +352,22 @@ const admin = {
       statusSuffix: "Status: {{status}}",
       expected: "Esperado: {{amount}}",
       code: "Código: {{code}}",
-      autoProcessing: "Processamento Automático"
+      autoProcessing: "Processamento Automático",
+      couponApplied: "CUPOM APLICADO"
+    },
+    services: {
+      analiseCos: "Análise de Especialista (COS)",
+      analiseEos: "Análise de Especialista (EOS)",
+      motionCos: "Motion (COS)",
+      motionEos: "Motion (EOS)",
+      rfeSupport: "Suporte RFE",
+      rfeEos: "Suporte RFE (EOS)",
+      rfeCos: "Suporte RFE (COS)",
+      recoveryEos: "Recuperação de Caso (EOS)",
+      recoveryCos: "Recuperação de Caso (COS)",
+      motionSupport: "Motion Support",
+      mentoriaBronze: "Mentoria Bronze",
+      mentoriaGold: "Mentoria Gold"
     },
     modals: {
       rejectTitle: "Rejeitar pagamento",
@@ -473,20 +535,113 @@ const admin = {
     }
   },
   chats: {
-    title: "Centro de Mensagens",
-    subtitle: "Clientes que compraram análise",
+    title: "Central de Mensagens",
+    subtitle: "Atendimento direto e suporte técnico para clientes.",
     searchPlaceholder: "Buscar conversa...",
-    emptyState: "Nenhuma conversa",
+    emptyState: "Nenhuma conversa encontrada.",
     selectChat: "Selecione uma conversa",
-    selectChatSubtitle: "Escolha um cliente na lista ao lado para iniciar o atendimento ou visualizar o histórico.",
+    selectChatSubtitle: "Escolha um cliente na lista ao lado para iniciar o atendimento ou revisão técnica.",
     online: "Online",
     offline: "Offline",
     typeMessage: "Digite sua mensagem...",
     today: "Hoje",
-    settings: "Configurações",
-    finalizeProcess: "Finalizar Processo",
-    finalizeConfirm: "Tem certeza que deseja finalizar este processo? Esta ação não pode ser desfeita.",
-    processFinalized: "Processo finalizado com sucesso!"
+    settings: {
+      title: "Configurações do Chat",
+      goToProcess: "Ir para o processo",
+      reopen: "Reabrir conversa",
+      close: "Encerrar conversa",
+      reopenedSuccess: "Chat reaberto.",
+      closedSuccess: "Chat encerrado.",
+      errorToggle: "Erro ao alterar status do chat: "
+    }
+  },
+  roles: {
+    title: "Permissões de Acesso",
+    subtitle: "Defina e gerencie níveis de acesso dos usuários staff da organização.",
+    stats: {
+      totalRoles: "Total de Funções",
+      activeUsers: "Usuários Ativos"
+    },
+    table: {
+      user: "Usuário",
+      currentRole: "Função Atual",
+      status: "Status",
+      role: "Função",
+      actions: "Ações",
+      noResults: "Nenhum usuário encontrado.",
+      loading: "Carregando staff...",
+      active: "Ativo",
+      inactive: "Inativo"
+    },
+    searchPlaceholder: "Buscar staff por e-mail",
+    searchBtn: "Buscar"
+  },
+  lawyers: {
+    title: "AdminLawyers",
+    subtitle: "Gestão de performance e comissionamento dos advogados.",
+    stats: {
+      total: "Total de Advogados",
+      active: "Advogados Ativos",
+      pending: "Aguardando Ativação",
+      recent: "Novos (30 dias)"
+    },
+    table: {
+      lawyer: "Advogado",
+      status: "Status",
+      admission: "Data de Cadastro",
+      actions: "Ações",
+      active: "Ativo",
+      inactive: "Inativo",
+      details: "Ver Detalhes",
+      noResults: "Nenhum AdminLawyer encontrado.",
+      searchPlaceholder: "Buscar advogado por nome ou e-mail..."
+    }
+  },
+  layout: {
+    admin: {
+      subtitle: "Operação Aplikei",
+      roleLabel: "Escopo Administrativo",
+      headerEyebrow: "Dashboard Admin",
+      spotlightTitle: "Operação Ativa",
+      spotlightDescription: "Ambiente administrativo para gestão diária de atendimento, financeiro e carteira."
+    },
+    master: {
+      subtitle: "Gestão Global",
+      roleLabel: "Escopo Master",
+      headerEyebrow: "Dashboard Master",
+      spotlightTitle: "Operação Master",
+      spotlightDescription: "Ambiente master para supervisão global de todas as operações e usuários."
+    },
+    seller: {
+      subtitle: "Aplikei Sales",
+      roleLabel: "Escopo Vendedor",
+      headerEyebrow: "Dashboard Seller",
+      spotlightTitle: "Pipeline Comercial",
+      spotlightDescription: "Escopo focado em vendas, relacionamento, campanhas e atendimento comercial."
+    },
+    shared: {
+      consoleTitle: "Console Aplikei"
+    }
+  },
+  profile: {
+    title: "Alterar Perfil",
+    uploadBtn: "Enviar foto",
+    xAxis: "Eixo X",
+    yAxis: "Eixo Y",
+    zoom: "Zoom",
+    nameLabel: "Nome",
+    namePlaceholder: "Seu nome",
+    saveBtn: "Salvar",
+    savingBtn: "Salvando...",
+    cancelBtn: "Cancelar",
+    changeProfile: "Alterar Perfil",
+    logout: "Deslogar",
+    successUpdate: "Perfil atualizado com sucesso.",
+    errorUpdate: "Erro ao atualizar perfil.",
+    selectImageError: "Selecione um arquivo de imagem.",
+    imageSizeError: "A imagem deve ter no máximo 5MB.",
+    closeMenu: "Fechar menu",
+    openMenu: "Abrir menu"
   }
 };
 

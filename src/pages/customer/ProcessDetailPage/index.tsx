@@ -18,18 +18,19 @@ import {
   RiFlagLine,
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
-import { processService, type UserService } from "../../../services/process.service";
+import { calculateProcessProgress } from "../../../features/process/utils";
+import * as processService from "../../../features/process/lib/processOps";
 import { getServiceBySlug } from "../../../data/services";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "../../../shared/lib/supabase";
 import { toast } from "sonner";
-import PhotoUploadOverlay from "../../../components/PhotoUploadOverlay";
+import PhotoUploadOverlay from "../../../components/organisms/PhotoUploadOverlay";
 import { cn } from "../../../utils/cn";
 import { useT } from "../../../i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { StepConfig } from "../../../templates/ServiceDetailTemplate";
 import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "../../../data/workflowTemplates";
-import { normalizeLegacyFinalShipSteps } from "../../../utils/legacyWorkflow";
-import { Skeleton } from "../../../components/ui/skeleton";
+import { Skeleton } from "../../../components/atoms/skeleton";
+import { shouldPromptForIdentityPhoto } from "./identityPhotoPrompt";
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,
@@ -84,14 +85,28 @@ export default function ProcessDetailPage() {
     queryFn: async () => {
       if (!user || !slug) return null;
       const idParam = searchParams.get("id");
-      const data = idParam 
-        ? await processService.getServiceById(idParam) 
-        : await processService.getUserServiceBySlug(user.id, slug);
 
-      if (data && (data.user_id !== user.id || (idParam && data.service_slug !== slug))) {
-        return null;
+      if (idParam) {
+        const { data, error } = await supabase
+          .from("user_services")
+          .select("*")
+          .eq("id", idParam)
+          .single();
+        if (error || !data) return null;
+        if (data.user_id !== user.id || data.service_slug !== slug) return null;
+        return data;
       }
-      return data;
+
+      const { data } = await supabase
+        .from("user_services")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("service_slug", slug)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      return data ?? null;
     },
     enabled: !!user && !!slug,
     staleTime: 0,
@@ -114,8 +129,13 @@ export default function ProcessDetailPage() {
     queryKey: ['mentoria-negativa', user?.id, slug, shouldCheckConsultation],
     queryFn: async () => {
       if (!user) return false;
-      const consult = await processService.getUserServiceBySlug(user.id, "mentoria-negativa-consular");
-      return !!consult && consult.status !== "cancelled";
+      const { data } = await supabase
+        .from("user_services")
+        .select("id, status")
+        .eq("user_id", user.id)
+        .eq("service_slug", "mentoria-negativa-consular")
+        .maybeSingle();
+      return !!data && data.status !== "cancelled";
     },
     enabled: shouldCheckConsultation,
   });

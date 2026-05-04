@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import type { UserRole } from "../models/user.model";
+import type { UserRole } from "../features/auth/types";
 import { RouteGuardLoader } from "./RouteGuardLoader";
 import { resolveAuthGuard } from "./authGuard";
 

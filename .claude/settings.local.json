@@ -4,7 +4,13 @@
       "Bash(npx tsc *)",
       "Bash(supabase --version)",
       "Read(//home/vileladev/www/aplikei/**)",
-      "Read(//home/vileladev/www/**)"
+      "Read(//home/vileladev/www/**)",
+      "Bash(rtk git *)",
+      "Bash(rtk ls *)",
+      "Bash(rtk grep *)",
+      "Bash(rtk find *)",
+      "Bash(rtk read *)",
+      "Bash(rtk tsc *)"
     ]
   }
 }

@@ -16,12 +16,12 @@ import {
   RiCheckLine,
   RiCloseLine
 } from "react-icons/ri";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "../../../shared/lib/supabase";
 import { useT } from "../../../i18n";
-import { Input } from "../../../components/Input";
-import { Label } from "../../../components/Label";
+import { Input } from "../../../components/atoms/input";
+import { Label } from "../../../components/atoms/label";
 import { zodValidate } from "../../../utils/zodValidate";
-import { formatCouponCode } from "../../../services/coupon.service";
+import { formatCouponCode } from "../../../features/payment/lib/coupon";
 import { servicesData } from "../../../data/services";
 
 // ─── Types ────────────────────────────────────────────────────────────────────

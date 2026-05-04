@@ -17,8 +17,8 @@ import { toast } from "sonner";
 import { useT } from "../../../i18n";
 import { useAuth } from "../../../hooks/useAuth";
 import { cn } from "../../../utils/cn";
-import { SupportChat } from "../../../components/SupportChat";
-import { chatService } from "../../../services/chat-specialist.service";
+import { SupportChat } from "../../../features/chat/components/SupportChat";
+import { useAdminChats } from "../../../features/chat/hooks/useAdminChats";
 
 interface AnalysisChatItem {
   id: string;
@@ -36,71 +36,26 @@ interface AnalysisChatItem {
 export default function ChatsPage() {
   const t = useT("admin");
   const { user } = useAuth();
-  const [chats, setChats] = useState<AnalysisChatItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { threads, unreadByProcess, isLoading } = useAdminChats();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedChat, setSelectedChat] = useState<AnalysisChatItem | null>(null);
 
-  const load = async () => {
-    setIsLoading(true);
-    try {
-      const threads = await chatService.listAdminSpecialistThreads();
-      const unreadByProcess = await chatService.getUnreadCountsByProcess(
-        threads.map((thread) => thread.processId),
-      );
-
-      setChats(
-        threads.map((row) => ({
-          id: row.processId,
-          userId: row.userId,
-          processId: row.processId,
-          serviceSlug: row.serviceSlug,
-          chatTitle: row.chatTitle,
-          fullName: row.fullName || "Sem Nome",
-          email: row.email || "",
-          avatarUrl: row.avatarUrl || null,
-          createdAt: row.createdAt,
-          unreadCount: unreadByProcess[row.processId] || 0,
-        })),
-      );
-    } catch (err: unknown) {
-      console.error("Error loading chats:", err);
-      toast.error("Erro ao carregar conversas.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  useEffect(() => {
-    const channel = chatService.subscribeToAllMessages((payload) => {
-      const msg = payload?.new as { process_id?: string; sender_role?: string } | undefined;
-      if (!msg?.process_id) return;
-
-      setChats((prev) =>
-        prev.map((chat) => {
-          if (chat.processId !== msg.process_id) return chat;
-
-          if (msg.sender_role === "admin") {
-            return { ...chat, unreadCount: 0 };
-          }
-
-          if (selectedChat?.processId === chat.processId) {
-            return { ...chat, unreadCount: 0 };
-          }
-
-          return { ...chat, unreadCount: (chat.unreadCount || 0) + 1 };
-        }),
-      );
-    });
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [selectedChat?.processId]);
+  const chats = useMemo(
+    () =>
+      threads.map((row) => ({
+        id: row.processId,
+        userId: row.userId,
+        processId: row.processId,
+        serviceSlug: row.serviceSlug,
+        chatTitle: row.chatTitle,
+        fullName: row.fullName || "Sem Nome",
+        email: row.email || "",
+        avatarUrl: row.avatarUrl || null,
+        createdAt: row.createdAt,
+        unreadCount: unreadByProcess[row.processId] || 0,
+      })),
+    [threads, unreadByProcess],
+  );
 
   const filteredChats = useMemo(() => {
     if (!searchTerm) return chats;
@@ -272,32 +227,34 @@ export default function ChatsPage() {
 }
 
 function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: AnalysisChatItem; onClose: () => void }) {
+  const t = useT("admin");
   const navigate = useNavigate();
+  const { closeChat, reopenChat, getChatClosedAt } = useAdminChats();
   const [showSettings, setShowSettings] = useState(false);
   const [isClosed, setIsClosed] = useState<boolean | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    chatService.getChatClosedAt(chat.processId)
+    getChatClosedAt(chat.processId)
       .then((val) => setIsClosed(val !== null))
       .catch(() => setIsClosed(false));
-  }, [chat.processId]);
+  }, [chat.processId, getChatClosedAt]);
 
   const handleToggleClose = async () => {
     setIsUpdating(true);
     try {
       if (isClosed) {
-        await chatService.reopenChat(chat.processId);
+        await reopenChat(chat.processId);
         setIsClosed(false);
-        toast.success("Chat reaberto.");
+        toast.success(t.chats.settings.reopenedSuccess);
       } else {
-        await chatService.closeChat(chat.processId);
+        await closeChat(chat.processId);
         setIsClosed(true);
-        toast.success("Chat encerrado.");
+        toast.success(t.chats.settings.closedSuccess);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro desconhecido";
-      toast.error("Erro: " + message);
+      toast.error(t.chats.settings.errorToggle + message);
     } finally {
       setIsUpdating(false);
       setShowSettings(false);
@@ -352,7 +309,7 @@ function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: Anal
               >
                 <div className="p-2">
                   <p className="px-3 py-1.5 text-[9px] font-black text-text-muted uppercase tracking-widest">
-                    Configurações do Chat
+                    {t.chats.settings.title}
                   </p>
                   <button
                     onClick={() => {
@@ -364,7 +321,7 @@ function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: Anal
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-text hover:bg-bg-subtle transition-all border-b border-border/30 mb-1"
                   >
                     <RiExternalLinkLine size={16} />
-                    Ir para o processo
+                    {t.chats.settings.goToProcess}
                   </button>
 
                   <button
@@ -380,12 +337,12 @@ function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: Anal
                     {isClosed ? (
                       <>
                         <RiLockUnlockLine size={16} />
-                        Reabrir conversa
+                        {t.chats.settings.reopen}
                       </>
                     ) : (
                       <>
                         <RiLockLine size={16} />
-                        Encerrar conversa
+                        {t.chats.settings.close}
                       </>
                     )}
                   </button>

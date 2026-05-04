@@ -1,4 +1,4 @@
-import { LogoLoader } from "../components/ui/LogoLoader";
+import { LogoLoader } from "../components/atoms/logo-loader";
 
 export function RouteGuardLoader() {
   return (

@@ -10,14 +10,12 @@ vi.mock('sonner', () => ({
 }))
 
 // Mock process service
-vi.mock('../services/process.service', () => ({
-  processService: {
-    updateStepData: vi.fn().mockResolvedValue({}),
-  },
+vi.mock('../features/process/lib/processOps', () => ({
+  updateStepData: vi.fn().mockResolvedValue({}),
 }))
 
 // Mock I539 service
-vi.mock('../services/i539.service', () => ({
+vi.mock('../features/onboarding/cos/lib/i539', () => ({
   fillI539Form: vi.fn().mockResolvedValue(new Uint8Array()),
   uploadFilledI539: vi.fn().mockResolvedValue('https://mock-pdf-url.com'),
 }))

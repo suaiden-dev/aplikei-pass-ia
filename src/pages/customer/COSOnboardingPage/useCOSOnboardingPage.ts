@@ -18,7 +18,7 @@ import type { UserProductInstance, UserStep, StepReview } from '../../../service
 import type { UserService, USCISOutcome, MotionOutcome, RFEOutcome } from '../../../models/process.model'
 import { processService } from '../../../services/process.service'
 import { cosNotificationService } from '../../../services/cos-notification.service'
-import type { DocFile } from '../../../components/DocUploadCard'
+import type { DocFile } from '../../../components/molecules/DocUploadCard'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

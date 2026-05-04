@@ -7,7 +7,7 @@ import {
   KpiCard,
   StatusBadge,
   ToolbarPill,
-} from "../../components/master/DashboardUI";
+} from "../../components/organisms/DashboardUI";
 import { chatRecords } from "../../mocks/master-dashboard";
 
 export default function ChatsPage() {

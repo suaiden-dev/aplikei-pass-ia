@@ -155,6 +155,11 @@ const admin = {
         resultNewRfe: "Nueva RFE",
         resultRejected: "Rechazado",
         amount: "Valor:",
+        finalPackageLoading: "Subiendo paquete final de RFE...",
+        finalPackageTitle: "Envío del Paquete Final (RFE)",
+        finalPackageReady: "Paquete final de RFE listo",
+        selectFinalPdf: "Seleccionar PDF Final",
+        provideToClient: "Disponibilizar al Cliente",
      },
      credentials: {
         title: "Credenciales CEAC / Application ID",

@@ -1,27 +1,25 @@
 import { useState } from "react";
-import { Link, NavLink, Outlet, useNavigate, useLocation, Navigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   RiDashboardLine,
   RiBriefcaseLine,
   RiQuestionLine,
-  RiLogoutBoxRLine,
   RiMenuLine,
   RiCloseLine,
 } from "react-icons/ri";
 import { useAuth } from "../hooks/useAuth";
-import { useLocale, useT } from "../i18n";
-import { getDashboardPathForRole } from "../services/auth.service";
+import { useT } from "../i18n";
+import { getDashboardPathForRole } from "../shared/auth/roles";
 import { cn } from "../utils/cn";
 import { NotificationProvider } from "../contexts/NotificationContext";
-import { NotificationToaster } from "../components/notifications/NotificationToaster";
-import { NotificationBell } from "../components/notifications/NotificationBell";
+import { NotificationToaster } from "../features/notifications/components/NotificationToaster";
+import { NotificationBell } from "../features/notifications/components/NotificationBell";
+import { DashboardNavbar } from "../components/organisms/DashboardNavbar";
 
 export function CustomerLayout() {
-  const { user, logout } = useAuth();
-  const { lang, setLang } = useLocale();
+  const { user } = useAuth();
   const tDashboard = useT("dashboard");
-  const navigate = useNavigate();
   const { pathname } = useLocation();
   const [sidebarOpenPath, setSidebarOpenPath] = useState<string | null>(null);
   const isSidebarOpen = sidebarOpenPath === pathname;
@@ -31,15 +29,6 @@ export function CustomerLayout() {
     { label: tDashboard.sidebar.cases, icon: RiBriefcaseLine, to: "/dashboard/processes" },
     { label: tDashboard.sidebar.support, icon: RiQuestionLine, to: "/dashboard/support" },
   ];
-
-  const avatarUrl =
-    user?.avatarUrl ??
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? "User")}&background=1a56db&color=fff`;
-
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login", { replace: true });
-  };
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -128,61 +117,6 @@ export function CustomerLayout() {
             ))}
           </nav>
 
-          {/* Sidebar Footer: Interaction + User + Logout */}
-          <div className="p-4 mt-auto space-y-4">
-            {/* Language Toggle */}
-            <div className="px-2 pb-2">
-              <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-xl border border-white/10">
-                {(['pt', 'en', 'es'] as const).map((l) => (
-                  <button
-                    key={l}
-                    onClick={() => setLang(l)}
-                    className={cn(
-                      "flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all",
-                      lang === l
-                        ? "bg-white text-primary shadow-sm"
-                        : "text-slate-400 hover:text-white"
-                    )}
-                  >
-                    {l}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <Link 
-              to="/minha-conta"
-              className={cn(
-                "block px-4 py-3 rounded-2xl border transition-all duration-200 group/profile",
-                pathname === "/minha-conta" 
-                  ? "bg-white/10 border-primary/30 shadow-sm" 
-                  : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <img
-                  src={avatarUrl}
-                  alt={user?.fullName ?? "User"}
-                  className="w-9 h-9 rounded-full object-cover shrink-0 ring-2 ring-white shadow-sm group-hover/profile:scale-105 transition-transform"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-bold text-white truncate leading-none mb-1">
-                    {user?.fullName ?? "User"}
-                  </p>
-                  <p className="text-[10px] font-medium text-slate-400 truncate leading-none">
-                    {tDashboard.sidebar.myAccount}
-                  </p>
-                </div>
-              </div>
-            </Link>
-
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2.5 px-4 py-2 w-full text-[13px] font-bold text-slate-400 hover:text-red-500 transition-colors group"
-            >
-              <RiLogoutBoxRLine className="text-xl group-hover:rotate-12 transition-transform" />
-              <span>{tDashboard.sidebar.logout}</span>
-            </button>
-          </div>
         </aside>
 
         {/* Main area */}

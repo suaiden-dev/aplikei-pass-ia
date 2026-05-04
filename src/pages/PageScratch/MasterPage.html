@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Master Overview - LegalSaaS Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#502400",
+                        "on-surface": "#e1e2ec",
+                        "error-container": "#93000a",
+                        "primary": "#adc6ff",
+                        "inverse-surface": "#e1e2ec",
+                        "outline": "#8c909f",
+                        "primary-fixed": "#d8e2ff",
+                        "surface-container-low": "#191b23",
+                        "surface-container-highest": "#32353c",
+                        "background": "#10131a",
+                        "on-secondary-fixed": "#001c39",
+                        "on-primary": "#002e6a",
+                        "tertiary": "#ffb786",
+                        "surface-variant": "#32353c",
+                        "on-tertiary-fixed-variant": "#723600",
+                        "surface-container": "#1d2027",
+                        "on-secondary-container": "#d6e5ff",
+                        "on-surface-variant": "#c2c6d6",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-lowest": "#0b0e15",
+                        "surface-tint": "#adc6ff",
+                        "on-secondary": "#00315d",
+                        "inverse-primary": "#005ac2",
+                        "surface": "#10131a",
+                        "secondary-fixed-dim": "#a4c9ff",
+                        "on-primary-fixed-variant": "#004395",
+                        "on-tertiary-container": "#461f00",
+                        "on-primary-container": "#00285d",
+                        "on-secondary-fixed-variant": "#004883",
+                        "on-background": "#e1e2ec",
+                        "tertiary-fixed": "#ffdcc6",
+                        "outline-variant": "#424754",
+                        "surface-container-high": "#272a31",
+                        "on-tertiary-fixed": "#311400",
+                        "error": "#ffb4ab",
+                        "secondary-container": "#0267b8",
+                        "primary-fixed-dim": "#adc6ff",
+                        "surface-dim": "#10131a",
+                        "secondary-fixed": "#d4e3ff",
+                        "on-primary-fixed": "#001a42",
+                        "primary-container": "#4d8eff",
+                        "tertiary-fixed-dim": "#ffb786",
+                        "tertiary-container": "#df7412",
+                        "on-error": "#690005",
+                        "secondary": "#a4c9ff",
+                        "surface-bright": "#363941",
+                        "inverse-on-surface": "#2e3038"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "12px",
+                        "lg": "48px",
+                        "base": "8px",
+                        "md": "24px",
+                        "xl": "80px",
+                        "container-max": "1280px",
+                        "gutter": "24px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "h3": ["Manrope"],
+                        "caption": ["Inter"],
+                        "h1": ["Manrope"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h2": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "h3": ["24px", { "lineHeight": "1.4", "letterSpacing": "0", "fontWeight": "600" }],
+                        "caption": ["12px", { "lineHeight": "1.4", "fontWeight": "400" }],
+                        "h1": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "h2": ["36px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .donut-chart {
+            background: conic-gradient(
+                #4d8eff 0% 15%, 
+                #1d2027 15% 100%
+            );
+            border-radius: 50%;
+        }
+        .bg-glass {
+            background: linear-gradient(145deg, rgba(29, 32, 39, 0.8) 0%, rgba(25, 27, 35, 0.4) 100%);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md flex min-h-screen selection:bg-primary-container selection:text-on-primary-container">
+<!-- JSON Component: SideNavBar -->
+
+<!-- Main Wrapper (Offset by SideNav) -->
+<div class="flex-1 ml-64 flex flex-col min-h-screen max-w-container-max mx-auto w-full relative">
+<!-- JSON Component: TopNavBar -->
+
+<!-- Canvas -->
+<main class="flex-1 p-lg flex flex-col gap-lg overflow-y-auto">
+<!-- Page Header & Filters -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div class="flex flex-col gap-base">
+<h1 class="font-h1 text-h1 text-on-surface tracking-tight">Master Overview</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">High-level financial and operational metrics</p>
+</div>
+<!-- Filters Row -->
+<div class="flex items-center gap-sm bg-surface-container rounded-DEFAULT p-1 border border-outline-variant shadow-sm shadow-black/20">
+<select class="bg-transparent border-none text-label-md font-label-md text-on-surface focus:ring-0 py-2 pl-3 pr-8 cursor-pointer hover:bg-surface-variant rounded transition-colors">
+<option class="bg-surface-container text-on-surface" value="90">Last 90 Days</option>
+<option class="bg-surface-container text-on-surface" value="30">Last 30 Days</option>
+<option class="bg-surface-container text-on-surface" value="7">Last 7 Days</option>
+</select>
+<div class="w-px h-5 bg-outline-variant"></div>
+<select class="bg-transparent border-none text-label-md font-label-md text-on-surface focus:ring-0 py-2 pl-3 pr-8 cursor-pointer hover:bg-surface-variant rounded transition-colors">
+<option class="bg-surface-container text-on-surface">All AdminLawyers</option>
+</select>
+<div class="w-px h-5 bg-outline-variant"></div>
+<select class="bg-transparent border-none text-label-md font-label-md text-on-surface focus:ring-0 py-2 pl-3 pr-8 cursor-pointer hover:bg-surface-variant rounded transition-colors">
+<option class="bg-surface-container text-on-surface">All Products</option>
+</select>
+<div class="w-px h-5 bg-outline-variant"></div>
+<select class="bg-transparent border-none text-label-md font-label-md text-on-surface focus:ring-0 py-2 pl-3 pr-8 cursor-pointer hover:bg-surface-variant rounded transition-colors">
+<option class="bg-surface-container text-on-surface">Any Billing Model</option>
+</select>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center rounded hover:bg-surface-variant ml-1">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</div>
+<!-- 8 Metric Cards Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md">
+<!-- Card 1 -->
+<div class="bg-glass border border-outline-variant rounded-lg p-md flex flex-col gap-sm relative group hover:border-primary/30 transition-all duration-300">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Total Revenue</span>
+<span class="material-symbols-outlined text-outline/50 group-hover:text-primary/70 transition-colors">account_balance</span>
+</div>
+<div class="flex items-baseline gap-sm">
+<span class="font-h2 text-h2 text-on-surface">$2,450,000</span>
+</div>
+<div class="flex items-center gap-xs text-primary font-label-md text-label-md mt-auto">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span>+12.5% vs last period</span>
+</div>
+<!-- Subtle Glow -->
+<div class="absolute -bottom-10 -right-10 w-24 h-24 bg-primary/10 rounded-full blur-xl pointer-events-none"></div>
+</div>
+<!-- Card 2 -->
+<div class="bg-glass border border-outline-variant rounded-lg p-md flex flex-col gap-sm relative group hover:border-primary/30 transition-all duration-300">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Platform Gain</span>
+<span class="material-symbols-outlined text-outline/50 group-hover:text-primary/70 transition-colors">savings</span>
+</div>
+<div class="flex items-baseline gap-sm">
+<span class="font-h2 text-h2 text-primary">$367,500</span>
+</div>
+<div class="flex items-center gap-xs text-on-surface-variant font-label-md text-label-md mt-auto">
+<span class="bg-surface-variant px-2 py-0.5 rounded text-xs">Master Share 15%</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-glass border border-outline-variant rounded-lg p-md flex flex-col gap-sm relative group hover:border-primary/30 transition-all duration-300">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Lawyers Gain</span>
+<span class="material-symbols-outlined text-outline/50 group-hover:text-primary/70 transition-colors">groups</span>
+</div>
+<div class="flex items-baseline gap-sm">
+<span class="font-h2 text-h2 text-on-surface">$2,082,500</span>
+</div>
+<div class="flex items-center gap-xs text-on-surface-variant font-label-md text-label-md mt-auto">
+<span class="bg-surface-variant px-2 py-0.5 rounded text-xs">Partner Share 85%</span>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-glass border border-outline-variant rounded-lg p-md flex flex-col gap-sm relative group hover:border-primary/30 transition-all duration-300">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Total Sales</span>
+<span class="material-symbols-outlined text-outline/50 group-hover:text-primary/70 transition-colors">receipt_long</span>
+</div>
+<div class="flex items-baseline gap-sm">
+<span class="font-h2 text-h2 text-on-surface">1,245</span>
+</div>
+<div class="flex items-center gap-xs text-primary font-label-md text-label-md mt-auto">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span>+8.2% vs last period</span>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="bg-glass border border-outline-variant rounded-lg p-md flex flex-col gap-sm relative group hover:border-primary/30 transition-all duration-300">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Avg Ticket</span>
+<span class="material-symbols-outlined text-outline/50 group-hover:text-primary/70 transition-colors">sell</span>
+</div>
+<div class="flex items-baseline gap-sm mt-2">
+<span class="font-h3 text-h3 text-on-surface">$1,967</span>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="bg-glass border border-outline-variant rounded-lg p-md flex flex-col gap-sm relative group hover:border-primary/30 transition-all duration-300">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Products Sold</span>
+<span class="material-symbols-outlined text-outline/50 group-hover:text-primary/70 transition-colors">inventory_2</span>
+</div>
+<div class="flex items-baseline gap-sm mt-2">
+<span class="font-h3 text-h3 text-on-surface">3,102</span>
+</div>
+</div>
+<!-- Card 7 -->
+<div class="bg-glass border border-outline-variant rounded-lg p-md flex flex-col gap-sm relative group hover:border-primary/30 transition-all duration-300">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Active Lawyers</span>
+<span class="material-symbols-outlined text-outline/50 group-hover:text-primary/70 transition-colors">person_check</span>
+</div>
+<div class="flex items-baseline gap-sm mt-2">
+<span class="font-h3 text-h3 text-on-surface">84</span>
+<span class="text-caption font-caption text-primary">+3 this month</span>
+</div>
+</div>
+<!-- Card 8 -->
+<div class="bg-glass border border-outline-variant rounded-lg p-md flex flex-col gap-sm relative group hover:border-primary/30 transition-all duration-300">
+<div class="flex justify-between items-start">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Top Product</span>
+<span class="material-symbols-outlined text-outline/50 group-hover:text-primary/70 transition-colors">workspace_premium</span>
+</div>
+<div class="flex items-baseline gap-sm mt-2">
+<span class="font-h3 text-h3 text-on-surface truncate w-full" title="Corp Retainer T1">Corp Retainer T1</span>
+</div>
+</div>
+</section>
+<!-- Charts & Details Section -->
+<section class="grid grid-cols-12 gap-md mt-4">
+<!-- Revenue Trajectory (col-span-8) -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container rounded-xl border border-outline-variant p-md flex flex-col gap-md">
+<div class="flex justify-between items-center">
+<h3 class="font-h3 text-h3 text-on-surface">Revenue Trajectory</h3>
+<div class="flex gap-sm items-center">
+<div class="flex items-center gap-xs"><span class="w-3 h-3 rounded bg-primary"></span><span class="text-caption font-caption text-on-surface-variant">Platform Gain</span></div>
+<div class="flex items-center gap-xs"><span class="w-3 h-3 rounded bg-surface-variant border border-outline-variant"></span><span class="text-caption font-caption text-on-surface-variant">Gross Revenue</span></div>
+</div>
+</div>
+<!-- CSS Mock Chart Area -->
+<div class="flex-1 min-h-[240px] flex items-end gap-sm relative border-b border-l border-outline-variant pb-2 pl-2">
+<!-- Y Axis labels mock -->
+<div class="absolute left-[-40px] top-0 bottom-0 flex flex-col justify-between text-caption font-caption text-outline">
+<span>$3M</span><span>$2M</span><span>$1M</span><span>0</span>
+</div>
+<!-- Bars -->
+<div class="flex-1 flex flex-col justify-end group">
+<div class="w-full bg-surface-variant rounded-t-sm h-[60%] relative hover:brightness-110 transition-all">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-sm h-[15%]"></div>
+</div>
+<span class="text-center text-caption font-caption text-outline mt-2 block">Jul</span>
+</div>
+<div class="flex-1 flex flex-col justify-end group">
+<div class="w-full bg-surface-variant rounded-t-sm h-[75%] relative hover:brightness-110 transition-all">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-sm h-[15%]"></div>
+</div>
+<span class="text-center text-caption font-caption text-outline mt-2 block">Aug</span>
+</div>
+<div class="flex-1 flex flex-col justify-end group">
+<div class="w-full bg-surface-variant rounded-t-sm h-[65%] relative hover:brightness-110 transition-all">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-sm h-[15%]"></div>
+</div>
+<span class="text-center text-caption font-caption text-outline mt-2 block">Sep</span>
+</div>
+<div class="flex-1 flex flex-col justify-end group">
+<div class="w-full bg-surface-variant rounded-t-sm h-[85%] relative hover:brightness-110 transition-all">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-sm h-[15%]"></div>
+</div>
+<span class="text-center text-caption font-caption text-outline mt-2 block">Oct</span>
+</div>
+<div class="flex-1 flex flex-col justify-end group">
+<div class="w-full bg-surface-variant rounded-t-sm h-[90%] relative hover:brightness-110 transition-all">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-sm h-[15%]"></div>
+</div>
+<span class="text-center text-caption font-caption text-outline mt-2 block">Nov</span>
+</div>
+<div class="flex-1 flex flex-col justify-end group">
+<div class="w-full bg-surface-variant rounded-t-sm h-[100%] relative hover:brightness-110 transition-all">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-sm h-[15%] shadow-[0_0_15px_rgba(77,142,255,0.3)]"></div>
+</div>
+<span class="text-center text-caption font-caption text-primary mt-2 block">Dec</span>
+</div>
+</div>
+</div>
+<!-- Revenue Split (col-span-4) -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container rounded-xl border border-outline-variant p-md flex flex-col gap-md items-center justify-center relative overflow-hidden">
+<h3 class="font-h3 text-h3 text-on-surface w-full text-left mb-auto">Revenue Split</h3>
+<div class="relative w-48 h-48 donut-chart flex items-center justify-center my-6">
+<!-- Inner cut for donut -->
+<div class="w-32 h-32 bg-surface-container rounded-full flex flex-col items-center justify-center shadow-inner z-10">
+<span class="font-h2 text-h2 text-on-surface">15%</span>
+<span class="text-caption font-caption text-outline">Platform</span>
+</div>
+</div>
+<div class="w-full flex justify-between items-center bg-surface p-3 rounded border border-outline-variant/50 mt-auto">
+<div class="flex items-center gap-sm">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="font-body-md text-body-md text-on-surface">Platform</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface">$367,500</span>
+</div>
+<div class="w-full flex justify-between items-center bg-surface p-3 rounded border border-outline-variant/50">
+<div class="flex items-center gap-sm">
+<span class="w-3 h-3 rounded-full bg-surface-variant border border-outline-variant"></span>
+<span class="font-body-md text-body-md text-on-surface">Lawyers</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface">$2,082,500</span>
+</div>
+</div>
+<!-- Top AdminLawyers List (col-span-6) -->
+<div class="col-span-12 lg:col-span-6 bg-surface-container rounded-xl border border-outline-variant p-md flex flex-col gap-sm">
+<div class="flex justify-between items-center mb-2">
+<h3 class="font-h3 text-h3 text-on-surface">Top AdminLawyers</h3>
+<button class="text-primary hover:text-primary-container text-label-md font-label-md transition-colors">View All</button>
+</div>
+<div class="flex flex-col gap-xs">
+<!-- Row 1 -->
+<div class="flex items-center justify-between p-3 rounded hover:bg-surface-variant/50 transition-colors border border-transparent hover:border-outline-variant/30 group">
+<div class="flex items-center gap-md">
+<span class="font-h3 text-h3 text-outline/40 w-6 text-right">1</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Smith &amp; Partners LLC</span>
+<span class="text-caption font-caption text-on-surface-variant">32 Active Users</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-md text-label-md text-primary">$450,200</span>
+<span class="text-caption font-caption text-outline">18.3% of total</span>
+</div>
+</div>
+<hr class="border-outline-variant/30"/>
+<!-- Row 2 -->
+<div class="flex items-center justify-between p-3 rounded hover:bg-surface-variant/50 transition-colors border border-transparent hover:border-outline-variant/30 group">
+<div class="flex items-center gap-md">
+<span class="font-h3 text-h3 text-outline/40 w-6 text-right">2</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Apex Legal Group</span>
+<span class="text-caption font-caption text-on-surface-variant">28 Active Users</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-md text-label-md text-on-surface">$385,000</span>
+<span class="text-caption font-caption text-outline">15.7% of total</span>
+</div>
+</div>
+<hr class="border-outline-variant/30"/>
+<!-- Row 3 -->
+<div class="flex items-center justify-between p-3 rounded hover:bg-surface-variant/50 transition-colors border border-transparent hover:border-outline-variant/30 group">
+<div class="flex items-center gap-md">
+<span class="font-h3 text-h3 text-outline/40 w-6 text-right">3</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Harrison Corp Law</span>
+<span class="text-caption font-caption text-on-surface-variant">19 Active Users</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-md text-label-md text-on-surface">$290,500</span>
+<span class="text-caption font-caption text-outline">11.8% of total</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Product Distribution (col-span-6) -->
+<div class="col-span-12 lg:col-span-6 bg-surface-container rounded-xl border border-outline-variant p-md flex flex-col gap-sm">
+<div class="flex justify-between items-center mb-2">
+<h3 class="font-h3 text-h3 text-on-surface">Product Distribution</h3>
+<button class="p-1 text-outline hover:text-on-surface transition-colors"><span class="material-symbols-outlined">more_horiz</span></button>
+</div>
+<div class="flex flex-col gap-md">
+<!-- Prod 1 -->
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-label-md font-label-md text-on-surface">
+<span>Corp Retainer T1</span>
+<span>45% (1,396 units)</span>
+</div>
+<div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[45%]"></div>
+</div>
+</div>
+<!-- Prod 2 -->
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-label-md font-label-md text-on-surface">
+<span>Litigation Pack Pro</span>
+<span>30% (930 units)</span>
+</div>
+<div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full w-[30%]"></div>
+</div>
+</div>
+<!-- Prod 3 -->
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-label-md font-label-md text-on-surface">
+<span>Startup Blueprint</span>
+<span>15% (465 units)</span>
+</div>
+<div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-tertiary rounded-full w-[15%]"></div>
+</div>
+</div>
+<!-- Prod 4 -->
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-label-md font-label-md text-on-surface">
+<span>IP Registration Bundle</span>
+<span>10% (311 units)</span>
+</div>
+<div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-outline rounded-full w-[10%]"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+</body></html>

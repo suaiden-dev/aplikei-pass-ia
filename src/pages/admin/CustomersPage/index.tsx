@@ -8,7 +8,7 @@ import {
   RiVipCrown2Line,
   RiTimeLine,
 } from "react-icons/ri";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "../../../shared/lib/supabase";
 import { toast } from "sonner";
 import { useT, useLocale } from "../../../i18n";
 
@@ -265,7 +265,7 @@ export default function CustomersPage() {
                             : "bg-info/10 text-info border-info/20"
                         }`}
                       >
-                        {c.role === "admin" ? "Admin" : language === 'pt' ? 'Cliente' : language === 'es' ? 'Cliente' : 'Customer'}
+                        {t.shared.roleLabels[c.role as keyof typeof t.shared.roleLabels] || c.role}
                       </span>
                     </td>
 

@@ -1,10 +1,24 @@
+/**
+ * LanguageProvider — Dedicated component for i18n state management.
+ *
+ * NOTE: This file ONLY exports the LanguageProvider component to ensure
+ * Vite's Fast Refresh works correctly without warnings.
+ */
+
 import { useState, useCallback, type ReactNode } from "react";
+
 import type { Language, LocaleTranslations } from "./types";
+
 import { LanguageContext } from "./context";
 import { localeCache, localeLoaders } from "./lib";
 
-function unwrapLocaleModule(module: unknown): Omit<LocaleTranslations, "_lang"> {
-  const m = module as { default?: Omit<LocaleTranslations, "_lang"> } & Omit<LocaleTranslations, "_lang">;
+function unwrapLocaleModule(
+  module: unknown,
+): Omit<LocaleTranslations, "_lang"> {
+  const m = module as { default?: Omit<LocaleTranslations, "_lang"> } & Omit<
+    LocaleTranslations,
+    "_lang"
+  >;
   return m.default ?? m;
 }
 
@@ -54,22 +68,28 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       setLocale(loaded);
     } catch (error) {
       console.error(`[i18n] Failed to load locale "${targetLang}"`, error);
-      if (!localeCache.has(targetLang)) setLocale({ _lang: targetLang } as unknown as LocaleTranslations);
+      if (!localeCache.has(targetLang))
+        setLocale({ _lang: targetLang } as unknown as LocaleTranslations);
     } finally {
       setIsLanguageLoading(false);
     }
   }, []);
 
-  const setLang = useCallback(async (newLang: Language) => {
-    if (newLang === lang) return;
+  const setLang = useCallback(
+    async (newLang: Language) => {
+      if (newLang === lang) return;
 
-    localStorage.setItem("aplikei-lang", newLang);
-    setLangState(newLang);
-    await loadLocale(newLang);
-  }, [lang, loadLocale]);
+      localStorage.setItem("aplikei-lang", newLang);
+      setLangState(newLang);
+      await loadLocale(newLang);
+    },
+    [lang, loadLocale],
+  );
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, locale, isLanguageLoading, loadLocale }}>
+    <LanguageContext.Provider
+      value={{ lang, setLang, locale, isLanguageLoading, loadLocale }}
+    >
       {children}
     </LanguageContext.Provider>
   );

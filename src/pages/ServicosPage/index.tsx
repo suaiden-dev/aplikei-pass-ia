@@ -1,19 +1,34 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FiArrowRight } from "react-icons/fi";
-import { MdCheckCircle, MdVerified, MdLanguage, MdSchool, MdHistory, MdSyncAlt } from "react-icons/md";
+import { MdCheckCircle, MdVerified, MdLanguage, MdSchool, MdHistory, MdSyncAlt, MdGroupAdd } from "react-icons/md";
+import { 
+  RiArrowRightUpLine, 
+  RiEyeOffLine,
+  RiVerifiedBadgeFill,
+  RiUserStarLine,
+  RiFileSearchLine,
+  RiDraftLine,
+  RiShieldCheckLine
+} from "react-icons/ri";
 import type { IconType } from "react-icons";
 import { useT, useLocale } from "../../i18n";
 import { getCustomerProcessStartPath } from "../../utils/customer-process-start";
 import { getServiceBySlug, type ServiceMeta } from "../../data/services";
 import { getServiceLocale } from "../../data/services.i18n";
 
-const heroIconMap: Record<string, IconType> = {
+const heroIconMap: Record<string, any> = {
   MdVerified,
   MdLanguage,
   MdSchool,
   MdHistory,
   MdSyncAlt,
+  MdGroupAdd,
+  RiUserStarLine,
+  RiFileSearchLine,
+  RiDraftLine,
+  RiShieldCheckLine,
+  RiVerifiedBadgeFill
 };
 
 const featuredServiceSlugs = [

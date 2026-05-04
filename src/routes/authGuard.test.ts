@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { UserAccount } from "../models/user.model";
+import type { UserAccount } from "../features/auth/types";
 import { buildLoginRedirectState, resolveAuthGuard } from "./authGuard";
 
 const customerUser: UserAccount = {

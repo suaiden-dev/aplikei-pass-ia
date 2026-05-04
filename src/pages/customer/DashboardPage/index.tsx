@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
 import { useAuth } from "../../../hooks/useAuth";
 import { useT } from "../../../i18n";
-import { LogoLoader } from "../../../components/ui/LogoLoader";
+import { LogoLoader } from "../../../components/atoms/logo-loader";
 import {
-  useDashboardController,
+  useDashboard,
   type DashboardLabels,
-} from "../../../controllers/dashboard/DashboardController";
-import { DashboardView } from "../../../views/dashboard/DashboardView";
+} from "../../../features/process/hooks/useDashboard";
+import { DashboardView } from "../../../components/organisms/DashboardView";
 
 type TranslationMap = Record<string, unknown>;
 
@@ -74,10 +74,7 @@ export default function CustomerDashboardPage() {
     ownedSlugs,
     activeServices,
     isLoading,
-  } = useDashboardController({
-    userId: user?.id,
-    labels,
-  });
+  } = useDashboard(user?.id);
 
   return (
     <div className="p-6 md:p-12 max-w-[1400px] mx-auto">

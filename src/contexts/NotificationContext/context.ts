@@ -1,15 +1,23 @@
 import { createContext } from "react";
-import type { AppNotification } from "../../services/notification.service";
+import type { ToastItem } from "../../features/notifications/types";
 
-export interface ToastItem {
+export interface AppNotification {
   id: string;
-  notificationId: string;
+  type: string;
+  target_role: "admin" | "client";
+  user_id: string | null;
+  service_id: string | null;
   title: string;
-  message?: string | null;
-  type: "admin_action" | "client_action" | "system";
-  link?: string | null;
-  createdAt: string;
+  message: string | null;
+  link: string | null;
+  is_read: boolean;
+  send_email: boolean;
+  email_sent: boolean;
+  metadata: Record<string, unknown>;
+  created_at: string;
 }
+
+export type { ToastItem };
 
 export interface NotificationContextValue {
   notifications: AppNotification[];

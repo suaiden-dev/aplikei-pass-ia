@@ -1,13 +1,13 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
-import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { authService } from "../../services/auth.service";
-import { getLoginSchema } from "../../schemas/auth.schema";
+import { Button } from "../../components/atoms/button";
+import { Field } from "../../components/molecules/Field";
+import { AuthCard } from "../../components/organisms/AuthCard";
+import { useAuthForm } from "../../features/auth/hooks/useAuthForm";
+import { authService } from "../../features/auth/lib/auth";
+import { getLoginSchema } from "../../features/auth/schemas/auth.schema";
 import { zodValidate } from "../../utils/zodValidate";
 import { useAuth } from "../../hooks/useAuth";
 import { useT } from "../../i18n";
@@ -26,19 +26,24 @@ export default function Login() {
   const location = useLocation();
 
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { login } = useAuthForm();
+  const initialRedirectHandled = useRef(false);
 
   const redirectState = location.state as AuthRedirectState | null;
 
   useEffect(() => {
-    // ✅ Navegação baseada em estado REAL
-    if (!isLoading && isAuthenticated && user) {
+    if (isLoading || initialRedirectHandled.current) return;
+
+    initialRedirectHandled.current = true;
+
+    if (isAuthenticated && user) {
       navigate(getRedirectPathAfterLogin(user, redirectState), {
         replace: true,
       });
+      return;
     }
 
-    // ✅ Evita overlay preso
-    if (!isLoading && !isAuthenticated) {
+    if (!isAuthenticated) {
       setIsWelcoming(false);
     }
   }, [isAuthenticated, isLoading, navigate, redirectState, user]);
@@ -47,13 +52,15 @@ export default function Login() {
     initialValues: { email: "", password: "" },
     validate: zodValidate(getLoginSchema(v)),
     onSubmit: async (values, { setSubmitting }) => {
-
       try {
-        const result = await authService.login(values);
+        const result = await login(values);
 
-        // ✅ só ativa welcome se sessão realmente existe
         if (result.session) {
           setIsWelcoming(true);
+          const resolvedAccount = await authService.resolveAccount(result.session.user);
+          navigate(getRedirectPathAfterLogin(resolvedAccount, redirectState), {
+            replace: true,
+          });
         }
 
         toast.success(t.login.success || "Login realizado com sucesso!");
@@ -70,140 +77,56 @@ export default function Login() {
   });
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center py-12">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md relative overflow-hidden rounded-[32px] border border-border bg-card p-8 sm:p-12 shadow-2xl shadow-primary/5"
-      >
-        {/* Welcome Overlay */}
-        {isWelcoming && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 z-50 bg-card flex flex-col items-center justify-center p-8 text-center"
-          >
-            <motion.div
-              initial={{ scale: 0.5, rotate: -20, opacity: 0 }}
-              animate={{ scale: 1.1, rotate: 0, opacity: 1 }}
-              transition={{ type: "spring", damping: 12 }}
-            >
-              <img src="/logo.png" alt="Aplikei" className="h-20 w-auto mb-6" />
-            </motion.div>
+    <AuthCard
+      title={t.login.title}
+      subtitle={t.login.subtitle}
+      welcome={{
+        show: isWelcoming,
+        title: t.login.welcomeMessage || "Bem-vindo de volta!",
+        description: "Acessando sua conta com clareza",
+      }}
+    >
+      <form className="space-y-5" onSubmit={formik.handleSubmit}>
+        <Field
+          id="email"
+          name="email"
+          type="email"
+          label={t.login.email}
+          placeholder="seu@email.com"
+          value={formik.values.email}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.email ? formik.errors.email : undefined}
+        />
 
-            <motion.h2
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="font-display font-black text-2xl text-text leading-none mb-3"
-            >
-              {t.login.welcomeMessage || "Bem-vindo de volta!"}
-            </motion.h2>
+        <Field
+          id="password"
+          name="password"
+          type="password"
+          label={t.login.password}
+          placeholder="••••••••"
+          value={formik.values.password}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.password ? formik.errors.password : undefined}
+          endAdornment={
+            <Link to="/recuperar-senha" className="pointer-events-auto text-xs font-semibold text-primary hover:underline">
+              {t.login.forgotPassword}
+            </Link>
+          }
+        />
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="text-xs font-bold text-text-muted uppercase tracking-widest"
-            >
-              Acessando sua conta com clareza
-            </motion.p>
-          </motion.div>
-        )}
+        <Button type="submit" disabled={formik.isSubmitting || isLoading} className="w-full">
+          {formik.isSubmitting ? t.login.submitting || "Entrando..." : t.login.submit}
+        </Button>
+      </form>
 
-        <div className="text-center">
-          <Link to="/" className="inline-block group">
-            <img
-              src="/logo.png"
-              alt="Aplikei"
-              className="h-12 w-auto group-hover:scale-105 transition-transform"
-            />
-          </Link>
-
-          <h1 className="mt-10 font-display text-2xl font-black text-text tracking-tight leading-none">
-            {t.login.title}
-          </h1>
-
-          <p className="mt-3 text-sm font-medium text-text-muted">
-            {t.login.subtitle}
-          </p>
-        </div>
-
-        <form className="mt-8 space-y-5" onSubmit={formik.handleSubmit}>
-          <div>
-            <Label htmlFor="email" className="text-text">
-              {t.login.email}
-            </Label>
-
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="seu@email.com"
-              className="mt-2"
-              value={formik.values.email}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-            />
-
-            {formik.touched.email && formik.errors.email && (
-              <p className="text-xs text-danger mt-1">{formik.errors.email}</p>
-            )}
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password" className="text-text">
-                {t.login.password}
-              </Label>
-
-              <Link
-                to="/recuperar-senha"
-                className="text-xs text-primary hover:underline"
-              >
-                {t.login.forgotPassword}
-              </Link>
-            </div>
-
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              className="mt-2"
-              value={formik.values.password}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-            />
-
-            {formik.touched.password && formik.errors.password && (
-              <p className="text-xs text-danger mt-1">
-                {formik.errors.password}
-              </p>
-            )}
-          </div>
-
-          <Button
-            type="submit"
-            disabled={formik.isSubmitting || isLoading}
-            className="w-full h-11 text-lg font-bold"
-          >
-            {formik.isSubmitting
-              ? t.login.submitting || "Entrando..."
-              : t.login.submit}
-          </Button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-text-muted">
-          {t.login.noAccount}{" "}
-          <Link
-            to="/cadastro"
-            className="font-medium text-primary hover:underline"
-          >
-            {t.login.createAccount}
-          </Link>
-        </p>
-      </motion.div>
-    </div>
+      <p className="mt-6 text-center text-sm text-text-muted">
+        {t.login.noAccount}{" "}
+        <Link to="/cadastro" className="font-medium text-primary hover:underline">
+          {t.login.createAccount}
+        </Link>
+      </p>
+    </AuthCard>
   );
 }

@@ -8,9 +8,9 @@ import {
   RiFileTextLine
 } from "react-icons/ri";
 
-import { supabase } from "../../../../lib/supabase";
-import { processService } from "../../../../services/process.service";
-import { notificationService } from "../../../../services/notification.service";
+import { supabase } from "../../../../shared/lib/supabase";
+import * as processService from "../../../../features/process/lib/processOps";
+import * as notificationService from "../../../../features/notifications/lib/notify";
 import { useT } from "../../../../i18n";
 
 interface F1I20UploadStepProps {

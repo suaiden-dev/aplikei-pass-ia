@@ -10,7 +10,7 @@ import {
 } from "react-icons/ri";
 import { getServiceBySlug } from "../../../data/services";
 import { useT } from "../../../i18n";
-import { LogoLoader } from "../../../components/ui/LogoLoader";
+import { LogoLoader } from "../../../components/atoms/logo-loader";
 import { paymentService } from "../../../services/payment.service";
 
 type ActivationState = "loading" | "done" | "error";

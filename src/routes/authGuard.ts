@@ -1,5 +1,5 @@
 import type { Location } from "react-router-dom";
-import type { UserAccount, UserRole } from "../models/user.model";
+import type { UserAccount, UserRole } from "../features/auth/types";
 import { getDefaultRouteForRole } from "./authRedirect";
 
 type RedirectLocation = Pick<Location, "pathname" | "search" | "hash">;

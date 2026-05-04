@@ -15,7 +15,29 @@ const common = {
   back: "Voltar",
   next: "Próximo",
   finish: "Finalizar",
-  successRate: "Taxa de Aprovação",
+  client: "Cliente",
+  rejection: {
+    confirm: "Confirmar Rejeição",
+    cancel: "Cancelar",
+  },
+  table: {
+    empty: "Nenhum item encontrado",
+    refresh: "Atualizar",
+  },
+  docUpload: {
+    uploadFile: "Enviar Arquivo",
+    fileSelected: "Arquivo Selecionado",
+    newFileSelected: "Novo Arquivo Selecionado",
+    needsCorrection: "Correção Necessária",
+    requiredDocument: "Documento Obrigatório",
+    ready: "PRONTO",
+    updated: "ATUALIZADO",
+    pending: "PENDENTE",
+    sending: "Enviando...",
+    selectFile: "Selecionar Arquivo",
+    selectPdf: "Selecionar Arquivo PDF",
+    fileSent: "Arquivo Enviado",
+  },
   howItWorksPage: {
     hero: {
       tag: "Como Funciona",

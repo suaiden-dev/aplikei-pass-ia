@@ -10,8 +10,8 @@ import {
   RiCheckLine,
   RiAlertLine,
 } from "react-icons/ri";
-import { processService } from "../../../../services/process.service";
-import { notificationService } from "../../../../services/notification.service";
+import * as processService from "../../../../features/process/lib/processOps";
+import * as notificationService from "../../../../features/notifications/lib/notify";
 import { toast } from "sonner";
 import { useT, useLocale } from "../../../../i18n";
 

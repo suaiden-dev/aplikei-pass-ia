@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, BadgeCheck, ClipboardList, PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "../../components/Button";
+import { Button } from "../../components/atoms/button";
 import {
   DashboardPageHeader,
   DashboardSection,
@@ -10,7 +10,7 @@ import {
   KpiCard,
   StatusBadge,
   ToolbarPill,
-} from "../../components/master/DashboardUI";
+} from "../../components/organisms/DashboardUI";
 import { caseService } from "../../services/case.service";
 import type { CaseStatus } from "../../models/case.model";
 import { formatDate } from "../../utils/format";

@@ -17,9 +17,8 @@ import { toast } from 'sonner'
 import {
   type UserService,
   processService,
-} from '../../../services/process.service'
-import type { USCISOutcome } from '../../../models/process.model'
-import { packageService } from '../../../services/package.service'
+} from '../../../features/process/lib/processOps'
+import { packageService } from '../../../features/onboarding/cos/lib/package'
 import {
   RiThumbUpLine,
   RiThumbDownLine,

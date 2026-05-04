@@ -4,12 +4,17 @@ import { RiArrowLeftLine, RiLoader4Line } from 'react-icons/ri'
 import { useAuth } from '../../../hooks/useAuth'
 import { useT } from '../../../i18n'
 import {
-  useB1B2OnboardingController,
+  useB1B2Onboarding,
   type B1B2OnboardingLabels,
-} from '../../../controllers/B1B2/B1B2OnboardingController'
-import { AdminFeedbackBanner } from '../../../views/components/AdminFeedbackBanner'
-import type { DS160FormValues } from '../../../schemas/ds160.schema'
-import { B1B2StepContent } from './components/B1B2StepContent'
+} from '../../../features/onboarding/b1b2/hooks/useB1B2Onboarding';
+import { AdminFeedbackBanner } from '../../../components/organisms/AdminFeedbackBanner';
+import { DS160SingleFormStep } from './steps/DS160SingleFormStep';
+import { B1B2UserReviewSignStep } from './steps/B1B2UserReviewSignStep';
+import { B1B2CASVSchedulingStep } from './steps/B1B2CASVSchedulingStep';
+import { B1B2UserConfirmEmailStep } from './steps/B1B2UserConfirmEmailStep';
+import { B1B2MRVPaymentStep } from './steps/B1B2MRVPaymentStep';
+import { B1B2FinalPreparationStep } from './steps/B1B2FinalPreparationStep';
+import { ds160Validator, type DS160FormValues } from '../../../features/onboarding/b1b2/schemas/ds160.schema';
 
 function buildLabels(t: {
   onboardingPage: B1B2OnboardingLabels
@@ -61,7 +66,7 @@ export default function B1B2OnboardingPage() {
     slug,
     handleSubmit: controllerSubmit,
     handleSaveDraft: controllerSaveDraft,
-  } = useB1B2OnboardingController({
+  } = useB1B2Onboarding({
     userId: user?.id,
     labels,
   })

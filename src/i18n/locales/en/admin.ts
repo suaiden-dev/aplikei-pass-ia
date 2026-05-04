@@ -158,6 +158,11 @@ const admin = {
         resultNewRfe: "New RFE",
         resultRejected: "Rejected",
         amount: "Value:",
+        finalPackageLoading: "Uploading RFE final package...",
+        finalPackageTitle: "Send Final Package (RFE)",
+        finalPackageReady: "RFE final package ready",
+        selectFinalPdf: "Select Final PDF",
+        provideToClient: "Provide to Client",
         yesterday: "yesterday"
      },
      credentials: {

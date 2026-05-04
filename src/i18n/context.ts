@@ -18,5 +18,5 @@ export function useT<N extends TranslationNamespace>(namespace: N): LocaleTransl
   const context = useContext(LanguageContext);
   if (!context) throw new Error("useT must be used within <LanguageProvider>");
   if (!context.locale) return {} as unknown as LocaleTranslations[N];
-  return context.locale[namespace];
+  return (context.locale[namespace] ?? {}) as LocaleTranslations[N];
 }
