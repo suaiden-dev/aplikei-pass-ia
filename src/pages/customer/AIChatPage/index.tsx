@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   RiChat3Line,
@@ -9,46 +9,22 @@ import {
 } from 'react-icons/ri'
 import { useT } from '../../../i18n'
 import { useAuth } from '../../../hooks/useAuth'
-import { chatService, type SpecialistChatThread } from '../../../services/chat-specialist.service'
-import { SupportChat } from '../../../components/SupportChat'
+import { useCustomerChats } from '../../../features/chat/hooks/useCustomerChats'
+import { SupportChat } from '../../../features/chat/components/SupportChat'
+import type { SpecialistChatThread } from '../../../features/chat/types'
 import { cn } from '../../../utils/cn'
 
 export default function AIChatPage() {
   const t = useT('dashboard')
   const { user } = useAuth()
-  const [threads, setThreads] = useState<SpecialistChatThread[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [selected, setSelected] = useState<SpecialistChatThread | null>(null)
-
-  useEffect(() => {
-    if (!user) return
-    chatService
-      .listCustomerThreads(user.id)
-      .then((data) => {
-        setThreads(data)
-        if (data.length === 1) setSelected(data[0])
-      })
-      .catch(console.error)
-      .finally(() => setIsLoading(false))
-  }, [user])
-
-  // sync closed state when admin closes a thread in realtime
-  useEffect(() => {
-    if (!selected) return
-    const interval = setInterval(async () => {
-      const val = await chatService.getChatClosedAt(selected.processId).catch(() => null)
-      const nowClosed = val !== null
-      if (nowClosed !== (selected.chatClosedAt !== null)) {
-        setSelected((prev) => prev ? { ...prev, chatClosedAt: val } : prev)
-        setThreads((prev) =>
-          prev.map((t) =>
-            t.processId === selected.processId ? { ...t, chatClosedAt: val } : t,
-          ),
-        )
-      }
-    }, 15000)
-    return () => clearInterval(interval)
-  }, [selected])
+  const { threads, isLoading } = useCustomerChats(user?.id ?? '')
+  const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null)
+  const selected = useMemo(
+    () =>
+      threads.find((thread) => thread.processId === selectedProcessId) ??
+      (threads.length === 1 ? threads[0] : null),
+    [selectedProcessId, threads],
+  )
 
   return (
     <div className="h-full flex flex-col bg-white overflow-hidden">
@@ -91,7 +67,7 @@ export default function AIChatPage() {
                   return (
                     <button
                       key={thread.processId}
-                      onClick={() => setSelected(thread)}
+                      onClick={() => setSelectedProcessId(thread.processId)}
                       className={cn(
                         'w-full p-4 flex gap-3 text-left transition-all hover:bg-slate-50/80',
                         isActive ? 'bg-primary/5 ring-1 ring-inset ring-primary/10' : '',
@@ -166,7 +142,7 @@ export default function AIChatPage() {
             <ThreadView
               thread={selected}
               userId={user?.id || ''}
-              onClose={() => setSelected(null)}
+              onClose={() => setSelectedProcessId(null)}
             />
           </motion.div>
         )}

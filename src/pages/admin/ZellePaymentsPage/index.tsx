@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { RiSearchLine, RiCheckboxCircleLine, RiCloseCircleLine, RiImageLine, RiExternalLinkLine, RiCloseLine } from "react-icons/ri";
-import { supabase } from "../../../lib/supabase";
-import { paymentService, notificationService } from "../../../services";
+import { supabase } from "../../../shared/lib/supabase";
+import * as paymentService from "../../../features/payment/lib/paymentOps";
+import * as notificationService from "../../../features/notifications/lib/notify";
 
 import { useT } from "../../../i18n";
 
@@ -247,7 +248,7 @@ function PaymentRow({
         )}
         {p.couponCode && (
           <div className="mt-1.5 p-1.5 bg-success/10 border border-success/20 rounded-lg">
-            <p className="text-[9px] font-black text-success uppercase tracking-widest leading-none mb-1">CUPOM APLICADO</p>
+            <p className="text-[9px] font-black text-success uppercase tracking-widest leading-none mb-1">{t.payments.table.couponApplied}</p>
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] font-bold text-text font-mono">{p.couponCode}</span>
               {p.discountAmount ? (
@@ -317,20 +318,21 @@ export default function ZellePaymentsPage() {
       "visto-b1-b2-reaplicacao": tVisas.processDetail.services["visto-b1-b2-reaplicacao"].label,
       "visto-f1": tVisas.processDetail.services["visto-f1"].label,
       "visto-f1-reaplicacao": tVisas.processDetail.services["visto-f1-reaplicacao"].label,
+      "visto-f1-reaplicacao": tVisas.processDetail.services["visto-f1-reaplicacao"].label,
       "extensao-status": tVisas.processDetail.services["extensao-status"].label,
       "troca-status": tVisas.processDetail.services["troca-status"].label,
-      "analise-especialista-cos": "Análise de Especialista (COS)",
-      "analise-especialista-eos": "Análise de Especialista (EOS)",
-      "motion-reconsideracao-cos": "Motion (COS)",
-      "motion-reconsideracao-eos": "Motion (EOS)",
-      "rfe-support": "Suporte RFE",
-      "suporte-rfe-eos": "Suporte RFE (EOS)",
-      "suporte-rfe-cos": "Suporte RFE (COS)",
-      "recovery-eos": "Recuperação de Caso (EOS)",
-      "recovery-cos": "Recuperação de Caso (COS)",
-      "motion-support": "Motion Support",
-      "mentoria-bronze": "Mentoria Bronze",
-      "mentoria-gold": "Mentoria Gold",
+      "analise-especialista-cos": t.payments.services.analiseCos,
+      "analise-especialista-eos": t.payments.services.analiseEos,
+      "motion-reconsideracao-cos": t.payments.services.motionCos,
+      "motion-reconsideracao-eos": t.payments.services.motionEos,
+      "rfe-support": t.payments.services.rfeSupport,
+      "suporte-rfe-eos": t.payments.services.rfeEos,
+      "suporte-rfe-cos": t.payments.services.rfeCos,
+      "recovery-eos": t.payments.services.recoveryEos,
+      "recovery-cos": t.payments.services.recoveryCos,
+      "motion-support": t.payments.services.motionSupport,
+      "mentoria-bronze": t.payments.services.mentoriaBronze,
+      "mentoria-gold": t.payments.services.mentoriaGold,
     };
     
     return (

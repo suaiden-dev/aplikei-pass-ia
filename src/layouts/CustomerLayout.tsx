@@ -1,15 +1,19 @@
 import { useState } from "react";
+<<<<<<< HEAD
 import { Link, NavLink, Outlet, useNavigate, useLocation, Navigate } from "react-router-dom";
+=======
+import { NavLink, Outlet, useLocation, Navigate } from "react-router-dom";
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 import { motion } from "framer-motion";
 import {
   RiDashboardLine,
   RiBriefcaseLine,
   RiQuestionLine,
-  RiLogoutBoxRLine,
   RiMenuLine,
   RiCloseLine,
 } from "react-icons/ri";
 import { useAuth } from "../hooks/useAuth";
+<<<<<<< HEAD
 import { useLocale, useT } from "../i18n";
 import { getDashboardPathForRole } from "../services/auth.service";
 import { cn } from "../utils/cn";
@@ -20,8 +24,19 @@ import { NotificationBell } from "../components/notifications/NotificationBell";
 export function CustomerLayout() {
   const { user, logout } = useAuth();
   const { lang, setLang } = useLocale();
+=======
+import { useT } from "../i18n";
+import { getDashboardPathForRole } from "../shared/auth/roles";
+import { cn } from "../utils/cn";
+import { NotificationProvider } from "../contexts/NotificationContext";
+import { NotificationToaster } from "../features/notifications/components/NotificationToaster";
+import { NotificationBell } from "../features/notifications/components/NotificationBell";
+import { DashboardNavbar } from "../components/organisms/DashboardNavbar";
+
+export function CustomerLayout() {
+  const { user } = useAuth();
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
   const tDashboard = useT("dashboard");
-  const navigate = useNavigate();
   const { pathname } = useLocation();
   const [sidebarOpenPath, setSidebarOpenPath] = useState<string | null>(null);
   const isSidebarOpen = sidebarOpenPath === pathname;
@@ -32,6 +47,7 @@ export function CustomerLayout() {
     { label: tDashboard.sidebar.support, icon: RiQuestionLine, to: "/dashboard/support" },
   ];
 
+<<<<<<< HEAD
   const avatarUrl =
     user?.avatarUrl ??
     `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? "User")}&background=1a56db&color=fff`;
@@ -41,6 +57,8 @@ export function CustomerLayout() {
     navigate("/login", { replace: true });
   };
 
+=======
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -128,6 +146,7 @@ export function CustomerLayout() {
             ))}
           </nav>
 
+<<<<<<< HEAD
           {/* Sidebar Footer: Interaction + User + Logout */}
           <div className="p-4 mt-auto space-y-4">
             {/* Language Toggle */}
@@ -183,6 +202,8 @@ export function CustomerLayout() {
               <span>{tDashboard.sidebar.logout}</span>
             </button>
           </div>
+=======
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
         </aside>
 
         {/* Main area */}

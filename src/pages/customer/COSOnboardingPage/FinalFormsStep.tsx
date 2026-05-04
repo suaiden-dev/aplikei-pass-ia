@@ -10,8 +10,16 @@ import {
   RiErrorWarningLine,
   RiArrowRightLine
 } from "react-icons/ri";
+<<<<<<< HEAD
 import { processService, type UserService } from "../../../services/process.service";
 import { finalFormsService } from "../../../services/final_forms.service";
+=======
+import type { IconType } from "react-icons";
+import { StepTimeline } from "../../../components/organisms/StepTimeline";
+import * as processService from "../../../features/process/lib/processOps";
+import type { UserService } from "../../../features/process/types";
+import { finalFormsService } from "../../../features/onboarding/cos/lib/final-forms";
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 import { useT } from "../../../i18n";
 import { z } from "zod";
 import { zodValidate } from "../../../utils/zodValidate";

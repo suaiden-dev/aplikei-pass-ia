@@ -1,5 +1,5 @@
 import { useFormikContext, Field, ErrorMessage } from "formik";
-import type { DS160FormValues } from "../../../../schemas/ds160.schema";
+import type { DS160FormValues } from "../../../../features/onboarding/b1b2/schemas/ds160.schema";
 import { useT } from "../../../../i18n";
 
 type VisasOnboardingFormText = {

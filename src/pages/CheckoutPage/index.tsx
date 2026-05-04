@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { authService } from "../../services/auth.service";
+import { authService } from "../../features/auth/lib/auth";
 import {
   RiShieldCheckLine,
   RiLockLine,
@@ -22,27 +22,20 @@ import {
   RiFlashlightFill,
 } from "react-icons/ri";
 import { MdPix } from "react-icons/md";
-import { Input } from "../../components/Input";
-import { Label } from "../../components/Label";
+import { Input } from "../../components/atoms/input";
+import { Label } from "../../components/atoms/label";
 import { zodValidate } from "../../utils/zodValidate";
 import { getServiceBySlug } from "../../data/services";
 import { useAuth } from "../../hooks/useAuth";
-import {
-  paymentService,
-  parsePriceUSD,
-  estimateCardTotal,
-  estimatePixTotal,
-  type StripePaymentMethod,
-} from "../../services/payment.service";
-import PhoneInput from "../../components/PhoneInput";
+import { type StripePaymentMethod } from "../../features/payment/lib/paymentOps";
+import { parsePriceUSD, estimateCardTotal, estimatePixTotal } from "../../features/payment/lib/fees";
+import { useCheckout } from "../../features/payment/hooks/useCheckout";
+import PhoneInput from "../../components/molecules/PhoneInput";
 import { ZELLE_RECIPIENT } from "../../config/zelle";
 import { maskCPF, validateCPF } from "../../utils/cpf";
 import { useT } from "../../i18n";
-import { 
-  validateCoupon, 
-  calculateDiscount, 
-  type CouponValidation 
-} from "../../services/coupon.service";
+import { calculateDiscount } from "../../features/payment/lib/coupon";
+import { useCoupon } from "../../features/payment/hooks/useCoupon";
 
 const ZELLE_EMAIL = ZELLE_RECIPIENT.email;
 const ZELLE_PHONE = ZELLE_RECIPIENT.phone;
@@ -212,16 +205,20 @@ export default function CheckoutPage() {
   const service = getServiceBySlug(slug || "");
   const [activeMethod, setActiveMethod] = useState<PaymentTab>("card");
   const [dependents, setDependents] = useState(searchParams.get("upgrade") === "true" ? 1 : 0);
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const { isProcessing: isRedirecting, stripe: submitStripe, parcelow: submitParcelow, zelle: submitZelle } = useCheckout();
   const [zelleDone, setZelleDone] = useState(false);
   const [zelleAutoApproved, setZelleAutoApproved] = useState(false);
   const [zelleProof, setZelleProof] = useState<File | null>(null);
   const [zelleProofPreview, setZelleProofPreview] = useState<string | null>(null);
 
-  // Coupon States
-  const [couponInput, setCouponInput] = useState("");
-  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
-  const [appliedCoupon, setAppliedCoupon] = useState<CouponValidation | null>(null);
+  const {
+    input: couponInput,
+    setInput: setCouponInput,
+    isValidating: isValidatingCoupon,
+    applied: appliedCoupon,
+    apply: applyCoupon,
+    remove: handleRemoveCoupon,
+  } = useCoupon();
 
   const handleProofSelect = (file: File) => {
     setZelleProof(file);
@@ -274,30 +271,21 @@ export default function CheckoutPage() {
   const finalSubtotalUSD = Math.max(0, subtotalUSD - discountUSD);
 
   const handleApplyCoupon = async () => {
-    if (!couponInput.trim()) return;
-    setIsValidatingCoupon(true);
     try {
-      const result = await validateCoupon(couponInput, slug);
+      const result = await applyCoupon(slug);
       if (result.valid) {
         if (result.min_purchase_usd && subtotalUSD < result.min_purchase_usd) {
           toast.error(t.coupon.errors.minPurchase.replace("{{value}}", result.min_purchase_usd.toString()));
+          handleRemoveCoupon();
           return;
         }
-        setAppliedCoupon(result);
         toast.success(t.coupon.applied);
       } else {
         toast.error(result.error === "NOT_APPLICABLE" ? t.coupon.errors.notApplicable : t.coupon.errors.invalid);
       }
     } catch {
       toast.error(t.coupon.errors.invalid);
-    } finally {
-      setIsValidatingCoupon(false);
     }
-  };
-
-  const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponInput("");
   };
 
   const handlePhoneChange = (value: string) => {
@@ -321,7 +309,6 @@ export default function CheckoutPage() {
       password: z.string().optional(),
     })),
     onSubmit: async (values) => {
-      setIsRedirecting(true);
       try {
         let currentUserId = user?.id;
 
@@ -357,7 +344,7 @@ export default function CheckoutPage() {
         const totalToCharge = finalSubtotalUSD;
 
         if (activeMethod === "card" || activeMethod === "pix") {
-          const { url, orderId } = await paymentService.createStripeCheckout({
+          const { url, orderId } = await submitStripe({
             slug: billingSlug,
             email: values.email,
             fullName: values.fullName,
@@ -380,7 +367,7 @@ export default function CheckoutPage() {
             throw new Error(t.paymentMethods.parcelow.cpfRequired);
           }
 
-          const { url, orderId } = await paymentService.createParcelowCheckout({
+          const { url, orderId } = await submitParcelow({
             slug: billingSlug,
             email: values.email,
             fullName: values.fullName,
@@ -402,16 +389,14 @@ export default function CheckoutPage() {
           if (!zelleProof)
             throw new Error(t.paymentMethods.zelle.proofRequired);
 
-          const proofPath = await paymentService.uploadZelleProof(zelleProof, service!.slug);
-
-          const zelleResult = await paymentService.createZellePayment({
+          const zelleResult = await submitZelle({
             slug: service!.slug,
             serviceName: service!.title,
             expectedAmount: totalToCharge,
             amount: totalToCharge,
             confirmationCode: `UPLD_${Date.now()}`,
             paymentDate: new Date().toISOString().split("T")[0],
-            proofPath,
+            proofFile: zelleProof,
             guestEmail: values.email,
             guestName: values.fullName,
             phone: values.phone,
@@ -426,8 +411,6 @@ export default function CheckoutPage() {
         }
       } catch (err) {
         toast.error(err instanceof Error ? err.message : t.errors?.genericError || "Erro ao processar pagamento.");
-      } finally {
-        setIsRedirecting(false);
       }
     },
   });

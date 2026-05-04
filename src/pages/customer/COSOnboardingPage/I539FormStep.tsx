@@ -1,4 +1,5 @@
 import {
+<<<<<<< HEAD
   createContext,
   useContext,
   useMemo,
@@ -22,6 +23,38 @@ import { i539Validator, type I539FormInput } from "../../../schemas/i539.schema"
 import { useT } from "../../../i18n";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+=======
+  RiArrowLeftLine,
+  RiArrowRightLine,
+  RiFilePdf2Line,
+  RiInformationLine,
+  RiLoader4Line,
+  RiSave3Line,
+} from "react-icons/ri";
+import {
+  MdBadge,
+  MdContactPhone,
+  MdEditDocument,
+  MdFactCheck,
+  MdFlightTakeoff,
+  MdGroups,
+  MdHealthAndSafety,
+  MdLocationOn,
+  MdPerson,
+  MdRecordVoiceOver,
+  MdSecurity,
+} from "react-icons/md";
+import { StepTimeline } from "../../../components/organisms/StepTimeline";
+import { Form, Formik, getIn, useField, useFormikContext } from "formik";
+import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../components/atoms/tooltip";
+import type { UserAccount } from "../../../features/auth/types";
+import { i539Validator, type I539FormInput } from "../../../features/onboarding/cos/schemas/i539.schema";
+import { useT } from "../../../i18n";
+import { fillI539Form, type I539Data, uploadFilledI539 } from "../../../features/onboarding/cos/lib/i539";
+import * as processService from "../../../features/process/lib/processOps";
+import type { UserService } from "../../../features/process/types";
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
 const US_STATES = [
   "", "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN",

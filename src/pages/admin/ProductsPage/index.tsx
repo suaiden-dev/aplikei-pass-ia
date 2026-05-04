@@ -12,7 +12,7 @@ import {
   RiEyeOffLine,
   RiEyeLine,
 } from "react-icons/ri";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "../../../shared/lib/supabase";
 import { useT } from "../../../i18n";
 
 // ─── Types ────────────────────────────────────────────────────────────────────

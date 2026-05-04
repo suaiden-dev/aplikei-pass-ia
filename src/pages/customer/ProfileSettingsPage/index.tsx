@@ -13,12 +13,12 @@ import {
   RiInformationLine
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
-import { authService } from "../../../services/auth.service";
-import { storageService } from "../../../services/storage.service";
-import { Input } from "../../../components/Input";
-import { Label } from "../../../components/Label";
+import { authService } from "../../../features/auth/lib/auth";
+import { storageService } from "../../../shared/storage/profile-photos";
+import { Input } from "../../../components/atoms/input";
+import { Label } from "../../../components/atoms/label";
 import { zodValidate } from "../../../utils/zodValidate";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "../../../shared/lib/supabase";
 import { cn } from "../../../utils/cn";
 
 const profileSchema = z.object({

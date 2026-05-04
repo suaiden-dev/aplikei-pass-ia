@@ -11,15 +11,15 @@ import {
   RiExternalLinkLine,
   RiAlertLine,
 } from "react-icons/ri";
-import { DocUploadCard, type DocFile } from "../../../../components/DocUploadCard";
+import { DocUploadCard, type DocFile } from "../../../../components/molecules/DocUploadCard";
 
 import firstPhaseImg from "../../../../assets/application_tutorial/first_phase.png";
 import secondPhaseImg from "../../../../assets/application_tutorial/second_phase.png";
 import thirdPhaseImg from "../../../../assets/application_tutorial/three_phase.png";
 
-import { supabase } from "../../../../lib/supabase";
-import { processService } from "../../../../services/process.service";
-import { notificationService } from "../../../../services/notification.service";
+import { supabase } from "../../../../shared/lib/supabase";
+import * as processService from "../../../../features/process/lib/processOps";
+import * as notificationService from "../../../../features/notifications/lib/notify";
 
 interface B1B2UserReviewSignStepProps {
   procId: string;

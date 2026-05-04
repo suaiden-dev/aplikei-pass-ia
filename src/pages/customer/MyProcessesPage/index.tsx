@@ -9,11 +9,15 @@ import {
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
 import { servicesData } from "../../../data/services";
+<<<<<<< HEAD
+=======
+import { calculateProcessProgress } from "../../../features/process/utils";
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 import { cn } from "../../../utils/cn";
 import { useT } from "../../../i18n";
-import { LogoLoader } from "../../../components/ui/LogoLoader";
-import { useMyProcessesController } from "../../../controllers/MyProcesses/MyProcessesController";
-import type { UserService } from "../../../models";
+import { LogoLoader } from "../../../components/atoms/logo-loader";
+import { useMyProcesses } from "../../../features/process/hooks/useMyProcesses";
+import type { UserService } from "../../../features/process/types";
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,
@@ -178,7 +182,7 @@ export default function MyProcessesPage() {
   const t = useT("dashboard");
   const { user } = useAuth();
 
-  const { activeProcesses, historyProcesses, userServices, isLoading } = useMyProcessesController(user?.id);
+  const { activeProcesses, historyProcesses, userServices, isLoading } = useMyProcesses(user?.id);
 
   return (
     <div className="p-6 md:p-12 max-w-[1200px] mx-auto">

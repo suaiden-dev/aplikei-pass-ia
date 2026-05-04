@@ -1,14 +1,30 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
-/* ─── Static tokens (fonts) ──────────────────────────────────── */
 @theme {
-  --font-sans:    'Inter', system-ui, sans-serif;
-  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Manrope", system-ui, sans-serif;
 }
 
-/* ─── Dynamic tokens → inlined into Tailwind utilities ──────── */
-/* Tailwind generates: bg-bg, text-text, border-border, etc.     */
 @theme inline {
+  --color-surface: var(--surface);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-bright: var(--surface-bright);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-surface-tint: var(--surface-tint);
+  --color-primary-fixed: var(--primary-fixed);
+  --color-primary-fixed-dim: var(--primary-fixed-dim);
+  --color-on-primary-fixed: var(--on-primary-fixed);
+  --color-on-primary-fixed-variant: var(--on-primary-fixed-variant);
+
   --color-bg:           var(--bg);
   --color-bg-subtle:    var(--bg-subtle);
   --color-card:         var(--card);
@@ -18,36 +34,99 @@
   --color-border:       var(--border);
   --color-primary:      var(--primary);
   --color-primary-hover:var(--primary-hover);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary:   var(--on-primary);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-button-primary: var(--button-primary);
+  --color-button-primary-hover: var(--button-primary-hover);
+  --color-button-primary-foreground: var(--button-primary-foreground);
+  --color-secondary:    var(--secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary: var(--on-secondary);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-tertiary:     var(--tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary:  var(--on-tertiary);
+  --color-on-tertiary-container: var(--on-tertiary-container);
   --color-success:      var(--success);
   --color-warning:      var(--warning);
   --color-danger:       var(--danger);
   --color-info:         var(--info);
+<<<<<<< HEAD
+=======
+
+  --color-background:   var(--bg);
+  --color-foreground:   var(--text);
+  --color-card-foreground: var(--text);
+  --color-popover:      var(--card);
+  --color-popover-foreground: var(--text);
+  --color-muted:        var(--bg-subtle);
+  --color-muted-foreground: var(--text-muted);
+  --color-accent:       var(--bg-subtle);
+  --color-accent-foreground: var(--text);
+  --color-input:        var(--border);
+  --color-ring:         var(--primary);
+  --color-destructive:  var(--danger);
+  --color-destructive-foreground: #FFFFFF;
+  --color-primary-foreground: var(--on-primary);
+  --color-secondary-foreground: var(--on-secondary);
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 }
 
-/* ─── Light theme (padrão) ───────────────────────────────────── */
 :root {
   color-scheme: light;
 
-  --bg:             #F8FAFC;
-  --bg-subtle:      #F1F5F9;
-  --card:           #FFFFFF;
-  --highlight:      #0F172A;
-  --text:           #0F172A;
-  --text-muted:     #64748B;
-  --border:         #E2E8F0;
-  --primary:        #1A56DB;
-  --primary-hover:  #1649C0;
-  --success:        #16A34A;
-  --warning:        #D97706;
-  --danger:         #DC2626;
-  --info:           #0284C7;
+  --surface: #f4f8ff;
+  --surface-dim: #e9f1fb;
+  --surface-bright: #ffffff;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f8fbff;
+  --surface-container: #edf4ff;
+  --surface-container-high: #dce9fb;
+  --surface-container-highest: #c8dbf7;
+  --on-surface: #0f172a;
+  --on-surface-variant: #475569;
+  --outline: #92a8c4;
+  --outline-variant: #c8d6ea;
+  --surface-tint: #8ec1ff;
+  --primary: #8ec1ff;
+  --primary-container: #d7e9ff;
+  --on-primary: #0b1120;
+  --on-primary-container: #0f172a;
+  --button-primary: #0f172a;
+  --button-primary-hover: #090e1d;
+  --button-primary-foreground: #f8fafc;
+  --secondary: #5f93e8;
+  --secondary-container: #e5f0ff;
+  --on-secondary: #0f172a;
+  --on-secondary-container: #1e3a8a;
+  --tertiary: #fb923c;
+  --tertiary-container: #ffedd5;
+  --on-tertiary: #431407;
+  --on-tertiary-container: #7c2d12;
+  --primary-fixed: #dbeafe;
+  --primary-fixed-dim: #bfdbfe;
+  --on-primary-fixed: #172554;
+  --on-primary-fixed-variant: #1d4ed8;
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #0284c7;
+
+  --bg: var(--surface-container-lowest);
+  --bg-subtle: var(--surface-container-low);
+  --card: var(--surface-bright);
+  --highlight: #e6f0fc;
+  --text: var(--on-surface);
+  --text-muted: var(--on-surface-variant);
+  --border: var(--outline-variant);
+  --primary-hover: #6eaefd;
 }
 
-/* ─── Dark theme ─────────────────────────────────────────────── */
-/* Baseado no visual da landing page (hero + navbar) do aplikei-pass-ia */
 [data-theme="dark"] {
   color-scheme: dark;
 
+<<<<<<< HEAD
   --bg:             #0F172A;
   --bg-subtle:      #1E293B;
   --card:           #1E293B;
@@ -61,9 +140,55 @@
   --warning:        #D97706;
   --danger:         #DC2626;
   --info:           #0284C7;
+=======
+  --surface: #10131a;
+  --surface-dim: #10131a;
+  --surface-bright: #363941;
+  --surface-container-lowest: #0b0e15;
+  --surface-container-low: #191b23;
+  --surface-container: #1d2027;
+  --surface-container-high: #272a31;
+  --surface-container-highest: #32353c;
+  --on-surface: #e1e2ec;
+  --on-surface-variant: #c2c6d6;
+  --outline: #8c909f;
+  --outline-variant: #424754;
+  --surface-tint: #adc6ff;
+  --primary: #3b82f6;
+  --primary-container: #4d8eff;
+  --on-primary: #002e6a;
+  --on-primary-container: #00285d;
+  --button-primary: #adc6ff;
+  --button-primary-hover: #dbeafe;
+  --button-primary-foreground: #00285d;
+  --secondary: #a4c9ff;
+  --secondary-container: #0267b8;
+  --on-secondary: #00315d;
+  --on-secondary-container: #d6e5ff;
+  --tertiary: #ffb786;
+  --tertiary-container: #df7412;
+  --on-tertiary: #502400;
+  --on-tertiary-container: #461f00;
+  --primary-fixed: #d8e2ff;
+  --primary-fixed-dim: #adc6ff;
+  --on-primary-fixed: #001a42;
+  --on-primary-fixed-variant: #004395;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #38bdf8;
+
+  --bg: var(--surface-container-lowest);
+  --bg-subtle: var(--surface-container-low);
+  --card: var(--surface-container);
+  --highlight: var(--surface);
+  --text: var(--on-surface);
+  --text-muted: var(--on-surface-variant);
+  --border: var(--outline-variant);
+  --primary-hover: #60a5fa;
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 }
 
-/* ─── Accordion animations ───────────────────────────────────── */
 @keyframes accordion-down {
   from { height: 0; }
   to { height: var(--radix-accordion-content-height); }
@@ -75,13 +200,16 @@
 .animate-accordion-down { animation: accordion-down 150ms ease-in-out; }
 .animate-accordion-up   { animation: accordion-up   150ms ease-in-out; }
 
-/* ─── Base ───────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
 html {
-  background-color: var(--bg);
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(173, 198, 255, 0.08), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(77, 142, 255, 0.08), transparent 30%),
+    var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -89,8 +217,18 @@ html {
 }
 
 body {
+  min-height: 100vh;
   margin: 0;
-  background-color: var(--bg);
+  background:
+    radial-gradient(circle at top left, rgba(173, 198, 255, 0.08), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(77, 142, 255, 0.08), transparent 30%),
+    var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--primary) 28%, transparent);
   color: var(--text);
 }
 

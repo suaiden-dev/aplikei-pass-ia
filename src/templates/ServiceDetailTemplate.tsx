@@ -1,8 +1,8 @@
 import { Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/Accordion";
-import { Button } from "../components/Button";
-import { ServiceCTA } from "../components/ServiceCTA";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/atoms/accordion";
+import { Button } from "../components/atoms/button";
+import { ServiceCTA } from "../components/organisms/ServiceCTA";
 import type { IconType } from "react-icons";
 import {
   MdVerified, MdGroupAdd, MdCheckCircle, MdCheck, MdCancel, MdClose, MdInfo,
@@ -10,10 +10,14 @@ import {
 } from "react-icons/md";
 import { FiArrowRight } from "react-icons/fi";
 import { useT } from "../i18n";
+<<<<<<< HEAD
 import type { ServiceMeta } from "../data/services";
 import { getCustomerProcessStartPath } from "../utils/customer-process-start";
 
 const includedIcons: IconType[] = [MdDescription, MdEditNote, MdPayments, MdRecordVoiceOver, MdFactCheck, MdHistory];
+=======
+import * as processService from "../features/process/lib/processOps";
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
 export interface StepConfig {
   id: string;

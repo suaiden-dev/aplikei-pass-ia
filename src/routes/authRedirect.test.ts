@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getDefaultRouteForRole, getRedirectPathAfterLogin } from "./authRedirect";
-import type { UserAccount } from "../models/user.model";
+import type { UserAccount } from "../features/auth/types";
 
 const customerUser: UserAccount = {
   id: "customer-1",

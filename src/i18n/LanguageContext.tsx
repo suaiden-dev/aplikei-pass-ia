@@ -1,5 +1,30 @@
+<<<<<<< HEAD
 import { useState, useCallback, type ReactNode } from "react";
 import type { Language, LocaleTranslations } from "./types";
+=======
+/**
+ * LanguageProvider — Dedicated component for i18n state management.
+ * 
+ * NOTE: This file ONLY exports the LanguageProvider component to ensure
+ * Vite's Fast Refresh works correctly without warnings.
+ */
+
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  type ReactNode,
+} from "react";
+import { supabase } from "../shared/lib/supabase";
+
+import {
+  Language,
+  LocaleTranslations,
+} from "./types";
+import { subscribeToAuthChanges } from "../features/auth/lib/auth";
+
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 import { LanguageContext } from "./context";
 import { localeCache, localeLoaders } from "./lib";
 

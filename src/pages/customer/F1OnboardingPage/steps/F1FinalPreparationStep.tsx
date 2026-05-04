@@ -15,8 +15,8 @@ import {
 import { toast } from "sonner";
 import { InlineWidget, useCalendlyEventListener } from "react-calendly";
 import { useAuth } from "../../../../hooks/useAuth";
-import { supabase } from "../../../../lib/supabase";
-import { calendlyService } from "../../../../services/calendly.service";
+import { supabase } from "../../../../shared/lib/supabase";
+import { calendlyService } from "../../../../shared/integrations/calendly";
 import { useT, useLocale } from "../../../../i18n";
 
 interface F1FinalPreparationStepProps {

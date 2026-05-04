@@ -28,10 +28,11 @@ import {
 import { getServiceBySlug } from "../../../data/services";
 import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "../../../data/workflowTemplates";
 import { normalizeLegacyFinalShipSteps, normalizeLegacyStepId } from "../../../utils/legacyWorkflow";
-import { supabase } from "../../../lib/supabase";
-import { processService, type UserService } from "../../../services/process.service";
-import { notificationService } from "../../../services/notification.service";
-import { packageService } from "../../../services/package.service";
+import { supabase } from "../../../shared/lib/supabase";
+import * as processService from "../../../features/process/lib/processOps";
+import type { UserService } from "../../../features/process/types";
+import * as notificationService from "../../../features/notifications/lib/notify";
+import { packageService } from "../../../features/onboarding/cos/lib/package";
 import { toast } from "sonner";
 import { useT } from "../../../i18n";
 import type { StepConfig } from "../../../templates/ServiceDetailTemplate";
@@ -1379,10 +1380,10 @@ export default function AdminProcessDetailPage() {
       const result = await res.json();
       const html = result.html || result.content || result.response || result.data || JSON.stringify(result);
       setCoverLetterHtml(html);
-      toast.success(t.processDetail.messages?.aiCoverLetterSuccess || "Cover Letter gerada com sucesso pela IA!");
+      toast.success(t.processDetail.messages.aiCoverLetterSuccess);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Erro desconhecido";
-      toast.error("Erro ao gerar: " + msg);
+      toast.error(t.processDetail.messages.generateError + msg);
     } finally {
       setIsGeneratingCoverLetter(false);
     }
@@ -2000,7 +2001,7 @@ export default function AdminProcessDetailPage() {
     if (!isActive && !isPast) return null;
 
     return (
-      <CollapsibleStep title="Taxa MRV e Acesso ao Consulado" icon={RiMoneyDollarCircleLine} isActive={isActive} isPast={isPast} badge="Ação Administrativa">
+      <CollapsibleStep title={t.processDetail.mrv.title} icon={RiMoneyDollarCircleLine} isActive={isActive} isPast={isPast} badge={t.shared.administrativeAction}>
         <MRVSetupPanel proc={proc} onApprove={handleApproveStep} onRefresh={fetchProcessData} isActive={isActive} />
       </CollapsibleStep>
     );
@@ -2012,7 +2013,7 @@ export default function AdminProcessDetailPage() {
     if (!isActive && !isPast) return null;
 
     return (
-      <CollapsibleStep title="Agendamento Final (CASV/Consulado)" icon={RiCalendarEventLine} isActive={isActive} isPast={isPast} badge="Ação Administrativa">
+      <CollapsibleStep title={t.processDetail.scheduling.title} icon={RiCalendarEventLine} isActive={isActive} isPast={isPast} badge={t.shared.administrativeAction}>
         <FinalSchedulingPanel proc={proc} onApprove={handleApproveStep} onRefresh={fetchProcessData} isActive={isActive} />
       </CollapsibleStep>
     );
@@ -2033,9 +2034,9 @@ export default function AdminProcessDetailPage() {
             <button
               onClick={async () => {
                 try {
-                  toast.loading("Gerando pacote final...", { id: "merge" });
+                  toast.loading(t.processDetail.messages.finalPackageGenerating, { id: "merge" });
                   await packageService.mergeAndUploadPackage(proc.id, proc.user_id!);
-                  toast.success("Pacote gerado!", { id: "merge" });
+                  toast.success(t.processDetail.messages.finalPackageGenerated, { id: "merge" });
                   fetchProcessData();
                 } catch (e: unknown) {
                   const err = e as Error;
@@ -2102,19 +2103,19 @@ export default function AdminProcessDetailPage() {
           {renderB1B2FinalSchedulingAdmin()}
 
           {currentStepBaseId === "cos_rfe_proposal" && (
-            <CollapsibleStep title="Proposta de RFE" icon={RiShieldCheckLine} isActive={true} isPast={false} badge="Ação Administrativa">
+            <CollapsibleStep title={t.processDetail.rfe.panelTitle} icon={RiShieldCheckLine} isActive={true} isPast={false} badge={t.shared.administrativeAction}>
               <RFEProposalPanel proc={proc} onRefresh={fetchProcessData} isActive={true} />
             </CollapsibleStep>
           )}
 
           {(currentStepBaseId === "cos_motion_proposal" || workflowStatus === "awaiting_proposal") && (
-            <CollapsibleStep title="Proposta de Motion" icon={RiShieldCheckLine} isActive={true} isPast={false} badge="Ação Administrativa">
+            <CollapsibleStep title={t.processDetail.motion.panelTitle} icon={RiShieldCheckLine} isActive={true} isPast={false} badge={t.shared.administrativeAction}>
               <MotionProposalPanel proc={proc} onRefresh={fetchProcessData} isActive={true} />
             </CollapsibleStep>
           )}
 
           {currentStepBaseId === "cos_rfe_end" && (
-            <CollapsibleStep title="Resultado RFE" icon={RiFileUploadLine} isActive={true} isPast={false} badge="Ação Administrativa">
+            <CollapsibleStep title={t.processDetail.rfe.finalPackageTitle} icon={RiFileUploadLine} isActive={true} isPast={false} badge={t.shared.administrativeAction}>
               <RFEFinalShipPanel proc={proc} onApprove={handleApproveStep} onRefresh={fetchProcessData} isActive={true} />
             </CollapsibleStep>
           )}

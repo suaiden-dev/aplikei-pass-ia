@@ -6,12 +6,18 @@ import { MasterDashboardLayout } from "./layouts/MasterDashboardLayout";
 import { AdminDashboardLayout } from "./layouts/AdminDashboardLayout";
 import { SellerDashboardLayout } from "./layouts/SellerDashboardLayout";
 import { CustomerLayout } from "./layouts/CustomerLayout";
+<<<<<<< HEAD
 import { ScrollToTop } from "./components/ScrollToTop";
+=======
+import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { ScrollToTop } from "./components/organisms/ScrollToTop";
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
 function lazyPage<T extends React.ComponentType<unknown>>(importFn: () => Promise<{ default: T }>) {
   return lazy(() => importFn().then((m) => ({ default: m.default })));
 }
 
+<<<<<<< HEAD
 const HomePage = lazyPage(() => import("./pages/HomePage"));
 const ComoFuncionaPage = lazyPage(() => import("./pages/ComoFuncionaPage"));
 const ServicosPage = lazyPage(() => import("./pages/ServicosPage"));
@@ -50,6 +56,63 @@ const CustomerCOSOnboardingPage = lazyPage(() => import("./pages/customer/COSOnb
 const CustomerProfileSettingsPage = lazyPage(() => import("./pages/customer/ProfileSettingsPage"));
 const CustomerCheckoutPage = lazyPage(() => import("./pages/customer/CheckoutPage"));
 const CustomerCheckoutSuccessPage = lazyPage(() => import("./pages/customer/CheckoutSuccessPage"));
+=======
+// ─── Lazy-loaded Pages ────────────────────────────────────────────────────────
+// Public
+const HomePage            = lazyPage(() => import("./pages/HomePage"));
+const ServiceDetailPage   = lazyPage(() => import("./pages/ServiceDetailPage"));
+const Login               = lazyPage(() => import("./pages/Login"));
+const SignUpPage           = lazyPage(() => import("./pages/SignUp"));
+const NotFoundPage        = lazyPage(() => import("./pages/NotFoundPage"));
+const CheckoutPage        = lazyPage(() => import("./pages/CheckoutPage"));
+const CheckoutSuccessPage = lazyPage(() => import("./pages/CheckoutSuccessPage"));
+const ComoFuncionaPage    = lazyPage(() => import("./pages/ComoFuncionaPage"));
+const ServicosPage        = lazyPage(() => import("./pages/ServicosPage"));
+
+// Admin/Master/Seller
+const CustomersPage          = lazyPage(() => import("./pages/admin/CustomersPage"));
+const OverviewPage           = lazyPage(() => import("./pages/admin/OverviewPage"));
+const ZellePaymentsPage      = lazyPage(() => import("./pages/admin/ZellePaymentsPage"));
+const ProductsPage           = lazyPage(() => import("./pages/admin/ProductsPage"));
+const AdminProcessesPage     = lazyPage(() => import("./pages/admin/ProcessesPage"));
+const AdminProcessDetailPage = lazyPage(() => import("./pages/admin/ProcessDetailPage"));
+const AdminChatsPage         = lazyPage(() => import("./pages/admin/ChatsPage"));
+const CouponsPage            = lazyPage(() => import("./pages/admin/CouponsPage"));
+const RolesPage              = lazyPage(() => import("./pages/admin/RolesPage"));
+const LawyersPage            = lazyPage(() => import("./pages/admin/LawyersPage"));
+
+// Customer
+const CustomerDashboardPage = lazyPage(() => import("./pages/customer/DashboardPage"));
+const MyProcessesPage       = lazyPage(() => import("./pages/customer/MyProcessesPage"));
+const ProcessDetailPage     = lazyPage(() => import("./pages/customer/ProcessDetailPage"));
+const AIChatPage            = lazyPage(() => import("./pages/customer/AIChatPage"));
+const COSOnboardingPage     = lazyPage(() => import("./pages/customer/COSOnboardingPage"));
+const ProfileSettingsPage   = lazyPage(() => import("./pages/customer/ProfileSettingsPage"));
+const B1B2OnboardingPage    = lazyPage(() => import("./pages/customer/B1B2OnboardingPage"));
+const F1OnboardingPage      = lazyPage(() => import("./pages/customer/F1OnboardingPage"));
+
+// Legal
+const Terms         = lazyPage(() => import("./pages/Legal/Terms"));
+const Privacy       = lazyPage(() => import("./pages/Legal/Privacy"));
+const Refund        = lazyPage(() => import("./pages/Legal/Refund"));
+const Disclaimers   = lazyPage(() => import("./pages/Legal/Disclaimers"));
+const ContractTerms = lazyPage(() => import("./pages/Legal/ContractTerms"));
+
+import { useLocale } from "./i18n";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { LogoLoader } from "./components/atoms/logo-loader";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30,   // 30 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
 function PageLoader() {
   return (
@@ -83,6 +146,7 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Route>
 
+<<<<<<< HEAD
           <Route path="/master" element={<MasterDashboardLayout />}>
             <Route index element={<MasterOverviewPage />} />
             <Route path="payments" element={<MasterPaymentsPage />} />
@@ -92,6 +156,68 @@ export default function App() {
             <Route path="coupons" element={<MasterCouponsPage />} />
             <Route path="cases" element={<MasterCasesPage />} />
             <Route path="cases/:caseId" element={<MasterCaseOnboardingPage />} />
+=======
+          {/* Rotas protegidas — exigem autenticação */}
+          <Route element={<ProtectedRoute />}>
+            {/* Checkout success — protected so user is guaranteed authenticated */}
+            <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
+
+            {/* Customer routes */}
+            <Route element={<CustomerLayout />}>
+              <Route path="/dashboard" element={<CustomerDashboardPage />} />
+              <Route path="/dashboard/processes" element={<MyProcessesPage />} />
+              {/* Onboarding por produto */}
+              <Route path="/dashboard/processes/visto-b1-b2/onboarding" element={<B1B2OnboardingPage />} />
+              <Route path="/dashboard/processes/visto-b1-b2-reaplicacao/onboarding" element={<B1B2OnboardingPage />} />
+              <Route path="/dashboard/processes/visto-f1/onboarding" element={<F1OnboardingPage />} />
+              <Route path="/dashboard/processes/visto-f1-reaplicacao/onboarding" element={<F1OnboardingPage />} />
+              <Route path="/dashboard/processes/extensao-status/onboarding" element={<COSOnboardingPage />} />
+              <Route path="/dashboard/processes/troca-status/onboarding" element={<COSOnboardingPage />} />
+              {/* Onboarding genérico (outros slugs COS) */}
+              <Route path="/dashboard/processes/:slug/onboarding" element={<COSOnboardingPage />} />
+
+              <Route path="/dashboard/processes/:slug" element={<ProcessDetailPage />} />
+              <Route path="/dashboard/support" element={<AIChatPage />} />
+              <Route path="/dashboard/ai-chat" element={<AIChatPage />} />
+              <Route path="/minha-conta" element={<ProfileSettingsPage />} />
+            </Route>
+
+            {/* Master routes */}
+            <Route path="/master" element={<MasterDashboardLayout />}>
+              <Route index element={<OverviewPage />} />
+              <Route path="payments" element={<ZellePaymentsPage />} />
+              <Route path="customers" element={<CustomersPage />} />
+              <Route path="lawyers" element={<LawyersPage />} />
+              <Route path="cases" element={<AdminProcessesPage />} />
+              <Route path="cases/:id" element={<AdminProcessDetailPage />} />
+              <Route path="chats" element={<AdminChatsPage />} />
+              <Route path="products" element={<ProductsPage />} />
+              <Route path="coupons" element={<CouponsPage />} />
+              <Route path="roles" element={<RolesPage />} />
+            </Route>
+
+            {/* Admin routes */}
+            <Route path="/admin" element={<AdminDashboardLayout />}>
+              <Route index element={<OverviewPage />} />
+              <Route path="payments" element={<ZellePaymentsPage />} />
+              <Route path="customers" element={<CustomersPage />} />
+              <Route path="lawyers" element={<LawyersPage />} />
+              <Route path="processes" element={<AdminProcessesPage />} />
+              <Route path="processes/:id" element={<AdminProcessDetailPage />} />
+              <Route path="chats" element={<AdminChatsPage />} />
+              <Route path="products" element={<ProductsPage />} />
+              <Route path="coupons" element={<CouponsPage />} />
+              <Route path="roles" element={<RolesPage />} />
+            </Route>
+
+            {/* Seller routes */}
+            <Route path="/seller" element={<SellerDashboardLayout />}>
+              <Route path="payments" element={<ZellePaymentsPage />} />
+              <Route path="chats" element={<AdminChatsPage />} />
+              <Route path="customers" element={<CustomersPage />} />
+              <Route path="coupons" element={<CouponsPage />} />
+            </Route>
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
           </Route>
 
           <Route path="/admin" element={<AdminDashboardLayout />}>

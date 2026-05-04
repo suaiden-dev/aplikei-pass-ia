@@ -9,9 +9,10 @@ import {
   RiShieldCheckLine
 } from "react-icons/ri";
 import { toast } from "sonner";
-import { supabase } from "../../../lib/supabase";
-import { processService, type UserService } from "../../../services/process.service";
-import { cosNotificationService } from "../../../services/cos-notification.service";
+import { supabase } from "../../../shared/lib/supabase";
+import * as processService from "../../../features/process/lib/processOps";
+import type { UserService } from "../../../features/process/types";
+import { cosNotificationService } from "../../../features/onboarding/cos/lib/cos-notifications";
 import { useT } from "../../../i18n";
 
 interface Props {

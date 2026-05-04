@@ -9,10 +9,10 @@ import {
   RiErrorWarningLine,
 } from "react-icons/ri";
 import { getServiceBySlug } from "../../data/services";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../shared/lib/supabase";
 import { useT } from "../../i18n";
-import { LogoLoader } from "../../components/ui/LogoLoader";
-import { paymentService } from "../../services/payment.service";
+import { LogoLoader } from "../../components/atoms/logo-loader";
+import * as paymentService from "../../features/payment/lib/paymentOps";
 
 type ActivationState = "loading" | "done" | "error";
 
@@ -69,15 +69,13 @@ export default function CheckoutSuccessPage() {
           await paymentService.verifyStripeSession(sessionId);
         }
 
-        await paymentService.verifyOrderActivation({
-          slug,
-          orderId,
-          onSuccess: markAsDone,
-          onError: (msg) => {
-            setErrorMsg(msg);
-            setActivation("error");
-          }
-        });
+        const paid = await paymentService.checkOrderPaymentStatus(slug, 20000, orderId);
+        if (paid) {
+          markAsDone();
+        } else {
+          setErrorMsg("Pagamento ainda não confirmado.");
+          setActivation("error");
+        }
       } catch (error: unknown) {
         console.error("[CheckoutSuccess] Verification failed:", error);
         setErrorMsg("Erro ao verificar status do pagamento.");

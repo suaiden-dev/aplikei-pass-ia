@@ -1,7 +1,20 @@
+<<<<<<< HEAD
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { AuthContext } from "./context";
 import { authService } from "../../services/auth.service";
 import { getSupabaseClient } from "../../lib/supabase/client";
+=======
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import type { UserAccount } from "../../features/auth/types";
+import type { User } from "@supabase/supabase-js";
+import { AuthContext, type AuthStatus } from "./context";
+import {
+  authService,
+  buildFallbackAccount,
+  subscribeToAuthChanges,
+} from "../../features/auth/lib/auth";
+import { getSessionSafe, supabase } from "../../shared/lib/supabase";
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState(authService.getCurrentAccount());
@@ -15,9 +28,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+<<<<<<< HEAD
     await authService.loadCurrentUser();
     setUser(authService.getCurrentAccount());
     setIsLoading(false);
+=======
+    const { data: canStayAuthenticated, error: gateError } = await supabase.rpc("can_login_with_email", {
+      p_email: authUser.email ?? "",
+    });
+
+    if (gateError) {
+      console.error("[AuthContext] Failed to validate active session:", gateError);
+    } else if (!canStayAuthenticated) {
+      setUser(null);
+      setStatus("anonymous");
+      setAccountHydrated(true);
+      await authService.logout();
+      return;
+    }
+
+    // Define fallback inicial para evitar flicker
+    setUser(current => current || buildFallbackAccount(authUser));
+    setStatus("authenticated");
+    setAccountHydrated(false);
+
+    try {
+      const account = await authService.resolveAccount(authUser);
+      setUser(account);
+    } catch (error) {
+      console.error("[AuthContext] Failed to hydrate account:", error);
+      setUser(buildFallbackAccount(authUser));
+    } finally {
+      setAccountHydrated(true);
+    }
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
   }, []);
 
   const logout = useCallback(async () => {
@@ -85,5 +129,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshAccount,
   }), [isLoading, logout, refreshAccount, user]);
 
+<<<<<<< HEAD
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+=======
+  const isLoading = status === "loading" || (status === "authenticated" && !accountHydrated);
+  const isAuthenticated = status === "authenticated" && !!user;
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        status,
+        isAuthenticated,
+        isLoading,
+        accountHydrated,
+        logout,
+        refreshAccount,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 }

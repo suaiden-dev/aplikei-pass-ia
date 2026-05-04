@@ -1,4 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
+<<<<<<< HEAD
 import { RiMoonLine, RiSunLine } from "react-icons/ri";
 import { AuthBrand } from "../components/auth/AuthBrand";
 import { useTheme } from "../contexts/useTheme";
@@ -17,6 +18,19 @@ export function AuthLayout() {
   const { theme, toggleTheme } = useTheme();
   const { lang, setLang } = useLocale();
   const { user, isAuthenticated } = useAuth();
+=======
+import { Navbar } from "../components/organisms/PublicNavbar";
+import { useAuth } from "../hooks/useAuth";
+import { getDashboardPathForRole } from "../shared/auth/roles";
+import { RouteGuardLoader } from "../routes/RouteGuardLoader";
+
+export function AuthLayout() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <RouteGuardLoader />;
+  }
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
   // Já autenticado → redireciona para o painel correto
   if (isAuthenticated && user) {

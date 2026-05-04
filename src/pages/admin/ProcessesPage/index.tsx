@@ -14,8 +14,9 @@ import {
   RiFilter3Line,
   RiFilterOffLine
 } from "react-icons/ri";
-import { supabase } from "../../../lib/supabase";
-import { processService, type UserService } from "../../../services/process.service";
+import { supabase } from "../../../shared/lib/supabase";
+import * as processService from "../../../features/process/lib/processOps";
+import type { UserService } from "../../../features/process/types";
 import { getServiceBySlug, servicesData } from "../../../data/services";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";

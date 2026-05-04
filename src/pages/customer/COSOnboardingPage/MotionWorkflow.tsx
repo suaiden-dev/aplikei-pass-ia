@@ -18,24 +18,29 @@ import {
 } from 'react-icons/ri'
 import { MdPix } from 'react-icons/md'
 import { toast } from 'sonner'
-import { supabase } from '../../../lib/supabase'
+import { supabase } from '../../../shared/lib/supabase'
 import {
   processService,
   type UserService,
+<<<<<<< HEAD
 } from '../../../services/process.service'
 import type { MotionOutcome } from '../../../models/process.model'
 import { cosNotificationService } from '../../../services/cos-notification.service'
+=======
+} from '../../../features/process/lib/processOps'
+import { cosNotificationService } from '../../../features/onboarding/cos/lib/cos-notifications'
+>>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 import {
   paymentService,
   type StripePaymentMethod,
-} from '../../../services/payment.service'
+} from '../../../features/payment/lib/paymentOps'
 import { useAuth } from '../../../hooks/useAuth'
-import { DocUploadCard } from '../../../components/DocUploadCard'
+import { DocUploadCard } from '../../../components/molecules/DocUploadCard'
 import { ZELLE_RECIPIENT } from '../../../config/zelle'
-import { Input } from '../../../components/Input'
-import { Label } from '../../../components/Label'
+import { Input } from '../../../components/atoms/input'
+import { Label } from '../../../components/atoms/label'
 import { maskCPF, validateCPF } from '../../../utils/cpf'
-import { estimateCardTotal } from '../../../services/payment.service'
+import { estimateCardTotal } from '../../../features/payment/lib/fees'
 import { cn } from '../../../utils/cn'
 import { useT } from '../../../i18n'
 import { useNavigate } from 'react-router-dom'
