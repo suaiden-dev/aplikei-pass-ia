@@ -3,9 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { AuthBrand } from "../../components/auth/AuthBrand";
-import { Button } from "../../components/Button";
-import { Input } from "../../components/ui/Input";
-import { Label } from "../../components/ui/Label";
+import { Button } from "../../components/atoms/button";
+import { Input } from "../../components/atoms/input";
+import { Label } from "../../components/atoms/label";
 import { useT } from "../../i18n";
 import { authService } from "../../services/auth.service";
 

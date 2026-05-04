@@ -15,9 +15,6 @@ const common = {
   back: "Voltar",
   next: "Próximo",
   finish: "Finalizar",
-<<<<<<< HEAD
-  successRate: "Taxa de Aprovação",
-=======
   client: "Cliente",
   rejection: {
     confirm: "Confirmar Rejeição",
@@ -41,7 +38,6 @@ const common = {
     selectPdf: "Selecionar Arquivo PDF",
     fileSent: "Arquivo Enviado",
   },
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
   howItWorksPage: {
     hero: {
       tag: "Como Funciona",

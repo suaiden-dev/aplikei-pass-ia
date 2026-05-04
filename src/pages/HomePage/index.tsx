@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import { HeroSection } from "../../components/HeroSection";
-import { FAQSection } from "../../components/FAQSection";
-import { TestimonialsSection } from "../../components/TestimonialsSection";
-import { HowItWorksSection } from "../../components/HowItWorksSection";
-=======
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
@@ -14,7 +8,6 @@ import { HowItWorksSection } from "../../components/organisms/LandingHowItWorks"
 import { getDefaultRouteForRole } from "../../routes/authRedirect";
 import { RouteGuardLoader } from "../../routes/RouteGuardLoader";
 // Remove ServicesSection import
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
 const avatars = [
   "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
@@ -28,8 +21,6 @@ const heroImage =
   "https://images.unsplash.com/photo-1526253038957-bce54e05968e?q=80&w=2070&auto=format&fit=crop";
 
 export default function HomePage() {
-<<<<<<< HEAD
-=======
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading } = useAuth();
 
@@ -43,7 +34,6 @@ export default function HomePage() {
     return <RouteGuardLoader />;
   }
 
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
   return (
     <>
       <HeroSection heroImage={heroImage} avatars={avatars} />

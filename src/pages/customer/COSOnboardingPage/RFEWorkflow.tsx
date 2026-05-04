@@ -19,20 +19,12 @@ import {
 } from "react-icons/ri";
 import { MdPix } from "react-icons/md";
 import { toast } from "sonner";
-<<<<<<< HEAD
-import { supabase } from "../../../lib/supabase";
-import { type UserService, processService } from "../../../services/process.service";
-import type { RFEOutcome } from "../../../models/process.model";
-import { cosNotificationService } from "../../../services/cos-notification.service";
-import { paymentService, type StripePaymentMethod } from "../../../services/payment.service";
-=======
 import { supabase } from "../../../shared/lib/supabase";
 import * as processService from "../../../features/process/lib/processOps";
 import type { UserService } from "../../../features/process/types";
 import { cosNotificationService } from "../../../features/onboarding/cos/lib/cos-notifications";
 import * as paymentService from "../../../features/payment/lib/paymentOps";
 import type { StripePaymentMethod } from "../../../features/payment/lib/paymentOps";
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 import { useAuth } from "../../../hooks/useAuth";
 import { DocUploadCard } from "../../../components/molecules/DocUploadCard";
 import { ZELLE_RECIPIENT } from "../../../config/zelle";

@@ -1,5 +1,5 @@
 import { ArrowDownRight, BadgeDollarSign, Clock3, Download, Filter, Plus, RotateCcw } from "lucide-react";
-import { Button } from "../../components/Button";
+import { Button } from "../../components/atoms/button";
 import {
   DashboardPageHeader,
   DashboardSection,
@@ -8,7 +8,7 @@ import {
   KpiCard,
   StatusBadge,
   ToolbarPill,
-} from "../../components/master/DashboardUI";
+} from "../../components/organisms/DashboardUI";
 import { paymentRecords } from "../../mocks/master-dashboard";
 import { formatCurrency, formatDate } from "../../utils/format";
 

@@ -9,10 +9,7 @@ import {
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
 import { servicesData } from "../../../data/services";
-<<<<<<< HEAD
-=======
 import { calculateProcessProgress } from "../../../features/process/utils";
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 import { cn } from "../../../utils/cn";
 import { useT } from "../../../i18n";
 import { LogoLoader } from "../../../components/atoms/logo-loader";

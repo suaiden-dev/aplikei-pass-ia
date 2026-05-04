@@ -10,14 +10,7 @@ import {
 } from "react-icons/md";
 import { FiArrowRight } from "react-icons/fi";
 import { useT } from "../i18n";
-<<<<<<< HEAD
-import type { ServiceMeta } from "../data/services";
-import { getCustomerProcessStartPath } from "../utils/customer-process-start";
-
-const includedIcons: IconType[] = [MdDescription, MdEditNote, MdPayments, MdRecordVoiceOver, MdFactCheck, MdHistory];
-=======
 import * as processService from "../features/process/lib/processOps";
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
 export interface StepConfig {
   id: string;

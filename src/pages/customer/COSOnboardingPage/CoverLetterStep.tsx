@@ -12,17 +12,11 @@ import {
   MdLightbulbOutline
 } from "react-icons/md";
 import { toast } from "sonner";
-<<<<<<< HEAD
-import { processService, type UserService } from "../../../services/process.service";
-import { coverLetterService } from "../../../services/cover_letter.service";
-import { useT } from "../../../i18n";
-=======
 import { useT } from "../../../i18n";
 import { StepTimeline } from "../../../components/organisms/StepTimeline";
 import { coverLetterService } from "../../../features/onboarding/cos/lib/cover-letter";
 import * as processService from "../../../features/process/lib/processOps";
 import type { UserService } from "../../../features/process/types";
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
 interface CoverLetterData {
   reasonGoUS?: string;

@@ -1,14 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
-<<<<<<< HEAD
-import { Menu, LogOut, Moon, Sun, ShieldCheck, X } from "lucide-react";
-import { Button } from "../components/Button";
-import { useAuth } from "../hooks/useAuth";
-import { useTheme } from "../contexts/useTheme";
-import type { UserAccountRole } from "../models/users-account";
-import { getDashboardPathForRole } from "../services/auth.service";
-=======
 import { Menu, Moon, Sun, ShieldCheck, X } from "lucide-react";
 import { RiArrowDownSLine, RiLogoutBoxRLine, RiPencilLine, RiUploadLine } from "react-icons/ri";
 import { Button } from "../components/atoms/button";
@@ -20,7 +12,6 @@ import type { UserRole as UserAccountRole } from "../features/auth/types";
 import { getDashboardPathForRole } from "../shared/auth/roles";
 import { authService } from "../features/auth/lib/auth";
 import { storageService } from "../shared/storage/profile-photos";
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 import { cn } from "../utils/cn";
 import { toast } from "sonner";
 import { useT } from "../i18n";
@@ -282,14 +273,11 @@ export function RoleDashboardLayout({
           ))}
         </nav>
 
-<<<<<<< HEAD
         <div className="mt-6 rounded-[1.5rem] border border-border bg-highlight p-4 text-white">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary/80">Modo operacao</p>
           <p className="mt-2 font-display text-xl font-black tracking-[-0.03em]">{spotlightTitle}</p>
           <p className="mt-2 text-sm text-slate-300">{spotlightDescription}</p>
         </div>
-=======
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
       </aside>
 
       {mobileMenuOpen ? (

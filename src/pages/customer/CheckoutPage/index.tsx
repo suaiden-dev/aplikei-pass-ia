@@ -20,7 +20,7 @@ import {
 } from "react-icons/ri";
 import { MdPix } from "react-icons/md";
 import { Input } from "../../../components/Input";
-import { LogoLoader } from "../../../components/ui/LogoLoader";
+import { LogoLoader } from "../../../components/atoms/logo-loader";
 import { 
   validateCoupon, 
   calculateDiscount,
@@ -28,7 +28,7 @@ import {
 } from "../../../services/coupon.service";
 import { getSupabaseClient } from "../../../lib/supabase/client";
 import { Label } from "../../../components/Label";
-import { Button } from "../../../components/Button";
+import { Button } from "../../../components/atoms/button";
 import { zodValidate } from "../../../utils/zodValidate";
 import { getServiceBySlug } from "../../../data/services";
 import { useAuth } from "../../../hooks/useAuth";

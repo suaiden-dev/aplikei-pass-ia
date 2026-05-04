@@ -1,5 +1,5 @@
 import { Percent, Plus, Sparkles, TicketPercent, TrendingUp } from "lucide-react";
-import { Button } from "../../components/Button";
+import { Button } from "../../components/atoms/button";
 import {
   DashboardPageHeader,
   DashboardSection,
@@ -8,7 +8,7 @@ import {
   KpiCard,
   StatusBadge,
   ToolbarPill,
-} from "../../components/master/DashboardUI";
+} from "../../components/organisms/DashboardUI";
 import { couponRecords } from "../../mocks/master-dashboard";
 import { formatDate } from "../../utils/format";
 

@@ -2,7 +2,7 @@ import {
   isSupportedLanguage,
   languageOptions,
   type Language,
-} from '../models/language'
+} from '../../models/language'
 
 type LanguageSwitcherProps = {
   currentLanguage: Language

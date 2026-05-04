@@ -1,5 +1,5 @@
 import { Activity, BadgeDollarSign, BriefcaseBusiness, Users } from "lucide-react";
-import { DashboardPageHeader, DashboardSection, KpiCard, StatusBadge } from "../../components/master/DashboardUI";
+import { DashboardPageHeader, DashboardSection, KpiCard, StatusBadge } from "../../components/organisms/DashboardUI";
 import {
   activityFeed,
   caseRecords,

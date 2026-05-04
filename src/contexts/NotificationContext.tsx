@@ -1,11 +1,6 @@
-<<<<<<< HEAD
-import { useState, useEffect, useMemo, useCallback, type ReactNode } from "react";
-import { notificationService, type AppNotification } from "../services/notification.service";
-=======
 import { useState, useEffect, useRef, useMemo, useCallback, type ReactNode } from "react";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { supabase } from "../shared/lib/supabase";
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 import { useAuth } from "../hooks/useAuth";
 import type { AppNotification } from "./NotificationContext/context";
 import {
@@ -64,13 +59,9 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
   const userId = user?.id;
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [activeToasts, setActiveToasts] = useState<ToastItem[]>([]);
-<<<<<<< HEAD
-  const [realtimeStatus, setRealtimeStatus] = useState<"connecting" | "connected" | "disconnected">("connected");
-=======
   const [realtimeStatus, setRealtimeStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
   const toastQueueRef = useRef<ToastItem[]>([]);
   const cacheKey = userId ? `notif_${userId}_${role}` : null;
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
   const unreadCount = useMemo(
     () => notifications.filter((notification) => !notification.is_read).length,
@@ -78,9 +69,6 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
   );
 
   const loadHistory = useCallback(async () => {
-<<<<<<< HEAD
-    if (!user?.id) return;
-=======
     if (!userId || !cacheKey) return;
 
     try {
@@ -95,7 +83,6 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
     } catch {
       // ignore session storage issues
     }
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
     try {
       const data = await fetchNotifications(role, userId);
@@ -103,11 +90,7 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
     } catch (error) {
       console.error("[NotificationContext] Error loading history:", error);
     }
-<<<<<<< HEAD
-  }, [role, user?.id]);
-=======
   }, [cacheKey, role, userId]);
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
   const addToToastQueue = useCallback((notif: AppNotification) => {
     const item: ToastItem = {
@@ -127,14 +110,6 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
     setActiveToasts((prev) => prev.filter((toast) => toast.id !== toastId));
   }, []);
 
-<<<<<<< HEAD
-  const markAsRead = useCallback(async (id: string) => {
-    try {
-      await notificationService.markAsRead(id);
-      setNotifications((prev) => prev.map((notification) => (
-        notification.id === id ? { ...notification, is_read: true } : notification
-      )));
-=======
   const handleInsert = useCallback((payload: RealtimePostgresChangesPayload<AppNotification>) => {
     const newNotif = normalizeRealtimeNotification(payload.new as unknown as Record<string, unknown>);
     if (!matchesNotificationRole(newNotif, role, userId)) {
@@ -191,7 +166,6 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
           // ignore session storage issues
         }
       }
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
     } catch (error) {
       console.error("[NotificationContext] Error marking as read:", error);
     }
@@ -216,11 +190,7 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
     } catch (error) {
       console.error("[NotificationContext] Error marking all as read:", error);
     }
-<<<<<<< HEAD
-  }, [role, user]);
-=======
   }, [cacheKey, role, userId]);
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
   useEffect(() => {
     if (!user) {
@@ -237,9 +207,6 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
       return;
     }
 
-<<<<<<< HEAD
-    void loadHistory();
-=======
     const loadTimerId = window.setTimeout(() => {
       setRealtimeStatus("connecting");
       void loadHistory();
@@ -269,7 +236,6 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
           console.warn("[Notif] Realtime error:", error);
         }
       });
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
     return () => {
     };

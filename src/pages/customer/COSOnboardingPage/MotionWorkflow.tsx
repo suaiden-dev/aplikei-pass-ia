@@ -22,14 +22,8 @@ import { supabase } from '../../../shared/lib/supabase'
 import {
   processService,
   type UserService,
-<<<<<<< HEAD
-} from '../../../services/process.service'
-import type { MotionOutcome } from '../../../models/process.model'
-import { cosNotificationService } from '../../../services/cos-notification.service'
-=======
 } from '../../../features/process/lib/processOps'
 import { cosNotificationService } from '../../../features/onboarding/cos/lib/cos-notifications'
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 import {
   paymentService,
   type StripePaymentMethod,

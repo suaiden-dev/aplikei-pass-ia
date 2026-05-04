@@ -8,7 +8,7 @@ export { default as auth } from './auth';
 export { default as dashboard } from './dashboard';
 export { default as visas } from './visas';
 export { default as checkout } from './checkout';
-export { default as admin } from './stubs';
+export { default as admin } from './admin';
 export { default as tracking } from './stubs';
 export { default as legal } from './stubs';
 export { default as validation } from './stubs';

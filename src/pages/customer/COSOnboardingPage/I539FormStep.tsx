@@ -1,29 +1,4 @@
 import {
-<<<<<<< HEAD
-  createContext,
-  useContext,
-  useMemo,
-  useState,
-  type ElementType,
-  type ReactNode,
-} from "react";
-import { RiLoader4Line, RiArrowRightLine, RiInformationLine, RiFilePdf2Line, RiSave3Line } from "react-icons/ri";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../components/ui/tooltip";
-import { 
-  MdPerson, MdBadge, MdLocationOn, MdFlightTakeoff, MdFactCheck, 
-  MdHealthAndSafety, MdSecurity, MdContactPhone, MdRecordVoiceOver, MdEditDocument
-} from "react-icons/md";
-import { toast } from "sonner";
-import { useForm, type FormReturn } from "../../../lib/form";
-import { processService, type UserService } from "../../../services/process.service";
-import { cosNotificationService } from "../../../services/cos-notification.service";
-import { fillI539Form, uploadFilledI539, type I539Data } from "../../../services/i539.service";
-import type { UserAccount } from "../../../models/user.model";
-import { i539Validator, type I539FormInput } from "../../../schemas/i539.schema";
-import { useT } from "../../../i18n";
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-=======
   RiArrowLeftLine,
   RiArrowRightLine,
   RiFilePdf2Line,
@@ -54,7 +29,6 @@ import { useT } from "../../../i18n";
 import { fillI539Form, type I539Data, uploadFilledI539 } from "../../../features/onboarding/cos/lib/i539";
 import * as processService from "../../../features/process/lib/processOps";
 import type { UserService } from "../../../features/process/types";
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
 const US_STATES = [
   "", "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN",

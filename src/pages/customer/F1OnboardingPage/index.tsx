@@ -1,14 +1,3 @@
-<<<<<<< HEAD
-import { useNavigate } from 'react-router-dom'
-import { RiArrowLeftLine, RiLoader4Line } from 'react-icons/ri'
-import { useAuth } from '../../../hooks/useAuth'
-import { useT } from '../../../i18n'
-import {
-  useF1OnboardingController,
-} from '../../../controllers/F1/F1OnboardingController'
-import { AdminFeedbackBanner } from '../../../views/components/AdminFeedbackBanner'
-import { F1StepContent, type F1ViewLabels } from './components/F1StepContent'
-=======
 import { Formik, Form } from "formik";
 import { motion } from "framer-motion";
 import {
@@ -32,22 +21,12 @@ import { F1FinalPreparationStep } from "./steps/F1FinalPreparationStep";
 
 import { ds160Validator, type DS160FormValues } from "../../../features/onboarding/b1b2/schemas/ds160.schema";
 import { useF1Onboarding } from "../../../features/onboarding/f1/hooks/useF1Onboarding";
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
 export default function F1OnboardingPage() {
   const t = useT('visas') as F1ViewLabels
   const { user } = useAuth()
   const navigate = useNavigate()
 
-<<<<<<< HEAD
-  const controller = useF1OnboardingController({
-    userId: user?.id,
-    labels: t,
-  })
-
-  const { isLoading, procId, slug, stepIdx, adminFeedback, savedValues } =
-    controller
-=======
   const {
     isLoading,
     procId,
@@ -60,7 +39,6 @@ export default function F1OnboardingPage() {
     handleSaveDraft,
     navigate,
   } = useF1Onboarding(user?.id);
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
   if (isLoading) {
     return (

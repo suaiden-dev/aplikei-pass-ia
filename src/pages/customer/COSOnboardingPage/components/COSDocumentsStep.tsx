@@ -1,6 +1,6 @@
 import { RiInformationLine } from 'react-icons/ri'
 import { MdAccountBalance, MdPerson } from 'react-icons/md'
-import { DocUploadCard, type DocFile } from '../../../../components/DocUploadCard'
+import { DocUploadCard, type DocFile } from '../../../../components/molecules/DocUploadCard'
 import { useT } from '../../../../i18n'
 
 type OnboardingTranslations = ReturnType<typeof useT>

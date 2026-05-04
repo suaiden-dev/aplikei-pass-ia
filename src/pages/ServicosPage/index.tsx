@@ -1,10 +1,5 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-<<<<<<< HEAD
-import { FiArrowRight } from "react-icons/fi";
-import { MdCheckCircle, MdVerified, MdLanguage, MdSchool, MdHistory, MdSyncAlt } from "react-icons/md";
-import type { IconType } from "react-icons";
-=======
 import { 
   RiArrowRightUpLine, 
   RiEyeOffLine,
@@ -13,7 +8,6 @@ import {
 import { servicesData } from "../../data/services";
 import { supabase } from "../../shared/lib/supabase";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/atoms/accordion";
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 import { useT } from "../../i18n";
 import { getCustomerProcessStartPath } from "../../utils/customer-process-start";
 import { getServiceBySlug, type ServiceMeta } from "../../data/services";

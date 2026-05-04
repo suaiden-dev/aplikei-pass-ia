@@ -18,12 +18,8 @@ import {
   RiFlagLine,
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
-<<<<<<< HEAD
-import { processService, type UserService } from "../../../services/process.service";
-=======
 import { calculateProcessProgress } from "../../../features/process/utils";
 import * as processService from "../../../features/process/lib/processOps";
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 import { getServiceBySlug } from "../../../data/services";
 import { supabase } from "../../../shared/lib/supabase";
 import { toast } from "sonner";
@@ -33,13 +29,8 @@ import { useT } from "../../../i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { StepConfig } from "../../../templates/ServiceDetailTemplate";
 import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "../../../data/workflowTemplates";
-<<<<<<< HEAD
-import { normalizeLegacyFinalShipSteps } from "../../../utils/legacyWorkflow";
-import { Skeleton } from "../../../components/ui/skeleton";
-=======
 import { Skeleton } from "../../../components/atoms/skeleton";
 import { shouldPromptForIdentityPhoto } from "./identityPhotoPrompt";
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,

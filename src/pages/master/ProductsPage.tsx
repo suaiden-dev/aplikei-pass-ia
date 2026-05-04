@@ -1,5 +1,5 @@
 import { Boxes, Download, Package2, Plus, ShoppingBag, ShoppingCart } from "lucide-react";
-import { Button } from "../../components/Button";
+import { Button } from "../../components/atoms/button";
 import {
   DashboardPageHeader,
   DashboardSection,
@@ -8,7 +8,7 @@ import {
   KpiCard,
   StatusBadge,
   ToolbarPill,
-} from "../../components/master/DashboardUI";
+} from "../../components/organisms/DashboardUI";
 import { productRecords } from "../../mocks/master-dashboard";
 import { formatCompactNumber, formatCurrency } from "../../utils/format";
 

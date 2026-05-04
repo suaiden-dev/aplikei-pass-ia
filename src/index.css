@@ -52,8 +52,6 @@
   --color-warning:      var(--warning);
   --color-danger:       var(--danger);
   --color-info:         var(--info);
-<<<<<<< HEAD
-=======
 
   --color-background:   var(--bg);
   --color-foreground:   var(--text);
@@ -70,7 +68,6 @@
   --color-destructive-foreground: #FFFFFF;
   --color-primary-foreground: var(--on-primary);
   --color-secondary-foreground: var(--on-secondary);
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 }
 
 :root {
@@ -126,21 +123,6 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-<<<<<<< HEAD
-  --bg:             #0F172A;
-  --bg-subtle:      #1E293B;
-  --card:           #1E293B;
-  --highlight:      #020617;
-  --text:           #F1F5F9;
-  --text-muted:     #94A3B8;
-  --border:         #334155;
-  --primary:        #1A56DB;
-  --primary-hover:  #2563EB;
-  --success:        #16A34A;
-  --warning:        #D97706;
-  --danger:         #DC2626;
-  --info:           #0284C7;
-=======
   --surface: #10131a;
   --surface-dim: #10131a;
   --surface-bright: #363941;
@@ -186,7 +168,6 @@
   --text-muted: var(--on-surface-variant);
   --border: var(--outline-variant);
   --primary-hover: #60a5fa;
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 }
 
 @keyframes accordion-down {

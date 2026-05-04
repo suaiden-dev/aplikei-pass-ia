@@ -21,7 +21,7 @@ import { COSDocumentsStep } from './COSDocumentsStep'
 import COSProcessingFallbackStep from './COSProcessingFallbackStep'
 import { useT } from '../../../../i18n'
 import type { Dependent } from '../useCOSOnboardingPage'
-import type { DocFile } from '../../../../components/DocUploadCard'
+import type { DocFile } from '../../../../components/molecules/DocUploadCard'
 import type { UserService } from '../../../../services/process.service'
 import type { UserAccount } from '../../../../models/user.model'
 import type {

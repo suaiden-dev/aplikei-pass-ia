@@ -4,30 +4,6 @@ import {
   RiCheckDoubleLine,
   RiLoader4Line,
 } from 'react-icons/ri'
-<<<<<<< HEAD
-import { useCOSOnboardingPage } from './useCOSOnboardingPage'
-import COSStepContent from './components/COSStepContent'
-
-export default function COSOnboardingPage() {
-  const {
-    t,
-    user,
-    stepIdx,
-    proc,
-    isLoading,
-    isSubmitting,
-    currentVisa,
-    setCurrentVisa,
-    targetVisa,
-    setTargetVisa,
-    i94Date,
-    setI94Date,
-    dependents,
-    docs,
-    isFieldRejected,
-    isReadOnly,
-    canSubmit,
-=======
 import { MdPerson, MdAccountBalance } from 'react-icons/md'
 import { useAuth } from '../../../hooks/useAuth'
 import {
@@ -391,23 +367,14 @@ export default function COSOnboardingPage() {
     }
   }, [
     currentProcessStep,
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
     isMotionContext,
     isRFEContext,
-    isMotionResultStep,
-    addDependent,
-    updateDependent,
-    removeDependent,
-    handleDocChange,
-    handleConcluir,
-    getDocSlots,
-    goToProcess,
-    jumpToOnboardingStep,
-    handleUSCISResult,
-    handleMotionResult,
-    handleRFEResult,
-    steps,
-  } = useCOSOnboardingPage()
+    stepIdx,
+    navigate,
+    searchParams,
+    slug,
+    proc,
+  ])
 
   if (isLoading || !t || !t.cos) {
     return (
@@ -428,12 +395,6 @@ export default function COSOnboardingPage() {
       </div>
     )
   }
-<<<<<<< HEAD
-  const currentStep = steps[stepIdx]
-  const currentStepTitle = currentStep?.product_step?.title ?? t.cos.title
-  const currentStepDescription = currentStep?.product_step?.description ?? undefined
-  const totalSteps = steps.length
-=======
 
   // Handle doc slot generation
   const getDocSlots = () => {
@@ -707,7 +668,6 @@ export default function COSOnboardingPage() {
       setIsSubmitting(false)
     }
   }
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 
   return (
     <div className='min-h-screen bg-[#f8fafc] flex flex-col'>

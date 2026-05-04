@@ -1,10 +1,5 @@
 import { motion } from "framer-motion";
-<<<<<<< HEAD
-import { Link } from "react-router-dom";
-import { HowItWorksSection } from "../../components/HowItWorksSection";
-=======
 import { HowItWorksSection } from "../../components/organisms/LandingHowItWorks";
->>>>>>> ca1a9af (feat: Implemented a color-coding system, atomic components, an organized)
 import { RiInformationLine, RiCheckDoubleLine } from "react-icons/ri";
 import { useT } from "../../i18n";
 

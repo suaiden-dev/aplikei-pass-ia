@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CircleDollarSign, Download, UserPlus, Users } from "lucide-react";
-import { Button } from "../../components/Button";
+import { Button } from "../../components/atoms/button";
 import {
   DashboardPageHeader,
   DashboardSection,
@@ -9,7 +9,7 @@ import {
   KpiCard,
   StatusBadge,
   ToolbarPill,
-} from "../../components/master/DashboardUI";
+} from "../../components/organisms/DashboardUI";
 import { onPortalEvent } from "../../mocks/customer-portal";
 import { adminCustomerService, type AdminCustomerRecord } from "../../services/admin-customer.service";
 import { formatCompactNumber, formatCurrency } from "../../utils/format";
