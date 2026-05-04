@@ -5,10 +5,10 @@ import { HeroSection } from "../../components/organisms/LandingHero";
 import { FAQSection } from "../../components/organisms/LandingFAQ";
 import { TestimonialsSection } from "../../components/organisms/LandingTestimonials";
 import { HowItWorksSection } from "../../components/organisms/LandingHowItWorks";
-import { ProblemSection } from "../../components/ProblemSection";
-import { SolutionSection } from "../../components/SolutionSection";
-import { BenefitsSection } from "../../components/BenefitsSection";
-import { FinalCtaSection } from "../../components/FinalCtaSection";
+import { BenefitsSection } from "../../components/organisms/LandingBenefits";
+import { ProblemSection } from "../../components/organisms/LandingProblem";
+import { SolutionSection } from "../../components/organisms/LandingSolution";
+import { FinalCtaSection } from "../../components/organisms/LandingFinalCTA";
 import { getDefaultRouteForRole } from "../../routes/authRedirect";
 import { RouteGuardLoader } from "../../routes/RouteGuardLoader";
 

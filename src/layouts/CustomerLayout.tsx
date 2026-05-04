@@ -43,23 +43,7 @@ export function CustomerLayout() {
 
   return (
     <NotificationProvider role="client">
-      <div className="flex h-screen overflow-hidden bg-[#F8FAFC] relative">
-        {/* Mobile Header */}
-        <header className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-100 px-6 flex items-center justify-between z-40 shadow-sm">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Aplikei" className="h-8 w-auto object-contain" />
-            <div className="ml-1">
-              <NotificationBell role="client" theme="light" align="left" />
-            </div>
-          </div>
-          <button 
-            onClick={openSidebar}
-            className="p-2 rounded-xl bg-slate-50 text-slate-600 active:scale-95 transition-all"
-          >
-            <RiMenuLine size={24} />
-          </button>
-        </header>
-
+      <div className="flex h-screen overflow-hidden bg-[#F8FAFC] relative w-full">
         {/* Backdrop for Mobile */}
         {isSidebarOpen && (
           <div 
@@ -120,7 +104,9 @@ export function CustomerLayout() {
         </aside>
 
         {/* Main area */}
-        <main className="flex-1 overflow-y-auto xl:pt-0 pt-16">
+        <main className="flex-1 overflow-hidden flex flex-col h-full bg-bg">
+          <DashboardNavbar onMenuClick={openSidebar} role="client" />
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <motion.div
             key={pathname}
             initial={{ opacity: 0, x: 20 }}
@@ -130,6 +116,7 @@ export function CustomerLayout() {
           >
             <Outlet />
           </motion.div>
+          </div>
         </main>
         <NotificationToaster />
       </div>

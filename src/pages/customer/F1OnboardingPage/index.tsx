@@ -1,31 +1,29 @@
-import { Formik, Form } from "formik";
-import { motion } from "framer-motion";
-import {
-  RiArrowRightLine,
-  RiArrowLeftLine,
-  RiLoader4Line,
-  RiErrorWarningLine,
-  RiAlertLine,
-} from "react-icons/ri";
+import { useNavigate } from "react-router-dom";
+import { RiArrowLeftLine, RiLoader4Line } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
 import { useT } from "../../../i18n";
-
-import { DS160SingleFormStep } from "../B1B2OnboardingPage/steps/DS160SingleFormStep";
-import { B1B2UserReviewSignStep } from "../B1B2OnboardingPage/steps/B1B2UserReviewSignStep";
-import { B1B2CASVSchedulingStep } from "../B1B2OnboardingPage/steps/B1B2CASVSchedulingStep";
-import { B1B2UserConfirmEmailStep } from "../B1B2OnboardingPage/steps/B1B2UserConfirmEmailStep";
-import { B1B2MRVPaymentStep } from "../B1B2OnboardingPage/steps/B1B2MRVPaymentStep";
-
-import { F1I20UploadStep } from "./steps/F1I20UploadStep";
-import { F1FinalPreparationStep } from "./steps/F1FinalPreparationStep";
-
-import { ds160Validator, type DS160FormValues } from "../../../features/onboarding/b1b2/schemas/ds160.schema";
+import { AdminFeedbackBanner } from "../../../components/organisms/AdminFeedbackBanner";
 import { useF1Onboarding } from "../../../features/onboarding/f1/hooks/useF1Onboarding";
+import { F1StepContent } from "./components/F1StepContent";
+
+interface F1ViewLabels {
+  onboardingPage: {
+    f1: {
+      title: string;
+      reapplicationTitle: string;
+      ds160Step: string;
+      supportDocsStep: string;
+    };
+    guidedFilling: string;
+    stepLabel: string;
+    of: string;
+    adjustmentsRequested: string;
+  };
+}
 
 export default function F1OnboardingPage() {
-  const t = useT('visas') as F1ViewLabels
+  const t = useT('visas') as unknown as F1ViewLabels
   const { user } = useAuth()
-  const navigate = useNavigate()
 
   const {
     isLoading,
@@ -39,6 +37,8 @@ export default function F1OnboardingPage() {
     handleSaveDraft,
     navigate,
   } = useF1Onboarding(user?.id);
+
+  const controller = { stepIdx, handleSubmit, handleSaveDraft };
 
   if (isLoading) {
     return (

@@ -33,7 +33,6 @@ export function AdminDashboardLayout() {
       consoleTitle={t.layout.shared.consoleTitle}
       consoleSubtitle={t.layout.admin.subtitle}
       roleLabel={t.layout.admin.roleLabel}
-      headerEyebrow={t.layout.admin.headerEyebrow}
       navItems={navItems}
       spotlightTitle={t.layout.admin.spotlightTitle}
       spotlightDescription={t.layout.admin.spotlightDescription}

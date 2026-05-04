@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { useT } from "../i18n";
+import { useT } from "../../i18n";
 
-export const ProblemSection = () => {
+export function LandingProblem() {
   const t = useT("landing");
 
   if (!t.problem) return null;
@@ -97,4 +97,6 @@ export const ProblemSection = () => {
       </div>
     </section>
   );
-};
+}
+
+export const ProblemSection = LandingProblem;

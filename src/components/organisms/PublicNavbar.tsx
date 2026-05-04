@@ -1,16 +1,88 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
-import { RiMenu3Line, RiCloseLine, RiSunLine, RiMoonLine } from "react-icons/ri";
+import { RiMenu3Line, RiCloseLine, RiSunLine, RiMoonLine, RiArrowDownSLine } from "react-icons/ri";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "../../utils/cn";
 import { useLocale, useT, type Language } from "../../i18n";
 import { useTheme } from "../../contexts/useTheme";
 import { Button } from "../atoms/button";
 
-const FLAG: Record<Language, string> = { pt: "🇧🇷", en: "🇺🇸", es: "🇪🇸" };
+const LANGS: { code: Language; src: string; label: string }[] = [
+  { code: "pt", src: "https://flagcdn.com/w20/br.png", label: "Português" },
+  { code: "en", src: "https://flagcdn.com/w20/us.png", label: "English" },
+  { code: "es", src: "https://flagcdn.com/w20/es.png", label: "Español" },
+];
+
+function LangDropdown({ size = "sm" }: { size?: "sm" | "lg" }) {
+  const { lang, setLang } = useLocale();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const active = LANGS.find((l) => l.code === lang) ?? LANGS[0];
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const flagH = size === "lg" ? "h-6" : "h-4";
+  const flagHDrop = size === "lg" ? "h-5" : "h-4";
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          "flex items-center gap-1.5 rounded-full border border-border/70 bg-card/80 px-2.5 py-1.5 backdrop-blur-sm transition-all",
+          "hover:border-primary/40 hover:bg-card",
+          open && "border-primary/40 ring-2 ring-primary/10",
+        )}
+        aria-label="Selecionar idioma"
+      >
+        <img src={active.src} alt={active.label} className={cn(flagH, "w-auto rounded-[3px]")} />
+        <RiArrowDownSLine
+          size={14}
+          className={cn("text-text-muted transition-transform duration-200", open && "rotate-180")}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 top-full mt-2 z-[200] min-w-[140px] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_16px_48px_rgba(15,23,42,0.16)] backdrop-blur-xl"
+          >
+            {LANGS.map((l) => (
+              <button
+                key={l.code}
+                onClick={() => { setLang(l.code); setOpen(false); }}
+                className={cn(
+                  "flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors",
+                  lang === l.code
+                    ? "bg-primary/10 text-primary"
+                    : "text-text-muted hover:bg-bg-subtle hover:text-text",
+                )}
+              >
+                <img src={l.src} alt={l.label} className={cn(flagHDrop, "w-auto rounded-[3px]")} />
+                {l.label}
+                {lang === l.code && (
+                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+                )}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export function PublicNavbar() {
-  const { lang, setLang } = useLocale();
   const t = useT("nav");
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
@@ -41,10 +113,10 @@ export function PublicNavbar() {
       <nav className="sticky top-0 z-[100] flex items-center justify-between border-b border-border/70 bg-bg/90 px-6 py-4 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur-xl xl:px-16">
         <div className="flex items-center gap-10">
           <Link to="/" className="relative z-[110] flex items-center gap-2.5">
-            <img 
-              src="/logo.png" 
-              alt="Aplikei" 
-              className="h-12 w-auto object-contain drop-shadow-[0_8px_24px_rgba(15,23,42,0.12)]" 
+            <img
+              src="/logo.png"
+              alt="Aplikei"
+              className="h-12 w-auto object-contain drop-shadow-[0_8px_24px_rgba(15,23,42,0.12)]"
             />
           </Link>
           <div className="hidden items-center gap-7 xl:flex">
@@ -67,25 +139,13 @@ export function PublicNavbar() {
         </div>
 
         <div className="hidden items-center gap-4 xl:flex">
-          <div className="flex items-center gap-1 rounded-full border border-border/70 bg-card/80 px-2 py-1 backdrop-blur-sm">
-            {(["pt", "en", "es"] as Language[]).map((l, i) => (
-              <React.Fragment key={l}>
-                {i > 0 && <span className="text-[10px] text-white/20">|</span>}
-                <button
-                  onClick={() => setLang(l)}
-                  title={l.toUpperCase()}
-                  className={cn("px-0.5 text-lg transition-opacity", lang === l ? "opacity-100" : "opacity-40 hover:opacity-70")}
-                >
-                  {FLAG[l]}
-                </button>
-              </React.Fragment>
-            ))}
-          </div>
+          {/* Language Dropdown */}
+          <LangDropdown />
 
-              <button
-                onClick={toggleTheme}
+          <button
+            onClick={toggleTheme}
             className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-card/80 text-text-muted transition-colors hover:border-primary/40 hover:text-text"
-                aria-label="Toggle theme"
+            aria-label="Toggle theme"
           >
             {theme === "dark" ? <RiSunLine size={16} /> : <RiMoonLine size={16} />}
           </button>
@@ -113,7 +173,7 @@ export function PublicNavbar() {
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-[90] flex flex-col overflow-y-auto bg-bg px-6 pb-6 pt-24"
           >
-          <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+            <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
               {navLinks.map(({ to, label }) => (
                 <NavLink
                   key={to}
@@ -128,23 +188,12 @@ export function PublicNavbar() {
               ))}
             </div>
             <div className="mt-8 flex flex-col items-center gap-5">
-              <div className="flex items-center gap-3 rounded-full border border-border/70 bg-card/80 px-4 py-2 backdrop-blur-sm">
-                {(["pt", "en", "es"] as Language[]).map((l, i) => (
-                  <React.Fragment key={l}>
-                    {i > 0 && <span className="font-bold text-white/20">|</span>}
-                    <button
-                      onClick={() => setLang(l)}
-                      className={cn("text-2xl transition-opacity", lang === l ? "opacity-100" : "opacity-40")}
-                    >
-                      {FLAG[l]}
-                    </button>
-                  </React.Fragment>
-                ))}
-              </div>
+              {/* Language Dropdown (mobile) */}
+              <LangDropdown size="lg" />
 
               <button
                 onClick={toggleTheme}
-                  className="flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:text-text"
+                className="flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:text-text"
               >
                 {theme === "dark" ? <RiSunLine size={16} /> : <RiMoonLine size={16} />}
                 {theme === "dark" ? "Light mode" : "Dark mode"}

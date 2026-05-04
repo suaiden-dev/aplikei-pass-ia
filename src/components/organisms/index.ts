@@ -14,4 +14,8 @@ export * from "./StepTimeline";
 export * from "./ServiceCTA";
 export * from "./PhotoUploadOverlay";
 export * from "./AdminFeedbackBanner";
+export * from "./LandingBenefits";
+export * from "./LandingProblem";
+export * from "./LandingSolution";
+export * from "./LandingFinalCTA";
 export * from "./ScrollToTop";

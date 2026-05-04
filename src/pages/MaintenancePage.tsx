@@ -52,17 +52,18 @@ const MaintenancePage: React.FC = () => {
     <div className="min-h-screen bg-[#0A0A0B] flex flex-col items-center justify-center p-4 text-white font-sans overflow-hidden relative">
       {/* Language Switcher */}
       <div className="absolute top-8 right-8 z-50 flex gap-2">
-        {(['pt', 'en', 'es'] as const).map((l) => (
+        {([{ code: 'pt', flag: '🇧🇷' }, { code: 'en', flag: '🇺🇸' }, { code: 'es', flag: '🇪🇸' }] as const).map((l) => (
           <button
-            key={l}
-            onClick={() => setLang(l)}
-            className={`px-3 py-1 rounded-full text-xs font-bold transition-all border ${
-              lang === l 
-                ? 'bg-primary border-primary text-white' 
-                : 'bg-white/5 border-white/10 text-white/40 hover:border-white/20'
+            key={l.code}
+            onClick={() => setLang(l.code)}
+            title={l.code.toUpperCase()}
+            className={`px-2 py-1 rounded-full text-lg transition-all border ${
+              lang === l.code 
+                ? 'bg-primary border-primary' 
+                : 'bg-white/5 border-white/10 opacity-40 hover:opacity-70 hover:border-white/20'
             }`}
           >
-            {l.toUpperCase()}
+            {l.flag}
           </button>
         ))}
       </div>

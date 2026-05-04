@@ -1,7 +1,8 @@
 const landing = {
   hero: {
     badge: "IA Imigratória de Próxima Geração",
-    title: "A plataforma completa para gestão de processos de visto",
+    title: "A plataforma completa para gestão de",
+    titleHighlight: "processos de visto",
     subtitle: "Automatize tarefas, organize documentos e escale seu escritório com a eficiência da Inteligência Artificial aplicada ao direito imigratório.",
     cta: "Agendar demonstração",
     ctaSecondary: "Falar com especialista",
@@ -136,6 +137,27 @@ const landing = {
     description: "Junte-se aos escritórios que já automatizaram mais de 10.000 processos com precisão jurídica e tecnologia de ponta.",
     button: "Agendar demonstração",
     disclaimer: "Sem compromisso. Teste gratuito por 14 dias para novos parceiros."
+  },
+  faq: {
+    title: "Perguntas Frequentes",
+    items: [
+      {
+        q: "A plataforma é segura para dados jurídicos?",
+        a: "Sim, utilizamos criptografia de ponta a ponta e estamos em conformidade com as principais normas de proteção de dados (LGPD/GDPR)."
+      },
+      {
+        q: "Como a IA ajuda no preenchimento de formulários?",
+        a: "Nossa IA analisa os documentos enviados e extrai as informações necessárias para preencher automaticamente os formulários da USCIS, validando a consistência dos dados."
+      },
+      {
+        q: "Posso integrar com meu sistema atual?",
+        a: "Sim, oferecemos APIs e integrações com as principais ferramentas de gestão e CRM do mercado."
+      },
+      {
+        q: "Existe suporte em português?",
+        a: "Com certeza. Nosso time de suporte é composto por especialistas que falam sua língua e entendem o mercado imigratório."
+      }
+    ]
   }
 };
 export default landing;

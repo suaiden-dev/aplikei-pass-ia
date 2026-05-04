@@ -3,7 +3,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLocale, useT, type Language } from "../../i18n";
 import { useTheme } from "../../contexts/useTheme";
 import { NotificationBell } from "../../features/notifications/components/NotificationBell";
-import { RiSunLine, RiMoonLine, RiArrowDownSLine, RiLogoutBoxRLine, RiPencilLine, RiUploadLine } from "react-icons/ri";
+import { RiSunLine, RiMoonLine, RiArrowDownSLine, RiLogoutBoxRLine, RiPencilLine, RiUploadLine, RiMenuLine } from "react-icons/ri";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "../../utils/cn";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../atoms/dialog";
@@ -64,7 +64,19 @@ async function cropAvatarToBlob(
   return blob;
 }
 
-export function DashboardNavbar() {
+interface DashboardNavbarProps {
+  onMenuClick?: () => void;
+  title?: string;
+  subtitle?: string;
+  role?: "client" | "admin" | "master" | "seller";
+}
+
+export function DashboardNavbar({ 
+  onMenuClick, 
+  title, 
+  subtitle, 
+  role = "client" 
+}: DashboardNavbarProps) {
   const { user, logout, refreshAccount } = useAuth();
   const { lang, setLang } = useLocale();
   const { theme, toggleTheme } = useTheme();
@@ -101,6 +113,7 @@ export function DashboardNavbar() {
   }, []);
 
   const getPageTitle = () => {
+    if (title) return title;
     if (pathname === "/dashboard") return t.sidebar.dashboard;
     if (pathname.startsWith("/dashboard/processes")) return t.sidebar.cases;
     if (pathname.startsWith("/dashboard/support")) return t.sidebar.support;
@@ -182,11 +195,26 @@ export function DashboardNavbar() {
   };
 
   return (
-    <header className="sticky top-0 z-30 hidden h-20 items-center justify-between border-b border-border bg-card/80 px-8 backdrop-blur-xl xl:flex">
-      <div>
-        <h1 className="text-xl font-black text-text tracking-tight uppercase">
-          {getPageTitle()}
-        </h1>
+    <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-border bg-card/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+      <div className="flex items-center gap-4">
+        {onMenuClick && (
+          <button
+            type="button"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-text-muted xl:hidden"
+            onClick={onMenuClick}
+            aria-label="Open menu"
+          >
+            <RiMenuLine size={20} />
+          </button>
+        )}
+        <div>
+          <h1 className="text-xl font-black text-text tracking-tight uppercase">
+            {getPageTitle()}
+          </h1>
+          {subtitle && (
+            <p className="text-[10px] font-medium text-text-muted mt-0.5">{subtitle}</p>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-6">
@@ -220,7 +248,7 @@ export function DashboardNavbar() {
 
         <div className="flex items-center gap-3">
           <div className="rounded-xl p-1 transition-colors hover:bg-bg-subtle">
-            <NotificationBell role="client" align="right" />
+            <NotificationBell role={role} align="right" />
           </div>
 
           <div className="mx-2 h-8 w-px bg-border" />

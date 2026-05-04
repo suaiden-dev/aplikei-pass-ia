@@ -15,9 +15,9 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({ children }) => {
   const location = useLocation();
 
   const languages = [
-    { code: "pt", label: "Português" },
-    { code: "en", label: "English" },
-    { code: "es", label: "Español" },
+    { code: "pt", label: "Português", flag: "🇧🇷" },
+    { code: "en", label: "English", flag: "🇺🇸" },
+    { code: "es", label: "Español", flag: "🇪🇸" },
   ] as const;
 
   const menuItems = [
@@ -118,14 +118,15 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({ children }) => {
                     <button
                       key={l.code}
                       onClick={() => setLang(l.code)}
+                      title={l.label}
                       className={cn(
-                        "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+                        "px-2 py-1.5 rounded-lg text-lg transition-all",
                         lang === l.code
-                          ? "bg-primary text-white shadow-md shadow-primary/20"
-                          : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
+                          ? "bg-primary shadow-md shadow-primary/20"
+                          : "opacity-40 hover:opacity-80 hover:bg-slate-50 dark:hover:bg-slate-700"
                       )}
                     >
-                      {l.code.toUpperCase()}
+                      {l.flag}
                     </button>
                   ))}
                 </div>

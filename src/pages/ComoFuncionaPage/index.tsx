@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { HowItWorksSection } from "../../components/organisms/LandingHowItWorks";
 import { RiInformationLine, RiCheckDoubleLine } from "react-icons/ri";
 import { useT } from "../../i18n";

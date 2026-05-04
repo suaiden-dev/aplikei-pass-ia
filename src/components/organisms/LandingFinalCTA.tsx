@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { useT } from "../i18n";
+import { useT } from "../../i18n";
 
-export const FinalCtaSection = () => {
+export function LandingFinalCTA() {
   const t = useT("landing");
 
   if (!t.finalCta) return null;
@@ -45,4 +45,6 @@ export const FinalCtaSection = () => {
       </div>
     </section>
   );
-};
+}
+
+export const FinalCtaSection = LandingFinalCTA;

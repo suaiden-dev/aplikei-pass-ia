@@ -7,6 +7,7 @@ import {
   Users,
   TicketPercent,
   BriefcaseBusiness,
+  ShieldCheck,
 } from "lucide-react";
 import { RoleDashboardLayout } from "./RoleDashboardLayout";
 import { useT } from "../i18n";
@@ -32,7 +33,6 @@ export function MasterDashboardLayout() {
       consoleTitle={t.layout.shared.consoleTitle}
       consoleSubtitle={t.layout.master.subtitle}
       roleLabel={t.layout.master.roleLabel}
-      headerEyebrow={t.layout.master.headerEyebrow}
       navItems={navItems}
       spotlightTitle={t.layout.master.spotlightTitle}
       spotlightDescription={t.layout.master.spotlightDescription}

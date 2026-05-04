@@ -5,6 +5,9 @@ import { useT } from "../../i18n";
 
 export function LandingFAQ() {
   const t = useT("landing");
+
+  if (!t.faq || !t.faq.items) return null;
+
   const faqItems = t.faq.items;
 
   return (

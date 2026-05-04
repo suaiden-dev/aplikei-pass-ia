@@ -5,12 +5,18 @@ import { Button } from "../components/atoms/button";
 import { ServiceCTA } from "../components/organisms/ServiceCTA";
 import type { IconType } from "react-icons";
 import {
-  MdVerified, MdGroupAdd, MdCheckCircle, MdCheck, MdCancel, MdClose, MdInfo,
-  MdDescription, MdEditNote, MdPayments, MdRecordVoiceOver, MdFactCheck, MdHistory, MdArticle,
+  MdVerified, MdCheckCircle, MdCheck, MdCancel, MdClose, MdInfo, MdArticle,
 } from "react-icons/md";
+import {
+  RiFileTextLine, RiShieldCheckLine, RiSearchLine, RiFileList3Line
+} from "react-icons/ri";
 import { FiArrowRight } from "react-icons/fi";
 import { useT } from "../i18n";
-import * as processService from "../features/process/lib/processOps";
+import type { ServiceMeta } from "../data/services";
+
+const getCustomerProcessStartPath = (slug: string) => `/dashboard/processes/${slug}/onboarding`;
+
+const includedIcons = [RiFileTextLine, RiShieldCheckLine, RiSearchLine, RiFileList3Line];
 
 export interface StepConfig {
   id: string;

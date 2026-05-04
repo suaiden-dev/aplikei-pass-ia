@@ -24,7 +24,6 @@ export function SellerDashboardLayout() {
       consoleTitle={t.layout.shared.consoleTitle}
       consoleSubtitle={t.layout.seller.subtitle}
       roleLabel={t.layout.seller.roleLabel}
-      headerEyebrow={t.layout.seller.headerEyebrow}
       navItems={navItems}
       spotlightTitle={t.layout.seller.spotlightTitle}
       spotlightDescription={t.layout.seller.spotlightDescription}
