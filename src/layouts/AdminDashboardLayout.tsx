@@ -8,6 +8,7 @@ import {
   TicketPercent,
   BriefcaseBusiness,
   ShieldCheck,
+  LayoutTemplate,
 } from "lucide-react";
 import { RoleDashboardLayout } from "./RoleDashboardLayout";
 import { useT } from "../i18n";
@@ -25,11 +26,12 @@ export function AdminDashboardLayout() {
     { to: "/admin/customers", label: t.nav.customers, icon: Users },
     { to: "/admin/coupons", label: t.nav.coupons, icon: TicketPercent },
     { to: "/admin/roles", label: t.nav.roles, icon: ShieldCheck },
+    { to: "/admin/page-builder", label: t.nav.pageBuilder, icon: LayoutTemplate },
   ];
 
   return (
     <RoleDashboardLayout
-      allowedRoles={["master", "admin"]}
+      allowedRoles={["master", "manager", "admin_lawyer"]}
       consoleTitle={t.layout.shared.consoleTitle}
       consoleSubtitle={t.layout.admin.subtitle}
       roleLabel={t.layout.admin.roleLabel}

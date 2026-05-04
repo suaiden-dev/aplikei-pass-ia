@@ -37,6 +37,7 @@ const AdminChatsPage         = lazyPage(() => import("./pages/admin/ChatsPage"))
 const CouponsPage            = lazyPage(() => import("./pages/admin/CouponsPage"));
 const RolesPage              = lazyPage(() => import("./pages/admin/RolesPage"));
 const LawyersPage            = lazyPage(() => import("./pages/admin/LawyersPage"));
+const PageBuilderPage        = lazyPage(() => import("./pages/admin/PageBuilderPage"));
 
 // Customer
 const CustomerDashboardPage = lazyPage(() => import("./pages/customer/DashboardPage"));
@@ -148,6 +149,7 @@ export default function App() {
               <Route path="products" element={<ProductsPage />} />
               <Route path="coupons" element={<CouponsPage />} />
               <Route path="roles" element={<RolesPage />} />
+              <Route path="page-builder" element={<PageBuilderPage />} />
             </Route>
 
             {/* Seller routes */}

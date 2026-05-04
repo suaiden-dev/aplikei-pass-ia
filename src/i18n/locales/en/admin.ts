@@ -16,6 +16,25 @@ const admin = {
     },
     registration: "Registration",
     paid: "Paid",
+    roleLabels: {
+      master: "Master",
+      admin_lawyer: "Admin Lawyer",
+      manager: "Manager",
+      seller: "Seller",
+      customer: "Customer",
+    },
+  },
+  nav: {
+    dashboard: "Dashboard",
+    matters: "Matters",
+    revenue: "Revenue",
+    lawyers: "Lawyers",
+    products: "Products",
+    chats: "Chats",
+    customers: "Customers",
+    coupons: "Coupons",
+    roles: "Roles",
+    pageBuilder: "Page Builder",
   },
   overview: {
     stats: {

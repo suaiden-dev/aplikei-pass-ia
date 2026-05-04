@@ -98,14 +98,28 @@ $$;
 
 create or replace function public.current_user_role()
 returns public.user_account_role
-language sql
+language plpgsql
 stable
 security definer
 set search_path = public
 as $$
-  select role
-  from public.users_accounts
-  where id = auth.uid()
+declare
+  v_role public.user_account_role;
+begin
+  if to_regclass('public.users_accounts') is not null then
+    execute 'select role from public.users_accounts where id = auth.uid()'
+    into v_role;
+    return v_role;
+  end if;
+
+  if to_regclass('public.user_accounts') is not null then
+    execute 'select role::public.user_account_role from public.user_accounts where id = auth.uid()'
+    into v_role;
+    return v_role;
+  end if;
+
+  return null;
+end;
 $$;
 
 create or replace function public.is_admin()
@@ -115,7 +129,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select coalesce(public.current_user_role() in ('admin', 'master'), false)
+  select coalesce(public.current_user_role()::text in ('admin', 'manager', 'admin_lawyer', 'master'), false)
 $$;
 
 create or replace function public.start_product_instance(p_user_id uuid, p_product_id uuid, p_order_id uuid default null)
@@ -444,29 +458,36 @@ before update on public.notifications
 for each row
 execute function public.set_updated_at();
 
-drop trigger if exists on_order_paid on public.orders;
-create trigger on_order_paid
-after update on public.orders
-for each row
-execute function public.trigger_fulfill_paid_order();
+do $$
+begin
+  if to_regclass('public.orders') is not null then
+    drop trigger if exists on_order_paid on public.orders;
+    create trigger on_order_paid
+    after update on public.orders
+    for each row
+    execute function public.trigger_fulfill_paid_order();
 
-drop trigger if exists set_orders_updated_at on public.orders;
-create trigger set_orders_updated_at
-before update on public.orders
-for each row
-execute function public.set_updated_at();
+    drop trigger if exists set_orders_updated_at on public.orders;
+    create trigger set_orders_updated_at
+    before update on public.orders
+    for each row
+    execute function public.set_updated_at();
+  end if;
 
-drop trigger if exists on_payment_status_change on public.payments;
-create trigger on_payment_status_change
-after update on public.payments
-for each row
-execute function public.trigger_sync_order_status();
+  if to_regclass('public.payments') is not null then
+    drop trigger if exists on_payment_status_change on public.payments;
+    create trigger on_payment_status_change
+    after update on public.payments
+    for each row
+    execute function public.trigger_sync_order_status();
 
-drop trigger if exists set_payments_updated_at on public.payments;
-create trigger set_payments_updated_at
-before update on public.payments
-for each row
-execute function public.set_updated_at();
+    drop trigger if exists set_payments_updated_at on public.payments;
+    create trigger set_payments_updated_at
+    before update on public.payments
+    for each row
+    execute function public.set_updated_at();
+  end if;
+end $$;
 
 drop trigger if exists set_product_steps_updated_at on public.product_steps;
 create trigger set_product_steps_updated_at
@@ -498,27 +519,13 @@ before update on public.user_steps
 for each row
 execute function public.set_updated_at();
 
--- 7) Remove funções legadas em aplikei
-drop function if exists aplikei.add_dependent_slot(uuid, uuid);
-drop function if exists aplikei.current_user_role();
-drop function if exists aplikei.fulfill_paid_order(uuid);
-drop function if exists aplikei.handle_new_auth_user();
-drop function if exists aplikei.is_admin();
-drop function if exists aplikei.start_product_instance(uuid, uuid, uuid);
-drop function if exists aplikei.sync_auth_user_to_users_accounts();
-drop function if exists aplikei.sync_instance_status(uuid);
-drop function if exists aplikei.sync_order_status(uuid);
-drop function if exists aplikei.trigger_fulfill_paid_order();
-drop function if exists aplikei.trigger_sync_instance_status();
-drop function if exists aplikei.trigger_sync_order_status();
-drop function if exists aplikei.set_updated_at();
+-- 7) Keep legacy functions in aplikei during replay.
+-- Old triggers/policies may still depend on them in historical migrations.
 
--- 8) Remove tabelas duplicadas legadas de aplikei
-drop table if exists aplikei.notifications;
-drop table if exists aplikei.orders;
-drop table if exists aplikei.payment_events;
+-- 8) Keep legacy tables in aplikei during replay to avoid historical
+-- FK/policy dependency failures in shadow migrations.
 
--- 9) Remove schema legado
-drop schema if exists aplikei;
+-- 9) Keep legacy schema during replay; cleanup can be done in a dedicated
+-- post-migration once all dependencies are migrated.
 
 commit;

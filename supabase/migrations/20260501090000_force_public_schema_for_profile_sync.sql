@@ -38,11 +38,16 @@ begin
 end;
 $$;
 
-drop trigger if exists tr_sync_profile_from_users_account on public.users_accounts;
-create trigger tr_sync_profile_from_users_account
-after insert or update of name, email, phone, profile_url, passport_photo_url, updated_at
-on public.users_accounts
-for each row
-execute function public.sync_profile_from_users_account();
+do $$
+begin
+  if to_regclass('public.users_accounts') is not null then
+    drop trigger if exists tr_sync_profile_from_users_account on public.users_accounts;
+    create trigger tr_sync_profile_from_users_account
+    after insert or update of name, email, phone, profile_url, passport_photo_url, updated_at
+    on public.users_accounts
+    for each row
+    execute function public.sync_profile_from_users_account();
+  end if;
+end $$;
 
 commit;

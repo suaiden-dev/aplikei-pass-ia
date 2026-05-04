@@ -1,7 +1,7 @@
 // UserAccount é um tipo de visão (camelCase) mapeado da tabela user_accounts
 // Mantido manualmente pois a tabela usa snake_case mas o app usa camelCase
 
-export type UserRole = "admin" | "customer" | "master" | "seller";
+export type UserRole = "master" | "admin_lawyer" | "manager" | "seller" | "customer";
 
 export interface UserAccount {
   id: string;
@@ -18,5 +18,5 @@ export interface UserAccount {
   updatedAt: string;
 }
 
-export type Admin = UserAccount & { role: "admin" };
+export type Manager = UserAccount & { role: "manager" };
 export type Customer = UserAccount & { role: "customer" };

@@ -18,7 +18,6 @@ const admin = {
     paid: "Pago",
     roleLabels: {
       master: "Master",
-      admin: "Administrador",
       admin_lawyer: "Advogado Admin",
       manager: "Gerente",
       seller: "Vendedor",
@@ -35,6 +34,7 @@ const admin = {
     customers: "Clientes",
     coupons: "Cupons",
     roles: "Funções",
+    pageBuilder: "Page Builder",
     caseLaw: "Jurisprudência",
     documents: "Documentos",
     billing: "Faturamento",

@@ -1,13 +1,29 @@
-CREATE TABLE IF NOT EXISTS public.payment_events (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  provider TEXT NOT NULL,
-  provider_event_id TEXT NOT NULL,
-  order_id UUID NULL REFERENCES public.orders(id) ON DELETE SET NULL,
-  payment_id TEXT NULL,
-  payload JSONB NULL,
-  processed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+DO $$
+BEGIN
+  IF to_regclass('public.orders') IS NOT NULL THEN
+    CREATE TABLE IF NOT EXISTS public.payment_events (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      provider TEXT NOT NULL,
+      provider_event_id TEXT NOT NULL,
+      order_id UUID NULL REFERENCES public.orders(id) ON DELETE SET NULL,
+      payment_id TEXT NULL,
+      payload JSONB NULL,
+      processed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  ELSE
+    CREATE TABLE IF NOT EXISTS public.payment_events (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      provider TEXT NOT NULL,
+      provider_event_id TEXT NOT NULL,
+      order_id UUID NULL,
+      payment_id TEXT NULL,
+      payload JSONB NULL,
+      processed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  END IF;
+END $$;
 
 DO $$
 BEGIN

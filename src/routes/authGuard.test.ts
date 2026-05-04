@@ -8,6 +8,9 @@ const customerUser: UserAccount = {
   email: "customer@example.com",
   phoneNumber: "+1 555 555 5555",
   avatarUrl: null,
+  avatarOffsetX: 0,
+  avatarOffsetY: 0,
+  avatarZoom: 1,
   passportPhotoUrl: null,
   role: "customer",
   createdAt: "2024-01-01T00:00:00.000Z",
@@ -62,7 +65,7 @@ describe("authGuard", () => {
         search: "",
         hash: "",
       },
-      allowedRoles: ["admin"],
+      allowedRoles: ["manager"],
     })).toEqual({
       kind: "redirect-role-home",
       to: "/dashboard",

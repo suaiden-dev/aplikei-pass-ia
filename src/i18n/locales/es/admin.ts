@@ -13,6 +13,25 @@ const admin = {
     },
     registration: "Registro",
     paid: "Pagado",
+    roleLabels: {
+      master: "Master",
+      admin_lawyer: "Abogado Admin",
+      manager: "Gerente",
+      seller: "Vendedor",
+      customer: "Cliente",
+    },
+  },
+  nav: {
+    dashboard: "Dashboard",
+    matters: "Procesos",
+    revenue: "Finanzas",
+    lawyers: "Abogados",
+    products: "Productos",
+    chats: "Mensajes",
+    customers: "Clientes",
+    coupons: "Cupones",
+    roles: "Roles",
+    pageBuilder: "Page Builder",
   },
   overview: {
     stats: {

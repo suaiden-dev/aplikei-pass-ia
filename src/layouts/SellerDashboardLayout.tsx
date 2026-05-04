@@ -20,7 +20,7 @@ export function SellerDashboardLayout() {
 
   return (
     <RoleDashboardLayout
-      allowedRoles={["master", "admin", "seller"]}
+      allowedRoles={["master", "manager", "seller"]}
       consoleTitle={t.layout.shared.consoleTitle}
       consoleSubtitle={t.layout.seller.subtitle}
       roleLabel={t.layout.seller.roleLabel}
