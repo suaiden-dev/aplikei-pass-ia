@@ -20,7 +20,6 @@ export function useAdminRoles() {
   const roleOptions: Array<{ label: string; value: ManagedRole }> = [
     { label: "Master", value: "master" },
     { label: "Admin Lawyer", value: "admin_lawyer" },
-    { label: "Admin", value: "admin" },
     { label: "Manager", value: "manager" },
     { label: "Seller", value: "seller" },
     { label: "Customer", value: "customer" },

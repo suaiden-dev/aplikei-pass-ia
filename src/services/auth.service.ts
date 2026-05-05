@@ -79,7 +79,7 @@ function mapFromUserAccountRow(row: UserAccountsRow): UserAccount {
   };
 }
 
-const VALID_ROLES = ["customer", "admin", "seller", "master"] as const;
+const VALID_ROLES = ["master", "admin_lawyer", "manager", "seller", "customer"] as const;
 
 function mapFromAuthUser(user: AuthUserRow): UserAccount {
   const metadata = user.user_metadata ?? {};
@@ -180,7 +180,7 @@ async function resolveCurrentUserFromSession(session: Session | null): Promise<U
 
 export function getDashboardPathForRole(role: UserAccount["role"]) {
   if (role === "master") return "/master";
-  if (role === "admin") return "/admin";
+  if (role === "manager" || role === "admin_lawyer") return "/admin";
   if (role === "seller") return "/seller/payments";
   return "/dashboard";
 }

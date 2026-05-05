@@ -30,7 +30,7 @@ export interface MockResetPasswordInput {
 
 export function getDashboardPathForRole(role: UserAccountRole) {
   if (role === "master") return "/master";
-  if (role === "admin") return "/admin";
+  if (role === "manager" || role === "admin_lawyer") return "/admin";
   if (role === "seller") return "/seller/payments";
   if (role === "customer") return "/dashboard";
   return "/login";

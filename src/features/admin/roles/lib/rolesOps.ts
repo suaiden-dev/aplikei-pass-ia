@@ -1,6 +1,6 @@
 import { supabase } from "../../../../shared/lib/supabase";
 
-export type ManagedRole = "master" | "admin_lawyer" | "admin" | "manager" | "seller" | "customer";
+export type ManagedRole = "master" | "admin_lawyer" | "manager" | "seller" | "customer";
 
 export interface UserAccountRow {
   id: string;
@@ -11,7 +11,7 @@ export interface UserAccountRow {
   created_at: string;
 }
 
-export const STAFF_ROLES: ManagedRole[] = ["master", "admin_lawyer", "admin", "manager", "seller"];
+export const STAFF_ROLES: ManagedRole[] = ["master", "admin_lawyer", "manager", "seller"];
 
 export async function fetchStaffUsers(): Promise<UserAccountRow[]> {
   const { data, error } = await supabase

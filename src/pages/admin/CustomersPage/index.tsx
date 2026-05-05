@@ -102,10 +102,13 @@ export default function CustomersPage() {
   }, [customers, searchTerm]);
 
   const statsCount = useMemo(() => {
+    const isStaffRole = (role?: string | null) =>
+      role === "master" || role === "manager" || role === "admin_lawyer" || role === "seller";
+
     return {
       total: customers.length,
       customers: customers.filter((c) => c.role === "customer").length,
-      admins: customers.filter((c) => c.role === "admin").length,
+      admins: customers.filter((c) => isStaffRole(c.role)).length,
       recent: customers.filter((c) => {
         const date = new Date(c.created_at);
         const now = new Date();
@@ -260,7 +263,7 @@ export default function CustomersPage() {
                     <td className="px-8 py-6">
                       <span
                         className={`inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
-                          c.role === "admin"
+                          c.role === "master" || c.role === "manager" || c.role === "admin_lawyer"
                             ? "bg-primary/10 text-primary border-primary/20"
                             : "bg-info/10 text-info border-info/20"
                         }`}

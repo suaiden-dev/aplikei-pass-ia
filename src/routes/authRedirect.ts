@@ -1,5 +1,6 @@
 import type { Location } from "react-router-dom";
 import type { UserAccount, UserRole } from "../features/auth/types";
+import { getDashboardPathForRole } from "../shared/auth/roles";
 
 type RedirectLocation = Pick<Location, "pathname" | "search" | "hash">;
 
@@ -8,7 +9,7 @@ export interface AuthRedirectState {
 }
 
 export function getDefaultRouteForRole(role: UserRole) {
-  return role === "admin" ? "/admin" : "/dashboard";
+  return getDashboardPathForRole(role);
 }
 
 export function getRedirectPathAfterLogin(user: UserAccount, state?: AuthRedirectState | null) {

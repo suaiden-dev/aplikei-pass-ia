@@ -18,7 +18,7 @@ const now = "2026-04-27T19:00:00.000Z";
 export const mockAuthUsersSeed: MockAuthUser[] = [
   {
     id: "00000000-0000-0000-0000-000000000001",
-    role: "admin",
+    role: "manager",
     email: "admin@aplikei.com",
     name: "Admin Aplikei",
     profileUrl: "https://api.dicebear.com/9.x/initials/svg?seed=Admin%20Aplikei",

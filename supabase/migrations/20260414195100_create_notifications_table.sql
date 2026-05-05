@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   type        TEXT NOT NULL,           -- 'admin_action' | 'client_action'
   target_role TEXT NOT NULL,           -- 'admin' | 'client'
   user_id     UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  service_id  UUID REFERENCES public.user_services(id) ON DELETE SET NULL,
+  service_id  UUID,
   title       TEXT NOT NULL,
   message     TEXT,                    -- Renomeado de body para message para alinhar com o código do usuário
   is_read     BOOLEAN DEFAULT false,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 ALTER TABLE public.notifications
   ADD COLUMN IF NOT EXISTS target_role TEXT,
   ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS service_id UUID REFERENCES public.user_services(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS service_id UUID,
   ADD COLUMN IF NOT EXISTS title TEXT,
   ADD COLUMN IF NOT EXISTS message TEXT,
   ADD COLUMN IF NOT EXISTS is_read BOOLEAN DEFAULT false,
@@ -42,7 +42,13 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 -- Admin vê todas com target_role = 'admin'
 DO $$
 BEGIN
-  IF NOT EXISTS (
+  IF EXISTS (
+    SELECT 1
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.proname = 'current_user_role'
+  ) AND NOT EXISTS (
     SELECT 1 FROM pg_policies
     WHERE schemaname = 'public'
       AND tablename = 'notifications'
@@ -51,10 +57,7 @@ BEGIN
     CREATE POLICY "admins_see_admin_notifications" ON public.notifications
       FOR SELECT USING (
         target_role = 'admin' AND
-        EXISTS (
-          SELECT 1 FROM public.user_accounts
-          WHERE id = auth.uid() AND role = 'admin'
-        )
+        coalesce(public.current_user_role()::text in ('master', 'admin', 'manager', 'admin_lawyer'), false)
       );
   END IF;
 END $$;
