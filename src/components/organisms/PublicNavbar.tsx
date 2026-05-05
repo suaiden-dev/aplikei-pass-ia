@@ -102,10 +102,7 @@ export function PublicNavbar() {
   const navLinks = [
     { to: "/como-funciona", label: t.howItWorks },
     { to: "/servicos", label: t.services },
-    { to: "/servicos/visto-b1-b2", label: t.serviceB1B2 },
-    { to: "/servicos/visto-f1", label: t.serviceF1 },
-    { to: "/servicos/troca-status", label: t.serviceCOS },
-    { to: "/servicos/extensao-status", label: t.serviceEOS },
+    { to: "/contato", label: t.contact },
   ];
 
   return (
@@ -150,7 +147,7 @@ export function PublicNavbar() {
             {theme === "dark" ? <RiSunLine size={16} /> : <RiMoonLine size={16} />}
           </button>
 
-          <Button asChild className="shadow-md">
+          <Button asChild>
             <Link to="/cadastro">{t.getStarted}</Link>
           </Button>
         </div>

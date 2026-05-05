@@ -25,6 +25,7 @@ const CheckoutPage        = lazyPage(() => import("./pages/CheckoutPage"));
 const CheckoutSuccessPage = lazyPage(() => import("./pages/CheckoutSuccessPage"));
 const ComoFuncionaPage    = lazyPage(() => import("./pages/ComoFuncionaPage"));
 const ServicosPage        = lazyPage(() => import("./pages/ServicosPage"));
+const ContactPage         = lazyPage(() => import("./pages/ContactPage"));
 
 // Admin/Master/Seller
 const CustomersPage          = lazyPage(() => import("./pages/admin/CustomersPage"));
@@ -75,6 +76,7 @@ export default function App() {
             <Route path="/como-funciona" element={<ComoFuncionaPage />} />
             <Route path="/servicos" element={<ServicosPage />} />
             <Route path="/servicos/:slug" element={<ServiceDetailPage />} />
+            <Route path="/contato" element={<ContactPage />} />
           </Route>
 
           <Route element={<AuthLayout />}>

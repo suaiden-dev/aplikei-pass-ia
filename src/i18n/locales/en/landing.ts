@@ -136,6 +136,85 @@ const landing = {
     description: "Join the firms that have already automated more than 10,000 processes with legal precision and cutting-edge technology.",
     button: "Schedule a demo",
     disclaimer: "No commitment. Free trial for 14 days for new partners."
+  },
+  lex: {
+    hero: {
+      title: "We handle your entire immigration process with security, strategy, and efficiency.",
+      subtitle: "Ensuring your international goals are achieved with professional rigor.",
+      badge: "Processes audited and reviewed by licensed attorneys."
+    },
+    methodology: {
+      title: "Rigorous methodology divided into 4 strategic stages.",
+      steps: [
+        {
+          title: "Case Analysis",
+          description: "Detailed evaluation of your profile and legal feasibility for the chosen destination."
+        },
+        {
+          title: "Strategic Planning",
+          description: "Definition of the best immigration route aiming for the shortest time and highest approval rate."
+        },
+        {
+          title: "Document Preparation",
+          description: "Meticulous organization and sworn translation of all necessary records."
+        },
+        {
+          title: "Monitoring",
+          description: "Constant monitoring with the competent authorities until the final decision."
+        }
+      ]
+    },
+    services: {
+      title: "Modular solutions for each immigration profile.",
+      items: [
+        {
+          title: "Work Visas",
+          description: "Complete guidance for H1-B, L1, O1 and EB-2 NIW visas, focused on high-performance professionals and executives.",
+          features: [
+            "EB-2 National Interest Waiver",
+            "L-1 Intracompany Transferees",
+            "H-1B Specialty Occupations",
+            "O-1 Extraordinary Ability"
+          ]
+        },
+        {
+          title: "Green Card",
+          description: "Permanent residency processes via work, investment or family ties with total legal security."
+        },
+        {
+          title: "Student Visas",
+          description: "Consultancy for F-1, M-1 and J-1 visas at prestigious international institutions."
+        },
+        {
+          title: "Citizenship",
+          description: "Naturalization and recognition processes for European and American citizenship."
+        },
+        {
+          title: "Adjustment of Status",
+          description: "Regularization of stay and change of visa category within the territory."
+        }
+      ]
+    },
+    testimonials: {
+      title: "Results that transform international trajectories.",
+      items: [
+        {
+          quote: "The Aplikei team was fundamental for the approval of my EB-2 NIW. Impeccable professionalism and technical precision.",
+          author: "Carlos Silveira",
+          role: "Software Engineer"
+        },
+        {
+          quote: "Security from start to finish. The legal support in the adjustment of status gave me the peace of mind needed at a critical moment.",
+          author: "Mariana Costa",
+          role: "Entrepreneur"
+        }
+      ]
+    },
+    cta: {
+      title: "Ready to start your global journey?",
+      description: "Schedule a strategic consultancy and discover the best route for your international success.",
+      button: "Request Profile Analysis"
+    }
   }
 };
 export default landing;

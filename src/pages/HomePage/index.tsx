@@ -1,51 +1,40 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { HeroSection } from "../../components/organisms/LandingHero";
-import { FAQSection } from "../../components/organisms/LandingFAQ";
-import { TestimonialsSection } from "../../components/organisms/LandingTestimonials";
-import { HowItWorksSection } from "../../components/organisms/LandingHowItWorks";
-import { BenefitsSection } from "../../components/organisms/LandingBenefits";
-import { ProblemSection } from "../../components/organisms/LandingProblem";
-import { SolutionSection } from "../../components/organisms/LandingSolution";
-import { FinalCtaSection } from "../../components/organisms/LandingFinalCTA";
+import { useLocale } from "../../i18n";
 import { getDefaultRouteForRole } from "../../routes/authRedirect";
 import { RouteGuardLoader } from "../../routes/RouteGuardLoader";
 
-const avatars = [
-  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=100&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop",
-];
-
-const heroImage = "https://lh3.googleusercontent.com/aida-public/AB6AXuCqxSP3HYuhLlu5a-RpsmtKx6LVC60KQKfOCKjSjJmDIixkkXFZs8Gq4kqYA3q_JVwN4iu2QTSpxno6g22j007RDu_dNzm6ZKIiZCk0pMnUuClKJKygEJEQtqjUdinzTeGdRkeljrg8WvsyskLRVpEst8FTAhVUleIiED-k-1QN9qzmwyjiYovZiAtYNhMx8W6qlpnzeKK2s0xglgbmYKlk4aL1ydjOR8VKoqYqYviGLHwT5gOyQakLC5u8VjTWI6LCI1XW2KN_vqs";
+import { LexHero } from "../../components/organisms/LexHero";
+import { LexMethodology } from "../../components/organisms/LexMethodology";
+import { LexServices } from "../../components/organisms/LexServices";
+import { LexTestimonials } from "../../components/organisms/LexTestimonials";
+import { FAQSection } from "../../components/organisms/LandingFAQ";
+import { ContactSection } from "../../components/organisms/ContactSection";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { isLanguageLoading } = useLocale();
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated && user) {
+    if (!isAuthLoading && isAuthenticated && user) {
       navigate(getDefaultRouteForRole(user.role), { replace: true });
     }
-  }, [isAuthenticated, isLoading, user, navigate]);
+  }, [isAuthenticated, isAuthLoading, user, navigate]);
 
-  if (isLoading) {
+  if (isAuthLoading || isLanguageLoading) {
     return <RouteGuardLoader />;
   }
 
   return (
-    <>
-      <HeroSection heroImage={heroImage} avatars={avatars} />
-      <ProblemSection />
-      <SolutionSection />
-      <HowItWorksSection />
-      <BenefitsSection />
-      <TestimonialsSection avatars={avatars} />
+    <div className="flex flex-col">
+      <LexHero />
+      <LexMethodology />
+      <LexServices />
+      <LexTestimonials />
       <FAQSection />
-      <FinalCtaSection />
-    </>
+      <ContactSection />
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 const nav = {
-  home: "Home", howItWorks: "How it works", services: "Services",
+  home: "Home", howItWorks: "How it works", services: "Services", contact: "Contact",
   serviceB1B2: "Tourism (B1/B2)", serviceF1: "Student (F-1)",
   serviceCOS: "Change of Status", serviceEOS: "Extension of Status",
   login: "Log in", getStarted: "Contact", dashboard: "Dashboard",

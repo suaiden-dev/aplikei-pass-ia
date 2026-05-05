@@ -158,6 +158,89 @@ const landing = {
         a: "Com certeza. Nosso time de suporte é composto por especialistas que falam sua língua e entendem o mercado imigratório."
       }
     ]
+  },
+  lex: {
+    hero: {
+      title: "Cuidamos de todo o seu processo imigratório com segurança, estratégia e eficiência.",
+      subtitle: "Garantindo que seus objetivos internacionais sejam alcançados com rigor profissional.",
+      badge: "Processos auditados e revisados por advogados licenciados."
+    },
+    methodology: {
+      title: "Metodologia rigorosa dividida em 4 etapas estratégicas.",
+      steps: [
+        {
+          title: "Análise do caso",
+          description: "Avaliação detalhada do seu perfil e viabilidade jurídica para o destino escolhido."
+        },
+        {
+          title: "Planejamento estratégico",
+          description: "Definição da melhor rota imigratória visando o menor tempo e maior taxa de aprovação."
+        },
+        {
+          title: "Preparação da documentação",
+          description: "Organização minuciosa e tradução juramentada de todos os registros necessários."
+        },
+        {
+          title: "Acompanhamento",
+          description: "Monitoramento constante junto aos órgãos competentes até a decisão final."
+        }
+      ]
+    },
+    services: {
+      title: "Soluções modulares para cada perfil de imigração.",
+      items: [
+        {
+          title: "Vistos de trabalho",
+          description: "Orientação completa para vistos H1-B, L1, O1 e EB-2 NIW, focados em profissionais de alta performance e executivos.",
+          features: [
+            "EB-2 National Interest Waiver",
+            "L-1 Intracompany Transferees",
+            "H-1B Specialty Occupations",
+            "O-1 Extraordinary Ability"
+          ]
+        },
+        {
+          title: "Green Card",
+          description: "Processos de residência permanente via trabalho, investimento ou laços familiares com total segurança jurídica."
+        },
+        {
+          title: "Vistos de estudante",
+          description: "Consultoria para vistos F-1, M-1 e J-1 em instituições de prestígio internacional."
+        },
+        {
+          title: "Cidadania",
+          description: "Processos de naturalização e reconhecimento de cidadania europeia e americana."
+        },
+        {
+          title: "Ajuste de status",
+          description: "Regularização de permanência e mudança de categoria de visto dentro do território."
+        }
+      ]
+    },
+    footer: {
+      description: "Consultoria jurídica internacional especializada em processos de alta complexidade.",
+      tagline: "Nossa equipe está pronta para atendê-lo em múltiplos fusos horários, garantindo suporte global."
+    },
+    testimonials: {
+      title: "Resultados que transformam trajetórias internacionais.",
+      items: [
+        {
+          quote: "A equipe da Aplikei foi fundamental para a aprovação do meu EB-2 NIW. Profissionalismo e precisão técnica impecáveis.",
+          author: "Carlos Silveira",
+          role: "Engenheiro de Software"
+        },
+        {
+          quote: "Segurança do início ao fim. O suporte jurídico no ajuste de status me deu a tranquilidade necessária em um momento crítico.",
+          author: "Mariana Costa",
+          role: "Empreendedora"
+        }
+      ]
+    },
+    cta: {
+      title: "Pronto para iniciar sua jornada global?",
+      description: "Agende uma consultoria estratégica e descubra a melhor rota para o seu sucesso internacional.",
+      button: "Solicitar Análise de Perfil"
+    }
   }
 };
 export default landing;
