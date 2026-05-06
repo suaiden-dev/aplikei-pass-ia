@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-import { processService } from '../../services/process.service';
-import { notificationService } from '../../services/notification.service';
+import * as processService from '../../features/process/lib/processOps';
+import { notifyAdmin } from '../../features/notifications/lib/notify';
 import type { UserService } from '../../models';
 import type { DS160FormValues } from '../../schemas/ds160.schema';
 
@@ -159,7 +159,7 @@ export function useB1B2OnboardingController({
 
         await processService.requestStepReview(procId);
 
-        await notificationService.notifyAdmin({
+        await notifyAdmin({
           title: 'DS-160 Preenchida',
           body: `O cliente finalizou a DS-160 para ${slug}.`,
           serviceId: procId,
