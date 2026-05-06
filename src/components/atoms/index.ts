@@ -16,4 +16,4 @@ export * from "./popover";
 export * from "./dialog";
 export * from "./select";
 export * from "./phone-input";
-export * from "./select";
+export * from "./switch";
