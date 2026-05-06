@@ -14,9 +14,11 @@ import { useT, useLocale } from "../../../i18n";
 
 interface CustomerRow {
   id: string;
-  full_name: string;
+  name?: string | null;
+  full_name?: string | null;
   email: string;
-  phone_number: string;
+  phone?: string | null;
+  phone_number?: string | null;
   avatar_url: string | null;
   role: string;
   created_at: string;
@@ -25,6 +27,14 @@ interface CustomerRow {
 export interface CustomerWithStats extends CustomerRow {
   productsCount: number;
   totalSpent: number;
+}
+
+function getCustomerName(customer: CustomerRow) {
+  return customer.full_name || customer.name || customer.email || "Sem Nome";
+}
+
+function getCustomerPhone(customer: CustomerRow) {
+  return customer.phone_number || customer.phone || "";
 }
 
 export default function CustomersPage() {
@@ -43,7 +53,10 @@ export default function CustomersPage() {
         { data: zelleData },
         { data: stripeData }
       ] = await Promise.all([
-        supabase.from("user_accounts").select("*").order("created_at", { ascending: false }),
+        supabase
+          .from("user_accounts")
+          .select("id, name, full_name, email, phone, phone_number, avatar_url, role, created_at")
+          .order("created_at", { ascending: false }),
         supabase.from("zelle_payments").select("amount, user_id, guest_email").eq("status", "approved"),
         supabase.from("orders").select("total_price_usd, client_email").in("payment_status", ["paid", "complete", "succeeded", "completed"])
       ]);
@@ -96,8 +109,9 @@ export default function CustomersPage() {
     return customers.filter(
       (c) =>
         c.full_name?.toLowerCase().includes(s) ||
+        c.name?.toLowerCase().includes(s) ||
         c.email?.toLowerCase().includes(s) ||
-        c.phone_number?.toLowerCase().includes(s)
+        getCustomerPhone(c).toLowerCase().includes(s)
     );
   }, [customers, searchTerm]);
 
@@ -234,24 +248,24 @@ export default function CustomersPage() {
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-bg-subtle flex items-center justify-center text-text-muted overflow-hidden shadow-inner">
                           {c.avatar_url ? (
-                            <img src={c.avatar_url} alt={c.full_name} className="w-full h-full object-cover" />
+                            <img src={c.avatar_url} alt={getCustomerName(c)} className="w-full h-full object-cover" />
                           ) : (
                             <RiUserLine className="text-xl" />
                           )}
                         </div>
                         <div className="text-left">
                           <p className="text-sm font-black text-text leading-tight tracking-tight uppercase">
-                            {c.full_name || t.customers.table.noName}
+                            {getCustomerName(c) || t.customers.table.noName}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <p className="text-[11px] text-text-muted font-bold tracking-tight">
                               {c.email}
                             </p>
-                            {c.phone_number && (
+                            {getCustomerPhone(c) && (
                               <>
                                 <span className="text-text-muted opacity-30">•</span>
                                 <p className="text-[11px] text-text-muted font-bold tracking-tight">
-                                  {c.phone_number}
+                                  {getCustomerPhone(c)}
                                 </p>
                               </>
                             )}
