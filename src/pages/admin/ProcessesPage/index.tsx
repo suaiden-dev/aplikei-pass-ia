@@ -17,22 +17,41 @@ import {
 import { supabase } from "../../../shared/lib/supabase";
 import * as processService from "../../../features/process/lib/processOps";
 import type { UserService } from "../../../features/process/types";
-import { getServiceBySlug, servicesData } from "../../../data/services";
+import { getServiceBySlug } from "../../../data/services";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useT } from "../../../i18n";
+import { useAuth } from "../../../hooks/useAuth";
 
 interface ProcessWithUser extends UserService {
-  user_accounts: {
+  user_accounts?: {
     full_name: string;
     email?: string;
   };
+  service_name?: string;
+}
+
+function isAuxiliarySlug(slug: string) {
+  return (
+    slug.startsWith("dependent-") ||
+    slug.startsWith("analysis-") ||
+    slug.startsWith("mentoring-") ||
+    slug.startsWith("consultancy-") ||
+    slug.startsWith("analise-") ||
+    slug.startsWith("mentoria-") ||
+    slug.startsWith("dependente-") ||
+    slug.startsWith("slot-") ||
+    slug.startsWith("apoio-") ||
+    slug.startsWith("revisao-") ||
+    slug.startsWith("proposta-")
+  );
 }
 
 export default function AdminProcessesPage() {
   const navigate = useNavigate();
   const t = useT("admin");
   const vt = useT("visas");
+  const { user } = useAuth();
   const [processes, setProcesses] = useState<ProcessWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,33 +62,72 @@ export default function AdminProcessesPage() {
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // Resolve office from user_accounts.office_id — works for admin_lawyers and managers.
+      // Masters with no office see all processes.
+      let officeId: string | null = null;
+      if (user?.id) {
+        const { data: accountRow } = await supabase
+          .from("user_accounts")
+          .select("office_id")
+          .eq("id", user.id)
+          .maybeSingle();
+        officeId = accountRow?.office_id ?? null;
+      }
+
+      const query = supabase
         .from("user_services")
-        .select(`
-          *,
-          user_accounts:profiles (full_name, email)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
+      if (officeId) {
+        query.eq("office_id", officeId);
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
-      setProcesses(data as ProcessWithUser[]);
+      const base = (data || []) as ProcessWithUser[];
+      const userIds = [...new Set(base.map((p) => p.user_id).filter(Boolean))];
+      const slugs = [...new Set(base.map((p) => p.service_slug).filter(Boolean))];
+
+      const [usersResult, servicesResult] = await Promise.all([
+        userIds.length > 0
+          ? supabase.from("profiles").select("id, full_name, email").in("id", userIds)
+          : Promise.resolve({ data: [], error: null }),
+        slugs.length > 0
+          ? supabase.from("services").select("slug, name").in("slug", slugs)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+
+      if (usersResult.error) throw usersResult.error;
+
+      const usersById = Object.fromEntries(
+        ((usersResult.data as Array<{ id: string; full_name?: string | null; email?: string | null }>) || [])
+          .map((u) => [u.id, { full_name: u.full_name || "Cliente", email: u.email || undefined }]),
+      );
+
+      const serviceNameBySlug = Object.fromEntries(
+        ((servicesResult.data as Array<{ slug: string; name: string }>) || [])
+          .map((s) => [s.slug, s.name]),
+      );
+
+      setProcesses(base.map((p) => ({
+        ...p,
+        user_accounts: usersById[p.user_id],
+        service_name: serviceNameBySlug[p.service_slug],
+      })));
     } catch (err: unknown) {
       console.error("Error loading processes:", err);
       toast.error(t.cases.messages.loadError);
     } finally {
       setIsLoading(false);
     }
-  }, [t]);
+  }, [t, user]);
 
   useEffect(() => { load(); }, [load]);
 
   const stats = useMemo(() => {
-    const filteredForStats = processes.filter(p => 
-      servicesData.some(s => s.slug === p.service_slug) && 
-      !p.service_slug.startsWith("analise-") &&
-      !p.service_slug.startsWith("mentoria-") &&
-      !p.service_slug.startsWith("dependente-adicional-")
-    );
+    const filteredForStats = processes.filter(p => !isAuxiliarySlug(p.service_slug));
     return {
       total: filteredForStats.length,
       awaiting: filteredForStats.filter(p => p.status === "awaiting_review").length,
@@ -97,21 +155,14 @@ export default function AdminProcessesPage() {
       result = result.filter(p => p.status === "awaiting_review");
     }
 
-    return result.filter(p => 
-      servicesData.some(s => s.slug === p.service_slug) &&
-      !p.service_slug.startsWith("analise-") &&
-      !p.service_slug.startsWith("mentoria-") &&
-      !p.service_slug.startsWith("dependente-adicional-")
-    );
+    return result.filter(p => !isAuxiliarySlug(p.service_slug));
   }, [processes, searchTerm, selectedService, showOnlyPending]);
 
   const handleApprove = async (p: ProcessWithUser) => {
     const service = getServiceBySlug(p.service_slug);
-    if (!service) return;
-
     setBusy(p.id);
     try {
-      const totalSteps = service.steps.length;
+      const totalSteps = service?.steps.length ?? 12;
       const nextStep = (p.current_step ?? 0) + 1;
       const isFinal = nextStep >= totalSteps;
       const result = isFinal ? 'approved' : undefined;
@@ -130,7 +181,7 @@ export default function AdminProcessesPage() {
 
   const handleReject = async (p: ProcessWithUser) => {
     const service = getServiceBySlug(p.service_slug);
-    const totalSteps = service?.steps.length || 1;
+    const totalSteps = service?.steps.length ?? 12;
     const isFinal = (p.current_step ?? 0) >= totalSteps;
 
     setBusy(p.id);
@@ -197,10 +248,11 @@ export default function AdminProcessesPage() {
               className="w-full h-14 pl-11 pr-10 bg-card border border-border rounded-2xl text-[10px] font-bold uppercase tracking-widest outline-none focus:border-primary/30 transition-all shadow-sm appearance-none lg:min-w-[200px]"
             >
               <option value="all">{t.cases.filters.allProducts}</option>
-              {servicesData
-                .filter(s => !s.slug.startsWith("analise-"))
-                .map(s => (
-                  <option key={s.slug} value={s.slug}>{s.title}</option>
+              {[...new Map(processes.filter(p => !isAuxiliarySlug(p.service_slug)).map(p => [p.service_slug, p])).values()]
+                .map(p => (
+                  <option key={p.service_slug} value={p.service_slug}>
+                    {p.service_name || getServiceBySlug(p.service_slug)?.title || p.service_slug}
+                  </option>
                 ))}
             </select>
           </div>
@@ -241,7 +293,7 @@ export default function AdminProcessesPage() {
               <tbody>
                 {filteredProcesses.map((p, idx) => {
                   const service = getServiceBySlug(p.service_slug);
-                  const totalSteps = service?.steps.length || 1;
+                  const totalSteps = service?.steps.length || 12;
                   const currentStep = p.current_step ?? 0;
                   
                   // Derived status/progress
@@ -296,7 +348,7 @@ export default function AdminProcessesPage() {
                       
                       <td className="px-8 py-6">
                         <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/10">
-                          {vt.processDetail.services[p.service_slug]?.label || service?.title || p.service_slug}
+                          {vt.processDetail.services[p.service_slug]?.label || service?.title || p.service_name || p.service_slug}
                         </span>
                       </td>
 
