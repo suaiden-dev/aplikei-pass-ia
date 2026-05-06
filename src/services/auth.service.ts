@@ -20,8 +20,11 @@ export interface AuthSession {
 type UserAccountsRow = {
   id: string;
   full_name: string | null;
+  name?: string | null;
   phone_number: string | null;
+  phone?: string | null;
   avatar_url: string | null;
+  profile_url?: string | null;
   passport_photo_url: string | null;
   preferred_language: string | null;
   role: UserAccount["role"];
@@ -68,10 +71,10 @@ function writePendingResetEmail(email: string | null) {
 function mapFromUserAccountRow(row: UserAccountsRow): UserAccount {
   return {
     id: row.id,
-    fullName: row.full_name ?? "",
+    fullName: row.full_name ?? row.name ?? "",
     email: row.email ?? "",
-    phoneNumber: row.phone_number ?? "",
-    avatarUrl: row.avatar_url,
+    phoneNumber: row.phone_number ?? row.phone ?? "",
+    avatarUrl: row.avatar_url ?? row.profile_url ?? null,
     passportPhotoUrl: row.passport_photo_url,
     role: row.role,
     createdAt: row.created_at,

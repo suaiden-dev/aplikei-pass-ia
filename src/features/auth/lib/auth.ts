@@ -218,20 +218,29 @@ function mergeAccountWithFallback(authUser: User, account: UserAccount | null): 
 export const authService = {
 
   async login({ email, password }: LoginInput) {
-    
+    const normalizedEmail = email.trim().toLowerCase();
+
     const { data: canLogin, error: gateError } = await supabase.rpc("can_login_with_email", {
-      p_email: email,
+      p_email: normalizedEmail,
     });
 
-    if (gateError) {
+    const rpcMissing =
+      gateError?.code === "PGRST202" ||
+      gateError?.message?.includes("can_login_with_email") ||
+      gateError?.message?.includes("Could not find the function");
+
+    if (gateError && !rpcMissing) {
       throw new Error("Erro ao validar usuário");
     }
 
-    if (!canLogin) {
+    if (!rpcMissing && !canLogin) {
       throw new Error("Sua conta está desativada.");
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
+      password,
+    });
     if (error) throw new Error(error.message);
 
     const userId = data.user?.id;
@@ -239,18 +248,13 @@ export const authService = {
       throw new Error("Usuário não encontrado");
     }
 
-    const {data: account, error: accountError } = await supabase
-      .from("users_accounts")
+    const { data: account } = await supabase
+      .from("user_accounts")
       .select("is_active")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
 
-      if (accountError) {
-        await supabase.auth.signOut();
-        throw new Error("Erro ao validar usuário");
-      }
-
-      if (!account.is_active) {
+      if (account && account.is_active === false) {
         await supabase.auth.signOut();
         throw new Error("Sua conta está desativada.");
       }
