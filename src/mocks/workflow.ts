@@ -9,7 +9,7 @@ import type {
   StepReview,
   UserProductInstance,
   UserStep,
-} from "../services/workflow.service";
+} from "../features/workflow/types";
 
 interface WorkflowProduct {
   id: string;

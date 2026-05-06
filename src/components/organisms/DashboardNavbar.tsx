@@ -18,6 +18,20 @@ const AVATAR_SHIFT_FACTOR = 0.6;
 const avatarTransform = (x: number, y: number, zoom: number) =>
   `translate(${x * AVATAR_SHIFT_FACTOR}%, ${y * AVATAR_SHIFT_FACTOR}%) scale(${zoom})`;
 
+function buildAvatarDataUri(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  const initials = (words[0]?.[0] ?? "U") + (words[1]?.[0] ?? "");
+  const safeInitials = initials.toUpperCase().slice(0, 2);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+      <rect width="128" height="128" rx="64" fill="#3b82f6"/>
+      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#ffffff">${safeInitials}</text>
+    </svg>
+  `;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 async function cropAvatarToBlob(
   imageUrl: string,
   xOffset: number,
@@ -82,6 +96,22 @@ export function DashboardNavbar() {
   const [isSaving, setIsSaving] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
+  const resolvedName = useMemo(() => {
+    const u = user as unknown as { fullName?: string | null; full_name?: string | null; name?: string | null; email?: string | null } | null;
+    const raw = u?.fullName || u?.full_name || u?.name || "";
+    const trimmed = String(raw).trim();
+    if (!trimmed) return "Usuário";
+    const firstWord = trimmed.split(/\s+/).filter(Boolean)[0];
+    return firstWord || "Usuário";
+  }, [user]);
+
+  const resolvedAvatar = useMemo(() => {
+    const u = user as unknown as { avatarUrl?: string | null; avatar_url?: string | null } | null;
+    const fromUser = u?.avatarUrl || u?.avatar_url || null;
+    if (fromUser) return fromUser;
+    return buildAvatarDataUri(resolvedName);
+  }, [user, resolvedName]);
+
   useEffect(() => {
     return () => {
       if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
@@ -111,13 +141,12 @@ export function DashboardNavbar() {
   const avatarUrl = useMemo(
     () =>
       imagePreviewUrl
-      ?? user?.avatarUrl
-      ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? "User")}&background=3b82f6&color=fff`,
-    [imagePreviewUrl, user?.avatarUrl, user?.fullName],
+      ?? resolvedAvatar,
+    [imagePreviewUrl, resolvedAvatar],
   );
 
   const openEditProfile = () => {
-    setDisplayName(user?.fullName ?? "");
+    setDisplayName(resolvedName);
     setImageFile(null);
     setImagePreviewUrl(null);
     setXOffset(user?.avatarOffsetX ?? 0);
@@ -164,8 +193,8 @@ export function DashboardNavbar() {
       }
 
       await authService.updateAccount(user.id, {
-        full_name: displayName.trim() || user.fullName,
-        avatar_url: nextAvatarUrl ?? user.avatarUrl ?? null,
+        full_name: displayName.trim() || resolvedName,
+        avatar_url: nextAvatarUrl ?? resolvedAvatar ?? null,
         avatar_offset_x: xOffset,
         avatar_offset_y: yOffset,
         avatar_zoom: zoom,
@@ -232,12 +261,12 @@ export function DashboardNavbar() {
               className="flex items-center gap-2 rounded-full border border-border bg-bg-subtle px-2 py-1.5 transition-colors hover:border-primary/40"
             >
               <img
-                src={user?.avatarUrl ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? "User")}&background=3b82f6&color=fff`}
+                src={resolvedAvatar}
                 alt="Avatar"
                 className="h-8 w-8 rounded-full border border-border object-cover"
               />
               <span className="max-w-[140px] truncate text-xs font-bold text-text">
-                {user?.fullName ?? "Usuário"}
+                {resolvedName}
               </span>
               <RiArrowDownSLine className="text-text-muted" size={16} />
             </button>
