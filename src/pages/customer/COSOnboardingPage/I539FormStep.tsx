@@ -27,6 +27,17 @@ import type { UserAccount } from "../../../features/auth/types";
 import { i539Validator, type I539FormInput } from "../../../features/onboarding/cos/schemas/i539.schema";
 import { useT } from "../../../i18n";
 import { fillI539Form, type I539Data, uploadFilledI539 } from "../../../features/onboarding/cos/lib/i539";
+import { 
+  createContext, 
+  useContext, 
+  useState, 
+  useMemo, 
+  type ReactNode, 
+  type ElementType 
+} from "react";
+import { useForm } from "../../../lib/form/useForm";
+import type { FormReturn } from "../../../lib/form/types";
+import { cosNotificationService } from "../../../features/onboarding/cos/lib/cos-notifications";
 import * as processService from "../../../features/process/lib/processOps";
 import type { UserService } from "../../../features/process/types";
 
@@ -1013,7 +1024,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
                   className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-300 text-sm font-black text-slate-600 bg-white hover:bg-slate-50 transition-all shadow-sm"
                 >
                   {isSaving ? <RiLoader4Line className="animate-spin text-lg" /> : <RiSave3Line className="text-lg" />}
-                  Salvar Rascunho
+                  {t.cos.i539.labels.saveDraft || "Salvar Rascunho"}
                 </button>
 
                 <button
@@ -1023,9 +1034,9 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
                   className="w-full md:w-auto flex items-center justify-center gap-2 px-10 py-3.5 rounded-xl bg-primary text-white text-sm font-black uppercase tracking-wider shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all disabled:opacity-50"
                 >
                   {isGenerating ? (
-                    <><RiLoader4Line className="animate-spin text-xl" /> Enviando...</>
+                    <><RiLoader4Line className="animate-spin text-xl" /> {t.cos.i539.labels.sending || "Enviando..."}</>
                   ) : (
-                    <><RiArrowRightLine className="text-xl" /> Enviar Formulário</>
+                    <><RiArrowRightLine className="text-xl" /> {t.cos.i539.labels.submitForm || "Enviar Formulário"}</>
                   )}
                 </button>
               </div>

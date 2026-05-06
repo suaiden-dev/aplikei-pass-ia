@@ -13,11 +13,11 @@ import { toast } from 'sonner'
 import { useAuth } from '../../../hooks/useAuth'
 import { useT } from '../../../i18n'
 import { getSupabaseClient } from '../../../lib/supabase'
-import { ensureWorkflowBackend, workflowService, getProductIdBySlug } from '../../../services/workflow.service'
-import type { UserProductInstance, UserStep, StepReview } from '../../../services/workflow.service'
+import * as workflowOps from '../../../features/workflow/lib/workflowOps'
+import type { UserProductInstance, UserStep, StepReview } from '../../../features/workflow/types'
 import type { UserService, USCISOutcome, MotionOutcome, RFEOutcome } from '../../../models/process.model'
-import { processService } from '../../../services/process.service'
-import { cosNotificationService } from '../../../services/cos-notification.service'
+import * as processService from '../../../features/process/lib/processOps'
+import { cosNotificationService } from '../../../features/onboarding/cos/lib/cos-notifications'
 import type { DocFile } from '../../../components/molecules/DocUploadCard'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -145,18 +145,18 @@ export function useCOSOnboardingPage() {
     if (!user) return
     setIsLoading(true)
     try {
-      await ensureWorkflowBackend(user.id)
 
-      const productId = await getProductIdBySlug(slug)
+
+      const productId = await workflowOps.getProductIdBySlug(slug)
       if (!productId) { toast.error('Produto não encontrado: ' + slug); return }
 
-      const inst = await workflowService.getOrCreateInstance(user.id, productId)
+      const inst = await workflowOps.getOrCreateInstance(user.id, productId)
       setInstance(inst)
 
-      const userSteps = await workflowService.getSteps(inst.id)
+      const userSteps = await workflowOps.getSteps(inst.id)
       setSteps(userSteps)
 
-      const allReviews = (await Promise.all(userSteps.map((s) => workflowService.getReviews(s.id)))).flat()
+      const allReviews = (await Promise.all(userSteps.map((s) => workflowOps.getReviews(s.id)))).flat()
       setReviews(allReviews)
 
       // Hidrata form step 0
@@ -248,20 +248,18 @@ export function useCOSOnboardingPage() {
     if (!user || !instance || steps.length === 0) return
     setIsSubmitting(true)
     try {
-      const backend = await ensureWorkflowBackend(user.id)
+
       const currentUserStep = steps[stepIdx]
       if (!currentUserStep) throw new Error('Step não encontrado')
 
       if (stepIdx === 0) {
-        await workflowService.submitStep(currentUserStep.id, {
+        await workflowOps.submitStep(currentUserStep.id, {
           currentVisa, targetVisa, i94Date, dependents,
         })
       } else if (stepIdx === 1) {
         const slots = getDocSlots()
         const refs: Array<{ name: string; path: string; url: string }> = []
-        const storage = backend === 'supabase'
-          ? getSupabaseClient()?.storage.from('aplikei-profiles') ?? null
-          : null
+        const storage = getSupabaseClient()?.storage.from('aplikei-profiles') ?? null
 
         for (const slot of slots) {
           const doc = docs[slot.key]
@@ -307,18 +305,18 @@ export function useCOSOnboardingPage() {
           return next
         })
 
-        await workflowService.submitStepFiles(currentUserStep.id, refs)
+        await workflowOps.submitStepFiles(currentUserStep.id, refs)
       } else {
-        await workflowService.completeStep(currentUserStep.id)
+        await workflowOps.completeStep(currentUserStep.id)
       }
 
       // Se não é F1, pula I-20 / SEVIS (índices 7, 8, 9)
-      let nextSteps = await workflowService.getSteps(instance.id)
+      let nextSteps = await workflowOps.getSteps(instance.id)
       if (targetVisa !== 'F1') {
         const toSkip = nextSteps.filter((_, i) => [7, 8, 9].includes(i) && _.status === 'pending')
         if (toSkip.length > 0) {
-          await Promise.all(toSkip.map((s) => workflowService.completeStep(s.id)))
-          nextSteps = await workflowService.getSteps(instance.id)
+          await Promise.all(toSkip.map((s) => workflowOps.completeStep(s.id)))
+          nextSteps = await workflowOps.getSteps(instance.id)
         }
       }
 
@@ -360,7 +358,7 @@ export function useCOSOnboardingPage() {
     setIsSavingMotionResult(true)
     try {
       const last = steps.at(-1)!
-      await workflowService.saveDraft(last.id, { motion_final_result: result, motion_result_reported_at: new Date().toISOString() })
+      await workflowOps.saveDraft(last.id, { motion_final_result: result, motion_result_reported_at: new Date().toISOString() })
       toast.success(result === 'approved' ? 'Resultado informado como aprovado.' : 'Resultado informado como reprovado.')
     } catch { toast.error('Não foi possível salvar o resultado.') }
     finally { setIsSavingMotionResult(false) }
@@ -402,7 +400,7 @@ export function useCOSOnboardingPage() {
     })
 
     if (result === 'approved') {
-      await workflowService.updateInstanceOutcome(proc.id, { type: 'uscis', result: 'approved' })
+      await workflowOps.updateInstanceOutcome(proc.id, { type: 'uscis', result: 'approved' })
       return
     }
 
@@ -437,7 +435,7 @@ export function useCOSOnboardingPage() {
       motion_result_reported_by: 'customer',
     })
     await processService.updateProcessStatus(proc.id, 'completed')
-    await workflowService.updateInstanceOutcome(proc.id, { type: 'motion', result })
+    await workflowOps.updateInstanceOutcome(proc.id, { type: 'motion', result })
     await cosNotificationService.notifyAdmin({
       event: 'motion_result_reported',
       processId: proc.id,
@@ -487,7 +485,7 @@ export function useCOSOnboardingPage() {
     if (result === 'approved') {
       await processService.updateStepData(proc.id, resetData)
       await processService.updateProcessStatus(proc.id, 'completed')
-      await workflowService.updateInstanceOutcome(proc.id, { type: 'rfe', result: 'approved' })
+      await workflowOps.updateInstanceOutcome(proc.id, { type: 'rfe', result: 'approved' })
       return
     }
 

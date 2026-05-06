@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { workflowService } from "../../../../services/workflow.service";
-import type { UserStep } from "../../../../services/workflow.service";
+import * as workflowOps from "../../../../features/workflow/lib/workflowOps";
+import type { UserStep } from "../../../../features/workflow/types";
 import {
   EMPTY_INITIAL_INFO,
   isInitialInfoComplete,
@@ -85,7 +85,7 @@ export function useStepInitialInfo({
       setIsLoading(true);
       try {
         const [step] = await Promise.all([
-          workflowService.getStep(instanceId, productStepId),
+          workflowOps.getStep(instanceId, productStepId),
           refreshSlots(),
         ]);
 
@@ -114,7 +114,7 @@ export function useStepInitialInfo({
       if (!userStep || READ_ONLY_STATUSES.has(userStep.status)) return;
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
       autoSaveTimer.current = setTimeout(() => {
-        workflowService
+        workflowOps
           .saveDraft(userStep.id, nextData as unknown as Record<string, unknown>)
           .catch(console.error);
       }, 1500);
@@ -169,7 +169,7 @@ export function useStepInitialInfo({
     setSaveError(null);
     setIsSaving(true);
     try {
-      await workflowService.saveDraft(
+      await workflowOps.saveDraft(
         userStep.id,
         data as unknown as Record<string, unknown>,
       );
@@ -187,7 +187,7 @@ export function useStepInitialInfo({
     setSaveError(null);
     setIsSubmitting(true);
     try {
-      await workflowService.submitStep(
+      await workflowOps.submitStep(
         userStep.id,
         data as unknown as Record<string, unknown>,
       );
