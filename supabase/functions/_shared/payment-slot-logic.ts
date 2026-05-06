@@ -272,6 +272,7 @@ export async function applySuccessfulPayment(data: {
   payment_id?: string | null;
   order_id?: string | null;
   parent_service_slug?: string | null;
+  office_id?: string | null;
   order_update?: Record<string, unknown>;
 }) {
   const {
@@ -283,6 +284,7 @@ export async function applySuccessfulPayment(data: {
     payment_id,
     order_id,
     order_update,
+    office_id,
   } = data;
 
   const now = new Date().toISOString();
@@ -303,6 +305,7 @@ export async function applySuccessfulPayment(data: {
         .update({
           payment_status: "paid",
           updated_at: now,
+          office_id: office_id || (existingOrder as any)?.office_id || null,
           ...(order_update || {}),
         })
         .eq("id", order_id)
@@ -329,6 +332,7 @@ export async function applySuccessfulPayment(data: {
           .update({
             payment_status: "paid",
             updated_at: now,
+            office_id: office_id || byPaymentRef.office_id || null,
             ...(order_update || {}),
           })
           .eq("id", byPaymentRef.id)
@@ -356,6 +360,7 @@ export async function applySuccessfulPayment(data: {
         .update({
           payment_status: "paid",
           updated_at: now,
+          office_id: office_id || (fallbackOrder as any)?.office_id || null,
           ...(order_update || {}),
         })
         .eq("id", fallbackOrder.id)
@@ -394,6 +399,8 @@ export async function applySuccessfulPayment(data: {
     order_id: order?.id || order_id || null,
   });
 
+  const officeIdToUse = office_id || (order as any)?.office_id || null;
+
   if (!targetProcId) {
     await ensureLegacyProfileForUser(supabase, user_id);
 
@@ -409,6 +416,7 @@ export async function applySuccessfulPayment(data: {
     const { error: insertServiceError } = await supabase.from("user_services").insert({
       user_id,
       service_slug,
+      office_id: officeIdToUse,
       status: "active",
       current_step: 0,
       step_data: {
@@ -533,6 +541,7 @@ export async function applySuccessfulPayment(data: {
     .from("user_services")
     .update({
       current_step: nextStep,
+      office_id: officeIdToUse,
       step_data: {
         ...stepData,
         ...extraMetadata,
