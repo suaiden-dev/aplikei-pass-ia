@@ -92,6 +92,7 @@ serve(async (req) => {
           payment_method: session.metadata.paymentMethod === "pix" ? "stripe_pix" : "stripe_card",
           payment_id: session.id,
           order_id: session.metadata.order_id || null,
+          office_id: session.metadata.office_id || null,
           applied_coupon_id: session.metadata.applied_coupon_id || null,
         });
       }
@@ -110,6 +111,7 @@ serve(async (req) => {
         const reference = payload.reference || payload.order_reference;
         let userId = null;
         let serviceSlug = null;
+        let officeId = null;
         let dependents = 0;
         let procId = null;
 
@@ -117,13 +119,14 @@ serve(async (req) => {
           const orderUuid = reference.replace("APK_", "");
           const { data: orderData } = await supabase
             .from("orders")
-            .select("user_id, product_slug, payment_metadata")
+            .select("user_id, product_slug, office_id, payment_metadata")
             .eq("id", orderUuid)
             .single();
 
           if (orderData) {
             userId = orderData.user_id;
             serviceSlug = orderData.product_slug;
+            officeId = orderData.office_id;
             dependents = orderData.payment_metadata?.dependents || 0;
             procId = orderData.payment_metadata?.proc_id || orderData.payment_metadata?.processId;
           }
@@ -141,7 +144,8 @@ serve(async (req) => {
           proc_id: procId,
           status: "complete",
           payment_id: payload.id || reference,
-          order_id: reference?.startsWith("APK_") ? reference.replace("APK_", "") : (payload.metadata?.order_id || null)
+          order_id: reference?.startsWith("APK_") ? reference.replace("APK_", "") : (payload.metadata?.order_id || null),
+          office_id: officeId || payload.metadata?.office_id || null,
         });
       }
 
@@ -157,7 +161,7 @@ serve(async (req) => {
 });
 
 async function handlePaymentSuccess(data) {
-  const { service_slug, payment_method, proc_id, paid_amount, dependents, payment_id, applied_coupon_id, order_id, parent_service_slug } = data;
+  const { service_slug, payment_method, proc_id, paid_amount, dependents, payment_id, applied_coupon_id, order_id, parent_service_slug, office_id } = data;
   let { user_id } = data;
 
   if (!service_slug) {
@@ -208,6 +212,7 @@ async function handlePaymentSuccess(data) {
     payment_id,
     order_id,
     parent_service_slug,
+    office_id,
     order_update: {
       stripe_session_id: payment_id,
     },

@@ -19,6 +19,7 @@ export interface StripeCheckoutParams {
   coupon_code?: string;
   action?: string;
   serviceId?: string;
+  office_id?: string;
 }
 
 export interface ParcelowCheckoutParams {
@@ -33,6 +34,8 @@ export interface ParcelowCheckoutParams {
   coupon_code?: string;
   proc_id?: string;
   order_id?: string;
+  office_id?: string;
+  serviceId?: string;
 }
 
 export interface CheckoutResult {
@@ -55,6 +58,8 @@ async function preRegisterOrder(params: {
   procId?: string;
   phone?: string;
   coupon_code?: string;
+  office_id?: string;
+  serviceId?: string;
 }): Promise<string | undefined> {
   try {
     let parentServiceSlug: string | null = null;
@@ -74,6 +79,7 @@ async function preRegisterOrder(params: {
       parent_process_id: params.procId,
       parent_service_slug: parentServiceSlug,
       phone: params.phone?.replace(/\D/g, ""),
+      service_id: params.serviceId,
     };
 
     if (params.userId) {
@@ -118,6 +124,7 @@ async function preRegisterOrder(params: {
         payment_method: params.paymentMethod,
         payment_status: "pending",
         coupon_code: params.coupon_code || null,
+        office_id: params.office_id || null,
         payment_metadata: paymentMetadata,
       })
       .select("id")
@@ -144,6 +151,7 @@ export async function createStripeCheckout(
     procId: params.proc_id,
     phone: params.phone,
     coupon_code: params.coupon_code,
+    office_id: params.office_id,
   });
 
   const { data, error } = await supabase.functions.invoke("stripe-checkout", {
@@ -161,6 +169,7 @@ export async function createStripeCheckout(
       action: params.action || "",
       serviceId: params.serviceId || "",
       proc_id: params.proc_id,
+      office_id: params.office_id,
     },
   });
 
@@ -182,13 +191,15 @@ export async function createParcelowCheckout(
     userId: params.userId,
     fullName: params.fullName,
     email: params.email,
-    amount: params.amount || 0,
+    amount: params.amount ?? 0,
     slug: params.slug,
     paymentMethod: "parcelow",
     dependents: params.dependents,
     procId: params.proc_id,
     phone: params.phone,
     coupon_code: params.coupon_code,
+    office_id: params.office_id,
+    serviceId: params.serviceId,
   });
 
   const { data, error } = await supabase.functions.invoke("create-parcelow-checkout", {
@@ -204,6 +215,7 @@ export async function createParcelowCheckout(
       coupon_code: params.coupon_code,
       origin_url: window.location.origin,
       proc_id: params.proc_id,
+      office_id: params.office_id,
     },
   });
 
@@ -242,6 +254,8 @@ export async function createZellePayment(params: {
   proc_id?: string;
   coupon_code?: string;
   phone?: string;
+  office_id?: string;
+  serviceId?: string;
 }): Promise<{ paymentId: string; autoApproved: boolean }> {
   const orderId = await preRegisterOrder({
     userId: params.userId || undefined,
@@ -254,6 +268,8 @@ export async function createZellePayment(params: {
     procId: params.proc_id,
     phone: params.phone,
     coupon_code: params.coupon_code,
+    office_id: params.office_id,
+    serviceId: params.serviceId,
   });
 
   const { data, error } = await supabase.functions.invoke("create-zelle-payment", {
@@ -269,6 +285,8 @@ export async function createZellePayment(params: {
       proc_id: params.proc_id,
       coupon_code: params.coupon_code || undefined,
       dependents: params.dependents,
+      office_id: params.office_id,
+      service_id: params.serviceId,
       recipient_name: ZELLE_RECIPIENT.name,
       recipient_email: ZELLE_RECIPIENT.email,
       admin_notes: `Serviço: ${params.serviceName} | Valor esperado: $${params.expectedAmount.toFixed(2)} | Pago: $${params.amount.toFixed(2)}${params.dependents ? ` | Dependentes: ${params.dependents}` : ""}`,

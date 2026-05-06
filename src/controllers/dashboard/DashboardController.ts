@@ -1,7 +1,8 @@
 import { useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
-import { processService, type UserService } from '../../services/process.service';
+import * as processService from '../../features/process/lib/processOps';
+import type { UserService } from '../../features/process/types';
 import { servicesData, type ServiceMeta } from '../../data/services';
 
 export interface ActiveProcess {

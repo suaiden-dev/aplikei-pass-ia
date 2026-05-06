@@ -139,6 +139,7 @@ Deno.serve(async (req: Request) => {
 
             const exchange_rate = metadata.exchange_rate;
             const netAmountUSD = metadata.netAmountUSD;
+            const office_id = metadata.office_id || null;
             const contract_selfie_url = metadata.contract_selfie_url || null;
             const terms_accepted_at = metadata.terms_accepted_at || null;
             const client_ip = req.headers.get("x-forwarded-for") || req.headers.get("cf-connecting-ip") || null;
@@ -194,6 +195,7 @@ Deno.serve(async (req: Request) => {
                     stripe_id: session.id,
                     event_type: event.type
                 },
+                office_id,
                 contract_selfie_url,
                 terms_accepted_at,
                 client_ip
@@ -242,6 +244,7 @@ Deno.serve(async (req: Request) => {
                         payment_id: session.id,
                         order_id: order?.id || null,
                         parent_service_slug: metadata.parent_service_slug || null,
+                        office_id,
                     });
                 } else if (metadata.serviceId) {
                     // Specialist/action-based flows: update process_services or user_services status directly
@@ -284,7 +287,7 @@ Deno.serve(async (req: Request) => {
                             const prefix = parentProcess.service_slug === 'extensao-status' ? 'EOS' : 'COS';
                             await supabaseAdmin
                                 .from('user_services')
-                                .update({ status: `${prefix}_CASE_FORM` })
+                                .update({ status: `${prefix}_CASE_FORM`, office_id })
                                 .eq('id', metadata.serviceId || metadata.processId);
                         }
                     } else {
@@ -318,7 +321,7 @@ Deno.serve(async (req: Request) => {
                         } else if (metadata.action === 'reapply') {
                             await supabaseAdmin.from('user_services').insert({ user_id: userId, service_slug: slug, status: 'active', is_second_attempt: true });
                         } else {
-                            await supabaseAdmin.from('user_services').insert({ user_id: userId, service_slug: slug, status: 'active' });
+                            await supabaseAdmin.from('user_services').insert({ user_id: userId, service_slug: slug, status: 'active', office_id });
                         }
                     }
                 } else {
@@ -334,6 +337,7 @@ Deno.serve(async (req: Request) => {
                         payment_id: session.id,
                         order_id: order?.id || null,
                         parent_service_slug: metadata.parent_service_slug || null,
+                        office_id,
                     });
                 }
             }

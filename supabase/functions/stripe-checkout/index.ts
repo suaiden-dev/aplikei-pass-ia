@@ -8,6 +8,11 @@ import {
     calculateUSDToPixFinalBRL,
     CouponData
 } from "./payment-logic.ts";
+import { 
+    resolveUseAplicei, 
+    getOfficeStripeKey, 
+    resolveServicePrice 
+} from "../_shared/office-payment.ts";
 
 const NOTIFICATIONS_WEBHOOK = Deno.env.get("NOTIFICATIONS_WEBHOOK_URL");
 
@@ -63,7 +68,7 @@ Deno.serve(async (req: Request) => {
         const body = await req.json();
         const {
             order_id, action, serviceId, discountPct = 0, coupon_code,
-            paymentMethod = 'card'
+            paymentMethod = 'card', office_id
         } = body;
 
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -131,9 +136,18 @@ Deno.serve(async (req: Request) => {
             mainPriceInfo = { service_id: slug, ...FALLBACK_PRICES[slug] };
         }
 
-        if (!mainPriceInfo) throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
+        let basePriceUSD = 0;
+        let mainPriceName = "";
 
-        let basePriceUSD = Number(mainPriceInfo.price);
+        if (office_id && serviceId) {
+            const officePrice = await resolveServicePrice(supabase, office_id, serviceId);
+            basePriceUSD = officePrice.price;
+            mainPriceName = officePrice.name;
+        } else {
+            if (!mainPriceInfo) throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
+            basePriceUSD = Number(mainPriceInfo.price);
+            mainPriceName = mainPriceInfo.name;
+        }
 
         // Validação dinâmica de preço (Segurança)
         if (targetProcId) {
@@ -185,7 +199,18 @@ Deno.serve(async (req: Request) => {
             unitAmount = Math.round(calculateCardAmountWithFees(finalSubtotalUSD) * 100);
         }
 
-        const stripeSecret = Deno.env.get(`STRIPE_SECRET_KEY_${metadata_for_logs.env}`) || Deno.env.get("STRIPE_SECRET_KEY");
+        let stripeSecret = Deno.env.get(`STRIPE_SECRET_KEY_${metadata_for_logs.env}`) || Deno.env.get("STRIPE_SECRET_KEY");
+        
+        if (office_id) {
+            const useAplicei = await resolveUseAplicei(supabase, office_id);
+            if (!useAplicei) {
+                const officeKey = await getOfficeStripeKey(supabase, office_id);
+                if (officeKey) {
+                    stripeSecret = officeKey;
+                }
+            }
+        }
+
         const stripe = new Stripe(stripeSecret!, { apiVersion: "2023-10-16", httpClient: Stripe.createFetchHttpClient() });
 
         const session = await stripe.checkout.sessions.create({
@@ -193,7 +218,7 @@ Deno.serve(async (req: Request) => {
             line_items: [{
                 price_data: {
                     currency,
-                    product_data: { name: mainPriceInfo.name, description: `Serviço Aplikei - ${paymentMethod.toUpperCase()}` },
+                    product_data: { name: mainPriceName, description: `Serviço Aplikei - ${paymentMethod.toUpperCase()}` },
                     unit_amount: unitAmount,
                 },
                 quantity: 1,
@@ -218,6 +243,7 @@ Deno.serve(async (req: Request) => {
                 proc_id: targetProcId || "",
                 processId: targetProcId || "",
                 order_id: order_id || "",
+                office_id: office_id || "",
                 parent_service_slug: parentServiceSlug,
                 coupon_code: coupon_code || "",
                 applied_coupon_id: appliedCouponId || "",

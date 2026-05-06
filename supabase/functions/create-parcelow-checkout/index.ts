@@ -1,4 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
+import { 
+    resolveUseAplicei, 
+    resolveParcelowConfig, 
+    resolveServicePrice 
+} from "../_shared/office-payment.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -31,7 +36,8 @@ Deno.serve(async (req: Request) => {
         const {
             slug, email, fullName, phone, dependents = 0,
             cpf, payerInfo, paymentMethod, origin_url,
-            action, serviceId, processId, proc_id, order_id, parent_service_slug, coupon_code
+            action, serviceId, processId, proc_id, order_id, parent_service_slug, coupon_code,
+            office_id
         } = payload;
 
         if (!slug || !email || (!cpf && !payerInfo?.cpf)) {
@@ -72,22 +78,36 @@ Deno.serve(async (req: Request) => {
             'proposta-rfe-motion': { name: 'Proposta de Motion (Customizada)', price: 0 },
         };
 
-        let mainPriceInfo = dbPrices?.find(p => p.service_id === slug);
-        if (!mainPriceInfo && FALLBACK_PRICES[slug]) {
-            mainPriceInfo = { service_id: slug, ...FALLBACK_PRICES[slug] };
+        let mainPriceName = "";
+        let basePriceUSD = 0;
+        let depPriceUSD = 0;
+
+        if (office_id && serviceId) {
+            const officePrice = await resolveServicePrice(supabase, office_id, serviceId);
+            basePriceUSD = officePrice.price;
+            mainPriceName = officePrice.name;
+            // Para escritórios, assumimos que dependentes estão embutidos ou calculados via regra específica?
+            // A spec não detalha preço de dependente por office, mas vamos manter o fallback ou buscar se houver slug.
+            const depPriceInfo = dbPrices?.find(p => p.service_id === dependentId);
+            depPriceUSD = depPriceInfo ? Number(depPriceInfo.price) : 0;
+        } else {
+            let mainPriceInfo = dbPrices?.find(p => p.service_id === slug);
+            if (!mainPriceInfo && FALLBACK_PRICES[slug]) {
+                mainPriceInfo = { service_id: slug, ...FALLBACK_PRICES[slug] };
+            }
+
+            if (!mainPriceInfo) {
+                console.error("[parcelow-checkout] Serviço não encontrado:", slug);
+                throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
+            }
+
+            const depPriceInfo = dbPrices?.find(p => p.service_id === dependentId);
+            mainPriceName = mainPriceInfo.name;
+            basePriceUSD = Number(mainPriceInfo.price);
+            depPriceUSD = depPriceInfo ? Number(depPriceInfo.price) : 0;
         }
 
-        if (!mainPriceInfo) {
-            console.error("[parcelow-checkout] Serviço não encontrado:", slug);
-            throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
-        }
-
-        const depPriceInfo = dbPrices?.find(p => p.service_id === dependentId);
-
-        const serviceName = mainPriceInfo.name;
-        const basePriceUSD = Number(mainPriceInfo.price);
-        const depPriceUSD = depPriceInfo ? Number(depPriceInfo.price) : 0;
-
+        const serviceName = mainPriceName;
         const subtotalUSD = basePriceUSD + (dependents * depPriceUSD);
 
         // --- NOVA LÓGICA DE CUPOM (ESTENDIDA) ---
@@ -132,13 +152,25 @@ Deno.serve(async (req: Request) => {
             ? "https://sandbox-2.parcelow.com.br"
             : "https://app.parcelow.com";
 
-        const rawId = parcelowEnvironment === 'staging'
+        let rawId = parcelowEnvironment === 'staging'
             ? Deno.env.get("PARCELOW_CLIENT_ID_STAGING")
             : Deno.env.get("PARCELOW_CLIENT_ID_PRODUCTION");
 
-        const clientSecret = parcelowEnvironment === 'staging'
+        let clientSecret = parcelowEnvironment === 'staging'
             ? Deno.env.get("PARCELOW_CLIENT_SECRET_STAGING")
             : Deno.env.get("PARCELOW_CLIENT_SECRET_PRODUCTION");
+
+        if (office_id) {
+            const useAplicei = await resolveUseAplicei(supabase, office_id);
+            if (!useAplicei) {
+                const officeParcelow = await resolveParcelowConfig(supabase, office_id);
+                if (officeParcelow.merchant_id && officeParcelow.api_key) {
+                    rawId = officeParcelow.merchant_id;
+                    clientSecret = officeParcelow.api_key;
+                    console.log(`[create-parcelow-checkout] Usando credenciais do Office: ${office_id}`);
+                }
+            }
+        }
 
         let clientIdToUse: number | string = rawId || "";
         const parsedId = parseInt(rawId || "");
@@ -177,10 +209,12 @@ Deno.serve(async (req: Request) => {
                 order_number: parcelowReference,
                 total_price_usd: finalSubtotalUSD,
                 payment_method: `parcelow_${paymentMethod || 'credit_card'}`,
+                office_id: office_id || null,
                 payment_metadata: {
                     ...existingMetadata,
                     dependents,
                     phone,
+                    office_id: office_id || "",
                     payerInfo: payerInfo || null,
                     parcelow_cpf: finalPayerCpf,
                     parcelow_phone: finalPayerPhone,

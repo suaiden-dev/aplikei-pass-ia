@@ -1158,15 +1158,25 @@ export default function AdminProcessDetailPage() {
     try {
       const { data, error } = await supabase
         .from("user_services")
-        .select(`
-          *,
-          user_accounts:profiles (full_name, email)
-        `)
+        .select("*")
         .eq("id", id)
         .single();
 
       if (error) throw error;
-      setProc(data as ProcessWithUser);
+      const processRow = data as ProcessWithUser;
+      let account: { full_name: string; email?: string } | undefined;
+      if (processRow.user_id) {
+        const { data: userDataPrimary, error: userErrorPrimary } = await supabase
+          .from("profiles")
+          .select("full_name, email")
+          .eq("id", processRow.user_id)
+          .maybeSingle();
+
+        if (userErrorPrimary) throw userErrorPrimary;
+        account = userDataPrimary ? { full_name: userDataPrimary.full_name || "Cliente", email: userDataPrimary.email || undefined } : undefined;
+      }
+
+      setProc({ ...processRow, user_accounts: account });
       if (data?.step_data?.generatedCoverLetterHTML) {
         const rawHtml = data.step_data.generatedCoverLetterHTML as string;
         setCoverLetterHtml(rawHtml.replace(/color:\s*#000;?/gi, '').replace(/color:\s*black;?/gi, ''));

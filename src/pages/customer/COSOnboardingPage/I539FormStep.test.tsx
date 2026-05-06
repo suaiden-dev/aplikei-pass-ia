@@ -127,6 +127,16 @@ vi.mock('../../../i18n', () => ({
             draftSaved: "Draft Saved",
             draftError: "Draft Error",
             checkFields: "Check fields: {errorList}"
+          },
+          labels: {
+            fullLegalName: "Full Legal Name",
+            familyName: "Family Name",
+            givenName: "Given Name",
+            saveDraft: "Save Draft",
+            submitForm: "Submit Form",
+            sending: "Sending...",
+            dob: "Date of Birth",
+            daytimePhone: "Daytime Phone",
           }
         },
         form: {
@@ -149,22 +159,12 @@ describe('I539FormStep', () => {
   })
   vi.stubGlobal('scrollTo', vi.fn())
 
-  async function goToStep(stepNumber: number) {
-    const user = userEvent.setup()
-
-    for (let current = 1; current < stepNumber; current += 1) {
-      await user.click(screen.getByRole('button', { name: /Proxima etapa/i }))
-    }
-  }
-
   test('should render and have blank Preparer Information by default', async () => {
     render(
       <LanguageProvider>
         <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
       </LanguageProvider>
     )
-
-    await goToStep(5)
 
     const preparerFamilyName = document.querySelector('input[name="preparerFamilyName"]') as HTMLInputElement
     const preparerGivenName = document.querySelector('input[name="preparerGivenName"]') as HTMLInputElement
@@ -181,8 +181,6 @@ describe('I539FormStep', () => {
       </LanguageProvider>
     )
 
-    await goToStep(5)
-
     const daytimePhone = document.querySelector('input[name="daytimePhone"]') as HTMLInputElement
 
     await user.clear(daytimePhone)
@@ -196,8 +194,6 @@ describe('I539FormStep', () => {
         <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
       </LanguageProvider>
     )
-
-    await goToStep(2)
 
     const dobInput = document.querySelector('input[name="dateOfBirth"]') as HTMLInputElement
 
@@ -213,11 +209,11 @@ describe('I539FormStep', () => {
       </LanguageProvider>
     )
 
-    const nextButton = screen.getByRole('button', { name: /Proxima etapa/i })
+    const submitButton = screen.getByRole('button', { name: /Submit Form/i })
     const familyNameInput = screen.getByLabelText(/Family Name/i, { selector: '[name="familyName"]' })
     await user.clear(familyNameInput)
 
-    await user.click(nextButton)
+    await user.click(submitButton)
 
     await waitFor(() => {
       expect(screen.getByText(/Family Name is required/i)).toBeInTheDocument()

@@ -23,6 +23,8 @@ interface ZelleParams {
   dependents?: number;
   proc_id?: string;
   coupon_code?: string;
+  office_id?: string;
+  serviceId?: string;
 }
 
 export function useCheckout() {

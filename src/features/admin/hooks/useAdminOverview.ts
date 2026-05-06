@@ -35,7 +35,7 @@ export function useAdminOverview() {
         { count: customersCount },
         { count: pendingZelle },
       ] = await Promise.all([
-        supabase.from("user_accounts").select("*", { count: "exact", head: true }),
+        supabase.from("user_accounts").select("id", { count: "exact", head: true }),
         supabase.from("zelle_payments").select("*", { count: "exact", head: true }).eq("status", "pending_verification"),
       ]);
 

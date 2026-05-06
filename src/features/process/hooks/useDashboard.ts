@@ -84,8 +84,8 @@ export function useDashboard(userId: string | undefined) {
     const newestActiveSlugs = new Set<string>();
     return baseProducts.filter((s) => {
       const sd = (s.step_data ?? {}) as Record<string, unknown>;
-      const isConsular = s.service_slug.startsWith("visto-b1-b2") || s.service_slug.startsWith("visto-f1");
-      const isCOS = s.service_slug === "troca-status" || s.service_slug === "extensao-status";
+      const isConsular = s.service_slug.startsWith("visto-b1-b2") || s.service_slug.startsWith("visto-f1") || s.service_slug === "visa-b1b2" || s.service_slug === "visa-f1";
+      const isCOS = s.service_slug === "troca-status" || s.service_slug === "extensao-status" || s.service_slug === "visa-cos" || s.service_slug === "visa-eos";
 
       if (FINAL_STATUSES.includes(s.status ?? "")) return true;
       if (isConsular && sd["interview_outcome"]) return true;
@@ -104,7 +104,6 @@ export function useDashboard(userId: string | undefined) {
       .filter((s) =>
         ACTIVE_STATUSES.includes(s.status ?? "") &&
         !others.find((o) => o.id === s.id) &&
-        servicesData.some((sd) => sd.slug === s.service_slug) &&
         !isAnalysisSlug(s.service_slug),
       )
       .map((proc) => {
@@ -130,7 +129,7 @@ export function useDashboard(userId: string | undefined) {
         return {
           proc,
           service,
-          progress: isFinalized ? 100 : calculateProcessProgress(proc, service?.steps.length ?? 1),
+          progress: isFinalized ? 100 : calculateProcessProgress(proc, service?.steps.length ?? 12),
           isApproved,
           isDenied,
           isFinalized,

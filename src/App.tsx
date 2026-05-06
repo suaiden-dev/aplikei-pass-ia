@@ -1,59 +1,33 @@
-import { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
-import { PublicLayout } from "./layouts/PublicLayout";
-import { AuthLayout } from "./layouts/AuthLayout";
-import { MasterDashboardLayout } from "./layouts/MasterDashboardLayout";
-import { AdminDashboardLayout } from "./layouts/AdminDashboardLayout";
-import { SellerDashboardLayout } from "./layouts/SellerDashboardLayout";
-import { CustomerLayout } from "./layouts/CustomerLayout";
-import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { Suspense } from "react";
+import { Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "./components/organisms/ScrollToTop";
+import { AdminDashboardLayout } from "./layouts/AdminDashboardLayout";
+import { AuthLayout } from "./layouts/AuthLayout";
+import { CustomerLayout } from "./layouts/CustomerLayout";
+import { MasterDashboardLayout } from "./layouts/MasterDashboardLayout";
+import { PublicLayout } from "./layouts/PublicLayout";
+import { SellerDashboardLayout } from "./layouts/SellerDashboardLayout";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { RoleRoute } from "./routes/RoleRoute";
+import { routesByLayout } from "./routes/appRoutes";
+import type { UserRole } from "./features/auth/types";
 
-function lazyPage<T extends React.ComponentType<unknown>>(importFn: () => Promise<{ default: T }>) {
-  return lazy(() => importFn().then((m) => ({ default: m.default })));
+function nestedPath(fullPath: string, basePath: string) {
+  if (fullPath === basePath) return "";
+  return fullPath.replace(`${basePath}/`, "");
 }
 
-// ─── Lazy-loaded Pages ────────────────────────────────────────────────────────
-// Public
-const HomePage            = lazyPage(() => import("./pages/HomePage"));
-const ServiceDetailPage   = lazyPage(() => import("./pages/ServiceDetailPage"));
-const Login               = lazyPage(() => import("./pages/Login"));
-const SignUpPage           = lazyPage(() => import("./pages/SignUp"));
-const ForgotPasswordPage  = lazyPage(() => import("./pages/ForgotPasswordPage"));
-const ResetPasswordPage   = lazyPage(() => import("./pages/ResetPasswordPage"));
-const CheckoutPage        = lazyPage(() => import("./pages/CheckoutPage"));
-const CheckoutSuccessPage = lazyPage(() => import("./pages/CheckoutSuccessPage"));
-const QuemSomosPage       = lazyPage(() => import("./pages/QuemSomosPage"));
-const ServicosPage        = lazyPage(() => import("./pages/ServicosPage"));
-const ContactPage         = lazyPage(() => import("./pages/ContactPage"));
+function appendToBase(basePath: string, sharedPath: string) {
+  const clean = sharedPath.startsWith("/") ? sharedPath.slice(1) : sharedPath;
+  return `${basePath}/${clean}`;
+}
 
-// Admin/Master/Seller
-const CustomersPage          = lazyPage(() => import("./pages/admin/CustomersPage"));
-const OverviewPage           = lazyPage(() => import("./pages/admin/OverviewPage"));
-const ZellePaymentsPage      = lazyPage(() => import("./pages/admin/ZellePaymentsPage"));
-const ProductsPage           = lazyPage(() => import("./pages/admin/ProductsPage"));
-const AdminProcessesPage     = lazyPage(() => import("./pages/admin/ProcessesPage"));
-const AdminProcessDetailPage = lazyPage(() => import("./pages/admin/ProcessDetailPage"));
-const AdminChatsPage         = lazyPage(() => import("./pages/admin/ChatsPage"));
-const CouponsPage            = lazyPage(() => import("./pages/admin/CouponsPage"));
-const RolesPage              = lazyPage(() => import("./pages/admin/RolesPage"));
-const LawyersPage            = lazyPage(() => import("./pages/admin/LawyersPage"));
-const PageBuilderPage        = lazyPage(() => import("./pages/admin/PageBuilderPage"));
-
-// Customer
-const CustomerDashboardPage = lazyPage(() => import("./pages/customer/DashboardPage"));
-const MyProcessesPage       = lazyPage(() => import("./pages/customer/MyProcessesPage"));
-const ProcessDetailPage     = lazyPage(() => import("./pages/customer/ProcessDetailPage"));
-const AIChatPage            = lazyPage(() => import("./pages/customer/AIChatPage"));
-const COSOnboardingPage     = lazyPage(() => import("./pages/customer/COSOnboardingPage"));
-const ProfileSettingsPage   = lazyPage(() => import("./pages/customer/ProfileSettingsPage"));
-
-// Legal
-const Terms         = lazyPage(() => import("./pages/Legal/Terms"));
-const Privacy       = lazyPage(() => import("./pages/Legal/Privacy"));
-const Refund        = lazyPage(() => import("./pages/Legal/Refund"));
-const Disclaimers   = lazyPage(() => import("./pages/Legal/Disclaimers"));
-const ContractTerms = lazyPage(() => import("./pages/Legal/ContractTerms"));
+function routeHasSidebarRole(
+  route: { sidebarLayouts?: UserRole[] },
+  roles: UserRole[],
+) {
+  return route.sidebarLayouts?.some((role) => roles.includes(role)) ?? false;
+}
 
 function PageLoader() {
   return (
@@ -64,93 +38,113 @@ function PageLoader() {
 }
 
 export default function App() {
+  const publicRoutes = routesByLayout("public");
+  const authRoutes = routesByLayout("auth");
+  const standaloneRoutes = routesByLayout("standalone");
+  const protectedRoutes = routesByLayout("protected");
+  const customerRoutes = routesByLayout("customer");
+  const masterRoutes = routesByLayout("master");
+  const adminRoutes = routesByLayout("manager");
+  const masterActiveRoutes = masterRoutes.filter((route) => route.path === "/master");
+  const adminActiveRoutes = adminRoutes.filter((route) => route.path === "/admin" || route.path === "/admin/page-builder");
+  const sellerActiveRoutes: typeof adminRoutes = [];
+  const adminSharedRoutes = protectedRoutes.filter((route) =>
+    routeHasSidebarRole(route, ["manager", "admin_lawyer"]),
+  );
+  const masterSharedRoutes = protectedRoutes.filter((route) =>
+    routeHasSidebarRole(route, ["master"]),
+  );
+  const sellerSharedRoutes = protectedRoutes.filter((route) =>
+    routeHasSidebarRole(route, ["seller"]),
+  );
+
+  const protectedStandaloneRoutes = standaloneRoutes.filter((route) => route.authRequired);
+  const unprotectedStandaloneRoutes = standaloneRoutes.filter((route) => !route.authRequired);
+
   return (
     <>
       <ScrollToTop />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route element={<PublicLayout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/quem-somos" element={<QuemSomosPage />} />
-            <Route path="/servicos" element={<ServicosPage />} />
-            <Route path="/servicos/:slug" element={<ServiceDetailPage />} />
-            <Route path="/contato" element={<ContactPage />} />
+            {publicRoutes.map((route) => (
+              <Route key={route.path} path={route.path} element={<route.component />} />
+            ))}
           </Route>
 
           <Route element={<AuthLayout />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/sign-in" element={<Login />} />
-            <Route path="/cadastro" element={<SignUpPage />} />
-            <Route path="/sign-up" element={<SignUpPage />} />
-            <Route path="/recuperar-senha" element={<ForgotPasswordPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            {authRoutes.map((route) => (
+              <Route key={route.path} path={route.path} element={<route.component />} />
+            ))}
           </Route>
 
-          {/* Checkout */}
-          <Route path="/checkout/:slug" element={<CheckoutPage />} />
+          {unprotectedStandaloneRoutes.map((route) => (
+            <Route key={route.path} path={route.path} element={<route.component />} />
+          ))}
 
-          {/* Legal */}
-          <Route path="/termos" element={<Terms />} />
-          <Route path="/privacidade" element={<Privacy />} />
-          <Route path="/reembolso" element={<Refund />} />
-          <Route path="/avisos-legais" element={<Disclaimers />} />
-          <Route path="/contrato" element={<ContractTerms />} />
-
-          {/* Rotas protegidas — exigem autenticação */}
           <Route element={<ProtectedRoute />}>
-            {/* Checkout success — protected so user is guaranteed authenticated */}
-            <Route path="/checkout-success" element={<CheckoutSuccessPage />} />
-
-            {/* Customer routes */}
+            {protectedStandaloneRoutes.map((route) => (
+              <Route key={route.path} path={route.path} element={<route.component />} />
+            ))}
             <Route element={<CustomerLayout />}>
-              <Route path="/dashboard" element={<CustomerDashboardPage />} />
-              <Route path="/dashboard/processes" element={<MyProcessesPage />} />
-              {/* Onboarding genérico */}
-              <Route path="/dashboard/processes/:slug/onboarding" element={<COSOnboardingPage />} />
-
-              <Route path="/dashboard/processes/:slug" element={<ProcessDetailPage />} />
-              <Route path="/dashboard/support" element={<AIChatPage />} />
-              <Route path="/dashboard/ai-chat" element={<AIChatPage />} />
-              <Route path="/minha-conta" element={<ProfileSettingsPage />} />
+              {customerRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={<route.component />} />
+              ))}
             </Route>
 
-            {/* Master routes */}
             <Route path="/master" element={<MasterDashboardLayout />}>
-              <Route index element={<OverviewPage />} />
-              <Route path="payments" element={<ZellePaymentsPage />} />
-              <Route path="customers" element={<CustomersPage />} />
-              <Route path="lawyers" element={<LawyersPage />} />
-              <Route path="cases" element={<AdminProcessesPage />} />
-              <Route path="cases/:id" element={<AdminProcessDetailPage />} />
-              <Route path="chats" element={<AdminChatsPage />} />
-              <Route path="products" element={<ProductsPage />} />
-              <Route path="coupons" element={<CouponsPage />} />
-              <Route path="roles" element={<RolesPage />} />
+              {masterActiveRoutes.map((route) =>
+                route.path === "/master" ? (
+                  <Route key={route.path} index element={<route.component />} />
+                ) : (
+                  <Route key={route.path} path={nestedPath(route.path, "/master")} element={<route.component />} />
+                ),
+              )}
+              {masterSharedRoutes.map((route) => (
+                <Route
+                  key={`master-shared-${route.path}`}
+                  element={<RoleRoute allowedRoles={(route.sidebarLayouts as UserRole[] | undefined) ?? []} />}
+                >
+                  <Route
+                    path={nestedPath(appendToBase("/master", route.path), "/master")}
+                    element={<route.component />}
+                  />
+                </Route>
+              ))}
             </Route>
 
-            {/* Admin routes */}
-            <Route path="/admin" element={<AdminDashboardLayout />}>
-              <Route index element={<OverviewPage />} />
-              <Route path="payments" element={<ZellePaymentsPage />} />
-              <Route path="customers" element={<CustomersPage />} />
-              <Route path="lawyers" element={<LawyersPage />} />
-              <Route path="processes" element={<AdminProcessesPage />} />
-              <Route path="processes/:id" element={<AdminProcessDetailPage />} />
-              <Route path="chats" element={<AdminChatsPage />} />
-              <Route path="products" element={<ProductsPage />} />
-              <Route path="coupons" element={<CouponsPage />} />
-              <Route path="roles" element={<RolesPage />} />
-              <Route path="page-builder" element={<PageBuilderPage />} />
+            <Route element={<AdminDashboardLayout />}>
+              {adminActiveRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={<route.component />} />
+              ))}
+              {adminSharedRoutes.map((route) => (
+                <Route
+                  key={`admin-${route.path}`}
+                  element={<RoleRoute allowedRoles={(route.sidebarLayouts as UserRole[] | undefined) ?? []} />}
+                >
+                  <Route
+                    path={route.path}
+                    element={<route.component />}
+                  />
+                </Route>
+              ))}
             </Route>
 
-            {/* Seller routes */}
             <Route path="/seller" element={<SellerDashboardLayout />}>
-              <Route path="payments" element={<ZellePaymentsPage />} />
-              <Route path="chats" element={<AdminChatsPage />} />
-              <Route path="customers" element={<CustomersPage />} />
-              <Route path="coupons" element={<CouponsPage />} />
+              {sellerActiveRoutes.map((route) => (
+                <Route key={route.path} path={nestedPath(route.path, "/seller")} element={<route.component />} />
+              ))}
+              {sellerSharedRoutes.map((route) => (
+                <Route
+                  key={`seller-shared-${route.path}`}
+                  element={<RoleRoute allowedRoles={(route.sidebarLayouts as UserRole[] | undefined) ?? []} />}
+                >
+                  <Route
+                    path={nestedPath(appendToBase("/seller", route.path), "/seller")}
+                    element={<route.component />}
+                  />
+                </Route>
+              ))}
             </Route>
           </Route>
 
@@ -160,7 +154,9 @@ export default function App() {
               <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg text-text">
                 <h1 className="text-6xl font-black text-primary">404</h1>
                 <p className="text-text-muted">Página não encontrada</p>
-                <a href="/" className="text-primary underline">Voltar ao início</a>
+                <a href="/" className="text-primary underline">
+                  Voltar ao início
+                </a>
               </div>
             }
           />

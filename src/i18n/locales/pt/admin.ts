@@ -39,7 +39,8 @@ const admin = {
     documents: "Documentos",
     billing: "Faturamento",
     analytics: "Análises",
-    settings: "Configurações"
+    settings: "Configurações",
+    paymentSettings: "Métodos de Pagamento"
   },
   overview: {
     title: "Master Overview",
@@ -642,7 +643,44 @@ const admin = {
     imageSizeError: "A imagem deve ter no máximo 5MB.",
     closeMenu: "Fechar menu",
     openMenu: "Abrir menu"
-  }
+  },
+  paymentMethods: {
+    title: "Métodos de Pagamento",
+    subtitle: "Configure como seus clientes podem pagar pelos seus serviços.",
+    stripe: {
+      title: "Stripe",
+      description: "Receba pagamentos via Cartão de Crédito e PIX.",
+      enable: "Habilitar Stripe",
+      accountId: "ID da Conta Stripe",
+      status: "Status da Conexão",
+      connect: "Conectar Conta Stripe",
+      disconnect: "Desconectar",
+      connected: "Conectado",
+      disconnected: "Desconectado",
+    },
+    zelle: {
+      title: "Zelle",
+      description: "Receba transferências diretas via Zelle.",
+      enable: "Habilitar Zelle",
+      recipientName: "Nome do Beneficiário",
+      email: "E-mail Zelle",
+      phone: "Telefone Zelle",
+      instructions: "Instruções de Pagamento",
+      instructionsPlaceholder: "Ex: Envie o pagamento via Zelle e envie o comprovante.",
+    },
+    parcelow: {
+      title: "Parcelow",
+      description: "Receba pagamentos parcelados de clientes no Brasil.",
+      enable: "Habilitar Parcelow",
+      accountIdentifier: "Identificador da Conta Parcelow",
+      checkoutLink: "Link de Checkout Público",
+      instructions: "Instruções de Pagamento",
+      instructionsPlaceholder: "Ex: Complete o pagamento via Parcelow e envie o comprovante.",
+    },
+    missingConfig: "Configuração incompleta",
+    saveSuccess: "Configuração salva!",
+    saveError: "Erro ao salvar configuração.",
+  },
 };
 
 export default admin;

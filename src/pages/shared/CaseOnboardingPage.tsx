@@ -9,9 +9,10 @@ import { DashboardPageHeader, DashboardSection, InlineMetric, StatusBadge } from
 import { useAuth } from "../../hooks/useAuth";
 import type { CaseOnboardingStep } from "../../models/case.model";
 import { caseService } from "../../services/case.service";
-import { processService } from "../../services/process.service";
+import * as processService from "../../features/process/lib/processOps";
 import { getSupabaseClient } from "../../lib/supabase/client";
-import { workflowService, type StepReview } from "../../services/workflow.service";
+import * as workflowOps from "../../features/workflow/lib/workflowOps";
+import type { StepReview } from "../../features/workflow/types";
 import { formatDate } from "../../utils/format";
 
 // ─── DS-160 field labels & sections ──────────────────────────────────────────
@@ -1159,18 +1160,18 @@ export default function CaseOnboardingPage() {
 
     setIsReviewSubmitting(true);
     try {
-      await ensureWorkflowBackend(user.id);
+
 
       if (formStep.status !== "approved") {
-        await workflowService.approveStep(formStep.id, user.id, "Formulário inicial validado.");
+        await workflowOps.approveStep(formStep.id, user.id, "Formulário inicial validado.");
       }
 
       if (docsStep.status !== "approved") {
-        await workflowService.approveStep(docsStep.id, user.id, "Documentos validados.");
+        await workflowOps.approveStep(docsStep.id, user.id, "Documentos validados.");
       }
 
       if (reviewStep.status !== "completed") {
-        await workflowService.completeStep(reviewStep.id);
+        await workflowOps.completeStep(reviewStep.id);
       }
 
       toast.success("Case aprovado e liberado para a próxima etapa.");
@@ -1207,10 +1208,10 @@ export default function CaseOnboardingPage() {
 
     setIsReviewSubmitting(true);
     try {
-      await ensureWorkflowBackend(user.id);
+
 
       if (formItems.length > 0) {
-        await workflowService.requestRevision(
+        await workflowOps.requestRevision(
           formStep.id,
           user.id,
           buildRevisionComment(revisionFeedback, formItems),
@@ -1218,7 +1219,7 @@ export default function CaseOnboardingPage() {
       }
 
       if (docItems.length > 0) {
-        await workflowService.requestRevision(
+        await workflowOps.requestRevision(
           docsStep.id,
           user.id,
           buildRevisionComment(revisionFeedback, docItems),

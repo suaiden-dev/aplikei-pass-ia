@@ -60,6 +60,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // If already cached, resolve synchronously (no debounce needed)
+      const cached = authService.getCurrentAccount();
+      if (cached && cached.id === session.user.id) {
+        if (!cancelled) {
+          setUser(cached);
+          setIsLoading(false);
+        }
+        return;
+      }
+
       debounceTimer = setTimeout(() => {
         void authService.loadCurrentUserFromSession(session).then((account) => {
           if (!cancelled) {
@@ -67,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setIsLoading(false);
           }
         });
-      }, 300);
+      }, 100);
     });
 
     return () => {

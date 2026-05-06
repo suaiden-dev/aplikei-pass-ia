@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 
+import { resolveZelleConfig } from "../_shared/office-payment.ts";
+
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-customer-auth",
@@ -41,8 +43,8 @@ serve(async (req) => {
             amount,
             confirmation_code,
             payment_date,
-            recipient_name,
-            recipient_email,
+            recipient_name: frontend_recipient_name,
+            recipient_email: frontend_recipient_email,
             proof_path,
             service_slug,
             visa_order_id,
@@ -51,8 +53,24 @@ serve(async (req) => {
             guest_email,
             guest_name,
             coupon_code,
-            dependents // <--- ADICIONADO dependents
+            dependents,
+            office_id,
+            service_id
         } = await req.json();
+
+        // Resolve official Zelle config if office_id is present
+        let finalRecipientName = frontend_recipient_name;
+        let finalRecipientEmail = frontend_recipient_email;
+
+        if (office_id) {
+            try {
+                const zelleConfig = await resolveZelleConfig(supabase, office_id);
+                finalRecipientName = zelleConfig.recipient_name || finalRecipientName;
+                finalRecipientEmail = zelleConfig.email || finalRecipientEmail;
+            } catch (e) {
+                console.warn("[Zelle] Could not resolve office config, falling back to frontend data:", e.message);
+            }
+        }
 
         const actualPaymentDate = payment_date || new Date().toISOString().split('T')[0];
         const imageUrl = `${supabaseUrl}/storage/v1/object/public/zelle_comprovantes/${proof_path}`;
@@ -93,13 +111,15 @@ serve(async (req) => {
                 amount, // Valor total enviado pelo usuário
                 confirmation_code: confirmation_code || null,
                 payment_date: actualPaymentDate,
-                recipient_name: recipient_name || null,
-                recipient_email: recipient_email || null,
+                recipient_name: finalRecipientName || null,
+                recipient_email: finalRecipientEmail || null,
                 proof_path,
                 image_url: imageUrl,
                 service_slug,
+                service_id: service_id || null,
                 status: 'pending_verification',
                 visa_order_id: visa_order_id || null,
+                office_id: office_id || null,
             })
             .select("id")
             .single();
@@ -118,7 +138,8 @@ serve(async (req) => {
                 ...(currentOrder?.payment_metadata || {}),
                 coupon_code: finalCouponCode || "",
                 discount_amount: discountAmount.toString(),
-                dependents: dependents || 0 // <--- ADICIONADO dependents
+                dependents: dependents || 0,
+                office_id: office_id || ""
             };
 
             await supabase
@@ -126,6 +147,7 @@ serve(async (req) => {
                 .update({
                     payment_method: "zelle",
                     payment_metadata: updatedMetadata,
+                    office_id: office_id || null,
                     ...(contract_selfie_url ? { contract_selfie_url } : {}),
                     ...(terms_accepted_at ? { terms_accepted_at } : {}),
                     ...(client_ip ? { client_ip } : {}),
