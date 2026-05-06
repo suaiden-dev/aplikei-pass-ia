@@ -6,6 +6,7 @@ import { Badge } from "../atoms/badge";
 import { Button } from "../atoms/button";
 import { Card } from "../atoms/card";
 import { useT } from "../../i18n";
+import dashboardPreview from "../../assets/dashboard-preview.png";
 
 export function LexHero() {
   const landing = useT("landing") as any;
@@ -56,9 +57,9 @@ export function LexHero() {
           <div className="absolute -inset-4 rounded-[3rem] bg-primary/10 blur-2xl" />
           <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl border border-outline-variant bg-white">
             <img
-              alt="Strategic Immigration Planning"
+              alt="Aplikei Dashboard Preview"
               className="w-full h-auto"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqxSP3HYuhLlu5a-RpsmtKx6LVC60KQKfOCKjSjJmDIixkkXFZs8Gq4kqYA3q_JVwN4iu2QTSpxno6g22j007RDu_dNzm6ZKIiZCk0pMnUuClKJKygEJEQtqjUdinzTeGdRkeljrg8WvsyskLRVpEst8FTAhVUleIiED-k-1QN9qzmwyjiYovZiAtYNhMx8W6qlpnzeKK2s0xglgbmYKlk4aL1ydjOR8VKoqYqYviGLHwT5gOyQakLC5u8VjTWI6LCI1XW2KN_vqs"
+              src={dashboardPreview}
             />
           </div>
 
