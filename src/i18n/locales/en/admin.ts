@@ -35,6 +35,7 @@ const admin = {
     coupons: "Coupons",
     roles: "Roles",
     pageBuilder: "Page Builder",
+    paymentSettings: "Payment Methods"
   },
   overview: {
     stats: {
@@ -512,7 +513,44 @@ const admin = {
     finalizeProcess: "Finalize Process",
     finalizeConfirm: "Are you sure you want to finalize this process? This action cannot be undone.",
     processFinalized: "Process finalized successfully!"
-  }
+  },
+  paymentMethods: {
+    title: "Payment Methods",
+    subtitle: "Configure how your clients can pay for your services.",
+    stripe: {
+      title: "Stripe",
+      description: "Receive payments via Credit Card and PIX.",
+      enable: "Enable Stripe",
+      accountId: "Stripe Account ID",
+      status: "Connection Status",
+      connect: "Connect Stripe Account",
+      disconnect: "Disconnect",
+      connected: "Connected",
+      disconnected: "Disconnected",
+    },
+    zelle: {
+      title: "Zelle",
+      description: "Receive direct transfers via Zelle.",
+      enable: "Enable Zelle",
+      recipientName: "Recipient Name",
+      email: "Zelle Email",
+      phone: "Zelle Phone",
+      instructions: "Payment Instructions",
+      instructionsPlaceholder: "Ex: Send the payment via Zelle and upload the receipt.",
+    },
+    parcelow: {
+      title: "Parcelow",
+      description: "Receive installment payments from clients in Brazil.",
+      enable: "Enable Parcelow",
+      accountIdentifier: "Parcelow Account Identifier",
+      checkoutLink: "Public Checkout Link",
+      instructions: "Payment Instructions",
+      instructionsPlaceholder: "Ex: Complete the payment via Parcelow and upload the receipt.",
+    },
+    missingConfig: "Missing configuration",
+    saveSuccess: "Configuration saved!",
+    saveError: "Error saving configuration.",
+  },
 };
 
 export default admin;
