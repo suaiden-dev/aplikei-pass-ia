@@ -100,7 +100,7 @@ export function PublicNavbar() {
   }, [isMenuOpen]);
 
   const navLinks = [
-    { to: "/como-funciona", label: t.howItWorks },
+    { to: "/quem-somos", label: t.howItWorks },
     { to: "/servicos", label: t.services },
     { to: "/contato", label: t.contact },
   ];

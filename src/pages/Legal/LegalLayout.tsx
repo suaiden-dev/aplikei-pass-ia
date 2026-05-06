@@ -94,7 +94,7 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({ children }) => {
                     : "Our team is available to clarify operational questions."}
                 </p>
                 <Link 
-                  to="/como-funciona" 
+                  to="/quem-somos" 
                   className="text-sm font-bold text-primary hover:underline flex items-center gap-1"
                 >
                   {lang === "pt" ? "Saiba mais" : lang === "es" ? "Saber más" : "Learn more"} <ChevronRight className="w-4 h-4" />

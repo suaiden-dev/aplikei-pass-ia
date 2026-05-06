@@ -27,17 +27,17 @@ export function PublicFooter() {
           <div>
             <h4 className="mb-7 text-xs font-bold uppercase tracking-widest text-text">{t.services}</h4>
             <ul className="space-y-4 text-text-muted">
-              <li><Link to="/servicos/visto-b1-b2" className="transition-colors hover:text-text">{t.vistoB1B2}</Link></li>
-              <li><Link to="/servicos/visto-f1" className="transition-colors hover:text-text">{t.vistoF1}</Link></li>
-              <li><Link to="/servicos/extensao-status" className="transition-colors hover:text-text">{t.extensaoStatus}</Link></li>
-              <li><Link to="/servicos/troca-status" className="transition-colors hover:text-text">{t.trocaStatus}</Link></li>
+              <li><Link to="/servicos" className="transition-colors hover:text-text">{t.consularManagement}</Link></li>
+              <li><Link to="/servicos" className="transition-colors hover:text-text">{t.pageBuilder}</Link></li>
+              <li><Link to="/servicos" className="transition-colors hover:text-text">{t.fillingFlow}</Link></li>
+              <li><Link to="/servicos" className="transition-colors hover:text-text">{t.dataIntelligence}</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="mb-7 text-xs font-bold uppercase tracking-widest text-text">{t.platform}</h4>
             <ul className="space-y-4 text-text-muted">
-              <li><Link to="/como-funciona" className="transition-colors hover:text-text">{t.howItWorks}</Link></li>
+              <li><Link to="/quem-somos" className="transition-colors hover:text-text">{t.howItWorks}</Link></li>
               <li><Link to="#" className="transition-colors hover:text-text">{t.security}</Link></li>
               <li><Link to="#" className="transition-colors hover:text-text">{t.helpCenter}</Link></li>
             </ul>

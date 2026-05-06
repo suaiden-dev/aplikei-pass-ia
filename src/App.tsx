@@ -23,7 +23,7 @@ const ForgotPasswordPage  = lazyPage(() => import("./pages/ForgotPasswordPage"))
 const ResetPasswordPage   = lazyPage(() => import("./pages/ResetPasswordPage"));
 const CheckoutPage        = lazyPage(() => import("./pages/CheckoutPage"));
 const CheckoutSuccessPage = lazyPage(() => import("./pages/CheckoutSuccessPage"));
-const ComoFuncionaPage    = lazyPage(() => import("./pages/ComoFuncionaPage"));
+const QuemSomosPage       = lazyPage(() => import("./pages/QuemSomosPage"));
 const ServicosPage        = lazyPage(() => import("./pages/ServicosPage"));
 const ContactPage         = lazyPage(() => import("./pages/ContactPage"));
 
@@ -47,8 +47,6 @@ const ProcessDetailPage     = lazyPage(() => import("./pages/customer/ProcessDet
 const AIChatPage            = lazyPage(() => import("./pages/customer/AIChatPage"));
 const COSOnboardingPage     = lazyPage(() => import("./pages/customer/COSOnboardingPage"));
 const ProfileSettingsPage   = lazyPage(() => import("./pages/customer/ProfileSettingsPage"));
-const B1B2OnboardingPage    = lazyPage(() => import("./pages/customer/B1B2OnboardingPage"));
-const F1OnboardingPage      = lazyPage(() => import("./pages/customer/F1OnboardingPage"));
 
 // Legal
 const Terms         = lazyPage(() => import("./pages/Legal/Terms"));
@@ -73,7 +71,7 @@ export default function App() {
         <Routes>
           <Route element={<PublicLayout />}>
             <Route path="/" element={<HomePage />} />
-            <Route path="/como-funciona" element={<ComoFuncionaPage />} />
+            <Route path="/quem-somos" element={<QuemSomosPage />} />
             <Route path="/servicos" element={<ServicosPage />} />
             <Route path="/servicos/:slug" element={<ServiceDetailPage />} />
             <Route path="/contato" element={<ContactPage />} />
@@ -109,14 +107,7 @@ export default function App() {
             <Route element={<CustomerLayout />}>
               <Route path="/dashboard" element={<CustomerDashboardPage />} />
               <Route path="/dashboard/processes" element={<MyProcessesPage />} />
-              {/* Onboarding por produto */}
-              <Route path="/dashboard/processes/visto-b1-b2/onboarding" element={<B1B2OnboardingPage />} />
-              <Route path="/dashboard/processes/visto-b1-b2-reaplicacao/onboarding" element={<B1B2OnboardingPage />} />
-              <Route path="/dashboard/processes/visto-f1/onboarding" element={<F1OnboardingPage />} />
-              <Route path="/dashboard/processes/visto-f1-reaplicacao/onboarding" element={<F1OnboardingPage />} />
-              <Route path="/dashboard/processes/extensao-status/onboarding" element={<COSOnboardingPage />} />
-              <Route path="/dashboard/processes/troca-status/onboarding" element={<COSOnboardingPage />} />
-              {/* Onboarding genérico (outros slugs COS) */}
+              {/* Onboarding genérico */}
               <Route path="/dashboard/processes/:slug/onboarding" element={<COSOnboardingPage />} />
 
               <Route path="/dashboard/processes/:slug" element={<ProcessDetailPage />} />

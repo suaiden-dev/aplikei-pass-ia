@@ -1,7 +1,8 @@
 const landing = {
   hero: {
     badge: "IA Migratoria de Próxima Generación",
-    title: "La plataforma completa para gestión de procesos de visa",
+    title: "La plataforma completa para la gestión de",
+    titleHighlight: "procesos de visa",
     subtitle: "Automatice tareas, organice documentos y escale su firma con la eficiencia de la Inteligencia Artificial aplicada al derecho migratorio.",
     cta: "Agendar demostración",
     ctaSecondary: "Hablar con especialista",
@@ -118,7 +119,7 @@ const landing = {
     title: "Lo que dicen los expertos",
     items: [
       {
-        quote: "La implementación de Aplikei transformó drásticamente nuestra entrega. <span class='text-primary-container font-semibold'>Redujimos en un 60% el tiempo operativo</span> de preparación documental para el EB-1 y EB-2 NIW.",
+        quote: "La implementación de Aplikei transformó drásticamente nuestra entrega. <span class='text-primary-container font-semibold'>Redujimos en un 60% el tiempo operativo</span> de preparación documental para el EB-1 e EB-2 NIW.",
         author: "Ricardo Mendes",
         role: "Socio Director, Mendes Lex",
         image: "https://lh3.googleusercontent.com/aida-public/AB6AXuA66Qf9xmZaF-q5wdDes52yBwYSGfeJaamYjvVDCHinkORL9QjIUp7BtxhIZKoG1aJNCy0cuJFxfV2fKkVoHV8KUNFRFUeXJFB0V6II6TaRKS2jAprznp1c_iYCZy2lrflkvs6QRuJBV_7YDcBxjyEJLvhs3yjoIm9WgXkYfmjLSAlTp0F03bMlhRbu7ommCkQXykR1_tSm6hFmzVvcKZSR2vQUG5ykpXPr8Al72mBOshFx-cWlYqmYGQAk8_ZlwrvBqQC6_-CiSCA"
@@ -136,6 +137,27 @@ const landing = {
     description: "Únase a las firmas que ya han automatizado más de 10.000 procesos con precisión jurídica y tecnología de punta.",
     button: "Agendar demostración",
     disclaimer: "Sin compromiso. Prueba gratuita por 14 días para nuevos socios."
+  },
+  faq: {
+    title: "Preguntas Frecuentes",
+    items: [
+      {
+        q: "¿Es la plataforma segura para datos legales?",
+        a: "Sí, utilizamos cifrado de extremo a extremo y cumplimos con las principales normas de protección de datos (LGPD/GDPR)."
+      },
+      {
+        q: "¿Cómo ayuda la IA en el llenado de formularios?",
+        a: "Nuestra IA analiza los documentos enviados y extrae la información necesaria para completar automáticamente los formularios de USCIS, validando la consistencia de los datos."
+      },
+      {
+        q: "¿Puedo integrarlo con mi sistema actual?",
+        a: "Sí, ofrecemos APIs e integraciones con las principales herramientas de gestión y CRM del mercado."
+      },
+      {
+        q: "¿Existe soporte en español?",
+        a: "Por supuesto. Nuestro equipo de soporte está compuesto por especialistas que hablan su idioma y entienden el mercado migratorio."
+      }
+    ]
   },
   lex: {
     hero: {
@@ -169,7 +191,7 @@ const landing = {
       items: [
         {
           title: "Visas de trabajo",
-          description: "Orientación completa para visas H1-B, L1, O1 y EB-2 NIW, enfocadas en profesionales de alto rendimiento y ejecutivos.",
+          description: "Asesoría estratégica para profesionales cualificados que desean trabajar y construir una carrera internacional con seguridad.",
           features: [
             "EB-2 National Interest Waiver",
             "L-1 Intracompany Transferees",
@@ -178,22 +200,26 @@ const landing = {
           ]
         },
         {
-          title: "Green Card",
-          description: "Procesos de residencia permanente vía trabajo, inversión o lazos familiares con total seguridad jurídica."
+          title: "Visas de Turista",
+          description: "Planificación completa para su viaje, evitando rechazos y garantizando tranquilidad en la aprobación de la visa."
         },
         {
           title: "Visas de estudiante",
-          description: "Consultoría para visas F-1, M-1 y J-1 en instituciones de prestigio internacional."
+          description: "Soporte para estudiar en el extranjero con orientación desde la elección de la institución hasta la aprobación de la visa.",
         },
         {
-          title: "Ciudadanía",
-          description: "Procesos de naturalización y reconocimiento de ciudadanía europea y americana."
+          title: "Extensión de Visa",
+          description: "Seguimiento especializado para renovar su estatus o avanzar hacia la residencia permanente y la ciudadanía."
         },
         {
-          title: "Ajuste de estatus",
-          description: "Regularización de permanencia y cambio de categoría de visa dentro del territorio."
+          title: "Cambio de estatus",
+          description: "Regularización de la estancia y cambio de categoría de visa dentro del territorio."
         }
       ]
+    },
+    footer: {
+      description: "Consultoría jurídica internacional especializada en procesos de alta complejidad.",
+      tagline: "Nuestro equipo está listo para atenderlo en múltiples zonas horarias, garantizando soporte global."
     },
     testimonials: {
       title: "Resultados que transforman trayectorias internacionales.",
@@ -217,4 +243,5 @@ const landing = {
     }
   }
 };
+
 export default landing;

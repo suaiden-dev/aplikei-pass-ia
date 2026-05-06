@@ -191,7 +191,7 @@ const landing = {
       items: [
         {
           title: "Vistos de trabalho",
-          description: "Orientação completa para vistos H1-B, L1, O1 e EB-2 NIW, focados em profissionais de alta performance e executivos.",
+          description: "Assessoria estratégica para profissionais qualificados que desejam trabalhar e construir carreira internacional com segurança.",
           features: [
             "EB-2 National Interest Waiver",
             "L-1 Intracompany Transferees",
@@ -200,19 +200,19 @@ const landing = {
           ]
         },
         {
-          title: "Green Card",
-          description: "Processos de residência permanente via trabalho, investimento ou laços familiares com total segurança jurídica."
+          title: "Vistos de Turista",
+          description: "Planejamento completo para sua viagem, evitando recusas e garantindo tranquilidade na aprovação do visto."
         },
         {
           title: "Vistos de estudante",
-          description: "Consultoria para vistos F-1, M-1 e J-1 em instituições de prestígio internacional."
+          description: "Suporte para estudar no exterior com orientação desde a escolha da instituição até a aprovação do visto.",
         },
         {
-          title: "Cidadania",
-          description: "Processos de naturalização e reconhecimento de cidadania europeia e americana."
+          title: "Extensão de Visto",
+          description: "Acompanhamento especializado para renovar seu status ou avançar rumo à residência permanente e cidadania."
         },
         {
-          title: "Ajuste de status",
+          title: "Mudança de status",
           description: "Regularização de permanência e mudança de categoria de visto dentro do território."
         }
       ]

@@ -10,7 +10,7 @@ const initialConfig: LandingPageConfig = {
   loginUrl: "/login",
   contactUrl: "https://wa.me/15551234567",
   primaryCtaUrl: "/checkout/b1-b2",
-  secondaryCtaUrl: "/como-funciona",
+  secondaryCtaUrl: "/quem-somos",
   heroTitle: "Pare de perder tempo com dúvida de visto: tenha estratégia jurídica do início ao fim",
   heroSubtitle: "Assessoria premium para B1/B2, F1, extensão de status e troca de status com acompanhamento humano e plano claro de ação.",
   loginButtonLabel: "Entrar",

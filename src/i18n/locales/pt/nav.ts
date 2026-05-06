@@ -1,12 +1,8 @@
 const nav = {
   home: "Início",
-  howItWorks: "Como funciona",
+  howItWorks: "Quem somos",
   services: "Serviços",
   contact: "Contato",
-  serviceB1B2: "Turismo (B1/B2)",
-  serviceF1: "Estudante (F-1)",
-  serviceCOS: "Troca de Status",
-  serviceEOS: "Extensão de Status",
   login: "Entrar",
   getStarted: "Contato",
   dashboard: "Painel",

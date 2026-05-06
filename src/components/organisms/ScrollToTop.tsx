@@ -4,10 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RiArrowUpLine } from "react-icons/ri";
 
 export function ScrollToTop() {
-  const { pathname, search } = useLocation();
+  const { pathname, search, key } = useLocation();
   const [isVisible, setIsVisible] = useState(false);
 
-  // Scroll to top on route change (including search params for onboarding steps)
+  // Scroll to top on route change (including key change for same-route navigation)
   useEffect(() => {
     setTimeout(() => {
       // Standard window scroll
@@ -25,7 +25,7 @@ export function ScrollToTop() {
         });
       });
     }, 100);
-  }, [pathname, search]);
+  }, [pathname, search, key]);
 
   // Handle scroll visibility for the button
   useEffect(() => {

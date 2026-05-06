@@ -1,7 +1,8 @@
 const landing = {
   hero: {
     badge: "Next-Generation Immigration AI",
-    title: "The complete platform for visa process management",
+    title: "The complete platform for managing",
+    titleHighlight: "visa processes",
     subtitle: "Automate tasks, organize documents and scale your law firm with the efficiency of Artificial Intelligence applied to immigration law.",
     cta: "Schedule a demo",
     ctaSecondary: "Talk to a specialist",
@@ -137,6 +138,27 @@ const landing = {
     button: "Schedule a demo",
     disclaimer: "No commitment. Free trial for 14 days for new partners."
   },
+  faq: {
+    title: "Frequently Asked Questions",
+    items: [
+      {
+        q: "Is the platform secure for legal data?",
+        a: "Yes, we use end-to-end encryption and comply with major data protection standards (LGPD/GDPR)."
+      },
+      {
+        q: "How does AI help in filling out forms?",
+        a: "Our AI analyzes the uploaded documents and extracts the necessary information to automatically fill out USCIS forms, validating data consistency."
+      },
+      {
+        q: "Can I integrate it with my current system?",
+        a: "Yes, we offer APIs and integrations with the leading management and CRM tools on the market."
+      },
+      {
+        q: "Is there support in English?",
+        a: "Absolutely. Our support team is composed of specialists who speak your language and understand the immigration market."
+      }
+    ]
+  },
   lex: {
     hero: {
       title: "We handle your entire immigration process with security, strategy, and efficiency.",
@@ -169,7 +191,7 @@ const landing = {
       items: [
         {
           title: "Work Visas",
-          description: "Complete guidance for H1-B, L1, O1 and EB-2 NIW visas, focused on high-performance professionals and executives.",
+          description: "Strategic consultancy for qualified professionals wishing to work and build an international career safely.",
           features: [
             "EB-2 National Interest Waiver",
             "L-1 Intracompany Transferees",
@@ -178,22 +200,26 @@ const landing = {
           ]
         },
         {
-          title: "Green Card",
-          description: "Permanent residency processes via work, investment or family ties with total legal security."
+          title: "Tourist Visas",
+          description: "Complete planning for your trip, avoiding refusals and ensuring peace of mind in visa approval."
         },
         {
           title: "Student Visas",
-          description: "Consultancy for F-1, M-1 and J-1 visas at prestigious international institutions."
+          description: "Support for studying abroad with guidance from choosing the institution to visa approval.",
         },
         {
-          title: "Citizenship",
-          description: "Naturalization and recognition processes for European and American citizenship."
+          title: "Visa Extension",
+          description: "Specialized monitoring to renew your status or advance toward permanent residency and citizenship."
         },
         {
-          title: "Adjustment of Status",
+          title: "Change of Status",
           description: "Regularization of stay and change of visa category within the territory."
         }
       ]
+    },
+    footer: {
+      description: "International legal consultancy specialized in high-complexity processes.",
+      tagline: "Our team is ready to serve you across multiple time zones, ensuring global support."
     },
     testimonials: {
       title: "Results that transform international trajectories.",
@@ -217,4 +243,5 @@ const landing = {
     }
   }
 };
+
 export default landing;
