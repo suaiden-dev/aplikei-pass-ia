@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
-import { Menu, Moon, Sun, ShieldCheck, X } from "lucide-react";
+import { ChevronDown, Menu, Moon, Sun, ShieldCheck, X } from "lucide-react";
 import { RiArrowDownSLine, RiLogoutBoxRLine, RiPencilLine, RiUploadLine } from "react-icons/ri";
 import { Button } from "../components/atoms/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/atoms/dialog";
@@ -21,6 +21,7 @@ export interface DashboardNavItem {
   label: string;
   icon: LucideIcon;
   exact?: boolean;
+  group?: string;
 }
 
 interface RoleDashboardLayoutProps {
@@ -30,14 +31,117 @@ interface RoleDashboardLayoutProps {
   roleLabel: string;
   headerEyebrow: string;
   navItems: DashboardNavItem[];
-  spotlightTitle: string;
-  spotlightDescription: string;
+  spotlightTitle?: string;
+  spotlightDescription?: string;
   unauthorizedFallback: string;
 }
+
+// ─── Sidebar Nav ─────────────────────────────────────────────────────────────
+
+function NavItem({ to, label, icon: Icon, exact, onNavigate }: DashboardNavItem & { onNavigate: () => void }) {
+  return (
+    <NavLink
+      to={to}
+      end={exact}
+      onClick={onNavigate}
+      className={({ isActive }) =>
+        cn(
+          "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors",
+          isActive
+            ? "bg-primary text-white shadow-lg shadow-primary/20"
+            : "text-text-muted hover:bg-bg-subtle hover:text-text",
+        )
+      }
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </NavLink>
+  );
+}
+
+function SidebarNav({
+  navItems,
+  location,
+  onNavigate,
+}: {
+  navItems: DashboardNavItem[];
+  location: { pathname: string };
+  onNavigate: () => void;
+}) {
+  const ungrouped = navItems.filter((i) => !i.group);
+  const grouped = navItems.filter((i) => i.group);
+
+  const groupNames = [...new Set(grouped.map((i) => i.group as string))];
+
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    groupNames.forEach((name) => {
+      const hasActive = grouped
+        .filter((i) => i.group === name)
+        .some((i) => location.pathname.startsWith(i.to));
+      initial[name] = hasActive;
+    });
+    return initial;
+  });
+
+  const toggle = (name: string) =>
+    setOpenGroups((prev) => ({ ...prev, [name]: !prev[name] }));
+
+  return (
+    <nav className="mt-6 space-y-1">
+      {ungrouped.map((item) => (
+        <NavItem key={item.to} {...item} onNavigate={onNavigate} />
+      ))}
+
+      {groupNames.map((name) => {
+        const items = grouped.filter((i) => i.group === name);
+        const isOpen = openGroups[name] ?? false;
+
+        return (
+          <div key={name}>
+            <button
+              type="button"
+              onClick={() => toggle(name)}
+              className="flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text"
+            >
+              <span>{name}</span>
+              <ChevronDown
+                className={cn("h-4 w-4 transition-transform duration-200", isOpen && "rotate-180")}
+              />
+            </button>
+            {isOpen && (
+              <div className="ml-3 mt-1 space-y-1 border-l border-border pl-3">
+                {items.map((item) => (
+                  <NavItem key={item.to} {...item} onNavigate={onNavigate} />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </nav>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const AVATAR_SHIFT_FACTOR = 0.6;
 const avatarTransform = (x: number, y: number, zoom: number) =>
   `translate(${x * AVATAR_SHIFT_FACTOR}%, ${y * AVATAR_SHIFT_FACTOR}%) scale(${zoom})`;
+
+function buildAvatarDataUri(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  const initials = (words[0]?.[0] ?? "U") + (words[1]?.[0] ?? "");
+  const safeInitials = initials.toUpperCase().slice(0, 2);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+      <rect width="128" height="128" rx="64" fill="#3b82f6"/>
+      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#ffffff">${safeInitials}</text>
+    </svg>
+  `;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
 
 async function cropAvatarToBlob(
   imageUrl: string,
@@ -113,6 +217,20 @@ export function RoleDashboardLayout({
   const [isSaving, setIsSaving] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
+  const resolvedName = useMemo(() => {
+    const u = currentUser as unknown as { fullName?: string | null; full_name?: string | null; name?: string | null } | null;
+    const raw = u?.fullName || u?.full_name || u?.name || "";
+    const firstWord = String(raw).trim().split(/\s+/).filter(Boolean)[0];
+    return firstWord || "Usuário";
+  }, [currentUser]);
+
+  const resolvedAvatar = useMemo(() => {
+    const u = currentUser as unknown as { avatarUrl?: string | null; avatar_url?: string | null } | null;
+    const fromUser = u?.avatarUrl || u?.avatar_url || null;
+    if (fromUser) return fromUser;
+    return buildAvatarDataUri(resolvedName);
+  }, [currentUser, resolvedName]);
+
   const activeItem = navItems.find((item) =>
     item.exact ? location.pathname === item.to : location.pathname.startsWith(item.to),
   );
@@ -138,14 +256,13 @@ export function RoleDashboardLayout({
   const avatarUrl = useMemo(
     () =>
       imagePreviewUrl
-      ?? currentUser?.avatarUrl
-      ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.fullName ?? "User")}&background=3b82f6&color=fff`,
-    [imagePreviewUrl, currentUser?.avatarUrl, currentUser?.fullName],
+      ?? resolvedAvatar,
+    [imagePreviewUrl, resolvedAvatar],
   );
 
   const openEditProfile = () => {
     if (!currentUser) return;
-    setDisplayName(currentUser.fullName ?? "");
+    setDisplayName(resolvedName);
     setImageFile(null);
     setImagePreviewUrl(null);
     setXOffset(currentUser.avatarOffsetX ?? 0);
@@ -192,8 +309,8 @@ export function RoleDashboardLayout({
       }
 
       await authService.updateAccount(currentUser.id, {
-        full_name: displayName.trim() || currentUser.fullName,
-        avatar_url: nextAvatarUrl ?? currentUser.avatarUrl ?? null,
+        full_name: displayName.trim() || resolvedName,
+        avatar_url: nextAvatarUrl ?? resolvedAvatar ?? null,
         avatar_offset_x: xOffset,
         avatar_offset_y: yOffset,
         avatar_zoom: zoom,
@@ -251,33 +368,7 @@ export function RoleDashboardLayout({
           </button>
         </div>
 
-        <nav className="mt-6 space-y-2">
-          {navItems.map(({ to, label, icon: Icon, exact }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={exact}
-              onClick={() => setMobileMenuOpen(false)}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors",
-                  isActive
-                    ? "bg-primary text-white shadow-lg shadow-primary/20"
-                    : "text-text-muted hover:bg-bg-subtle hover:text-text",
-                )
-              }
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="mt-6 rounded-[1.5rem] border border-border bg-highlight p-4 text-white">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary/80">Modo operacao</p>
-          <p className="mt-2 font-display text-xl font-black tracking-[-0.03em]">{spotlightTitle}</p>
-          <p className="mt-2 text-sm text-slate-300">{spotlightDescription}</p>
-        </div>
+        <SidebarNav navItems={navItems} location={location} onNavigate={() => setMobileMenuOpen(false)} />
       </aside>
 
       {mobileMenuOpen ? (
@@ -325,11 +416,11 @@ export function RoleDashboardLayout({
                   className="flex h-11 items-center gap-2 rounded-2xl border border-border bg-card px-3 text-sm font-semibold text-text transition-colors hover:border-primary/40"
                 >
                   <img
-                    src={currentUser.avatarUrl ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.fullName ?? "User")}&background=3b82f6&color=fff`}
+                    src={resolvedAvatar}
                     alt="Avatar"
                     className="h-7 w-7 rounded-full object-cover border border-border"
                   />
-                  <span className="max-w-[120px] truncate">{currentUser.fullName ?? "Usuário"}</span>
+                  <span className="max-w-[120px] truncate">{resolvedName}</span>
                   <RiArrowDownSLine className="text-text-muted" size={16} />
                 </button>
                 {menuOpen && (

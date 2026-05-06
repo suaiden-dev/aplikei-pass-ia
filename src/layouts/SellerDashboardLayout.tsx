@@ -1,22 +1,10 @@
-import type { DashboardNavItem } from "./RoleDashboardLayout";
-import {
-  CreditCard,
-  MessageSquare,
-  Users,
-  TicketPercent,
-} from "lucide-react";
 import { RoleDashboardLayout } from "./RoleDashboardLayout";
 import { useT } from "../i18n";
+import { buildSidebarNavItems } from "../routes/sidebarRoutes";
 
 export function SellerDashboardLayout() {
   const t = useT("admin");
-
-  const navItems: DashboardNavItem[] = [
-    { to: "/seller/payments", label: t.nav.revenue, icon: CreditCard },
-    { to: "/seller/chats", label: t.nav.chats, icon: MessageSquare },
-    { to: "/seller/customers", label: t.nav.customers, icon: Users },
-    { to: "/seller/coupons", label: t.nav.coupons, icon: TicketPercent },
-  ];
+  const navItems = buildSidebarNavItems("seller", "seller", t.nav as Record<string, string>);
 
   return (
     <RoleDashboardLayout
