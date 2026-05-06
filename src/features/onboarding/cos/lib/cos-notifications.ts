@@ -9,7 +9,12 @@ type CosAdminEvent =
   | "rfe_description_submitted"
   | "motion_reason_submitted"
   | "motion_denial_letter_uploaded"
-  | "motion_supporting_docs_uploaded";
+  | "motion_supporting_docs_uploaded"
+  | "uscis_result_reported"
+  | "motion_started"
+  | "rfe_started"
+  | "motion_result_reported"
+  | "rfe_result_reported";
 
 type CosAdminNotificationParams = {
   event: CosAdminEvent;
@@ -73,6 +78,31 @@ function getCosAdminMessage(
       return {
         title: "COS: documentos de apoio enviados",
         body: `${clientLabel} anexou documentos de apoio para o motion no processo ${processId}.`,
+      };
+    case "uscis_result_reported":
+      return {
+        title: "COS: resultado USCIS informado",
+        body: `${clientLabel} informou um novo resultado do USCIS no processo ${processId}.`,
+      };
+    case "motion_started":
+      return {
+        title: "COS: workflow de Motion iniciado",
+        body: `O workflow de Motion foi iniciado para o cliente ${clientLabel} no processo ${processId}.`,
+      };
+    case "rfe_started":
+      return {
+        title: "COS: workflow de RFE iniciado",
+        body: `O workflow de RFE foi iniciado para o cliente ${clientLabel} no processo ${processId}.`,
+      };
+    case "motion_result_reported":
+      return {
+        title: "COS: resultado de Motion informado",
+        body: `${clientLabel} informou o resultado do Motion no processo ${processId}.`,
+      };
+    case "rfe_result_reported":
+      return {
+        title: "COS: resultado de RFE informado",
+        body: `${clientLabel} informou o resultado da RFE no processo ${processId}.`,
       };
   }
 }

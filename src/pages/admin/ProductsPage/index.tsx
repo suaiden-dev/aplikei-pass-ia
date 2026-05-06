@@ -7,34 +7,60 @@ import {
   RiCloseLine,
   RiMoneyDollarCircleLine,
   RiPriceTag3Line,
-  RiToggleLine,
-  RiToggleFill,
-  RiEyeOffLine,
   RiEyeLine,
+  RiEyeOffLine,
+  RiInformationLine,
 } from "react-icons/ri";
 import { supabase } from "../../../shared/lib/supabase";
 import { useT } from "../../../i18n";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../../components/atoms/tooltip";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ServicePrice {
   id: string;
+  office_id: string;
   service_id: string;
   name: string;
+  description: string | null;
+  category: string;
+  slug: string;
   price: number;
   currency: string;
   is_active: boolean;
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  main_visa: "Vistos Principais",
+  dependent: "Dependentes",
+  analysis: "Análises",
+  mentoring: "Mentorias",
+  consultancy: "Consultoria",
+  other: "Outros",
+};
+
+function categoryLabel(cat: string): string {
+  return CATEGORY_LABELS[cat] ?? cat;
+}
+
 // ─── Inline edit row ──────────────────────────────────────────────────────────
 
-function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () => void }) {
+function ProductRow({
+  product,
+  onSaved,
+}: {
+  product: ServicePrice;
+  onSaved: () => void;
+}) {
   const t = useT("admin");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(product.price.toFixed(2));
   const [saving, setSaving] = useState(false);
-  const [toggling, setToggling] = useState(false);
-  const [isActive, setIsActive] = useState(product.is_active ?? true);
 
   const handleSave = async () => {
     const newPrice = parseFloat(draft);
@@ -44,17 +70,21 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
     }
     setSaving(true);
     const { data, error } = await supabase
-      .from("services_prices")
+      .from("user_service_prices")
       .update({ price: newPrice })
       .eq("id", product.id)
       .select("id, price");
 
     if (error) {
-      toast.error(t.products.messages.updateError.replace('{{error}}', error.message));
+      toast.error(
+        t.products.messages.updateError.replace("{{error}}", error.message),
+      );
     } else if (!data || data.length === 0) {
       toast.error(t.products.messages.noPermission);
     } else {
-      toast.success(t.products.messages.updateSuccess.replace('{{name}}', product.name));
+      toast.success(
+        t.products.messages.updateSuccess.replace("{{name}}", product.name),
+      );
       setEditing(false);
       onSaved();
     }
@@ -66,57 +96,58 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
     setEditing(false);
   };
 
-  const handleToggle = async () => {
-    setToggling(true);
-    const newValue = !isActive;
-    const { data, error } = await supabase
-      .from("services_prices")
-      .update({ is_active: newValue })
-      .eq("id", product.id)
-      .select("id, is_active");
-
-    if (error) {
-      toast.error(t.products.messages.statusError.replace('{{error}}', error.message));
-    } else if (!data || data.length === 0) {
-      toast.error(t.products.messages.noPermission);
-    } else {
-      setIsActive(newValue);
-      toast.success(
-        newValue
-          ? t.products.messages.statusActivated.replace('{{name}}', product.name)
-          : t.products.messages.statusDeactivated.replace('{{name}}', product.name)
-      );
-      onSaved();
-    }
-    setToggling(false);
-  };
-
   return (
-    <tr
-      className={`border-b border-border last:border-0 transition-colors group ${
-        isActive ? "hover:bg-bg-subtle/40" : "bg-bg-subtle/60 opacity-70"
-      }`}
-    >
-      {/* Service ID */}
+    <tr className="border-b border-border last:border-0 transition-colors hover:bg-bg-subtle/40">
+      {/* Nome */}
       <td className="px-6 py-4 text-left">
-        <span className="font-mono text-xs bg-bg-subtle text-text-muted px-2 py-1 rounded-lg">
-          {product.service_id}
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-text">{product.name}</p>
+          {product.description && (
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-text-muted/60 hover:text-primary transition-colors cursor-default">
+                    <RiInformationLine className="text-base" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="right"
+                  className="max-w-xs rounded-xl border border-border bg-card px-4 py-3 text-xs text-text-muted leading-relaxed shadow-xl"
+                >
+                  {product.description}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+      </td>
+
+      {/* Status */}
+      <td className="px-6 py-4 text-left">
+        <span
+          className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${
+            product.is_active
+              ? "bg-success/10 text-success border-success/20"
+              : "bg-bg-subtle text-text-muted border-border"
+          }`}
+        >
+          {product.is_active ? (
+            <RiEyeLine className="text-xs" />
+          ) : (
+            <RiEyeOffLine className="text-xs" />
+          )}
+          {product.is_active ? "Ativo" : "Inativo"}
         </span>
       </td>
 
-      {/* Name */}
+      {/* Moeda */}
       <td className="px-6 py-4 text-left">
-        <p className={`text-sm font-semibold ${isActive ? "text-text" : "text-text-muted font-bold"}`}>
-          {product.name}
-        </p>
+        <span className="text-xs font-bold text-text-muted uppercase">
+          {product.currency}
+        </span>
       </td>
 
-      {/* Currency */}
-      <td className="px-6 py-4 text-left">
-        <span className="text-xs font-bold text-text-muted uppercase">{product.currency}</span>
-      </td>
-
-      {/* Price */}
+      {/* Preço + Editar */}
       <td className="px-6 py-4 text-left">
         <AnimatePresence mode="wait">
           {editing ? (
@@ -128,14 +159,19 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
               className="flex items-center gap-2"
             >
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm font-bold">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm font-bold">
+                  $
+                </span>
                 <input
                   type="number"
                   step="0.01"
                   min="0.01"
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") handleCancel(); }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSave();
+                    if (e.key === "Escape") handleCancel();
+                  }}
                   autoFocus
                   className="pl-7 pr-3 py-1.5 w-28 rounded-lg border-2 border-primary/40 bg-card text-sm font-bold text-text focus:outline-none focus:border-primary"
                 />
@@ -166,56 +202,19 @@ function ProductRow({ product, onSaved }: { product: ServicePrice; onSaved: () =
               exit={{ opacity: 0 }}
               className="flex items-center gap-3"
             >
-              <span className={`text-base font-black ${isActive ? "text-primary" : "text-text-muted"}`}>
+              <span className="text-base font-black text-primary">
                 ${product.price.toFixed(2)}
               </span>
               <button
                 onClick={() => setEditing(true)}
-                className="opacity-0 group-hover:opacity-100 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold text-text-muted hover:bg-bg-subtle transition-all font-black uppercase tracking-widest"
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-black text-text-muted hover:bg-bg-subtle transition-all uppercase tracking-widest border border-border"
               >
                 <RiEditLine />
-                {t.products.table.edit}
+                Editar
               </button>
             </motion.div>
           )}
         </AnimatePresence>
-      </td>
-
-      {/* Status */}
-      <td className="px-6 py-4 text-left">
-        <span
-          className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${
-            isActive
-              ? "bg-success/10 text-success border-success/20"
-              : "bg-bg-subtle text-text-muted border-border"
-          }`}
-        >
-          {isActive ? <RiEyeLine className="text-xs" /> : <RiEyeOffLine className="text-xs" />}
-          {isActive ? t.products.table.active : t.products.table.inactive}
-        </span>
-      </td>
-
-      {/* Toggle */}
-      <td className="px-6 py-4">
-        <button
-          onClick={handleToggle}
-          disabled={toggling}
-          title={isActive ? t.products.table.deactivate : t.products.table.activate}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50 ${
-            isActive
-              ? "bg-danger/10 text-danger hover:bg-danger/20 border border-danger/20"
-              : "bg-success/10 text-success hover:bg-success/20 border border-success/20"
-          }`}
-        >
-          {toggling ? (
-            <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-          ) : isActive ? (
-            <RiToggleFill className="text-base" />
-          ) : (
-            <RiToggleLine className="text-base" />
-          )}
-          {isActive ? t.products.table.deactivate : t.products.table.activate}
-        </button>
       </td>
     </tr>
   );
@@ -228,105 +227,96 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<ServicePrice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const categoryOf = useCallback((serviceId: string): string => {
-    const CATEGORY_MAP: Record<string, string> = {
-      "visto-b1-b2":          t.products.categories.main,
-      "visto-f1":             t.products.categories.main,
-      "extensao-status":      t.products.categories.main,
-      "troca-status":         t.products.categories.main,
-      "dependente-b1-b2":     t.products.categories.dependents,
-      "dependente-estudante": t.products.categories.dependents,
-      "mentoria-individual":  t.products.categories.mentorships,
-      "mentoria-bronze":      t.products.categories.mentorships,
-      "mentoria-gold":        t.products.categories.mentorships,
-      "analise-rfe-cos":      t.products.categories.additionalSupport,
-      "analise-especialista-cos": t.products.categories.additionalSupport,
-    };
-    return CATEGORY_MAP[serviceId] ?? t.products.categories.others;
-  }, [t]);
-
   const load = useCallback(async () => {
     setIsLoading(true);
     const { data, error } = await supabase
-      .from("services_prices")
-      .select("*")
+      .from("user_service_prices")
+      .select(
+        "id, office_id, service_id, price, currency, is_active, services(name, category, slug, description)",
+      )
       .order("service_id");
+
     if (error) {
       toast.error(t.cases.messages.errorAction);
     } else {
       setProducts(
-        (data ?? []).map((p) => ({
-          ...p,
+        (
+          (data ?? []) as Array<{
+            id: string;
+            office_id: string;
+            service_id: string;
+            price: number;
+            currency: string;
+            is_active: boolean | null;
+            services: {
+              name: string;
+              category: string;
+              slug: string;
+              description: string | null;
+            } | null;
+          }>
+        ).map((p) => ({
+          id: p.id,
+          office_id: p.office_id,
+          service_id: p.service_id,
+          name: p.services?.name ?? p.service_id,
+          description: p.services?.description ?? null,
+          category: p.services?.category ?? "other",
+          slug: p.services?.slug ?? p.service_id,
+          price: p.price,
+          currency: p.currency,
           is_active: p.is_active ?? true,
-        })) as ServicePrice[]
+        })),
       );
     }
     setIsLoading(false);
   }, [t]);
 
   useEffect(() => {
-    const loadTimerId = window.setTimeout(() => {
+    const timerId = window.setTimeout(() => {
       void load();
     }, 0);
-
     return () => {
-      window.clearTimeout(loadTimerId);
+      window.clearTimeout(timerId);
     };
   }, [load]);
 
-  // Group by category
   const grouped = products.reduce<Record<string, ServicePrice[]>>((acc, p) => {
-    const cat = categoryOf(p.service_id);
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(p);
+    if (!acc[p.category]) acc[p.category] = [];
+    acc[p.category].push(p);
     return acc;
   }, {});
 
-  const mainServices = grouped[t.products.categories.main] ?? [];
-  const activeCount = products.filter((p) => p.is_active !== false).length;
-  const inactiveCount = products.length - activeCount;
-
-  const totalRevenue = mainServices.reduce((sum, p) => sum + p.price, 0);
+  const mainServices = grouped["main_visa"] ?? [];
+  const avgTicket =
+    mainServices.reduce((sum, p) => sum + p.price, 0) /
+    Math.max(mainServices.length, 1);
 
   return (
     <div className="p-8 w-full">
-      {/* Header */}
+      {/* Cabeçalho */}
       <div className="mb-8 text-left">
         <h1 className="font-display text-3xl font-black text-text uppercase tracking-tight">
-          {t.products.title}
+          Produtos & Preços
         </h1>
         <p className="text-sm text-text-muted mt-1">
-          {t.products.subtitle}
+          Visualize e edite os preços dos seus serviços.
         </p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-4 mb-8 max-w-sm">
         {[
           {
-            label: t.products.stats.totalProducts,
+            label: "Total de Produtos",
             value: products.length,
             icon: RiPriceTag3Line,
             bg: "bg-info/10",
             color: "text-info",
           },
           {
-            label: t.products.stats.activeCount,
-            value: activeCount,
-            icon: RiEyeLine,
-            bg: "bg-success/10",
-            color: "text-success",
-          },
-          {
-            label: t.products.stats.inactiveCount,
-            value: inactiveCount,
-            icon: RiEyeOffLine,
-            bg: "bg-danger/10",
-            color: "text-danger",
-          },
-          {
-            label: t.products.stats.avgTicket,
-            value: `$${(totalRevenue / Math.max(mainServices.length, 1)).toFixed(0)}`,
+            label: "Ticket Médio",
+            value: `$${avgTicket.toFixed(0)}`,
             icon: RiMoneyDollarCircleLine,
             bg: "bg-primary/10",
             color: "text-primary",
@@ -341,11 +331,15 @@ export default function ProductsPage() {
               transition={{ delay: i * 0.05 }}
               className="bg-card rounded-2xl border border-border shadow-sm p-5 flex items-center gap-4"
             >
-              <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center shrink-0`}>
+              <div
+                className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center shrink-0`}
+              >
                 <Icon className={`text-lg ${s.color}`} />
               </div>
               <div className="text-left">
-                <p className="text-2xl font-black text-text leading-none">{s.value}</p>
+                <p className="text-2xl font-black text-text leading-none">
+                  {s.value}
+                </p>
                 <p className="text-xs text-text-muted mt-0.5">{s.label}</p>
               </div>
             </motion.div>
@@ -353,29 +347,40 @@ export default function ProductsPage() {
         })}
       </div>
 
-      {/* Tables by category */}
+      {/* Tabelas por categoria */}
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
+      ) : products.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <RiPriceTag3Line className="text-4xl text-text-muted" />
+          <p className="text-sm text-text-muted">Nenhum produto encontrado.</p>
+        </div>
       ) : (
         <div className="space-y-6">
           {Object.entries(grouped).map(([category, items]) => (
-            <div key={category} className="bg-card rounded-2xl border border-border shadow-xl shadow-black/5 overflow-hidden">
+            <div
+              key={category}
+              className="bg-card rounded-2xl border border-border shadow-xl shadow-black/5 overflow-hidden"
+            >
               <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-                <h2 className="font-display font-black text-text text-sm uppercase tracking-tight">{category}</h2>
+                <h2 className="font-display font-black text-text text-sm uppercase tracking-tight">
+                  {categoryLabel(category)}
+                </h2>
                 <span className="text-[10px] font-black text-text-muted bg-bg-subtle px-3 py-1 rounded-full uppercase tracking-widest">
-                  {items.length === 1 
-                    ? t.products.table.itemCount.replace('{{count}}', '1') 
-                    : t.products.table.itemsCount.replace('{{count}}', String(items.length))}
+                  {items.length === 1 ? "1 item" : `${items.length} itens`}
                 </span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border bg-bg-subtle/50">
-                      {[t.products.table.serviceId, t.products.table.name, t.products.table.currency, t.products.table.price, t.products.table.status, t.products.table.actions].map((h) => (
-                        <th key={h} className="px-6 py-4 text-left text-[10px] font-black text-text-muted tracking-widest uppercase">
+                      {["Nome", "Status", "Moeda", "Preço"].map((h) => (
+                        <th
+                          key={h}
+                          className="px-6 py-4 text-left text-[10px] font-black text-text-muted tracking-widest uppercase"
+                        >
                           {h}
                         </th>
                       ))}
@@ -394,7 +399,7 @@ export default function ProductsPage() {
       )}
 
       <p className="mt-8 text-[10px] font-black text-text-muted text-center uppercase tracking-widest opacity-60">
-        {t.products.footerHint}
+        Clique em "Editar" para alterar o preço de um produto.
       </p>
     </div>
   );

@@ -11,7 +11,7 @@ import type {
   CaseRecord,
 } from "../models/case.model";
 import { isAnalysisServiceSlug, isProcessApproved, isProcessDenied, type UserService } from "../models/process.model";
-import type { UserStep } from "./workflow.service";
+import type { UserStep } from "../features/workflow/types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
