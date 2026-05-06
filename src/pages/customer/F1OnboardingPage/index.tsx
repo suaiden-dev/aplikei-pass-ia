@@ -25,7 +25,6 @@ import { useF1Onboarding } from "../../../features/onboarding/f1/hooks/useF1Onbo
 export default function F1OnboardingPage() {
   const t = useT('visas') as F1ViewLabels
   const { user } = useAuth()
-  const navigate = useNavigate()
 
   const {
     isLoading,
