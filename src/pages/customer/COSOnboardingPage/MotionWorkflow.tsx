@@ -19,15 +19,11 @@ import {
 import { MdPix } from 'react-icons/md'
 import { toast } from 'sonner'
 import { supabase } from '../../../shared/lib/supabase'
-import {
-  processService,
-  type UserService,
-} from '../../../features/process/lib/processOps'
+import type { UserService } from '../../../features/process/lib/processOps'
+import * as processService from '../../../features/process/lib/processOps'
 import { cosNotificationService } from '../../../features/onboarding/cos/lib/cos-notifications'
-import {
-  paymentService,
-  type StripePaymentMethod,
-} from '../../../features/payment/lib/paymentOps'
+import type { StripePaymentMethod } from '../../../features/payment/lib/paymentOps'
+import * as paymentService from '../../../features/payment/lib/paymentOps'
 import { useAuth } from '../../../hooks/useAuth'
 import { DocUploadCard } from '../../../components/molecules/DocUploadCard'
 import { ZELLE_RECIPIENT } from '../../../config/zelle'

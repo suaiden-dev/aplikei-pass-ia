@@ -6,9 +6,7 @@ import {
 } from 'react-icons/ri'
 import { MdPerson, MdAccountBalance } from 'react-icons/md'
 import { useAuth } from '../../../hooks/useAuth'
-import {
-  processService,
-} from '../../../features/process/lib/processOps'
+import * as processService from '../../../features/process/lib/processOps'
 import type { UserService } from '../../../features/process/types'
 import { getServiceBySlug } from '../../../data/services'
 import { toast } from 'sonner'

@@ -72,3 +72,7 @@ export const servicesData: ServiceMeta[] = [
     faq: [],
   },
 ];
+
+export function getServiceBySlug(slug: string): ServiceMeta | undefined {
+  return servicesData.find((s) => s.slug === slug);
+}

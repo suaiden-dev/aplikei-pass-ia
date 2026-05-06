@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
-import { AuthBrand } from "../../components/auth/AuthBrand";
+import { AuthBrand } from "../../components/molecules/AuthBrand";
 import { Button } from "../../components/atoms/button";
 import { Input } from "../../components/atoms/input";
 import { Label } from "../../components/atoms/label";

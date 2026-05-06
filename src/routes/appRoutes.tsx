@@ -34,7 +34,6 @@ const STAFF_AND_SELLER = [...STAFF, AccessLevel.SELLER];
 // Public
 const HomePage = lazyPage(() => import("../pages/HomePage"));
 const ServiceDetailPage = lazyPage(() => import("../pages/ServiceDetailPage"));
-const ComoFuncionaPage = lazyPage(() => import("../pages/ComoFuncionaPage"));
 const ServicosPage = lazyPage(() => import("../pages/ServicosPage"));
 
 // Auth
@@ -143,14 +142,6 @@ export const appRoutes: AppRouteDefinition[] = [
         path: "/",
         title: "Home",
         component: HomePage,
-        authRequired: false,
-        accessLevels: [],
-        layout: "public",
-    },
-    {
-        path: "/como-funciona",
-        title: "Como Funciona",
-        component: ComoFuncionaPage,
         authRequired: false,
         accessLevels: [],
         layout: "public",

@@ -14,10 +14,8 @@ import {
   RiTruckLine,
 } from 'react-icons/ri'
 import { toast } from 'sonner'
-import {
-  type UserService,
-  processService,
-} from '../../../features/process/lib/processOps'
+import type { UserService } from '../../../features/process/lib/processOps'
+import * as processService from '../../../features/process/lib/processOps'
 import { packageService } from '../../../features/onboarding/cos/lib/package'
 import {
   RiThumbUpLine,
