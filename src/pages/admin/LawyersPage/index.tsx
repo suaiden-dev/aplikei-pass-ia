@@ -14,12 +14,17 @@ import { useT, useLocale } from "../../../i18n";
 
 interface LawyerRow {
   id: string;
-  full_name: string;
+  name?: string | null;
+  full_name?: string | null;
   email: string;
   avatar_url: string | null;
   role: string;
   is_active: boolean;
   created_at: string;
+}
+
+function getLawyerName(lawyer: LawyerRow) {
+  return lawyer.full_name || lawyer.name || lawyer.email || "Sem Nome";
 }
 
 export default function LawyersPage() {
@@ -34,12 +39,12 @@ export default function LawyersPage() {
     try {
       const { data, error } = await supabase
         .from("user_accounts")
-        .select("*")
-        .eq("role", "admin_lawyer")
+        .select("id, name, full_name, email, avatar_url, role, is_active, created_at")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setLawyers(data || []);
+      const rows = (data || []) as LawyerRow[];
+      setLawyers(rows.filter((row) => row.role === "admin_lawyer" || row.role === "admin"));
     } catch (err: any) {
       console.error("Error loading lawyers:", err);
       toast.error(t.cases.messages.errorAction);
@@ -58,6 +63,7 @@ export default function LawyersPage() {
     return lawyers.filter(
       (l) =>
         l.full_name?.toLowerCase().includes(s) ||
+        l.name?.toLowerCase().includes(s) ||
         l.email?.toLowerCase().includes(s)
     );
   }, [lawyers, searchTerm]);
@@ -189,14 +195,14 @@ export default function LawyersPage() {
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-bg-subtle flex items-center justify-center text-text-muted overflow-hidden shadow-inner">
                           {l.avatar_url ? (
-                            <img src={l.avatar_url} alt={l.full_name} className="w-full h-full object-cover" />
+                            <img src={l.avatar_url} alt={getLawyerName(l)} className="w-full h-full object-cover" />
                           ) : (
                             <RiUserStarLine className="text-xl" />
                           )}
                         </div>
                         <div className="text-left">
                           <p className="text-sm font-black text-text leading-tight tracking-tight uppercase">
-                            {l.full_name || "Sem Nome"}
+                            {getLawyerName(l)}
                           </p>
                           <p className="text-[11px] text-text-muted font-bold tracking-tight">
                             {l.email}
