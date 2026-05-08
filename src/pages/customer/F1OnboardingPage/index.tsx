@@ -1,29 +1,19 @@
-import { Formik, Form } from "formik";
-import { motion } from "framer-motion";
+
 import {
-  RiArrowRightLine,
   RiArrowLeftLine,
   RiLoader4Line,
-  RiErrorWarningLine,
   RiAlertLine,
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
 import { useT } from "../../../i18n";
 
-import { DS160SingleFormStep } from "../B1B2OnboardingPage/steps/DS160SingleFormStep";
-import { B1B2UserReviewSignStep } from "../B1B2OnboardingPage/steps/B1B2UserReviewSignStep";
-import { B1B2CASVSchedulingStep } from "../B1B2OnboardingPage/steps/B1B2CASVSchedulingStep";
-import { B1B2UserConfirmEmailStep } from "../B1B2OnboardingPage/steps/B1B2UserConfirmEmailStep";
-import { B1B2MRVPaymentStep } from "../B1B2OnboardingPage/steps/B1B2MRVPaymentStep";
 
-import { F1I20UploadStep } from "./steps/F1I20UploadStep";
-import { F1FinalPreparationStep } from "./steps/F1FinalPreparationStep";
+import { F1StepContent } from "./components/F1StepContent";
 
-import { ds160Validator, type DS160FormValues } from "../../../features/onboarding/b1b2/schemas/ds160.schema";
 import { useF1Onboarding } from "../../../features/onboarding/f1/hooks/useF1Onboarding";
 
 export default function F1OnboardingPage() {
-  const t = useT('visas') as F1ViewLabels
+  const t = useT('visas') as any
   const { user } = useAuth()
 
   const {
@@ -33,7 +23,6 @@ export default function F1OnboardingPage() {
     stepIdx,
     adminFeedback,
     savedValues,
-    isReapplication,
     handleSubmit,
     handleSaveDraft,
     navigate,
@@ -77,18 +66,27 @@ export default function F1OnboardingPage() {
             <span className='w-1.5 h-1.5 rounded-full bg-primary animate-pulse' />
             <span className='text-[11px] font-black text-primary tracking-widest uppercase'>
               {t.onboardingPage.stepLabel} {stepIdx + 1}{' '}
-              {t.onboardingPage.of} 12
+              {t.onboardingPage.of} 13
             </span>
           </div>
         </div>
       </div>
 
       <div className='max-w-4xl mx-auto px-4 sm:px-6 mt-8'>
-        {adminFeedback && stepIdx !== 4 && (
-          <AdminFeedbackBanner
-            feedback={adminFeedback}
-            label={t.onboardingPage.adjustmentsRequested}
-          />
+        {adminFeedback && (
+          <div className='mb-8 bg-amber-50 border border-amber-200 p-6 rounded-3xl flex gap-4 items-start shadow-sm'>
+            <div className='w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0'>
+              <RiAlertLine className='text-xl' />
+            </div>
+            <div>
+              <h4 className='text-[10px] font-black text-amber-900 uppercase tracking-widest mb-1'>
+                {t.onboardingPage.adjustmentsRequested}
+              </h4>
+              <p className='text-xs text-amber-800 font-bold leading-relaxed'>
+                {adminFeedback}
+              </p>
+            </div>
+          </div>
         )}
 
         <F1StepContent
@@ -96,8 +94,10 @@ export default function F1OnboardingPage() {
           procId={procId}
           userId={user!.id}
           savedValues={savedValues}
-          controller={controller}
+          onSubmit={handleSubmit}
+          onSaveDraft={handleSaveDraft}
           onNavigateToProcess={() => navigate(`/dashboard/processes/${slug}`)}
+          stepIdx={stepIdx}
         />
       </div>
     </div>

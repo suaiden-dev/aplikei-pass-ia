@@ -11,6 +11,7 @@ import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { RoleRoute } from "./routes/RoleRoute";
 import { routesByLayout } from "./routes/appRoutes";
 import type { UserRole } from "./features/auth/types";
+import { AccessLevel } from "./routes/accessLevels";
 
 function nestedPath(fullPath: string, basePath: string) {
   if (fullPath === basePath) return "";
@@ -46,16 +47,17 @@ export default function App() {
   const masterRoutes = routesByLayout("master");
   const adminRoutes = routesByLayout("manager");
   const masterActiveRoutes = masterRoutes.filter((route) => route.path === "/master");
-  const adminActiveRoutes = adminRoutes.filter((route) => route.path === "/admin" || route.path === "/admin/page-builder");
+  const adminActiveRoutes = adminRoutes.filter((route) => route.path === "/admin");
   const sellerActiveRoutes: typeof adminRoutes = [];
   const adminSharedRoutes = protectedRoutes.filter((route) =>
-    routeHasSidebarRole(route, ["manager", "admin_lawyer"]),
+    route.accessLevels.includes(AccessLevel.MANAGER) || 
+    route.accessLevels.includes(AccessLevel.ADMIN_LAWYER)
   );
   const masterSharedRoutes = protectedRoutes.filter((route) =>
-    routeHasSidebarRole(route, ["master"]),
+    route.accessLevels.includes(AccessLevel.MASTER)
   );
   const sellerSharedRoutes = protectedRoutes.filter((route) =>
-    routeHasSidebarRole(route, ["seller"]),
+    route.accessLevels.includes(AccessLevel.SELLER)
   );
 
   const protectedStandaloneRoutes = standaloneRoutes.filter((route) => route.authRequired);
@@ -103,7 +105,7 @@ export default function App() {
               {masterSharedRoutes.map((route) => (
                 <Route
                   key={`master-shared-${route.path}`}
-                  element={<RoleRoute allowedRoles={(route.sidebarLayouts as UserRole[] | undefined) ?? []} />}
+                  element={<RoleRoute allowedRoles={(route.accessLevels as UserRole[] | undefined) ?? []} />}
                 >
                   <Route
                     path={nestedPath(appendToBase("/master", route.path), "/master")}
@@ -113,17 +115,21 @@ export default function App() {
               ))}
             </Route>
 
-            <Route element={<AdminDashboardLayout />}>
-              {adminActiveRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={<route.component />} />
-              ))}
+            <Route path="/admin" element={<AdminDashboardLayout />}>
+              {adminActiveRoutes.map((route) =>
+                route.path === "/admin" ? (
+                  <Route key={route.path} index element={<route.component />} />
+                ) : (
+                  <Route key={route.path} path={nestedPath(route.path, "/admin")} element={<route.component />} />
+                ),
+              )}
               {adminSharedRoutes.map((route) => (
                 <Route
                   key={`admin-${route.path}`}
-                  element={<RoleRoute allowedRoles={(route.sidebarLayouts as UserRole[] | undefined) ?? []} />}
+                  element={<RoleRoute allowedRoles={(route.accessLevels as UserRole[] | undefined) ?? []} />}
                 >
                   <Route
-                    path={route.path}
+                    path={nestedPath(appendToBase("/admin", route.path), "/admin")}
                     element={<route.component />}
                   />
                 </Route>
@@ -137,7 +143,7 @@ export default function App() {
               {sellerSharedRoutes.map((route) => (
                 <Route
                   key={`seller-shared-${route.path}`}
-                  element={<RoleRoute allowedRoles={(route.sidebarLayouts as UserRole[] | undefined) ?? []} />}
+                  element={<RoleRoute allowedRoles={(route.accessLevels as UserRole[] | undefined) ?? []} />}
                 >
                   <Route
                     path={nestedPath(appendToBase("/seller", route.path), "/seller")}

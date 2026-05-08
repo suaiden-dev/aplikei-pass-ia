@@ -9,7 +9,7 @@ export function buildSidebarNavItems(
   role: UserRole,
   labels: NavLabels,
 ): DashboardNavItem[] {
-  const prefix = layout === "master" || layout === "seller" ? `/${layout}` : "";
+  const prefix = layout === "master" || layout === "seller" ? `/${layout}` : layout === "manager" ? "/admin" : "";
   return appRoutes
     .filter((route) =>
       route.sidebarLayouts !== undefined

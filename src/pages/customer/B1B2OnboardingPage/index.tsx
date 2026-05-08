@@ -8,13 +8,8 @@ import {
   type B1B2OnboardingLabels,
 } from '../../../features/onboarding/b1b2/hooks/useB1B2Onboarding';
 import { AdminFeedbackBanner } from '../../../components/organisms/AdminFeedbackBanner';
-import { DS160SingleFormStep } from './steps/DS160SingleFormStep';
-import { B1B2UserReviewSignStep } from './steps/B1B2UserReviewSignStep';
-import { B1B2CASVSchedulingStep } from './steps/B1B2CASVSchedulingStep';
-import { B1B2UserConfirmEmailStep } from './steps/B1B2UserConfirmEmailStep';
-import { B1B2MRVPaymentStep } from './steps/B1B2MRVPaymentStep';
-import { B1B2FinalPreparationStep } from './steps/B1B2FinalPreparationStep';
-import { ds160Validator, type DS160FormValues } from '../../../features/onboarding/b1b2/schemas/ds160.schema';
+import { B1B2StepContent } from './components/B1B2StepContent';
+import { type DS160FormValues } from '../../../features/onboarding/b1b2/schemas/ds160.schema';
 
 function buildLabels(t: {
   onboardingPage: B1B2OnboardingLabels

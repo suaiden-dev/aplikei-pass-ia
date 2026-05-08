@@ -24,6 +24,7 @@ import {
   RiCalendarEventLine,
   RiUser3Line,
   RiTimeLine,
+  RiPulseLine,
 } from "react-icons/ri";
 import { getServiceBySlug } from "../../../data/services";
 import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "../../../data/workflowTemplates";
@@ -151,6 +152,77 @@ function PurchasesPanel({ stepData }: { stepData: Record<string, unknown> }) {
     </div>
   );
 }
+
+function ProcessFlowPanel({ 
+  effectiveSteps, 
+  currentStepIdx, 
+  vt, 
+  t 
+}: { 
+  effectiveSteps: StepConfig[]; 
+  currentStepIdx: number; 
+  vt: any; 
+  t: any;
+}) {
+  return (
+    <div className="bg-card rounded-[32px] border border-border shadow-sm p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <RiPulseLine className="text-sm" />
+          </div>
+          <h3 className="font-black text-text text-sm uppercase tracking-tight">{t.cases.table.flowActions}</h3>
+        </div>
+        <div className="px-2.5 py-1 bg-primary/10 text-primary rounded-lg text-[9px] font-black uppercase tracking-widest border border-primary/20">
+          {currentStepIdx + 1} / {effectiveSteps.length}
+        </div>
+      </div>
+
+      <div className="space-y-0 relative">
+        {effectiveSteps.map((step, i) => {
+          const isCompleted = i < currentStepIdx;
+          const isActive = i === currentStepIdx;
+          const title = vt.processSteps[step.id]?.title || step.title;
+
+          return (
+            <div key={step.id} className="flex gap-4 min-h-[60px] relative group">
+              {/* Vertical Line */}
+              {i < effectiveSteps.length - 1 && (
+                <div className={`absolute left-[17px] top-[30px] w-[2px] h-[calc(100%-20px)] z-0 ${i < currentStepIdx ? 'bg-success/30' : 'bg-border/40'}`} />
+              )}
+
+              <div className="relative z-10 shrink-0">
+                <div className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center text-[11px] font-black transition-all duration-300 ${
+                  isCompleted 
+                    ? 'bg-success border-success text-white shadow-md shadow-success/10' 
+                    : isActive 
+                    ? 'bg-primary border-primary text-white scale-110 shadow-lg shadow-primary/20' 
+                    : 'bg-bg-subtle border-border text-text-muted'
+                }`}>
+                  {isCompleted ? <RiCheckLine className="text-lg" /> : i + 1}
+                </div>
+              </div>
+
+              <div className="pt-2 pb-6">
+                <p className={`text-[10px] font-black uppercase tracking-tight leading-tight transition-all ${
+                  isActive ? 'text-primary' : i < currentStepIdx ? 'text-text' : 'text-text-muted opacity-40'
+                }`}>
+                  {title}
+                </p>
+                {isActive && step.description && (
+                  <p className="text-[9px] text-text-muted font-medium mt-1 leading-normal opacity-80">
+                    {vt.processSteps[step.id]?.description || step.description}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 
 function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientName: string }) {
   const [logs, setLogs] = React.useState<ProcessLog[]>([]);
@@ -1212,6 +1284,19 @@ export default function AdminProcessDetailPage() {
   }
 
   const service = getServiceBySlug(proc.service_slug);
+
+  if (!service) {
+    return (
+      <div className="p-12 text-center bg-bg min-h-screen">
+        <RiErrorWarningLine className="text-4xl text-danger mx-auto mb-4" />
+        <h2 className="text-xl font-black text-text uppercase mb-2">Serviço não configurado</h2>
+        <p className="text-text-muted mb-6">O serviço "{proc.service_slug}" não possui uma definição de workflow no sistema.</p>
+        <button onClick={() => navigate("/admin/processes")} className="bg-primary text-white px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest">
+          Voltar para Lista
+        </button>
+      </div>
+    );
+  }
   const currentStepIdx = proc.current_step ?? 0;
   const history = (proc.step_data?.history as Array<{ type?: string; steps?: unknown[] }>) || [];
   const effectiveSteps = service ? buildEffectiveSteps(service.steps, history) : [];
@@ -2096,6 +2181,9 @@ export default function AdminProcessDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-8">
+
+
+
           {renderFormData()}
           {renderCOSDocumentsAdmin()}
           {renderOfficialForms()}
@@ -2143,28 +2231,14 @@ export default function AdminProcessDetailPage() {
         </div>
 
         <div className="space-y-8">
-          <div className="bg-card rounded-[32px] border border-border shadow-sm p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-black text-text text-lg uppercase">{t.cases.table.flowActions}</h3>
-              <div className="px-3 py-1 bg-primary/5 rounded-lg text-primary text-[10px] font-black uppercase tracking-widest">
-                Etapa {currentStepIdx + 1} de {effectiveSteps.length}
-              </div>
-            </div>
-            <div className="space-y-4">
-              {effectiveSteps.map((step, i) => (
-                <div key={step.id} className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${i < currentStepIdx ? 'bg-success text-white' : i === currentStepIdx ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/20' : 'bg-bg-subtle text-text-muted'}`}>
-                    {i < currentStepIdx ? <RiCheckLine /> : i + 1}
-                  </div>
-                  <span className={`text-[11px] font-bold uppercase tracking-tight transition-all ${i <= currentStepIdx ? 'text-text' : 'text-text-muted'}`}>
-                    {vt.processSteps[step.id]?.title || step.title}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
+          <ProcessFlowPanel 
+            effectiveSteps={effectiveSteps}
+            currentStepIdx={currentStepIdx}
+            vt={vt}
+            t={t}
+          />
           <PurchasesPanel stepData={proc?.step_data} />
+
 
           <ProcessLogPanel
             serviceId={proc.id}

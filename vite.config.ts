@@ -10,6 +10,7 @@ export default defineConfig({
       '@radix-ui/react-select',
       '@radix-ui/react-separator',
       'cmdk',
+      'pdf-lib',
     ],
   },
   server: {

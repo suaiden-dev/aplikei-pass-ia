@@ -346,7 +346,7 @@ export const appRoutes: AppRouteDefinition[] = [
         accessLevels: STAFF_AND_SELLER,
         layout: "protected",
         showInSidebar: true,
-        sidebarLayouts: ["master", "manager", "seller"],
+        sidebarLayouts: ["master", "manager", "seller", "admin_lawyer"],
         icon: Users,
     },
     {
@@ -370,7 +370,7 @@ export const appRoutes: AppRouteDefinition[] = [
         accessLevels: STAFF_AND_SELLER,
         layout: "protected",
         showInSidebar: true,
-        sidebarLayouts: ["master", "manager", "seller"],
+        sidebarLayouts: ["master", "manager", "seller", "admin_lawyer"],
         icon: MessageSquare,
     },
     {
@@ -432,7 +432,7 @@ export const appRoutes: AppRouteDefinition[] = [
         accessLevels: STAFF,
         layout: "protected",
         showInSidebar: true,
-        sidebarLayouts: ["master", "manager"],
+        sidebarLayouts: ["master", "manager", "admin_lawyer"],
         icon: BriefcaseBusiness,
     },
     {
