@@ -68,8 +68,8 @@ export function useB1B2OnboardingController({
   const [searchParams] = useSearchParams();
 
   const slug = location.pathname.includes('reaplicacao')
-    ? 'visto-b1-b2-reaplicacao'
-    : 'visto-b1-b2';
+    ? (location.pathname.includes('visa-') ? 'visa-b1b2-reaplicacao' : 'visto-b1-b2-reaplicacao')
+    : (location.pathname.includes('visa-') ? 'visa-b1b2' : 'visto-b1-b2');
 
   const stepIdx = Number(searchParams.get('step') || '0');
 

@@ -40,7 +40,9 @@ export function useF1Onboarding(userId: string | undefined) {
   const [searchParams] = useSearchParams();
 
   const isReapplication = location.pathname.includes("reaplicacao");
-  const slug = isReapplication ? "visto-f1-reaplicacao" : "visto-f1";
+  const slug = isReapplication 
+    ? (location.pathname.includes("visa-") ? "visa-f1-reaplicacao" : "visto-f1-reaplicacao")
+    : (location.pathname.includes("visa-") ? "visa-f1" : "visto-f1");
   const stepIdx = Number(searchParams.get("step") || "0");
 
   const [isLoading, setIsLoading] = useState(true);

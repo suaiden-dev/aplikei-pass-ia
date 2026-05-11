@@ -79,8 +79,8 @@ export function useB1B2Onboarding({
   const [searchParams] = useSearchParams();
 
   const slug = location.pathname.includes("reaplicacao")
-    ? "visto-b1-b2-reaplicacao"
-    : "visto-b1-b2";
+    ? (location.pathname.includes("visa-") ? "visa-b1b2-reaplicacao" : "visto-b1-b2-reaplicacao")
+    : (location.pathname.includes("visa-") ? "visa-b1b2" : "visto-b1-b2");
 
   const stepIdx = Number(searchParams.get("step") || "0");
 
@@ -138,30 +138,39 @@ export function useB1B2Onboarding({
         delete payload["admin_feedback"];
         delete payload["rejected_items"];
 
-        await updateStepData(procId, payload);
+        await updateStepData(procId, values as Record<string, unknown>);
 
         const { data: freshProc } = await supabase
           .from("user_services")
-          .select("current_step")
+          .select("current_step, step_data")
           .eq("id", procId)
           .single();
 
         if ((freshProc?.current_step ?? 0) === 0) {
+          // If it's step 0 and they clicked submit, the form is fully validated by Formik/Zod.
           await approveStep(procId, 1, false);
+          await requestStepReview(procId);
+          await notifyAdmin({
+            title: "DS-160 Preenchida",
+            body: `O cliente finalizou a DS-160 para ${slug}.`,
+            serviceId: procId,
+            userId,
+            link: `/admin/processes/${procId}`,
+          });
+          setProcStatus('awaiting_review');
+          setCurrentStep(1);
+          toast.success(labels.successSubmit);
+          setTimeout(() => {
+            navigate(`/dashboard/processes/${slug}`);
+          }, 1500);
+        } else {
+          // For other steps that might use this handleSubmit (if any)
+          await requestStepReview(procId);
+          toast.success(labels.successSubmit);
+          setTimeout(() => {
+            navigate(`/dashboard/processes/${slug}`);
+          }, 1500);
         }
-
-        await requestStepReview(procId);
-
-        await notifyAdmin({
-          title: "DS-160 Preenchida",
-          body: `O cliente finalizou a DS-160 para ${slug}.`,
-          serviceId: procId,
-          userId,
-          link: `/admin/processes/${procId}`,
-        });
-
-        toast.success(labels.successSubmit);
-        navigate(`/dashboard/processes/${slug}`);
       } catch (err) {
         console.error(err);
         toast.error(labels.errorSave);

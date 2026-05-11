@@ -25,11 +25,11 @@ const slugConfig: Record<string, {
   label: string;
   category: string;
 }> = {
-  "visto-b1-b2":             { bg: "bg-sky-50",     icon: "text-sky-500",    accent: "from-sky-400 to-sky-600",         label: "B1/B2 VISA",         category: "TOURISM/BUSINESS" },
-  "visto-b1-b2-reaplicacao": { bg: "bg-sky-50",     icon: "text-sky-500",    accent: "from-sky-400 to-sky-600",         label: "B1/B2 REAPLICAÇÃO",  category: "TOURISM/BUSINESS" },
-  "visto-f1":                { bg: "bg-violet-50",  icon: "text-violet-500", accent: "from-violet-400 to-violet-600",   label: "F-1 VISA",           category: "STUDENT/ACADEMIC" },
-  "extensao-status":         { bg: "bg-blue-50",    icon: "text-blue-500",   accent: "from-blue-400 to-blue-600",       label: "EXTENSÃO STATUS",    category: "EXTEND STAY" },
-  "troca-status":            { bg: "bg-indigo-50",  icon: "text-indigo-500", accent: "from-indigo-400 to-indigo-600",   label: "TROCA STATUS",       category: "CHANGE OF STATUS" },
+  "visto-b1-b2":             { bg: "bg-sky-500/10",    icon: "text-sky-500",    accent: "from-sky-400 to-sky-600",         label: "B1/B2 VISA",         category: "TOURISM/BUSINESS" },
+  "visto-b1-b2-reaplicacao": { bg: "bg-sky-500/10",    icon: "text-sky-500",    accent: "from-sky-400 to-sky-600",         label: "B1/B2 REAPLICAÇÃO",  category: "TOURISM/BUSINESS" },
+  "visto-f1":                { bg: "bg-violet-500/10", icon: "text-violet-500", accent: "from-violet-400 to-violet-600",   label: "F-1 VISA",           category: "STUDENT/ACADEMIC" },
+  "extensao-status":         { bg: "bg-blue-500/10",   icon: "text-blue-500",   accent: "from-blue-400 to-blue-600",       label: "EXTENSÃO STATUS",    category: "EXTEND STAY" },
+  "troca-status":            { bg: "bg-indigo-500/10", icon: "text-indigo-500", accent: "from-indigo-400 to-indigo-600",   label: "TROCA STATUS",       category: "CHANGE OF STATUS" },
 };
 
 interface ServiceCardProps {
@@ -65,9 +65,9 @@ export function ServiceCard({
 }: ServiceCardProps) {
   const Icon = serviceIconMap[service.heroIconName] ?? MdLanguage;
   const cfg = slugConfig[service.slug] ?? {
-    bg: "bg-blue-50",
-    icon: "text-blue-500",
-    accent: "from-blue-400 to-blue-600",
+    bg: "bg-primary/10",
+    icon: "text-primary",
+    accent: "from-primary to-primary-hover",
     label: "",
     category: "",
   };
@@ -90,7 +90,7 @@ export function ServiceCard({
 
       <div className="flex flex-col flex-1 p-6 sm:p-10">
         <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 mb-8 w-full">
-          <div className={`w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-[24px] ${cfg.bg} flex items-center justify-center border border-black/5 group-hover:scale-105 transition-transform duration-300`}>
+          <div className={`w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-[24px] ${cfg.bg} flex items-center justify-center border border-border/20 shadow-inner group-hover:scale-105 transition-transform duration-300`}>
             <Icon className={`text-3xl sm:text-5xl ${cfg.icon}`} />
           </div>
           <div className="min-w-0 flex-1 w-full">

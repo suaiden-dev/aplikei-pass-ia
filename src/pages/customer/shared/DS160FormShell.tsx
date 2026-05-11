@@ -23,7 +23,9 @@ interface DS160FormShellProps {
   submitLabel: string
   sectionFields: readonly (readonly string[])[]
   isBusy?: boolean
+  readOnly?: boolean
   children: (currentSection: number) => ReactNode
+  renderHeader?: () => ReactNode
   renderFooter?: (args: {
     values: Partial<DS160FormValues>
     isSubmitting: boolean
@@ -47,10 +49,13 @@ export function DS160FormShell({
   submitLabel,
   sectionFields,
   isBusy = false,
+  readOnly = false,
   children,
+  renderHeader,
   renderFooter,
 }: DS160FormShellProps) {
   const [currentSection, setCurrentSection] = useState(0)
+  const [showErrors, setShowErrors] = useState(false)
   const totalSections = sectionFields.length
 
   return (
@@ -70,66 +75,124 @@ export function DS160FormShell({
         isSubmitting: formSubmitting,
         validateForm,
         setTouched,
+        submitForm,
       }) => {
         const currentFields = sectionFields[currentSection] ?? []
         const formErrors = errors as Record<string, unknown>
         const currentSectionErrors = currentFields.filter((field) => formErrors[field])
         const hasVisibleErrors =
-          submitCount > 0 && currentSectionErrors.length > 0
+          (submitCount > 0 || showErrors) && currentSectionErrors.length > 0
         const submitting = formSubmitting || isBusy
         const isFirstSection = currentSection === 0
         const isLastSection = currentSection >= totalSections - 1
 
         const goToPrevious = () => {
+          setShowErrors(false)
           if (!isFirstSection) {
             setCurrentSection((section) => Math.max(0, section - 1))
           }
         }
 
         const goToNext = async () => {
-          const nextErrors = await validateForm()
-          const nextFormErrors = nextErrors as Record<string, unknown>
-          const blockingFields = currentFields.filter((field) => nextFormErrors[field])
-
-          if (blockingFields.length > 0) {
-            setTouched({
-              ...touched,
-              ...blockingFields.reduce<Record<string, boolean>>((acc, field) => {
-                acc[field] = true
-                return acc
-              }, {}),
-            })
+          if (readOnly) {
+            setShowErrors(false)
+            setCurrentSection((s) => Math.min(totalSections - 1, s + 1))
             return
           }
 
-          setCurrentSection((section) =>
-            Math.min(totalSections - 1, section + 1),
+          const errors = await validateForm()
+          const blockingFields = currentFields.filter(
+            (field) => (errors as Record<string, unknown>)[field],
           )
+
+          if (blockingFields.length > 0) {
+            setShowErrors(true)
+            const touchedFields = currentFields.reduce<Record<string, boolean>>(
+              (acc, field) => {
+                acc[field] = true
+                return acc
+              },
+              {},
+            )
+            setTouched({ ...touched, ...touchedFields })
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+            return
+          }
+
+          setShowErrors(false)
+          setCurrentSection((s) => Math.min(totalSections - 1, s + 1))
+        }
+
+        const handleFinalSubmit = async (e: React.FormEvent) => {
+          if (readOnly) return
+
+          const errors = await validateForm()
+          const nextFormErrors = errors as Record<string, unknown>
+          const allFields = sectionFields.flat()
+          const firstErrorField = allFields.find((f) => nextFormErrors[f])
+
+          if (firstErrorField) {
+            const errorSectionIdx = sectionFields.findIndex((fields) =>
+              fields.includes(firstErrorField),
+            )
+
+            if (errorSectionIdx !== -1) {
+              setCurrentSection(errorSectionIdx)
+              setShowErrors(true)
+              setTouched(
+                allFields.reduce<Record<string, boolean>>((acc, field) => {
+                  acc[field] = true
+                  return acc
+                }, {}),
+              )
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }
+            return
+          }
+
+          submitForm()
         }
 
         return (
-          <Form noValidate>
-            <div className='mb-6 rounded-2xl border border-slate-100 bg-white/90 p-5 shadow-sm'>
+          <Form
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault()
+              void handleFinalSubmit(e)
+            }}
+          >
+            {renderHeader?.()}
+            <div className='mb-6 rounded-2xl border border-border bg-card/90 p-5 shadow-sm'>
               <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                 <div>
                   <p className='text-[11px] font-black uppercase tracking-widest text-primary'>
                     Seção {currentSection + 1} de {totalSections}
                   </p>
-                  <p className='mt-1 text-sm font-medium text-slate-500'>
-                    Preencha esta etapa e avance para a próxima seção da DS-160.
-                  </p>
+                  {readOnly ? (
+                    <div className='mt-2 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-100 w-fit'>
+                      <RiAlertLine className='text-amber-500 text-sm' />
+                      <span className='text-[10px] font-black text-amber-600 uppercase tracking-widest'>
+                        Modo de Visualização — Alterações desativadas
+                      </span>
+                    </div>
+                  ) : (
+                    <p className='mt-1 text-sm font-medium text-text-muted'>
+                      Preencha esta etapa e avance para a próxima seção da
+                      DS-160.
+                    </p>
+                  )}
                 </div>
                 <div className='text-right'>
-                  <p className='text-2xl font-black text-slate-900'>
+                  <p className='text-2xl font-black text-text'>
                     {Math.round(((currentSection + 1) / totalSections) * 100)}%
                   </p>
-                  <p className='text-[10px] font-bold uppercase tracking-widest text-slate-400'>
+                  <p className='text-[10px] font-bold uppercase tracking-widest text-text-muted'>
                     Progresso do formulário
                   </p>
                 </div>
               </div>
 
-              <div className='mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-100'>
+              <div className='mt-4 h-2 w-full overflow-hidden rounded-full bg-bg-subtle'>
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{
@@ -164,7 +227,25 @@ export function DS160FormShell({
               </motion.div>
             )}
 
-            <div className='bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden'>
+            <div className='bg-card rounded-3xl border border-border shadow-xl shadow-border/40 overflow-hidden'>
+              {showErrors && currentSectionErrors.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className='mx-6 mt-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3'
+                >
+                  <RiAlertLine className='text-red-500 text-xl shrink-0 mt-0.5' />
+                  <div>
+                    <p className='text-xs font-black text-red-900 uppercase tracking-tight mb-1'>
+                      Atenção: Campos obrigatórios faltando
+                    </p>
+                    <p className='text-[11px] text-red-700 font-medium leading-relaxed'>
+                      Por favor, preencha todos os campos destacados em
+                      vermelho para prosseguir para a próxima seção.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
               <div className='p-6 sm:p-10 space-y-0'>{children(currentSection)}</div>
 
               {renderFooter ? (
@@ -179,14 +260,14 @@ export function DS160FormShell({
                   onNext: goToNext,
                 })
               ) : (
-                <div className='px-6 sm:px-10 py-6 bg-slate-50/70 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4'>
+                <div className='px-6 sm:px-10 py-6 bg-bg-subtle/70 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4'>
                   <div className='flex w-full flex-col gap-3 sm:w-auto sm:flex-row'>
                     {!isFirstSection && (
                       <button
                         type='button'
                         onClick={goToPrevious}
                         disabled={submitting}
-                        className='w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2'
+                        className='w-full sm:w-auto px-6 py-3.5 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-50 flex items-center justify-center gap-2'
                       >
                         <RiArrowLeftLine className='text-lg' />
                         Anterior
@@ -196,7 +277,7 @@ export function DS160FormShell({
                       type='button'
                       onClick={() => void onSaveDraft(values)}
                       disabled={submitting}
-                      className='w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50'
+                      className='w-full sm:w-auto px-6 py-3.5 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-50'
                     >
                       {saveLabel}
                     </button>

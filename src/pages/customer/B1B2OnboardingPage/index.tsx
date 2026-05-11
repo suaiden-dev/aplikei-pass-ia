@@ -9,7 +9,7 @@ import {
 } from '../../../features/onboarding/b1b2/hooks/useB1B2Onboarding';
 import { AdminFeedbackBanner } from '../../../components/organisms/AdminFeedbackBanner';
 import { B1B2StepContent } from './components/B1B2StepContent';
-import { type DS160FormValues } from '../../../features/onboarding/b1b2/schemas/ds160.schema';
+import { type DS160FormValues } from '../../../schemas/ds160.schema';
 
 function buildLabels(t: {
   onboardingPage: B1B2OnboardingLabels
@@ -81,15 +81,8 @@ export default function B1B2OnboardingPage() {
   }
 
   const formatStepLabel = (idx: number) => {
-    const total = 11
-    if (idx === 10) return `${total} ${labels.of} ${total}`
-    if (idx === 9) return `10 ${labels.of} ${total}`
-    if (idx === 8) return `9 ${labels.of} ${total}`
-    if (idx === 7) return `8 ${labels.of} ${total}`
-    if (idx === 6) return `7 ${labels.of} ${total}`
-    if (idx === 5) return `6 ${labels.of} ${total}`
-    if (idx === 3) return `4 ${labels.of} ${total}`
-    return `1 ${labels.of} ${total}`
+    const total = 12
+    return `${idx + 1} ${labels.of} ${total}`
   }
 
   if (isLoading) {
@@ -101,23 +94,23 @@ export default function B1B2OnboardingPage() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-b from-slate-50 to-slate-100/50 pb-24'>
-      <div className='bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30 shadow-sm'>
+    <div className='min-h-screen bg-bg pb-24'>
+      <div className='bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-30 shadow-sm'>
         <div className='max-w-4xl mx-auto px-6 h-18 py-4 flex items-center justify-between'>
           <div className='flex items-center gap-4'>
             <button
               type='button'
               onClick={handleNavigateToProcess}
-              className='w-10 h-10 rounded-xl flex items-center justify-center hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-700'
+              className='w-10 h-10 rounded-xl flex items-center justify-center hover:bg-bg-subtle transition-colors text-text-muted hover:text-text'
             >
               <RiArrowLeftLine className='text-xl' />
             </button>
             <div>
-              <h1 className='text-sm font-black text-slate-800 uppercase tracking-tight'>
+              <h1 className='text-sm font-black text-text uppercase tracking-tight'>
                 {labels.ds160Form}
               </h1>
-              <p className='text-[10px] text-slate-400 font-bold uppercase tracking-widest'>
-                {slug === 'visto-b1-b2-reaplicacao'
+              <p className='text-[10px] text-text-muted font-bold uppercase tracking-widest'>
+                {slug === 'visto-b1-b2-reaplicacao' || slug === 'visa-b1b2-reaplicacao'
                   ? `${labels.b1b2ReapplicationTitle} — ${labels.guidedFilling}`
                   : `${labels.b1b2Title} — ${labels.guidedFilling}`}
               </p>

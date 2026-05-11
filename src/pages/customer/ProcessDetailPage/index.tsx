@@ -42,19 +42,22 @@ const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>
 const slugConfig: Record<string, {
   bg: string; icon: string; gradient: string; label: string; category: string; iconName: string;
 }> = {
-  "visto-b1-b2":             { bg: "bg-sky-50",    icon: "text-sky-500",    gradient: "from-sky-400 to-sky-600",       label: "B1/B2 VISA",         category: "TOURISM/BUSINESS",  iconName: "MdLanguage" },
-  "visto-b1-b2-reaplicacao": { bg: "bg-sky-50",    icon: "text-sky-500",    gradient: "from-sky-400 to-sky-600",       label: "B1/B2 REAPLICAÇÃO",  category: "TOURISM/BUSINESS",  iconName: "MdLanguage" },
-  "visto-f1":                { bg: "bg-violet-50", icon: "text-violet-500", gradient: "from-violet-400 to-violet-600", label: "F-1 VISA",           category: "STUDENT/ACADEMIC",  iconName: "MdSchool" },
-  "visto-f1-reaplicacao":    { bg: "bg-violet-50", icon: "text-violet-500", gradient: "from-violet-400 to-violet-600", label: "F-1 REAPLICAÇÃO", category: "STUDENT/ACADEMIC",  iconName: "MdSchool" },
-  "extensao-status":         { bg: "bg-blue-50",   icon: "text-blue-500",   gradient: "from-blue-400 to-blue-600",     label: "EXTENSÃO STATUS",    category: "EXTEND STAY",       iconName: "MdHistory" },
-  "troca-status":            { bg: "bg-indigo-50", icon: "text-indigo-500", gradient: "from-indigo-400 to-indigo-600", label: "TROCA STATUS",       category: "CHANGE OF STATUS",  iconName: "MdSyncAlt" },
+  "visto-b1-b2": { bg: "bg-sky-50", icon: "text-sky-500", gradient: "from-sky-400 to-sky-600", label: "B1/B2 VISA", category: "TOURISM/BUSINESS", iconName: "MdLanguage" },
+  "visto-b1-b2-reaplicacao": { bg: "bg-sky-50", icon: "text-sky-500", gradient: "from-sky-400 to-sky-600", label: "B1/B2 REAPLICAÇÃO", category: "TOURISM/BUSINESS", iconName: "MdLanguage" },
+  "visa-b1b2": { bg: "bg-sky-50", icon: "text-sky-500", gradient: "from-sky-400 to-sky-600", label: "B1/B2 VISA", category: "TOURISM/BUSINESS", iconName: "MdLanguage" },
+  "visa-b1b2-reaplicacao": { bg: "bg-sky-50", icon: "text-sky-500", gradient: "from-sky-400 to-sky-600", label: "B1/B2 REAPLICAÇÃO", category: "TOURISM/BUSINESS", iconName: "MdLanguage" },
+  "visto-f1": { bg: "bg-violet-50", icon: "text-violet-500", gradient: "from-violet-400 to-violet-600", label: "F-1 VISA", category: "STUDENT/ACADEMIC", iconName: "MdSchool" },
+  "visto-f1-reaplicacao": { bg: "bg-violet-50", icon: "text-violet-500", gradient: "from-violet-400 to-violet-600", label: "F-1 REAPLICAÇÃO", category: "STUDENT/ACADEMIC", iconName: "MdSchool" },
+  "visa-f1": { bg: "bg-violet-50", icon: "text-violet-500", gradient: "from-violet-400 to-violet-600", label: "F-1 VISA", category: "STUDENT/ACADEMIC", iconName: "MdSchool" },
+  "extensao-status": { bg: "bg-blue-50", icon: "text-blue-500", gradient: "from-blue-400 to-blue-600", label: "EXTENSÃO STATUS", category: "EXTEND STAY", iconName: "MdHistory" },
+  "troca-status": { bg: "bg-indigo-50", icon: "text-indigo-500", gradient: "from-indigo-400 to-indigo-600", label: "TROCA STATUS", category: "CHANGE OF STATUS", iconName: "MdSyncAlt" },
 };
 function calculatePhaseProgress(proc: UserService, totalSteps: number, isCOS: boolean): number {
   const step = proc.current_step ?? 0;
 
   if (proc.status === 'completed') return 100;
 
-  const isSpecialVisa = !isCOS && (proc.service_slug?.startsWith("visto-b1-b2") || proc.service_slug?.startsWith("visto-f1"));
+  const isSpecialVisa = !isCOS && (proc.service_slug?.startsWith("visto-") || proc.service_slug?.startsWith("visa-"));
   const maxProgress = isSpecialVisa ? 95 : 99;
   return Math.min(maxProgress, Math.round((step / (totalSteps || 1)) * 100));
 }
@@ -120,7 +123,7 @@ export default function ProcessDetailPage() {
   ).toLowerCase();
   const shouldCheckConsultation =
     !!user &&
-    (slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1")) &&
+    (slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1") || slug.startsWith("visa-b1b2") || slug.startsWith("visa-f1")) &&
     (proc?.status === "rejected" ||
       interviewOutcomeForConsultation === "denied" ||
       interviewOutcomeForConsultation === "rejected");
@@ -208,7 +211,7 @@ export default function ProcessDetailPage() {
   if (!service || !proc) {
     return (
       <div className="p-12 text-center">
-        <h1 className="text-2xl font-bold text-slate-800">{t.processDetail.processNotFound}</h1>
+        <h1 className="text-2xl font-bold text-text">{t.processDetail.processNotFound}</h1>
         <Link to="/dashboard/processes" className="text-primary font-bold mt-4 inline-block">{t.processDetail.back}</Link>
       </div>
     );
@@ -253,16 +256,16 @@ export default function ProcessDetailPage() {
 
   const interviewOutcome = stepData.interview_outcome as string;
   const isDenied = proc.status === 'rejected' ||
-                   interviewOutcome === 'rejected' ||
-                   interviewOutcome === 'denied' ||
-                   motionResult === 'denied';
+    interviewOutcome === 'rejected' ||
+    interviewOutcome === 'denied' ||
+    motionResult === 'denied';
 
-  const isApproved = uscisResult === 'approved' || 
-                     rfeResult === 'approved' || 
-                     motionResult === 'approved' || 
-                     interviewOutcome === 'approved' || 
-                     interviewOutcome === 'granted' ||
-                     (proc.status === 'completed' && !isDenied && !uscisResult?.includes('denied'));
+  const isApproved = uscisResult === 'approved' ||
+    rfeResult === 'approved' ||
+    motionResult === 'approved' ||
+    interviewOutcome === 'approved' ||
+    interviewOutcome === 'granted' ||
+    (proc.status === 'completed' && !isDenied && !uscisResult?.includes('denied'));
 
   const isFinalized = proc.status === 'completed' || isApproved || isDenied;
   const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, steps.length, isCOS);
@@ -278,7 +281,7 @@ export default function ProcessDetailPage() {
       >
         <Link
           to="/dashboard/processes"
-          className="inline-flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-slate-700 transition-colors"
+          className="inline-flex items-center gap-2 text-sm font-bold text-text-muted hover:text-text transition-colors"
         >
           <RiArrowLeftLine />
           {t.processDetail.myCases}
@@ -288,9 +291,9 @@ export default function ProcessDetailPage() {
       {/* Success / Approved Banner */}
       {isApproved && (
         <motion.div
-           initial={{ opacity: 0, scale: 0.95 }}
-           animate={{ opacity: 1, scale: 1 }}
-           className="mb-12 p-10 rounded-[40px] bg-emerald-500 text-white shadow-2xl shadow-emerald-500/30 overflow-hidden relative"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mb-12 p-10 rounded-[40px] bg-emerald-500 text-white shadow-2xl shadow-emerald-500/30 overflow-hidden relative"
         >
           {/* Decorative stuff logic */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl" />
@@ -310,7 +313,7 @@ export default function ProcessDetailPage() {
 
       {/* Rejection Feedback Alert */}
       {proc?.status === 'active' && !!stepData.admin_feedback && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 p-6 rounded-[24px] bg-red-50 border border-red-100 flex items-start gap-4 shadow-sm"
@@ -321,7 +324,7 @@ export default function ProcessDetailPage() {
           <div className="flex-1">
             <h3 className="text-sm font-black text-red-900 uppercase tracking-tight mb-1">{t.processDetail.actionRequired}</h3>
             <p className="text-sm text-red-700 font-medium leading-relaxed italic mb-3">"{String(stepData.admin_feedback)}"</p>
-            
+
             {Array.isArray(stepData.rejected_items) && (stepData.rejected_items as string[]).length > 0 && (
               <div className="mb-4 flex flex-wrap gap-2">
                 {(stepData.rejected_items as string[]).map((item: string) => (
@@ -333,7 +336,7 @@ export default function ProcessDetailPage() {
             )}
 
             <div className="flex gap-3">
-               <button 
+              <button
                 onClick={() => {
                   const currentIdx = proc.current_step ?? 0;
                   const currentStep = steps[currentIdx];
@@ -342,9 +345,9 @@ export default function ProcessDetailPage() {
                   navigate(`/dashboard/processes/${slug}/onboarding?step=${targetIdx}`);
                 }}
                 className="px-6 py-2.5 rounded-xl bg-red-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-red-700 shadow-lg shadow-red-500/20 transition-all border-none flex items-center gap-2"
-               >
-                 <RiPlayFill className="text-base" /> {t.processDetail.fixProblems}
-               </button>
+              >
+                <RiPlayFill className="text-base" /> {t.processDetail.fixProblems}
+              </button>
             </div>
           </div>
         </motion.div>
@@ -353,65 +356,65 @@ export default function ProcessDetailPage() {
       {/* Denial Recovery Banner */}
       {(slug?.startsWith("visto-b1-b2") || slug?.startsWith("visto-f1")) && isDenied && (
         <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           className="mb-12 p-10 rounded-[40px] bg-slate-900 text-white overflow-hidden relative group"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-12 p-10 rounded-[40px] bg-text/90 text-white overflow-hidden relative group"
         >
-           {/* Decoration */}
-           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32" />
-           
-           <div className="relative flex flex-col lg:flex-row items-center justify-between gap-8">
-             <div className="flex-1 text-center lg:text-left">
-               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest mb-6">
-                 <RiFlagLine className="text-sm" /> Status: {t.processDetail.visaDenied}
-               </div>
-               
-               {hasConsultation ? (
-                 <>
-                   <h2 className="font-display font-black text-3xl sm:text-4xl leading-tight tracking-tight mb-4" dangerouslySetInnerHTML={{ 
-                     __html: t.processDetail.denialBanner?.consultationConfirmed.replace('{highlight}', `<span className="text-primary">${t.processDetail.denialBanner?.consultationConfirmedHighlight}</span>`) || `Consulta <span className="text-primary">Confirmada</span>.`
-                   }} />
-                   <p className="text-slate-400 text-base font-medium max-w-xl">
-                     {t.processDetail.denialBanner?.consultationConfirmedDesc}
-                   </p>
-                 </>
-               ) : (
-                 <>
-                   <h2 className="font-display font-black text-3xl sm:text-4xl leading-tight tracking-tight mb-4" dangerouslySetInnerHTML={{
-                     __html: t.processDetail.denialTitle.replace('{highlight}', `<span className="text-primary">${t.processDetail.denialTitleHighlight}</span>`)
-                   }} />
-                   <p className="text-slate-400 text-base font-medium max-w-xl">
-                     {t.processDetail.denialDesc.replace('{slug}', slug.includes("f1") ? "F-1" : "B1/B2")}
-                   </p>
-                 </>
-               )}
-             </div>
-             
-             <div className="shrink-0 w-full lg:w-auto flex flex-col gap-4">
-               {!hasConsultation && (
-                 <div>
-                   <Link
-                     to="/checkout/mentoria-negativa-consular"
-                     className="flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white text-sm font-black uppercase tracking-widest transition-all shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98]"
-                   >
-                     <RiUserVoiceLine className="text-xl" />
-                     {t.processDetail.scheduleConsultation.replace('{price}', " ($97)")}
-                     <RiArrowRightLine className="text-xl" />
-                   </Link>
-                   <p className="text-center text-[10px] text-slate-500 mt-4 uppercase font-bold tracking-widest">
-                     {t.processDetail.limitedSlots}
-                   </p>
-                 </div>
-               )}
-               <Link
-                 to={slug.includes("f1") ? "/checkout/visto-f1-reaplicacao" : "/checkout/visto-b1-b2-reaplicacao"}
-                 className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-black uppercase tracking-widest transition-all"
-               >
-                 {t.processDetail.restartProcess}
-                 <RiArrowRightLine className="text-xl" />
-               </Link>
-             </div>
-           </div>
+          {/* Decoration */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32" />
+
+          <div className="relative flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="flex-1 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest mb-6">
+                <RiFlagLine className="text-sm" /> Status: {t.processDetail.visaDenied}
+              </div>
+
+              {hasConsultation ? (
+                <>
+                  <h2 className="font-display font-black text-3xl sm:text-4xl leading-tight tracking-tight mb-4" dangerouslySetInnerHTML={{
+                    __html: t.processDetail.denialBanner?.consultationConfirmed.replace('{highlight}', `<span className="text-primary">${t.processDetail.denialBanner?.consultationConfirmedHighlight}</span>`) || `Consulta <span className="text-primary">Confirmada</span>.`
+                  }} />
+                  <p className="text-text-muted text-base font-medium max-w-xl">
+                    {t.processDetail.denialBanner?.consultationConfirmedDesc}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="font-display font-black text-3xl sm:text-4xl leading-tight tracking-tight mb-4" dangerouslySetInnerHTML={{
+                    __html: t.processDetail.denialTitle.replace('{highlight}', `<span className="text-primary">${t.processDetail.denialTitleHighlight}</span>`)
+                  }} />
+                  <p className="text-text-muted text-base font-medium max-w-xl">
+                    {t.processDetail.denialDesc.replace('{slug}', slug.includes("f1") ? "F-1" : "B1/B2")}
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div className="shrink-0 w-full lg:w-auto flex flex-col gap-4">
+              {!hasConsultation && (
+                <div>
+                  <Link
+                    to="/checkout/mentoria-negativa-consular"
+                    className="flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white text-sm font-black uppercase tracking-widest transition-all shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98]"
+                  >
+                    <RiUserVoiceLine className="text-xl" />
+                    {t.processDetail.scheduleConsultation.replace('{price}', " ($97)")}
+                    <RiArrowRightLine className="text-xl" />
+                  </Link>
+                  <p className="text-center text-[10px] text-text-muted mt-4 uppercase font-bold tracking-widest">
+                    {t.processDetail.limitedSlots}
+                  </p>
+                </div>
+              )}
+              <Link
+                to={slug.includes("f1") ? "/checkout/visto-f1-reaplicacao" : "/checkout/visto-b1-b2-reaplicacao"}
+                className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-black uppercase tracking-widest transition-all"
+              >
+                {t.processDetail.restartProcess}
+                <RiArrowRightLine className="text-xl" />
+              </Link>
+            </div>
+          </div>
         </motion.div>
       )}
 
@@ -423,14 +426,14 @@ export default function ProcessDetailPage() {
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-6 mb-12"
           >
-            <div className={`w-16 h-16 rounded-2xl ${cfg?.bg ?? "bg-slate-50"} flex items-center justify-center border border-black/5 shadow-sm`}>
-              <Icon className={`text-3xl ${cfg?.icon ?? "text-slate-400"}`} />
+            <div className={`w-16 h-16 rounded-2xl ${cfg?.bg ?? "bg-bg-subtle/50"} flex items-center justify-center border border-black/5 shadow-sm`}>
+              <Icon className={`text-3xl ${cfg?.icon ?? "text-text-muted"}`} />
             </div>
             <div>
-              <h1 className="font-display font-black text-[28px] text-slate-900 leading-tight tracking-tight">
+              <h1 className="font-display font-black text-[28px] text-text leading-tight tracking-tight">
                 {t.processDetail.services?.[slug]?.label || cfg?.label || service.title}
               </h1>
-              <p className="text-[11px] font-bold text-slate-400 tracking-widest uppercase mt-1">
+              <p className="text-[11px] font-bold text-text-muted tracking-widest uppercase mt-1">
                 {t.processDetail.services?.[slug]?.category || cfg?.category || "Guia Completo"}
               </p>
             </div>
@@ -440,7 +443,8 @@ export default function ProcessDetailPage() {
           <div className="space-y-4">
             {steps.map((step, idx) => {
               const isCompleted = idx < currentStepIndex;
-              const isConsular = slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1");
+              const isConsular = slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1") || slug.startsWith("visa-b1b2") || slug.startsWith("visa-f1");
+              const isB1B2 = slug.includes("b1-b2") || slug.includes("b1b2");
               const baseStepId = step.id.replace(/_cycle_\d+$/, "").replace(/_final_ship$/, "_end");
               // Re-ajuste isCurrent para não fixar no último passo se o processo já estiver COMPLETED (status final de histórico)
               const isCurrent = (idx === currentStepIndex) || (isConsular && idx === (slug.includes("f1") ? 11 : 10) && isFinalized && proc.status !== 'completed');
@@ -456,13 +460,12 @@ export default function ProcessDetailPage() {
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className={`relative flex items-start gap-5 p-6 rounded-2xl border transition-all ${
-                    isCurrent 
-                      ? "bg-white border-primary shadow-lg shadow-primary/5 ring-1 ring-primary/20" 
+                  className={`relative flex items-start gap-5 p-6 rounded-2xl border transition-all ${isCurrent
+                      ? "bg-card border-primary shadow-lg shadow-primary/5 ring-1 ring-primary/20"
                       : isCompleted
-                      ? "bg-slate-50/50 border-slate-100 opacity-80"
-                      : "bg-white border-slate-100 opacity-50"
-                  }`}
+                        ? "bg-bg-subtle/50 border-border opacity-80"
+                        : "bg-card border-border opacity-50"
+                    }`}
                 >
                   <div className="mt-1">
                     {isCompleted ? (
@@ -477,130 +480,126 @@ export default function ProcessDetailPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h3 className={`text-sm font-bold uppercase tracking-tight mb-1 ${
-                      isCurrent ? "text-primary" : "text-slate-700"
-                    }`}>
+                    <h3 className={`text-sm font-bold uppercase tracking-tight mb-1 ${isCurrent ? "text-primary" : "text-text"
+                      }`}>
                       {t.processSteps?.[step.id]?.title || step.title}
                     </h3>
-                    <p className="text-[13px] text-slate-500 font-medium leading-relaxed">
+                    <p className="text-[13px] text-text-muted font-medium leading-relaxed">
                       {t.processSteps?.[step.id]?.description || step.description}
                     </p>
 
-                    {/* Show View button for completed steps or for the final preparation step in B1/B2/F1 */}
-                    {(isCompleted || (isConsular && idx === (slug.includes("f1") ? 11 : 10)) || (isCurrent && isCOS && baseStepId === "cos_motion_end")) &&
-                      (step.type === "form" || step.type === "upload" || (isConsular && idx === (slug.includes("f1") ? 11 : 10)) || baseStepId === "cos_motion_end") && (
-                      <button
-                        onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${idx}`)}
-                        className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-                          idx === (slug.includes("f1") ? 11 : 10) && !isCompleted && !isCurrent
-                            ? "border-emerald-200 text-emerald-500 hover:bg-emerald-50"
-                            : "border-slate-200 text-slate-400 hover:border-primary hover:text-primary bg-white"
-                        }`}
-                      >
-                        {idx === (slug.includes("f1") ? 11 : 10) ? <RiUserStarLine className="text-sm" /> : <RiInformationLine className="text-sm" />}
-                        {baseStepId === "cos_motion_end"
-                          ? "Ver resultado"
-                          : idx === (slug.includes("f1") ? 11 : 10)
-                            ? t.processDetail.prepareForInterview
-                            : t.processDetail.viewStep}
-                      </button>
-                    )}
+                    {/* Show View button ONLY for the final preparation step in B1/B2/F1 or cos_motion_end, NOT for completed forms */}
+                    {((isConsular && idx === (slug.includes("f1") ? 11 : 10)) || (isCurrent && isCOS && baseStepId === "cos_motion_end")) &&
+                      ((isConsular && idx === (slug.includes("f1") ? 11 : 10)) || baseStepId === "cos_motion_end") && (
+                        <button
+                          onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${idx}`)}
+                          className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${idx === (slug.includes("f1") ? 11 : 10) && !isCompleted && !isCurrent
+                              ? "border-emerald-200 text-emerald-500 hover:bg-emerald-50"
+                              : "border-border text-text-muted hover:border-primary hover:text-primary bg-card"
+                            }`}
+                        >
+                          {idx === (slug.includes("f1") ? 11 : 10) ? <RiUserStarLine className="text-sm" /> : <RiInformationLine className="text-sm" />}
+                          {baseStepId === "cos_motion_end"
+                            ? "Ver resultado"
+                            : t.processDetail.prepareForInterview}
+                        </button>
+                      )}
 
                     {isCurrent && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mt-6 p-6 rounded-xl bg-slate-50 border border-slate-200"
+                        className="mt-6 p-6 rounded-xl bg-bg-subtle border border-border"
                       >
                         {/* Consular or COS products: specialized onboarding flow */}
-                        {isCOS || slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1") ? (
+                        {isCOS || isConsular ? (
                           (step as { type?: string }).type === "admin_action" ? (
-                             proc.status === 'active' && stepData.admin_feedback ? (
-                               <div className="space-y-4">
-                                 <div className="flex items-start gap-3">
-                                   <RiErrorWarningLine className="text-red-500 text-xl shrink-0 mt-0.5" />
-                                   <p className="text-xs text-red-600 font-bold leading-normal">
-                                     {t.processDetail.waitingCorrectionsDesc}
-                                   </p>
-                                 </div>
-                                 <button
-                                   onClick={() => {
-                                     const targetIdx = step.id === 'b1b2_admin_analysis' ? 0 : (step.type === 'admin_action' ? idx - 1 : idx);
-                                     navigate(`/dashboard/processes/${slug}/onboarding?step=${targetIdx}`);
-                                   }}
-                                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-500/20 transition-all border-none"
-                                 >
-                                   <RiPlayFill className="text-lg" />
-                                   {t.processDetail.fixProblems}
-                                 </button>
-                               </div>
-                             ) : (
-                                <div className="space-y-6">
-                                  <div className="flex items-start gap-3">
-                                    <RiTimeLine className="text-primary text-xl shrink-0 mt-0.5" />
-                                    <p className="text-xs text-slate-600 font-medium leading-normal">
-                                      {slug.startsWith("visto-b1-b2") && idx === 6 
-                                        ? t.processDetail.accountCreationNoticeDesc
-                                        : slug.startsWith("visto-b1-b2") && idx === 8
-                                        ? t.processDetail.taxGenerationNoticeDesc
-                                        : slug.startsWith("visto-b1-b2") && idx === 10
-                                        ? isFinalized 
-                                          ? t.processDetail.schedulingConfirmedDesc
-                                          : t.processDetail.waitingSchedulingDesc
-                                        : t.processDetail.underReviewDesc}
-                                    </p>
-                                  </div>
-                                  {isConsular && idx === (slug.includes("f1") ? 11 : 10) && (
-                                    <button
-                                      onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?step=${slug.includes("f1") ? 11 : 10}`)}
-                                      className="w-full py-3 rounded-xl border-2 border-primary/20 text-primary font-black text-[11px] uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all flex items-center justify-center gap-2 shadow-sm"
-                                    >
-                                       <RiBookOpenLine className="text-base" /> {t.processDetail.prepareForInterview}
-                                    </button>
-                                  )}
+                            proc.status === 'active' && stepData.admin_feedback ? (
+                              <div className="space-y-4">
+                                <div className="flex items-start gap-3">
+                                  <RiErrorWarningLine className="text-red-500 text-xl shrink-0 mt-0.5" />
+                                  <p className="text-xs text-red-600 font-bold leading-normal">
+                                    {t.processDetail.waitingCorrectionsDesc}
+                                  </p>
                                 </div>
-                             )
+                                <button
+                                  onClick={() => {
+                                    const targetIdx = step.id === 'b1b2_admin_analysis' ? 0 : (step.type === 'admin_action' ? idx - 1 : idx);
+                                    navigate(`/dashboard/processes/${slug}/onboarding?step=${targetIdx}`);
+                                  }}
+                                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-500/20 transition-all border-none"
+                                >
+                                  <RiPlayFill className="text-lg" />
+                                  {t.processDetail.fixProblems}
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="space-y-6">
+                                <div className="flex items-start gap-3">
+                                  <RiTimeLine className="text-primary text-xl shrink-0 mt-0.5" />
+                                  <p className="text-xs text-text-muted font-medium leading-normal">
+                                    {isB1B2 && idx === 6
+                                      ? t.processDetail.accountCreationNoticeDesc
+                                      : isB1B2 && idx === 8
+                                        ? t.processDetail.taxGenerationNoticeDesc
+                                        : isB1B2 && idx === 10
+                                          ? isFinalized
+                                            ? t.processDetail.schedulingConfirmedDesc
+                                            : t.processDetail.waitingSchedulingDesc
+                                          : t.processDetail.underReviewDesc}
+                                  </p>
+                                </div>
+                                {isConsular && idx === (slug.includes("f1") ? 11 : 10) && (
+                                  <button
+                                    onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?step=${slug.includes("f1") ? 11 : 10}`)}
+                                    className="w-full py-3 rounded-xl border-2 border-primary/20 text-primary font-black text-[11px] uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all flex items-center justify-center gap-2 shadow-sm"
+                                  >
+                                    <RiBookOpenLine className="text-base" /> {t.processDetail.prepareForInterview}
+                                  </button>
+                                )}
+                              </div>
+                            )
                           ) : (
                             <>
                               <div className="flex items-start gap-3 mb-5">
-                                 <RiInformationLine className="text-primary text-xl shrink-0 mt-0.5" />
-                                 <p className="text-xs text-slate-600 font-medium leading-normal">
-                                    {isConsular && idx === 0 
-                                      ? t.processDetail.step0Desc
-                                      : slug.includes("f1") && idx === 1 
+                                <RiInformationLine className="text-primary text-xl shrink-0 mt-0.5" />
+                                <p className="text-xs text-text-muted font-medium leading-normal">
+                                  {isConsular && idx === 0
+                                    ? t.processDetail.step0Desc
+                                    : slug.includes("f1") && idx === 1
                                       ? t.processDetail.step1F1Desc
                                       : isConsular && idx === (slug.includes("f1") ? 4 : 3)
-                                      ? t.processDetail.stepReviewSignDesc
-                                      : isConsular && idx === (slug.includes("f1") ? 6 : 5)
-                                      ? t.processDetail.stepCasvDesc
-                                      : isConsular && idx === (slug.includes("f1") ? 8 : 7)
-                                      ? t.processDetail.stepConfirmEmailDesc
-                                      : isConsular && idx === (slug.includes("f1") ? 10 : 9)
-                                      ? t.processDetail.stepPaymentDesc
-                                      : isConsular && idx === (slug.includes("f1") ? 11 : 10)
-                                      ? t.processDetail.stepFinalSchedulingDesc
-                                      : t.processDetail.genericStepDesc}
-                                 </p>
-                               </div>
+                                        ? t.processDetail.stepReviewSignDesc
+                                        : isConsular && idx === (slug.includes("f1") ? 6 : 5)
+                                          ? t.processDetail.stepCasvDesc
+                                          : isConsular && idx === (slug.includes("f1") ? 8 : 7)
+                                            ? t.processDetail.stepConfirmEmailDesc
+                                            : isConsular && idx === (slug.includes("f1") ? 10 : 9)
+                                              ? t.processDetail.stepPaymentDesc
+                                              : isConsular && idx === (slug.includes("f1") ? 11 : 10)
+                                                ? t.processDetail.stepFinalSchedulingDesc
+                                                : t.processDetail.genericStepDesc}
+                                </p>
+                              </div>
                               <button
                                 onClick={() => {
                                   navigate(`/dashboard/processes/${slug}/onboarding?step=${idx}`);
                                 }}
                                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all"
                               >
-                                 <RiPlayFill className="text-lg" />
-                                 {isConsular && idx === 0 
-                                   ? t.processDetail.startStep1 
-                                   : slug.includes("f1") && idx === 1
-                                   ? t.processDetail.uploadI20
-                                   : isConsular && idx === (slug.includes("f1") ? 8 : 7) 
-                                   ? t.processDetail.confirmEmail
-                                   : isConsular && idx === (slug.includes("f1") ? 10 : 9)
-                                   ? t.processDetail.makePayment
-                                   : isConsular && idx === (slug.includes("f1") ? 11 : 10)
-                                   ? t.processDetail.viewSummons
-                                   : t.processDetail.goToStep.replace("{n}", (idx + 1).toString())}
-                               </button>
+                                <RiPlayFill className="text-lg" />
+                                {isConsular && idx === 0
+                                  ? t.processDetail.startStep1
+                                  : slug.includes("f1") && idx === 1
+                                    ? t.processDetail.uploadI20
+                                    : isConsular && idx === (slug.includes("f1") ? 8 : 7)
+                                      ? t.processDetail.confirmEmail
+                                      : isConsular && idx === (slug.includes("f1") ? 10 : 9)
+                                        ? t.processDetail.makePayment
+                                        : isConsular && idx === (slug.includes("f1") ? 11 : 10)
+                                          ? t.processDetail.viewSummons
+                                          : t.processDetail.goToStep.replace("{n}", (idx + 1).toString())}
+                              </button>
                             </>
                           )
                         ) : (
@@ -608,7 +607,7 @@ export default function ProcessDetailPage() {
                           <>
                             <div className="flex items-start gap-3 mb-6">
                               <RiInformationLine className="text-primary text-xl shrink-0 mt-0.5" />
-                              <p className="text-xs text-slate-600 font-medium leading-normal">
+                              <p className="text-xs text-text-muted font-medium leading-normal">
                                 {proc.status === "awaiting_review"
                                   ? t.processDetail.awaitingReviewDesc
                                   : t.processDetail.completeStepDesc}
@@ -617,11 +616,10 @@ export default function ProcessDetailPage() {
                             <button
                               onClick={handleCompleteStep}
                               disabled={isUpdating || proc.status === "awaiting_review"}
-                              className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${
-                                proc.status === "awaiting_review"
-                                  ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                              className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${proc.status === "awaiting_review"
+                                  ? "bg-border/30 text-text-muted cursor-not-allowed"
                                   : "bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20"
-                              }`}
+                                }`}
                             >
                               {isUpdating ? (
                                 <RiLoader4Line className="animate-spin text-lg" />
@@ -653,35 +651,35 @@ export default function ProcessDetailPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="p-8 rounded-3xl bg-slate-900 text-white shadow-xl"
+            className="p-8 rounded-3xl bg-text/90 text-white shadow-xl"
           >
-            <div className="text-[10px] font-black text-slate-400 tracking-widest uppercase mb-4">
+            <div className="text-[10px] font-black text-text-muted tracking-widest uppercase mb-4">
               {t.processDetail.processStatus}
             </div>
-            
+
             <div className="flex items-center gap-3 mb-6">
               <div className={cn(
                 "w-3 h-3 rounded-full animate-pulse",
-                isApproved ? "bg-emerald-400" : 
-                isDenied ? "bg-red-400" :
-                isFinalized ? "bg-emerald-400" : "bg-primary"
+                isApproved ? "bg-emerald-400" :
+                  isDenied ? "bg-red-400" :
+                    isFinalized ? "bg-emerald-400" : "bg-primary"
               )} />
               <span className={cn(
                 "text-lg font-black uppercase tracking-tight",
                 isApproved ? "text-emerald-400" :
-                isDenied ? "text-red-400" : ""
+                  isDenied ? "text-red-400" : ""
               )}>
-                {isApproved ? t.processDetail.approved : 
+                {isApproved ? t.processDetail.approved :
                   isDenied ? t.processDetail.denied :
-                  proc.status === "active" ? t.processDetail.inProgress : 
-                  proc.status === "awaiting_review" ? t.processDetail.inReview : 
-                  proc.status === "completed" ? t.processDetail.finalized : proc.status}
+                    proc.status === "active" ? t.processDetail.inProgress :
+                      proc.status === "awaiting_review" ? t.processDetail.inReview :
+                        proc.status === "completed" ? t.processDetail.finalized : proc.status}
               </span>
             </div>
 
             <div className="space-y-4">
               <div className="flex justify-between items-end">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{t.processDetail.progressLabel}</span>
+                <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">{t.processDetail.progressLabel}</span>
                 <span className={cn(
                   "text-2xl font-black tabular-nums",
                   isApproved ? "text-emerald-400" : isDenied ? "text-red-400" : ""
@@ -689,7 +687,7 @@ export default function ProcessDetailPage() {
                   {progressPercent}%
                 </span>
               </div>
-              <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-text rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercent}%` }}
@@ -707,11 +705,11 @@ export default function ProcessDetailPage() {
             const purchases = Array.isArray(stepData.purchases)
               ? (stepData.purchases as Array<{ slug?: string }>)
               : [];
-            const hasPaidProposal = purchases.some(p => 
-              p.slug === "proposta-rfe-motion" || 
-              p.slug === "apoio-rfe-motion-inicio" || 
-              p.slug === "analise-rfe-cos" || 
-              p.slug === "apoio-rfe-cos" || 
+            const hasPaidProposal = purchases.some(p =>
+              p.slug === "proposta-rfe-motion" ||
+              p.slug === "apoio-rfe-motion-inicio" ||
+              p.slug === "analise-rfe-cos" ||
+              p.slug === "apoio-rfe-cos" ||
               p.slug === "analise-especialista-cos" ||
               p.slug === "analise-especialista-rfe"
             );
@@ -719,14 +717,14 @@ export default function ProcessDetailPage() {
             if (!hasPaidProposal) return null;
 
             return (
-              <div className="p-8 rounded-3xl border border-slate-100 bg-white">
-                <h4 className="text-sm font-black text-slate-800 uppercase tracking-tight mb-4">{t.processDetail.needHelp}</h4>
-                <p className="text-[13px] text-slate-500 font-medium leading-relaxed mb-6">
+              <div className="p-8 rounded-3xl border border-border bg-card">
+                <h4 className="text-sm font-black text-text uppercase tracking-tight mb-4">{t.processDetail.needHelp}</h4>
+                <p className="text-[13px] text-text-muted font-medium leading-relaxed mb-6">
                   {t.processDetail.supportDesc}
                 </p>
                 <Link
                   to="/dashboard/support"
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest hover:bg-bg-subtle/50 transition-all"
                 >
                   {t.processDetail.talkToConsultant}
                   <RiArrowRightLine />

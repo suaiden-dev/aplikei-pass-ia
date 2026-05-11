@@ -150,17 +150,17 @@ export function B1B2UserReviewSignStep({
   // ── Etapa aprovada ──────────────────────────────────────────────────────────
   if (isStepApproved) {
     return (
-      <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl p-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-card rounded-[32px] border border-border shadow-xl p-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-inner">
           <RiCheckLine className="text-3xl" />
         </div>
-        <h3 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tight">Etapa Aprovada</h3>
-        <p className="text-sm text-slate-500 font-medium max-w-sm mx-auto">
+        <h3 className="text-xl font-black text-text mb-2 uppercase tracking-tight">Etapa Aprovada</h3>
+        <p className="text-sm text-text-muted font-medium max-w-sm mx-auto">
           Os documentos foram validados pela equipe. Você já pode avançar para a próxima etapa.
         </p>
         <button
           onClick={onComplete}
-          className="mt-6 px-8 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition-all"
+          className="mt-6 px-8 py-3 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all"
         >
           {t.onboardingPage?.backToDashboard ?? "Voltar para Dashboard"}
         </button>
@@ -171,19 +171,19 @@ export function B1B2UserReviewSignStep({
   // ── Aguardando revisão ──────────────────────────────────────────────────────
   if (isAwaitingReview) {
     return (
-      <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl p-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-card rounded-[32px] border border-border shadow-xl p-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6 shadow-inner">
           <RiLoader4Line className="text-3xl animate-spin" />
         </div>
-        <h3 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tight">
+        <h3 className="text-xl font-black text-text mb-2 uppercase tracking-tight">
           {t.onboardingPage?.awaitingReview ?? "Aguardando Revisão"}
         </h3>
-        <p className="text-sm text-slate-500 font-medium max-w-sm mx-auto">
+        <p className="text-sm text-text-muted font-medium max-w-sm mx-auto">
           Seus documentos foram enviados com sucesso e estão sendo analisados pela nossa equipe.
         </p>
         <button
           onClick={onComplete}
-          className="mt-6 px-8 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition-all"
+          className="mt-6 px-8 py-3 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all"
         >
           {t.onboardingPage?.backToDashboard ?? "Voltar para Dashboard"}
         </button>
@@ -215,32 +215,32 @@ export function B1B2UserReviewSignStep({
       )}
 
       {/* ── Credenciais CEAC ── */}
-      <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
-        <div className="p-8 border-b border-slate-100">
-          <h3 className="font-black text-2xl text-slate-800">
+      <div className="bg-card rounded-[32px] border border-border shadow-xl shadow-border/40 overflow-hidden">
+        <div className="p-8 border-b border-border">
+          <h3 className="font-black text-2xl text-text">
             {t.onboardingPage?.reviewSign?.title ?? "Assinatura da DS-160"}
           </h3>
-          <p className="text-sm font-medium text-slate-400 mt-2">
+          <p className="text-sm font-medium text-text-muted mt-2">
             {t.onboardingPage?.reviewSign?.desc ?? "Use as credenciais abaixo para acessar e assinar sua DS-160 no portal CEAC."}
           </p>
         </div>
 
         {credentialsReady ? (
-          <div className="bg-slate-50 p-6 md:p-8 flex flex-col md:flex-row gap-6 border-b border-slate-100">
+          <div className="bg-bg-subtle p-6 md:p-8 flex flex-col md:flex-row gap-6 border-b border-border">
             {[
               { label: t.onboardingPage?.applicationId ?? "Application ID", value: appId! },
               { label: t.onboardingPage?.motherSecurity ?? "Mãe / Segurança", value: motherName! },
               { label: t.onboardingPage?.birthYear ?? "Ano de Nascimento", value: birthDate! },
             ].map(({ label, value }) => (
               <div key={label} className="flex-1">
-                <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                <span className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">
                   {label}
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="text-xl font-black text-slate-800 uppercase tracking-wider">{value}</span>
+                  <span className="text-xl font-black text-text uppercase tracking-wider">{value}</span>
                   <button
                     onClick={() => handleCopy(value)}
-                    className="p-1.5 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-primary transition-all"
+                    className="p-1.5 bg-card border border-border rounded-lg text-text-muted hover:text-primary transition-all"
                   >
                     <RiFileCopyLine />
                   </button>
@@ -265,12 +265,12 @@ export function B1B2UserReviewSignStep({
         )}
 
         {credentialsReady && (
-          <div className="bg-slate-50 px-6 md:px-8 pb-8 flex justify-center border-b border-slate-100">
+          <div className="bg-bg-subtle px-6 md:px-8 pb-8 flex justify-center border-b border-border">
             <a
               href="https://ceac.state.gov/GenNIV/Default.aspx"
               target="_blank"
               rel="noreferrer"
-              className="w-full md:w-auto px-8 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-black text-[11px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-3 transition-transform hover:scale-[1.01] shadow-xl shadow-slate-900/10"
+              className="w-full md:w-auto px-8 py-3.5 bg-text hover:bg-text/90 text-bg font-black text-[11px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-3 transition-transform hover:scale-[1.01] shadow-xl shadow-text/10"
             >
               {t.onboardingPage?.accessPortalCeac ?? "Acessar site do Consulado (CEAC)"}
               <RiExternalLinkLine className="text-lg" />
@@ -286,26 +286,26 @@ export function B1B2UserReviewSignStep({
                 key={i}
                 onClick={() => setActiveStep(i)}
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  activeStep === i ? "w-10 bg-primary" : "w-4 bg-slate-200 hover:bg-slate-300"
+                  activeStep === i ? "w-10 bg-primary" : "w-4 bg-border hover:bg-border/80"
                 }`}
               />
             ))}
           </div>
 
           <div className="text-center mb-8 min-h-[60px]">
-            <h4 className="text-lg font-black text-slate-800 tracking-tight">
+            <h4 className="text-lg font-black text-text tracking-tight">
               {t.onboardingPage?.step ?? "Passo"} {activeStep + 1}: {tutorialSteps[activeStep].title}
             </h4>
-            <p className="text-sm font-medium text-slate-500 mt-2 max-w-xl mx-auto">
+            <p className="text-sm font-medium text-text-muted mt-2 max-w-xl mx-auto">
               {tutorialSteps[activeStep].desc}
             </p>
           </div>
 
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center justify-center">
+          <div className="bg-bg-subtle rounded-2xl p-4 border border-border flex items-center justify-center">
             <img
               src={tutorialSteps[activeStep].img}
               alt={tutorialSteps[activeStep].title}
-              className="rounded-xl shadow-sm w-full max-w-2xl object-cover ring-1 ring-slate-900/5 my-4"
+              className="rounded-xl shadow-sm w-full max-w-2xl object-cover ring-1 ring-text/5 my-4"
             />
           </div>
 
@@ -313,14 +313,14 @@ export function B1B2UserReviewSignStep({
             <button
               onClick={() => setActiveStep((p) => Math.max(0, p - 1))}
               disabled={activeStep === 0}
-              className="px-6 py-2.5 rounded-xl border border-slate-200 text-slate-500 font-black text-xs uppercase tracking-widest disabled:opacity-30 hover:bg-slate-50 transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl border border-border text-text-muted font-black text-xs uppercase tracking-widest disabled:opacity-30 hover:bg-bg-subtle transition-all flex items-center gap-2"
             >
               <RiArrowLeftLine /> {t.onboardingPage?.previous ?? "Anterior"}
             </button>
             <button
               onClick={() => setActiveStep((p) => Math.min(tutorialSteps.length - 1, p + 1))}
               disabled={activeStep === tutorialSteps.length - 1}
-              className="px-6 py-2.5 rounded-xl bg-slate-800 text-white font-black text-xs uppercase tracking-widest disabled:opacity-30 hover:bg-slate-900 transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl bg-text text-bg font-black text-xs uppercase tracking-widest disabled:opacity-30 hover:bg-text/90 transition-all flex items-center gap-2"
             >
               {t.onboardingPage?.next ?? "Próximo"} <RiArrowRightLine />
             </button>
@@ -329,10 +329,10 @@ export function B1B2UserReviewSignStep({
       </div>
 
       {/* ── Upload de Documentos ── */}
-      <h3 className="font-black text-xl text-slate-800 mt-12 mb-2 text-center">
+      <h3 className="font-black text-xl text-text mt-12 mb-2 text-center">
         {t.onboardingPage?.reviewAndSignDocs ?? "Agora, envie seus comprovantes"}
       </h3>
-      <p className="text-sm text-slate-400 font-medium text-center mb-6">
+      <p className="text-sm text-text-muted font-medium text-center mb-6">
         Após assinar a DS-160 no CEAC, faça o upload dos dois comprovantes abaixo.
       </p>
 
@@ -358,7 +358,7 @@ export function B1B2UserReviewSignStep({
           type="button"
           onClick={onBack}
           disabled={isSubmitting}
-          className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50"
+          className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-50"
         >
           {t.onboardingPage?.previous ?? "Anterior"}
         </button>

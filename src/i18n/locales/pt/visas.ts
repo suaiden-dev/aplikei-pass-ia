@@ -358,7 +358,7 @@ const visas = {
         notToDo: {
           title: "4. O que NÃO fazer",
           content:
-            "Evite estes erros comuns:\n• NÃO entregue documentos antes de serem solicitados\n• NÃO dê respostas longas ou conte histórias irrelevantes\n• NÃO use o celular dentro do consulado (é proibido)\n• NÃO tente decorar respostas (seja natural)\n• NÃO entre em pânico se o oficial for sério",
+            "Evite estes erros comuns:\n• NÃO entregue documentos antes de serem solicitados\n• NÃO dê respostas longas ou conte histórias irrelevantes\n• NÃO use o celular dentro do consulado (é proibido)\n• NÃO tente decorar respostas (seja natural)\n• NÃO entre em pânico se o oficial for seriio",
         },
       },
     },
@@ -762,6 +762,11 @@ const visas = {
       isBrazilian: "Você é Brasileiro(a)?",
       personalInfoTitle: "Informações Pessoais",
       personalInfoSubtitle: "Conforme consta no seu passaporte",
+      surnameLabel: "Sobrenome(s)",
+      givenNameLabel: "Nome(s) Próprio(s)",
+      fullNameNativeAlphabetLabel: "Nome no Alfabeto Nativo",
+      hasTelecodeForNameLabel: "Possui telecódigo para o nome?",
+      maternalGrandmotherNameLabel: "Nome da sua Avó Materna (mãe da sua mãe)",
       fullNameLabel: "Nome Completo (Conforme Passaporte)",
       hasOtherNames: "Possui outro nome (solteira, artístico, religioso)?",
       whatName: "Qual nome?",

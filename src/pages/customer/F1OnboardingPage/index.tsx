@@ -37,24 +37,24 @@ export default function F1OnboardingPage() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-b from-slate-50 to-slate-100/50 pb-24'>
-      <div className='bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30 shadow-sm'>
+    <div className="min-h-screen bg-bg pb-24">
+      <div className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-30 shadow-sm">
         <div className='max-w-4xl mx-auto px-6 py-4 flex items-center justify-between'>
           <div className='flex items-center gap-4'>
             <button
               type='button'
               onClick={() => navigate(`/dashboard/processes/${slug}`)}
-              className='w-10 h-10 rounded-xl flex items-center justify-center hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-700'
+              className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-bg-subtle transition-colors text-text-muted hover:text-text"
             >
               <RiArrowLeftLine className='text-xl' />
             </button>
             <div>
-              <h1 className='text-sm font-black text-slate-800 uppercase tracking-tight'>
+              <h1 className="text-sm font-black text-text uppercase tracking-tight">
                 {stepIdx === 1
                   ? t.onboardingPage.f1.supportDocsStep
                   : t.onboardingPage.f1.ds160Step}
               </h1>
-              <p className='text-[10px] text-slate-400 font-bold uppercase tracking-widest'>
+              <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">
                 {slug === 'visto-f1-reaplicacao'
                   ? `${t.onboardingPage.f1.reapplicationTitle} — ${t.onboardingPage.guidedFilling}`
                   : `${t.onboardingPage.f1.title} — ${t.onboardingPage.guidedFilling}`}

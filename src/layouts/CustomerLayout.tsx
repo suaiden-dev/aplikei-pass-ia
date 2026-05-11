@@ -43,7 +43,7 @@ export function CustomerLayout() {
 
   return (
     <NotificationProvider role="client">
-      <div className="flex h-screen overflow-hidden bg-[#F8FAFC] relative w-full">
+      <div className="flex h-screen overflow-hidden bg-bg relative w-full">
         {/* Backdrop for Mobile */}
         {isSidebarOpen && (
           <div 

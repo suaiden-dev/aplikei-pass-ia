@@ -112,6 +112,7 @@ export default function COSOnboardingPage() {
   const [proc, setProc] = useState<UserService | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingMotionResult, setIsSavingMotionResult] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   // ── Step 0 — COS Application Form ──
   const [currentVisa, setCurrentVisa] = useState<VisaType | null>(null)
@@ -299,6 +300,8 @@ export default function COSOnboardingPage() {
         }
       } catch (err) {
         console.warn('[AutoRepair] Erro ao sincronizar slots:', err)
+      } finally {
+        setIsLoading(false)
       }
       // --------------------------------------------------------------------------
 
@@ -375,20 +378,65 @@ export default function COSOnboardingPage() {
     searchParams,
     slug,
     proc,
-  ])
+  ],
+  )
+
+  const totalSteps = service?.steps?.length || 0
+  const currentStepTitle = service?.steps?.[stepIdx]?.title || ''
+  const currentStepDescription = service?.steps?.[stepIdx]?.description || ''
+
+  const goToProcess = () => navigate(`/dashboard/processes/${slug}`)
+
+  const jumpToOnboardingStep = (targetStep: number) => {
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('step', String(targetStep))
+    navigate(
+      `/dashboard/processes/${slug}/onboarding?${nextParams.toString()}`,
+    )
+  }
+
+  const handleUSCISResult = async (result: string) => {
+    if (!proc) return
+    try {
+      await processService.updateStepData(proc.id, {
+        uscis_official_result: result,
+      })
+      toast.success('Resultado informado.')
+      window.location.reload()
+    } catch (err) {
+      toast.error('Erro ao salvar resultado.')
+    }
+  }
+
+  const handleMotionResult = async (result: string) => {
+    await handleMotionResultReport(result as 'approved' | 'rejected')
+  }
+
+  const handleRFEResult = async (result: string) => {
+    if (!proc) return
+    try {
+      await processService.updateStepData(proc.id, {
+        uscis_rfe_result: result,
+      })
+      toast.success('Resultado informado.')
+      window.location.reload()
+    } catch (err) {
+      toast.error('Erro ao salvar resultado.')
+    }
+  }
 
   if (isLoading || !t || !t.cos) {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-slate-50'>
-        <div className='flex flex-col items-center gap-4 text-center p-12 bg-white rounded-[40px] shadow-sm border border-slate-100 animate-in fade-in zoom-in-95'>
+      <div className='min-h-screen flex items-center justify-center bg-bg-subtle'>
+        <div className='flex flex-col items-center gap-4 text-center p-12 bg-card rounded-[40px] shadow-sm border border-border animate-in fade-in zoom-in-95'>
           <div className='w-16 h-16 rounded-3xl bg-primary/5 flex items-center justify-center text-primary shadow-inner'>
             <RiLoader4Line className='text-3xl animate-spin' />
           </div>
           <div>
-            <p className='text-xs font-black text-slate-800 uppercase tracking-widest'>
+            <p className='text-xs font-black text-text uppercase tracking-widest'>
               Sincronizando Traduções
             </p>
-            <p className='text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter'>
+            <p className='text-[10px] font-bold text-text-muted mt-1 uppercase tracking-tighter'>
               Preparando interface personalizada...
             </p>
           </div>
@@ -671,24 +719,24 @@ export default function COSOnboardingPage() {
   }
 
   return (
-    <div className='min-h-screen bg-[#f8fafc] flex flex-col'>
+    <div className='min-h-screen bg-bg flex flex-col'>
       {isSubmitting && (
-        <div className='fixed inset-0 z-[120] bg-white/70 backdrop-blur-sm flex items-center justify-center'>
-          <div className='bg-white border border-slate-200 shadow-xl rounded-2xl px-6 py-5 flex items-center gap-3'>
+        <div className='fixed inset-0 z-[120] bg-bg/70 backdrop-blur-sm flex items-center justify-center'>
+          <div className='bg-card border border-border shadow-xl rounded-2xl px-6 py-5 flex items-center gap-3'>
             <RiLoader4Line className='text-2xl text-primary animate-spin' />
-            <p className='text-sm font-black text-slate-700 uppercase tracking-wider'>
+            <p className='text-sm font-black text-text uppercase tracking-wider'>
               Enviando etapa...
             </p>
           </div>
         </div>
       )}
 
-      <div className='bg-white border-b border-slate-100 px-8 py-4 flex items-center justify-between'>
+      <div className='bg-card border-b border-border px-8 py-4 flex items-center justify-between'>
         <div>
-          <h1 className='text-xl font-black text-slate-900 tracking-tight'>
+          <h1 className='text-xl font-black text-text tracking-tight'>
             {t.cos.title}
           </h1>
-          <p className='text-xs text-slate-400 font-medium mt-0.5'>
+          <p className='text-xs text-text-muted font-medium mt-0.5'>
             {t.cos.subtitle}{' '}
             <span className='text-primary font-black uppercase tracking-widest ml-1'>
               {t.cos.badge}
@@ -708,13 +756,13 @@ export default function COSOnboardingPage() {
                 <p className='text-xs font-black text-primary uppercase tracking-widest'>
                   {t.cos.btns.completeStep}
                 </p>
-                <h2 className='text-lg font-black text-slate-900 tracking-tight'>
+                <h2 className='text-lg font-black text-text tracking-tight'>
                   {currentStepTitle}
                 </h2>
               </div>
             </div>
 
-            <div className='hidden sm:flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-[11px] font-black uppercase tracking-widest text-slate-500'>
+            <div className='hidden sm:flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-[11px] font-black uppercase tracking-widest text-text-muted'>
               <span className='w-1.5 h-1.5 rounded-full bg-primary animate-pulse' />
               Step {stepIdx + 1} / {totalSteps}
             </div>
@@ -725,7 +773,7 @@ export default function COSOnboardingPage() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
-            className='bg-white rounded-[32px] border border-slate-100 shadow-xl overflow-hidden'
+            className='bg-card rounded-[32px] border border-border shadow-xl overflow-hidden'
           >
             <COSStepContent
               t={t}
@@ -769,7 +817,7 @@ export default function COSOnboardingPage() {
             <div className='flex items-center justify-between mt-6'>
               <button
                 onClick={goToProcess}
-                className='flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-slate-100 text-sm font-black text-slate-500 hover:bg-slate-50 hover:border-slate-200 transition-all'
+                className='flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-border text-sm font-black text-text-muted hover:bg-bg-subtle transition-all'
               >
                 <RiArrowLeftSLine className='text-lg' />
                 {t.cos.btns.back || 'Back'}
@@ -782,11 +830,10 @@ export default function COSOnboardingPage() {
                   <button
                     onClick={() => void handleConcluir()}
                     disabled={!canSubmit || isSubmitting}
-                    className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-black transition-all ${
-                      !canSubmit || isSubmitting
+                    className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-black transition-all ${!canSubmit || isSubmitting
                         ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                         : 'bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20'
-                    }`}
+                      }`}
                   >
                     {isSubmitting ? (
                       <RiLoader4Line className='animate-spin text-lg' />
