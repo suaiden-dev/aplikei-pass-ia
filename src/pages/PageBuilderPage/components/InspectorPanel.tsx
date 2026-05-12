@@ -1,3 +1,5 @@
+import { Check, Copy } from "lucide-react";
+import { useState } from "react";
 import { Input } from "../../../components/atoms/input";
 import { Label } from "../../../components/atoms/label";
 import { Textarea } from "../../../components/atoms/textarea";
@@ -15,8 +17,48 @@ export function InspectorPanel({
   config,
   onUpdateConfig,
 }: InspectorPanelProps) {
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const copyValue = (key: string, value: string) => {
+    if (!value) return;
+    void navigator.clipboard.writeText(value).then(() => {
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(null), 1500);
+    });
+  };
+
+  const linkField = (
+    id: string,
+    label: string,
+    value: string,
+    onChange: (next: string) => void,
+    placeholder?: string,
+    readonly?: boolean,
+  ) => (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="flex items-center gap-2">
+        <Input
+          id={id}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          readOnly={readonly}
+        />
+        <button
+          type="button"
+          onClick={() => copyValue(id, value)}
+          className="shrink-0 rounded border border-border p-2 text-text-muted transition-colors hover:text-text"
+          title="Copiar link"
+        >
+          {copiedKey === id ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
-    <aside className="w-96 shrink-0 overflow-y-auto border-l border-border bg-card px-3 py-3">
+    <aside className="w-full shrink-0 overflow-y-auto border-t border-border bg-card px-3 py-3 lg:w-96 lg:border-l lg:border-t-0">
       <h2 className="text-sm font-black uppercase tracking-wide text-text">
         Configuração da Landing
       </h2>
@@ -79,34 +121,30 @@ export function InspectorPanel({
             onChange={(e) => onUpdateConfig("lawyerCtaText", e.target.value)}
           />
         </div>
+        {linkField(
+          "admin-lawyer-url",
+          "URL do painel admin_lawyer",
+          config.adminLawyerUrl,
+          (next) => onUpdateConfig("adminLawyerUrl", next),
+          "https://seudominio.com/master",
+        )}
         <div className="space-y-2">
-          <Label htmlFor="admin-lawyer-url">URL do painel admin_lawyer</Label>
-          <Input
-            id="admin-lawyer-url"
-            value={config.adminLawyerUrl}
-            onChange={(e) => onUpdateConfig("adminLawyerUrl", e.target.value)}
-            placeholder="https://seudominio.com/admin"
-          />
           <p className="text-[11px] text-text-muted">
             Link que direciona o advogado ao painel de gestão.
           </p>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="login-url">Link do botão de login</Label>
-          <Input
-            id="login-url"
-            value={config.loginUrl}
-            onChange={(e) => onUpdateConfig("loginUrl", e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="contact-url">Link de contato (WhatsApp)</Label>
-          <Input
-            id="contact-url"
-            value={config.contactUrl}
-            onChange={(e) => onUpdateConfig("contactUrl", e.target.value)}
-          />
-        </div>
+        {linkField(
+          "login-url",
+          "Link do botão de login",
+          config.loginUrl,
+          (next) => onUpdateConfig("loginUrl", next),
+        )}
+        {linkField(
+          "contact-url",
+          "Link de contato (WhatsApp)",
+          config.contactUrl,
+          (next) => onUpdateConfig("contactUrl", next),
+        )}
         <div className="space-y-2">
           <Label htmlFor="hero-title">Título principal</Label>
           <Input
@@ -131,14 +169,12 @@ export function InspectorPanel({
             onChange={(e) => onUpdateConfig("loginButtonLabel", e.target.value)}
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="primary-cta-url">Link do CTA principal</Label>
-          <Input
-            id="primary-cta-url"
-            value={config.primaryCtaUrl}
-            onChange={(e) => onUpdateConfig("primaryCtaUrl", e.target.value)}
-          />
-        </div>
+        {linkField(
+          "primary-cta-url",
+          "Link do CTA principal",
+          config.primaryCtaUrl,
+          (next) => onUpdateConfig("primaryCtaUrl", next),
+        )}
         <div className="space-y-2">
           <Label htmlFor="primary-cta-label">Texto do CTA principal</Label>
           <Input
@@ -147,14 +183,12 @@ export function InspectorPanel({
             onChange={(e) => onUpdateConfig("primaryCtaLabel", e.target.value)}
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="secondary-cta-url">Link do CTA secundário</Label>
-          <Input
-            id="secondary-cta-url"
-            value={config.secondaryCtaUrl}
-            onChange={(e) => onUpdateConfig("secondaryCtaUrl", e.target.value)}
-          />
-        </div>
+        {linkField(
+          "secondary-cta-url",
+          "Link do CTA secundário",
+          config.secondaryCtaUrl,
+          (next) => onUpdateConfig("secondaryCtaUrl", next),
+        )}
         <div className="space-y-2">
           <Label htmlFor="secondary-cta-label">Texto do CTA secundário</Label>
           <Input

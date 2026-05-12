@@ -3,14 +3,22 @@ import { useAuth } from "../../../hooks/useAuth";
 import { fetchOfficeByOwner } from "../../../features/admin/roles/lib/officeOps";
 import type { LandingPageConfig } from "../types";
 
+function toAbsoluteUrl(value: string) {
+  if (typeof window === "undefined") return value;
+  if (!value) return value;
+  if (/^https?:\/\//i.test(value)) return value;
+  if (value.startsWith("/")) return `${window.location.origin}${value}`;
+  return value;
+}
+
 const initialConfig: LandingPageConfig = {
   pageTitle: "Advocacia Imigratória | Vistos EUA",
   faviconUrl: "https://www.google.com/s2/favicons?domain=aplikei.com&sz=64",
   logoUrl: "https://dummyimage.com/180x52/0f172a/ffffff.png&text=SEU+LOGO",
   lawyerName: "Dra. Carolina Mendes",
   lawyerCtaText: "Advogada de imigração com atuação focada em vistos e estratégia de aprovação.",
-  adminLawyerUrl: typeof window !== "undefined" ? `${window.location.origin}/admin` : "/admin",
-  loginUrl: "/login",
+  adminLawyerUrl: typeof window !== "undefined" ? `${window.location.origin}/master` : "/master",
+  loginUrl: typeof window !== "undefined" ? `${window.location.origin}/login` : "/login",
   contactUrl: "https://wa.me/15551234567",
   primaryCtaUrl: "/checkout/b1-b2",
   secondaryCtaUrl: "/quem-somos",
@@ -41,7 +49,7 @@ export function usePageBuilder() {
         const office = await fetchOfficeByOwner(user.id);
         if (!mounted || !office?.name) return;
 
-        const url = new URL(`${window.location.origin}/admin`);
+        const url = new URL(`${window.location.origin}/master`);
         url.searchParams.set("office", office.name);
 
         setConfig((prev) => ({
@@ -50,7 +58,7 @@ export function usePageBuilder() {
           officeSlug: office.slug,
         }));
       } catch {
-        // Keep the default admin URL when office data isn't available.
+        // Keep the default master URL when office data isn't available.
       }
     };
 
@@ -62,9 +70,13 @@ export function usePageBuilder() {
   }, [user?.id]);
 
   const updateConfig = <K extends keyof LandingPageConfig>(key: K, value: LandingPageConfig[K]) => {
+    const normalizedValue = key === "loginUrl"
+      ? (toAbsoluteUrl(String(value)) as LandingPageConfig[K])
+      : value;
+
     setConfig((prev) => ({
       ...prev,
-      [key]: value,
+      [key]: normalizedValue,
     }));
   };
 
