@@ -198,6 +198,10 @@ export default function CheckoutPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const postZelleRoute =
+    user?.role === "master" || user?.role === "admin_lawyer" || user?.role === "manager"
+      ? "/payments"
+      : "/dashboard";
   const [officeStatus, setOfficeStatus] = useState<string>("active");
   const [checkingOffice, setCheckingOffice] = useState(false);
   const officeId = searchParams.get("office_id") || searchParams.get("officeId");
@@ -952,7 +956,7 @@ export default function CheckoutPage() {
                           </p>
                           <button
                             type="button"
-                            onClick={() => navigate("/dashboard")}
+                            onClick={() => navigate(postZelleRoute)}
                             className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs"
                           >
                             Acessar Meu Painel
@@ -965,7 +969,7 @@ export default function CheckoutPage() {
                           <p className="text-xs text-text-muted mt-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.zelle.pendingReview.split("!")[1] || t.paymentMethods.zelle.pendingReview }} />
                           <button
                             type="button"
-                            onClick={() => navigate("/dashboard")}
+                            onClick={() => navigate(postZelleRoute)}
                             className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-amber-500 text-white rounded-xl font-bold text-xs"
                           >
                             {t.paymentMethods.zelle.goDashboard}

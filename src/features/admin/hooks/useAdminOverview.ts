@@ -50,21 +50,14 @@ export function useAdminOverview() {
         supabase.from("zelle_payments").select("id", { count: "exact" }).eq("status", "pending_verification"),
       ]);
 
-      // Revenue calculation
-      const [
-        { data: zellePayments },
-        { data: stripeOrders },
-      ] = await Promise.all([
-        supabase.from("zelle_payments").select("amount, status"),
-        supabase.from("orders").select("total_price_usd, payment_status"),
-      ]);
+      // Revenue calculation (orders only to avoid duplication with approved Zelle mirrored into orders)
+      const { data: paidOrders } = await supabase
+        .from("orders")
+        .select("total_price_usd, payment_status");
 
-      const approvedZelle = (zellePayments || []).filter(p => p.status === "approved");
-      const paidStripe = (stripeOrders || []).filter(o => ["paid", "complete", "succeeded", "completed"].includes(o.payment_status));
-
-      let totalRevenue = 0;
-      approvedZelle.forEach(p => totalRevenue += Number(p.amount) || 0);
-      paidStripe.forEach(o => totalRevenue += Number(o.total_price_usd) || 0);
+      const totalRevenue = (paidOrders || [])
+        .filter(o => ["paid", "complete", "succeeded", "completed"].includes(String(o.payment_status || "").toLowerCase()))
+        .reduce((sum, o) => sum + (Number(o.total_price_usd) || 0), 0);
 
       return {
         revenueTotal: totalRevenue,
@@ -85,16 +78,10 @@ export function useAdminOverview() {
       sixMonthsAgo.setMonth(now.getMonth() - 5);
       sixMonthsAgo.setDate(1);
 
-      const [
-        { data: zellePayments },
-        { data: stripeOrders },
-      ] = await Promise.all([
-        supabase.from("zelle_payments").select("amount, created_at, status").gte("created_at", sixMonthsAgo.toISOString()),
-        supabase.from("orders").select("total_price_usd, created_at, payment_status").gte("created_at", sixMonthsAgo.toISOString()),
-      ]);
-
-      const approvedZelle = (zellePayments || []).filter(p => p.status === "approved");
-      const paidStripe = (stripeOrders || []).filter(o => ["paid", "complete", "succeeded", "completed"].includes(o.payment_status));
+      const { data: paidOrders } = await supabase
+        .from("orders")
+        .select("total_price_usd, created_at, payment_status")
+        .gte("created_at", sixMonthsAgo.toISOString());
 
       const monthlyMap: Record<string, number> = {};
       for (let i = 0; i < 6; i++) {
@@ -104,8 +91,10 @@ export function useAdminOverview() {
         monthlyMap[monthKey] = 0;
       }
 
-      [...approvedZelle, ...paidStripe].forEach((p: any) => {
-        const val = Number(p.amount || p.total_price_usd) || 0;
+      (paidOrders || [])
+        .filter((o: any) => ["paid", "complete", "succeeded", "completed"].includes(String(o.payment_status || "").toLowerCase()))
+        .forEach((p: any) => {
+        const val = Number(p.total_price_usd) || 0;
         const pDate = new Date(p.created_at);
         const mKey = pDate.toLocaleString(localeCode, { month: 'short' }).replace('.', '');
         if (monthlyMap[mKey] !== undefined) monthlyMap[mKey] += val;

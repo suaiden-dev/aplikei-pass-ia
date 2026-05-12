@@ -184,6 +184,10 @@ export default function OfficeCheckoutPage() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const postZelleRoute =
+        user?.role === "master" || user?.role === "admin_lawyer" || user?.role === "manager"
+            ? "/payments"
+            : "/dashboard";
 
     const officeSlug = searchParams.get("office") ?? "";
     const serviceSlug = searchParams.get("product") ?? "";
@@ -266,11 +270,26 @@ export default function OfficeCheckoutPage() {
                     setAvailableMethods(PAYMENT_METHODS_BASE.map(m => ({ ...m, available: true })));
                     setZelleConfig(ZELLE_RECIPIENT);
                 } else {
+                    const providerAliases: Record<PaymentTab, string[]> = {
+                        card: ["card", "stripe", "stripe_card"],
+                        pix: ["pix", "stripe_pix"],
+                        zelle: ["zelle"],
+                        parcelow: ["parcelow"],
+                    };
+
                     setAvailableMethods(PAYMENT_METHODS_BASE.map(m => {
-                        const config = configs.find(c => c.provider === m.id);
+                        const aliases = providerAliases[m.id] ?? [m.id];
+                        const candidates = configs.filter(c =>
+                            aliases.includes(String(c.provider || "").toLowerCase()),
+                        );
+                        const activeCandidate = candidates.find(c => c.is_active);
+                        const config = activeCandidate || candidates[0];
+                        const defaultEnabled = true;
                         return {
                             ...m,
-                            available: config?.is_active ?? false,
+                            available: candidates.length > 0
+                                ? candidates.some(c => c.is_active)
+                                : defaultEnabled,
                             config: config?.config
                         };
                     }));
@@ -497,7 +516,7 @@ export default function OfficeCheckoutPage() {
 
                     const zelleResult = await submitZelle({
                         slug: billingSlug,
-                        serviceName: service?.title || billingSlug,
+                        serviceName: dbService?.name || billingSlug,
                         expectedAmount: totalToCharge,
                         amount: totalToCharge,
                         confirmationCode: `UPLD_${Date.now()}`,
@@ -951,7 +970,7 @@ export default function OfficeCheckoutPage() {
                                                 </p>
                                                 <button
                                                     type="button"
-                                                    onClick={() => navigate("/dashboard")}
+                                                    onClick={() => navigate(postZelleRoute)}
                                                     className="mt-4 px-6 py-2 bg-text text-bg rounded-lg text-xs font-bold"
                                                 >
                                                     Ir para o Dashboard

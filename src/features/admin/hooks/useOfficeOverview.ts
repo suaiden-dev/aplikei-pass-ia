@@ -21,16 +21,28 @@ export function useOfficeOverview() {
   const localeCode = lang === 'pt' ? 'pt-BR' : 'en-US';
 
   return useQuery({
-    queryKey: ["office-overview-stats", officeId, lang],
-    enabled: !!officeId,
+    queryKey: ["office-overview-stats", officeId, user?.id, lang],
+    enabled: !!user?.id,
     queryFn: async () => {
-      if (!officeId) return null;
+      if (!user?.id) return null;
+
+      let resolvedOfficeId = officeId ?? null;
+      if (!resolvedOfficeId) {
+        const { data: ownedOffice } = await supabase
+          .from("offices")
+          .select("id")
+          .eq("owner_id", user.id)
+          .maybeSingle();
+        resolvedOfficeId = ownedOffice?.id ?? null;
+      }
+
+      if (!resolvedOfficeId) return null;
 
       // 1. Process Counts & Distribution
       const { data: services } = await supabase
         .from("user_services")
         .select("id, status, service_slug")
-        .eq("office_id", officeId);
+        .eq("office_id", resolvedOfficeId);
 
       const totalProcesses = services?.length || 0;
       const activeProcesses = services?.filter(s => !['finished', 'cancelled'].includes(s.status)).length || 0;
@@ -82,7 +94,7 @@ export function useOfficeOverview() {
       const { data: orders } = await supabase
         .from("orders")
         .select("total_price_usd, created_at, payment_status, office_fee_amount_usd, office_net_amount_usd, subscription_available_after_minutes")
-        .eq("office_id", officeId);
+        .eq("office_id", resolvedOfficeId);
 
       const paidOrders = (orders || []).filter(o =>
         ["paid", "approved", "complete", "succeeded", "completed"].includes(o.payment_status?.toLowerCase())
@@ -123,7 +135,7 @@ export function useOfficeOverview() {
       const { data: withdrawals } = await supabase
         .from("office_withdrawals")
         .select("amount, status")
-        .eq("office_id", officeId);
+        .eq("office_id", resolvedOfficeId);
 
       const reservedOrPaidWithdrawals = (withdrawals || [])
         .filter((w) => ["pending", "approved", "processing", "completed", "paid"].includes(String(w.status || "").toLowerCase()))
