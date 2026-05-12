@@ -40,6 +40,8 @@ export const getSignUpSchema = (t: ValidationMessages = {}) => z.object({
   terms: z.boolean().refine((val) => val === true, {
     message: t?.acceptTerms || "You must accept the terms",
   }),
+  role: z.string().optional(),
+  officeId: z.string().optional(),
 });
 
 // Legacy exports for backward compatibility if needed, but we should migrate all callers

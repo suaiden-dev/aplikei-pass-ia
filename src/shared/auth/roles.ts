@@ -11,7 +11,8 @@ export function normalizeRole(role: unknown): UserRole {
 
 export function getDashboardPathForRole(role: UserRole): string {
   if (role === "master") return "/master";
-  if (role === "manager" || role === "admin_lawyer") return "/admin";
-  if (role === "seller") return "/seller/payments";
+  if (role === "manager") return "/admin";
+  if (role === "admin_lawyer") return "/admin";
+  if (role === "seller") return "/seller/earnings";
   return "/dashboard";
 }
