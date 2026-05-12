@@ -5,6 +5,7 @@ import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { authService } from "../../features/auth/lib/auth";
+import { supabase } from "../../shared/lib/supabase";
 import {
   RiShieldCheckLine,
   RiLockLine,
@@ -197,6 +198,10 @@ export default function CheckoutPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [officeStatus, setOfficeStatus] = useState<string>("active");
+  const [checkingOffice, setCheckingOffice] = useState(false);
+  const officeId = searchParams.get("office_id") || searchParams.get("officeId");
+  const sellerRef = searchParams.get("ref") || undefined;
 
   const isUpgrade = searchParams.get("upgrade") === "true";
   const parentId = searchParams.get("id") || searchParams.get("parentId") || searchParams.get("processId");
@@ -247,6 +252,27 @@ export default function CheckoutPage() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    async function checkOffice() {
+      if (!officeId) return;
+      setCheckingOffice(true);
+      try {
+        const { data } = await supabase
+          .from("v_office_current_subscription")
+          .select("status")
+          .eq("office_id", officeId)
+          .maybeSingle();
+        
+        if (data) {
+          setOfficeStatus(data.status);
+        }
+      } finally {
+        setCheckingOffice(false);
+      }
+    }
+    checkOffice();
+  }, [officeId]);
 
   const formatTimeParts = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -325,6 +351,7 @@ export default function CheckoutPage() {
               fullName: values.fullName,
               phoneNumber: values.phone,
               terms: true, // Auto-accept terms at checkout
+              role: "customer",
             });
             
             if (signUpRes.user) {
@@ -355,6 +382,8 @@ export default function CheckoutPage() {
             amount: totalToCharge,
             proc_id: parentId || undefined,
             coupon_code: appliedCoupon?.valid ? couponInput : undefined,
+            office_id: officeId || undefined,
+            seller_id: sellerRef,
           });
 
           localStorage.setItem("checkout_slug", service!.slug);
@@ -378,6 +407,8 @@ export default function CheckoutPage() {
             amount: totalToCharge,
             proc_id: parentId || undefined,
             coupon_code: appliedCoupon?.valid ? couponInput : undefined,
+            office_id: officeId || undefined,
+            seller_id: sellerRef,
           });
 
           localStorage.setItem("checkout_slug", service!.slug);
@@ -404,6 +435,8 @@ export default function CheckoutPage() {
             dependents: checkoutCount,
             proc_id: parentId || undefined,
             coupon_code: appliedCoupon?.valid ? couponInput : undefined,
+            office_id: officeId || undefined,
+            seller_id: sellerRef,
           });
 
           setZelleAutoApproved(zelleResult.autoApproved === true);
@@ -416,6 +449,25 @@ export default function CheckoutPage() {
   });
   
   if (!service) return <Navigate to="/dashboard" replace />;
+
+  if (officeId && officeStatus !== "active" && !checkingOffice) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-card border border-border p-8 rounded-[32px] text-center shadow-xl">
+          <div className="w-20 h-20 rounded-2xl bg-danger/10 flex items-center justify-center text-danger mx-auto mb-6">
+            <RiLockLine className="text-4xl" />
+          </div>
+          <h2 className="text-2xl font-black text-text mb-4">Checkout Indisponível</h2>
+          <p className="text-text-muted font-medium mb-8">
+            Este link de pagamento está temporariamente desativado. Entre em contato com seu consultor.
+          </p>
+          <Button onClick={() => window.history.back()} variant="outline" className="w-full h-12 rounded-2xl">
+            Voltar
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
 
 

@@ -10,8 +10,8 @@ export interface PaymentMethodConfig {
 }
 
 export interface StripeConfig {
-  stripe_account_id: string;
-  connection_status: "connected" | "disconnected";
+  client_id: string;
+  account_id: string;
 }
 
 export interface ZelleConfig {

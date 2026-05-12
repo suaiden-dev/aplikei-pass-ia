@@ -189,6 +189,7 @@ export default function OfficeCheckoutPage() {
     const serviceSlug = searchParams.get("product") ?? "";
     const isUpgrade = searchParams.get("upgrade") === "true";
     const parentId = searchParams.get("id") || searchParams.get("parentId") || searchParams.get("processId");
+    const sellerRef = searchParams.get("ref") ?? undefined;
 
     const [office, setOffice] = useState<any>(null);
     const [dbService, setDbService] = useState<any>(null);
@@ -426,6 +427,7 @@ export default function OfficeCheckoutPage() {
                             fullName: values.fullName,
                             phoneNumber: values.phone,
                             terms: true,
+                            role: "customer",
                         });
                         if (signUpRes.user) currentUserId = signUpRes.user.id;
                     } catch (signUpErr) {
@@ -455,6 +457,7 @@ export default function OfficeCheckoutPage() {
                         serviceId: currentServiceId,
                         coupon_code: appliedCoupon?.valid ? couponInput : undefined,
                         office_id: office?.id,
+                        seller_id: sellerRef,
                     });
 
                     localStorage.setItem("checkout_slug", billingSlug);
@@ -480,6 +483,7 @@ export default function OfficeCheckoutPage() {
                         serviceId: currentServiceId,
                         coupon_code: appliedCoupon?.valid ? couponInput : undefined,
                         office_id: office?.id,
+                        seller_id: sellerRef,
                     });
 
                     localStorage.setItem("checkout_slug", billingSlug);
@@ -508,6 +512,7 @@ export default function OfficeCheckoutPage() {
                         coupon_code: appliedCoupon?.valid ? couponInput : undefined,
                         office_id: office?.id,
                         serviceId: currentServiceId,
+                        seller_id: sellerRef,
                     });
 
                     setZelleAutoApproved(zelleResult.autoApproved === true);

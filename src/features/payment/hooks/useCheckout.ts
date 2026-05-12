@@ -25,6 +25,7 @@ interface ZelleParams {
   coupon_code?: string;
   office_id?: string;
   serviceId?: string;
+  seller_id?: string;
 }
 
 export function useCheckout() {

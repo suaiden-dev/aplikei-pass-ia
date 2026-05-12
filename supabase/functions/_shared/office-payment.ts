@@ -37,20 +37,28 @@ export async function resolveUseAplicei(
   return aplikeiConfig?.is_active ?? true;
 }
 
+export interface OfficeStripeConfig {
+  /** Stripe Connect account ID (acct_xxx) — used with platform key */
+  accountId: string | null;
+  secretKey: string | null;
+  webhookSecret: string | null;
+}
+
 /**
- * Retorna a chave secreta Stripe do office ou null se usar Aplikei.
+ * Resolve the Stripe configuration for an office.
+ * Priority: Connect account ID (acct_xxx) → own secret key → null.
  */
-export async function getOfficeStripeKey(
+export async function getOfficeStripeConfig(
   supabase: SupabaseClient,
   office_id: string
-): Promise<string | null> {
+): Promise<OfficeStripeConfig> {
   const { data: office } = await supabase
     .from("offices")
     .select("owner_id")
     .eq("id", office_id)
     .single();
 
-  if (!office) return null;
+  if (!office) return { accountId: null, secretKey: null };
 
   const { data: stripeConfig } = await supabase
     .from("admin_lawyer_payment_methods")
@@ -59,11 +67,22 @@ export async function getOfficeStripeKey(
     .eq("provider", "stripe")
     .maybeSingle();
 
-  if (stripeConfig?.is_active && stripeConfig.config?.secret_key) {
-    return stripeConfig.config.secret_key as string;
-  }
+  if (!stripeConfig?.is_active) return { accountId: null, secretKey: null };
 
-  return null;
+  return {
+    accountId: (stripeConfig.config?.account_id as string) || null,
+    secretKey: (stripeConfig.config?.secret_key as string) || null,
+    webhookSecret: (stripeConfig.config?.webhook_secret as string) || null,
+  };
+}
+
+/** @deprecated Use getOfficeStripeConfig instead */
+export async function getOfficeStripeKey(
+  supabase: SupabaseClient,
+  office_id: string
+): Promise<string | null> {
+  const cfg = await getOfficeStripeConfig(supabase, office_id);
+  return cfg.secretKey;
 }
 
 /**

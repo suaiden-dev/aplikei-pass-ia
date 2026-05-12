@@ -1,1 +1,1 @@
-export { default } from "../master/PaymentsPage";
+export { default } from "./RevenuePage";
