@@ -1,12 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../../../shared/lib/supabase";
+import { useLocale } from "../../../i18n";
 
 export interface DashboardStats {
-  customersCount: number;
   revenueTotal: number;
-  pendingPayments: number;
-  activeSellers: number;
-  pendingPartners: number;
+  lawyersCount: number;
+  customersCount: number;
+  processesCount: number;
+  zellePaymentsCount: number;
+  requestedPaymentsCount: number;
 }
 
 export interface MonthlyRevenue {
@@ -28,46 +30,55 @@ export interface RecentActivity {
 }
 
 export function useAdminOverview() {
+  const { lang } = useLocale();
+  const localeCode = lang === 'pt' ? 'pt-BR' : 'en-US';
+
   const { data: stats, isLoading: isLoadingStats } = useQuery({
-    queryKey: ["admin-dashboard-stats"],
+    queryKey: ["admin-dashboard-stats-v2"],
     queryFn: async () => {
       const [
+        { count: lawyersCount },
         { count: customersCount },
-        { count: pendingZelle },
+        { count: processesCount },
+        { count: zellePaymentsCount },
+        { count: requestedPaymentsCount },
       ] = await Promise.all([
-        supabase.from("user_accounts").select("id", { count: "exact", head: true }),
-        supabase.from("zelle_payments").select("*", { count: "exact", head: true }).eq("status", "pending_verification"),
+        supabase.from("user_accounts").select("id", { count: "exact" }).or("role.eq.admin_lawyer,role.eq.manager"),
+        supabase.from("user_accounts").select("id", { count: "exact" }).eq("role", "customer"),
+        supabase.from("user_services").select("id", { count: "exact" }),
+        supabase.from("zelle_payments").select("id", { count: "exact" }),
+        supabase.from("zelle_payments").select("id", { count: "exact" }).eq("status", "pending_verification"),
       ]);
 
-      // Revenue calculation logic (simplified for now, following current implementation)
+      // Revenue calculation
       const [
         { data: zellePayments },
         { data: stripeOrders },
       ] = await Promise.all([
-        supabase.from("zelle_payments").select("amount, created_at, status"),
-        supabase.from("orders").select("total_price_usd, created_at, payment_status"),
+        supabase.from("zelle_payments").select("amount, status"),
+        supabase.from("orders").select("total_price_usd, payment_status"),
       ]);
 
       const approvedZelle = (zellePayments || []).filter(p => p.status === "approved");
       const paidStripe = (stripeOrders || []).filter(o => ["paid", "complete", "succeeded", "completed"].includes(o.payment_status));
 
-      let totalAllTime = 0;
-      [...approvedZelle, ...paidStripe].forEach((p: any) => {
-        totalAllTime += Number(p.amount || p.total_price_usd) || 0;
-      });
+      let totalRevenue = 0;
+      approvedZelle.forEach(p => totalRevenue += Number(p.amount) || 0);
+      paidStripe.forEach(o => totalRevenue += Number(o.total_price_usd) || 0);
 
       return {
+        revenueTotal: totalRevenue,
+        lawyersCount: lawyersCount || 0,
         customersCount: customersCount || 0,
-        revenueTotal: totalAllTime,
-        pendingPayments: pendingZelle || 0,
-        activeSellers: 0, // Placeholder
-        pendingPartners: 0, // Placeholder
+        processesCount: processesCount || 0,
+        zellePaymentsCount: zellePaymentsCount || 0,
+        requestedPaymentsCount: requestedPaymentsCount || 0,
       };
     },
   });
 
   const { data: monthlyRevenue = [], isLoading: isLoadingRevenue } = useQuery({
-    queryKey: ["admin-monthly-revenue"],
+    queryKey: ["admin-monthly-revenue", lang],
     queryFn: async () => {
       const now = new Date();
       const sixMonthsAgo = new Date();
@@ -89,14 +100,14 @@ export function useAdminOverview() {
       for (let i = 0; i < 6; i++) {
         const d = new Date();
         d.setMonth(now.getMonth() - i);
-        const monthKey = d.toLocaleString('pt-BR', { month: 'short' }).replace('.', '');
+        const monthKey = d.toLocaleString(localeCode, { month: 'short' }).replace('.', '');
         monthlyMap[monthKey] = 0;
       }
 
       [...approvedZelle, ...paidStripe].forEach((p: any) => {
         const val = Number(p.amount || p.total_price_usd) || 0;
         const pDate = new Date(p.created_at);
-        const mKey = pDate.toLocaleString('pt-BR', { month: 'short' }).replace('.', '');
+        const mKey = pDate.toLocaleString(localeCode, { month: 'short' }).replace('.', '');
         if (monthlyMap[mKey] !== undefined) monthlyMap[mKey] += val;
       });
 
@@ -108,21 +119,34 @@ export function useAdminOverview() {
     queryKey: ["admin-service-distribution"],
     queryFn: async () => {
       const { data: services } = await supabase.from("user_services").select("service_slug, status");
+      const normalizeProductGroup = (slugRaw: string): "B1/B2" | "F-1" | "COS" | "EOS" | null => {
+        const slug = slugRaw.toLowerCase();
+        if (
+          slug.includes("b1-b2") ||
+          slug.includes("b1b2") ||
+          slug.includes("visa-b1b2") ||
+          slug.includes("visto-b1-b2")
+        ) return "B1/B2";
+        if (
+          slug.includes("f1") ||
+          slug.includes("f-1") ||
+          slug.includes("visa-f1") ||
+          slug.includes("visto-f1")
+        ) return "F-1";
+        if (slug.includes("troca-status") || slug.includes("cos") || slug.includes("visa-cos")) return "COS";
+        if (slug.includes("extensao-status") || slug.includes("eos") || slug.includes("visa-eos")) return "EOS";
+        return null;
+      };
       
       const dist: Record<string, number> = { "B1/B2": 0, "F-1": 0, "COS": 0, "EOS": 0 };
       let totalServicesCount = 0;
 
       services?.forEach(s => {
         if (s.status === "cancelled") return;
-        const slug = s.service_slug.toLowerCase();
-        
-        let matched = false;
-        if (slug.includes("b1-b2")) { dist["B1/B2"]++; matched = true; }
-        else if (slug.includes("f1")) { dist["F-1"]++; matched = true; }
-        else if (slug.includes("troca-status")) { dist["COS"]++; matched = true; }
-        else if (slug.includes("extensao-status")) { dist["EOS"]++; matched = true; }
-        
-        if (matched) totalServicesCount++;
+        const group = normalizeProductGroup(String(s.service_slug || ""));
+        if (!group) return;
+        dist[group] += 1;
+        totalServicesCount += 1;
       });
 
       return Object.entries(dist).map(([label, count], i) => ({
@@ -145,7 +169,7 @@ export function useAdminOverview() {
       return (notifs || []).map(n => ({
         action: n.title,
         detail: n.message,
-        time: new Date(n.created_at).toLocaleDateString(),
+        time: new Date(n.created_at).toLocaleDateString(localeCode),
         dot: n.type === "payment" ? "bg-green-500" : n.type === "new_user" ? "bg-blue-500" : "bg-amber-500"
       }));
     },

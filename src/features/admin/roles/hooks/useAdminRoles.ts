@@ -12,8 +12,10 @@ import {
 } from "../lib/rolesOps";
 import { normalizeRole } from "../../../../shared/auth/roles";
 import { assignOfficeOwner, upsertOffice, unassignOfficeOwner, listOffices, setUserOffice, type OfficeRow } from "../lib/officeOps";
+import { useT } from "../../../../i18n";
 
 export function useAdminRoles() {
+  const t = useT("admin").roles;
   const { user: currentUser } = useAuth();
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -51,7 +53,7 @@ export function useAdminRoles() {
       }
     }
     setSelectedByUserId(nextSelected);
-  }, []);
+  }, [roleOptions]);
 
   const loadStaffUsers = useCallback(async () => {
     setIsLoading(true);
@@ -71,7 +73,7 @@ export function useAdminRoles() {
       if (userIds.length > 0) {
         const { data: accountRows } = await supabase
           .from("user_accounts")
-          .select("id, office_id, offices(id, name, slug, address, phone, owner_id)")
+          .select("id, office_id, offices!office_id(id, name, slug, address, phone, owner_id)")
           .in("id", userIds)
           .not("office_id", "is", null);
 
@@ -82,12 +84,12 @@ export function useAdminRoles() {
 
       setOfficeByUserId({ ...byOwner, ...byAccount });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Erro ao carregar usuários staff.";
+      const message = err instanceof Error ? err.message : t.messages.loadError;
       toast.error(message);
     } finally {
       setIsLoading(false);
     }
-  }, [syncSelectedRoles]);
+  }, [syncSelectedRoles, t.messages.loadError]);
 
   useEffect(() => {
     void loadStaffUsers();
@@ -110,14 +112,14 @@ export function useAdminRoles() {
       const rows = await searchUsersByEmail(term);
       setUsers(rows);
       syncSelectedRoles(rows);
-      if (rows.length === 0) toast.error("Nenhum usuário encontrado para este e-mail.");
+      if (rows.length === 0) toast.error(t.messages.notFound);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Erro ao buscar usuário por e-mail.";
+      const message = err instanceof Error ? err.message : t.messages.searchError;
       toast.error(message);
     } finally {
       setIsSearching(false);
     }
-  }, [loadStaffUsers, search, syncSelectedRoles]);
+  }, [loadStaffUsers, search, syncSelectedRoles, t.messages.notFound, t.messages.searchError]);
 
   const commitRoleChange = useCallback(async (user: UserAccountRow, nextRole: ManagedRole) => {
     setIsSavingId(user.id);
@@ -125,18 +127,18 @@ export function useAdminRoles() {
       await updateUserRole(user.id, nextRole);
       setSelectedByUserId((prev) => ({ ...prev, [user.id]: nextRole }));
       setUsers((prev) => prev.map((item) => (item.id === user.id ? { ...item, role: nextRole } : item)));
-      toast.success("Role atualizada com sucesso.");
+      toast.success(t.messages.roleSuccess);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Erro ao salvar alteração.";
+      const message = err instanceof Error ? err.message : t.messages.saveError;
       toast.error(message);
     } finally {
       setIsSavingId(null);
     }
-  }, []);
+  }, [t.messages.roleSuccess, t.messages.saveError]);
 
   const handleRoleChange = useCallback(async (user: UserAccountRow, nextRole: ManagedRole) => {
     if (currentUser?.role === "admin_lawyer" && nextRole === "admin_lawyer") {
-      toast.error("Admin Lawyer não pode promover usuários para Admin Lawyer.");
+      toast.error(t.messages.promoteError);
       return;
     }
 
@@ -147,7 +149,7 @@ export function useAdminRoles() {
     }
 
     await commitRoleChange(user, nextRole);
-  }, [commitRoleChange, currentUser?.role]);
+  }, [commitRoleChange, currentUser?.role, t.messages.promoteError]);
 
   const handleOfficeConfirm = useCallback(async (
     officeData: { mode: "existing"; officeId: string; forceReplace: boolean } | { mode: "create"; name: string },
@@ -181,12 +183,12 @@ export function useAdminRoles() {
           .eq("id", officeData.officeId)
           .single();
         if (!officeRow) {
-          toast.error("Office não encontrado.");
+          toast.error(t.messages.officeNotFound);
           return;
         }
         await setUserOffice(officeModalUser.id, officeData.officeId);
         setOfficeByUserId((prev) => ({ ...prev, [officeModalUser.id]: officeRow as OfficeRow }));
-        toast.success("Office atribuído com sucesso.");
+        toast.success(t.messages.officeSuccess);
       }
 
       setOfficeModalUser(null);
@@ -194,21 +196,25 @@ export function useAdminRoles() {
     } catch (err: unknown) {
       const message =
         err instanceof Error && err.name === "OFFICE_NAME_ALREADY_EXISTS"
-          ? "Já existe um office com esse nome."
+          ? t.messages.officeNameError
           : err instanceof Error
             ? err.message
-            : "Erro ao salvar escritório.";
+            : t.messages.officeSaveError;
       toast.error(message);
     } finally {
       setIsSavingOffice(false);
     }
-  }, [commitRoleChange, officeModalUser, pendingRole]);
+  }, [commitRoleChange, officeModalUser, pendingRole, t.messages.officeNotFound, t.messages.officeSuccess, t.messages.officeNameError, t.messages.officeSaveError]);
 
   const handleToggleOffice = useCallback(async (user: UserAccountRow) => {
     if (user.id === currentUser?.id) return;
     const currentOffice = officeByUserId[user.id];
     if (currentOffice) {
-      if (!window.confirm(`Remover atribuição de "${currentOffice.name}" para ${user.full_name || user.email}?`)) return;
+      const confirmMsg = t.messages.unassignConfirm
+        .replace("{{office}}", currentOffice.name)
+        .replace("{{user}}", user.full_name || user.email);
+      if (!window.confirm(confirmMsg)) return;
+      
       setIsSavingId(user.id);
       try {
         await unassignOfficeOwner(currentOffice.id, user.id);
@@ -217,9 +223,9 @@ export function useAdminRoles() {
           delete next[user.id];
           return next;
         });
-        toast.success("Atribuição de office removida.");
+        toast.success(t.messages.unassignSuccess);
       } catch (err: unknown) {
-        toast.error(err instanceof Error ? err.message : "Erro ao remover office.");
+        toast.error(err instanceof Error ? err.message : t.messages.unassignError);
       } finally {
         setIsSavingId(null);
       }
@@ -227,7 +233,7 @@ export function useAdminRoles() {
       setPendingRole(null);
       setOfficeModalUser(user);
     }
-  }, [officeByUserId]);
+  }, [officeByUserId, currentUser?.id, t.messages.unassignConfirm, t.messages.unassignSuccess, t.messages.unassignError]);
 
   const handleOfficeCancel = useCallback(() => {
     setOfficeModalUser(null);
@@ -241,14 +247,14 @@ export function useAdminRoles() {
     try {
       await updateUserActive(user.id, nextActive);
       setUsers((prev) => prev.map((item) => (item.id === user.id ? { ...item, is_active: nextActive } : item)));
-      toast.success(nextActive ? "Usuário ativado." : "Usuário desativado.");
+      toast.success(nextActive ? t.messages.activated : t.messages.deactivated);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Erro ao alterar status do usuário.";
+      const message = err instanceof Error ? err.message : t.messages.statusError;
       toast.error(message);
     } finally {
       setIsSavingId(null);
     }
-  }, []);
+  }, [currentUser?.id, t.messages.activated, t.messages.deactivated, t.messages.statusError]);
 
 
   return {
