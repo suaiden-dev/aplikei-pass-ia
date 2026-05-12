@@ -277,7 +277,7 @@ export async function requestStepReview(serviceId: string): Promise<void> {
       : `O cliente concluiu uma etapa de ${serviceName} e aguarda sua revisao.`,
     serviceId,
     userId: service.user_id ?? undefined,
-    link: `/admin/processes/${serviceId}`,
+    link: `/master/processes/${serviceId}`,
   });
 
   await notifyClient({

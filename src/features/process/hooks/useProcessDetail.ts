@@ -101,7 +101,7 @@ export function useProcessDetail(userId: string | undefined) {
           : `O cliente concluiu uma etapa de ${serviceMeta?.title ?? proc.service_slug} e aguarda sua revisao.`,
         serviceId: proc.id,
         userId: proc.user_id ?? undefined,
-        link: `/admin/processes/${proc.id}`,
+        link: `/master/processes/${proc.id}`,
       });
 
       await notifyClient({

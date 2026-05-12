@@ -58,7 +58,7 @@ export default function RolesPage() {
                   if (e.key === "Enter") void handleSearchByEmail();
                 }}
                 placeholder={t.roles.searchPlaceholder}
-                className="w-full h-12 pl-11 pr-4 bg-card border border-border rounded-xl text-sm font-medium text-text outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all"
+                className="w-full h-12 pl-11 pr-4 bg-card border border-border rounded-xl text-sm font-medium text-text outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all text-left"
               />
             </div>
             <button
@@ -80,7 +80,7 @@ export default function RolesPage() {
                 <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted border-b border-border">{t.roles.table.currentRole}</th>
                 <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted border-b border-border">{t.roles.table.status}</th>
                 <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted border-b border-border">{t.roles.table.role}</th>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted border-b border-border">Office</th>
+                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted border-b border-border">{t.roles.table.office}</th>
                 <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-text-muted border-b border-border text-right">{t.roles.table.actions}</th>
               </tr>
             </thead>
@@ -111,12 +111,12 @@ export default function RolesPage() {
                     <tr key={user.id} className={`border-b border-border ${isSelf ? "opacity-50" : ""}`}>
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl border border-border bg-bg-subtle flex items-center justify-center text-text-muted">
+                          <div className="w-10 h-10 rounded-xl border border-border bg-bg-subtle flex items-center justify-center text-text-muted shrink-0">
                             <RiUserLine className="text-lg" />
                           </div>
-                          <div>
-                            <p className="text-sm font-black text-text uppercase tracking-tight">{user.full_name || "Sem nome"}</p>
-                            <p className="text-xs text-text-muted font-semibold">{user.email}</p>
+                          <div className="min-w-0">
+                            <p className="text-sm font-black text-text uppercase tracking-tight truncate">{user.full_name || t.roles.table.noName}</p>
+                            <p className="text-xs text-text-muted font-semibold truncate">{user.email}</p>
                           </div>
                         </div>
                       </td>
@@ -185,7 +185,7 @@ export default function RolesPage() {
                                   <span className="text-xs font-black text-text truncate max-w-[120px]">{office.name}</span>
                                 </div>
                               ) : (
-                                <span className="text-xs text-text-muted font-medium">Sem office</span>
+                                <span className="text-xs text-text-muted font-medium">{t.roles.table.noOffice}</span>
                               )}
                             </div>
                           );

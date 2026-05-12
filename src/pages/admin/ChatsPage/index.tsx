@@ -39,6 +39,7 @@ export default function ChatsPage() {
   const { threads, unreadByProcess, isLoading } = useAdminChats();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedChat, setSelectedChat] = useState<AnalysisChatItem | null>(null);
+  const [clearedUnreadProcessIds, setClearedUnreadProcessIds] = useState<Record<string, true>>({});
 
   const chats = useMemo(
     () =>
@@ -52,9 +53,9 @@ export default function ChatsPage() {
         email: row.email || "",
         avatarUrl: row.avatarUrl || null,
         createdAt: row.createdAt,
-        unreadCount: unreadByProcess[row.processId] || 0,
+        unreadCount: clearedUnreadProcessIds[row.processId] ? 0 : (unreadByProcess[row.processId] || 0),
       })),
-    [threads, unreadByProcess],
+    [threads, unreadByProcess, clearedUnreadProcessIds],
   );
 
   const filteredChats = useMemo(() => {
@@ -72,6 +73,17 @@ export default function ChatsPage() {
     () => chats.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0),
     [chats],
   );
+
+  useEffect(() => {
+    if (!filteredChats.length) {
+      setSelectedChat(null);
+      return;
+    }
+
+    if (!selectedChat || !filteredChats.some((c) => c.processId === selectedChat.processId)) {
+      setSelectedChat(filteredChats[0]);
+    }
+  }, [filteredChats, selectedChat]);
 
   return (
     <div className="h-full flex flex-col bg-bg overflow-hidden">
@@ -92,9 +104,9 @@ export default function ChatsPage() {
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Chat List */}
-        <div className="w-full md:w-96 border-r border-border flex flex-col overflow-hidden">
+        <div className="w-full md:w-96 border-r border-border flex flex-col overflow-hidden shrink-0">
           <div className="p-4 bg-bg-subtle/30 sticky top-0 z-10 shrink-0">
             <div className="relative group">
               <RiSearchLine className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" />
@@ -133,13 +145,7 @@ export default function ChatsPage() {
                     key={chat.id}
                     onClick={() => {
                       setSelectedChat(chat);
-                      setChats((prev) =>
-                        prev.map((item) =>
-                          item.processId === chat.processId
-                            ? { ...item, unreadCount: 0 }
-                            : item,
-                        ),
-                      );
+                      setClearedUnreadProcessIds((prev) => ({ ...prev, [chat.processId]: true }));
                     }}
                     className={cn(
                       "w-full p-4 flex gap-3 text-left transition-all hover:bg-bg-subtle/50",
@@ -191,7 +197,7 @@ export default function ChatsPage() {
         </div>
 
         {/* Chat Content / Welcome */}
-        <div className="hidden md:flex flex-1 bg-bg-subtle/30 flex-col overflow-hidden relative">
+        <div className="hidden md:flex flex-1 bg-bg-subtle/30 flex-col overflow-hidden relative min-w-0">
           {selectedChat ? (
             <ChatInterface adminId={user?.id || ""} chat={selectedChat} onClose={() => setSelectedChat(null)} />
           ) : (
@@ -208,20 +214,17 @@ export default function ChatsPage() {
         </div>
       </div>
 
-      {/* Mobile Modal */}
-      <AnimatePresence>
-        {selectedChat && (
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="md:hidden fixed inset-0 z-[100] bg-bg flex flex-col"
-          >
+      <div className="md:hidden border-t border-border bg-bg-subtle/20 min-h-0">
+        {selectedChat ? (
+          <div className="h-[70vh]">
             <ChatInterface adminId={user?.id || ""} chat={selectedChat} onClose={() => setSelectedChat(null)} />
-          </motion.div>
+          </div>
+        ) : (
+          <div className="p-6 text-center text-text-muted font-semibold">
+            {t.chats.selectChat}
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 }
@@ -315,7 +318,7 @@ function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: Anal
                     onClick={() => {
                       const prefix = window.location.pathname.startsWith("/master")
                         ? "/master/cases"
-                        : "/admin/processes";
+                        : "/master/processes";
                       navigate(`${prefix}/${chat.processId}`);
                     }}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-text hover:bg-bg-subtle transition-all border-b border-border/30 mb-1"

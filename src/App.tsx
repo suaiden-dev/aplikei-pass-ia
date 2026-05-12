@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "./components/organisms/ScrollToTop";
 import { AdminDashboardLayout } from "./layouts/AdminDashboardLayout";
 import { AuthLayout } from "./layouts/AuthLayout";
@@ -45,11 +45,10 @@ export default function App() {
   const customerRoutes = routesByLayout("customer");
   const masterRoutes = routesByLayout("master");
   const adminRoutes = routesByLayout("manager");
-  const masterActiveRoutes = masterRoutes.filter((route) => route.path === "/master");
   const adminActiveRoutes = adminRoutes.filter((route) => route.path === "/admin" || route.path === "/admin/page-builder");
   const sellerActiveRoutes: typeof adminRoutes = [];
   const adminSharedRoutes = protectedRoutes.filter((route) =>
-    routeHasSidebarRole(route, ["manager", "admin_lawyer"]),
+    routeHasSidebarRole(route, ["master", "manager", "admin_lawyer"]),
   );
   const masterSharedRoutes = protectedRoutes.filter((route) =>
     routeHasSidebarRole(route, ["master"]),
@@ -93,7 +92,7 @@ export default function App() {
             </Route>
 
             <Route path="/master" element={<MasterDashboardLayout />}>
-              {masterActiveRoutes.map((route) =>
+              {masterRoutes.map((route) =>
                 route.path === "/master" ? (
                   <Route key={route.path} index element={<route.component />} />
                 ) : (

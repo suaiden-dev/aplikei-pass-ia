@@ -29,8 +29,8 @@ export interface CustomerWithStats extends CustomerRow {
   totalSpent: number;
 }
 
-function getCustomerName(customer: CustomerRow) {
-  return customer.full_name || customer.name || customer.email || "Sem Nome";
+function getCustomerName(customer: CustomerRow, t: any) {
+  return customer.full_name || customer.name || customer.email || t.cases.table.noName;
 }
 
 function getCustomerPhone(customer: CustomerRow) {
@@ -155,7 +155,7 @@ export default function CustomersPage() {
           className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl text-text-muted text-xs font-black uppercase tracking-widest hover:bg-bg-subtle transition-all shadow-sm"
         >
           <RiLoader4Line className={isLoading ? "animate-spin" : ""} />
-          {tShared?.table?.refresh || "Atualizar"}
+          {tShared?.table?.refresh || t.cases.refresh}
         </button>
       </div>
 
@@ -248,14 +248,14 @@ export default function CustomersPage() {
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-bg-subtle flex items-center justify-center text-text-muted overflow-hidden shadow-inner">
                           {c.avatar_url ? (
-                            <img src={c.avatar_url} alt={getCustomerName(c)} className="w-full h-full object-cover" />
+                            <img src={c.avatar_url} alt={getCustomerName(c, t)} className="w-full h-full object-cover" />
                           ) : (
                             <RiUserLine className="text-xl" />
                           )}
                         </div>
                         <div className="text-left">
                           <p className="text-sm font-black text-text leading-tight tracking-tight uppercase">
-                            {getCustomerName(c) || t.customers.table.noName}
+                            {getCustomerName(c, t) || t.customers.table.noName}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <p className="text-[11px] text-text-muted font-bold tracking-tight">

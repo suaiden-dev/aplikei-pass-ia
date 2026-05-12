@@ -9,6 +9,10 @@ interface StatCardProps {
   iconBg: string;
   iconColor: string;
   index: number;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 export function StatCard({
@@ -19,6 +23,7 @@ export function StatCard({
   iconBg,
   iconColor,
   index,
+  action,
 }: StatCardProps) {
   return (
     <motion.div
@@ -35,12 +40,27 @@ export function StatCard({
           <Icon className={cn("text-lg", iconColor)} />
         </span>
       </div>
-      <div className="text-left">
-        <p className="text-2xl font-bold font-display text-text leading-none">
-          {value}
-        </p>
-        {subtitle && (
-          <p className="text-xs text-text-muted mt-1 leading-snug">{subtitle}</p>
+      <div className="flex items-end justify-between gap-4">
+        <div className="text-left">
+          <p className="text-2xl font-bold font-display text-text leading-none">
+            {value}
+          </p>
+          {subtitle && (
+            <p className="text-[10px] text-text-muted mt-1 leading-tight font-medium uppercase tracking-tighter opacity-60">
+              {subtitle}
+            </p>
+          )}
+        </div>
+        {action && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              action.onClick();
+            }}
+            className="px-3 py-1.5 rounded-lg bg-primary text-white text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all active:scale-95 shadow-lg shadow-primary/20 shrink-0"
+          >
+            {action.label}
+          </button>
         )}
       </div>
     </motion.div>

@@ -23,8 +23,8 @@ interface LawyerRow {
   created_at: string;
 }
 
-function getLawyerName(lawyer: LawyerRow) {
-  return lawyer.full_name || lawyer.name || lawyer.email || "Sem Nome";
+function getLawyerName(lawyer: LawyerRow, t: any) {
+  return lawyer.full_name || lawyer.name || lawyer.email || t.cases.table.noName;
 }
 
 export default function LawyersPage() {
@@ -195,14 +195,14 @@ export default function LawyersPage() {
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-bg-subtle flex items-center justify-center text-text-muted overflow-hidden shadow-inner">
                           {l.avatar_url ? (
-                            <img src={l.avatar_url} alt={getLawyerName(l)} className="w-full h-full object-cover" />
+                            <img src={l.avatar_url} alt={getLawyerName(l, t)} className="w-full h-full object-cover" />
                           ) : (
                             <RiUserStarLine className="text-xl" />
                           )}
                         </div>
                         <div className="text-left">
                           <p className="text-sm font-black text-text leading-tight tracking-tight uppercase">
-                            {getLawyerName(l)}
+                            {getLawyerName(l, t)}
                           </p>
                           <p className="text-[11px] text-text-muted font-bold tracking-tight">
                             {l.email}

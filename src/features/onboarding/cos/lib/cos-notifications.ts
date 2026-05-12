@@ -117,7 +117,7 @@ export const cosNotificationService = {
       body,
       serviceId: params.processId,
       userId: params.userId ?? undefined,
-      link: `/admin/processes/${params.processId}`,
+      link: `/master/processes/${params.processId}`,
     });
   },
 };

@@ -100,7 +100,7 @@ export function useF1Onboarding(userId: string | undefined) {
           body: `O cliente concluiu o formulário inicial de Estudante (${slug}).`,
           serviceId: procId,
           userId,
-          link: `/admin/processes/${procId}`,
+          link: `/master/processes/${procId}`,
         });
         toast.success("Documentos salvos com sucesso!");
         const idParam = searchParams.get("id");
