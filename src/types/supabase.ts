@@ -496,6 +496,7 @@ export type Database = {
           exchange_rate: number | null
           id: string
           is_test: boolean | null
+          office_id: string | null
           order_number: string | null
           parcelow_order_id: string | null
           payment_metadata: Json | null
@@ -521,6 +522,7 @@ export type Database = {
           exchange_rate?: number | null
           id?: string
           is_test?: boolean | null
+          office_id?: string | null
           order_number?: string | null
           parcelow_order_id?: string | null
           payment_metadata?: Json | null
@@ -546,6 +548,7 @@ export type Database = {
           exchange_rate?: number | null
           id?: string
           is_test?: boolean | null
+          office_id?: string | null
           order_number?: string | null
           parcelow_order_id?: string | null
           payment_metadata?: Json | null
@@ -560,6 +563,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_user_id_fkey"
             columns: ["user_id"]
@@ -670,9 +680,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_finance_transactions_master: {
+        Row: {
+          client_email: string
+          client_name: string
+          created_at: string | null
+          id: string
+          office_id: string | null
+          office_name: string | null
+          payment_method: string
+          payment_status: string
+          product_slug: string
+          total_price_usd: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      get_finance_analytics_master: {
+        Args: { p_months?: number }
+        Returns: {
+          month: string
+          profit_usd: number
+          revenue_usd: number
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
       validate_coupon: {
         Args: { p_code: string; p_slug?: string }
