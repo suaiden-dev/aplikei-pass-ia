@@ -22,9 +22,11 @@ const admin = {
     },
   },
   nav: {
+    overview: "Resumen General",
     dashboard: "Dashboard",
     matters: "Procesos",
     revenue: "Finanzas",
+    finance_analytics: "Analítica Financiera",
     lawyers: "Abogados",
     products: "Productos",
     chats: "Mensajes",
@@ -32,6 +34,42 @@ const admin = {
     coupons: "Cupones",
     roles: "Roles",
     pageBuilder: "Page Builder",
+  },
+  financeAnalytics: {
+    title: "Analítica Financiera",
+    masterOnly: "Solo Master",
+    subtitle: "Seguimiento avanzado del rendimiento y ganancias de la plataforma",
+    charts: {
+      revenueGrowth: "Crecimiento de Ingresos",
+      revenueVsProfit: "Ingresos vs Ganancia",
+      revenueLegend: "Ingresos",
+      profitLegend: "Ganancia",
+    },
+    table: {
+      title: "Transacciones Recientes",
+      growthBadge: "+12.5% este mes",
+      customer: "Cliente",
+      office: "Oficina",
+      product: "Producto",
+      amount: "Monto",
+      method: "Método",
+      action: "Acción",
+      details: "Detalles",
+      empty: "No se encontraron transacciones para analítica.",
+    },
+    states: {
+      loadErrorTitle: "Error al cargar datos",
+      retry: "Reintentar",
+    },
+    modal: {
+      title: "Detalles de la Transacción",
+      customer: "Cliente",
+      office: "Oficina",
+      product: "Producto",
+      total: "Total",
+      statusMethod: "Estado / Método",
+      close: "Cerrar",
+    },
   },
   overview: {
     stats: {
@@ -59,6 +97,19 @@ const admin = {
       paymentPending: "Pago Pendiente",
       hoursAgo: "hace {{count}} horas",
       yesterday: "Ayer"
+    },
+    master: {
+      title: "Resumen Master",
+      description: "Métricas globales de la plataforma para administración Master.",
+      stats: {
+        totalRevenue: "Ingresos Totales",
+        lawyersCount: "Número de Abogados",
+        customersCount: "Número de Clientes",
+        processesCount: "Procesos Totales",
+        zellePayments: "Pagos por Zelle",
+        requestedPayments: "Solicitudes de Pago"
+      },
+      recentActivity: "Actividad Reciente"
     }
   },
   cases: {
@@ -310,9 +361,9 @@ const admin = {
     title: "Gestión de Pagos",
     subtitle: "Cola para verificación manual de transferencias Zelle y activación de servicios.",
     tabs: {
-      pending: "Pendientes",
-      approved: "Aprobados",
-      rejected: "Rechazados"
+      pending: "Verificación Zelle",
+      officeRequests: "Solicitudes de Retiro",
+      approved: "Pagos Aprobados"
     },
     searchPlaceholder: "Buscar por servicio...",
     table: {
