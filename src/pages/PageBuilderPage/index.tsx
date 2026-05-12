@@ -1,6 +1,7 @@
 import { useEffect, useState as useLocalState } from "react";
 import { Check, Copy, Download, Eye, Monitor, Save, Smartphone } from "lucide-react";
 import { RiLayoutGridLine } from "react-icons/ri";
+import { toast } from "sonner";
 import { Button } from "../../components/atoms/button";
 import { usePageBuilder } from "./hooks/usePageBuilder";
 import { InspectorPanel } from "./components/InspectorPanel";
@@ -8,12 +9,13 @@ import { PreviewModal } from "./components/PreviewModal";
 import { LandingPagePreview } from "./components/LandingPagePreview";
 import { TemplateCatalog } from "./components/TemplateCatalog";
 import { applyTemplateConfig } from "./lib/templateHtml";
+import { getLandingTemplateHtml } from "./templates/LandingTemplate";
 import { useState } from "react";
 
 type PreviewViewport = "desktop" | "mobile";
 
 export default function PageBuilderPage() {
-    const { config, isPreviewOpen, updateConfig, openPreview, closePreview } =
+    const { config, isPreviewOpen, isSaving, isUploadingLogo, isUploadingFavicon, updateConfig, saveConfig, uploadLogo, uploadFavicon, openPreview, closePreview } =
         usePageBuilder();
     const [previewViewport, setPreviewViewport] =
         useState<PreviewViewport>("desktop");
@@ -39,7 +41,7 @@ export default function PageBuilderPage() {
 
     const handleDownload = async () => {
         try {
-            const baseTemplate = await fetch("/temp/index.html").then((r) => r.text());
+            const baseTemplate = getLandingTemplateHtml();
             const html = applyTemplateConfig(baseTemplate, config);
 
             const blob = new Blob([html], { type: "text/html;charset=utf-8" });
@@ -51,6 +53,36 @@ export default function PageBuilderPage() {
             URL.revokeObjectURL(url);
         } catch {
             // noop: evita quebrar a tela caso o template falhe.
+        }
+    };
+
+    const handleSave = async () => {
+        try {
+            await saveConfig();
+            toast.success("Landing salva com sucesso.");
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Erro ao salvar landing.";
+            toast.error(message);
+        }
+    };
+
+    const handleUploadLogo = async (file: File) => {
+        try {
+            await uploadLogo(file);
+            toast.success("Logo enviada com sucesso.");
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Erro ao enviar logo.";
+            toast.error(message);
+        }
+    };
+
+    const handleUploadFavicon = async (file: File) => {
+        try {
+            await uploadFavicon(file);
+            toast.success("Favicon enviado com sucesso.");
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Erro ao enviar favicon.";
+            toast.error(message);
         }
     };
 
@@ -109,9 +141,9 @@ export default function PageBuilderPage() {
                         <Download size={16} className="mr-2" />
                         Download
                     </Button>
-                    <Button disabled>
+                    <Button onClick={handleSave} disabled={isSaving}>
                         <Save size={16} className="mr-2" />
-                        Salvar
+                        {isSaving ? "Salvando..." : "Salvar"}
                     </Button>
                 </div>
             </header>
@@ -133,7 +165,14 @@ export default function PageBuilderPage() {
                         )}
                     </div>
                 </main>
-                <InspectorPanel config={config} onUpdateConfig={updateConfig} />
+                <InspectorPanel
+                    config={config}
+                    isUploadingLogo={isUploadingLogo}
+                    isUploadingFavicon={isUploadingFavicon}
+                    onUploadLogo={handleUploadLogo}
+                    onUploadFavicon={handleUploadFavicon}
+                    onUpdateConfig={updateConfig}
+                />
             </section>
 
             <PreviewModal

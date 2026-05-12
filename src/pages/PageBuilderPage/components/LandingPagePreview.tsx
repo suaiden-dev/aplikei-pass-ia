@@ -1,29 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { LandingPageConfig } from "../types";
 import { applyTemplateConfig } from "../lib/templateHtml";
+import { getLandingTemplateHtml } from "../templates/LandingTemplate";
 
 interface LandingPagePreviewProps {
   config: LandingPageConfig;
 }
 
 export function LandingPagePreview({ config }: LandingPagePreviewProps) {
-  const [baseTemplate, setBaseTemplate] = useState<string>("");
-
-  useEffect(() => {
-    let mounted = true;
-    fetch("/temp/index.html")
-      .then((r) => r.text())
-      .then((html) => {
-        if (mounted) setBaseTemplate(html);
-      })
-      .catch(() => {
-        if (mounted) setBaseTemplate("<!doctype html><html><body><h1>Template não encontrado</h1></body></html>");
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  const baseTemplate = getLandingTemplateHtml();
 
   const renderedHtml = useMemo(
     () => (baseTemplate ? applyTemplateConfig(baseTemplate, config) : ""),
