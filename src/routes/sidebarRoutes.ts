@@ -11,6 +11,8 @@ export function buildSidebarNavItems(
 ): DashboardNavItem[] {
   const prefix = layout === "seller"
     ? "/seller"
+    : layout === "manager"
+      ? "/admin"
     : layout === "master" && role === "master"
       ? "/master"
       : "";

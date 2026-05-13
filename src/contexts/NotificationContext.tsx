@@ -6,24 +6,6 @@ import type { AppNotification } from "./NotificationContext/context";
 import { NotificationContext, type NotificationContextValue, type ToastItem } from "./NotificationContext/context";
 import { onPortalEvent } from "../mocks/customer-portal";
 
-function normalizeRealtimeNotification(payload: any): AppNotification {
-  return {
-    id: payload.id || "",
-    type: payload.type || "system",
-    target_role: payload.target_role || "client",
-    user_id: payload.user_id || null,
-    service_id: payload.service_id || null,
-    title: payload.title || "Notification",
-    message: payload.message || "",
-    link: payload.link || null,
-    is_read: payload.is_read || false,
-    send_email: payload.send_email || false,
-    email_sent: payload.email_sent || false,
-    metadata: payload.metadata || {},
-    created_at: payload.created_at || new Date().toISOString(),
-  };
-}
-
 const MAX_TOASTS = 3;
 
 interface NotificationProviderProps {

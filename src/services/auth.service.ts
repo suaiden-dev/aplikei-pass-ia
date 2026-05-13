@@ -20,17 +20,12 @@ export interface AuthSession {
 type UserAccountsRow = {
   id: string;
   full_name: string | null;
-  name?: string | null;
   phone_number: string | null;
-  phone?: string | null;
   avatar_url: string | null;
-  profile_url?: string | null;
   passport_photo_url: string | null;
-  preferred_language: string | null;
   role: UserAccount["role"];
   office_id: string | null;
   email: string | null;
-  office_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -73,10 +68,10 @@ function writePendingResetEmail(email: string | null) {
 function mapFromUserAccountRow(row: UserAccountsRow): UserAccount {
   return {
     id: row.id,
-    fullName: row.full_name ?? row.name ?? "",
+    fullName: row.full_name ?? "",
     email: row.email ?? "",
-    phoneNumber: row.phone_number ?? row.phone ?? "",
-    avatarUrl: row.avatar_url ?? row.profile_url ?? null,
+    phoneNumber: row.phone_number ?? "",
+    avatarUrl: row.avatar_url ?? null,
     passportPhotoUrl: row.passport_photo_url,
     role: row.role,
     officeId: row.office_id ?? null,
@@ -124,22 +119,23 @@ async function fetchAccountById(userId: string): Promise<UserAccount | null> {
   const supabase = requireSupabaseClient();
 
   try {
-    // Short timeout — if the view hangs we fall back to metadata immediately
-    const timeoutPromise = new Promise<null>((resolve) =>
-      setTimeout(() => resolve(null), 2000),
-    );
-
-    const queryPromise = supabase
+    const { data, error } = await supabase
       .from("user_accounts")
-      .select("*")
+      .select("id, full_name, phone_number, avatar_url, passport_photo_url, role, office_id, email, created_at, updated_at")
       .eq("id", userId)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (error) return null;
-        return data ? mapFromUserAccountRow(data as UserAccountsRow) : null;
-      });
+      .maybeSingle();
+    if (error || !data) return null;
+    const mapped = mapFromUserAccountRow(data as UserAccountsRow);
+    if (mapped.officeId) return mapped;
 
-    return await Promise.race([queryPromise, timeoutPromise]);
+    // Fallback: some staff rows may have office_id null but still own an office.
+    const { data: officeRow } = await supabase
+      .from("offices")
+      .select("id")
+      .eq("owner_id", userId)
+      .maybeSingle();
+
+    return { ...mapped, officeId: officeRow?.id ?? null };
   } catch {
     return null;
   }
@@ -157,13 +153,16 @@ async function resolveCurrentUserFromSession(session: Session | null): Promise<U
   }
 
   if (cachedUser && cachedUser.id === session.user.id) {
+    const freshAccount = await fetchAccountById(session.user.id);
+    const resolved = freshAccount ?? cachedUser;
     cachedSession = {
-      userId: cachedUser.id,
-      email: cachedUser.email ?? "",
-      role: cachedUser.role,
+      userId: resolved.id,
+      email: resolved.email ?? "",
+      role: resolved.role,
       signedInAt: session.user.last_sign_in_at ?? new Date().toISOString(),
     };
-    return cachedUser;
+    cachedUser = resolved;
+    return resolved;
   }
 
   const account = await fetchAccountById(session.user.id);

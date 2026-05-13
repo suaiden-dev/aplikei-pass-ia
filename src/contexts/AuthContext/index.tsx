@@ -8,13 +8,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshAccount = useCallback(async () => {
-    const cached = authService.getCurrentAccount();
-    if (cached) {
-      setUser(cached);
-      setIsLoading(false);
-      return;
-    }
-
     await authService.loadCurrentUser();
     setUser(authService.getCurrentAccount());
     setIsLoading(false);

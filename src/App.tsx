@@ -23,13 +23,6 @@ function appendToBase(basePath: string, sharedPath: string) {
   return `${basePath}/${clean}`;
 }
 
-function routeHasSidebarRole(
-  route: { sidebarLayouts?: UserRole[] },
-  roles: UserRole[],
-) {
-  return route.sidebarLayouts?.some((role) => roles.includes(role)) ?? false;
-}
-
 function PageLoader() {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-bg">
@@ -50,7 +43,8 @@ export default function App() {
   const adminActiveRoutes = adminRoutes.filter((route) => route.path === "/admin" || route.path === "/admin/page-builder");
   const sellerActiveRoutes: typeof adminRoutes = [];
   const adminSharedRoutes = protectedRoutes.filter((route) =>
-    routeHasSidebarRole(route, ["master", "manager", "admin_lawyer"]),
+    route.accessLevels.includes(AccessLevel.MANAGER) ||
+    route.accessLevels.includes(AccessLevel.ADMIN_LAWYER),
   );
   const masterSharedRoutes = protectedRoutes.filter((route) =>
     route.accessLevels.includes(AccessLevel.MASTER)

@@ -421,6 +421,15 @@ export const appRoutes: AppRouteDefinition[] = [
         icon: MessageSquare,
     },
     {
+        path: "/messages",
+        title: "Messages",
+        component: AdminChatsPage,
+        authRequired: true,
+        accessLevels: STAFF_AND_SELLER,
+        layout: "protected",
+        sidebarLayouts: ["manager"],
+    },
+    {
         path: "/coupons",
         title: "Coupons",
         titleKey: "coupons",

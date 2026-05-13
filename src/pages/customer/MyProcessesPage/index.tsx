@@ -116,7 +116,7 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.06 }}
-      className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 bg-white rounded-3xl border border-slate-100 p-5 sm:px-6 sm:py-5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all group"
+      className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 bg-card rounded-3xl border border-border p-5 sm:px-6 sm:py-5 shadow-sm hover:shadow-md hover:border-border transition-all group"
     >
       <div className="flex items-center gap-4 sm:gap-6 flex-1 min-w-0">
         <div className={`w-12 h-12 shrink-0 rounded-2xl ${cfg.bg} flex items-center justify-center border border-black/5`}>
@@ -124,7 +124,7 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
         </div>
         <div className="flex-1 min-w-0 text-left">
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <h3 className="font-display font-black text-slate-800 text-[15px] tracking-tight leading-none uppercase">
+            <h3 className="font-display font-black text-text text-[15px] tracking-tight leading-none uppercase">
               {t.dashboard.products[proc.service_slug]?.label || cfg.label}
             </h3>
             <span className={cn(
@@ -135,7 +135,7 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
               {displayLabel}
             </span>
           </div>
-          <p className="text-[11px] font-bold text-slate-400 tracking-widest uppercase">
+          <p className="text-[11px] font-bold text-text-muted tracking-widest uppercase">
             {t.dashboard.products[proc.service_slug]?.category || cfg.category}
           </p>
         </div>
@@ -144,13 +144,13 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
       <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
         <div className="flex flex-col items-end gap-2 w-full sm:w-36">
           <div className="flex items-center justify-between w-full">
-            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest">{t.dashboard.myCases.progress}</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-text-muted uppercase tracking-widest">{t.dashboard.myCases.progress}</span>
             <span className={cn(
               "text-[12px] sm:text-[13px] font-black tabular-nums",
               isApproved ? "text-emerald-600" : isDenied ? "text-red-600" : "text-primary"
             )}>{progressPercent}%</span>
           </div>
-          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-2 w-full bg-bg-subtle rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}

@@ -82,6 +82,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
         .limit(1)
         .maybeSingle();
 
+
       const { data: consultationData } = await supabase
         .from("user_services")
         .select("*")
@@ -294,7 +295,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
         {purchasedMentorship ? (
           <>
             <RiCalendarCheckLine className="text-2xl text-emerald-500" />
-             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-800">
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-800">
               {allScheduled ? t.onboardingPage.specialistTraining.allScheduled : t.onboardingPage.specialistTraining.scheduleNow}
             </span>
             <div className="mt-1 flex gap-1">
@@ -315,18 +316,18 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">      {isAwaitingAdmin && (
-        <div className="p-8 bg-primary/5 border border-primary/10 rounded-[40px] text-center space-y-4 shadow-xl shadow-primary/5 animate-in slide-in-from-top-4 duration-500">
-          <div className="w-12 h-12 bg-card text-primary rounded-2xl flex items-center justify-center mx-auto shadow-sm">
-            <RiLoader4Line className="text-2xl animate-spin" />
-          </div>
-          <div>
-            <h2 className="text-xl font-black text-text uppercase tracking-tight">{t.onboardingPage.awaitingInterview.awaitingFinalScheduling}</h2>
-            <p className="text-xs text-text-muted font-medium max-w-sm mx-auto mt-1">
-              {t.onboardingPage.awaitingInterview.awaitingFinalSchedulingDesc}
-            </p>
-          </div>
+      <div className="p-8 bg-primary/5 border border-primary/10 rounded-[40px] text-center space-y-4 shadow-xl shadow-primary/5 animate-in slide-in-from-top-4 duration-500">
+        <div className="w-12 h-12 bg-card text-primary rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+          <RiLoader4Line className="text-2xl animate-spin" />
         </div>
-      )}
+        <div>
+          <h2 className="text-xl font-black text-text uppercase tracking-tight">{t.onboardingPage.awaitingInterview.awaitingFinalScheduling}</h2>
+          <p className="text-xs text-text-muted font-medium max-w-sm mx-auto mt-1">
+            {t.onboardingPage.awaitingInterview.awaitingFinalSchedulingDesc}
+          </p>
+        </div>
+      </div>
+    )}
 
       {/* Main Tools Section - Always Visible */}
       <div className="bg-card p-12 rounded-[40px] border border-border shadow-xl shadow-border/10">
@@ -392,115 +393,115 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       {isInterviewDayOrPast && (
         <div className="p-10 bg-bg-subtle rounded-[40px] text-center space-y-8 shadow-2xl border border-primary/20 relative overflow-hidden group">
           {/* outcome logic remains as it was inside this block */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
 
-              {/* Lógica de Telas Pós-Resultado */}
-              {alreadyReported ? (
-                <div className="animate-in fade-in zoom-in duration-500 space-y-8">
-                  {freshStepData.interview_outcome === 'approved' ? (
-                    <div className="space-y-6">
-                      <div className="w-24 h-24 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/20">
-                        <RiCheckLine className="text-5xl" />
-                      </div>
-                      <h4 className="text-3xl font-black text-text uppercase tracking-tight">{t.onboardingPage.processingStatus.outcomeApproved}</h4>
-                      <p className="text-text-muted font-medium max-w-sm mx-auto">{t.onboardingPage.processingStatus.outcomeApprovedDesc}</p>
-                      <button
-                        onClick={() => navigate('/dashboard')}
-                        className="w-full h-14 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-xl"
-                      >
-                        {t.onboardingPage.processingStatus.backToStart}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-8">
-                      <div className="w-20 h-20 bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <RiCloseLine className="text-4xl" />
-                      </div>
-                      <div className="space-y-2">
-                        <h4 className="text-2xl font-black text-white uppercase tracking-tight">{t.onboardingPage.processingStatus.outcomeRejected}</h4>
-                        <p className="text-sm text-text-muted font-medium max-w-sm mx-auto">{t.onboardingPage.processingStatus.outcomeRejectedDesc}</p>
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-4 pt-4">
-                        <button
-                          onClick={() => navigate(`/checkout/visto-b1-b2-reaplicacao${user?.officeId ? `?office_id=${user.officeId}` : ""}`)}
-                          className="p-6 bg-card border border-border rounded-3xl text-left hover:border-primary transition-all group/opt relative overflow-hidden"
-                        >
-                          <div className="relative z-10">
-                            <h5 className="text-text font-black uppercase text-xs tracking-widest mb-1 group-hover/opt:text-primary transition-colors">{t.onboardingPage.processingStatus.restartProcess}</h5>
-                            <p className="text-[10px] text-text-muted font-medium leading-relaxed">{t.onboardingPage.processingStatus.restartProcessDesc}</p>
-                          </div>
-                          <RiArrowRightLine className="absolute right-6 top-1/2 -translate-y-1/2 text-text-muted group-hover/opt:text-primary group-hover/opt:translate-x-1 transition-all" />
-                        </button>
-
-                        {purchasedConsultation ? (
-                          <button
-                            onClick={() => setIsSchedulingConsultation(true)}
-                            className="p-6 bg-emerald-500/20 border border-emerald-500/30 rounded-3xl text-left hover:bg-emerald-500/30 transition-all group/opt relative overflow-hidden"
-                          >
-                            <div className="relative z-10 flex justify-between items-center">
-                              <div>
-                                <h5 className="text-emerald-400 font-black uppercase text-xs tracking-widest mb-1">{t.onboardingPage.processingStatus.consultationActive}</h5>
-                                <p className="text-[10px] text-emerald-100/70 font-medium leading-relaxed">{t.onboardingPage.processingStatus.consultationActiveDesc}</p>
-                              </div>
-                              <RiCalendarCheckLine className="text-4xl text-emerald-400/50" />
-                            </div>
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              navigate(`/checkout/mentoria-negativa-consular${user?.officeId ? `?office_id=${user.officeId}` : ""}`);
-                            }}
-                            className="p-6 bg-primary/5 border border-primary/20 rounded-3xl text-left hover:bg-primary/10 transition-all group/opt relative overflow-hidden"
-                          >
-                            <div className="relative z-10">
-                              <h5 className="text-primary font-black uppercase text-xs tracking-widest mb-1">{t.onboardingPage.processingStatus.consultationSpecialist}</h5>
-                              <p className="text-[10px] text-text-muted font-medium leading-relaxed">{t.onboardingPage.processingStatus.consultationSpecialistDesc}</p>
-                            </div>
-                            <div className="absolute top-4 right-4 bg-primary text-[8px] font-black px-2 py-0.5 rounded-full text-white uppercase tracking-tighter">Recomendado</div>
-                            <RiArrowRightLine className="absolute right-6 top-1/2 -translate-y-1/2 text-primary/40 group-hover/opt:text-primary group-hover/opt:translate-x-1 transition-all" />
-                          </button>
-                        )}
-                      </div>
-
-                      <button
-                        onClick={() => navigate('/dashboard')}
-                        className="text-[10px] font-black text-text-muted uppercase tracking-widest hover:text-primary transition-colors"
-                      >
-                        {t.onboardingPage.processingStatus.backToStart}
-                      </button>
-                    </div>
-                  )}
+          {/* Lógica de Telas Pós-Resultado */}
+          {alreadyReported ? (
+            <div className="animate-in fade-in zoom-in duration-500 space-y-8">
+              {freshStepData.interview_outcome === 'approved' ? (
+                <div className="space-y-6">
+                  <div className="w-24 h-24 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/20">
+                    <RiCheckLine className="text-5xl" />
+                  </div>
+                  <h4 className="text-3xl font-black text-text uppercase tracking-tight">{t.onboardingPage.processingStatus.outcomeApproved}</h4>
+                  <p className="text-text-muted font-medium max-w-sm mx-auto">{t.onboardingPage.processingStatus.outcomeApprovedDesc}</p>
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="w-full h-14 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-xl"
+                  >
+                    {t.onboardingPage.processingStatus.backToStart}
+                  </button>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  <div className="relative">
-                    <h4 className="text-2xl font-black text-text uppercase tracking-tight mb-2">{t.onboardingPage.processingStatus.theBigDay}</h4>
-                    <p className="text-sm text-text-muted font-medium max-w-md mx-auto leading-relaxed">
-                      {t.onboardingPage.processingStatus.howWasOutcome}
-                    </p>
+                <div className="space-y-8">
+                  <div className="w-20 h-20 bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <RiCloseLine className="text-4xl" />
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="text-2xl font-black text-white uppercase tracking-tight">{t.onboardingPage.processingStatus.outcomeRejected}</h4>
+                    <p className="text-sm text-text-muted font-medium max-w-sm mx-auto">{t.onboardingPage.processingStatus.outcomeRejectedDesc}</p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 relative">
+                  <div className="grid grid-cols-1 gap-4 pt-4">
                     <button
-                      disabled={loading}
-                      onClick={() => handleReportOutcome('approved')}
-                      className="h-16 bg-emerald-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                      onClick={() => navigate(`/checkout/visa-b1b2${user?.officeId ? `?office_id=${user.officeId}` : ""}`)}
+                      className="p-6 bg-card border border-border rounded-3xl text-left hover:border-primary transition-all group/opt relative overflow-hidden"
                     >
-                      {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.onboardingPage.processingStatus.iWasApproved}</>}
+                      <div className="relative z-10">
+                        <h5 className="text-text font-black uppercase text-xs tracking-widest mb-1 group-hover/opt:text-primary transition-colors">{t.onboardingPage.processingStatus.restartProcess}</h5>
+                        <p className="text-[10px] text-text-muted font-medium leading-relaxed">{t.onboardingPage.processingStatus.restartProcessDesc}</p>
+                      </div>
+                      <RiArrowRightLine className="absolute right-6 top-1/2 -translate-y-1/2 text-text-muted group-hover/opt:text-primary group-hover/opt:translate-x-1 transition-all" />
                     </button>
-                    <button
-                      disabled={loading}
-                      onClick={() => handleReportOutcome('rejected')}
-                      className="h-16 bg-bg-subtle text-text border border-border rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-bg-subtle/80 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
-                    >
-                      {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCloseLine className="text-xl" /> {t.onboardingPage.processingStatus.iWasRefused}</>}
-                    </button>
+
+                    {purchasedConsultation ? (
+                      <button
+                        onClick={() => setIsSchedulingConsultation(true)}
+                        className="p-6 bg-emerald-500/20 border border-emerald-500/30 rounded-3xl text-left hover:bg-emerald-500/30 transition-all group/opt relative overflow-hidden"
+                      >
+                        <div className="relative z-10 flex justify-between items-center">
+                          <div>
+                            <h5 className="text-emerald-400 font-black uppercase text-xs tracking-widest mb-1">{t.onboardingPage.processingStatus.consultationActive}</h5>
+                            <p className="text-[10px] text-emerald-100/70 font-medium leading-relaxed">{t.onboardingPage.processingStatus.consultationActiveDesc}</p>
+                          </div>
+                          <RiCalendarCheckLine className="text-4xl text-emerald-400/50" />
+                        </div>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          navigate(`/checkout/mentoria-negativa-consular${user?.officeId ? `?office_id=${user.officeId}` : ""}`);
+                        }}
+                        className="p-6 bg-primary/5 border border-primary/20 rounded-3xl text-left hover:bg-primary/10 transition-all group/opt relative overflow-hidden"
+                      >
+                        <div className="relative z-10">
+                          <h5 className="text-primary font-black uppercase text-xs tracking-widest mb-1">{t.onboardingPage.processingStatus.consultationSpecialist}</h5>
+                          <p className="text-[10px] text-text-muted font-medium leading-relaxed">{t.onboardingPage.processingStatus.consultationSpecialistDesc}</p>
+                        </div>
+                        <div className="absolute top-4 right-4 bg-primary text-[8px] font-black px-2 py-0.5 rounded-full text-white uppercase tracking-tighter">Recomendado</div>
+                        <RiArrowRightLine className="absolute right-6 top-1/2 -translate-y-1/2 text-primary/40 group-hover/opt:text-primary group-hover/opt:translate-x-1 transition-all" />
+                      </button>
+                    )}
                   </div>
+
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="text-[10px] font-black text-text-muted uppercase tracking-widest hover:text-primary transition-colors"
+                  >
+                    {t.onboardingPage.processingStatus.backToStart}
+                  </button>
                 </div>
               )}
             </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="relative">
+                <h4 className="text-2xl font-black text-text uppercase tracking-tight mb-2">{t.onboardingPage.processingStatus.theBigDay}</h4>
+                <p className="text-sm text-text-muted font-medium max-w-md mx-auto leading-relaxed">
+                  {t.onboardingPage.processingStatus.howWasOutcome}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 relative">
+                <button
+                  disabled={loading}
+                  onClick={() => handleReportOutcome('approved')}
+                  className="h-16 bg-emerald-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                >
+                  {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.onboardingPage.processingStatus.iWasApproved}</>}
+                </button>
+                <button
+                  disabled={loading}
+                  onClick={() => handleReportOutcome('rejected')}
+                  className="h-16 bg-bg-subtle text-text border border-border rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-bg-subtle/80 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                >
+                  {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCloseLine className="text-xl" /> {t.onboardingPage.processingStatus.iWasRefused}</>}
+                </button>
+              </div>
+            </div>
           )}
+        </div>
+      )}
 
       <AnimatePresence>
         {isSchedulingConsultation && consultationUrl && (
@@ -510,33 +511,33 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                 <h3 className="text-lg font-black text-text uppercase tracking-tight">{t.onboardingPage.specialistTraining.bronzePackage}</h3>
                 <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">{t.onboardingPage.processingStatus.outcomeRejected}</p>
               </div>
-              <button 
-                onClick={() => setIsSchedulingConsultation(false)} 
+              <button
+                onClick={() => setIsSchedulingConsultation(false)}
                 className="w-12 h-12 rounded-full bg-bg-subtle flex items-center justify-center text-text-muted hover:text-rose-500 transition-all shadow-sm"
               >
                 <RiCloseLine className="text-2xl" />
               </button>
             </div>
             <div className="flex-1 w-full overflow-hidden bg-bg-subtle">
-              <InlineWidget 
-                url={consultationUrl} 
-                styles={{ height: '100%', width: '100%' }} 
-                prefill={{ email: user?.email, name: user?.fullName }} 
+              <InlineWidget
+                url={consultationUrl}
+                styles={{ height: '100%', width: '100%' }}
+                prefill={{ email: user?.email, name: user?.fullName }}
               />
             </div>
           </div>
         )}
 
         {activeModule && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }} 
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-start justify-center bg-card md:bg-bg/60 md:backdrop-blur-md overflow-hidden"
           >
             <div className="bg-card w-full h-full md:h-auto md:max-w-2xl md:rounded-[40px] shadow-2xl relative flex flex-col pt-16 md:pt-0 md:max-h-[90vh]">
-              <button 
-                onClick={() => setActiveModule(null)} 
+              <button
+                onClick={() => setActiveModule(null)}
                 className="fixed md:absolute top-4 right-4 md:top-8 md:right-8 w-10 h-10 rounded-full bg-bg-subtle flex items-center justify-center text-text-muted hover:text-red-500 transition-all z-[60]"
               >
                 <RiCloseLine className="text-xl" />
@@ -598,9 +599,9 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                   </div>
                 )}
                 {activeModule === "specialist" && (
-                   <div className="space-y-8">
-                     {!isScheduling && (
-                       <>
+                  <div className="space-y-8">
+                    {!isScheduling && (
+                      <>
                         {purchasedMentorship ? (
                           <div className="text-center space-y-6 py-8">
                             <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto"><RiHistoryLine className="text-4xl" /></div>
@@ -633,9 +634,9 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                             </div>
                           </div>
                         )}
-                       </>
-                     )}
-                   </div>
+                      </>
+                    )}
+                  </div>
                 )}
 
               </div>
@@ -652,18 +653,18 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
               <h3 className="text-lg font-black text-text uppercase tracking-tight">{t.onboardingPage.specialistTraining.mentoringTitle}</h3>
               <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">{scheduledCount + 1}ª {t.onboardingPage.specialistTraining.interviewLabel}</p>
             </div>
-            <button 
-              onClick={() => setIsScheduling(false)} 
+            <button
+              onClick={() => setIsScheduling(false)}
               className="w-12 h-12 rounded-full bg-bg-subtle flex items-center justify-center text-text-muted hover:text-rose-500 transition-all shadow-sm"
             >
               <RiCloseLine className="text-2xl" />
             </button>
           </div>
           <div className="flex-1 w-full overflow-hidden bg-bg-subtle">
-            <InlineWidget 
-              url={calendlyUrl} 
-              styles={{ height: '100%', width: '100%' }} 
-              prefill={{ email: user?.email, name: user?.fullName }} 
+            <InlineWidget
+              url={calendlyUrl}
+              styles={{ height: '100%', width: '100%' }}
+              prefill={{ email: user?.email, name: user?.fullName }}
             />
           </div>
         </div>

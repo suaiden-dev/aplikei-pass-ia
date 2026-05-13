@@ -36,6 +36,7 @@ import * as notificationService from "../../../features/notifications/lib/notify
 import { packageService } from "../../../features/onboarding/cos/lib/package";
 import { toast } from "sonner";
 import { useT } from "../../../i18n";
+import { useAuth } from "../../../hooks/useAuth";
 import type { StepConfig } from "../../../templates/ServiceDetailTemplate";
 
 interface ProcessWithUser extends UserService {
@@ -1210,6 +1211,8 @@ export default function AdminProcessDetailPage() {
   const navigate = useNavigate();
   const t = useT("admin");
   const vt = useT("visas");
+  const { user } = useAuth();
+  const processRoutePrefix = user?.role === "master" ? "/master" : "/admin";
   const [proc, setProc] = useState<ProcessWithUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1254,11 +1257,11 @@ export default function AdminProcessDetailPage() {
     } catch (err: unknown) {
       console.error("Error loading process:", err);
       toast.error(t.cases.messages.loadError);
-      navigate("/master/processes");
+      navigate(`${processRoutePrefix}/processes`);
     } finally {
       setIsLoading(false);
     }
-  }, [id, navigate, t]);
+  }, [id, navigate, processRoutePrefix, t]);
 
   useEffect(() => {
     fetchProcessData();
@@ -1276,7 +1279,7 @@ export default function AdminProcessDetailPage() {
     return (
       <div className="p-12 text-center bg-bg min-h-screen">
         <p className="text-text-muted">{t.cases.messages.loadError}</p>
-        <button onClick={() => navigate("/master/processes")} className="mt-4 text-primary font-bold">{t.shared.back}</button>
+        <button onClick={() => navigate(`${processRoutePrefix}/processes`)} className="mt-4 text-primary font-bold">{t.shared.back}</button>
       </div>
     );
   }
@@ -2163,7 +2166,7 @@ export default function AdminProcessDetailPage() {
     <div className="p-8 max-w-6xl mx-auto pb-24 bg-bg min-h-screen">
       <div className="flex items-start justify-between mb-12">
         <div className="flex items-center gap-6">
-          <button onClick={() => navigate("/master/processes")} className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-text-muted hover:text-primary transition-all shadow-sm">
+          <button onClick={() => navigate(`${processRoutePrefix}/processes`)} className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-text-muted hover:text-primary transition-all shadow-sm">
             <RiArrowLeftLine className="text-xl" />
           </button>
           <div>

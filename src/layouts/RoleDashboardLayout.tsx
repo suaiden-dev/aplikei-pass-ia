@@ -55,7 +55,7 @@ function NavItem({ to, label, icon: Icon, exact, onNavigate, collapsed }: Dashbo
           "flex items-center gap-3 px-4 rounded-2xl py-3 text-sm font-semibold transition-all duration-200",
           collapsed && "lg:justify-center lg:px-3 lg:gap-0",
           isActive
-            ? "bg-primary text-white shadow-lg shadow-primary/20"
+            ? "bg-bg-subtle text-text border border-border"
             : "text-text-muted hover:bg-bg-subtle hover:text-text",
         )
       }
@@ -377,12 +377,12 @@ export function RoleDashboardLayout({
         {/* Header */}
         <div className={cn("flex items-center justify-between", collapsed && "lg:justify-center")}>
           <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-primary/10 p-2.5 text-primary shrink-0">
+            <div className="rounded-2xl bg-bg-subtle p-2.5 text-text shrink-0 border border-border">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div className={cn(collapsed && "lg:hidden")}>
               <p className="text-sm font-bold text-text uppercase tracking-tight">{consoleTitle}</p>
-              <p className="text-[10px] font-black text-primary uppercase tracking-widest leading-none mt-0.5">{roleLabel}</p>
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none mt-0.5">{roleLabel}</p>
               <p className="text-[10px] font-medium text-text-muted mt-1">{consoleSubtitle}</p>
             </div>
           </div>

@@ -26,7 +26,7 @@ import { MdPix } from "react-icons/md";
 import { Input } from "../../components/atoms/input";
 import { Label } from "../../components/atoms/label";
 import { zodValidate } from "../../utils/zodValidate";
-import { getServiceBySlug } from "../../data/services";
+import { getServiceBySlug, getServiceSlugs } from "../../data/services";
 import { useAuth } from "../../hooks/useAuth";
 import { type StripePaymentMethod } from "../../features/payment/lib/paymentOps";
 import { parsePriceUSD, estimateCardTotal, estimatePixTotal } from "../../features/payment/lib/fees";
@@ -212,6 +212,7 @@ export default function CheckoutPage() {
 
 
   const service = getServiceBySlug(slug || "");
+  const [dynamicPrice, setDynamicPrice] = useState<number | null>(null);
   const [activeMethod, setActiveMethod] = useState<PaymentTab>("card");
   const [dependents, setDependents] = useState(searchParams.get("upgrade") === "true" ? 1 : 0);
   const { isProcessing: isRedirecting, stripe: submitStripe, parcelow: submitParcelow, zelle: submitZelle } = useCheckout();
@@ -278,6 +279,39 @@ export default function CheckoutPage() {
     checkOffice();
   }, [officeId]);
 
+  useEffect(() => {
+    async function fetchOfficePrice() {
+      if (!slug || !officeId) return;
+
+      try {
+        const slugs = getServiceSlugs(slug);
+
+        const { data: serviceData, error: serviceError } = await supabase
+          .from("services")
+          .select("id")
+          .in("slug", slugs)
+          .maybeSingle();
+
+        if (serviceError || !serviceData) return;
+
+        const { data: priceData, error: priceError } = await supabase
+          .from("user_service_prices")
+          .select("price")
+          .eq("office_id", officeId)
+          .eq("service_id", serviceData.id)
+          .or("is_active.is.true,is_active.is.null")
+          .maybeSingle();
+
+        if (priceError) return;
+        setDynamicPrice(priceData?.price ?? null);
+      } catch {
+        setDynamicPrice(null);
+      }
+    }
+
+    fetchOfficePrice();
+  }, [officeId, slug]);
+
   const formatTimeParts = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -289,8 +323,10 @@ export default function CheckoutPage() {
     };
   };
 
-  const baseUSD = service ? parsePriceUSD(service.price) : 0;
+  const baseUSD = dynamicPrice ?? (service ? parsePriceUSD(service.price) : 0);
   const depUSD = isUpgrade ? baseUSD : (service ? parsePriceUSD(service.dependentPrice) : 0);
+  const baseUSDLabel = `US$ ${baseUSD.toFixed(2)}`;
+  const depUSDLabel = `US$ ${depUSD.toFixed(2)}`;
   const checkoutCount = dependents;
   const subtotalUSD = isUpgrade ? (dependents * baseUSD) : (baseUSD + (dependents * depUSD));
 
@@ -555,9 +591,11 @@ export default function CheckoutPage() {
                     <RiShieldCheckLine className="text-primary text-xl" />
                   </div>
                   <div>
-                    <p className="font-display font-bold text-text text-sm leading-tight">
-                      {service!.title}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-display font-bold text-text text-sm leading-tight">
+                        {service!.title}
+                      </p>
+                    </div>
                     <p className="text-[11px] text-text-muted">{service!.processType}</p>
                   </div>
                 </div>
@@ -772,8 +810,8 @@ export default function CheckoutPage() {
                     </p>
                     <p className="text-xs text-text-muted">
                       {isUpgrade
-                        ? t.dependents.perSlot.replace("{{price}}", service.price)
-                        : t.dependents.perPerson.replace("{{price}}", service.dependentPrice)}
+                        ? t.dependents.perSlot.replace("{{price}}", baseUSDLabel)
+                        : t.dependents.perPerson.replace("{{price}}", depUSDLabel)}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">

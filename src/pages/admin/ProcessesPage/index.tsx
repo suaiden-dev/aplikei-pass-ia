@@ -52,6 +52,7 @@ export default function AdminProcessesPage() {
   const t = useT("admin");
   const vt = useT("visas");
   const { user } = useAuth();
+  const processRoutePrefix = user?.role === "master" ? "/master" : "/admin";
   const [processes, setProcesses] = useState<ProcessWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -331,7 +332,7 @@ export default function AdminProcessesPage() {
                       onClick={(e) => {
                         // Avoid navigation if clicking buttons
                         if ((e.target as HTMLElement).closest('button')) return;
-                        navigate(`/master/processes/${p.id}`);
+                        navigate(`${processRoutePrefix}/processes/${p.id}`);
                       }}
                     >
                       <td className="px-8 py-6">

@@ -55,7 +55,7 @@ export function CustomerLayout() {
         <aside 
           className={cn(
             "fixed xl:static inset-y-0 left-0 z-[60] flex flex-col shrink-0 w-full xl:w-[240px] border-r transition-transform duration-300 xl:translate-x-0 shadow-2xl xl:shadow-none",
-            "bg-highlight border-white/10",
+            "bg-card border-border",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
@@ -71,7 +71,7 @@ export function CustomerLayout() {
               
               <button 
                 onClick={closeSidebar}
-                className="xl:hidden p-2 rounded-xl bg-white/10 text-slate-300 hover:text-white"
+                className="xl:hidden p-2 rounded-xl bg-bg-subtle text-text-muted hover:text-text"
               >
                 <RiCloseLine size={20} />
               </button>
@@ -90,12 +90,12 @@ export function CustomerLayout() {
                   cn(
                     "flex items-center gap-3 px-4 py-3 rounded-2xl text-[13px] font-semibold transition-all duration-200",
                     isActive
-                      ? "bg-primary/20 text-white"
-                      : "text-slate-400 hover:bg-white/5 hover:text-white"
+                      ? "bg-[#0b2a5b] text-white border border-[#1f3f77]"
+                      : "text-text-muted hover:bg-bg-subtle hover:text-text"
                   )
                 }
               >
-                <Icon className={cn("text-xl", pathname === to || (pathname === "/dashboard" && to === "/dashboard") ? "text-primary" : "text-current")} />
+                <Icon className="text-xl text-current" />
                 <span>{label}</span>
               </NavLink>
             ))}

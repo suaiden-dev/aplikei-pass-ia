@@ -30,7 +30,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 const STATUS_COLOR: Record<string, string> = {
   pending:            'bg-slate-100 text-slate-500',
-  in_progress:        'bg-primary/10 text-primary',
+  in_progress:        'bg-[#0b2a5b] text-white',
   completed:          'bg-emerald-50 text-emerald-600',
   in_review:          'bg-amber-50 text-amber-600',
   approved:           'bg-emerald-50 text-emerald-700',
@@ -198,7 +198,7 @@ export function COSApplicationStepConnected({
         {/* Status badge */}
         {step.userStep && (
           <div className='flex items-center gap-2 px-8 pt-5'>
-            <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${STATUS_COLOR[statusKey] ?? 'bg-slate-100 text-slate-500'}`}>
+            <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${STATUS_COLOR[statusKey] ?? 'bg-[#0b2a5b] text-white'}`}>
               {STATUS_LABEL[statusKey] ?? statusKey}
             </span>
             {isRevisionRequested && (

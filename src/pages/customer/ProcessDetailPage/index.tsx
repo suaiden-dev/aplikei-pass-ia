@@ -651,7 +651,7 @@ export default function ProcessDetailPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="p-8 rounded-3xl bg-text/90 text-white shadow-xl"
+            className="p-8 rounded-3xl border border-border bg-card text-text shadow-xl"
           >
             <div className="text-[10px] font-black text-text-muted tracking-widest uppercase mb-4">
               {t.processDetail.processStatus}
@@ -662,12 +662,12 @@ export default function ProcessDetailPage() {
                 "w-3 h-3 rounded-full animate-pulse",
                 isApproved ? "bg-emerald-400" :
                   isDenied ? "bg-red-400" :
-                    isFinalized ? "bg-emerald-400" : "bg-primary"
+                    isFinalized ? "bg-emerald-400" : "bg-[#0b2a5b]"
               )} />
               <span className={cn(
                 "text-lg font-black uppercase tracking-tight",
                 isApproved ? "text-emerald-400" :
-                  isDenied ? "text-red-400" : ""
+                  isDenied ? "text-red-400" : "text-[#0b2a5b]"
               )}>
                 {isApproved ? t.processDetail.approved :
                   isDenied ? t.processDetail.denied :
@@ -682,18 +682,18 @@ export default function ProcessDetailPage() {
                 <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">{t.processDetail.progressLabel}</span>
                 <span className={cn(
                   "text-2xl font-black tabular-nums",
-                  isApproved ? "text-emerald-400" : isDenied ? "text-red-400" : ""
+                  isApproved ? "text-emerald-400" : isDenied ? "text-red-400" : "text-[#0b2a5b]"
                 )}>
                   {progressPercent}%
                 </span>
               </div>
-              <div className="h-2 w-full bg-text rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-bg-subtle rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercent}%` }}
                   className={cn(
                     "h-full",
-                    isApproved ? "bg-emerald-500" : isDenied ? "bg-red-500" : "bg-primary"
+                    isApproved ? "bg-emerald-500" : isDenied ? "bg-red-500" : "bg-[#0b2a5b]"
                   )}
                 />
               </div>
