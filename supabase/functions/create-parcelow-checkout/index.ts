@@ -14,9 +14,24 @@ const corsHeaders = {
 // Mapeamento de dependentes por serviço
 const DEPENDENT_SERVICE_MAP: Record<string, string> = {
     'visto-b1-b2': 'dependente-b1-b2',
+    'visa-b1b2': 'dependente-b1-b2',
     'visto-f1': 'dependente-estudante',
+    'visa-f1': 'dependente-estudante',
     'extensao-status': 'dependente-estudante',
+    'visa-eos': 'dependente-estudante',
     'troca-status': 'dependente-estudante',
+    'visa-cos': 'dependente-estudante',
+};
+
+const SLUG_ALIASES: Record<string, string> = {
+    "visa-b1b2": "visto-b1-b2",
+    "visa-f1": "visto-f1",
+    "visa-eos": "extensao-status",
+    "visa-cos": "troca-status",
+    "visto-b1-b2": "visa-b1b2",
+    "visto-f1": "visa-f1",
+    "extensao-status": "visa-eos",
+    "troca-status": "visa-cos",
 };
 
 function cleanDocumentNumber(doc: string | null | undefined): string | null {
@@ -40,8 +55,13 @@ Deno.serve(async (req: Request) => {
             office_id
         } = payload;
 
-        if (!slug || !email || (!cpf && !payerInfo?.cpf)) {
-            console.error("[create-parcelow-checkout] Falha na validação. Dados recebidos:", { slug, email, cpf, hasPayer: !!payerInfo?.cpf });
+        const rawSlug = String(slug || "").toLowerCase();
+        const aliasSlug = SLUG_ALIASES[rawSlug];
+        const slugCandidates = Array.from(new Set([rawSlug, aliasSlug].filter(Boolean))) as string[];
+        const normalizedSlug = rawSlug;
+
+        if (!rawSlug || !email || (!cpf && !payerInfo?.cpf)) {
+            console.error("[create-parcelow-checkout] Falha na validação. Dados recebidos:", { slug: normalizedSlug, email, cpf, hasPayer: !!payerInfo?.cpf });
             throw new Error("Parâmetros obrigatórios ausentes (slug, email ou CPF do pagador). [V2]");
         }
 
@@ -56,11 +76,11 @@ Deno.serve(async (req: Request) => {
         });
 
         // 2. Buscar preços na nova tabela services_prices
-        const dependentId = DEPENDENT_SERVICE_MAP[slug] || 'dependente-b1-b2';
+        const dependentId = DEPENDENT_SERVICE_MAP[normalizedSlug] || DEPENDENT_SERVICE_MAP[aliasSlug || ""] || 'dependente-b1-b2';
         const { data: dbPrices } = await supabase
             .from("services_prices")
             .select("service_id, name, price")
-            .in("service_id", [slug, dependentId]);
+            .in("service_id", [...slugCandidates, dependentId]);
 
         // Fallback catalog
         const FALLBACK_PRICES: Record<string, { name: string; price: number }> = {
@@ -91,14 +111,17 @@ Deno.serve(async (req: Request) => {
             const depPriceInfo = dbPrices?.find(p => p.service_id === dependentId);
             depPriceUSD = depPriceInfo ? Number(depPriceInfo.price) : 0;
         } else {
-            let mainPriceInfo = dbPrices?.find(p => p.service_id === slug);
-            if (!mainPriceInfo && FALLBACK_PRICES[slug]) {
-                mainPriceInfo = { service_id: slug, ...FALLBACK_PRICES[slug] };
+            let mainPriceInfo = dbPrices?.find(p => slugCandidates.includes(String(p.service_id || "").toLowerCase()));
+            if (!mainPriceInfo) {
+                const fallbackKey = slugCandidates.find((k) => Boolean(FALLBACK_PRICES[k]));
+                if (fallbackKey) {
+                    mainPriceInfo = { service_id: fallbackKey, ...FALLBACK_PRICES[fallbackKey] };
+                }
             }
 
             if (!mainPriceInfo) {
-                console.error("[parcelow-checkout] Serviço não encontrado:", slug);
-                throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
+                console.error("[parcelow-checkout] Serviço não encontrado:", normalizedSlug);
+                throw new Error(`Serviço não encontrado no catálogo: ${normalizedSlug}`);
             }
 
             const depPriceInfo = dbPrices?.find(p => p.service_id === dependentId);
@@ -117,7 +140,7 @@ Deno.serve(async (req: Request) => {
         if (coupon_code) {
             const { data: couponData, error: couponError } = await supabase.rpc("validate_coupon", {
                 p_code: coupon_code.toUpperCase().trim(),
-                p_slug: slug
+                p_slug: normalizedSlug
             });
 
             if (!couponError && couponData?.valid) {
@@ -228,7 +251,9 @@ Deno.serve(async (req: Request) => {
                     applied_coupon_id: appliedCouponId || "",
                     original_subtotal: subtotalUSD.toString(),
                     discount_amount: (subtotalUSD - finalSubtotalUSD).toString(),
-                    product_type: slug === 'troca-status' ? 'COS' : (slug === 'extensao-status' ? 'EOS' : 'B1B2'),
+                    product_type: normalizedSlug === 'troca-status' || normalizedSlug === 'visa-cos'
+                        ? 'COS'
+                        : (normalizedSlug === 'extensao-status' || normalizedSlug === 'visa-eos' ? 'EOS' : 'B1B2'),
                 }
             })
             .eq("id", orderUuid);
@@ -251,7 +276,7 @@ Deno.serve(async (req: Request) => {
             },
             items: [
                 {
-                    reference: slug,
+                    reference: normalizedSlug,
                     description: `Aplikei Checkout - ${serviceName}${coupon_code ? ' (Com Cupom)' : ''}`,
                     quantity: 1,
                     amount: amountInCents
@@ -259,7 +284,7 @@ Deno.serve(async (req: Request) => {
             ],
             redirect: {
                 success: `${origin_url}/checkout-success?s=s&pid=${orderUuid}&ce=${btoa(email)}`,
-                failed: `${origin_url}/servicos/${slug}`
+                failed: `${origin_url}/servicos/${normalizedSlug}`
             }
         };
 

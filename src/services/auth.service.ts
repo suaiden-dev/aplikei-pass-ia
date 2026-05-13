@@ -30,6 +30,7 @@ type UserAccountsRow = {
   role: UserAccount["role"];
   office_id: string | null;
   email: string | null;
+  office_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -186,8 +187,9 @@ async function resolveCurrentUserFromSession(session: Session | null): Promise<U
 
 export function getDashboardPathForRole(role: UserAccount["role"]) {
   if (role === "master") return "/master";
-  if (role === "manager" || role === "admin_lawyer") return "/admin";
-  if (role === "seller") return "/seller/payments";
+  if (role === "manager") return "/admin";
+  if (role === "admin_lawyer") return "/admin";
+  if (role === "seller") return "/seller/earnings";
   return "/dashboard";
 }
 

@@ -34,7 +34,7 @@ export function TopLawyers() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-text truncate">{lawyer.name}</p>
-              <p className="text-[11px] text-text-muted">{lawyer.cases} casos</p>
+              <p className="text-[11px] text-text-muted">{t.overview.charts.casesCount.replace('{{count}}', String(lawyer.cases))}</p>
             </div>
             <div className="text-right">
               <p className="text-sm font-bold text-text">{lawyer.revenue}</p>

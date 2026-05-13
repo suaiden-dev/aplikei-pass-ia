@@ -1030,7 +1030,7 @@ export default function CaseOnboardingPage() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const scope = location.pathname.startsWith("/admin") ? "admin" : "master";
+  const scope = location.pathname.startsWith("/master") ? "master" : "admin";
   const backPath = `/${scope}/cases`;
   const [selectedRevisionItems, setSelectedRevisionItems] = useState<string[]>([]);
   const [revisionFeedback, setRevisionFeedback] = useState("");

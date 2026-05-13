@@ -130,7 +130,7 @@ export function useB1B2Onboarding({
   useEffect(() => {
     const idParam = searchParams.get("id");
     loadService(idParam ?? undefined);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const handleSubmit = useCallback(
@@ -174,6 +174,19 @@ export function useB1B2Onboarding({
             navigate(`/dashboard/processes/${slug}`);
           }, 1500);
         }
+
+        await requestStepReview(procId);
+
+        await notifyAdmin({
+          title: "DS-160 Preenchida",
+          body: `O cliente finalizou a DS-160 para ${slug}.`,
+          serviceId: procId,
+          userId,
+          link: `/master/processes/${procId}`,
+        });
+
+        toast.success(labels.successSubmit);
+        navigate(`/dashboard/processes/${slug}`);
       } catch (err) {
         console.error(err);
         toast.error(labels.errorSave);

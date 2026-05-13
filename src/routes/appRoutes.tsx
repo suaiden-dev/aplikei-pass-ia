@@ -8,9 +8,12 @@ import {
     LayoutTemplate,
     MessageSquare,
     Package2,
-    ShieldCheck,
     TicketPercent,
+    TrendingUp,
     Users,
+    Building2,
+    Landmark,
+    DollarSign,
 } from "lucide-react";
 import { AccessLevel } from "./accessLevels";
 
@@ -59,8 +62,11 @@ const Disclaimers = lazyPage(() => import("../pages/Legal/Disclaimers"));
 const ContractTerms = lazyPage(() => import("../pages/Legal/ContractTerms"));
 
 // Staff shared (rendered under admin + master sidebar layouts)
-const OverviewPage = lazyPage(() => import("../pages/admin/OverviewPage"));
+const OverviewPage = lazyPage(() => import("../pages/admin/OverviewPage/index"));
 const CustomersPage = lazyPage(() => import("../pages/admin/CustomersPage"));
+const RevenuePage = lazyPage(() => import("../pages/admin/RevenuePage"));
+const FinanceAnalyticsPage = lazyPage(() => import("../pages/admin/FinanceAnalyticsPage"));
+const PlansPage = lazyPage(() => import("../pages/admin/PlansPage"));
 const ZellePaymentsPage = lazyPage(
     () => import("../pages/admin/ZellePaymentsPage"),
 );
@@ -78,7 +84,18 @@ const AdminProcessDetailPage = lazyPage(
     () => import("../pages/admin/ProcessDetailPage"),
 );
 const RolesPage = lazyPage(() => import("../pages/admin/RolesPage"));
+const TeamsPage = lazyPage(() => import("../pages/admin/TeamsPage"));
 const PageBuilderPage = lazyPage(() => import("../pages/PageBuilderPage"));
+const SellerEarningsPage = lazyPage(() => import("../pages/seller/EarningsPage"));
+const DiscountRulesPage = lazyPage(() => import("../pages/admin/DiscountRulesPage"));
+const SubscriptionPage = lazyPage(() => import("../pages/admin/SubscriptionPage"));
+const OfficesPage = lazyPage(() => import("../pages/admin/OfficesPage"));
+const OfficeDetailsPage = lazyPage(() => import("../pages/admin/OfficeDetailsPage"));
+const CompanyProfilePage = lazyPage(() => import("../pages/admin/CompanyProfilePage"));
+const PayoutSettingsPage = lazyPage(() => import("../pages/admin/billings/PaymentSettingsPage"));
+const WithdrawalsPage = lazyPage(() => import("../pages/admin/billings/WithdrawalsPage"));
+const MasterOverviewPage = lazyPage(() => import("../pages/admin/MasterOverviewPage"));
+const ShortLinkPage = lazyPage(() => import("../pages/ShortLinkPage"));
 
 // Customer
 const CustomerDashboardPage = lazyPage(
@@ -130,6 +147,7 @@ export interface AppRouteDefinition {
         Extract<RouteLayout, "master" | "manager" | "seller" | "admin_lawyer">
     >;
     sidebarGroup?: string;
+    sidebarGroupKey?: string;
     icon?: LucideIcon;
     exact?: boolean;
 }
@@ -148,7 +166,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/servicos",
-        title: "Serviços",
+        title: "Services",
         component: ServicosPage,
         authRequired: false,
         accessLevels: [],
@@ -182,7 +200,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/cadastro",
-        title: "Cadastro",
+        title: "Sign Up",
         component: SignUpPage,
         authRequired: false,
         accessLevels: [],
@@ -190,7 +208,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/sign-up",
-        title: "Cadastro",
+        title: "Sign Up",
         component: SignUpPage,
         authRequired: false,
         accessLevels: [],
@@ -198,7 +216,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/recuperar-senha",
-        title: "Recuperar Senha",
+        title: "Recover Password",
         component: ForgotPasswordPage,
         authRequired: false,
         accessLevels: [],
@@ -214,7 +232,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/redefinir-senha",
-        title: "Redefinir Senha",
+        title: "Reset Password",
         component: ResetPasswordPage,
         authRequired: false,
         accessLevels: [],
@@ -239,6 +257,14 @@ export const appRoutes: AppRouteDefinition[] = [
         layout: "standalone",
     },
     {
+        path: "/l/:token",
+        title: "Link",
+        component: ShortLinkPage,
+        authRequired: false,
+        accessLevels: [],
+        layout: "standalone",
+    },
+    {
         path: "/checkout",
         title: "Office Checkout",
         component: OfficeCheckoutPage,
@@ -248,7 +274,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/termos",
-        title: "Termos",
+        title: "Terms",
         component: Terms,
         authRequired: false,
         accessLevels: [],
@@ -256,7 +282,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/privacidade",
-        title: "Privacidade",
+        title: "Privacy",
         component: Privacy,
         authRequired: false,
         accessLevels: [],
@@ -264,7 +290,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/reembolso",
-        title: "Reembolso",
+        title: "Refund",
         component: Refund,
         authRequired: false,
         accessLevels: [],
@@ -272,7 +298,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/avisos-legais",
-        title: "Avisos Legais",
+        title: "Legal Disclaimers",
         component: Disclaimers,
         authRequired: false,
         accessLevels: [],
@@ -280,7 +306,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/contrato",
-        title: "Contrato",
+        title: "Contract",
         component: ContractTerms,
         authRequired: false,
         accessLevels: [],
@@ -298,9 +324,9 @@ export const appRoutes: AppRouteDefinition[] = [
     // ── Master ─────────────────────────────────────────────────────────────────
     {
         path: "/master",
-        title: "Dashboard",
-        titleKey: "dashboard",
-        component: OverviewPage,
+        title: "Master Overview",
+        titleKey: "overview",
+        component: MasterOverviewPage,
         authRequired: true,
         accessLevels: [AccessLevel.MASTER],
         layout: "master",
@@ -312,8 +338,7 @@ export const appRoutes: AppRouteDefinition[] = [
     // ── Admin ──────────────────────────────────────────────────────────────────
     {
         path: "/admin",
-        title: "Dashboard",
-        titleKey: "dashboard",
+        title: "Overview",
         component: OverviewPage,
         authRequired: true,
         accessLevels: STAFF,
@@ -325,14 +350,13 @@ export const appRoutes: AppRouteDefinition[] = [
     {
         path: "/page-builder",
         title: "Page Builder",
-        titleKey: "pageBuilder",
         component: PageBuilderPage,
         authRequired: true,
         accessLevels: STAFF,
         layout: "protected",
         showInSidebar: true,
         sidebarLayouts: ["admin_lawyer"],
-        sidebarGroup: "Configurações",
+        sidebarGroupKey: "settings",
         icon: LayoutTemplate,
     },
 
@@ -346,20 +370,43 @@ export const appRoutes: AppRouteDefinition[] = [
         accessLevels: STAFF_AND_SELLER,
         layout: "protected",
         showInSidebar: true,
-        sidebarLayouts: ["master", "manager", "seller", "admin_lawyer"],
         icon: Users,
     },
     {
         path: "/payments",
-        title: "Revenue",
+        title: "Finance",
         titleKey: "revenue",
-        component: ZellePaymentsPage,
+        component: RevenuePage,
         authRequired: true,
-        accessLevels: STAFF_AND_SELLER,
+        accessLevels: STAFF,
         layout: "protected",
         showInSidebar: true,
-        sidebarLayouts: ["master", "manager", "seller"],
-        icon: CreditCard,
+        sidebarLayouts: ["master", "admin_lawyer"],
+        icon: Landmark,
+    },
+    {
+        path: "/finance-analytics",
+        title: "Finance Analytics",
+        titleKey: "finance_analytics",
+        component: FinanceAnalyticsPage,
+        authRequired: true,
+        accessLevels: [AccessLevel.MASTER],
+        layout: "protected",
+        showInSidebar: true,
+        sidebarLayouts: ["master"],
+        icon: TrendingUp,
+    },
+    {
+        path: "/plans",
+        title: "Plans",
+        titleKey: "plans",
+        component: PlansPage,
+        authRequired: true,
+        accessLevels: [AccessLevel.MASTER],
+        layout: "protected",
+        showInSidebar: true,
+        sidebarLayouts: ["master"],
+        icon: Package2,
     },
     {
         path: "/chats",
@@ -370,7 +417,7 @@ export const appRoutes: AppRouteDefinition[] = [
         accessLevels: STAFF_AND_SELLER,
         layout: "protected",
         showInSidebar: true,
-        sidebarLayouts: ["master", "manager", "seller", "admin_lawyer"],
+        sidebarLayouts: ["manager"],
         icon: MessageSquare,
     },
     {
@@ -382,21 +429,45 @@ export const appRoutes: AppRouteDefinition[] = [
         accessLevels: STAFF_AND_SELLER,
         layout: "protected",
         showInSidebar: true,
-        sidebarLayouts: ["master", "manager", "seller"],
+        sidebarLayouts: ["seller"],
         icon: TicketPercent,
     },
     {
         path: "/products",
         title: "Products",
-        titleKey: "products",
         component: ProductsPage,
         authRequired: true,
         accessLevels: STAFF,
         layout: "protected",
         showInSidebar: true,
-        sidebarLayouts: ["admin_lawyer", "manager"],
-        sidebarGroup: "Configurações",
+        sidebarLayouts: ["admin_lawyer"],
+        sidebarGroupKey: "settings",
         icon: Package2,
+    },
+    {
+        path: "/earnings",
+        title: "Earnings",
+        titleKey: "earnings",
+        component: SellerEarningsPage,
+        authRequired: true,
+        accessLevels: [AccessLevel.SELLER],
+        layout: "protected",
+        showInSidebar: true,
+        sidebarLayouts: ["seller"],
+        icon: TrendingUp,
+    },
+    {
+        path: "/settings/discount-rules",
+        title: "Discount Rules",
+        titleKey: "discountRules",
+        component: DiscountRulesPage,
+        authRequired: true,
+        accessLevels: STAFF,
+        layout: "protected",
+        showInSidebar: true,
+        sidebarLayouts: ["admin_lawyer"],
+        sidebarGroupKey: "settings",
+        icon: TicketPercent,
     },
     {
         path: "/settings/payment-methods",
@@ -407,9 +478,46 @@ export const appRoutes: AppRouteDefinition[] = [
         accessLevels: STAFF,
         layout: "protected",
         showInSidebar: true,
-        sidebarLayouts: ["admin_lawyer", "manager", "master"],
-        sidebarGroup: "Configurações",
+        sidebarGroupKey: "settings",
         icon: CreditCard,
+    },
+    {
+        path: "/settings/company",
+        title: "Company Profile",
+        component: CompanyProfilePage,
+        authRequired: true,
+        accessLevels: [AccessLevel.ADMIN_LAWYER],
+        layout: "protected",
+        showInSidebar: true,
+        sidebarLayouts: ["admin_lawyer"],
+        sidebarGroupKey: "settings",
+        icon: Landmark,
+    },
+    {
+        path: "/settings/payout",
+        title: "Payout Configuration",
+        titleKey: "payoutSettings",
+        component: PayoutSettingsPage,
+        authRequired: true,
+        accessLevels: [AccessLevel.ADMIN_LAWYER],
+        layout: "protected",
+        showInSidebar: true,
+        sidebarLayouts: ["admin_lawyer"],
+        sidebarGroupKey: "billings",
+        icon: Landmark,
+    },
+    {
+        path: "/billings/withdrawals",
+        title: "Withdrawals",
+        titleKey: "withdrawals",
+        component: WithdrawalsPage,
+        authRequired: true,
+        accessLevels: [AccessLevel.ADMIN_LAWYER],
+        layout: "protected",
+        showInSidebar: true,
+        sidebarLayouts: ["admin_lawyer"],
+        sidebarGroupKey: "billings",
+        icon: DollarSign,
     },
     {
         path: "/lawyers",
@@ -420,32 +528,59 @@ export const appRoutes: AppRouteDefinition[] = [
         accessLevels: STAFF,
         layout: "protected",
         showInSidebar: true,
-        sidebarLayouts: ["master", "manager"],
         icon: Users,
     },
     {
         path: "/processes",
         title: "Processes",
-        titleKey: "matters",
         component: AdminProcessesPage,
         authRequired: true,
         accessLevels: STAFF,
         layout: "protected",
         showInSidebar: true,
-        sidebarLayouts: ["master", "manager", "admin_lawyer"],
+        sidebarLayouts: ["admin_lawyer", "manager"],
         icon: BriefcaseBusiness,
     },
     {
         path: "/roles",
-        title: "Roles",
-        titleKey: "roles",
-        component: RolesPage,
+        title: "Teams",
+        component: TeamsPage,
         authRequired: true,
         accessLevels: STAFF,
         layout: "protected",
         showInSidebar: true,
-        sidebarLayouts: ["master", "admin_lawyer"],
-        icon: ShieldCheck,
+        sidebarLayouts: ["admin_lawyer"],
+        icon: Users,
+    },
+    {
+        path: "/master/offices",
+        title: "Offices",
+        titleKey: "offices",
+        component: OfficesPage,
+        authRequired: true,
+        accessLevels: [AccessLevel.MASTER],
+        layout: "master",
+        showInSidebar: true,
+        icon: Building2,
+    },
+    {
+        path: "/master/offices/:officeId",
+        title: "Office Details",
+        component: OfficeDetailsPage,
+        authRequired: true,
+        accessLevels: [AccessLevel.MASTER],
+        layout: "master",
+    },
+    {
+        path: "/subscription",
+        title: "My Subscription",
+        component: SubscriptionPage,
+        authRequired: true,
+        accessLevels: [AccessLevel.ADMIN_LAWYER, AccessLevel.MASTER],
+        layout: "protected",
+        showInSidebar: true,
+        sidebarLayouts: ["admin_lawyer"],
+        icon: CreditCard,
     },
     {
         path: "/processes/:id",
@@ -467,7 +602,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/dashboard/processes",
-        title: "Meus Processos",
+        title: "My Processes",
         component: MyProcessesPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
@@ -563,7 +698,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/dashboard/processes/:slug",
-        title: "Detalhe Processo",
+        title: "Process Detail",
         component: ProcessDetailPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
@@ -571,7 +706,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/dashboard/support",
-        title: "Suporte",
+        title: "Support",
         component: AIChatPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
@@ -587,7 +722,7 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/minha-conta",
-        title: "Minha Conta",
+        title: "My Account",
         component: ProfileSettingsPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],

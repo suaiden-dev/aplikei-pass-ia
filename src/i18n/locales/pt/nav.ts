@@ -4,7 +4,7 @@ const nav = {
   services: "Serviços",
   contact: "Contato",
   login: "Entrar",
-  getStarted: "Contato",
+  getStarted: "Começar",
   dashboard: "Painel",
   adminPanel: "Painel Admin",
   payments: "Pagamentos",

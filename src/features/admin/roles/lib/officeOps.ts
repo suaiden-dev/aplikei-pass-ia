@@ -4,8 +4,15 @@ export interface OfficeRow {
   id: string;
   name: string;
   slug: string;
+  landing_page_config?: Record<string, unknown> | null;
   address: string | null;
   phone: string | null;
+  cnpj?: string | null;
+  email?: string | null;
+  website?: string | null;
+  instagram_url?: string | null;
+  linkedin_url?: string | null;
+  facebook_url?: string | null;
   owner_id: string;
   owner_name?: string | null;
   owner_email?: string | null;
@@ -16,6 +23,12 @@ export interface UpsertOfficePayload {
   slug?: string | null;
   address?: string | null;
   phone?: string | null;
+  cnpj?: string | null;
+  email?: string | null;
+  website?: string | null;
+  instagram_url?: string | null;
+  linkedin_url?: string | null;
+  facebook_url?: string | null;
   owner_id: string;
 }
 
@@ -37,7 +50,7 @@ export function generateSlug(name: string) {
 export async function fetchOfficeByOwner(ownerId: string): Promise<OfficeRow | null> {
   const { data, error } = await supabase
     .from("offices")
-    .select("id, name, slug, address, phone, owner_id")
+    .select("id, name, slug, landing_page_config, address, phone, cnpj, email, website, instagram_url, linkedin_url, facebook_url, owner_id")
     .eq("owner_id", ownerId)
     .maybeSingle();
 
@@ -48,7 +61,7 @@ export async function fetchOfficeByOwner(ownerId: string): Promise<OfficeRow | n
 export async function listOffices(): Promise<OfficeRow[]> {
   const { data, error } = await supabase
     .from("offices")
-    .select("id, name, slug, address, phone, owner_id, user_accounts:owner_id(full_name, name, email)")
+    .select("id, name, slug, landing_page_config, address, phone, cnpj, email, website, instagram_url, linkedin_url, facebook_url, owner_id, user_accounts:owner_id(full_name, name, email)")
     .order("name", { ascending: true });
 
   if (error) throw Error(error.message);
@@ -57,6 +70,12 @@ export async function listOffices(): Promise<OfficeRow[]> {
     name: string;
     address: string | null;
     phone: string | null;
+    cnpj: string | null;
+    email: string | null;
+    website: string | null;
+    instagram_url: string | null;
+    linkedin_url: string | null;
+    facebook_url: string | null;
     owner_id: string;
     user_accounts?: { full_name?: string | null; name?: string | null; email?: string | null } | null;
   }> | null) || [];
@@ -67,6 +86,12 @@ export async function listOffices(): Promise<OfficeRow[]> {
     slug: (row as any).slug,
     address: row.address,
     phone: row.phone,
+    cnpj: row.cnpj,
+    email: row.email,
+    website: row.website,
+    instagram_url: row.instagram_url,
+    linkedin_url: row.linkedin_url,
+    facebook_url: row.facebook_url,
     owner_id: row.owner_id,
     owner_name: row.user_accounts?.full_name || row.user_accounts?.name || null,
     owner_email: row.user_accounts?.email || null,
@@ -79,7 +104,7 @@ export async function findOfficeByName(name: string): Promise<OfficeRow | null> 
 
   const { data, error } = await supabase
     .from("offices")
-    .select("id, name, slug, address, phone, owner_id")
+    .select("id, name, slug, landing_page_config, address, phone, cnpj, email, website, instagram_url, linkedin_url, facebook_url, owner_id")
     .ilike("name", normalizedName)
     .maybeSingle();
 
@@ -101,7 +126,7 @@ export async function upsertOffice(payload: UpsertOfficePayload): Promise<Office
   const { data, error } = await supabase
     .from("offices")
     .upsert({ ...payload, name: trimmedName, slug }, { onConflict: "owner_id" })
-    .select("id, name, slug, address, phone, owner_id")
+    .select("id, name, slug, landing_page_config, address, phone, cnpj, email, website, instagram_url, linkedin_url, facebook_url, owner_id")
     .single();
 
   if (error) throw Error(error.message);
@@ -111,7 +136,7 @@ export async function upsertOffice(payload: UpsertOfficePayload): Promise<Office
 export async function fetchOfficeForUser(userId: string): Promise<OfficeRow | null> {
   const { data, error } = await supabase
     .from("user_accounts")
-    .select("office_id, offices(id, name, slug, address, phone, owner_id)")
+    .select("office_id, offices!office_id(id, name, slug, landing_page_config, address, phone, cnpj, email, website, instagram_url, linkedin_url, facebook_url, owner_id)")
     .eq("id", userId)
     .maybeSingle();
 
@@ -142,7 +167,7 @@ export async function assignOfficeOwner(params: {
 }): Promise<OfficeRow> {
   const { data: office, error: fetchError } = await supabase
     .from("offices")
-    .select("id, name, slug, address, phone, owner_id")
+    .select("id, name, slug, landing_page_config, address, phone, cnpj, email, website, instagram_url, linkedin_url, facebook_url, owner_id")
     .eq("id", params.officeId)
     .single();
 
@@ -159,9 +184,18 @@ export async function assignOfficeOwner(params: {
     .from("offices")
     .update({ owner_id: params.ownerId })
     .eq("id", params.officeId)
-    .select("id, name, slug, address, phone, owner_id")
+    .select("id, name, slug, landing_page_config, address, phone, cnpj, email, website, instagram_url, linkedin_url, facebook_url, owner_id")
     .single();
 
   if (error) throw Error(error.message);
   return data as OfficeRow;
+}
+
+export async function saveOfficeLandingConfig(ownerId: string, config: Record<string, unknown>): Promise<void> {
+  const { error } = await supabase
+    .from("offices")
+    .update({ landing_page_config: config })
+    .eq("owner_id", ownerId);
+
+  if (error) throw Error(error.message);
 }

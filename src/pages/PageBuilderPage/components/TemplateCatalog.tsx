@@ -1,4 +1,6 @@
 import { RiGraduationCapLine, RiPlaneLine, RiFileTextLine, RiRefreshLine, RiLinkM } from "react-icons/ri";
+import { Check, Copy } from "lucide-react";
+import { useState } from "react";
 import { Switch } from "../../../components/atoms/switch";
 import type { LandingPageConfig } from "../types";
 
@@ -58,9 +60,17 @@ interface TemplateCatalogProps {
 
 export function TemplateCatalog({ config, onUpdateConfig }: TemplateCatalogProps) {
   const hasOffice = Boolean(config.officeSlug);
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+
+  const copyCheckoutLink = (slug: string, url: string) => {
+    void navigator.clipboard.writeText(url).then(() => {
+      setCopiedSlug(slug);
+      setTimeout(() => setCopiedSlug(null), 1500);
+    });
+  };
 
   return (
-    <aside className="w-72 shrink-0 overflow-y-auto border-r border-border bg-card px-3 py-3">
+    <aside className="w-full shrink-0 overflow-y-auto border-b border-border bg-card px-3 py-3 lg:w-72 lg:border-b-0 lg:border-r">
       <h2 className="text-sm font-black uppercase tracking-wide text-text">Produtos</h2>
       <p className="mt-1 text-xs text-text-muted">
         Ative os serviços que aparecerão na página para compra.
@@ -117,6 +127,18 @@ export function TemplateCatalog({ config, onUpdateConfig }: TemplateCatalogProps
                   <span className="truncate font-mono text-[10px] text-text-muted">
                     {checkoutUrl}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => copyCheckoutLink(product.serviceSlug, checkoutUrl)}
+                    className="shrink-0 rounded border border-border p-1.5 text-text-muted transition-colors hover:text-text"
+                    title="Copiar link do serviço"
+                  >
+                    {copiedSlug === product.serviceSlug ? (
+                      <Check size={12} className="text-success" />
+                    ) : (
+                      <Copy size={12} />
+                    )}
+                  </button>
                 </div>
               )}
             </article>

@@ -17,6 +17,13 @@ const customerUser: UserAccount = {
   updatedAt: "2024-01-01T00:00:00.000Z",
 };
 
+const managerUser: UserAccount = {
+  ...customerUser,
+  id: "manager-1",
+  email: "manager@example.com",
+  role: "manager",
+};
+
 describe("authGuard", () => {
   it("builds the redirect state for protected routes", () => {
     expect(buildLoginRedirectState({
@@ -61,7 +68,7 @@ describe("authGuard", () => {
       isAuthenticated: true,
       isLoading: false,
       location: {
-        pathname: "/admin",
+        pathname: "/master",
         search: "",
         hash: "",
       },
@@ -85,6 +92,23 @@ describe("authGuard", () => {
       allowedRoles: ["customer"],
     })).toEqual({
       kind: "allow",
+    });
+  });
+
+  it("blocks non-master users from master-only routes", () => {
+    expect(resolveAuthGuard({
+      user: managerUser,
+      isAuthenticated: true,
+      isLoading: false,
+      location: {
+        pathname: "/master/finance-analytics",
+        search: "",
+        hash: "",
+      },
+      allowedRoles: ["master"],
+    })).toEqual({
+      kind: "redirect-role-home",
+      to: "/master",
     });
   });
 });

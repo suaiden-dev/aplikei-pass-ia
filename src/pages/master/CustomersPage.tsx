@@ -39,16 +39,16 @@ export default function CustomersPage() {
       <DashboardPageHeader
         eyebrow="CRM"
         title="Customers"
-        description="Painel comercial mais próximo do visual premium do produto, com lista central e ficha lateral do cliente."
+        description="Customer relationship management panel with premium design and centralized list."
         actions={(
           <>
             <Button variant="outline" className="h-11 rounded-2xl px-4 font-semibold">
               <Download className="h-4 w-4" />
-              Exportar base
+              Export data
             </Button>
             <Button className="h-11 rounded-2xl px-4 font-semibold">
               <UserPlus className="h-4 w-4" />
-              Novo customer
+              New customer
             </Button>
           </>
         )}
@@ -57,32 +57,32 @@ export default function CustomersPage() {
       <DashboardToolbar>
         <div className="flex flex-wrap items-center gap-2">
           <ToolbarPill label="Pipeline" active />
-          <ToolbarPill label="Brasil" />
-          <ToolbarPill label="Em risco" />
+          <ToolbarPill label="Brazil" />
+          <ToolbarPill label="At Risk" />
           <ToolbarPill label="High LTV" />
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <InlineMetric label="CAC mockado" value="R$ 420" helper="Aquisição média" />
-          <InlineMetric label="Retenção" value="88%" helper="Carteira ativa" />
-          <InlineMetric label="Tempo de ciclo" value="19 dias" helper="Lead ao fechamento" />
+          <InlineMetric label="CAC (Mocked)" value="R$ 420" helper="Acquisition Avg" />
+          <InlineMetric label="Retention" value="88%" helper="Active Portfolio" />
+          <InlineMetric label="Cycle Time" value="19 days" helper="Lead to Close" />
         </div>
       </DashboardToolbar>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <KpiCard label="Base de clientes" value={formatCompactNumber(customers.length)} delta="CRM consolidado" icon={Users} />
-        <KpiCard label="Clientes novos" value={String(newCount)} delta="Onboarding em curso" icon={UserPlus} />
-        <KpiCard label="LTV consolidado" value={formatCurrency(totalValue)} delta={`${activeCount} ativos`} icon={CircleDollarSign} />
+        <KpiCard label="Customer base" value={formatCompactNumber(customers.length)} delta="Consolidated CRM" icon={Users} />
+        <KpiCard label="New customers" value={String(newCount)} delta="Onboarding in progress" icon={UserPlus} />
+        <KpiCard label="Consolidated LTV" value={formatCurrency(totalValue)} delta={`${activeCount} active`} icon={CircleDollarSign} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.45fr_0.9fr]">
-        <DashboardSection title="Customers list" description="Tabela principal com leitura de CRM e sinais de risco.">
+        <DashboardSection title="Customers list" description="Main table with CRM data and risk signals.">
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="text-text-muted">
                 <tr>
-                  <th className="pb-3 pr-4 font-semibold">Cliente</th>
-                  <th className="pb-3 pr-4 font-semibold">Etapa</th>
-                  <th className="pb-3 pr-4 font-semibold">País</th>
+                  <th className="pb-3 pr-4 font-semibold">Customer</th>
+                  <th className="pb-3 pr-4 font-semibold">Stage</th>
+                  <th className="pb-3 pr-4 font-semibold">Country</th>
                   <th className="pb-3 pr-4 font-semibold">Owner</th>
                   <th className="pb-3 pr-4 font-semibold">LTV</th>
                   <th className="pb-3 font-semibold">Status</th>
@@ -121,7 +121,7 @@ export default function CustomersPage() {
         </DashboardSection>
 
         <div className="space-y-6">
-          <DashboardSection title="Customer spotlight" description="Leitura lateral, mais próxima do card profile/admin do pass-ia.">
+          <DashboardSection title="Customer spotlight" description="Detailed view of the selected customer.">
             {highlightedCustomer ? (
               <div className="rounded-[1.5rem] border border-border bg-bg-subtle p-5">
                 <div className="flex items-center gap-4">
@@ -134,7 +134,7 @@ export default function CustomersPage() {
                   </div>
                 </div>
                 <div className="mt-5 grid gap-3">
-                  <InlineMetric label="Etapa principal" value={highlightedCustomer.stage} />
+                  <InlineMetric label="Main Stage" value={highlightedCustomer.stage} />
                   <InlineMetric label="Owner" value={highlightedCustomer.owner} />
                   <InlineMetric label="LTV" value={formatCurrency(highlightedCustomer.lifetimeValue)} />
                 </div>
@@ -149,13 +149,13 @@ export default function CustomersPage() {
             ) : null}
           </DashboardSection>
 
-          <DashboardSection title="Flags" description="Itens de atenção para priorização comercial.">
+          <DashboardSection title="Flags" description="Attention items for commercial prioritization.">
             <div className="space-y-3">
               <div className="rounded-2xl border border-border bg-bg-subtle p-4 text-sm text-text-muted">
-                2 clientes estão em risco por pendência de pagamento ou atraso documental.
+                2 customers are at risk due to payment or document pending.
               </div>
               <div className="rounded-2xl border border-border bg-bg-subtle p-4 text-sm text-text-muted">
-                Clientes de Portugal estão convertendo melhor na linha de F-1 premium.
+                Customers from Portugal are converting better on F-1 premium line.
               </div>
             </div>
           </DashboardSection>

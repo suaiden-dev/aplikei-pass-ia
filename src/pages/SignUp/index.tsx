@@ -11,12 +11,17 @@ import { PhoneInput } from "../../components/molecules/PhoneInput";
 import { useAuthForm } from "../../features/auth/hooks/useAuthForm";
 import { getSignUpSchema } from "../../features/auth/schemas/auth.schema";
 import { useT } from "../../i18n";
+import { useSearchParams } from "react-router-dom";
 
 export default function SignUp() {
   const t = useT("auth");
   const v = useT("validation");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signUp } = useAuthForm();
+
+  const roleParam = searchParams.get("role");
+  const officeIdParam = searchParams.get("officeId");
 
   const formik = useFormik({
     initialValues: {
@@ -25,6 +30,8 @@ export default function SignUp() {
       password: "",
       phoneNumber: "",
       terms: false,
+      role: roleParam || "admin_lawyer",
+      officeId: officeIdParam || undefined,
     },
     validate: zodValidate(getSignUpSchema(v)),
     onSubmit: async (values, { setSubmitting }) => {
@@ -108,7 +115,11 @@ export default function SignUp() {
             checked={formik.values.terms}
             onCheckedChange={(checked) => {
               formik.setFieldValue("terms", checked);
-              formik.setFieldTouched("terms", true);
+              if (checked) {
+                formik.setFieldError("terms", undefined);
+              } else {
+                formik.setFieldTouched("terms", true);
+              }
             }}
           />
           <label htmlFor="terms" className="cursor-pointer text-xs leading-relaxed text-text-muted">

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { authService } from "../../features/auth/lib/auth";
+import { supabase } from "../../shared/lib/supabase";
 import {
   RiShieldCheckLine,
   RiLockLine,
@@ -197,6 +198,14 @@ export default function CheckoutPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const postZelleRoute =
+    user?.role === "master" || user?.role === "admin_lawyer" || user?.role === "manager"
+      ? "/payments"
+      : "/dashboard";
+  const [officeStatus, setOfficeStatus] = useState<string>("active");
+  const [checkingOffice, setCheckingOffice] = useState(false);
+  const officeId = searchParams.get("office_id") || searchParams.get("officeId");
+  const sellerRef = searchParams.get("ref") || undefined;
 
   const isUpgrade = searchParams.get("upgrade") === "true";
   const parentId = searchParams.get("id") || searchParams.get("parentId") || searchParams.get("processId");
@@ -247,6 +256,27 @@ export default function CheckoutPage() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    async function checkOffice() {
+      if (!officeId) return;
+      setCheckingOffice(true);
+      try {
+        const { data } = await supabase
+          .from("v_office_current_subscription")
+          .select("status")
+          .eq("office_id", officeId)
+          .maybeSingle();
+
+        if (data) {
+          setOfficeStatus(data.status);
+        }
+      } finally {
+        setCheckingOffice(false);
+      }
+    }
+    checkOffice();
+  }, [officeId]);
 
   const formatTimeParts = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -325,6 +355,7 @@ export default function CheckoutPage() {
               fullName: values.fullName,
               phoneNumber: values.phone,
               terms: true, // Auto-accept terms at checkout
+              role: "customer",
             });
 
             if (signUpRes.user) {
@@ -355,6 +386,8 @@ export default function CheckoutPage() {
             amount: totalToCharge,
             proc_id: parentId || undefined,
             coupon_code: appliedCoupon?.valid ? couponInput : undefined,
+            office_id: officeId || undefined,
+            seller_id: sellerRef,
           });
 
           localStorage.setItem("checkout_slug", service!.slug);
@@ -378,6 +411,8 @@ export default function CheckoutPage() {
             amount: totalToCharge,
             proc_id: parentId || undefined,
             coupon_code: appliedCoupon?.valid ? couponInput : undefined,
+            office_id: officeId || undefined,
+            seller_id: sellerRef,
           });
 
           localStorage.setItem("checkout_slug", service!.slug);
@@ -404,6 +439,8 @@ export default function CheckoutPage() {
             dependents: checkoutCount,
             proc_id: parentId || undefined,
             coupon_code: appliedCoupon?.valid ? couponInput : undefined,
+            office_id: officeId || undefined,
+            seller_id: sellerRef,
           });
 
           setZelleAutoApproved(zelleResult.autoApproved === true);
@@ -416,6 +453,25 @@ export default function CheckoutPage() {
   });
 
   if (!service) return <Navigate to="/dashboard" replace />;
+
+  if (officeId && officeStatus !== "active" && !checkingOffice) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-card border border-border p-8 rounded-[32px] text-center shadow-xl">
+          <div className="w-20 h-20 rounded-2xl bg-danger/10 flex items-center justify-center text-danger mx-auto mb-6">
+            <RiLockLine className="text-4xl" />
+          </div>
+          <h2 className="text-2xl font-black text-text mb-4">Checkout Indisponível</h2>
+          <p className="text-text-muted font-medium mb-8">
+            Este link de pagamento está temporariamente desativado. Entre em contato com seu consultor.
+          </p>
+          <Button onClick={() => window.history.back()} variant="outline" className="w-full h-12 rounded-2xl">
+            Voltar
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
 
 
@@ -515,13 +571,196 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                <div className="flex items-end gap-2 pt-3 border-t border-border">
-                  <span className="text-2xl font-black text-text">{service.price}</span>
-                  <span className="text-xs text-text-muted line-through mb-0.5">{service.originalPrice}</span>
-                  <span className="ml-auto text-[10px] font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                    {t.summary.offLabel}
-                  </span>
-                </div>
+                {/* Method-specific info */}
+                <AnimatePresence mode="wait">
+                  {activeMethod === "card" && (
+                    <motion.div
+                      key="card"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex items-start gap-2.5 rounded-xl bg-primary/5 border border-primary/20 p-3"
+                    >
+                      <RiBankCardLine className="text-primary mt-0.5 shrink-0" />
+                      <p className="text-xs text-text leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.card.notice }} />
+                    </motion.div>
+                  )}
+                  {activeMethod === "pix" && (
+                    <motion.div
+                      key="pix"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex items-start gap-2.5 rounded-xl bg-success/5 border border-success/20 p-3"
+                    >
+                      <RiQrCodeLine className="text-success mt-0.5 shrink-0" />
+                      <p className="text-xs text-text leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.pix.notice }} />
+                    </motion.div>
+                  )}
+
+                  {activeMethod === "parcelow" && (
+                    <motion.div
+                      key="parcelow"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex flex-col gap-4"
+                    >
+                      {/* Info box */}
+                      <div className="flex items-start gap-2.5 rounded-xl bg-warning/5 border border-warning/20 p-3">
+                        <RiTimeLine className="text-warning mt-0.5 shrink-0" />
+                        <p className="text-xs text-text leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.parcelow.notice }} />
+                      </div>
+
+                      {/* CPF Field */}
+                      <div className="space-y-1.5 px-1">
+                        <Label htmlFor="parcelowCpf">{t.paymentMethods.parcelow.cpfLabel}</Label>
+                        <Input
+                          id="parcelowCpf"
+                          name="parcelowCpf"
+                          placeholder={t.paymentMethods.parcelow.cpfPlaceholder}
+                          className="mt-1"
+                          maxLength={14}
+                          value={formik.values.parcelowCpf}
+                          onChange={(e) => {
+                            const masked = maskCPF(e.target.value);
+                            formik.setFieldValue("parcelowCpf", masked);
+                          }}
+                          onBlur={formik.handleBlur}
+                        />
+                        <div className="flex items-center gap-1 text-[10px] text-text-muted">
+                          <RiInformationLine className="text-amber-500" />
+                          <span>{t.paymentMethods.parcelow.cpfNotice}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {activeMethod === "zelle" && !zelleDone && (
+                    <motion.div
+                      key="zelle"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      className="space-y-4"
+                    >
+                      {/* Recipient info */}
+                      <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
+                        <p className="text-[11px] font-bold text-primary uppercase tracking-widest mb-2">
+                          {t.paymentMethods.zelle.notice}
+                        </p>
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-text">{t.paymentMethods.zelle.name} {ZELLE_NAME}</p>
+                          <p className="text-sm text-text-muted font-mono">{t.paymentMethods.zelle.email} {ZELLE_EMAIL}</p>
+                          <p className="text-sm text-text-muted font-mono">{t.paymentMethods.zelle.phone} {ZELLE_PHONE}</p>
+                        </div>
+                        <p className="text-[11px] text-violet-500 mt-2 leading-snug">
+                          {t.paymentMethods.zelle.confirmTitle}
+                        </p>
+                      </div>
+
+                      {/* Proof upload */}
+                      <div>
+                        <Label>{t.paymentMethods.zelle.uploadProof}</Label>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) handleProofSelect(f);
+                          }}
+                        />
+                        {zelleProofPreview ? (
+                          <div className="mt-1.5 relative rounded-xl overflow-hidden border border-border">
+                            <img
+                              src={zelleProofPreview}
+                              alt={t.paymentMethods.zelle.uploadProof}
+                              className="w-full max-h-40 object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setZelleProof(null);
+                                setZelleProofPreview(null);
+                              }}
+                              className="absolute top-2 right-2 w-6 h-6 bg-slate-800/70 rounded-full flex items-center justify-center text-white hover:bg-slate-800 transition-colors"
+                            >
+                              <RiCloseLine className="text-sm" />
+                            </button>
+                            <div className="absolute bottom-0 left-0 right-0 bg-slate-800/60 px-3 py-1.5 flex items-center gap-2">
+                              <RiImageLine className="text-white text-xs" />
+                              <span className="text-white text-[11px] truncate">{zelleProof?.name}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const f = e.dataTransfer.files[0];
+                              if (f) handleProofSelect(f);
+                            }}
+                            className="mt-1.5 w-full border-2 border-dashed border-border rounded-xl py-6 flex flex-col items-center gap-2 text-text-muted hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                          >
+                            <RiUploadCloud2Line className="text-2xl" />
+                            <span className="text-xs font-medium">{t.paymentMethods.zelle.uploadProof}</span>
+                            <span className="text-[10px]">{t.paymentMethods.zelle.uploadDesc}</span>
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {activeMethod === "zelle" && zelleDone && (
+                    <motion.div
+                      key="zelle-done"
+                      initial={{ opacity: 0, scale: 0.97 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className={`rounded-xl border p-5 text-center ${zelleAutoApproved
+                        ? "bg-emerald-500/10 border-emerald-500/20"
+                        : "bg-amber-500/10 border-amber-500/20"
+                        }`}
+                    >
+                      {zelleAutoApproved ? (
+                        <>
+                          <RiCheckLine className="text-emerald-500 text-3xl mx-auto mb-2" />
+                          <p className="font-bold text-text text-sm">🎉 Pagamento Aprovado!</p>
+                          <p className="text-xs text-text-muted mt-1 leading-relaxed">
+                            Seu comprovante foi verificado automaticamente e seu serviço já está ativo no painel.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => navigate(postZelleRoute)}
+                            className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs"
+                          >
+                            Acessar Meu Painel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <RiCheckLine className="text-amber-500 text-3xl mx-auto mb-2" />
+                          <p className="font-bold text-text text-sm">{t.paymentMethods.zelle.pendingReview.split("!")[0]}!</p>
+                          <p className="text-xs text-text-muted mt-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.zelle.pendingReview.split("!")[1] || t.paymentMethods.zelle.pendingReview }} />
+                          <button
+                            type="button"
+                            onClick={() => navigate(postZelleRoute)}
+                            className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-amber-500 text-white rounded-xl font-bold text-xs"
+                          >
+                            {t.paymentMethods.zelle.goDashboard}
+                          </button>
+                        </>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Dependents / Upgrade Slots */}
@@ -713,10 +952,10 @@ export default function CheckoutPage() {
                         disabled={!m.available}
                         onClick={() => m.available && setActiveMethod(m.id)}
                         className={`relative flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-center transition-all duration-150 ${activeMethod === m.id
-                            ? "border-primary bg-primary/5 text-primary"
-                            : m.available
-                              ? "border-border text-text-muted hover:border-primary/50 hover:bg-bg-subtle"
-                              : "border-border/50 text-text-muted/40 cursor-not-allowed"
+                          ? "border-primary bg-primary/5 text-primary"
+                          : m.available
+                            ? "border-border text-text-muted hover:border-primary/50 hover:bg-bg-subtle"
+                            : "border-border/50 text-text-muted/40 cursor-not-allowed"
                           }`}
                       >
                         {m.icon}
@@ -885,8 +1124,8 @@ export default function CheckoutPage() {
                         initial={{ opacity: 0, scale: 0.97 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className={`rounded-xl border p-5 text-center ${zelleAutoApproved
-                            ? "bg-emerald-500/10 border-emerald-500/20"
-                            : "bg-amber-500/10 border-amber-500/20"
+                          ? "bg-emerald-500/10 border-emerald-500/20"
+                          : "bg-amber-500/10 border-amber-500/20"
                           }`}
                       >
                         {zelleAutoApproved ? (

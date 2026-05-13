@@ -9,7 +9,14 @@ export function buildSidebarNavItems(
   role: UserRole,
   labels: NavLabels,
 ): DashboardNavItem[] {
-  const prefix = layout === "master" || layout === "seller" ? `/${layout}` : layout === "manager" ? "/admin" : "";
+  const prefix = layout === "seller"
+    ? "/seller"
+    : layout === "master" && role === "master"
+      ? "/master"
+      : "";
+  const isSharedAbsoluteRoute = (path: string) =>
+    layout === "master" && role !== "master" && path === "/payments";
+
   return appRoutes
     .filter((route) =>
       route.sidebarLayouts !== undefined
@@ -20,10 +27,12 @@ export function buildSidebarNavItems(
     .filter((route) => route.accessLevels.includes(role))
     .filter((route): route is typeof route & { icon: NonNullable<typeof route.icon> } => Boolean(route.icon))
     .map((route) => ({
-      to: route.layout === "protected" ? `${prefix}${route.path}` : route.path,
+      to: route.layout === "protected"
+        ? (isSharedAbsoluteRoute(route.path) ? route.path : `${prefix}${route.path}`)
+        : route.path,
       label: route.titleKey ? labels[route.titleKey] ?? route.title : route.title,
       icon: route.icon,
       exact: route.exact,
-      group: route.sidebarGroup,
+      group: route.sidebarGroupKey ? labels[route.sidebarGroupKey] ?? route.sidebarGroup : route.sidebarGroup,
     }));
 }

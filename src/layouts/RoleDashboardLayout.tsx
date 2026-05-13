@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
-import { ChevronDown, Menu, Moon, Sun, ShieldCheck, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Menu, Moon, Sun, ShieldCheck, X } from "lucide-react";
 import { RiArrowDownSLine, RiLogoutBoxRLine, RiPencilLine, RiUploadLine } from "react-icons/ri";
 import { Button } from "../components/atoms/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/atoms/dialog";
@@ -15,6 +15,11 @@ import { storageService } from "../shared/storage/profile-photos";
 import { cn } from "../utils/cn";
 import { toast } from "sonner";
 import { useT } from "../i18n";
+import { useSubscription } from "../features/admin/hooks/useSubscription";
+import { RiLockPasswordLine, RiErrorWarningLine } from "react-icons/ri";
+import { NotificationBell } from "../features/notifications/components/NotificationBell";
+import { NotificationToaster } from "../features/notifications/components/NotificationToaster";
+import { NotificationProvider } from "../contexts/NotificationContext";
 
 export interface DashboardNavItem {
   to: string;
@@ -38,23 +43,25 @@ interface RoleDashboardLayoutProps {
 
 // ─── Sidebar Nav ─────────────────────────────────────────────────────────────
 
-function NavItem({ to, label, icon: Icon, exact, onNavigate }: DashboardNavItem & { onNavigate: () => void }) {
+function NavItem({ to, label, icon: Icon, exact, onNavigate, collapsed }: DashboardNavItem & { onNavigate: () => void; collapsed?: boolean }) {
   return (
     <NavLink
       to={to}
       end={exact}
       onClick={onNavigate}
+      title={collapsed ? label : undefined}
       className={({ isActive }) =>
         cn(
-          "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors",
+          "flex items-center gap-3 px-4 rounded-2xl py-3 text-sm font-semibold transition-all duration-200",
+          collapsed && "lg:justify-center lg:px-3 lg:gap-0",
           isActive
             ? "bg-primary text-white shadow-lg shadow-primary/20"
             : "text-text-muted hover:bg-bg-subtle hover:text-text",
         )
       }
     >
-      <Icon className="h-4 w-4" />
-      {label}
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className={cn(collapsed && "lg:hidden")}>{label}</span>
     </NavLink>
   );
 }
@@ -63,10 +70,12 @@ function SidebarNav({
   navItems,
   location,
   onNavigate,
+  collapsed,
 }: {
   navItems: DashboardNavItem[];
   location: { pathname: string };
   onNavigate: () => void;
+  collapsed?: boolean;
 }) {
   const ungrouped = navItems.filter((i) => !i.group);
   const grouped = navItems.filter((i) => i.group);
@@ -90,7 +99,7 @@ function SidebarNav({
   return (
     <nav className="mt-6 space-y-1">
       {ungrouped.map((item) => (
-        <NavItem key={item.to} {...item} onNavigate={onNavigate} />
+        <NavItem key={item.to} {...item} onNavigate={onNavigate} collapsed={collapsed} />
       ))}
 
       {groupNames.map((name) => {
@@ -99,23 +108,28 @@ function SidebarNav({
 
         return (
           <div key={name}>
+            {/* Group header — hidden on desktop when collapsed */}
             <button
               type="button"
               onClick={() => toggle(name)}
-              className="flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text"
+              className={cn(
+                "flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text",
+                collapsed && "lg:hidden",
+              )}
             >
               <span>{name}</span>
               <ChevronDown
                 className={cn("h-4 w-4 transition-transform duration-200", isOpen && "rotate-180")}
               />
             </button>
-            {isOpen && (
-              <div className="ml-3 mt-1 space-y-1 border-l border-border pl-3">
+            {/* Items — always visible on desktop collapsed (icon only), visible when open on mobile */}
+            <div className={cn(!collapsed && !isOpen && "hidden", collapsed && "lg:block")}>
+              <div className={cn(!collapsed && "ml-3 mt-1 space-y-1 border-l border-border pl-3")}>
                 {items.map((item) => (
-                  <NavItem key={item.to} {...item} onNavigate={onNavigate} />
+                  <NavItem key={item.to} {...item} onNavigate={onNavigate} collapsed={collapsed} />
                 ))}
               </div>
-            )}
+            </div>
           </div>
         );
       })}
@@ -203,10 +217,18 @@ export function RoleDashboardLayout({
   const tProfile = useT("admin").profile;
   const { theme, toggleTheme } = useTheme();
   const { user: currentUser, logout, refreshAccount } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
+  const { isRestricted, status, loading: subLoading } = useSubscription();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem("sidebar-collapsed") === "true");
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      localStorage.setItem("sidebar-collapsed", String(!prev));
+      return !prev;
+    });
+  };
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [displayName, setDisplayName] = useState(currentUser?.fullName ?? "");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -221,8 +243,8 @@ export function RoleDashboardLayout({
     const u = currentUser as unknown as { fullName?: string | null; full_name?: string | null; name?: string | null } | null;
     const raw = u?.fullName || u?.full_name || u?.name || "";
     const firstWord = String(raw).trim().split(/\s+/).filter(Boolean)[0];
-    return firstWord || "Usuário";
-  }, [currentUser]);
+    return firstWord || tProfile.userNameDefault;
+  }, [currentUser, tProfile.userNameDefault]);
 
   const resolvedAvatar = useMemo(() => {
     const u = currentUser as unknown as { avatarUrl?: string | null; avatar_url?: string | null } | null;
@@ -234,6 +256,8 @@ export function RoleDashboardLayout({
   const activeItem = navItems.find((item) =>
     item.exact ? location.pathname === item.to : location.pathname.startsWith(item.to),
   );
+  const subscriptionLockedPaths = ["/page-builder", "/products", "/settings/discount-rules"];
+  const isSubscriptionLockedPath = subscriptionLockedPaths.some((path) => location.pathname.includes(path));
 
   useEffect(() => {
     return () => {
@@ -335,6 +359,7 @@ export function RoleDashboardLayout({
   }
 
   return (
+    <NotificationProvider role="admin">
     <div className="min-h-screen bg-bg text-text">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute left-0 top-0 h-96 w-96 -translate-x-1/3 -translate-y-1/3 rounded-full bg-primary/10 blur-3xl" />
@@ -343,24 +368,28 @@ export function RoleDashboardLayout({
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 border-r border-border bg-card/95 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur transition-transform lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-card/95 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur lg:translate-x-0",
+          "w-72 p-5 transition-all duration-300",
+          collapsed && "lg:w-16 lg:p-2",
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex items-center justify-between">
+        {/* Header */}
+        <div className={cn("flex items-center justify-between", collapsed && "lg:justify-center")}>
           <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-primary/10 p-2.5 text-primary">
+            <div className="rounded-2xl bg-primary/10 p-2.5 text-primary shrink-0">
               <ShieldCheck className="h-5 w-5" />
             </div>
-            <div>
+            <div className={cn(collapsed && "lg:hidden")}>
               <p className="text-sm font-bold text-text uppercase tracking-tight">{consoleTitle}</p>
               <p className="text-[10px] font-black text-primary uppercase tracking-widest leading-none mt-0.5">{roleLabel}</p>
               <p className="text-[10px] font-medium text-text-muted mt-1">{consoleSubtitle}</p>
             </div>
           </div>
-            <button
+
+          <button
             type="button"
-            className="rounded-xl border border-border p-2 text-text-muted lg:hidden"
+            className={cn("rounded-xl border border-border p-2 text-text-muted lg:hidden", collapsed && "lg:hidden")}
             onClick={() => setMobileMenuOpen(false)}
             aria-label={tProfile.closeMenu}
           >
@@ -368,7 +397,30 @@ export function RoleDashboardLayout({
           </button>
         </div>
 
-        <SidebarNav navItems={navItems} location={location} onNavigate={() => setMobileMenuOpen(false)} />
+        {/* Nav — grows to fill space */}
+        <div className="flex-1 overflow-y-auto">
+          <SidebarNav navItems={navItems} location={location} onNavigate={() => setMobileMenuOpen(false)} collapsed={collapsed} />
+        </div>
+
+        {/* Footer — collapse toggle */}
+        <div className={cn("mt-4 border-t border-border pt-4", collapsed ? "flex justify-center" : "")}>
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            title={collapsed ? tProfile.expandSidebar : tProfile.collapseSidebar}
+            className={cn(
+              "hidden lg:flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text",
+              collapsed && "justify-center px-2",
+            )}
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4 shrink-0" /> : (
+              <>
+                <ChevronLeft className="h-4 w-4 shrink-0" />
+                <span>{tProfile.collapseSidebar.split(' ')[0]}</span>
+              </>
+            )}
+          </button>
+        </div>
       </aside>
 
       {mobileMenuOpen ? (
@@ -380,7 +432,7 @@ export function RoleDashboardLayout({
         />
       ) : null}
 
-      <div className="relative lg:pl-72">
+      <div className={cn("relative lg:transition-all lg:duration-300", collapsed ? "lg:pl-16" : "lg:pl-72")}>
         <header className="sticky top-0 z-30 border-b border-border bg-bg/80 px-4 py-4 backdrop-blur sm:px-6 lg:px-8">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -401,11 +453,14 @@ export function RoleDashboardLayout({
             </div>
 
             <div className="flex items-center gap-3">
+              <div className="rounded-xl p-1 transition-colors hover:bg-bg-subtle">
+                <NotificationBell role="admin" align="right" />
+              </div>
               <button
                 type="button"
                 onClick={toggleTheme}
                 className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-text-muted transition-colors hover:text-text"
-                aria-label="Alternar tema"
+                aria-label={tProfile.toggleTheme}
               >
                 {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </button>
@@ -450,10 +505,49 @@ export function RoleDashboardLayout({
 
         <main className="relative z-10 px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
-            <Outlet />
+            {subLoading ? (
+              <div className="flex items-center justify-center min-h-[40vh]">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : isRestricted && isSubscriptionLockedPath ? (
+              <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center animate-in zoom-in-95 duration-500">
+                <div className="w-24 h-24 rounded-[32px] bg-warning/10 flex items-center justify-center text-warning mb-8">
+                  <RiLockPasswordLine className="text-5xl" />
+                </div>
+                <h2 className="text-3xl font-black text-text mb-4 tracking-tighter">Feature Locked</h2>
+                <p className="text-text-muted max-w-md mx-auto font-medium mb-8">
+                  This feature is part of professional plans. Activate your subscription to manage products, discounts and your custom website.
+                </p>
+                <Button 
+                  onClick={() => navigate("/subscription")}
+                  className="h-14 px-10 rounded-2xl bg-primary text-white font-black uppercase tracking-widest shadow-xl shadow-primary/20"
+                >
+                  View Available Plans
+                </Button>
+              </div>
+            ) : (
+              <>
+                {isRestricted && !location.pathname.includes("/subscription") && (
+                  <div className="mb-6 flex items-center justify-between p-4 rounded-2xl bg-warning/10 border border-warning/20 animate-in slide-in-from-top duration-500">
+                    <div className="flex items-center gap-3 text-warning">
+                      <RiErrorWarningLine className="text-xl" />
+                      <p className="text-xs font-black uppercase tracking-widest">Your subscription is not active</p>
+                    </div>
+                    <button 
+                      onClick={() => navigate("/subscription")}
+                      className="text-[10px] font-black uppercase tracking-widest text-warning hover:underline"
+                    >
+                      Activate now
+                    </button>
+                  </div>
+                )}
+                <Outlet />
+              </>
+            )}
           </div>
         </main>
       </div>
+      <NotificationToaster />
 
       <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
         <DialogContent className="max-w-xl border-border bg-card p-6">
@@ -466,7 +560,7 @@ export function RoleDashboardLayout({
               <div className="h-28 w-28 overflow-hidden rounded-full border border-border">
                 <img
                   src={avatarUrl}
-                  alt="Pré-visualização"
+                  alt={tProfile.previewAlt}
                   className="h-full w-full object-cover"
                   style={{ transform: avatarTransform(xOffset, yOffset, zoom) }}
                 />
@@ -526,5 +620,6 @@ export function RoleDashboardLayout({
         </DialogContent>
       </Dialog>
     </div>
+    </NotificationProvider>
   );
 }

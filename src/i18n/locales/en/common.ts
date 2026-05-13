@@ -2,6 +2,7 @@ const common = {
   siteTitle: "Aplikei - US Visas",
   yes: "Yes", no: "No", select: "Select...", tip: "Tip:", doNotKnow: "Do Not Know",
   doesNotApply: "Does Not Apply", save: "Save", cancel: "Cancel", confirm: "Confirm",
+  view: "View", remove: "Remove", na: "N/A", cardPayment: "Card",
   loading: "Loading...", error: "Error", success: "Success", back: "Back", next: "Next", finish: "Finish",
   successRate: "Success Rate",
   whoWeArePage: {
@@ -123,6 +124,29 @@ const common = {
       title: "Take your office to the next level",
       description: "Schedule a personalized demo and see how Aplikei can scale your revenue and efficiency.",
       button: "Request B2B Demo"
+    }
+  },
+  chat: {
+    title: "Specialist Chat",
+    inputPlaceholder: "Type your message...",
+    noMessages: "No messages yet",
+    statusActive: "Chat active",
+    statusClosed: "Chat closed",
+    roles: {
+      admin: "Specialist",
+      customer: "Client"
+    },
+    actions: {
+      send: "Send",
+      upload: "Attach",
+      viewResult: "View result and register"
+    },
+    messages: {
+      fileSent: "File sent: {{name}}",
+      uploadSuccess: "File uploaded successfully!",
+      uploadError: "Error uploading file.",
+      closedAdmin: "Conversation closed. Reopen to continue.",
+      closedCustomer: "This chat has been closed by the specialist. Register your Motion result in the dashboard."
     }
   }
 };

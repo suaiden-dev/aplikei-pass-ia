@@ -103,7 +103,7 @@ export default function AdminProcessesPage() {
 
       const usersById = Object.fromEntries(
         ((usersResult.data as Array<{ id: string; full_name?: string | null; email?: string | null }>) || [])
-          .map((u) => [u.id, { full_name: u.full_name || "Cliente", email: u.email || undefined }]),
+          .map((u) => [u.id, { full_name: u.full_name || t.shared.client, email: u.email || undefined }]),
       );
 
       const serviceNameBySlug = Object.fromEntries(
@@ -169,10 +169,10 @@ export default function AdminProcessesPage() {
       
       await processService.approveStep(p.id, nextStep, isFinal, result);
       
-      toast.success(isFinal ? t.cases.messages.approveFinalSuccess : t.cases.messages.approveSuccess.replace("{name}", p.user_accounts?.full_name || "Cliente"));
+      toast.success(isFinal ? t.cases.messages.approveFinalSuccess : t.cases.messages.approveSuccess.replace("{name}", p.user_accounts?.full_name || t.shared.client));
       await load();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      const msg = err instanceof Error ? err.message : t.shared.error;
       toast.error(t.cases.messages.errorAction + msg);
     } finally {
       setBusy(null);
@@ -195,7 +195,7 @@ export default function AdminProcessesPage() {
       }
       await load();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      const msg = err instanceof Error ? err.message : t.shared.error;
       toast.error(t.cases.messages.errorAction + msg);
     } finally {
       setBusy(null);
@@ -331,7 +331,7 @@ export default function AdminProcessesPage() {
                       onClick={(e) => {
                         // Avoid navigation if clicking buttons
                         if ((e.target as HTMLElement).closest('button')) return;
-                        navigate(`/admin/processes/${p.id}`);
+                        navigate(`/master/processes/${p.id}`);
                       }}
                     >
                       <td className="px-8 py-6">
@@ -354,7 +354,7 @@ export default function AdminProcessesPage() {
 
                       <td className="px-8 py-6">
                          <div>
-                            <p className="text-xs font-black text-text uppercase tracking-tighter">Stripe Card</p>
+                            <p className="text-xs font-black text-text uppercase tracking-tighter">{t.shared.cardPayment}</p>
                             <p className="text-[10px] text-text-muted font-bold mt-0.5 tracking-tight italic">{service?.price || "---"}</p>
                          </div>
                       </td>

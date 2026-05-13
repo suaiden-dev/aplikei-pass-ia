@@ -22,7 +22,7 @@ export function RevenueTrajectory({ data }: RevenueTrajectoryProps) {
           <h2 className="font-display font-semibold text-text text-base">
             {t.overview.sections.revenueTrajectory}
           </h2>
-          <p className="text-xs text-text-muted mt-0.5">Últimos 6 meses</p>
+          <p className="text-xs text-text-muted mt-0.5">{t.overview.charts.last6Months}</p>
         </div>
         <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success bg-success/10 px-2.5 py-1 rounded-full">
           <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />

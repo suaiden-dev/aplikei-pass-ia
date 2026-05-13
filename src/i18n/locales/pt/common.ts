@@ -1,162 +1,152 @@
 const common = {
-  siteTitle: "Aplikei - Vistos Americanos",
-  yes: "Sim",
-  no: "Não",
-  select: "Selecione...",
-  tip: "Dica:",
-  doNotKnow: "Não sei",
-  doesNotApply: "Não se aplica",
-  save: "Salvar",
-  cancel: "Cancelar",
-  confirm: "Confirmar",
-  loading: "Carregando...",
-  error: "Erro",
-  success: "Sucesso",
-  back: "Voltar",
-  next: "Próximo",
-  finish: "Finalizar",
-  client: "Cliente",
-  rejection: {
-    confirm: "Confirmar Rejeição",
-    cancel: "Cancelar",
-  },
-  table: {
-    empty: "Nenhum item encontrado",
-    refresh: "Atualizar",
-  },
-  docUpload: {
-    uploadFile: "Enviar Arquivo",
-    fileSelected: "Arquivo Selecionado",
-    newFileSelected: "Novo Arquivo Selecionado",
-    needsCorrection: "Correção Necessária",
-    requiredDocument: "Documento Obrigatório",
-    ready: "PRONTO",
-    updated: "ATUALIZADO",
-    pending: "PENDENTE",
-    sending: "Enviando...",
-    selectFile: "Selecionar Arquivo",
-    selectPdf: "Selecionar Arquivo PDF",
-    fileSent: "Arquivo Envido",
-  },
+  siteTitle: "Aplikei - US Visas",
+  yes: "Yes", no: "No", select: "Select...", tip: "Tip:", doNotKnow: "Do Not Know",
+  doesNotApply: "Does Not Apply", save: "Save", cancel: "Cancel", confirm: "Confirm",
+  view: "View", remove: "Remove", na: "N/A", cardPayment: "Card",
+  loading: "Loading...", error: "Error", success: "Success", back: "Back", next: "Next", finish: "Finish",
+  successRate: "Success Rate",
   whoWeArePage: {
     hero: {
-      tag: "Quem somos",
-      title: "Excelência Jurídica",
-      titleHighlight: "em Imigração",
-      description: "Nossa missão é proporcionar segurança jurídica e excelência estratégica para jornadas internacionais, transformando complexidade burocrática em caminhos claros para o sucesso global.",
-      stats: "Taxa de aprovação em processos revisados pela nossa equipe."
+      tag: "Who we are",
+      title: "Legal Excellence",
+      titleHighlight: "in Immigration",
+      description: "Our mission is to provide legal security and strategic excellence for international journeys, transforming bureaucratic complexity into clear paths for global success.",
+      stats: "Approval rate in process reviews by our team."
     },
     history: {
-      title: "Nossa História",
-      description: "A Aplikei nasceu da necessidade de um atendimento jurídico que equilibrasse o rigor técnico com uma visão estratégica de negócios. Fundada por especialistas em direito internacional, nossa plataforma consolidou-se como referência para executivos e famílias que buscam não apenas um visto, mas uma transição de vida sólida.\n\nAo longo de nossa trajetória, priorizamos resultados mensuráveis e transparência absoluta. Acreditamos que cada caso é único e exige uma arquitetura jurídica personalizada, protegendo os interesses de nossos clientes em todas as fronteiras."
+      title: "Our History",
+      description: "Aplikei was born from the need for legal services that balanced technical rigor with a strategic business vision. Founded by international law specialists, our platform has consolidated itself as a reference for executives and families seeking not just a visa, but a solid life transition.\n\nThroughout our trajectory, we have prioritized measurable results and absolute transparency. We believe each case is unique and requires a personalized legal architecture, protecting our clients' interests across all borders."
     },
     pillars: {
-      title: "Pilares de Atuação",
+      title: "Our Pillars",
       items: [
         {
-          title: "Ética",
-          description: "Integridade inegociável em cada etapa do processo jurídico e administrativo."
+          title: "Ethics",
+          description: "Non-negotiable integrity in every step of the legal and administrative process."
         },
         {
-          title: "Precisão",
-          description: "Análise técnica minuciosa para maximizar as chances de aprovação documental."
+          title: "Precision",
+          description: "Thorough technical analysis to maximize the chances of document approval."
         },
         {
-          title: "Foco no Cliente",
-          description: "Estrategias personalizadas que respeitam o tempo e os objetivos de cada indivíduo."
+          title: "Client Focus",
+          description: "Personalized strategies that respect each individual's time and goals."
         },
         {
-          title: "Inovação",
-          description: "Uso de tecnologia de ponta para agilizar trâmites e comunicação processual."
+          title: "Innovation",
+          description: "Use of cutting-edge technology to streamline procedures and procedural communication."
         }
       ]
     },
     leadership: {
-      title: "Liderança Estratégica",
-      subtitle: "Os arquitetos por trás do seu sucesso internacional.",
+      title: "Strategic Leadership",
+      subtitle: "The architects behind your international success.",
       members: [
         {
           name: "Dr. Ricardo Menezes",
-          description: "Com mais de 15 anos de atuação nos EUA e Europa, lidera a estratégia global de vistos de alta complexidade."
+          description: "With over 15 years of experience in the US and Europe, he leads the global strategy for high-complexity visas."
         },
         {
           name: "Dra. Helena Albuquerque",
-          description: "Especialista em mobilidade global para multinacionais e talentos extraordinários nas áreas de tecnologia e artes."
+          description: "Specialist in global mobility for multinationals and extraordinary talents in technology and arts."
         }
       ]
     },
     stats: {
       success: "500+",
-      successLabel: "Casos de Sucesso",
+      successLabel: "Success Cases",
       approval: "98%",
-      approvalLabel: "Taxa de Aprovação",
+      approvalLabel: "Approval Rate",
       countries: "12",
-      countriesLabel: "Países de Atuação"
+      countriesLabel: "Countries of Operation"
     },
     cta: {
-      title: "Pronto para iniciar sua jornada?",
-      subtitle: "Nossos especialistas estão prontos para desenhar seu futuro internacional com segurança e precisão.",
-      button: "Falar com especialista"
+      title: "Ready to start your journey?",
+      subtitle: "Our specialists are ready to design your international future with security and precision.",
+      button: "Talk to a specialist"
     }
   },
   servicesPage: {
     hero: {
-      tag: "Nossas Soluções B2B",
-      title: "Tecnologia de elite para sua assessoria",
-      subtitle: "Transforme sua operação com ferramentas de automação, gestão de fluxos consulares e criação de páginas profissionais em minutos."
+      tag: "Our B2B Solutions",
+      title: "Elite technology for your consultancy",
+      subtitle: "Transform your operation with automation tools, consular flow management, and professional page creation in minutes."
     },
     sections: [
       {
-        title: "Gerenciamento de Vistos Consulares",
-        description: "Centralize e padronize todos os processos de vistos (B1/B2, F1, etc.) em uma única plataforma robusta e intuitiva.",
+        title: "Consular Visa Management",
+        description: "Centralize and standardize all visa processes (B1/B2, F1, etc.) in a single robust and intuitive platform.",
         features: [
-          "Gestão de múltiplos clientes em um único dashboard.",
-          "Checklist dinâmico de documentos por categoria de visto.",
-          "Acompanhamento em tempo real do status de cada aplicação."
+          "Manage multiple clients in a single dashboard.",
+          "Dynamic document checklist by visa category.",
+          "Real-time tracking of each application status."
         ]
       },
       {
-        title: "Page Builder para seu Escritório",
-        description: "Crie landing pages de alta conversão sem precisar de desenvolvedores. Personalize com sua marca e logo.",
+        title: "Page Builder for your Office",
+        description: "Create high-converting landing pages without developers. Personalize with your brand and logo.",
         features: [
-          "Modelos otimizados para conversão de novos leads.",
-          "Integração nativa com o fluxo de checkout e pagamento.",
-          "Editor visual simples para customização total de cores."
+          "Optimized models for new lead conversion.",
+          "Native integration with checkout and payment flows.",
+          "Simple visual editor for full color customization."
         ]
       },
       {
-        title: "Fluxo de Preenchimento e Aprovação",
-        description: "Controle total sobre a coleta de dados. Revise e aprove as informações dos clientes antes do envio oficial.",
+        title: "Filling and Approval Flow",
+        description: "Total control over data collection. Review and approve client information before official submission.",
         features: [
-          "Formulários inteligentes que reduzem erros de preenchimento.",
-          "Módulo de revisão técnica para sua equipe operacional.",
-          "Notificações automáticas para pendências de documentos."
+          "Smart forms that reduce filling errors.",
+          "Technical review module for your operational team.",
+          "Automatic notifications for document pending items."
         ]
       },
       {
-        title: "Inteligência de Dados e Suporte",
-        description: "Segurança total no manejo de informações sensíveis e suporte especializado para sua equipe escalar.",
+        title: "Data Intelligence and Support",
+        description: "Total security in handling sensitive information and specialized support for your team to scale.",
         features: [
-          "Criptografia de ponta a ponta no upload de arquivos.",
-          "Histórico detalhado de todas as interações e alterações.",
-          "Infraestrutura escalável para grandes volumes de processos."
+          "End-to-end encryption in file uploads.",
+          "Detailed history of all interactions and changes.",
+          "Scalable infrastructure for large process volumes."
         ]
       }
     ],
     info: {
       leadership: {
-        title: "Foco em Performance",
-        description: "Nossa tecnologia foi desenhada para reduzir o trabalho manual em até 70%, permitindo que seu escritório foque no que realmente importa: a estratégia jurídica."
+        title: "Focus on Performance",
+        description: "Our technology was designed to reduce manual work by up to 70%, allowing your office to focus on what really matters: legal strategy."
       },
       rigor: {
-        title: "Segurança de Dados",
-        description: "Seguimos os mais altos padrões de proteção de dados, garantindo que as informações sensíveis de seus clientes estejam protegidas contra qualquer vulnerabilidade."
+        title: "Data Security",
+        description: "We follow the highest data protection standards, ensuring that your clients' sensitive information is protected against any vulnerability."
       }
     },
     cta: {
-      title: "Leve seu escritório para o próximo nível",
-      description: "Agende uma demonstração personalizada e veja como a Aplikei pode escalar seu faturamento e eficiência.",
-      button: "Solicitar Demonstração B2B"
+      title: "Take your office to the next level",
+      description: "Schedule a personalized demo and see how Aplikei can scale your revenue and efficiency.",
+      button: "Request B2B Demo"
+    }
+  },
+  chat: {
+    title: "Specialist Chat",
+    inputPlaceholder: "Type your message...",
+    noMessages: "No messages yet",
+    statusActive: "Chat active",
+    statusClosed: "Chat closed",
+    roles: {
+      admin: "Specialist",
+      customer: "Client"
+    },
+    actions: {
+      send: "Send",
+      upload: "Attach",
+      viewResult: "View result and register"
+    },
+    messages: {
+      fileSent: "File sent: {{name}}",
+      uploadSuccess: "File uploaded successfully!",
+      uploadError: "Error uploading file.",
+      closedAdmin: "Conversation closed. Reopen to continue.",
+      closedCustomer: "This chat has been closed by the specialist. Register your Motion result in the dashboard."
     }
   }
 };

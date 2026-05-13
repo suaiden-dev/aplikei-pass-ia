@@ -117,10 +117,15 @@ async function createAccount(input: {
   email: string;
   phone_number: string;
   role: string;
+  office_id?: string | null;
+  is_active?: boolean;
 }): Promise<UserAccount | null> {
   const { data, error } = await supabase
     .from("user_accounts")
-    .insert(input)
+    .insert({
+      ...input,
+      is_active: input.is_active ?? (input.role === "customer" ? true : false),
+    })
     .select("*")
     .single();
   if (error || !data) return null;
@@ -226,28 +231,13 @@ export const authService = {
   async login({ email, password }: LoginInput) {
     const normalizedEmail = email.trim().toLowerCase();
 
-    const { data: canLogin, error: gateError } = await supabase.rpc("can_login_with_email", {
-      p_email: normalizedEmail,
-    });
-
-    const rpcMissing =
-      gateError?.code === "PGRST202" ||
-      gateError?.message?.includes("can_login_with_email") ||
-      gateError?.message?.includes("Could not find the function");
-
-    if (gateError && !rpcMissing) {
-      throw new Error("Erro ao validar usuário");
-    }
-
-    if (!rpcMissing && !canLogin) {
-      throw new Error("Sua conta está desativada.");
-    }
-
     const { data, error } = await supabase.auth.signInWithPassword({
       email: normalizedEmail,
       password,
     });
-    if (error) throw new Error(error.message);
+    if (error) {
+      throw new Error("Email ou senha incorretos.");
+    }
 
     const userId = data.user?.id;
     if (!userId) {
@@ -260,23 +250,36 @@ export const authService = {
       .eq("id", userId)
       .maybeSingle();
 
-      if (account && account.is_active === false) {
-        await supabase.auth.signOut();
-        throw new Error("Sua conta está desativada.");
-      }
+    if (account && account.is_active === false) {
+      await supabase.auth.signOut();
+      throw new Error("Sua conta está desativada.");
+    }
 
     return data;
   },
 
-  async signUp({ email, password, fullName, phoneNumber }: Omit<SignUpInput, "terms">) {
+  async signUp({ email, password, fullName, phoneNumber, role, officeId }: Omit<SignUpInput, "terms">) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName, phone_number: phoneNumber } },
+      options: {
+        data: {
+          full_name: fullName,
+          phone_number: phoneNumber,
+          role: role || "admin_lawyer",
+          office_id: officeId || null,
+        },
+      },
     });
-    if (error) throw new Error(error.message);
-    if (data.session && data.user) {
-      await this.ensureAccount(data.user);
+    if (data.user) {
+      const account = await this.ensureAccount(data.user);
+      
+      // If team member (seller/manager), sign out immediately to wait for approval.
+      // admin_lawyer and customer can stay logged in.
+      if (account && (account.role === "seller" || account.role === "manager")) {
+        await supabase.auth.signOut();
+        return { user: null, session: null };
+      }
     }
     return data;
   },
@@ -317,6 +320,7 @@ export const authService = {
         email: authUser.email || "",
         phone_number: authUser.user_metadata?.phone_number || "",
         role: normalizeRole(authUser.user_metadata?.role),
+        office_id: authUser.user_metadata?.office_id || null,
       });
       if (created) return created;
     } catch {

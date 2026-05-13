@@ -31,13 +31,33 @@ interface NotificationProviderProps {
   role: "admin" | "client";
 }
 
+function normalizeRealtimeNotification(row: Record<string, unknown>): AppNotification {
+  return {
+    id: String(row.id ?? ""),
+    type: String(row.type ?? "system"),
+    target_role: (String(row.target_role ?? "admin") === "client" ? "client" : "admin"),
+    user_id: row.user_id ? String(row.user_id) : null,
+    service_id: row.service_id ? String(row.service_id) : null,
+    title: String(row.title ?? ""),
+    message: row.message ? String(row.message) : null,
+    link: row.link ? String(row.link) : null,
+    is_read: Boolean(row.is_read),
+    send_email: Boolean(row.send_email),
+    email_sent: Boolean(row.email_sent),
+    metadata: (row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+      ? (row.metadata as Record<string, unknown>)
+      : {}),
+    created_at: String(row.created_at ?? new Date().toISOString()),
+  };
+}
+
 function matchesNotificationRole(
   row: AppNotification,
   role: "admin" | "client",
   userId?: string,
 ): boolean {
   if (role === "admin") {
-    return row.target_role === "admin";
+    return row.target_role === "admin" && !!userId && row.user_id === userId;
   }
 
   return !!userId && row.user_id === userId;
@@ -63,6 +83,7 @@ async function fetchNotifications(
     .from("notifications")
     .select("*")
     .eq("target_role", "admin")
+    .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(limit);
   return ((data as Record<string, unknown>[] | null) ?? []).map(normalizeRealtimeNotification);
@@ -187,11 +208,12 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
 
   const markAllAsRead = useCallback(async () => {
     try {
-      if (role === "admin") {
+      if (role === "admin" && userId) {
         await supabase
           .from("notifications")
           .update({ is_read: true })
           .eq("target_role", "admin")
+          .eq("user_id", userId)
           .eq("is_read", false);
       } else if (userId) {
         await supabase
@@ -252,9 +274,10 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
       });
 
     return () => {
-      void supabase.removeChannel(channel);
+      supabase.removeChannel(channel);
+      window.clearTimeout(loadTimerId);
     };
-  }, [handleInsert, handleUpdate, loadHistory, role, userId]);
+  }, [loadHistory, role, userId]);
 
   useEffect(() => {
     return onPortalEvent("aplikei:notifications:changed", (event) => {

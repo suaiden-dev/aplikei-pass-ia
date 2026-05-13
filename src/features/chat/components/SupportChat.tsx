@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { cn } from "../../../utils/cn";
 import { useChat } from "../hooks/useChat";
 import type { ChatMessage } from "../types";
+import { useT } from "../../../i18n";
 
 interface SupportChatProps {
   processId: string;
@@ -26,6 +27,7 @@ interface SupportChatProps {
 }
 
 export function SupportChat({ processId, userId, role, userName, title, isClosed = false, serviceSlug }: SupportChatProps) {
+  const t = useT("common").chat;
   const navigate = useNavigate();
   const { messages, isLoading, isSending, sendMessage } = useChat(processId);
   const [newMessage, setNewMessage] = useState("");
@@ -57,15 +59,15 @@ export function SupportChat({ processId, userId, role, userName, title, isClosed
     setIsUploading(true);
     try {
       await sendMessage({
-        content: `Arquivo enviado: ${file.name}`,
+        content: t.messages.fileSent.replace("{{name}}", file.name),
         senderId: userId,
         senderRole: role,
         file,
       });
-      toast.success("Arquivo enviado com sucesso!");
+      toast.success(t.messages.uploadSuccess);
     } catch (err) {
       console.error("Error uploading file:", err);
-      toast.error("Erro ao enviar arquivo.");
+      toast.error(t.messages.uploadError);
     } finally {
       setIsUploading(false);
     }
@@ -74,29 +76,29 @@ export function SupportChat({ processId, userId, role, userName, title, isClosed
   return (
     <div className="flex flex-col h-[500px] bg-card rounded-3xl border border-border shadow-sm overflow-hidden animate-in fade-in duration-500">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-bg-subtle/50">
+      <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-bg-subtle/50 shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
             <RiChat3Line />
           </div>
-          <div>
+          <div className="text-left">
             <h4 className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none mb-1">
-              {title || "Chat Especialista"}
+              {title || t.title}
             </h4>
             <p className="text-[11px] font-bold text-text leading-none truncate max-w-[150px]">
-              {userName || (role === "admin" ? "Cliente" : "Especialista")}
+              {userName || (role === "admin" ? t.roles.customer : t.roles.admin)}
             </p>
           </div>
         </div>
         {isClosed ? (
           <div className="flex items-center gap-1.5 px-2 py-1 bg-bg-subtle rounded-lg border border-border">
             <div className="w-1.5 h-1.5 rounded-full bg-text-muted" />
-            <span className="text-[9px] font-black text-text-muted uppercase tracking-widest">Chat encerrado</span>
+            <span className="text-[9px] font-black text-text-muted uppercase tracking-widest">{t.statusClosed}</span>
           </div>
         ) : (
           <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Chat ativo</span>
+            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{t.statusActive}</span>
           </div>
         )}
       </div>
@@ -113,7 +115,7 @@ export function SupportChat({ processId, userId, role, userName, title, isClosed
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <RiChat3Line className="text-4xl text-bg-subtle mb-2" />
-            <p className="text-xs font-bold text-text-muted uppercase tracking-widest">Sem mensagens ainda</p>
+            <p className="text-xs font-bold text-text-muted uppercase tracking-widest">{t.noMessages}</p>
           </div>
         ) : (
           messages.map((msg) => (
@@ -126,22 +128,22 @@ export function SupportChat({ processId, userId, role, userName, title, isClosed
       {isClosed ? (
         <div className="p-4 border-t border-border bg-bg-subtle flex items-center justify-center gap-2">
           <RiChat3Line className="text-text-muted/50 text-lg" />
-          <span className="text-xs font-bold text-text-muted text-center">
+          <div className="text-xs font-bold text-text-muted text-center max-w-[300px]">
             {role === "admin"
-              ? "Conversa encerrada. Reabra para continuar."
+              ? t.messages.closedAdmin
               : (
                 <div className="flex flex-col items-center gap-3">
-                  <p>Este chat foi encerrado pelo especialista. Registre o resultado da sua Motion no painel.</p>
+                  <p>{t.messages.closedCustomer}</p>
                   <button
                     onClick={() => navigate(`/dashboard/processes/${serviceSlug}?id=${processId}`)}
                     className="px-6 py-2 bg-primary text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-primary-hover transition-all flex items-center gap-2"
                   >
-                    Ver resultado e registrar
+                    {t.actions.viewResult}
                     <RiExternalLinkLine size={14} />
                   </button>
                 </div>
               )}
-          </span>
+          </div>
         </div>
       ) : (
         <div className="p-4 border-t border-border bg-card">
@@ -160,7 +162,7 @@ export function SupportChat({ processId, userId, role, userName, title, isClosed
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Digite sua mensagem..."
+                placeholder={t.inputPlaceholder}
                 className="w-full h-11 pl-4 pr-4 bg-bg-subtle border-none rounded-xl text-sm font-medium outline-none text-text focus:ring-2 focus:ring-primary/10 transition-all"
               />
             </div>
@@ -199,7 +201,7 @@ function MessageItem({ msg, isMine }: { msg: ChatMessage; isMine: boolean }) {
       isMine ? "ml-auto items-end" : "mr-auto items-start"
     )}>
       <div className={cn(
-        "p-3 rounded-2xl text-[13px] font-medium leading-relaxed shadow-sm",
+        "p-3 rounded-2xl text-[13px] font-medium leading-relaxed shadow-sm text-left",
         isMine
           ? "bg-primary text-white rounded-tr-none"
           : "bg-bg-subtle text-text border border-border rounded-tl-none"

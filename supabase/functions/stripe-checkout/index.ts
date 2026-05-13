@@ -10,7 +10,7 @@ import {
 } from "./payment-logic.ts";
 import {
     resolveUseAplicei,
-    getOfficeStripeKey,
+    getOfficeStripeConfig,
     resolveServicePrice
 } from "../_shared/office-payment.ts";
 
@@ -199,19 +199,30 @@ Deno.serve(async (req: Request) => {
             unitAmount = Math.round(calculateCardAmountWithFees(finalSubtotalUSD) * 100);
         }
 
-        let stripeSecret = Deno.env.get(`STRIPE_SECRET_KEY_${metadata_for_logs.env}`) || Deno.env.get("STRIPE_SECRET_KEY");
+        const platformSecret = Deno.env.get(`STRIPE_SECRET_KEY_${metadata_for_logs.env}`) || Deno.env.get("STRIPE_SECRET_KEY");
+
+        let stripeSecret = platformSecret;
+        let connectAccountId: string | null = null;
 
         if (office_id) {
             const useAplicei = await resolveUseAplicei(supabase, office_id);
             if (!useAplicei) {
-                const officeKey = await getOfficeStripeKey(supabase, office_id);
-                if (officeKey) {
-                    stripeSecret = officeKey;
+                const officeStripe = await getOfficeStripeConfig(supabase, office_id);
+
+                if (officeStripe.accountId) {
+                    // Stripe Connect: process on the office's connected account
+                    // using the platform key + stripeAccount option
+                    connectAccountId = officeStripe.accountId;
+                } else if (officeStripe.secretKey) {
+                    // Legacy fallback: office has its own secret key
+                    stripeSecret = officeStripe.secretKey;
                 }
             }
         }
 
         const stripe = new Stripe(stripeSecret!, { apiVersion: "2023-10-16", httpClient: Stripe.createFetchHttpClient() });
+
+        const sessionOptions = connectAccountId ? { stripeAccount: connectAccountId } : undefined;
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: payment_method_types as any,
@@ -244,6 +255,7 @@ Deno.serve(async (req: Request) => {
                 processId: targetProcId || "",
                 order_id: order_id || "",
                 office_id: office_id || "",
+                stripe_connect_account: connectAccountId || "",
                 parent_service_slug: parentServiceSlug,
                 coupon_code: coupon_code || "",
                 applied_coupon_id: appliedCouponId || "",
@@ -254,7 +266,7 @@ Deno.serve(async (req: Request) => {
                 charged_amount: (unitAmount / 100).toString(),
                 charged_currency: currency
             },
-        });
+        }, sessionOptions);
 
         return new Response(JSON.stringify({ url: session.url }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },

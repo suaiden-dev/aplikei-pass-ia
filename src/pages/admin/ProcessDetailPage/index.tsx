@@ -193,10 +193,10 @@ function ProcessFlowPanel({
 
               <div className="relative z-10 shrink-0">
                 <div className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center text-[11px] font-black transition-all duration-300 ${isCompleted
-                    ? 'bg-success border-success text-white shadow-md shadow-success/10'
-                    : isActive
-                      ? 'bg-primary border-primary text-white scale-110 shadow-lg shadow-primary/20'
-                      : 'bg-bg-subtle border-border text-text-muted'
+                  ? 'bg-success border-success text-white shadow-md shadow-success/10'
+                  : isActive
+                    ? 'bg-primary border-primary text-white scale-110 shadow-lg shadow-primary/20'
+                    : 'bg-bg-subtle border-border text-text-muted'
                   }`}>
                   {isCompleted ? <RiCheckLine className="text-lg" /> : i + 1}
                 </div>
@@ -495,9 +495,9 @@ function MRVSetupPanel({ proc, onApprove, onRefresh, isActive }: { proc: Process
                   href={supabase.storage.from("aplikei-profiles").getPublicUrl(boletoPath).data.publicUrl}
                   target="_blank" rel="noreferrer"
                   className="px-4 py-2 bg-card border border-border rounded-lg text-[10px] font-black text-text uppercase"
-                >{t.shared.confirm.replace('Confirmar', 'Ver')}</a>
+                >{t.shared.view}</a>
                 {isActive && (
-                  <button onClick={() => setBoletoPath("")} className="px-4 py-2 bg-danger/10 text-danger rounded-lg text-[10px] font-black uppercase">{t.shared.cancel.replace('Cancelar', 'Remover')}</button>
+                  <button onClick={() => setBoletoPath("")} className="px-4 py-2 bg-danger/10 text-danger rounded-lg text-[10px] font-black uppercase">{t.shared.remove}</button>
                 )}
               </div>
             </div>
@@ -804,7 +804,7 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
                 rel="noreferrer"
                 className="px-4 py-2 bg-text text-bg rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-text/90 transition-all flex items-center gap-2"
               >
-                <RiExternalLinkLine className="text-sm" /> {t.shared.confirm.replace('Confirmar', 'Ver')}
+                <RiExternalLinkLine className="text-sm" /> {t.shared.view}
               </a>
             </div>
           )}
@@ -950,7 +950,7 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
                 rel="noreferrer"
                 className="px-4 py-2 bg-text text-bg rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-text/90 transition-all flex items-center gap-2"
               >
-                <RiExternalLinkLine className="text-sm" /> {t.shared.confirm.replace('Confirmar', 'Ver')}
+                <RiExternalLinkLine className="text-sm" /> {t.shared.view}
               </a>
             </div>
           )}
@@ -1254,7 +1254,7 @@ export default function AdminProcessDetailPage() {
     } catch (err: unknown) {
       console.error("Error loading process:", err);
       toast.error(t.cases.messages.loadError);
-      navigate("/admin/processes");
+      navigate("/master/processes");
     } finally {
       setIsLoading(false);
     }
@@ -1276,7 +1276,7 @@ export default function AdminProcessDetailPage() {
     return (
       <div className="p-12 text-center bg-bg min-h-screen">
         <p className="text-text-muted">{t.cases.messages.loadError}</p>
-        <button onClick={() => navigate("/admin/processes")} className="mt-4 text-primary font-bold">{t.shared.back}</button>
+        <button onClick={() => navigate("/master/processes")} className="mt-4 text-primary font-bold">{t.shared.back}</button>
       </div>
     );
   }
@@ -2046,25 +2046,25 @@ export default function AdminProcessDetailPage() {
     const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 7 : 6);
     if (!isActive && !isPast) return null;
 
-    const email = (proc.step_data?.primaryEmail || proc.user_accounts?.email || "Não informado") as string;
-    const name = (proc.step_data?.fullName || proc.user_accounts?.full_name || "Não informado") as string;
-    const phone = (proc.step_data?.phone || "Não informado") as string;
+    const email = (proc.step_data?.primaryEmail || proc.user_accounts?.email || t.processDetail.accountCreation.notInformed) as string;
+    const name = (proc.step_data?.fullName || proc.user_accounts?.full_name || t.processDetail.accountCreation.notInformed) as string;
+    const phone = (proc.step_data?.phone || t.processDetail.accountCreation.notInformed) as string;
 
     return (
       <CollapsibleStep title={t.processDetail.accountCreation.title} icon={RiUser3Line} isActive={isActive} isPast={isPast} badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}>
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl bg-bg-subtle border border-border text-left">
-              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Nome Completo</p>
-              <p className="text-sm font-bold text-text">{name || "Não informado"}</p>
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">{t.processDetail.accountCreation.fullName}</p>
+              <p className="text-sm font-bold text-text">{name || t.processDetail.accountCreation.notInformed}</p>
             </div>
             <div className="p-4 rounded-xl bg-bg-subtle border border-border text-left">
-              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">E-mail</p>
-              <p className="text-sm font-bold text-text">{email || "Não informado"}</p>
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">{t.processDetail.accountCreation.email}</p>
+              <p className="text-sm font-bold text-text">{email || t.processDetail.accountCreation.notInformed}</p>
             </div>
             <div className="p-4 rounded-xl bg-bg-subtle border border-border text-left">
-              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Telefone</p>
-              <p className="text-sm font-bold text-text">{phone || "Não informado"}</p>
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">{t.processDetail.accountCreation.phone}</p>
+              <p className="text-sm font-bold text-text">{phone || t.processDetail.accountCreation.notInformed}</p>
             </div>
           </div>
 
@@ -2163,7 +2163,7 @@ export default function AdminProcessDetailPage() {
     <div className="p-8 max-w-6xl mx-auto pb-24 bg-bg min-h-screen">
       <div className="flex items-start justify-between mb-12">
         <div className="flex items-center gap-6">
-          <button onClick={() => navigate("/admin/processes")} className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-text-muted hover:text-primary transition-all shadow-sm">
+          <button onClick={() => navigate("/master/processes")} className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-text-muted hover:text-primary transition-all shadow-sm">
             <RiArrowLeftLine className="text-xl" />
           </button>
           <div>
@@ -2229,12 +2229,27 @@ export default function AdminProcessDetailPage() {
         </div>
 
         <div className="space-y-8">
-          <ProcessFlowPanel
-            effectiveSteps={effectiveSteps}
-            currentStepIdx={currentStepIdx}
-            vt={vt}
-            t={t}
-          />
+          <div className="bg-card rounded-[32px] border border-border shadow-sm p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-black text-text text-lg uppercase">{t.cases.table.flowActions}</h3>
+              <div className="px-3 py-1 bg-primary/5 rounded-lg text-primary text-[10px] font-black uppercase tracking-widest">
+                {t.processDetail.steps.stepCounter.replace('{{current}}', String(currentStepIdx + 1)).replace('{{total}}', String(effectiveSteps.length))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              {effectiveSteps.map((step, i) => (
+                <div key={step.id} className="flex items-center gap-3">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${i < currentStepIdx ? 'bg-success text-white' : i === currentStepIdx ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/20' : 'bg-bg-subtle text-text-muted'}`}>
+                    {i < currentStepIdx ? <RiCheckLine /> : i + 1}
+                  </div>
+                  <span className={`text-[11px] font-bold uppercase tracking-tight transition-all ${i <= currentStepIdx ? 'text-text' : 'text-text-muted'}`}>
+                    {vt.processSteps[step.id]?.title || step.title}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <PurchasesPanel stepData={proc?.step_data} />
 
 

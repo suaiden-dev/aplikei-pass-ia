@@ -1,10 +1,13 @@
 import { RoleDashboardLayout } from "./RoleDashboardLayout";
 import { useT } from "../i18n";
 import { buildSidebarNavItems } from "../routes/sidebarRoutes";
+import { useAuth } from "../hooks/useAuth";
 
 export function MasterDashboardLayout() {
   const t = useT("admin");
-  const navItems = buildSidebarNavItems("master", "master", t.nav as Record<string, string>);
+  const { user } = useAuth();
+  const navRole = user?.role ?? "master";
+  const navItems = buildSidebarNavItems("master", navRole, t.nav as Record<string, string>);
 
   return (
     <RoleDashboardLayout

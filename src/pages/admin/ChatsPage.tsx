@@ -1,1 +1,1 @@
-export { default } from "../master/ChatsPage";
+export { default } from "./ChatsPage/index";

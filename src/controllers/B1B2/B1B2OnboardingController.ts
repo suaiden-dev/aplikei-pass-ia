@@ -164,7 +164,7 @@ export function useB1B2OnboardingController({
           body: `O cliente finalizou a DS-160 para ${slug}.`,
           serviceId: procId,
           userId,
-          link: `/admin/processes/${procId}`,
+          link: `/master/processes/${procId}`,
         });
 
         toast.success(labels.successSubmit);

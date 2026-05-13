@@ -1,1 +1,2 @@
-export { default } from "../master/CouponsPage";
+import AdminCouponsPage from "./CouponsPage/index";
+export default AdminCouponsPage;

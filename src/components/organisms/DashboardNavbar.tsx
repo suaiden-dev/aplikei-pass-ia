@@ -112,9 +112,9 @@ export function DashboardNavbar({
     const u = user as unknown as { fullName?: string | null; full_name?: string | null; name?: string | null; email?: string | null } | null;
     const raw = u?.fullName || u?.full_name || u?.name || "";
     const trimmed = String(raw).trim();
-    if (!trimmed) return "Usuário";
+    if (!trimmed) return "User";
     const firstWord = trimmed.split(/\s+/).filter(Boolean)[0];
-    return firstWord || "Usuário";
+    return firstWord || "User";
   }, [user]);
 
   const resolvedAvatar = useMemo(() => {
@@ -178,11 +178,11 @@ export function DashboardNavbar({
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      toast.error("Selecione um arquivo de imagem.");
+      toast.error("Please select an image file.");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("A imagem deve ter no máximo 5MB.");
+      toast.error("The image must be max 5MB.");
       return;
     }
 
@@ -213,11 +213,11 @@ export function DashboardNavbar({
         avatar_zoom: zoom,
       });
       await refreshAccount();
-      toast.success("Perfil atualizado com sucesso.");
+      toast.success("Profile updated successfully.");
       setIsProfileDialogOpen(false);
     } catch (error) {
       const err = error as Error;
-      toast.error(err.message || "Erro ao atualizar perfil.");
+      toast.error(err.message || "Error updating profile.");
     } finally {
       setIsSaving(false);
     }
@@ -307,7 +307,7 @@ export function DashboardNavbar({
                   className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-text transition-colors hover:bg-bg-subtle"
                 >
                   <RiPencilLine size={16} />
-                  Alterar perfil
+                  Change profile
                 </button>
                 <button
                   type="button"
@@ -315,7 +315,7 @@ export function DashboardNavbar({
                   className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-red-500 transition-colors hover:bg-red-500/10"
                 >
                   <RiLogoutBoxRLine size={16} />
-                  Deslogar
+                  Log out
                 </button>
               </div>
             )}
@@ -326,7 +326,7 @@ export function DashboardNavbar({
       <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
         <DialogContent className="max-w-xl border-border bg-card p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-black text-text">Alterar Perfil</DialogTitle>
+            <DialogTitle className="text-lg font-black text-text">Change Profile</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6">
@@ -341,13 +341,13 @@ export function DashboardNavbar({
               </div>
               <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm text-text hover:bg-bg-subtle">
                 <RiUploadLine size={16} />
-                Enviar foto
+                Upload photo
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageSelected} />
               </label>
             </div>
 
             <div className="space-y-3">
-              <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Eixo X</label>
+              <label className="text-xs font-bold uppercase tracking-widest text-text-muted">X Axis</label>
               <input
                 type="range"
                 min={-50}
@@ -356,7 +356,7 @@ export function DashboardNavbar({
                 onChange={(e) => setXOffset(Number(e.target.value))}
                 className="w-full"
               />
-              <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Eixo Y</label>
+              <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Y Axis</label>
               <input
                 type="range"
                 min={-50}
@@ -378,16 +378,16 @@ export function DashboardNavbar({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Nome</label>
-              <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Seu nome" />
+              <label className="text-xs font-bold uppercase tracking-widest text-text-muted">Name</label>
+              <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" />
             </div>
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsProfileDialogOpen(false)} disabled={isSaving}>
-                Cancelar
+                Cancel
               </Button>
               <Button onClick={handleSaveProfile} disabled={isSaving}>
-                {isSaving ? "Salvando..." : "Salvar"}
+                {isSaving ? "Saving..." : "Save"}
               </Button>
             </div>
           </div>

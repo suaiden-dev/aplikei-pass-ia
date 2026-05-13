@@ -17,7 +17,6 @@ export interface UserAccount {
   passportPhotoUrl?: string | null;
   role: UserRole;
   officeId: string | null;
-  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +29,12 @@ export interface Office {
   name: string;
   address: string | null;
   phone: string | null;
+  cnpj: string | null;
+  email: string | null;
+  website: string | null;
+  instagram_url: string | null;
+  linkedin_url: string | null;
+  facebook_url: string | null;
   ownerId: string;
   createdAt: string;
   updatedAt: string;

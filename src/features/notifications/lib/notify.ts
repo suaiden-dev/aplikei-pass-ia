@@ -24,6 +24,11 @@ export interface NotifyAdminParams {
 }
 
 type NotificationPayload = Record<string, unknown>;
+type UserAccountLite = {
+  id: string;
+  role: string;
+  office_id: string | null;
+};
 
 async function insertNotification(payload: NotificationPayload): Promise<void> {
   const cachedSession = await getSessionSafe();
@@ -68,8 +73,64 @@ function isSilentError(e: unknown): boolean {
   );
 }
 
+async function getUserAccountLite(userId: string): Promise<UserAccountLite | null> {
+  const { data } = await supabase
+    .from("user_accounts")
+    .select("id, role, office_id")
+    .eq("id", userId)
+    .maybeSingle();
+  return (data as UserAccountLite | null) ?? null;
+}
+
+async function getOfficeAdminRecipients(officeId: string): Promise<string[]> {
+  const { data } = await supabase
+    .from("user_accounts")
+    .select("id")
+    .eq("office_id", officeId)
+    .in("role", ["manager", "admin_lawyer"]);
+  return ((data as Array<{ id: string }> | null) ?? []).map((row) => row.id);
+}
+
+async function getMasterRecipients(): Promise<string[]> {
+  const { data } = await supabase
+    .from("user_accounts")
+    .select("id")
+    .eq("role", "master");
+  return ((data as Array<{ id: string }> | null) ?? []).map((row) => row.id);
+}
+
+async function createAdminNotificationsForUsers(
+  userIds: string[],
+  params: NotifyAdminParams,
+): Promise<void> {
+  await Promise.all(userIds.map((id) => insertNotification({
+    type: "admin_action",
+    target_role: "admin",
+    user_id: id,
+    service_id: params.serviceId || null,
+    title: params.title,
+    message: params.body || null,
+    link: params.link ?? null,
+    email_sent: false,
+    send_email: false,
+    metadata: params.metadata || {},
+  })));
+}
+
 export async function notifyAdmin(params: NotifyAdminParams): Promise<void> {
   try {
+    if (params.userId) {
+      const actor = await getUserAccountLite(params.userId);
+
+      if (actor?.role === "customer" && actor.office_id) {
+        const officeRecipients = await getOfficeAdminRecipients(actor.office_id);
+        if (officeRecipients.length > 0) {
+          await createAdminNotificationsForUsers(officeRecipients, params);
+          return;
+        }
+      }
+    }
+
     await insertNotification({
       type: "admin_action",
       target_role: "admin",
@@ -85,6 +146,39 @@ export async function notifyAdmin(params: NotifyAdminParams): Promise<void> {
   } catch (e) {
     if (isSilentError(e)) return;
     console.error("[notify] notifyAdmin failed:", e);
+  }
+}
+
+export async function notifyMaster(params: NotifyAdminParams): Promise<void> {
+  try {
+    const masterIds = await getMasterRecipients();
+    if (masterIds.length > 0) {
+      await createAdminNotificationsForUsers(masterIds, params);
+      return;
+    }
+    await notifyAdmin(params);
+  } catch (e) {
+    if (isSilentError(e)) return;
+    console.error("[notify] notifyMaster failed:", e);
+  }
+}
+
+export async function notifyAdminLawyersByOffice(
+  officeId: string,
+  params: NotifyAdminParams,
+): Promise<void> {
+  try {
+    const { data } = await supabase
+      .from("user_accounts")
+      .select("id")
+      .eq("office_id", officeId)
+      .eq("role", "admin_lawyer");
+    const targetIds = ((data as Array<{ id: string }> | null) ?? []).map((row) => row.id);
+    if (targetIds.length === 0) return;
+    await createAdminNotificationsForUsers(targetIds, params);
+  } catch (e) {
+    if (isSilentError(e)) return;
+    console.error("[notify] notifyAdminLawyersByOffice failed:", e);
   }
 }
 

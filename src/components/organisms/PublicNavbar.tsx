@@ -102,7 +102,7 @@ export function PublicNavbar() {
   const navLinks = [
     { to: "/quem-somos", label: t.howItWorks },
     { to: "/servicos", label: t.services },
-    { to: "/contato", label: t.contact },
+    { to: "/login", label: t.login },
   ];
 
   return (
@@ -148,7 +148,7 @@ export function PublicNavbar() {
           </button>
 
           <Button asChild>
-            <Link to="/cadastro">{t.getStarted}</Link>
+            <Link to="/login">{t.login}</Link>
           </Button>
         </div>
 
@@ -197,8 +197,8 @@ export function PublicNavbar() {
               </button>
 
               <Button asChild className="w-full">
-                <Link to="/cadastro" onClick={closeMenu}>
-                  {t.getStarted}
+                <Link to="/login" onClick={closeMenu}>
+                  {t.login}
                 </Link>
               </Button>
 
