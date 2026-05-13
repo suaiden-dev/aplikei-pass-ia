@@ -36,7 +36,10 @@ interface AnalysisChatItem {
 export default function ChatsPage() {
   const t = useT("admin");
   const { user } = useAuth();
-  const { threads, unreadByProcess, isLoading } = useAdminChats();
+  const { threads, unreadByProcess, isLoading } = useAdminChats({
+    role: user?.role,
+    officeId: user?.officeId,
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedChat, setSelectedChat] = useState<AnalysisChatItem | null>(null);
   const [clearedUnreadProcessIds, setClearedUnreadProcessIds] = useState<Record<string, true>>({});
@@ -232,7 +235,7 @@ export default function ChatsPage() {
 function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: AnalysisChatItem; onClose: () => void }) {
   const t = useT("admin");
   const navigate = useNavigate();
-  const { closeChat, reopenChat, getChatClosedAt } = useAdminChats();
+  const { closeChat, reopenChat, getChatClosedAt } = useAdminChats({ disableLoad: true });
   const [showSettings, setShowSettings] = useState(false);
   const [isClosed, setIsClosed] = useState<boolean | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
