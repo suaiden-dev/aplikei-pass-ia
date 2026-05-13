@@ -5,7 +5,7 @@ import type { UserService } from "../types";
 
 // ── COS step normalisation (side-effectful: corrects stale DB rows on read) ──
 
-const COS_SLUGS = ["troca-status", "extensao-status"];
+const COS_SLUGS = ["troca-status", "extensao-status", "visa-cos", "visa-eos"];
 
 const COS_RECOVERY_STEPS = {
   rfeStart: 13,

@@ -21,16 +21,16 @@ import {
 import { MdPix } from "react-icons/md";
 import { Input } from "../../../components/Input";
 import { LogoLoader } from "../../../components/atoms/logo-loader";
-import { 
-  validateCoupon, 
+import {
+  validateCoupon,
   calculateDiscount,
-  type CouponValidation 
+  type CouponValidation
 } from "../../../services/coupon.service";
 import { getSupabaseClient } from "../../../lib/supabase/client";
 import { Label } from "../../../components/Label";
 import { Button } from "../../../components/atoms/button";
 import { zodValidate } from "../../../utils/zodValidate";
-import { getServiceBySlug } from "../../../data/services";
+import { getServiceBySlug, getServiceSlugs } from "../../../data/services";
 import { useAuth } from "../../../hooks/useAuth";
 import {
   paymentService,
@@ -45,7 +45,7 @@ import { useT } from "../../../i18n";
 
 const ZELLE_EMAIL = ZELLE_RECIPIENT.email;
 const ZELLE_PHONE = ZELLE_RECIPIENT.phone;
-const ZELLE_NAME  = ZELLE_RECIPIENT.name;
+const ZELLE_NAME = ZELLE_RECIPIENT.name;
 
 const FALLBACK_EXCHANGE_RATE = 5.7;
 
@@ -122,7 +122,7 @@ function PriceSummary({
   const depUSDVal = typeof depUSD === "number" ? depUSD : parsePriceUSD(depUSD);
   const subtotalBeforeDiscount = baseUSDVal + dependents * depUSDVal;
   const subtotal = Math.max(0, subtotalBeforeDiscount - (discountUSD || 0));
-  
+
   const isCard = method === "card";
   const isPix = method === "pix";
   const isParcelow = method === "parcelow";
@@ -144,7 +144,7 @@ function PriceSummary({
           <span className="font-semibold text-text">US$ {(dependents * depUSDVal).toFixed(2)}</span>
         </div>
       )}
-      
+
       {discountUSD && discountUSD > 0 && (
         <div className="flex justify-between text-emerald-600 font-medium">
           <span>{t?.coupon?.discount?.replace("{{code}}", couponCode || "")}</span>
@@ -206,7 +206,10 @@ export default function CheckoutPage() {
   const p = t?.product;
 
   const isUpgrade = searchParams.get("upgrade") === "true";
-  
+  const officeIdFromUrl = searchParams.get("office_id");
+  const [dynamicPrice, setDynamicPrice] = useState<number | null>(null);
+  const [dynamicPriceName, setDynamicPriceName] = useState<string | null>(null);
+
   const service = getServiceBySlug(slug || "");
   const [activeMethod, setActiveMethod] = useState<PaymentTab>("card");
   const [dependents, setDependents] = useState(searchParams.get("upgrade") === "true" ? 1 : 0);
@@ -238,32 +241,89 @@ export default function CheckoutPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const formatTimeParts = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return {
-      hh: hours.toString().padStart(2, "0"),
-      mm: mins.toString().padStart(2, "0"),
-      ss: secs.toString().padStart(2, "0"),
-    };
-  };
+  // Role verification: only customers can proceed with this flow
+  useEffect(() => {
+    if (user && user.role !== "customer") {
+      toast.error("Este fluxo é exclusivo para clientes.");
+      navigate("/dashboard");
+    }
+  }, [user]);
 
-  const baseUSD = service ? parsePriceUSD(service.price) : 0;
+  // Fetch office-specific price if office_id is present
+  useEffect(() => {
+    async function fetchOfficePrice() {
+      if (!slug) return;
+
+      const supabase = getSupabaseClient();
+      if (!supabase) return;
+
+      try {
+        const slugs = getServiceSlugs(slug);
+        const effectiveOfficeId = officeIdFromUrl || user?.officeId;
+
+        if (!effectiveOfficeId) {
+          console.log("[CheckoutPage] Nenhum office_id encontrado para busca de preço.");
+          return;
+        }
+
+        console.log("[CheckoutPage] Buscando preço para office:", effectiveOfficeId, "slugs:", slugs);
+
+        // 1. Primeiro buscamos o ID do serviço pelo slug (tentando todos os aliases)
+        const { data: serviceData, error: sError } = await supabase
+          .from("services")
+          .select("id, name")
+          .in("slug", slugs)
+          .maybeSingle();
+
+        if (sError) throw sError;
+        if (!serviceData) {
+          console.warn("[CheckoutPage] Serviço não encontrado no banco para os slugs:", slugs);
+          return;
+        }
+
+        console.log("[CheckoutPage] Serviço encontrado:", serviceData.name, "ID:", serviceData.id);
+
+        // 2. Agora buscamos o preço específico para este office e este service_id
+        const { data: priceData, error: pError } = await supabase
+          .from("user_service_prices")
+          .select("price")
+          .eq("office_id", effectiveOfficeId)
+          .eq("service_id", serviceData.id)
+          .or("is_active.is.true,is_active.is.null") // Aceita true ou null
+          .maybeSingle();
+
+        if (pError) throw pError;
+
+        if (priceData) {
+          console.log("[CheckoutPage] Found dynamic price:", priceData.price, "for office:", effectiveOfficeId);
+          setDynamicPrice(priceData.price);
+          setDynamicPriceName(serviceData.name);
+        } else {
+          console.log("[CheckoutPage] No specific price found for office:", effectiveOfficeId, "and service_id:", serviceData.id);
+        }
+      } catch (err) {
+        console.error("[CheckoutPage] Error fetching office price:", err);
+      }
+    }
+
+    fetchOfficePrice();
+  }, [officeIdFromUrl, slug, user]);
+
+  const baseUSD = dynamicPrice !== null ? dynamicPrice : (service ? parsePriceUSD(service.price) : 0);
   const depUSD = isUpgrade ? baseUSD : (service ? parsePriceUSD(service.dependentPrice) : 0);
   const subtotalUSD = isUpgrade ? (dependents * baseUSD) : (baseUSD + (dependents * depUSD));
 
   const discountUSD = appliedCoupon?.valid && appliedCoupon.discount_type && appliedCoupon.discount_value
     ? calculateDiscount(subtotalUSD, appliedCoupon.discount_type, appliedCoupon.discount_value)
     : 0;
-  
+
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) return;
     setIsValidatingCoupon(true);
     const basePrice = parsePriceUSD(service?.price || "0");
     const depPrice = parsePriceUSD(service?.dependentPrice || "0");
     const subtotalUSD = basePrice + dependents * depPrice;
-    
+
     try {
       const result = await validateCoupon(couponInput, slug || "");
       if (result.valid) {
@@ -291,7 +351,7 @@ export default function CheckoutPage() {
   const handleProofSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     if (file.size > 8 * 1024 * 1024) {
       toast.error(p?.paymentMethods?.zelle?.fileTooLarge);
       return;
@@ -336,11 +396,11 @@ export default function CheckoutPage() {
             });
             currentUserId = signUpRes.id;
           } catch (signUpErr) {
-             const error = signUpErr as Error;
-             if (error.message?.includes("already registered") || error.message?.includes("already exists")) {
-                throw new Error(p?.userData?.errors?.emailTaken, { cause: error });
-             }
-             throw new Error(error.message, { cause: error });
+            const error = signUpErr as Error;
+            if (error.message?.includes("already registered") || error.message?.includes("already exists")) {
+              throw new Error(p?.userData?.errors?.emailTaken, { cause: error });
+            }
+            throw new Error(error.message, { cause: error });
           }
         }
 
@@ -353,6 +413,7 @@ export default function CheckoutPage() {
           customer_name: values.fullName,
           customer_email: values.email,
           customer_phone: values.phone,
+          office_id: officeIdFromUrl || user?.officeId || undefined,
         };
 
         if (activeMethod === "card" || activeMethod === "pix") {
@@ -413,13 +474,13 @@ export default function CheckoutPage() {
   }, [user]);
 
   if (!t || !p) return <div className="min-h-screen bg-bg flex items-center justify-center"><LogoLoader /></div>;
-  
+
   if (!service) return <Navigate to="/dashboard" replace />;
 
   if (zelleDone) {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center p-6">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-md w-full bg-card rounded-[2.5rem] border border-border p-10 text-center shadow-2xl"
@@ -433,7 +494,7 @@ export default function CheckoutPage() {
           <p className="text-text-muted font-medium mb-10 leading-relaxed italic">
             {p?.paymentMethods?.zelle?.pendingReview}
           </p>
-          <Button 
+          <Button
             className="w-full bg-primary text-white font-black py-4 rounded-2xl"
             onClick={() => navigate("/dashboard")}
           >
@@ -530,8 +591,8 @@ export default function CheckoutPage() {
                     {isUpgrade ? p?.dependents?.slotsLabel : p?.dependents?.label}
                   </p>
                   <p className="text-[11px] text-text-muted font-bold italic">
-                    {isUpgrade 
-                      ? p?.dependents?.perSlot?.replace("{{price}}", service.price) 
+                    {isUpgrade
+                      ? p?.dependents?.perSlot?.replace("{{price}}", service.price)
                       : p?.dependents?.perPerson?.replace("{{price}}", service.dependentPrice)}
                   </p>
                 </div>
@@ -614,7 +675,7 @@ export default function CheckoutPage() {
                     <RiShieldCheckLine className="text-primary" />
                     {p?.userData?.title}
                   </h2>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="md:col-span-2">
                       <Label htmlFor="fullName" className="text-xs font-black uppercase tracking-widest mb-2 block">{p?.userData?.fullName}</Label>
@@ -704,11 +765,10 @@ export default function CheckoutPage() {
                         type="button"
                         disabled={!m.available}
                         onClick={() => m.available && setActiveMethod(m.id)}
-                        className={`relative flex flex-col items-center gap-2 py-5 px-3 rounded-2xl border-2 transition-all duration-300 ${
-                          activeMethod === m.id
+                        className={`relative flex flex-col items-center gap-2 py-5 px-3 rounded-2xl border-2 transition-all duration-300 ${activeMethod === m.id
                             ? "border-primary bg-primary/5 text-primary shadow-xl shadow-primary/5 ring-1 ring-primary/20"
                             : "border-border bg-card text-text-muted hover:border-border-hover hover:bg-bg-subtle"
-                        }`}
+                          }`}
                       >
                         <div className="w-10 h-10 rounded-xl bg-current/10 flex items-center justify-center">
                           {m.icon}
@@ -786,7 +846,7 @@ export default function CheckoutPage() {
                               accept="image/*"
                               className="absolute inset-0 opacity-0 cursor-pointer z-10"
                             />
-                            
+
                             {zelleProofPreview ? (
                               <div className="flex items-center gap-6">
                                 <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-border bg-bg-subtle">
@@ -795,8 +855,8 @@ export default function CheckoutPage() {
                                 <div className="flex-1">
                                   <p className="font-black text-text uppercase tracking-tight">{zelleProof?.name}</p>
                                   <p className="text-xs text-text-muted font-bold italic">{(zelleProof!.size / 1024).toFixed(0)} KB</p>
-                                  <button 
-                                    type="button" 
+                                  <button
+                                    type="button"
                                     onClick={() => { setZelleProof(null); setZelleProofPreview(null); }}
                                     className="text-red-500 text-xs font-black uppercase tracking-widest mt-2 hover:underline z-20 relative"
                                   >

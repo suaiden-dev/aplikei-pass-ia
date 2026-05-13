@@ -36,6 +36,7 @@ interface BaseCheckoutParams {
   customer_name?: string;
   customer_email?: string;
   customer_phone?: string;
+  office_id?: string;
   // Campos extras toleráveis (workflows legados ainda passam email/serviceName/amount).
   // O servidor ignora qualquer amount enviado e recalcula a partir de product_prices.
   [key: string]: unknown;
@@ -62,6 +63,7 @@ export const paymentService = {
         customer_name: params.customer_name,
         customer_email: params.customer_email,
         customer_phone: params.customer_phone,
+        office_id: params.office_id,
       }),
     });
 
@@ -92,6 +94,7 @@ export const paymentService = {
         customer_name: params.customer_name,
         customer_email: params.customer_email,
         customer_phone: params.customer_phone,
+        office_id: params.office_id,
       }),
     });
 
@@ -138,6 +141,7 @@ export const paymentService = {
         origin_url: window.location.origin,
         customer_name: params.customer_name,
         customer_email: params.customer_email,
+        office_id: params.office_id,
       }),
     });
 

@@ -252,8 +252,9 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
       });
 
     return () => {
+      void supabase.removeChannel(channel);
     };
-  }, [loadHistory, role, user]);
+  }, [handleInsert, handleUpdate, loadHistory, role, userId]);
 
   useEffect(() => {
     return onPortalEvent("aplikei:notifications:changed", (event) => {

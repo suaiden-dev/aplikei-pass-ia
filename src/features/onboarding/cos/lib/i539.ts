@@ -193,10 +193,10 @@ export async function fillI539Form(
   tx("form1[0].#subform[2].P3_Line4_NameofPetitioner[1]", data.petitionerName);
 
   // ── Part 4 ──
-  btn("form1[0].#subform[3].P4_checkbox6_Yes[0]", data.q6Yes);   btn("form1[0].#subform[3].P4_checkbox6_No[0]", data.q6No);
-  btn("form1[0].#subform[3].P4_checkbox7_Yes[0]", data.q7Yes);   btn("form1[0].#subform[3].P4_checkbox7_No[0]", data.q7No);
-  btn("form1[0].#subform[3].P4_checkbox8_Yes[0]", data.q8Yes);   btn("form1[0].#subform[3].P4_checkbox8_No[0]", data.q8No);
-  btn("form1[0].#subform[3].P4_checkbox9_Yes[0]", data.q9Yes);   btn("form1[0].#subform[3].P4_checkbox9_No[0]", data.q9No);
+  btn("form1[0].#subform[3].P4_checkbox6_Yes[0]", data.q6Yes); btn("form1[0].#subform[3].P4_checkbox6_No[0]", data.q6No);
+  btn("form1[0].#subform[3].P4_checkbox7_Yes[0]", data.q7Yes); btn("form1[0].#subform[3].P4_checkbox7_No[0]", data.q7No);
+  btn("form1[0].#subform[3].P4_checkbox8_Yes[0]", data.q8Yes); btn("form1[0].#subform[3].P4_checkbox8_No[0]", data.q8No);
+  btn("form1[0].#subform[3].P4_checkbox9_Yes[0]", data.q9Yes); btn("form1[0].#subform[3].P4_checkbox9_No[0]", data.q9No);
   btn("form1[0].#subform[3].P4_checkbox10_Yes[0]", data.q10Yes); btn("form1[0].#subform[3].P4_checkbox10_No[0]", data.q10No);
   btn("form1[0].#subform[3].P4_checkbox11_Yes[0]", data.q11Yes); btn("form1[0].#subform[3].P4_checkbox11_No[0]", data.q11No);
   btn("form1[0].#subform[3].P4_checkbox12_Yes[0]", data.q12Yes); btn("form1[0].#subform[3].P4_checkbox12_No[0]", data.q12No);

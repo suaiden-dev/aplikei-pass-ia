@@ -219,26 +219,6 @@ export function F1StepContent({
         onNext,
       }) => (
         <div className='flex flex-col border-t border-slate-100 bg-slate-50/50'>
-          {isReadOnly && (
-            <div className='px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-center gap-3'>
-              {currentStep > stepIdx ? (
-                <>
-                  <RiCheckLine className='text-emerald-500 text-lg' />
-                  <span className='text-[10px] font-black text-emerald-600 uppercase tracking-widest'>
-                    Etapa Aprovada — Somente Visualização
-                  </span>
-                </>
-              ) : (
-                <>
-                  <RiLoader4Line className='text-primary animate-spin text-lg' />
-                  <span className='text-[10px] font-black text-slate-500 uppercase tracking-widest'>
-                    {labels.onboardingPage.processingStatus.awaitingReview} — Somente Visualização
-                  </span>
-                </>
-              )}
-            </div>
-          )}
-
           <div className='px-6 sm:px-10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4'>
             <div className='flex w-full flex-col gap-3 sm:w-auto sm:flex-row'>
               {!isFirstSection && (

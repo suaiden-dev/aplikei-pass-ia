@@ -10,11 +10,11 @@ export interface ServiceMeta extends Omit<ServiceData, 'steps'> {
 
 export const servicesData: ServiceMeta[] = [
   {
-    slug: "mentoria-bronze",
-    title: "Mentoria Bronze",
+    slug: "mentoria-individual",
+    title: "Pacote Bronze",
     subtitle: "1 Simulação de Entrevista",
-    price: "R$ 197,00",
-    originalPrice: "R$ 397,00",
+    price: "US$ 197,00",
+    originalPrice: "US$ 297,00",
     heroImage: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop",
     successRate: "94.0%",
     processType: "Mentoria",
@@ -22,18 +22,18 @@ export const servicesData: ServiceMeta[] = [
     description: "Treinamento básico com uma simulação standard.",
     forWhom: ["Quem quer um treinamento rápido"],
     notForWhom: [],
-    included: ["1 Mock Interview", "Plano de Estudo"],
+    included: ["1 Aula de Treinamento", "Simulado de perguntas"],
     requirements: ["DS-160 confirmada"],
     dependentPrice: "US$ 0,00",
     steps: [],
     faq: [],
   },
   {
-    slug: "mentoria-silver",
-    title: "Mentoria Prata",
+    slug: "mentoria-bronze",
+    title: "Pacote Prata",
     subtitle: "2 Simulações de Entrevista",
-    price: "R$ 397,00",
-    originalPrice: "R$ 597,00",
+    price: "US$ 397,00",
+    originalPrice: "US$ 597,00",
     heroImage: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop",
     successRate: "97.5%",
     processType: "Mentoria",
@@ -41,7 +41,26 @@ export const servicesData: ServiceMeta[] = [
     description: "Treinamento intermediário com duas simulações e análise de perfil.",
     forWhom: ["Quem busca melhorar o desempenho entre sessões"],
     notForWhom: [],
-    included: ["2 Mock Interviews", "Análise de Perfil", "Feedback Detalhado"],
+    included: ["2 Aulas de Treinamento", "Análise profunda de perfil", "Feedback imediato"],
+    requirements: ["DS-160 confirmada"],
+    dependentPrice: "US$ 0,00",
+    steps: [],
+    faq: [],
+  },
+  {
+    slug: "mentoria-silver",
+    title: "Pacote Prata (F1)",
+    subtitle: "2 Simulações de Entrevista",
+    price: "US$ 397,00",
+    originalPrice: "US$ 597,00",
+    heroImage: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop",
+    successRate: "97.5%",
+    processType: "Mentoria",
+    heroIconName: "RiUserStarLine",
+    description: "Treinamento intermediário com duas simulações e análise de perfil.",
+    forWhom: ["Quem busca melhorar o desempenho entre sessões"],
+    notForWhom: [],
+    included: ["2 Aulas de Treinamento", "Análise profunda de perfil", "Feedback imediato"],
     requirements: ["DS-160 confirmada"],
     dependentPrice: "US$ 0,00",
     steps: [],
@@ -49,10 +68,10 @@ export const servicesData: ServiceMeta[] = [
   },
   {
     slug: "mentoria-gold",
-    title: "Mentoria Ouro",
+    title: "Pacote Gold",
     subtitle: "3 Simulações + Revisão Completa",
-    price: "R$ 597,00",
-    originalPrice: "R$ 897,00",
+    price: "US$ 697,00",
+    originalPrice: "US$ 897,00",
     heroImage: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop",
     successRate: "99.1%",
     processType: "Mentoria VIP",
@@ -61,10 +80,10 @@ export const servicesData: ServiceMeta[] = [
     forWhom: ["Quem quer a melhor preparação possível", "Casos com múltiplas negativas"],
     notForWhom: [],
     included: [
-      "3 Mock Interviews",
-      "Análise de Perfil Profunda",
-      "Revisão da DS-160",
-      "Suporte via WhatsApp",
+      "3 Aulas de Treinamento",
+      "Estratégia de Resposta",
+      "Revisão de Documentos",
+      "Suporte VIP",
     ],
     requirements: ["DS-160 confirmada"],
     dependentPrice: "US$ 0,00",
@@ -72,7 +91,75 @@ export const servicesData: ServiceMeta[] = [
     faq: [],
   },
   {
-    slug: "visa-b1b2",
+    slug: "mentoria-negativa-consular",
+    title: "Análise de Recusa",
+    subtitle: "Análise técnica pós-negativa",
+    price: "US$ 97,00",
+    originalPrice: "US$ 197,00",
+    heroImage: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=2070&auto=format&fit=crop",
+    successRate: "90.0%",
+    processType: "Consultoria",
+    heroIconName: "RiInformationLine",
+    description: "Entenda por que seu visto foi negado e como corrigir isso.",
+    forWhom: ["Quem teve visto negado recentemente"],
+    notForWhom: [],
+    included: [
+      "Análise detalhada da recusa",
+      "45 min com especialista",
+      "Plano de ação personalizado",
+    ],
+    requirements: ["Carta de negativa anterior"],
+    dependentPrice: "US$ 0,00",
+    steps: [],
+    faq: [],
+  },
+  {
+    slug: "consultoria-f1-negativa",
+    title: "Mentoria Pós-Negativa F-1",
+    subtitle: "Estratégia de reversão para estudantes",
+    price: "US$ 97,00",
+    originalPrice: "US$ 197,00",
+    heroImage: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=2070&auto=format&fit=crop",
+    successRate: "85.0%",
+    processType: "Consultoria",
+    heroIconName: "RiInformationLine",
+    description: "Análise técnica dos motivos da negativa de visto de estudante.",
+    forWhom: ["Estudantes com visto negado"],
+    notForWhom: [],
+    included: [
+      "Análise de vínculos acadêmicos",
+      "45 min com especialista",
+      "Nova estratégia de entrevista",
+    ],
+    requirements: ["Carta de negativa anterior"],
+    dependentPrice: "US$ 0,00",
+    steps: [],
+    faq: [],
+  },
+  {
+    slug: "consultoria-especialista",
+    title: "Consultoria Especialista",
+    subtitle: "Atendimento personalizado",
+    price: "US$ 97,00",
+    originalPrice: "US$ 197,00",
+    heroImage: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=2070&auto=format&fit=crop",
+    successRate: "95.0%",
+    processType: "Consultoria",
+    heroIconName: "RiUserVoiceLine",
+    description: "Sessão individual para tirar dúvidas e analisar casos complexos.",
+    forWhom: ["Casos atípicos", "Dúvidas específicas"],
+    notForWhom: [],
+    included: [
+      "45 min com especialista",
+      "Análise documental",
+    ],
+    requirements: [],
+    dependentPrice: "US$ 0,00",
+    steps: [],
+    faq: [],
+  },
+  {
+    slug: "visto-b1-b2",
     title: "Turismo e Negócios (B1/B2)",
     subtitle: "Guia completo passo a passo",
     price: "US$ 197,00",
@@ -104,7 +191,7 @@ export const servicesData: ServiceMeta[] = [
     faq: [],
   },
   {
-    slug: "visa-b1b2-reaplicacao",
+    slug: "visto-b1-b2-reaplicacao",
     title: "Reaplicação B1/B2",
     subtitle: "Foco total na reversão da negativa",
     price: "US$ 197,00",
@@ -136,7 +223,7 @@ export const servicesData: ServiceMeta[] = [
     faq: [],
   },
   {
-    slug: "visa-f1",
+    slug: "visto-f1",
     title: "Visto de Estudante (F-1)",
     subtitle: "Do I-20 à aprovação final",
     price: "US$ 247,00",
@@ -169,7 +256,7 @@ export const servicesData: ServiceMeta[] = [
     faq: [],
   },
   {
-    slug: "visa-f1-reaplicacao",
+    slug: "visto-f1-reaplicacao",
     title: "Reaplicação F-1",
     subtitle: "Reverta sua negativa de estudante",
     price: "US$ 247,00",
@@ -202,7 +289,7 @@ export const servicesData: ServiceMeta[] = [
     faq: [],
   },
   {
-    slug: "visa-eos",
+    slug: "extensao-status",
     title: "Extensão de Status (EOS)",
     subtitle: "Permaneça legal por mais tempo",
     price: "US$ 497,00",
@@ -235,7 +322,7 @@ export const servicesData: ServiceMeta[] = [
     faq: [],
   },
   {
-    slug: "visa-cos",
+    slug: "troca-status",
     title: "Troca de Status (COS)",
     subtitle: "Mude de visto sem sair dos EUA",
     price: "US$ 497,00",
@@ -270,5 +357,37 @@ export const servicesData: ServiceMeta[] = [
 ];
 
 export function getServiceBySlug(slug: string): ServiceMeta | undefined {
-  return servicesData.find((s) => s.slug === slug);
+  const finalSlug = getCanonicalSlug(slug);
+  return servicesData.find((s) => s.slug === finalSlug);
+}
+
+export function getCanonicalSlug(slug: string): string {
+  const slugMap: Record<string, string> = {
+    "visa-b1b2": "visto-b1-b2",
+    "visa-b1b2-reaplicacao": "visto-b1-b2-reaplicacao",
+    "visa-f1": "visto-f1",
+    "visa-f1-reaplicacao": "visto-f1-reaplicacao",
+    "visa-eos": "extensao-status",
+    "visa-cos": "troca-status",
+  };
+  return slugMap[slug] || slug;
+}
+
+export function isSameService(slug1: string, slug2: string): boolean {
+  if (!slug1 || !slug2) return false;
+  return getCanonicalSlug(slug1) === getCanonicalSlug(slug2);
+}
+
+export function getServiceSlugs(slug: string): string[] {
+  const canonical = getCanonicalSlug(slug);
+  const inverseMap: Record<string, string[]> = {
+    "visto-b1-b2": ["visa-b1b2"],
+    "visto-b1-b2-reaplicacao": ["visa-b1b2-reaplicacao"],
+    "visto-f1": ["visa-f1"],
+    "visto-f1-reaplicacao": ["visa-f1-reaplicacao"],
+    "extensao-status": ["visa-eos"],
+    "troca-status": ["visa-cos"],
+  };
+  const aliases = inverseMap[canonical] || [];
+  return [canonical, ...aliases];
 }

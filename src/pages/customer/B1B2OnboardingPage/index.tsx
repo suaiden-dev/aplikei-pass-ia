@@ -11,9 +11,7 @@ import { AdminFeedbackBanner } from '../../../components/organisms/AdminFeedback
 import { B1B2StepContent } from './components/B1B2StepContent';
 import { type DS160FormValues } from '../../../schemas/ds160.schema';
 
-function buildLabels(t: {
-  onboardingPage: B1B2OnboardingLabels
-}): B1B2OnboardingLabels {
+function buildLabels(t: any): B1B2OnboardingLabels {
   return {
     stepLabel: t.onboardingPage.stepLabel,
     ds160Form: t.onboardingPage.ds160Form,
@@ -40,11 +38,13 @@ function buildLabels(t: {
     accountCreationDesc: t.onboardingPage.accountCreationDesc,
     requiredFieldsTitle: t.onboardingPage.requiredFieldsTitle,
     requiredFieldsDesc: t.onboardingPage.requiredFieldsDesc,
+    creatingCredentialsTitle: t.onboardingPage.feeProcessing?.creatingCredentialsTitle,
+    creatingCredentialsDesc: t.onboardingPage.feeProcessing?.creatingCredentialsDesc,
   }
 }
 
 export default function B1B2OnboardingPage() {
-  const t = useT('visas') as { onboardingPage: B1B2OnboardingLabels }
+  const t = useT('visas') as any
   const { user } = useAuth()
   const navigate = useNavigate()
   const labels = buildLabels(t)

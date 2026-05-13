@@ -9,6 +9,7 @@ export interface UserAccount {
   avatarUrl: string | null;
   passportPhotoUrl?: string | null;
   role: UserRole;
+  officeId: string | null;
   createdAt: string;
   updatedAt: string;
 }

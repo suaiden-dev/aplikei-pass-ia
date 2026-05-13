@@ -28,6 +28,7 @@ type UserAccountsRow = {
   passport_photo_url: string | null;
   preferred_language: string | null;
   role: UserAccount["role"];
+  office_id: string | null;
   email: string | null;
   created_at: string;
   updated_at: string;
@@ -77,6 +78,7 @@ function mapFromUserAccountRow(row: UserAccountsRow): UserAccount {
     avatarUrl: row.avatar_url ?? row.profile_url ?? null,
     passportPhotoUrl: row.passport_photo_url,
     role: row.role,
+    officeId: row.office_id ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -111,6 +113,7 @@ function mapFromAuthUser(user: AuthUserRow): UserAccount {
         ? metadata.passport_photo_url
         : null,
     role,
+    officeId: typeof metadata.office_id === "string" ? metadata.office_id : null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

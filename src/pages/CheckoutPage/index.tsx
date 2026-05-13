@@ -39,7 +39,7 @@ import { useCoupon } from "../../features/payment/hooks/useCoupon";
 
 const ZELLE_EMAIL = ZELLE_RECIPIENT.email;
 const ZELLE_PHONE = ZELLE_RECIPIENT.phone;
-const ZELLE_NAME  = ZELLE_RECIPIENT.name;
+const ZELLE_NAME = ZELLE_RECIPIENT.name;
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -116,7 +116,7 @@ function PriceSummary({
   const t = useT("checkout").product;
   const subtotalBeforeDiscount = baseUSD + dependents * depUSD;
   const subtotal = Math.max(0, subtotalBeforeDiscount - (discountUSD || 0));
-  
+
   const isCard = method === "card";
   const isPix = method === "pix";
   const isParcelow = method === "parcelow";
@@ -138,7 +138,7 @@ function PriceSummary({
           <span className="font-semibold text-text">US$ {(dependents * depUSD).toFixed(2)}</span>
         </div>
       )}
-      
+
       {discountUSD && discountUSD > 0 && (
         <div className="flex justify-between text-emerald-600 font-medium">
           <span>{t.coupon.discount.replace("{{code}}", couponCode || "")}</span>
@@ -264,10 +264,10 @@ export default function CheckoutPage() {
   const checkoutCount = dependents;
   const subtotalUSD = isUpgrade ? (dependents * baseUSD) : (baseUSD + (dependents * depUSD));
 
-  const discountUSD = appliedCoupon?.valid 
+  const discountUSD = appliedCoupon?.valid
     ? calculateDiscount(subtotalUSD, appliedCoupon.discount_type!, appliedCoupon.discount_value!)
     : 0;
-  
+
   const finalSubtotalUSD = Math.max(0, subtotalUSD - discountUSD);
 
   const handleApplyCoupon = async () => {
@@ -315,9 +315,9 @@ export default function CheckoutPage() {
         // Auto-signup if not logged in
         if (!currentUserId) {
           if (!values.password || values.password.length < 6) {
-             throw new Error(t.userData.errors.passwordShort);
+            throw new Error(t.userData.errors.passwordShort);
           }
-          
+
           try {
             const signUpRes = await authService.signUp({
               email: values.email,
@@ -326,16 +326,16 @@ export default function CheckoutPage() {
               phoneNumber: values.phone,
               terms: true, // Auto-accept terms at checkout
             });
-            
+
             if (signUpRes.user) {
               currentUserId = signUpRes.user.id;
             }
           } catch (signUpErr) {
-             const error = signUpErr as Error;
-             if (error.message?.includes("already registered")) {
-                throw new Error(t.userData.errors.emailTaken);
-             }
-             throw error;
+            const error = signUpErr as Error;
+            if (error.message?.includes("already registered")) {
+              throw new Error(t.userData.errors.emailTaken);
+            }
+            throw error;
           }
         }
 
@@ -414,7 +414,7 @@ export default function CheckoutPage() {
       }
     },
   });
-  
+
   if (!service) return <Navigate to="/dashboard" replace />;
 
 
@@ -464,7 +464,7 @@ export default function CheckoutPage() {
           </div>
 
           {/* Right: CTA */}
-          <button 
+          <button
             type="button"
             className="bg-white text-[#003da5] px-6 py-2 rounded-full font-display font-black text-xs sm:text-sm uppercase tracking-tighter hover:bg-blue-50 transition-all shadow-md active:scale-95 whitespace-nowrap"
           >
@@ -480,485 +480,483 @@ export default function CheckoutPage() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-8 text-center"
           >
-           
+
           </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
 
-          {/* ── Left: Service summary ── */}
-          <motion.aside
-            initial={{ opacity: 0, x: -16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:col-span-2 space-y-4"
-          >
-            {/* Service card */}
-            <div className="rounded-2xl bg-card border border-border shadow-sm p-5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center">
-                  <RiShieldCheckLine className="text-primary text-xl" />
-                </div>
-                <div>
-                  <p className="font-display font-bold text-text text-sm leading-tight">
-                    {service!.title}
-                  </p>
-                  <p className="text-[11px] text-text-muted">{service!.processType}</p>
-                </div>
-              </div>
-
-              <div className="space-y-1.5 mb-4">
-                {service.included.slice(0, 4).map((item) => (
-                  <div key={item} className="flex items-start gap-2">
-                    <RiCheckLine className="text-primary text-sm mt-0.5 shrink-0" />
-                    <span className="text-xs text-text-muted leading-snug">{item.split(":")[0]}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex items-end gap-2 pt-3 border-t border-border">
-                <span className="text-2xl font-black text-text">{service.price}</span>
-                <span className="text-xs text-text-muted line-through mb-0.5">{service.originalPrice}</span>
-                <span className="ml-auto text-[10px] font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                  {t.summary.offLabel}
-                </span>
-              </div>
-            </div>
-
-            {/* Dependents / Upgrade Slots */}
-            <div className="rounded-2xl bg-card border border-border shadow-sm p-5">
-              <div className="flex items-center justify-between mb-1">
-                <div>
-                  <p className="text-sm font-semibold text-text">
-                    {isUpgrade ? t.dependents.slotsLabel : t.dependents.label}
-                  </p>
-                  <p className="text-xs text-text-muted">
-                    {isUpgrade 
-                      ? t.dependents.perSlot.replace("{{price}}", service.price) 
-                      : t.dependents.perPerson.replace("{{price}}", service.dependentPrice)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setDependents(Math.max(isUpgrade ? 1 : 0, dependents - 1))}
-                    className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle disabled:opacity-40 transition-colors"
-                    disabled={dependents <= (isUpgrade ? 1 : 0)}
-                  >
-                    <RiSubtractLine className="text-text-muted" />
-                  </button>
-                  <span className="w-4 text-center font-bold text-text">{dependents}</span>
-                  <button
-                    type="button"
-                    onClick={() => setDependents(Math.min(10, dependents + 1))}
-                    className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle transition-all font-mono"
-                  >
-                    <RiAddLine className="text-text-muted" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Price summary */}
-             <PriceSummary
-               baseUSD={isUpgrade ? 0 : baseUSD}
-               depUSD={depUSD}
-               dependents={dependents}
-               method={activeMethod}
-               discountUSD={discountUSD}
-               couponCode={couponInput}
-               isUpgrade={isUpgrade}
-             />
-
-             {/* Coupon field */}
-             <div className="rounded-2xl bg-card border border-border shadow-sm p-4">
-               <Label className="text-xs text-text-muted mb-2 block">{t.coupon.label}</Label>
-               <div className="flex gap-2">
-                 <div className="relative flex-1">
-                   <Input
-                     placeholder={t.coupon.placeholder}
-                     value={couponInput}
-                     onChange={(e) => setCouponInput(e.target.value)}
-                     disabled={!!appliedCoupon || isValidatingCoupon}
-                     className={`text-sm h-10 uppercase font-mono tracking-wider ${appliedCoupon ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : ''}`}
-                   />
-                   {appliedCoupon && (
-                     <RiCheckLine className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500" />
-                   )}
-                 </div>
-                 {appliedCoupon ? (
-                   <button
-                     type="button"
-                     onClick={handleRemoveCoupon}
-                     className="h-10 px-3 rounded-xl border border-red-100 text-red-500 hover:bg-red-50 transition-colors"
-                   >
-                     <RiCloseLine className="text-xl" />
-                   </button>
-                 ) : (
-                   <button
-                     type="button"
-                     onClick={handleApplyCoupon}
-                     disabled={isValidatingCoupon || !couponInput.trim()}
-                     className="h-10 px-4 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-hover disabled:opacity-50 transition-all shadow-sm shadow-primary/10"
-                   >
-                     {isValidatingCoupon ? t.coupon.applying : t.coupon.apply}
-                   </button>
-                 )}
-               </div>
-             </div>
-
-          </motion.aside>
-
-          {/* ── Right: Payment form ── */}
-          <motion.div
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.15 }}
-            className="lg:col-span-3"
-          >
-            <form
-              onSubmit={formik.handleSubmit}
-              className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-6"
+            {/* ── Left: Service summary ── */}
+            <motion.aside
+              initial={{ opacity: 0, x: -16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="lg:col-span-2 space-y-4"
             >
-              {/* Customer info */}
-              <div>
-                <h2 className="font-display font-bold text-text text-base mb-4">
-                  {t.userData.title}
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="fullName">{t.userData.fullName}</Label>
-                    <Input
-                      id="fullName"
-                      name="fullName"
-                      placeholder="João da Silva"
-                      className="mt-1.5"
-                      value={formik.values.fullName}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                    />
-                    {formik.touched.fullName && formik.errors.fullName && (
-                      <p className="text-xs text-red-500 mt-1">{formik.errors.fullName}</p>
-                    )}
+              {/* Service card */}
+              <div className="rounded-2xl bg-card border border-border shadow-sm p-5">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center">
+                    <RiShieldCheckLine className="text-primary text-xl" />
                   </div>
                   <div>
-                    <Label htmlFor="email">{t.userData.email}</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      className="mt-1.5"
-                      value={formik.values.email}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                    />
-                    {formik.touched.email && formik.errors.email && (
-                      <p className="text-xs text-red-500 mt-1">{formik.errors.email}</p>
-                    )}
+                    <p className="font-display font-bold text-text text-sm leading-tight">
+                      {service!.title}
+                    </p>
+                    <p className="text-[11px] text-text-muted">{service!.processType}</p>
                   </div>
-                  <div>
-                    <Label htmlFor="phone">{t.userData.phone}</Label>
-                    <div className="mt-1.5">
-                      <PhoneInput
-                        name="phone"
-                        value={formik.values.phone}
-                        onChange={handlePhoneChange}
-                        onBlur={() => formik.setFieldTouched("phone", true)}
-                      />
-                    </div>
-                    {formik.touched.phone && formik.errors.phone && (
-                      <p className="text-xs text-red-500 mt-1">{formik.errors.phone}</p>
-                    )}
-                  </div>
-                  
-                  {!user && (
-                    <div>
-                      <Label htmlFor="password">{t.userData.password}</Label>
-                      <Input
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder={t.userData.passwordDesc}
-                        className="mt-1.5"
-                        value={formik.values.password}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                      />
-                      <p className="text-[10px] text-text-muted mt-1 italic">
-                        {t.userData.passwordAutoNotice}
-                      </p>
-                      {formik.touched.password && formik.errors.password && (
-                        <p className="text-xs text-red-500 mt-1">{formik.errors.password}</p>
-                      )}
-                    </div>
-                  )}
                 </div>
-              </div>
 
-              {/* Payment method tabs */}
-              <div>
-                <h2 className="font-display font-bold text-text text-base mb-3">
-                  {t.paymentMethods.title}
-                </h2>
-                <div className="grid grid-cols-4 gap-2 mb-4">
-                  {[
-                    { ...PAYMENT_METHODS[0], label: t.paymentMethods.card.label, sublabel: t.paymentMethods.card.sublabel },
-                    { ...PAYMENT_METHODS[1], label: t.paymentMethods.pix.label, sublabel: t.paymentMethods.pix.sublabel },
-                    { ...PAYMENT_METHODS[2], label: t.paymentMethods.zelle.label, sublabel: t.paymentMethods.zelle.sublabel },
-                    { ...PAYMENT_METHODS[3], label: t.paymentMethods.parcelow.label, sublabel: t.paymentMethods.parcelow.sublabel },
-                  ].map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      disabled={!m.available}
-                      onClick={() => m.available && setActiveMethod(m.id)}
-                      className={`relative flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-center transition-all duration-150 ${
-                        activeMethod === m.id
-                          ? "border-primary bg-primary/5 text-primary"
-                          : m.available
-                          ? "border-border text-text-muted hover:border-primary/50 hover:bg-bg-subtle"
-                          : "border-border/50 text-text-muted/40 cursor-not-allowed"
-                      }`}
-                    >
-                      {m.icon}
-                      <span className="text-[11px] font-bold leading-none">{m.label}</span>
-                      <span className="text-[9px] font-medium leading-none opacity-70">{m.sublabel}</span>
-                      {!m.available && (
-                        <span className="absolute -top-1.5 -right-1 text-[8px] font-black bg-bg-subtle text-text-muted px-1 py-0.5 rounded-full leading-none border border-border">
-                          {t.paymentMethods.soon}
-                        </span>
-                      )}
-                    </button>
+                <div className="space-y-1.5 mb-4">
+                  {service.included.slice(0, 4).map((item) => (
+                    <div key={item} className="flex items-start gap-2">
+                      <RiCheckLine className="text-primary text-sm mt-0.5 shrink-0" />
+                      <span className="text-xs text-text-muted leading-snug">{item.split(":")[0]}</span>
+                    </div>
                   ))}
                 </div>
 
-                {/* Method-specific info */}
-                <AnimatePresence mode="wait">
-                  {activeMethod === "card" && (
-                    <motion.div
-                      key="card"
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      transition={{ duration: 0.15 }}
-                      className="flex items-start gap-2.5 rounded-xl bg-primary/5 border border-primary/20 p-3"
-                    >
-                       <RiBankCardLine className="text-primary mt-0.5 shrink-0" />
-                      <p className="text-xs text-text leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.card.notice }} />
-                    </motion.div>
-                  )}
-                  {activeMethod === "pix" && (
-                    <motion.div
-                      key="pix"
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      transition={{ duration: 0.15 }}
-                      className="flex items-start gap-2.5 rounded-xl bg-success/5 border border-success/20 p-3"
-                    >
-                      <RiQrCodeLine className="text-success mt-0.5 shrink-0" />
-                      <p className="text-xs text-text leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.pix.notice }} />
-                    </motion.div>
-                  )}
-
-                  {activeMethod === "parcelow" && (
-                    <motion.div
-                      key="parcelow"
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      transition={{ duration: 0.15 }}
-                      className="flex flex-col gap-4"
-                    >
-                      {/* Info box */}
-                      <div className="flex items-start gap-2.5 rounded-xl bg-warning/5 border border-warning/20 p-3">
-                        <RiTimeLine className="text-warning mt-0.5 shrink-0" />
-                        <p className="text-xs text-text leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.parcelow.notice }} />
-                      </div>
-
-                      {/* CPF Field */}
-                      <div className="space-y-1.5 px-1">
-                        <Label htmlFor="parcelowCpf">{t.paymentMethods.parcelow.cpfLabel}</Label>
-                        <Input
-                          id="parcelowCpf"
-                          name="parcelowCpf"
-                          placeholder={t.paymentMethods.parcelow.cpfPlaceholder}
-                          className="mt-1"
-                          maxLength={14}
-                          value={formik.values.parcelowCpf}
-                          onChange={(e) => {
-                            const masked = maskCPF(e.target.value);
-                            formik.setFieldValue("parcelowCpf", masked);
-                          }}
-                          onBlur={formik.handleBlur}
-                        />
-                        <div className="flex items-center gap-1 text-[10px] text-text-muted">
-                          <RiInformationLine className="text-amber-500" />
-                          <span>{t.paymentMethods.parcelow.cpfNotice}</span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {activeMethod === "zelle" && !zelleDone && (
-                    <motion.div
-                      key="zelle"
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      transition={{ duration: 0.15 }}
-                      className="space-y-4"
-                    >
-                      {/* Recipient info */}
-                      <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
-                        <p className="text-[11px] font-bold text-primary uppercase tracking-widest mb-2">
-                          {t.paymentMethods.zelle.notice}
-                        </p>
-                        <div className="space-y-1">
-                          <p className="text-sm font-bold text-text">{t.paymentMethods.zelle.name} {ZELLE_NAME}</p>
-                          <p className="text-sm text-text-muted font-mono">{t.paymentMethods.zelle.email} {ZELLE_EMAIL}</p>
-                          <p className="text-sm text-text-muted font-mono">{t.paymentMethods.zelle.phone} {ZELLE_PHONE}</p>
-                        </div>
-                        <p className="text-[11px] text-violet-500 mt-2 leading-snug">
-                          {t.paymentMethods.zelle.confirmTitle}
-                        </p>
-                      </div>
-
-                      {/* Proof upload */}
-                      <div>
-                        <Label>{t.paymentMethods.zelle.uploadProof}</Label>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) handleProofSelect(f);
-                          }}
-                        />
-                        {zelleProofPreview ? (
-                          <div className="mt-1.5 relative rounded-xl overflow-hidden border border-border">
-                            <img
-                              src={zelleProofPreview}
-                              alt={t.paymentMethods.zelle.uploadProof}
-                              className="w-full max-h-40 object-cover"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setZelleProof(null);
-                                setZelleProofPreview(null);
-                              }}
-                              className="absolute top-2 right-2 w-6 h-6 bg-slate-800/70 rounded-full flex items-center justify-center text-white hover:bg-slate-800 transition-colors"
-                            >
-                              <RiCloseLine className="text-sm" />
-                            </button>
-                            <div className="absolute bottom-0 left-0 right-0 bg-slate-800/60 px-3 py-1.5 flex items-center gap-2">
-                              <RiImageLine className="text-white text-xs" />
-                              <span className="text-white text-[11px] truncate">{zelleProof?.name}</span>
-                            </div>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={(e) => {
-                              e.preventDefault();
-                              const f = e.dataTransfer.files[0];
-                              if (f) handleProofSelect(f);
-                            }}
-                            className="mt-1.5 w-full border-2 border-dashed border-border rounded-xl py-6 flex flex-col items-center gap-2 text-text-muted hover:border-primary/40 hover:bg-primary/5 transition-colors"
-                          >
-                            <RiUploadCloud2Line className="text-2xl" />
-                            <span className="text-xs font-medium">{t.paymentMethods.zelle.uploadProof}</span>
-                            <span className="text-[10px]">{t.paymentMethods.zelle.uploadDesc}</span>
-                          </button>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {activeMethod === "zelle" && zelleDone && (
-                    <motion.div
-                      key="zelle-done"
-                      initial={{ opacity: 0, scale: 0.97 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className={`rounded-xl border p-5 text-center ${
-                        zelleAutoApproved
-                          ? "bg-emerald-500/10 border-emerald-500/20"
-                          : "bg-amber-500/10 border-amber-500/20"
-                      }`}
-                    >
-                      {zelleAutoApproved ? (
-                        <>
-                          <RiCheckLine className="text-emerald-500 text-3xl mx-auto mb-2" />
-                          <p className="font-bold text-text text-sm">🎉 Pagamento Aprovado!</p>
-                          <p className="text-xs text-text-muted mt-1 leading-relaxed">
-                            Seu comprovante foi verificado automaticamente e seu serviço já está ativo no painel.
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => navigate("/dashboard")}
-                            className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs"
-                          >
-                            Acessar Meu Painel
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <RiCheckLine className="text-amber-500 text-3xl mx-auto mb-2" />
-                          <p className="font-bold text-text text-sm">{t.paymentMethods.zelle.pendingReview.split("!")[0]}!</p>
-                          <p className="text-xs text-text-muted mt-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.zelle.pendingReview.split("!")[1] || t.paymentMethods.zelle.pendingReview }} />
-                          <button
-                            type="button"
-                            onClick={() => navigate("/dashboard")}
-                            className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-amber-500 text-white rounded-xl font-bold text-xs"
-                          >
-                            {t.paymentMethods.zelle.goDashboard}
-                          </button>
-                        </>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <div className="flex items-end gap-2 pt-3 border-t border-border">
+                  <span className="text-2xl font-black text-text">{service.price}</span>
+                  <span className="text-xs text-text-muted line-through mb-0.5">{service.originalPrice}</span>
+                  <span className="ml-auto text-[10px] font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                    {t.summary.offLabel}
+                  </span>
+                </div>
               </div>
 
-              {/* Submit */}
-              {!zelleDone && (
-                <button
-                  type="submit"
-                  disabled={isRedirecting || formik.isSubmitting}
-                  className="flex items-center justify-center gap-2.5 w-full py-4 rounded-xl bg-primary text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-primary/20 hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isRedirecting ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      {t.redirecting}
-                    </>
-                  ) : (
-                    <>
-                      <RiLockLine className="text-base" />
-                      {activeMethod === "card" && t.paymentMethods.card.label}
-                      {activeMethod === "pix" && t.paymentMethods.pix.label}
-                      {activeMethod === "zelle" && t.paymentMethods.zelle.submit}
-                      {activeMethod === "parcelow" && t.paymentMethods.parcelow.label}
-                      <RiArrowRightLine className="text-base" />
-                    </>
-                  )}
-                </button>
-              )}
+              {/* Dependents / Upgrade Slots */}
+              <div className="rounded-2xl bg-card border border-border shadow-sm p-5">
+                <div className="flex items-center justify-between mb-1">
+                  <div>
+                    <p className="text-sm font-semibold text-text">
+                      {isUpgrade ? t.dependents.slotsLabel : t.dependents.label}
+                    </p>
+                    <p className="text-xs text-text-muted">
+                      {isUpgrade
+                        ? t.dependents.perSlot.replace("{{price}}", service.price)
+                        : t.dependents.perPerson.replace("{{price}}", service.dependentPrice)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setDependents(Math.max(isUpgrade ? 1 : 0, dependents - 1))}
+                      className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle disabled:opacity-40 transition-colors"
+                      disabled={dependents <= (isUpgrade ? 1 : 0)}
+                    >
+                      <RiSubtractLine className="text-text-muted" />
+                    </button>
+                    <span className="w-4 text-center font-bold text-text">{dependents}</span>
+                    <button
+                      type="button"
+                      onClick={() => setDependents(Math.min(10, dependents + 1))}
+                      className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle transition-all font-mono"
+                    >
+                      <RiAddLine className="text-text-muted" />
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-              <p className="text-center text-[11px] text-text-muted flex items-center justify-center gap-1">
-                <RiShieldCheckLine />
-                {t.paymentMethods.card.notice.includes("SSL") ? t.paymentMethods.card.notice : "Protected by 256-bit SSL encryption."}
-              </p>
-            </form>
-          </motion.div>
+              {/* Price summary */}
+              <PriceSummary
+                baseUSD={isUpgrade ? 0 : baseUSD}
+                depUSD={depUSD}
+                dependents={dependents}
+                method={activeMethod}
+                discountUSD={discountUSD}
+                couponCode={couponInput}
+                isUpgrade={isUpgrade}
+              />
+
+              {/* Coupon field */}
+              <div className="rounded-2xl bg-card border border-border shadow-sm p-4">
+                <Label className="text-xs text-text-muted mb-2 block">{t.coupon.label}</Label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      placeholder={t.coupon.placeholder}
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value)}
+                      disabled={!!appliedCoupon || isValidatingCoupon}
+                      className={`text-sm h-10 uppercase font-mono tracking-wider ${appliedCoupon ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : ''}`}
+                    />
+                    {appliedCoupon && (
+                      <RiCheckLine className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500" />
+                    )}
+                  </div>
+                  {appliedCoupon ? (
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="h-10 px-3 rounded-xl border border-red-100 text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <RiCloseLine className="text-xl" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={isValidatingCoupon || !couponInput.trim()}
+                      className="h-10 px-4 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-hover disabled:opacity-50 transition-all shadow-sm shadow-primary/10"
+                    >
+                      {isValidatingCoupon ? t.coupon.applying : t.coupon.apply}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+            </motion.aside>
+
+            {/* ── Right: Payment form ── */}
+            <motion.div
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15 }}
+              className="lg:col-span-3"
+            >
+              <form
+                onSubmit={formik.handleSubmit}
+                className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-6"
+              >
+                {/* Customer info */}
+                <div>
+                  <h2 className="font-display font-bold text-text text-base mb-4">
+                    {t.userData.title}
+                  </h2>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="fullName">{t.userData.fullName}</Label>
+                      <Input
+                        id="fullName"
+                        name="fullName"
+                        placeholder="João da Silva"
+                        className="mt-1.5"
+                        value={formik.values.fullName}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                      />
+                      {formik.touched.fullName && formik.errors.fullName && (
+                        <p className="text-xs text-red-500 mt-1">{formik.errors.fullName}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="email">{t.userData.email}</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="seu@email.com"
+                        className="mt-1.5"
+                        value={formik.values.email}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                      />
+                      {formik.touched.email && formik.errors.email && (
+                        <p className="text-xs text-red-500 mt-1">{formik.errors.email}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="phone">{t.userData.phone}</Label>
+                      <div className="mt-1.5">
+                        <PhoneInput
+                          name="phone"
+                          value={formik.values.phone}
+                          onChange={handlePhoneChange}
+                          onBlur={() => formik.setFieldTouched("phone", true)}
+                        />
+                      </div>
+                      {formik.touched.phone && formik.errors.phone && (
+                        <p className="text-xs text-red-500 mt-1">{formik.errors.phone}</p>
+                      )}
+                    </div>
+
+                    {!user && (
+                      <div>
+                        <Label htmlFor="password">{t.userData.password}</Label>
+                        <Input
+                          id="password"
+                          name="password"
+                          type="password"
+                          placeholder={t.userData.passwordDesc}
+                          className="mt-1.5"
+                          value={formik.values.password}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                        />
+                        <p className="text-[10px] text-text-muted mt-1 italic">
+                          {t.userData.passwordAutoNotice}
+                        </p>
+                        {formik.touched.password && formik.errors.password && (
+                          <p className="text-xs text-red-500 mt-1">{formik.errors.password}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Payment method tabs */}
+                <div>
+                  <h2 className="font-display font-bold text-text text-base mb-3">
+                    {t.paymentMethods.title}
+                  </h2>
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    {[
+                      { ...PAYMENT_METHODS[0], label: t.paymentMethods.card.label, sublabel: t.paymentMethods.card.sublabel },
+                      { ...PAYMENT_METHODS[1], label: t.paymentMethods.pix.label, sublabel: t.paymentMethods.pix.sublabel },
+                      { ...PAYMENT_METHODS[2], label: t.paymentMethods.zelle.label, sublabel: t.paymentMethods.zelle.sublabel },
+                      { ...PAYMENT_METHODS[3], label: t.paymentMethods.parcelow.label, sublabel: t.paymentMethods.parcelow.sublabel },
+                    ].map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        disabled={!m.available}
+                        onClick={() => m.available && setActiveMethod(m.id)}
+                        className={`relative flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-center transition-all duration-150 ${activeMethod === m.id
+                            ? "border-primary bg-primary/5 text-primary"
+                            : m.available
+                              ? "border-border text-text-muted hover:border-primary/50 hover:bg-bg-subtle"
+                              : "border-border/50 text-text-muted/40 cursor-not-allowed"
+                          }`}
+                      >
+                        {m.icon}
+                        <span className="text-[11px] font-bold leading-none">{m.label}</span>
+                        <span className="text-[9px] font-medium leading-none opacity-70">{m.sublabel}</span>
+                        {!m.available && (
+                          <span className="absolute -top-1.5 -right-1 text-[8px] font-black bg-bg-subtle text-text-muted px-1 py-0.5 rounded-full leading-none border border-border">
+                            {t.paymentMethods.soon}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Method-specific info */}
+                  <AnimatePresence mode="wait">
+                    {activeMethod === "card" && (
+                      <motion.div
+                        key="card"
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="flex items-start gap-2.5 rounded-xl bg-primary/5 border border-primary/20 p-3"
+                      >
+                        <RiBankCardLine className="text-primary mt-0.5 shrink-0" />
+                        <p className="text-xs text-text leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.card.notice }} />
+                      </motion.div>
+                    )}
+                    {activeMethod === "pix" && (
+                      <motion.div
+                        key="pix"
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="flex items-start gap-2.5 rounded-xl bg-success/5 border border-success/20 p-3"
+                      >
+                        <RiQrCodeLine className="text-success mt-0.5 shrink-0" />
+                        <p className="text-xs text-text leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.pix.notice }} />
+                      </motion.div>
+                    )}
+
+                    {activeMethod === "parcelow" && (
+                      <motion.div
+                        key="parcelow"
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="flex flex-col gap-4"
+                      >
+                        {/* Info box */}
+                        <div className="flex items-start gap-2.5 rounded-xl bg-warning/5 border border-warning/20 p-3">
+                          <RiTimeLine className="text-warning mt-0.5 shrink-0" />
+                          <p className="text-xs text-text leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.parcelow.notice }} />
+                        </div>
+
+                        {/* CPF Field */}
+                        <div className="space-y-1.5 px-1">
+                          <Label htmlFor="parcelowCpf">{t.paymentMethods.parcelow.cpfLabel}</Label>
+                          <Input
+                            id="parcelowCpf"
+                            name="parcelowCpf"
+                            placeholder={t.paymentMethods.parcelow.cpfPlaceholder}
+                            className="mt-1"
+                            maxLength={14}
+                            value={formik.values.parcelowCpf}
+                            onChange={(e) => {
+                              const masked = maskCPF(e.target.value);
+                              formik.setFieldValue("parcelowCpf", masked);
+                            }}
+                            onBlur={formik.handleBlur}
+                          />
+                          <div className="flex items-center gap-1 text-[10px] text-text-muted">
+                            <RiInformationLine className="text-amber-500" />
+                            <span>{t.paymentMethods.parcelow.cpfNotice}</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeMethod === "zelle" && !zelleDone && (
+                      <motion.div
+                        key="zelle"
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="space-y-4"
+                      >
+                        {/* Recipient info */}
+                        <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
+                          <p className="text-[11px] font-bold text-primary uppercase tracking-widest mb-2">
+                            {t.paymentMethods.zelle.notice}
+                          </p>
+                          <div className="space-y-1">
+                            <p className="text-sm font-bold text-text">{t.paymentMethods.zelle.name} {ZELLE_NAME}</p>
+                            <p className="text-sm text-text-muted font-mono">{t.paymentMethods.zelle.email} {ZELLE_EMAIL}</p>
+                            <p className="text-sm text-text-muted font-mono">{t.paymentMethods.zelle.phone} {ZELLE_PHONE}</p>
+                          </div>
+                          <p className="text-[11px] text-violet-500 mt-2 leading-snug">
+                            {t.paymentMethods.zelle.confirmTitle}
+                          </p>
+                        </div>
+
+                        {/* Proof upload */}
+                        <div>
+                          <Label>{t.paymentMethods.zelle.uploadProof}</Label>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) handleProofSelect(f);
+                            }}
+                          />
+                          {zelleProofPreview ? (
+                            <div className="mt-1.5 relative rounded-xl overflow-hidden border border-border">
+                              <img
+                                src={zelleProofPreview}
+                                alt={t.paymentMethods.zelle.uploadProof}
+                                className="w-full max-h-40 object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setZelleProof(null);
+                                  setZelleProofPreview(null);
+                                }}
+                                className="absolute top-2 right-2 w-6 h-6 bg-slate-800/70 rounded-full flex items-center justify-center text-white hover:bg-slate-800 transition-colors"
+                              >
+                                <RiCloseLine className="text-sm" />
+                              </button>
+                              <div className="absolute bottom-0 left-0 right-0 bg-slate-800/60 px-3 py-1.5 flex items-center gap-2">
+                                <RiImageLine className="text-white text-xs" />
+                                <span className="text-white text-[11px] truncate">{zelleProof?.name}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const f = e.dataTransfer.files[0];
+                                if (f) handleProofSelect(f);
+                              }}
+                              className="mt-1.5 w-full border-2 border-dashed border-border rounded-xl py-6 flex flex-col items-center gap-2 text-text-muted hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                            >
+                              <RiUploadCloud2Line className="text-2xl" />
+                              <span className="text-xs font-medium">{t.paymentMethods.zelle.uploadProof}</span>
+                              <span className="text-[10px]">{t.paymentMethods.zelle.uploadDesc}</span>
+                            </button>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeMethod === "zelle" && zelleDone && (
+                      <motion.div
+                        key="zelle-done"
+                        initial={{ opacity: 0, scale: 0.97 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className={`rounded-xl border p-5 text-center ${zelleAutoApproved
+                            ? "bg-emerald-500/10 border-emerald-500/20"
+                            : "bg-amber-500/10 border-amber-500/20"
+                          }`}
+                      >
+                        {zelleAutoApproved ? (
+                          <>
+                            <RiCheckLine className="text-emerald-500 text-3xl mx-auto mb-2" />
+                            <p className="font-bold text-text text-sm">🎉 Pagamento Aprovado!</p>
+                            <p className="text-xs text-text-muted mt-1 leading-relaxed">
+                              Seu comprovante foi verificado automaticamente e seu serviço já está ativo no painel.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => navigate("/dashboard")}
+                              className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs"
+                            >
+                              Acessar Meu Painel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <RiCheckLine className="text-amber-500 text-3xl mx-auto mb-2" />
+                            <p className="font-bold text-text text-sm">{t.paymentMethods.zelle.pendingReview.split("!")[0]}!</p>
+                            <p className="text-xs text-text-muted mt-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.paymentMethods.zelle.pendingReview.split("!")[1] || t.paymentMethods.zelle.pendingReview }} />
+                            <button
+                              type="button"
+                              onClick={() => navigate("/dashboard")}
+                              className="flex items-center justify-center gap-2 mx-auto mt-4 px-4 py-2 bg-amber-500 text-white rounded-xl font-bold text-xs"
+                            >
+                              {t.paymentMethods.zelle.goDashboard}
+                            </button>
+                          </>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Submit */}
+                {!zelleDone && (
+                  <button
+                    type="submit"
+                    disabled={isRedirecting || formik.isSubmitting}
+                    className="flex items-center justify-center gap-2.5 w-full py-4 rounded-xl bg-primary text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-primary/20 hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isRedirecting ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        {t.redirecting}
+                      </>
+                    ) : (
+                      <>
+                        <RiLockLine className="text-base" />
+                        {activeMethod === "card" && t.paymentMethods.card.label}
+                        {activeMethod === "pix" && t.paymentMethods.pix.label}
+                        {activeMethod === "zelle" && t.paymentMethods.zelle.submit}
+                        {activeMethod === "parcelow" && t.paymentMethods.parcelow.label}
+                        <RiArrowRightLine className="text-base" />
+                      </>
+                    )}
+                  </button>
+                )}
+
+                <p className="text-center text-[11px] text-text-muted flex items-center justify-center gap-1">
+                  <RiShieldCheckLine />
+                  {t.paymentMethods.card.notice.includes("SSL") ? t.paymentMethods.card.notice : "Protected by 256-bit SSL encryption."}
+                </p>
+              </form>
+            </motion.div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
 }

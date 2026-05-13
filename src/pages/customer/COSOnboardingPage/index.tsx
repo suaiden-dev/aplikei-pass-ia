@@ -831,8 +831,8 @@ export default function COSOnboardingPage() {
                     onClick={() => void handleConcluir()}
                     disabled={!canSubmit || isSubmitting}
                     className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-black transition-all ${!canSubmit || isSubmitting
-                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                        : 'bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20'
+                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                      : 'bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20'
                       }`}
                   >
                     {isSubmitting ? (

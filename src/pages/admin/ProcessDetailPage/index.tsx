@@ -117,7 +117,7 @@ function PurchasesPanel({ stepData }: { stepData: Record<string, unknown> }) {
           <h3 className="font-black text-text text-sm uppercase tracking-tight">{t.processDetail.purchases.title}</h3>
         </div>
         <div className="px-2.5 py-1 bg-success/10 text-success rounded-lg text-[10px] font-black uppercase tracking-widest border border-success/20">
-           {paidDependents} {t.processDetail.purchases.slotsPaid}
+          {paidDependents} {t.processDetail.purchases.slotsPaid}
         </div>
       </div>
 
@@ -141,7 +141,7 @@ function PurchasesPanel({ stepData }: { stepData: Record<string, unknown> }) {
                 <div className="text-right">
                   <p className="text-sm font-black text-text leading-none mb-1">${(p.amount ?? p.amount_usd ?? 0).toFixed(2)}</p>
                   {(p.dependents ?? 0) > 0 && (
-                     <p className="text-[9px] text-success font-black uppercase">+{p.dependents} {t.processDetail.purchases.dependents}</p>
+                    <p className="text-[9px] text-success font-black uppercase">+{p.dependents} {t.processDetail.purchases.dependents}</p>
                   )}
                 </div>
               </div>
@@ -153,15 +153,15 @@ function PurchasesPanel({ stepData }: { stepData: Record<string, unknown> }) {
   );
 }
 
-function ProcessFlowPanel({ 
-  effectiveSteps, 
-  currentStepIdx, 
-  vt, 
-  t 
-}: { 
-  effectiveSteps: StepConfig[]; 
-  currentStepIdx: number; 
-  vt: any; 
+function ProcessFlowPanel({
+  effectiveSteps,
+  currentStepIdx,
+  vt,
+  t
+}: {
+  effectiveSteps: StepConfig[];
+  currentStepIdx: number;
+  vt: any;
   t: any;
 }) {
   return (
@@ -192,21 +192,19 @@ function ProcessFlowPanel({
               )}
 
               <div className="relative z-10 shrink-0">
-                <div className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center text-[11px] font-black transition-all duration-300 ${
-                  isCompleted 
-                    ? 'bg-success border-success text-white shadow-md shadow-success/10' 
-                    : isActive 
-                    ? 'bg-primary border-primary text-white scale-110 shadow-lg shadow-primary/20' 
-                    : 'bg-bg-subtle border-border text-text-muted'
-                }`}>
+                <div className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center text-[11px] font-black transition-all duration-300 ${isCompleted
+                    ? 'bg-success border-success text-white shadow-md shadow-success/10'
+                    : isActive
+                      ? 'bg-primary border-primary text-white scale-110 shadow-lg shadow-primary/20'
+                      : 'bg-bg-subtle border-border text-text-muted'
+                  }`}>
                   {isCompleted ? <RiCheckLine className="text-lg" /> : i + 1}
                 </div>
               </div>
 
               <div className="pt-2 pb-6">
-                <p className={`text-[10px] font-black uppercase tracking-tight leading-tight transition-all ${
-                  isActive ? 'text-primary' : i < currentStepIdx ? 'text-text' : 'text-text-muted opacity-40'
-                }`}>
+                <p className={`text-[10px] font-black uppercase tracking-tight leading-tight transition-all ${isActive ? 'text-primary' : i < currentStepIdx ? 'text-text' : 'text-text-muted opacity-40'
+                  }`}>
                   {title}
                 </p>
                 {isActive && step.description && (
@@ -415,7 +413,7 @@ function MRVSetupPanel({ proc, onApprove, onRefresh, isActive }: { proc: Process
       const filePath = `${proc.user_id}/mrv/boleto_${crypto.randomUUID()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("profiles")
+        .from("aplikei-profiles")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
@@ -494,7 +492,7 @@ function MRVSetupPanel({ proc, onApprove, onRefresh, isActive }: { proc: Process
               </div>
               <div className="flex gap-2">
                 <a
-                  href={supabase.storage.from("profiles").getPublicUrl(boletoPath).data.publicUrl}
+                  href={supabase.storage.from("aplikei-profiles").getPublicUrl(boletoPath).data.publicUrl}
                   target="_blank" rel="noreferrer"
                   className="px-4 py-2 bg-card border border-border rounded-lg text-[10px] font-black text-text uppercase"
                 >{t.shared.confirm.replace('Confirmar', 'Ver')}</a>
@@ -721,7 +719,7 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
   const clientReason = data.motion_reason as string;
   const docs = (data.docs as Record<string, string>) || {};
   const denialLetterPath = docs.motion_denial_letter;
-  const denialLetterUrl = denialLetterPath ? supabase.storage.from('profiles').getPublicUrl(denialLetterPath).data.publicUrl : null;
+  const denialLetterUrl = denialLetterPath ? supabase.storage.from('aplikei-profiles').getPublicUrl(denialLetterPath).data.publicUrl : null;
 
   useEffect(() => {
     if (data.motion_proposal_text) setText(data.motion_proposal_text as string);
@@ -767,14 +765,14 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
           {t.processDetail.motion.panelTitle}
         </h3>
         <div className="flex gap-2">
-           {hasPaidProposal && (
-             <div className="px-3 py-1 bg-emerald-50 rounded-lg border border-emerald-100 text-[9px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1">
-               <RiCheckDoubleLine /> Pago
-             </div>
-           )}
-           <div className="px-3 py-1 bg-amber-50 rounded-lg border border-amber-100 text-[9px] font-black text-amber-600 uppercase tracking-widest">
-             {t.shared.administrativeAction}
-           </div>
+          {hasPaidProposal && (
+            <div className="px-3 py-1 bg-emerald-50 rounded-lg border border-emerald-100 text-[9px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1">
+              <RiCheckDoubleLine /> Pago
+            </div>
+          )}
+          <div className="px-3 py-1 bg-amber-50 rounded-lg border border-amber-100 text-[9px] font-black text-amber-600 uppercase tracking-widest">
+            {t.shared.administrativeAction}
+          </div>
         </div>
       </div>
 
@@ -862,7 +860,7 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
   const clientDescription = data.rfe_description as string;
   const docs = (data.docs as Record<string, string>) || {};
   const rfeLetterPath = docs.rfe_letter;
-  const rfeLetterUrl = rfeLetterPath ? supabase.storage.from('profiles').getPublicUrl(rfeLetterPath).data.publicUrl : null;
+  const rfeLetterUrl = rfeLetterPath ? supabase.storage.from('aplikei-profiles').getPublicUrl(rfeLetterPath).data.publicUrl : null;
 
   const savedText = data.rfe_proposal_text as string;
   const savedAmount = Number(data.rfe_proposal_amount) || 0;
@@ -913,14 +911,14 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
           {t.processDetail.rfe.panelTitle}
         </h3>
         <div className="flex gap-2">
-           {hasPaidProposal && (
-             <div className="px-3 py-1 bg-success/10 rounded-lg border border-success/20 text-[9px] font-black text-success uppercase tracking-widest flex items-center gap-1">
-               <RiCheckDoubleLine /> {t.shared.paid}
-             </div>
-           )}
-           <div className="px-3 py-1 bg-warning/10 rounded-lg border border-warning/20 text-[9px] font-black text-warning uppercase tracking-widest">
-             {t.shared.administrativeAction}
-           </div>
+          {hasPaidProposal && (
+            <div className="px-3 py-1 bg-success/10 rounded-lg border border-success/20 text-[9px] font-black text-success uppercase tracking-widest flex items-center gap-1">
+              <RiCheckDoubleLine /> {t.shared.paid}
+            </div>
+          )}
+          <div className="px-3 py-1 bg-warning/10 rounded-lg border border-warning/20 text-[9px] font-black text-warning uppercase tracking-widest">
+            {t.shared.administrativeAction}
+          </div>
         </div>
       </div>
 
@@ -1009,8 +1007,8 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-[9px] font-black text-text-muted uppercase tracking-tighter">{t.processDetail.rfe.cycle} #{history.length - idx}</span>
                       <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${hist.result === 'approved' ? 'bg-success/10 text-success' :
-                          hist.result === 'rfe' ? 'bg-warning/10 text-warning' :
-                            'bg-danger/10 text-danger'
+                        hist.result === 'rfe' ? 'bg-warning/10 text-warning' :
+                          'bg-danger/10 text-danger'
                         }`}>
                         {hist.result === 'approved' ? t.processDetail.rfe.resultApproved : hist.result === 'rfe' ? t.processDetail.rfe.resultNewRfe : t.processDetail.rfe.resultRejected}
                       </span>
@@ -1026,7 +1024,7 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
 
                       {hist.rfe_letter && (
                         <a
-                          href={supabase.storage.from('profiles').getPublicUrl(hist.rfe_letter).data.publicUrl}
+                          href={supabase.storage.from('aplikei-profiles').getPublicUrl(hist.rfe_letter).data.publicUrl}
                           target="_blank"
                           rel="noreferrer"
                           className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1"
@@ -1061,7 +1059,7 @@ function RFEFinalShipPanel({ proc, onApprove, onRefresh, isActive }: { proc: Pro
       const filePath = `${proc.user_id}/rfe/rfe_final_${crypto.randomUUID()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("profiles")
+        .from("aplikei-profiles")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
@@ -1102,7 +1100,7 @@ function RFEFinalShipPanel({ proc, onApprove, onRefresh, isActive }: { proc: Pro
                 </div>
               </div>
               <a
-                href={supabase.storage.from('profiles').getPublicUrl(rfeFinalPath).data.publicUrl}
+                href={supabase.storage.from('aplikei-profiles').getPublicUrl(rfeFinalPath).data.publicUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
@@ -1322,7 +1320,7 @@ export default function AdminProcessDetailPage() {
         }
       }
 
-      const isConsular = proc.service_slug.startsWith("visto-b1-b2") || proc.service_slug.startsWith("visto-f1");
+      const isConsular = proc.service_slug.includes("b1b2") || proc.service_slug.includes("f1");
 
       const additionalData = { ...extraData };
       if (currentStepBaseId === 'cos_analysis_presentation_letter') {
@@ -1339,8 +1337,8 @@ export default function AdminProcessDetailPage() {
       const isAdminTask =
         !!nextStepBaseId &&
         (nextStepBaseId.includes("_admin_credentials") ||
-         nextStepBaseId.includes("_admin_account_creation") ||
-         nextStepBaseId.includes("_admin_analysis"));
+          nextStepBaseId.includes("_admin_account_creation") ||
+          nextStepBaseId.includes("_admin_analysis"));
 
       if (isAdminTask) {
         await processService.updateProcessStatus(proc.id, "awaiting_review");
@@ -1386,8 +1384,8 @@ export default function AdminProcessDetailPage() {
     if (!rejectionReason || isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const isB1B2 = proc.service_slug.startsWith("visto-b1-b2");
-      const isF1 = proc.service_slug.startsWith("visto-f1");
+      const isB1B2 = proc.service_slug.includes("b1b2");
+      const isF1 = proc.service_slug.includes("f1");
       const isFinal = currentStepIdx >= effectiveSteps.length - 1;
 
       if (isFinal) {
@@ -1406,7 +1404,7 @@ export default function AdminProcessDetailPage() {
           .update({ current_step: backIdx, status: "active" })
           .eq("id", proc.id);
         if (error) throw new Error(error.message);
-        
+
         await notificationService.notifyClient({
           userId: proc.user_id!,
           serviceId: proc.id,
@@ -1497,7 +1495,7 @@ export default function AdminProcessDetailPage() {
 
     return (
       <CollapsibleStep
-        title={proc.service_slug === "visto-b1-b2" ? "Revisão da DS-160" : "Dados do Formulário (Revisão)"}
+        title={proc.service_slug === "visto-b1-b2" || proc.service_slug === "visa-b1b2" ? "Revisão da DS-160" : "Dados do Formulário (Revisão)"}
         icon={RiFileTextLine}
         isActive={isActive}
         isPast={isPast}
@@ -1678,7 +1676,7 @@ export default function AdminProcessDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Object.entries(docs).map(([key, path]) => {
             if (key === 'i20_document' || key === 'sevis_receipt') return null; // Handled in a separate step
-            const url = supabase.storage.from("profiles").getPublicUrl(path).data.publicUrl;
+            const url = supabase.storage.from("aplikei-profiles").getPublicUrl(path).data.publicUrl;
             const isSelected = selectedItems.includes(`docs.${key}`);
 
             return (
@@ -1711,8 +1709,8 @@ export default function AdminProcessDetailPage() {
     const isPast = currentStepIdx > 9;
 
     const docs = (proc.step_data?.docs || {}) as Record<string, string>;
-    const i20Url = docs.i20_document ? supabase.storage.from("profiles").getPublicUrl(docs.i20_document).data.publicUrl : null;
-    const sevisUrl = docs.sevis_receipt ? supabase.storage.from("profiles").getPublicUrl(docs.sevis_receipt).data.publicUrl : null;
+    const i20Url = docs.i20_document ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.i20_document).data.publicUrl : null;
+    const sevisUrl = docs.sevis_receipt ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.sevis_receipt).data.publicUrl : null;
 
     if (!isActive && !isPast && !i20Url && !sevisUrl) return null;
 
@@ -1773,12 +1771,12 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderF1DocumentsAdmin = () => {
-    if (!proc.service_slug.startsWith("visto-f1")) return null;
+    if (!proc.service_slug.includes("f1")) return null;
     const isActive = currentStepBaseId === "f1_admin_analysis";
     const isPast = currentStepIdx > 2;
 
     const docs = (proc.step_data?.docs || {}) as Record<string, string>;
-    const i20Url = docs.i20_document ? supabase.storage.from("profiles").getPublicUrl(docs.i20_document).data.publicUrl : null;
+    const i20Url = docs.i20_document ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.i20_document).data.publicUrl : null;
 
     if (!isActive && !isPast && !i20Url) return null;
 
@@ -1823,13 +1821,13 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderF1FinalDocsAdmin = () => {
-    if (!proc.service_slug.startsWith("visto-f1")) return null;
+    if (!proc.service_slug.includes("f1")) return null;
     const isActive = currentStepBaseId === "f1_admin_final_analysis";
     const isPast = currentStepIdx > 5;
 
     const docs = (proc.step_data?.docs || {}) as Record<string, string>;
-    const ds160Url = docs.ds160_assinada ? supabase.storage.from("profiles").getPublicUrl(docs.ds160_assinada).data.publicUrl : null;
-    const comprovanteUrl = docs.ds160_comprovante ? supabase.storage.from("profiles").getPublicUrl(docs.ds160_comprovante).data.publicUrl : null;
+    const ds160Url = docs.ds160_assinada ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_assinada).data.publicUrl : null;
+    const comprovanteUrl = docs.ds160_comprovante ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_comprovante).data.publicUrl : null;
 
     if (!isActive && !isPast && !ds160Url && !comprovanteUrl) return null;
 
@@ -1873,9 +1871,9 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderB1B2CredentialsAdmin = () => {
-    if (!proc.service_slug.startsWith("visto-b1-b2") && !proc.service_slug.startsWith("visto-f1")) return null;
+    if (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("f1")) return null;
     const isActive = currentStepBaseId === "b1b2_admin_credentials" || currentStepBaseId === "f1_admin_credentials";
-    const isPast = currentStepIdx > (proc.service_slug.startsWith("visto-f1") ? 3 : 2);
+    const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 3 : 2);
 
     if (!isActive && !isPast) return null;
 
@@ -1887,13 +1885,13 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderB1B2FinalDocsAdmin = () => {
-    if (proc.service_slug !== "visto-b1-b2") return null;
+    if (!proc.service_slug.includes("b1b2")) return null;
     const isActive = currentStepBaseId === "b1b2_admin_final_analysis";
     const isPast = currentStepIdx > 4;
 
     const docs = (proc.step_data?.docs || {}) as Record<string, string>;
-    const ds160Url = docs.ds160_assinada ? supabase.storage.from("profiles").getPublicUrl(docs.ds160_assinada).data.publicUrl : null;
-    const comprovanteUrl = docs.ds160_comprovante ? supabase.storage.from("profiles").getPublicUrl(docs.ds160_comprovante).data.publicUrl : null;
+    const ds160Url = docs.ds160_assinada ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_assinada).data.publicUrl : null;
+    const comprovanteUrl = docs.ds160_comprovante ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_comprovante).data.publicUrl : null;
 
     if (!isActive && !isPast && !ds160Url && !comprovanteUrl) return null;
 
@@ -1966,9 +1964,9 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderB1B2CASVAdmin = () => {
-    if (!proc.service_slug.startsWith("visto-b1-b2") && !proc.service_slug.startsWith("visto-f1")) return null;
+    if (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("f1")) return null;
     const isActive = currentStepBaseId === "b1b2_casv_scheduling" || currentStepBaseId === "f1_casv_scheduling";
-    const isPast = currentStepIdx > (proc.service_slug.startsWith("visto-f1") ? 6 : 5);
+    const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 6 : 5);
     if (!isActive && !isPast) return null;
 
     const casvDate = proc.step_data?.casv_preferred_date as string;
@@ -2043,9 +2041,9 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderB1B2AccountCreationAdmin = () => {
-    if (!proc || (!proc.service_slug.startsWith("visto-b1-b2") && !proc.service_slug.startsWith("visto-f1"))) return null;
+    if (!proc || (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("f1"))) return null;
     const isActive = currentStepBaseId === "b1b2_admin_account_creation" || currentStepBaseId === "f1_admin_account_creation";
-    const isPast = currentStepIdx > (proc.service_slug.startsWith("visto-f1") ? 7 : 6);
+    const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 7 : 6);
     if (!isActive && !isPast) return null;
 
     const email = (proc.step_data?.primaryEmail || proc.user_accounts?.email || "Não informado") as string;
@@ -2090,9 +2088,9 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderB1B2MRVSetupAdmin = () => {
-    if (!proc || (!proc.service_slug.startsWith("visto-b1-b2") && !proc.service_slug.startsWith("visto-f1"))) return null;
+    if (!proc || (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("f1"))) return null;
     const isActive = currentStepBaseId === "b1b2_admin_mrv_setup" || currentStepBaseId === "f1_admin_mrv_setup";
-    const isPast = currentStepIdx > (proc.service_slug.startsWith("visto-f1") ? 9 : 8);
+    const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 9 : 8);
     if (!isActive && !isPast) return null;
 
     return (
@@ -2102,9 +2100,9 @@ export default function AdminProcessDetailPage() {
     );
   };
   const renderB1B2FinalSchedulingAdmin = () => {
-    if (!proc || (!proc.service_slug.startsWith("visto-b1-b2") && !proc.service_slug.startsWith("visto-f1"))) return null;
+    if (!proc || (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("f1"))) return null;
     const isActive = currentStepBaseId === "b1b2_final_scheduling" || currentStepBaseId === "f1_final_scheduling";
-    const isPast = currentStepIdx > (proc.service_slug.startsWith("visto-f1") ? 11 : 10);
+    const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 11 : 10);
     if (!isActive && !isPast) return null;
 
     return (
@@ -2231,7 +2229,7 @@ export default function AdminProcessDetailPage() {
         </div>
 
         <div className="space-y-8">
-          <ProcessFlowPanel 
+          <ProcessFlowPanel
             effectiveSteps={effectiveSteps}
             currentStepIdx={currentStepIdx}
             vt={vt}

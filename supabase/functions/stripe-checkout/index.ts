@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 import Stripe from "https://esm.sh/stripe@14.16.0";
-import { 
-    calculateSubtotal, 
-    applyCoupon, 
-    calculateCardAmountWithFees, 
+import {
+    calculateSubtotal,
+    applyCoupon,
+    calculateCardAmountWithFees,
     calculateUSDToPixFinalBRL,
     CouponData
 } from "./payment-logic.ts";
-import { 
-    resolveUseAplicei, 
-    getOfficeStripeKey, 
-    resolveServicePrice 
+import {
+    resolveUseAplicei,
+    getOfficeStripeKey,
+    resolveServicePrice
 } from "../_shared/office-payment.ts";
 
 const NOTIFICATIONS_WEBHOOK = Deno.env.get("NOTIFICATIONS_WEBHOOK_URL");
@@ -99,7 +99,7 @@ Deno.serve(async (req: Request) => {
 
         metadata_for_logs.email = email;
         metadata_for_logs.slug = slug;
-        
+
         let origin_url = body.origin_url || body.originUrl || req.headers.get("origin") || req.headers.get("referer") || "https://aplikei.com";
         if (!origin_url.startsWith("http")) origin_url = `https://${origin_url}`;
 
@@ -200,7 +200,7 @@ Deno.serve(async (req: Request) => {
         }
 
         let stripeSecret = Deno.env.get(`STRIPE_SECRET_KEY_${metadata_for_logs.env}`) || Deno.env.get("STRIPE_SECRET_KEY");
-        
+
         if (office_id) {
             const useAplicei = await resolveUseAplicei(supabase, office_id);
             if (!useAplicei) {

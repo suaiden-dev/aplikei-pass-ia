@@ -61,6 +61,8 @@ interface UserAccountRow {
   avatar_zoom: number | null;
   passport_photo_url: string | null;
   role: string;
+  office_id: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -78,6 +80,8 @@ function mapRow(row: UserAccountRow): UserAccount {
     avatarZoom: row.avatar_zoom ?? 1,
     passportPhotoUrl: row.passport_photo_url,
     role: normalizeRole(row.role),
+    officeId: row.office_id,
+    isActive: row.is_active !== false,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -192,6 +196,8 @@ export function buildFallbackAccount(authUser: User): UserAccount {
     avatarZoom: localPrefs?.avatarZoom ?? 1,
     passportPhotoUrl: null,
     role: normalizeRole(authUser.user_metadata?.role),
+    officeId: null,
+    isActive: true,
     createdAt: authUser.created_at,
     updatedAt: authUser.updated_at || authUser.created_at,
   };

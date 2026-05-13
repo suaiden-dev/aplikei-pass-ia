@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../../shared/lib/supabase";
-import { servicesData, type ServiceMeta } from "../../../data/services";
+import { servicesData, type ServiceMeta, getServiceBySlug, isSameService } from "../../../data/services";
 import { useUserProcesses } from "./useUserProcesses";
 import { calculateProcessProgress, isAnalysisSlug } from "../utils";
 import type { UserService } from "../types";
@@ -84,8 +84,8 @@ export function useDashboard(userId: string | undefined) {
     const newestActiveSlugs = new Set<string>();
     return baseProducts.filter((s) => {
       const sd = (s.step_data ?? {}) as Record<string, unknown>;
-      const isConsular = s.service_slug.startsWith("visto-b1-b2") || s.service_slug.startsWith("visto-f1") || s.service_slug === "visa-b1b2" || s.service_slug === "visa-f1";
-      const isCOS = s.service_slug === "troca-status" || s.service_slug === "extensao-status" || s.service_slug === "visa-cos" || s.service_slug === "visa-eos";
+      const isConsular = isSameService(s.service_slug, "visto-b1-b2") || isSameService(s.service_slug, "visto-f1");
+      const isCOS = isSameService(s.service_slug, "troca-status") || isSameService(s.service_slug, "extensao-status");
 
       if (FINAL_STATUSES.includes(s.status ?? "")) return true;
       if (isConsular && sd["interview_outcome"]) return true;
@@ -107,7 +107,7 @@ export function useDashboard(userId: string | undefined) {
         !isAnalysisSlug(s.service_slug),
       )
       .map((proc) => {
-        const service = servicesData.find((s) => s.slug === proc.service_slug);
+        const service = getServiceBySlug(proc.service_slug);
         const sd = (proc.step_data ?? {}) as Record<string, unknown>;
 
         const isApproved =

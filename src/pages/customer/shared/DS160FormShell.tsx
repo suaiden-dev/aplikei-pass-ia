@@ -33,8 +33,10 @@ interface DS160FormShellProps {
     totalSections: number
     isFirstSection: boolean
     isLastSection: boolean
+    isValid: boolean
     onPrevious: () => void
     onNext: () => Promise<void>
+    onFinalize: () => void
   }) => ReactNode
 }
 
@@ -56,6 +58,7 @@ export function DS160FormShell({
 }: DS160FormShellProps) {
   const [currentSection, setCurrentSection] = useState(0)
   const [showErrors, setShowErrors] = useState(false)
+  const [isValidating, setIsValidating] = useState(false)
   const totalSections = sectionFields.length
 
   return (
@@ -65,24 +68,24 @@ export function DS160FormShell({
       onSubmit={onSubmit}
       enableReinitialize
       validateOnBlur
-      validateOnChange={false}
+      validateOnChange={true}
     >
       {({
         errors,
         values,
         touched,
-        submitCount,
         isSubmitting: formSubmitting,
         validateForm,
         setTouched,
         submitForm,
+        isValid,
       }) => {
         const currentFields = sectionFields[currentSection] ?? []
         const formErrors = errors as Record<string, unknown>
         const currentSectionErrors = currentFields.filter((field) => formErrors[field])
         const hasVisibleErrors =
-          (submitCount > 0 || showErrors) && currentSectionErrors.length > 0
-        const submitting = formSubmitting || isBusy
+          showErrors && currentSectionErrors.length > 0
+        const submitting = formSubmitting || isBusy || isValidating
         const isFirstSection = currentSection === 0
         const isLastSection = currentSection >= totalSections - 1
 
@@ -123,9 +126,15 @@ export function DS160FormShell({
           setCurrentSection((s) => Math.min(totalSections - 1, s + 1))
         }
 
-        const handleFinalSubmit = async (e: React.FormEvent) => {
+        const handleFinalize = async () => {
           if (readOnly) return
 
+          if (!isLastSection) {
+            void goToNext()
+            return
+          }
+
+          setIsValidating(true)
           const errors = await validateForm()
           const nextFormErrors = errors as Record<string, unknown>
           const allFields = sectionFields.flat()
@@ -147,18 +156,24 @@ export function DS160FormShell({
               )
               window.scrollTo({ top: 0, behavior: 'smooth' })
             }
+            setIsValidating(false)
             return
           }
 
+          setIsValidating(false)
           submitForm()
         }
 
         return (
           <Form
             noValidate
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
+                e.preventDefault()
+              }
+            }}
             onSubmit={(e) => {
               e.preventDefault()
-              void handleFinalSubmit(e)
             }}
           >
             {renderHeader?.()}
@@ -168,14 +183,7 @@ export function DS160FormShell({
                   <p className='text-[11px] font-black uppercase tracking-widest text-primary'>
                     Seção {currentSection + 1} de {totalSections}
                   </p>
-                  {readOnly ? (
-                    <div className='mt-2 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-100 w-fit'>
-                      <RiAlertLine className='text-amber-500 text-sm' />
-                      <span className='text-[10px] font-black text-amber-600 uppercase tracking-widest'>
-                        Modo de Visualização — Alterações desativadas
-                      </span>
-                    </div>
-                  ) : (
+                  {!readOnly && (
                     <p className='mt-1 text-sm font-medium text-text-muted'>
                       Preencha esta etapa e avance para a próxima seção da
                       DS-160.
@@ -256,8 +264,10 @@ export function DS160FormShell({
                   totalSections,
                   isFirstSection,
                   isLastSection,
+                  isValid,
                   onPrevious: goToPrevious,
                   onNext: goToNext,
+                  onFinalize: handleFinalize,
                 })
               ) : (
                 <div className='px-6 sm:px-10 py-6 bg-bg-subtle/70 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4'>

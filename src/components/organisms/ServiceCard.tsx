@@ -25,11 +25,11 @@ const slugConfig: Record<string, {
   label: string;
   category: string;
 }> = {
-  "visto-b1-b2":             { bg: "bg-sky-500/10",    icon: "text-sky-500",    accent: "from-sky-400 to-sky-600",         label: "B1/B2 VISA",         category: "TOURISM/BUSINESS" },
-  "visto-b1-b2-reaplicacao": { bg: "bg-sky-500/10",    icon: "text-sky-500",    accent: "from-sky-400 to-sky-600",         label: "B1/B2 REAPLICAÇÃO",  category: "TOURISM/BUSINESS" },
-  "visto-f1":                { bg: "bg-violet-500/10", icon: "text-violet-500", accent: "from-violet-400 to-violet-600",   label: "F-1 VISA",           category: "STUDENT/ACADEMIC" },
-  "extensao-status":         { bg: "bg-blue-500/10",   icon: "text-blue-500",   accent: "from-blue-400 to-blue-600",       label: "EXTENSÃO STATUS",    category: "EXTEND STAY" },
-  "troca-status":            { bg: "bg-indigo-500/10", icon: "text-indigo-500", accent: "from-indigo-400 to-indigo-600",   label: "TROCA STATUS",       category: "CHANGE OF STATUS" },
+  "visto-b1-b2": { bg: "bg-sky-500/10", icon: "text-sky-500", accent: "from-sky-400 to-sky-600", label: "B1/B2 VISA", category: "TOURISM/BUSINESS" },
+  "visto-b1-b2-reaplicacao": { bg: "bg-sky-500/10", icon: "text-sky-500", accent: "from-sky-400 to-sky-600", label: "B1/B2 REAPLICAÇÃO", category: "TOURISM/BUSINESS" },
+  "visto-f1": { bg: "bg-violet-500/10", icon: "text-violet-500", accent: "from-violet-400 to-violet-600", label: "F-1 VISA", category: "STUDENT/ACADEMIC" },
+  "extensao-status": { bg: "bg-blue-500/10", icon: "text-blue-500", accent: "from-blue-400 to-blue-600", label: "EXTENSÃO STATUS", category: "EXTEND STAY" },
+  "troca-status": { bg: "bg-indigo-500/10", icon: "text-indigo-500", accent: "from-indigo-400 to-indigo-600", label: "TROCA STATUS", category: "CHANGE OF STATUS" },
 };
 
 interface ServiceCardProps {

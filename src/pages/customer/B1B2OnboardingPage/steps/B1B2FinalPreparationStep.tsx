@@ -423,7 +423,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
 
                       <div className="grid grid-cols-1 gap-4 pt-4">
                         <button
-                          onClick={() => navigate('/checkout/visto-b1-b2')}
+                          onClick={() => navigate(`/checkout/visto-b1-b2-reaplicacao${user?.officeId ? `?office_id=${user.officeId}` : ""}`)}
                           className="p-6 bg-card border border-border rounded-3xl text-left hover:border-primary transition-all group/opt relative overflow-hidden"
                         >
                           <div className="relative z-10">
@@ -449,7 +449,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                         ) : (
                           <button
                             onClick={() => {
-                              navigate('/checkout/mentoria-negativa-consular');
+                              navigate(`/checkout/mentoria-negativa-consular${user?.officeId ? `?office_id=${user.officeId}` : ""}`);
                             }}
                             className="p-6 bg-primary/5 border border-primary/20 rounded-3xl text-left hover:bg-primary/10 transition-all group/opt relative overflow-hidden"
                           >

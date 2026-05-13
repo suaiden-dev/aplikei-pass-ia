@@ -8,7 +8,9 @@ export function calculateProcessProgress(
   const safeTotalSteps = Math.max(totalSteps, 1);
   const isConsular =
     proc.service_slug.startsWith("visto-b1-b2") ||
-    proc.service_slug.startsWith("visto-f1");
+    proc.service_slug.startsWith("visto-f1") ||
+    proc.service_slug.startsWith("visa-b1b2") ||
+    proc.service_slug.startsWith("visa-f1");
 
   if (proc.status === "completed") return 100;
   if (!isConsular && step >= safeTotalSteps - 1) return 100;

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { RiCheckLine, RiLoader4Line, RiArrowLeftLine, RiArrowRightLine } from 'react-icons/ri'
+import { RiCheckLine, RiLoader4Line, RiArrowLeftLine, RiArrowRightLine, RiCheckboxCircleFill } from 'react-icons/ri'
 import { DS160SingleFormStep } from '../steps/DS160SingleFormStep'
 import { B1B2UserReviewSignStep } from '../steps/B1B2UserReviewSignStep'
 import { B1B2CASVSchedulingStep } from '../steps/B1B2CASVSchedulingStep'
@@ -124,6 +124,19 @@ export function B1B2StepContent({
     )
   }
 
+  if (stepIdx === 2) {
+    return (
+      <OnboardingNoticeStep
+        icon={<RiLoader4Line className='text-3xl animate-spin text-purple-500' />}
+        iconContainerClassName='bg-purple-50'
+        title={labels.creatingCredentialsTitle || 'Criando suas credenciais...'}
+        description={labels.creatingCredentialsDesc || 'Nossa equipe está configurando seu acesso no sistema consular. Isso costuma ser rápido.'}
+        buttonLabel={labels.backToDashboard}
+        onBack={onNavigateToProcess}
+      />
+    )
+  }
+
   const isCompleted = currentStep > stepIdx
   const isAwaiting = procStatus === 'awaiting_review'
   // Only lock the form if it's explicitly completed OR if it's awaiting review AND has advanced past step 0.
@@ -132,8 +145,8 @@ export function B1B2StepContent({
   const [justSubmitted, setJustSubmitted] = useState(false)
 
   const handleFormSubmit = async (values: Partial<DS160FormValues>) => {
-    setJustSubmitted(true)
     await onSubmit(values)
+    setJustSubmitted(true)
   }
 
   return (
@@ -149,25 +162,7 @@ export function B1B2StepContent({
       sectionFields={DS160_SECTION_FIELDS}
       isBusy={isSubmitting}
       readOnly={isReadOnly}
-      renderHeader={() => (
-        <>
-          {isAwaiting && stepIdx === 0 && (
-            <div className='mb-6 p-4 rounded-xl bg-amber-50 border border-amber-100 flex items-start gap-3 shadow-sm'>
-              <RiLoader4Line className='text-amber-500 text-xl animate-spin shrink-0 mt-0.5' />
-              <div>
-                <p className='text-xs font-black text-amber-900 uppercase tracking-tight mb-1'>
-                  Formulário em Análise Técnica
-                </p>
-                <p className='text-[11px] text-amber-700 font-medium leading-relaxed'>
-                  Este formulário já foi enviado e está sendo revisado. Você
-                  pode visualizar os dados, mas as alterações estão
-                  temporariamente desativadas.
-                </p>
-              </div>
-            </div>
-          )}
-        </>
-      )}
+
       renderFooter={({
         values,
         isSubmitting: formBusy,
@@ -175,32 +170,14 @@ export function B1B2StepContent({
         totalSections,
         isFirstSection,
         isLastSection,
+        isValid,
         onPrevious,
         onNext,
+        onFinalize,
       }) => {
 
         return (
           <div className="flex flex-col border-t border-border bg-bg-subtle/50">
-            {isReadOnly && (
-              <div className="px-6 py-4 border-b border-border/50 bg-bg-subtle/30 flex items-center justify-center gap-3">
-                {isCompleted ? (
-                  <>
-                    <RiCheckLine className="text-emerald-500 text-lg" />
-                    <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
-                      Etapa Aprovada — Somente Visualização
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <RiLoader4Line className="text-primary animate-spin text-lg" />
-                    <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">
-                      {labels.awaitingReview} — Somente Visualização
-                    </span>
-                  </>
-                )}
-              </div>
-            )}
-
             <div className="px-6 sm:px-10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                 {!isFirstSection && (
@@ -247,9 +224,10 @@ export function B1B2StepContent({
                     >
                       Voltar ao Painel
                     </button>
-                  ) : (
+                  ) : isValid ? (
                     <button
-                      type='submit'
+                      type='button'
+                      onClick={onFinalize}
                       disabled={formBusy || justSubmitted}
                       className='w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50'
                     >
@@ -269,7 +247,7 @@ export function B1B2StepContent({
                         </>
                       )}
                     </button>
-                  )
+                  ) : null
                 )}
               </div>
             </div>

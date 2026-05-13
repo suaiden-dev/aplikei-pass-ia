@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "../../../../shared/lib/supabase";
 import { updateStepData, approveStep } from "../../../process/lib/processOps";
+import { getServiceSlugs, isSameService } from "../../../../data/services";
 import { notifyAdmin } from "../../../notifications/lib/notify";
 import type { DS160FormValues } from "../../b1b2/schemas/ds160.schema";
 
@@ -18,7 +19,7 @@ async function fetchProcess(userId: string, slug: string, idParam?: string | nul
       .select("*")
       .eq("id", idParam)
       .single();
-    if (!data || data.user_id !== userId || data.service_slug !== slug) return null;
+    if (!data || data.user_id !== userId || !isSameService(data.service_slug, slug)) return null;
     return data;
   }
 
@@ -26,7 +27,7 @@ async function fetchProcess(userId: string, slug: string, idParam?: string | nul
     .from("user_services")
     .select("*")
     .eq("user_id", userId)
-    .eq("service_slug", slug)
+    .in("service_slug", getServiceSlugs(slug))
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();

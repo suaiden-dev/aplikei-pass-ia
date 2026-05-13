@@ -16,6 +16,8 @@ export interface UserAccount {
   avatarZoom: number;
   passportPhotoUrl?: string | null;
   role: UserRole;
+  officeId: string | null;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }

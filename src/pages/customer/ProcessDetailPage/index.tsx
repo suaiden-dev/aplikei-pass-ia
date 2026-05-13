@@ -20,7 +20,7 @@ import {
 import { useAuth } from "../../../hooks/useAuth";
 import { calculateProcessProgress } from "../../../features/process/utils";
 import * as processService from "../../../features/process/lib/processOps";
-import { getServiceBySlug } from "../../../data/services";
+import { getServiceBySlug, isSameService, getServiceSlugs } from "../../../data/services";
 import { supabase } from "../../../shared/lib/supabase";
 import { toast } from "sonner";
 import PhotoUploadOverlay from "../../../components/organisms/PhotoUploadOverlay";
@@ -96,7 +96,7 @@ export default function ProcessDetailPage() {
           .eq("id", idParam)
           .single();
         if (error || !data) return null;
-        if (data.user_id !== user.id || data.service_slug !== slug) return null;
+        if (data.user_id !== user.id || !isSameService(data.service_slug, slug)) return null;
         return data;
       }
 
@@ -104,7 +104,7 @@ export default function ProcessDetailPage() {
         .from("user_services")
         .select("*")
         .eq("user_id", user.id)
-        .eq("service_slug", slug)
+        .in("service_slug", getServiceSlugs(slug))
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -394,7 +394,7 @@ export default function ProcessDetailPage() {
               {!hasConsultation && (
                 <div>
                   <Link
-                    to="/checkout/mentoria-negativa-consular"
+                    to={`/checkout/mentoria-negativa-consular${user?.officeId ? `?office_id=${user.officeId}` : ""}`}
                     className="flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white text-sm font-black uppercase tracking-widest transition-all shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98]"
                   >
                     <RiUserVoiceLine className="text-xl" />
@@ -407,7 +407,7 @@ export default function ProcessDetailPage() {
                 </div>
               )}
               <Link
-                to={slug.includes("f1") ? "/checkout/visto-f1-reaplicacao" : "/checkout/visto-b1-b2-reaplicacao"}
+                to={slug.includes("f1") ? `/checkout/visto-f1-reaplicacao${user?.officeId ? `?office_id=${user.officeId}` : ""}` : `/checkout/visto-b1-b2-reaplicacao${user?.officeId ? `?office_id=${user.officeId}` : ""}`}
                 className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-black uppercase tracking-widest transition-all"
               >
                 {t.processDetail.restartProcess}

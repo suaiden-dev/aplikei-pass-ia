@@ -1,6 +1,6 @@
 import { supabase } from "../../../shared/lib/supabase";
 import { notifyAdmin, notifyClient } from "../../notifications/lib/notify";
-import { getServiceBySlug } from "../../../data/services";
+import { getServiceBySlug, isSameService, getServiceSlugs } from "../../../data/services";
 import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "../types";
 import type { UserService, ProcessStatus } from "../types";
 
@@ -68,7 +68,7 @@ function hasPurchase(stepData: Record<string, unknown>, slugs: string[]): boolea
 }
 
 function getNormalizedCOSRecoveryStep(service: UserService): number | null {
-  if (service.service_slug !== "troca-status" && service.service_slug !== "extensao-status") {
+  if (!isSameService(service.service_slug, "troca-status") && !isSameService(service.service_slug, "extensao-status")) {
     return null;
   }
 
@@ -162,7 +162,7 @@ export async function hasActiveService(userId: string, slug: string): Promise<bo
     .from("user_services")
     .select("id")
     .eq("user_id", userId)
-    .eq("service_slug", slug)
+    .in("service_slug", getServiceSlugs(slug))
     .not("status", "in", "(completed,cancelled,rejected,denied)");
   return (data?.length ?? 0) > 0;
 }
@@ -222,7 +222,7 @@ export async function getUserServiceBySlug(
     .from("user_services")
     .select("*")
     .eq("user_id", userId)
-    .eq("service_slug", slug)
+    .in("service_slug", getServiceSlugs(slug))
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -238,7 +238,11 @@ export async function updateStepData(
   data: Record<string, unknown>,
 ): Promise<void> {
   if (!serviceId) throw new Error("ID do serviço é obrigatório.");
-  const ok = await dbUpdateStepData(serviceId, data);
+  const service = await findServiceById(serviceId);
+  if (!service) throw new Error("Serviço não encontrado");
+  const currentData = (service.step_data as Record<string, unknown>) || {};
+  const mergedData = { ...currentData, ...data };
+  const ok = await dbUpdateStepData(serviceId, mergedData);
   if (!ok) throw new Error("Falha ao atualizar step_data");
 }
 

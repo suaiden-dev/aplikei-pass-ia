@@ -153,7 +153,7 @@ export const DS160Schema = z
     militarySpecialty: optionalString(),
 
     // 11. Segurança
-    securityExceptions: z.enum(["sim", "nao"]).default("nao"),
+    securityExceptions: yesNo(),
     securityExceptionsDetails: optionalString(),
   })
   .superRefine((data, ctx) => {

@@ -316,8 +316,8 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
                      <RiCloseLine className="text-5xl text-rose-500 mx-auto mb-4" />
                      <h4 className="text-xl font-black uppercase text-white">{t.onboardingPage.processingStatus.outcomeRejected}</h4>
                      <div className="flex flex-col gap-3 max-w-sm mx-auto">
-                        <button onClick={() => navigate('/checkout/consultoria-f1-negativa')} className="py-4 bg-primary rounded-xl font-black uppercase text-xs tracking-widest text-white">{t.onboardingPage.processingStatus.consultationSpecialist}</button>
-                        <button onClick={() => navigate('/checkout/visto-f1-reaplicacao')} className="py-4 bg-white/10 rounded-xl font-black uppercase text-xs tracking-widest text-white">{t.onboardingPage.processingStatus.restartProcess}</button>
+                        <button onClick={() => navigate(`/checkout/consultoria-f1-negativa${user?.officeId ? `?office_id=${user.officeId}` : ""}`)} className="py-4 bg-primary rounded-xl font-black uppercase text-xs tracking-widest text-white">{t.onboardingPage.processingStatus.consultationSpecialist}</button>
+                        <button onClick={() => navigate(`/checkout/visto-f1-reaplicacao${user?.officeId ? `?office_id=${user.officeId}` : ""}`)} className="py-4 bg-white/10 rounded-xl font-black uppercase text-xs tracking-widest text-white">{t.onboardingPage.processingStatus.restartProcess}</button>
                      </div>
                    </div>
                  )}
