@@ -13,8 +13,8 @@ import { type DS160FormValues } from '../../../schemas/ds160.schema';
 
 function buildLabels(t: any): B1B2OnboardingLabels {
   return {
-    stepLabel: t.onboardingPage.stepLabel,
-    ds160Form: t.onboardingPage.ds160Form,
+    stepLabel: t.onboardingPage.stepLabel || "Step",
+    ds160Form: t.onboardingPage.ds160Form || "DS-160 Form",
     saveDraft: t.onboardingPage.saveDraft,
     finalizeAndSubmit: t.onboardingPage.finalizeAndSubmit,
     awaitingReview: t.onboardingPage.awaitingReview,
@@ -26,9 +26,9 @@ function buildLabels(t: any): B1B2OnboardingLabels {
     errorDraft: t.onboardingPage.errorDraft,
     adjustmentsRequested: t.onboardingPage.adjustmentsRequested,
     of: t.onboardingPage.of,
-    b1b2Title: t.onboardingPage.b1b2Title,
-    b1b2ReapplicationTitle: t.onboardingPage.b1b2ReapplicationTitle,
-    guidedFilling: t.onboardingPage.guidedFilling,
+    b1b2Title: t.onboardingPage.b1b2Title || "B1/B2",
+    b1b2ReapplicationTitle: t.onboardingPage.b1b2ReapplicationTitle || "B1/B2 Reapplication",
+    guidedFilling: t.onboardingPage.guidedFilling || "Guided Filling",
     consularFee: t.onboardingPage.consularFee,
     slipGeneratingByTeam: t.onboardingPage.slipGeneratingByTeam,
     slipGenerationDesc: t.onboardingPage.slipGenerationDesc,
@@ -77,13 +77,23 @@ export default function B1B2OnboardingPage() {
   }
 
   const handleNavigateToProcess = () => {
-    navigate(`/dashboard/processes/${slug}`)
+    navigate(`/dashboard/processes/${slug}${procId ? `?id=${procId}` : ""}`)
   }
 
   const formatStepLabel = (idx: number) => {
-    const total = 12
+    const total = 11
     return `${idx + 1} ${labels.of} ${total}`
   }
+
+  const isFinalSchedulingStep = stepIdx >= 10
+  const headerTitle = isFinalSchedulingStep
+    ? (t.processSteps?.b1b2_final_scheduling?.title || t.processSteps?.f1_final_scheduling?.title || "Final Scheduling and Preparation")
+    : labels.ds160Form
+  const headerSubtitle = isFinalSchedulingStep
+    ? (t.processSteps?.b1b2_final_scheduling?.description || t.processSteps?.f1_final_scheduling?.description || "Check your appointment details and prepare for the interview.")
+    : (slug === 'visto-b1-b2-reaplicacao' || slug === 'visa-b1b2-reaplicacao'
+      ? `${labels.b1b2ReapplicationTitle} — ${labels.guidedFilling}`
+      : `${labels.b1b2Title} — ${labels.guidedFilling}`)
 
   if (isLoading) {
     return (
@@ -107,12 +117,10 @@ export default function B1B2OnboardingPage() {
             </button>
             <div>
               <h1 className='text-sm font-black text-text uppercase tracking-tight'>
-                {labels.ds160Form}
+                {headerTitle}
               </h1>
               <p className='text-[10px] text-text-muted font-bold uppercase tracking-widest'>
-                {slug === 'visto-b1-b2-reaplicacao' || slug === 'visa-b1b2-reaplicacao'
-                  ? `${labels.b1b2ReapplicationTitle} — ${labels.guidedFilling}`
-                  : `${labels.b1b2Title} — ${labels.guidedFilling}`}
+                {headerSubtitle}
               </p>
             </div>
           </div>

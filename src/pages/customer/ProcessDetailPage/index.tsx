@@ -14,7 +14,6 @@ import {
   RiErrorWarningLine,
   RiBookOpenLine,
   RiUserVoiceLine,
-  RiUserStarLine,
   RiFlagLine,
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
@@ -488,9 +487,8 @@ export default function ProcessDetailPage() {
                       {t.processSteps?.[step.id]?.description || step.description}
                     </p>
 
-                    {/* Show View button ONLY for the final preparation step in B1/B2/F1 or cos_motion_end, NOT for completed forms */}
-                    {((isConsular && idx === (slug.includes("f1") ? 11 : 10)) || (isCurrent && isCOS && baseStepId === "cos_motion_end")) &&
-                      ((isConsular && idx === (slug.includes("f1") ? 11 : 10)) || baseStepId === "cos_motion_end") && (
+                    {/* Show View button only for COS motion result step */}
+                    {(isCurrent && isCOS && baseStepId === "cos_motion_end") && (
                         <button
                           onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${idx}`)}
                           className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${idx === (slug.includes("f1") ? 11 : 10) && !isCompleted && !isCurrent
@@ -498,7 +496,7 @@ export default function ProcessDetailPage() {
                               : "border-border text-text-muted hover:border-primary hover:text-primary bg-card"
                             }`}
                         >
-                          {idx === (slug.includes("f1") ? 11 : 10) ? <RiUserStarLine className="text-sm" /> : <RiInformationLine className="text-sm" />}
+                          <RiInformationLine className="text-sm" />
                           {baseStepId === "cos_motion_end"
                             ? "Ver resultado"
                             : t.processDetail.prepareForInterview}
@@ -525,7 +523,7 @@ export default function ProcessDetailPage() {
                                 <button
                                   onClick={() => {
                                     const targetIdx = step.id === 'b1b2_admin_analysis' ? 0 : (step.type === 'admin_action' ? idx - 1 : idx);
-                                    navigate(`/dashboard/processes/${slug}/onboarding?step=${targetIdx}`);
+                                    navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${targetIdx}`);
                                   }}
                                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-500/20 transition-all border-none"
                                 >
@@ -551,7 +549,7 @@ export default function ProcessDetailPage() {
                                 </div>
                                 {isConsular && idx === (slug.includes("f1") ? 11 : 10) && (
                                   <button
-                                    onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?step=${slug.includes("f1") ? 11 : 10}`)}
+                                    onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${slug.includes("f1") ? 11 : 10}`)}
                                     className="w-full py-3 rounded-xl border-2 border-primary/20 text-primary font-black text-[11px] uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all flex items-center justify-center gap-2 shadow-sm"
                                   >
                                     <RiBookOpenLine className="text-base" /> {t.processDetail.prepareForInterview}
@@ -583,7 +581,7 @@ export default function ProcessDetailPage() {
                               </div>
                               <button
                                 onClick={() => {
-                                  navigate(`/dashboard/processes/${slug}/onboarding?step=${idx}`);
+                                  navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${idx}`);
                                 }}
                                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all"
                               >

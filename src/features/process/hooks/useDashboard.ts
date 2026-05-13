@@ -1,13 +1,20 @@
 import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../../shared/lib/supabase";
-import { servicesData, type ServiceMeta, getServiceBySlug, isSameService } from "../../../data/services";
+import {
+  servicesData,
+  type ServiceMeta,
+  getCanonicalSlug,
+  getServiceBySlug,
+  isSameService,
+} from "../../../data/services";
 import { useUserProcesses } from "./useUserProcesses";
 import { calculateProcessProgress, isAnalysisSlug } from "../utils";
 import type { UserService } from "../types";
 
 export interface ActiveProcess {
   proc: UserService;
+  displaySlug: string;
   service: ServiceMeta | undefined;
   progress: number;
   isApproved: boolean;
@@ -54,6 +61,33 @@ export interface DashboardLabels {
 const ACTIVE_STATUSES = ["active", "awaiting_review"];
 const FINAL_STATUSES = ["completed", "rejected", "denied", "cancelled"];
 
+function hasApprovedOutcome(proc: UserService): boolean {
+  const sd = (proc.step_data ?? {}) as Record<string, unknown>;
+  return (
+    proc.status === "completed" ||
+    sd["uscis_official_result"] === "approved" ||
+    sd["uscis_rfe_result"] === "approved" ||
+    sd["motion_final_result"] === "approved" ||
+    sd["interview_outcome"] === "approved"
+  );
+}
+
+function hasDeniedOutcome(proc: UserService): boolean {
+  const sd = (proc.step_data ?? {}) as Record<string, unknown>;
+  return (
+    proc.status === "rejected" ||
+    proc.status === "denied" ||
+    sd["motion_final_result"] === "denied" ||
+    sd["motion_final_result"] === "rejected" ||
+    sd["interview_outcome"] === "denied" ||
+    sd["interview_outcome"] === "rejected" ||
+    sd["uscis_official_result"] === "denied" ||
+    sd["uscis_official_result"] === "rejected" ||
+    sd["uscis_rfe_result"] === "denied" ||
+    sd["uscis_rfe_result"] === "rejected"
+  );
+}
+
 export function useDashboard(userId: string | undefined) {
   const queryClient = useQueryClient();
 
@@ -80,21 +114,43 @@ export function useDashboard(userId: string | undefined) {
     [userServices],
   );
 
+  const displaySlugByProcessId = useMemo(() => {
+    const groups = new Map<string, UserService[]>();
+    for (const proc of baseProducts) {
+      const canonical = getCanonicalSlug(proc.service_slug);
+      if (!groups.has(canonical)) groups.set(canonical, []);
+      groups.get(canonical)!.push(proc);
+    }
+
+    const map = new Map<string, string>();
+    for (const [canonical, list] of groups) {
+      const sortedAsc = [...list].sort(
+        (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime(),
+      );
+      sortedAsc.forEach((proc, index) => {
+        if (index === 0 || proc.service_slug.includes("reaplicacao")) {
+          map.set(proc.id, proc.service_slug);
+          return;
+        }
+        const reappSlug = `${canonical}-reaplicacao`;
+        map.set(proc.id, getServiceBySlug(reappSlug) ? reappSlug : proc.service_slug);
+      });
+    }
+    return map;
+  }, [baseProducts]);
+
   const others = useMemo(() => {
-    const newestActiveSlugs = new Set<string>();
     return baseProducts.filter((s) => {
       const sd = (s.step_data ?? {}) as Record<string, unknown>;
       const isConsular = isSameService(s.service_slug, "visto-b1-b2") || isSameService(s.service_slug, "visto-f1");
       const isCOS = isSameService(s.service_slug, "troca-status") || isSameService(s.service_slug, "extensao-status");
+      const hasFinalApproved = hasApprovedOutcome(s);
+      const hasFinalDenied = hasDeniedOutcome(s);
 
       if (FINAL_STATUSES.includes(s.status ?? "")) return true;
+      if (hasFinalApproved || hasFinalDenied) return true;
       if (isConsular && sd["interview_outcome"]) return true;
       if (isCOS && (s.current_step ?? 0) >= 19) return true;
-
-      if (ACTIVE_STATUSES.includes(s.status ?? "")) {
-        if (newestActiveSlugs.has(s.service_slug)) return true;
-        newestActiveSlugs.add(s.service_slug);
-      }
       return false;
     });
   }, [baseProducts]);
@@ -103,31 +159,21 @@ export function useDashboard(userId: string | undefined) {
     baseProducts
       .filter((s) =>
         ACTIVE_STATUSES.includes(s.status ?? "") &&
+        !hasApprovedOutcome(s) &&
+        !hasDeniedOutcome(s) &&
         !others.find((o) => o.id === s.id) &&
         !isAnalysisSlug(s.service_slug),
       )
       .map((proc) => {
         const service = getServiceBySlug(proc.service_slug);
-        const sd = (proc.step_data ?? {}) as Record<string, unknown>;
-
-        const isApproved =
-          sd["uscis_official_result"] === "approved" ||
-          sd["uscis_rfe_result"] === "approved" ||
-          sd["motion_final_result"] === "approved" ||
-          sd["interview_outcome"] === "approved" ||
-          proc.status === "completed";
-
-        const isDenied =
-          proc.status === "rejected" ||
-          sd["motion_final_result"] === "denied" ||
-          sd["motion_final_result"] === "rejected" ||
-          sd["interview_outcome"] === "denied" ||
-          sd["interview_outcome"] === "rejected";
+        const isApproved = hasApprovedOutcome(proc);
+        const isDenied = hasDeniedOutcome(proc);
 
         const isFinalized = proc.status === "completed" || proc.status === "rejected" || isApproved || isDenied;
 
         return {
           proc,
+          displaySlug: displaySlugByProcessId.get(proc.id) ?? proc.service_slug,
           service,
           progress: isFinalized ? 100 : calculateProcessProgress(proc, service?.steps.length ?? 12),
           isApproved,
@@ -135,7 +181,7 @@ export function useDashboard(userId: string | undefined) {
           isFinalized,
         };
       }),
-    [baseProducts, others],
+    [baseProducts, displaySlugByProcessId, others],
   );
 
   const ownedSlugs = useMemo(

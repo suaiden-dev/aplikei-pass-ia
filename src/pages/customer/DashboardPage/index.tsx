@@ -106,6 +106,7 @@ export default function CustomerDashboardPage() {
           activeServices={activeServices}
           isLoading={false}
           labels={labels}
+          officeId={user?.officeId}
         />
       )}
     </div>

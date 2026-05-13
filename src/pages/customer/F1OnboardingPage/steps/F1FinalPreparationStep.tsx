@@ -43,6 +43,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
   const [isScheduling, setIsScheduling] = useState(false);
   const [calendlyUrl, setCalendlyUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [planPrices, setPlanPrices] = useState<Record<string, number>>({});
 
   // Consultation State
   const [purchasedConsultation, setPurchasedConsultation] = useState<Record<string, unknown> | null>(null);
@@ -70,7 +71,16 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
         .from("user_services")
         .select("*")
         .eq("user_id", user.id)
-        .in("service_slug", ["mentoria-bronze", "mentoria-silver", "mentoria-gold", "consultoria-especialista"])
+        .in("service_slug", [
+          "mentoring-bronze",
+          "mentoring-silver",
+          "mentoring-gold",
+          "mentoria-individual",
+          "mentoria-bronze",
+          "mentoria-silver",
+          "mentoria-gold",
+          "consultoria-especialista",
+        ])
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(1)
@@ -116,10 +126,69 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
   }, [user, procId]);
 
   useEffect(() => {
+    async function loadPlanPrices() {
+      if (!user?.officeId) return;
+
+      const slugsToResolve = [
+        "mentoring-bronze",
+        "mentoring-silver",
+        "mentoring-gold",
+        "mentoria-individual",
+        "mentoria-bronze",
+        "mentoria-silver",
+        "mentoria-gold",
+      ];
+
+      const { data: services } = await supabase
+        .from("services")
+        .select("id, slug")
+        .in("slug", slugsToResolve);
+
+      if (!services?.length) return;
+
+      const serviceIds = services.map((s) => s.id);
+      const { data: officePrices } = await supabase
+        .from("user_service_prices")
+        .select("service_id, price, is_active")
+        .eq("office_id", user.officeId)
+        .in("service_id", serviceIds)
+        .or("is_active.is.true,is_active.is.null");
+
+      if (!officePrices?.length) return;
+
+      const slugById = new Map(services.map((s) => [s.id, s.slug]));
+      const priceBySlug = new Map<string, number>();
+      officePrices.forEach((row) => {
+        const slug = slugById.get(row.service_id);
+        if (slug) priceBySlug.set(slug, Number(row.price));
+      });
+
+      setPlanPrices({
+        "mentoring-bronze":
+          priceBySlug.get("mentoring-bronze") ??
+          priceBySlug.get("mentoria-individual") ??
+          197,
+        "mentoring-silver":
+          priceBySlug.get("mentoring-silver") ??
+          priceBySlug.get("mentoria-bronze") ??
+          priceBySlug.get("mentoria-silver") ??
+          397,
+        "mentoring-gold":
+          priceBySlug.get("mentoring-gold") ??
+          priceBySlug.get("mentoria-gold") ??
+          697,
+      });
+    }
+
+    loadPlanPrices();
+  }, [user?.officeId]);
+
+  useEffect(() => {
     async function fetchCalendlyLink() {
       if (!purchasedMentorship) return;
-      const planName = purchasedMentorship.service_slug === "mentoria-gold" ? "Ouro" :
-        purchasedMentorship.service_slug === "mentoria-silver" ? "Prata" :
+      const planName =
+        purchasedMentorship.service_slug === "mentoring-gold" || purchasedMentorship.service_slug === "mentoria-gold" ? "Ouro" :
+        purchasedMentorship.service_slug === "mentoring-silver" || purchasedMentorship.service_slug === "mentoria-silver" ? "Prata" :
           purchasedMentorship.service_slug === "consultoria-especialista" ? "Especialista" : "Bronze";
 
       const event = await calendlyService.findEventByName(
@@ -229,17 +298,55 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
   };
 
   const PLANS = [
-    { id: "mentoria-bronze", name: "Bronze", price: 197, interviews: 1, features: ["1 Mock Interview individual", "Plano de Estudo Personalizado", "Material de Apoio PDF"] },
-    { id: "mentoria-silver", name: "Prata", price: 397, interviews: 2, features: ["2 Mock Interviews individuais", "Análise de Perfil Acadêmico", "Feedback em Vídeo Detalhado", "Suporte p/ Dúvidas SEVIS"] },
-    { id: "mentoria-gold", name: "Ouro", price: 697, interviews: 3, features: ["3 Mock Interviews individuais", "Estratégia VIP p/ Vínculos", "Suporte Direto WhatsApp", "Simulado em Inglês + Português"], best: true },
+    { id: "mentoring-bronze", name: "Bronze", price: planPrices["mentoring-bronze"] ?? 197, interviews: 1, features: ["1 Mock Interview individual", "Plano de Estudo Personalizado", "Material de Apoio PDF"] },
+    { id: "mentoring-silver", name: "Prata", price: planPrices["mentoring-silver"] ?? 397, interviews: 2, features: ["2 Mock Interviews individuais", "Análise de Perfil Acadêmico", "Feedback em Vídeo Detalhado", "Suporte p/ Dúvidas SEVIS"] },
+    { id: "mentoring-gold", name: "Ouro", price: planPrices["mentoring-gold"] ?? 697, interviews: 3, features: ["3 Mock Interviews individuais", "Estratégia VIP p/ Vínculos", "Suporte Direto WhatsApp", "Simulado em Inglês + Português"], best: true },
   ];
 
   const handleSelectPlan = (plan: typeof PLANS[0]) => {
-    navigate(`/checkout/${plan.id}`);
+    navigate(`/checkout/${plan.id}${user?.officeId ? `?office_id=${user.officeId}` : ""}`);
+  };
+
+  const handleOpenSpecialistSupport = async () => {
+    if (!user?.id || !purchasedMentorship?.id) {
+      navigate("/dashboard/support");
+      return;
+    }
+
+    try {
+      const processId = String(purchasedMentorship.id);
+      const { data: lastMessage } = await supabase
+        .from("chat_messages")
+        .select("id")
+        .eq("process_id", processId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!lastMessage) {
+        await supabase.from("chat_messages").insert({
+          process_id: processId,
+          content: "Olá, comprei o pacote Specialist Mentoring e quero iniciar meu atendimento com o manager.",
+          sender_id: user.id,
+          sender_role: "customer",
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      navigate(`/dashboard/support?processId=${processId}`);
+    } catch (err) {
+      console.error("[F1] open support chat failed:", err);
+      navigate("/dashboard/support");
+    }
   };
 
   const scheduledCount = ((purchasedMentorship?.step_data as Record<string, unknown>)?.scheduled_count as number | undefined) || 0;
-  const totalInterviews = purchasedMentorship?.service_slug === "mentoria-gold" ? 3 : purchasedMentorship?.service_slug === "mentoria-silver" ? 2 : 1;
+  const totalInterviews =
+    purchasedMentorship?.service_slug === "mentoring-gold" || purchasedMentorship?.service_slug === "mentoria-gold"
+      ? 3
+      : purchasedMentorship?.service_slug === "mentoring-silver" || purchasedMentorship?.service_slug === "mentoria-silver"
+        ? 2
+        : 1;
   const allScheduled = scheduledCount >= totalInterviews;
 
   const casvDate = freshStepData?.final_casv_date as string;
@@ -407,13 +514,11 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
                         <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto"><RiProgress3Line className="text-4xl" /></div>
                         <div>
                           <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{t.onboardingPage.specialistTraining.mentoringTitle}</h3>
-                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{scheduledCount} {t.onboardingPage.stepOf} {totalInterviews} {t.onboardingPage.specialistTraining.scheduledLabel}</p>
+                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Converse direto com o manager para iniciar sua mentoria</p>
                         </div>
-                        {!allScheduled ? (
-                          <button onClick={() => setIsScheduling(true)} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest">{t.onboardingPage.specialistTraining.scheduleNow} {scheduledCount + 1}ª {t.onboardingPage.specialistTraining.interviewLabel}</button>
-                        ) : (
-                          <div className="p-4 bg-emerald-50 text-emerald-800 text-[10px] font-black uppercase rounded-2xl">{t.onboardingPage.specialistTraining.allScheduled}</div>
-                        )}
+                        <button onClick={handleOpenSpecialistSupport} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest">
+                          Abrir chat com manager
+                        </button>
                       </div>
                     ) : (
                       <div className="space-y-6">

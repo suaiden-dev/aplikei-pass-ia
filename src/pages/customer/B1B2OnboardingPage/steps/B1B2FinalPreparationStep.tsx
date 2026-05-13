@@ -46,11 +46,10 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   const [isScheduling, setIsScheduling] = useState(false);
   const [calendlyUrl, setCalendlyUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [planPrices, setPlanPrices] = useState<Record<string, number>>({});
 
   // Consultation State
   const [purchasedConsultation, setPurchasedConsultation] = useState<Record<string, unknown> | null>(null);
-  const [isSchedulingConsultation, setIsSchedulingConsultation] = useState(false);
-  const [consultationUrl, setConsultationUrl] = useState<string>("");
 
   const {
     messages: chatMessages,
@@ -76,7 +75,16 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
         .from("user_services")
         .select("*")
         .eq("user_id", user.id)
-        .in("service_slug", ["mentoria-bronze", "mentoria-silver", "mentoria-gold", "consultoria-especialista"])
+        .in("service_slug", [
+          "mentoring-bronze",
+          "mentoring-silver",
+          "mentoring-gold",
+          "mentoria-individual",
+          "mentoria-bronze",
+          "mentoria-silver",
+          "mentoria-gold",
+          "consultoria-especialista",
+        ])
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(1)
@@ -87,7 +95,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
         .from("user_services")
         .select("*")
         .eq("user_id", user.id)
-        .eq("service_slug", "mentoria-negativa-consular")
+        .in("service_slug", ["consultancy-negative-b1b2", "mentoria-negativa-consular"])
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(1)
@@ -128,11 +136,75 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   }, [user, procId]);
 
   useEffect(() => {
+    async function loadPlanPrices() {
+      if (!user?.officeId) return;
+
+      const slugsToResolve = [
+        "mentoring-bronze",
+        "mentoring-silver",
+        "mentoring-gold",
+        "mentoria-individual",
+        "mentoria-bronze",
+        "mentoria-silver",
+        "mentoria-gold",
+        "consultancy-negative-b1b2",
+        "mentoria-negativa-consular",
+      ];
+
+      const { data: services } = await supabase
+        .from("services")
+        .select("id, slug")
+        .in("slug", slugsToResolve);
+
+      if (!services?.length) return;
+
+      const serviceIds = services.map((s) => s.id);
+      const { data: officePrices } = await supabase
+        .from("user_service_prices")
+        .select("service_id, price, is_active")
+        .eq("office_id", user.officeId)
+        .in("service_id", serviceIds)
+        .or("is_active.is.true,is_active.is.null");
+
+      if (!officePrices?.length) return;
+
+      const slugById = new Map(services.map((s) => [s.id, s.slug]));
+      const priceBySlug = new Map<string, number>();
+      officePrices.forEach((row) => {
+        const slug = slugById.get(row.service_id);
+        if (slug) priceBySlug.set(slug, Number(row.price));
+      });
+
+      setPlanPrices({
+        "mentoring-bronze":
+          priceBySlug.get("mentoring-bronze") ??
+          priceBySlug.get("mentoria-individual") ??
+          197,
+        "mentoring-silver":
+          priceBySlug.get("mentoring-silver") ??
+          priceBySlug.get("mentoria-bronze") ??
+          priceBySlug.get("mentoria-silver") ??
+          397,
+        "mentoring-gold":
+          priceBySlug.get("mentoring-gold") ??
+          priceBySlug.get("mentoria-gold") ??
+          697,
+        "mentoria-negativa-consular":
+          priceBySlug.get("consultancy-negative-b1b2") ??
+          priceBySlug.get("mentoria-negativa-consular") ?? 97,
+      });
+    }
+
+    loadPlanPrices();
+  }, [user?.officeId]);
+
+  useEffect(() => {
     async function fetchCalendlyLink() {
       if (!purchasedMentorship) return;
-      const planName = purchasedMentorship.service_slug === "mentoria-gold" ? "Ouro" :
-        purchasedMentorship.service_slug === "mentoria-silver" ? "Prata" :
-          purchasedMentorship.service_slug === "consultoria-especialista" ? "Especialista" : "Bronze";
+      const planName =
+        purchasedMentorship.service_slug === "mentoring-gold" || purchasedMentorship.service_slug === "mentoria-gold" ? "Ouro" :
+          purchasedMentorship.service_slug === "mentoring-silver" || purchasedMentorship.service_slug === "mentoria-silver" || purchasedMentorship.service_slug === "mentoria-bronze" ? "Prata" :
+            purchasedMentorship.service_slug === "consultoria-especialista" ? "Especialista" : "Bronze";
 
       const event = await calendlyService.findEventByName(
         purchasedMentorship.service_slug === "consultoria-especialista" ? "Consultoria Especialista" : `Mentoria ${planName}`
@@ -146,27 +218,8 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
     fetchCalendlyLink();
   }, [purchasedMentorship]);
 
-  useEffect(() => {
-    async function fetchConsultationLink() {
-      if (!purchasedConsultation) return;
-      const event = await calendlyService.findEventByName("Consultoria Especialista");
-      if (event) {
-        setConsultationUrl(event.scheduling_url);
-      } else {
-        setConsultationUrl("https://calendly.com/infothefutureimmigration/treinamento-entrevista");
-      }
-    }
-    fetchConsultationLink();
-  }, [purchasedConsultation]);
-
   useCalendlyEventListener({
     onEventScheduled: async () => {
-      if (isSchedulingConsultation && purchasedConsultation) {
-        setIsSchedulingConsultation(false);
-        toast.success(t.onboardingPage.specialistTraining.paymentProcessed); // Reuse success msg for scheduling
-        return;
-      }
-
       if (!purchasedMentorship || !isScheduling) return;
       const stepData = (purchasedMentorship.step_data as Record<string, unknown>) || {};
       const nextCount = ((stepData.scheduled_count as number) || 0) + 1;
@@ -195,15 +248,15 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   const isDenied = interviewOutcome === 'rejected' || interviewOutcome === 'denied';
 
   const basePlans = [
-    { id: "mentoria-individual", name: t.onboardingPage.specialistTraining.bronzePackage, price: 197, interviews: 1, features: [t.onboardingPage.specialistTraining.trainingSession, t.onboardingPage.specialistTraining.interviewSim] },
-    { id: "mentoria-bronze", name: t.onboardingPage.specialistTraining.silverPackage, price: 397, interviews: 2, features: [t.onboardingPage.specialistTraining.sessions2Training, t.onboardingPage.specialistTraining.deepProfileAnalysis, t.onboardingPage.specialistTraining.immediateFeedback] },
-    { id: "mentoria-gold", name: t.onboardingPage.specialistTraining.goldPackage, price: 697, interviews: 3, features: [t.onboardingPage.specialistTraining.sessions3Training, t.onboardingPage.specialistTraining.vipSupport, t.onboardingPage.specialistTraining.responseStrategy], best: !isDenied },
+    { id: "mentoring-bronze", name: t.onboardingPage.specialistTraining.bronzePackage, price: planPrices["mentoring-bronze"] ?? 197, interviews: 1, features: [t.onboardingPage.specialistTraining.trainingSession, t.onboardingPage.specialistTraining.interviewSim] },
+    { id: "mentoring-silver", name: t.onboardingPage.specialistTraining.silverPackage, price: planPrices["mentoring-silver"] ?? 397, interviews: 2, features: [t.onboardingPage.specialistTraining.sessions2Training, t.onboardingPage.specialistTraining.deepProfileAnalysis, t.onboardingPage.specialistTraining.immediateFeedback] },
+    { id: "mentoring-gold", name: t.onboardingPage.specialistTraining.goldPackage, price: planPrices["mentoring-gold"] ?? 697, interviews: 3, features: [t.onboardingPage.specialistTraining.sessions3Training, t.onboardingPage.specialistTraining.vipSupport, t.onboardingPage.specialistTraining.responseStrategy], best: !isDenied },
   ];
 
   const negativePlan = {
-    id: "mentoria-negativa-consular",
+    id: "consultancy-negative-b1b2",
     name: t.onboardingPage.specialistTraining.reviewTopic,
-    price: 97,
+    price: planPrices["mentoria-negativa-consular"] ?? 97,
     interviews: 1,
     features: [
       t.onboardingPage.specialistTraining.detailedRefusalAnalysis,
@@ -216,12 +269,84 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   const PLANS = isDenied ? [negativePlan, ...basePlans] : basePlans;
 
   const handleSelectPlan = (plan: typeof PLANS[0]) => {
-    navigate(`/checkout/${plan.id}`);
+    navigate(`/checkout/${plan.id}${user?.officeId ? `?office_id=${user.officeId}` : ""}`);
+  };
+
+  const handleOpenSpecialistSupport = async () => {
+    if (!user?.id || !purchasedMentorship?.id) {
+      navigate("/dashboard/support");
+      return;
+    }
+
+    try {
+      const processId = String(purchasedMentorship.id);
+      const { data: lastMessage } = await supabase
+        .from("chat_messages")
+        .select("id")
+        .eq("process_id", processId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!lastMessage) {
+        await supabase.from("chat_messages").insert({
+          process_id: processId,
+          content: "Olá, comprei o pacote Specialist Mentoring e quero iniciar meu atendimento com o manager.",
+          sender_id: user.id,
+          sender_role: "customer",
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      navigate(`/dashboard/support?processId=${processId}`);
+    } catch (err) {
+      console.error("[B1B2] open support chat failed:", err);
+      navigate("/dashboard/support");
+    }
+  };
+
+  const handleOpenConsultationSupport = async () => {
+    if (!user?.id || !purchasedConsultation?.id) {
+      navigate("/dashboard/support");
+      return;
+    }
+
+    try {
+      const processId = String(purchasedConsultation.id);
+      const { data: lastMessage } = await supabase
+        .from("chat_messages")
+        .select("id")
+        .eq("process_id", processId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!lastMessage) {
+        await supabase.from("chat_messages").insert({
+          process_id: processId,
+          content: "Olá, comprei a consultoria pós-negativa e quero iniciar meu atendimento com o manager.",
+          sender_id: user.id,
+          sender_role: "customer",
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      navigate(`/dashboard/support?processId=${processId}`);
+    } catch (err) {
+      console.error("[B1B2] open consultation support chat failed:", err);
+      navigate("/dashboard/support");
+    }
   };
 
   const scheduledCount = ((purchasedMentorship?.step_data as Record<string, unknown>)?.scheduled_count as number | undefined) || 0;
-  const totalInterviews = purchasedMentorship?.service_slug === "mentoria-gold" ? 3 : purchasedMentorship?.service_slug === "mentoria-bronze" ? 2 : 1;
-  const allScheduled = scheduledCount >= totalInterviews;
+  const totalInterviews =
+    purchasedMentorship?.service_slug === "mentoring-gold" || purchasedMentorship?.service_slug === "mentoria-gold"
+      ? 3
+      : purchasedMentorship?.service_slug === "mentoring-silver" ||
+        purchasedMentorship?.service_slug === "mentoria-silver" ||
+        purchasedMentorship?.service_slug === "mentoria-bronze"
+        ? 2
+        : 1;
 
   const casvDate = freshStepData?.final_casv_date as string;
   const consuladoDate = freshStepData?.final_consulado_date as string;
@@ -296,7 +421,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
           <>
             <RiCalendarCheckLine className="text-2xl text-emerald-500" />
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-800">
-              {allScheduled ? t.onboardingPage.specialistTraining.allScheduled : t.onboardingPage.specialistTraining.scheduleNow}
+              Chat com manager disponível
             </span>
             <div className="mt-1 flex gap-1">
               {[...Array(totalInterviews)].map((_, i) => (
@@ -436,7 +561,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
 
                     {purchasedConsultation ? (
                       <button
-                        onClick={() => setIsSchedulingConsultation(true)}
+                        onClick={handleOpenConsultationSupport}
                         className="p-6 bg-emerald-500/20 border border-emerald-500/30 rounded-3xl text-left hover:bg-emerald-500/30 transition-all group/opt relative overflow-hidden"
                       >
                         <div className="relative z-10 flex justify-between items-center">
@@ -450,7 +575,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                     ) : (
                       <button
                         onClick={() => {
-                          navigate(`/checkout/mentoria-negativa-consular${user?.officeId ? `?office_id=${user.officeId}` : ""}`);
+                          navigate(`/checkout/consultancy-negative-b1b2${user?.officeId ? `?office_id=${user.officeId}` : ""}`);
                         }}
                         className="p-6 bg-primary/5 border border-primary/20 rounded-3xl text-left hover:bg-primary/10 transition-all group/opt relative overflow-hidden"
                       >
@@ -504,30 +629,6 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       )}
 
       <AnimatePresence>
-        {isSchedulingConsultation && consultationUrl && (
-          <div className="fixed inset-0 bg-card z-[200] flex flex-col animate-in fade-in duration-300">
-            <div className="h-20 flex items-center justify-between px-8 border-b bg-card">
-              <div>
-                <h3 className="text-lg font-black text-text uppercase tracking-tight">{t.onboardingPage.specialistTraining.bronzePackage}</h3>
-                <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">{t.onboardingPage.processingStatus.outcomeRejected}</p>
-              </div>
-              <button
-                onClick={() => setIsSchedulingConsultation(false)}
-                className="w-12 h-12 rounded-full bg-bg-subtle flex items-center justify-center text-text-muted hover:text-rose-500 transition-all shadow-sm"
-              >
-                <RiCloseLine className="text-2xl" />
-              </button>
-            </div>
-            <div className="flex-1 w-full overflow-hidden bg-bg-subtle">
-              <InlineWidget
-                url={consultationUrl}
-                styles={{ height: '100%', width: '100%' }}
-                prefill={{ email: user?.email, name: user?.fullName }}
-              />
-            </div>
-          </div>
-        )}
-
         {activeModule && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -607,13 +708,11 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                             <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto"><RiHistoryLine className="text-4xl" /></div>
                             <div>
                               <h3 className="text-2xl font-black text-text uppercase tracking-tight">{t.onboardingPage.specialistTraining.mentoringTitle}</h3>
-                              <p className="text-xs text-text-muted font-bold uppercase tracking-widest">{scheduledCount} {t.onboardingPage.stepOf} {totalInterviews} {t.onboardingPage.specialistTraining.scheduledLabel}</p>
+                              <p className="text-xs text-text-muted font-bold uppercase tracking-widest">Converse direto com o manager para iniciar sua mentoria</p>
                             </div>
-                            {!allScheduled ? (
-                              <button onClick={() => setIsScheduling(true)} className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest">{t.onboardingPage.specialistTraining.scheduleNow} {scheduledCount + 1}ª {t.onboardingPage.specialistTraining.interviewLabel}</button>
-                            ) : (
-                              <div className="p-4 bg-emerald-50 text-emerald-800 text-[10px] font-black uppercase rounded-2xl">{t.onboardingPage.specialistTraining.allScheduled}</div>
-                            )}
+                            <button onClick={handleOpenSpecialistSupport} className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest">
+                              Abrir chat com manager
+                            </button>
                           </div>
                         ) : (
                           <div className="space-y-6">

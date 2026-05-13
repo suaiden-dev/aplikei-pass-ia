@@ -41,6 +41,7 @@ const heroIconNameBySlug: Record<string, string> = {
 
 interface ActiveProcessCardProps {
   proc: UserService;
+  displaySlug?: string;
   service: ServiceMeta | undefined;
   progress: number;
   isApproved: boolean;
@@ -67,6 +68,7 @@ interface ActiveProcessCardProps {
 
 export function ActiveProcessCard({
   proc,
+  displaySlug,
   progress,
   isApproved,
   isDenied,
@@ -74,13 +76,14 @@ export function ActiveProcessCard({
   labels,
   index,
 }: ActiveProcessCardProps) {
-  const cfg = slugConfig[proc.service_slug] ?? {
+  const slugForDisplay = displaySlug ?? proc.service_slug;
+  const cfg = slugConfig[slugForDisplay] ?? {
     bg: "bg-bg-subtle",
     icon: "text-text-muted",
-    label: proc.service_slug.toUpperCase(),
+    label: slugForDisplay.toUpperCase(),
     category: "",
   };
-  const iconName = heroIconNameBySlug[proc.service_slug] ?? "MdLanguage";
+  const iconName = heroIconNameBySlug[slugForDisplay] ?? "MdLanguage";
   const Icon = serviceIconMap[iconName] ?? RiFileTextLine;
 
   const stepData = (proc.step_data || {}) as Record<string, unknown>;
@@ -124,7 +127,7 @@ export function ActiveProcessCard({
         </div>
 
         <h3 className="font-display font-black text-text text-lg sm:text-xl leading-none tracking-tight mb-3">
-          {labels.products[proc.service_slug]?.label || cfg.label}
+          {labels.products[slugForDisplay]?.label || cfg.label}
         </h3>
 
         <div className="flex items-center gap-2 mb-8">

@@ -8,7 +8,7 @@ import {
   RiTimeLine,
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
-import { servicesData } from "../../../data/services";
+import { getCanonicalSlug, getServiceBySlug, servicesData } from "../../../data/services";
 import { calculateProcessProgress } from "../../../features/process/utils";
 import { cn } from "../../../utils/cn";
 import { useT } from "../../../i18n";
@@ -48,19 +48,20 @@ function calculatePhaseProgress(proc: UserService, totalSteps: number): number {
   return Math.min(maxProgress, Math.round((step / (totalSteps || 1)) * 100));
 }
 
-function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
+function ProcessRow({ proc, index, displaySlug }: { proc: UserService; index: number; displaySlug: string }) {
   const tVisas = useT("visas");
   const t = useT("dashboard");
-  const cfgBase = slugConfig[proc.service_slug] ?? {
+  const slugForDisplay = displaySlug || proc.service_slug;
+  const cfgBase = slugConfig[slugForDisplay] ?? {
     bg: "bg-slate-50", icon: "text-slate-400", accent: "bg-slate-400",
-    label: proc.service_slug.toUpperCase(), category: "",
+    label: slugForDisplay.toUpperCase(), category: "",
   };
   const cfg = {
     ...cfgBase,
-    label: tVisas.services?.[proc.service_slug]?.label || cfgBase.label,
-    category: tVisas.services?.[proc.service_slug]?.category || cfgBase.category,
+    label: tVisas.services?.[slugForDisplay]?.label || cfgBase.label,
+    category: tVisas.services?.[slugForDisplay]?.category || cfgBase.category,
   };
-  const iconName = heroIconNameBySlug[proc.service_slug] ?? "MdLanguage";
+  const iconName = heroIconNameBySlug[slugForDisplay] ?? "MdLanguage";
   const Icon = serviceIconMap[iconName] ?? MdLanguage;
 
   const service = servicesData.find(s => s.slug === proc.service_slug);
@@ -125,7 +126,7 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
         <div className="flex-1 min-w-0 text-left">
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <h3 className="font-display font-black text-text text-[15px] tracking-tight leading-none uppercase">
-              {t.dashboard.products[proc.service_slug]?.label || cfg.label}
+              {t.dashboard.products[slugForDisplay]?.label || cfg.label}
             </h3>
             <span className={cn(
               "text-[9px] font-black px-2 py-0.5 rounded-full border uppercase tracking-widest flex items-center gap-1",
@@ -136,7 +137,7 @@ function ProcessRow({ proc, index }: { proc: UserService; index: number }) {
             </span>
           </div>
           <p className="text-[11px] font-bold text-text-muted tracking-widest uppercase">
-            {t.dashboard.products[proc.service_slug]?.category || cfg.category}
+            {t.dashboard.products[slugForDisplay]?.category || cfg.category}
           </p>
         </div>
       </div>
@@ -180,6 +181,31 @@ export default function MyProcessesPage() {
   const { user } = useAuth();
 
   const { activeProcesses, historyProcesses, userServices, isLoading } = useMyProcesses(user?.id);
+
+  const displaySlugByProcessId = (() => {
+    const groups = new Map<string, UserService[]>();
+    for (const proc of userServices) {
+      const canonical = getCanonicalSlug(proc.service_slug);
+      if (!groups.has(canonical)) groups.set(canonical, []);
+      groups.get(canonical)!.push(proc);
+    }
+
+    const map = new Map<string, string>();
+    for (const [canonical, list] of groups) {
+      const sortedAsc = [...list].sort(
+        (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime(),
+      );
+      sortedAsc.forEach((proc, index) => {
+        if (index === 0 || proc.service_slug.includes("reaplicacao")) {
+          map.set(proc.id, proc.service_slug);
+          return;
+        }
+        const reappSlug = `${canonical}-reaplicacao`;
+        map.set(proc.id, getServiceBySlug(reappSlug) ? reappSlug : proc.service_slug);
+      });
+    }
+    return map;
+  })();
 
   return (
     <div className="p-6 md:p-12 max-w-[1200px] mx-auto">
@@ -235,7 +261,12 @@ export default function MyProcessesPage() {
               </div>
               <div className="space-y-3">
                 {activeProcesses.map((proc, i) => (
-                  <ProcessRow key={proc.id} proc={proc} index={i} />
+                  <ProcessRow
+                    key={proc.id}
+                    proc={proc}
+                    index={i}
+                    displaySlug={displaySlugByProcessId.get(proc.id) ?? proc.service_slug}
+                  />
                 ))}
               </div>
             </section>
@@ -256,7 +287,12 @@ export default function MyProcessesPage() {
               </div>
               <div className="space-y-3">
                 {historyProcesses.map((proc, i) => (
-                  <ProcessRow key={proc.id} proc={proc} index={activeProcesses.length + i} />
+                  <ProcessRow
+                    key={proc.id}
+                    proc={proc}
+                    index={activeProcesses.length + i}
+                    displaySlug={displaySlugByProcessId.get(proc.id) ?? proc.service_slug}
+                  />
                 ))}
               </div>
             </section>

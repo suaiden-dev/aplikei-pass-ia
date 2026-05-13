@@ -24,6 +24,7 @@ import { MdPix } from "react-icons/md";
 import { Input } from "../../components/atoms/input";
 import { Label } from "../../components/atoms/label";
 import { zodValidate } from "../../utils/zodValidate";
+import { getServiceSlugs } from "../../data/services";
 import { useAuth } from "../../hooks/useAuth";
 import { LogoLoader } from "../../components/atoms/logo-loader";
 import { type StripePaymentMethod } from "../../features/payment/lib/paymentOps";
@@ -224,14 +225,28 @@ export default function OfficeCheckoutPage() {
 
     useEffect(() => {
         async function load() {
-            if (!officeSlug || !serviceSlug) return;
+            if (!officeSlug || !serviceSlug) {
+                setIsLoading(false);
+                return;
+            }
             try {
                 // 1. Fetch Office
-                const { data: officeData, error: officeError } = await supabase
+                let { data: officeData, error: officeError } = await supabase
                     .from("offices")
                     .select("*")
                     .eq("slug", officeSlug)
-                    .single();
+                    .maybeSingle();
+
+                // Fallback: case-insensitive slug match
+                if (!officeData) {
+                    const fallback = await supabase
+                        .from("offices")
+                        .select("*")
+                        .ilike("slug", officeSlug)
+                        .maybeSingle();
+                    officeData = fallback.data;
+                    officeError = fallback.error;
+                }
 
                 if (officeError || !officeData) {
                     toast.error("Escritório não encontrado");
@@ -241,10 +256,11 @@ export default function OfficeCheckoutPage() {
                 setOffice(officeData);
 
                 // 2. Fetch Service from DB
+                const serviceSlugs = getServiceSlugs(serviceSlug);
                 const { data: serviceData, error: serviceError } = await supabase
                     .from("services")
                     .select("id, name, slug, description, category, dependent_service_id")
-                    .eq("slug", serviceSlug)
+                    .in("slug", serviceSlugs)
                     .maybeSingle();
 
                 if (serviceError) {
@@ -458,7 +474,7 @@ export default function OfficeCheckoutPage() {
                     }
                 }
 
-                const billingSlug = serviceSlug!;
+                const billingSlug = dbService?.slug || serviceSlug!;
                 const totalToCharge = finalSubtotalUSD;
                 const currentServiceId = dbService?.id;
 

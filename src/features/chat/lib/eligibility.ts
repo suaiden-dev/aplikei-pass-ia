@@ -74,6 +74,15 @@ function hasProposalPaid(stepData: Record<string, unknown>): boolean {
 }
 
 export function isCustomerChatEligible(proc: UserService): boolean {
+  const slug = (proc.service_slug || "").toLowerCase();
+  if (
+    slug.startsWith("mentoring-") ||
+    slug.startsWith("mentoria-") ||
+    slug === "consultoria-especialista" ||
+    slug === "consultancy-negative-b1b2"
+  ) {
+    return true;
+  }
   if (isAnalysisServiceSlug(proc.service_slug)) return true;
   if (isMotionOrCOSProcess(proc)) {
     return hasProposalPaid((proc.step_data || {}) as Record<string, unknown>);

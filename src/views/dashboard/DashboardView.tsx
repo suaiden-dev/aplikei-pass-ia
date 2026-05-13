@@ -58,6 +58,7 @@ export function DashboardView({
               <ActiveProcessCard
                 key={item.proc.id}
                 proc={item.proc}
+                displaySlug={item.displaySlug}
                 service={item.service}
                 progress={item.progress}
                 isApproved={item.isApproved}
