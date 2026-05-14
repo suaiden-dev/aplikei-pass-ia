@@ -75,10 +75,11 @@ export default function AdminProcessesPage() {
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Resolve office from user_accounts.office_id — works for admin_lawyers and managers.
-      // Masters with no office see all processes.
-      let officeId: string | null = null;
-      if (user?.id) {
+      // Prefer resolved office from auth context (covers office owners with null user_accounts.office_id).
+      let officeId: string | null = user?.officeId ?? null;
+
+      // Fallback for staff rows where auth context has no office_id yet.
+      if (!officeId && user?.id) {
         const { data: accountRow } = await supabase
           .from("user_accounts")
           .select("office_id")
@@ -87,12 +88,18 @@ export default function AdminProcessesPage() {
         officeId = accountRow?.office_id ?? null;
       }
 
+      // admin_lawyer must only see processes from their own office.
+      if (user?.role === "admin_lawyer" && !officeId) {
+        setProcesses([]);
+        return;
+      }
+
       const query = supabase
         .from("user_services")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (officeId) {
+      if (officeId && user?.role !== "master") {
         query.eq("office_id", officeId);
       }
 
@@ -154,8 +161,8 @@ export default function AdminProcessesPage() {
 
     if (searchTerm) {
       const s = searchTerm.toLowerCase();
-      result = result.filter(p => 
-        p.user_accounts?.full_name?.toLowerCase().includes(s) || 
+      result = result.filter(p =>
+        p.user_accounts?.full_name?.toLowerCase().includes(s) ||
         (p.user_accounts?.email && p.user_accounts.email.toLowerCase().includes(s))
       );
     }
@@ -180,7 +187,7 @@ export default function AdminProcessesPage() {
             {t.cases.subtitle}
           </p>
         </div>
-        <button 
+        <button
           onClick={load}
           className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl text-text-muted text-xs font-black uppercase tracking-widest hover:bg-bg-subtle transition-all shadow-sm"
         >
@@ -199,7 +206,7 @@ export default function AdminProcessesPage() {
       <div className="flex flex-col lg:flex-row items-center gap-4 mb-8">
         <div className="flex-1 relative group w-full">
           <RiSearchLine className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-lg group-focus-within:text-primary transition-colors" />
-          <input 
+          <input
             type="text"
             placeholder={t.cases.filters.searchPlaceholder}
             value={searchTerm}
@@ -211,7 +218,7 @@ export default function AdminProcessesPage() {
         <div className="flex items-center gap-3 w-full lg:w-auto">
           <div className="relative flex-1 lg:flex-none">
             <RiFilter3Line className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
-            <select 
+            <select
               value={selectedService}
               onChange={(e) => setSelectedService(e.target.value)}
               className="w-full h-14 pl-11 pr-10 bg-card border border-border rounded-2xl text-[10px] font-bold uppercase tracking-widest outline-none focus:border-primary/30 transition-all shadow-sm appearance-none lg:min-w-[200px]"
@@ -226,7 +233,7 @@ export default function AdminProcessesPage() {
             </select>
           </div>
 
-          <button 
+          <button
             onClick={() => setShowOnlyPending(!showOnlyPending)}
             className={`h-14 px-6 rounded-2xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-all shadow-sm border whitespace-nowrap ${showOnlyPending ? 'bg-warning/10 border-warning/20 text-warning shadow-warning/10' : 'bg-card border-border text-text-muted hover:bg-bg-subtle'}`}
           >
@@ -236,7 +243,7 @@ export default function AdminProcessesPage() {
         </div>
       </div>
 
-      <div className="bg-card rounded-[32px] border border-border shadow-xl shadow-black/5 overflow-hidden">
+      <div className="bg-card rounded-4xl border border-border shadow-xl shadow-black/5 overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-40">
             <RiLoader4Line className="text-4xl text-primary animate-spin" />
@@ -264,11 +271,11 @@ export default function AdminProcessesPage() {
                   const service = getServiceBySlug(p.service_slug);
                   const totalSteps = service?.steps.length || 12;
                   const currentStep = getCurrentStepIndex(p);
-                  
+
                   // Derived status/progress
                   const isCOS = p.service_slug === 'troca-status' || p.service_slug === 'extensao-status';
                   let progressPerc = 100;
-                  
+
                   if (p.status !== 'completed') {
                     if (!isCOS) {
                       progressPerc = Math.min(99, Math.round((currentStep / totalSteps) * 100));
@@ -282,16 +289,16 @@ export default function AdminProcessesPage() {
                   const uscisResult = (p.step_data as any)?.uscis_official_result as string;
                   const rfeResult = (p.step_data as any)?.rfe_final_result as string;
                   const motionResult = (p.step_data as any)?.motion_final_result as string;
-                  
+
                   // Approved if any of the phases were approved and no subsequent phase was denied
                   // Denied if the latest phase reached was denied and didn't move forward
                   const isApproved = motionResult === 'approved' || (rfeResult === 'approved' && !motionResult) || (uscisResult === 'approved' && !rfeResult && !motionResult);
                   const isDenied = p.status === 'rejected' || motionResult === 'denied' || motionResult === 'rejected' || (rfeResult === 'denied' && !motionResult) || (uscisResult === 'denied' && !rfeResult && !motionResult) || ((p.step_data as any)?.interview_outcome === 'rejected');
-                  
+
                   const isFinalized = p.status === 'completed' || p.status === 'rejected' || isApproved || (isDenied && (currentStep >= totalSteps || p.status === 'rejected'));
 
                   return (
-                    <motion.tr 
+                    <motion.tr
                       key={p.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -314,7 +321,7 @@ export default function AdminProcessesPage() {
                           </div>
                         </div>
                       </td>
-                      
+
                       <td className="px-8 py-6">
                         <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/10">
                           {vt.processDetail.services[p.service_slug]?.label || service?.title || p.service_name || p.service_slug}
@@ -322,47 +329,46 @@ export default function AdminProcessesPage() {
                       </td>
 
                       <td className="px-8 py-6">
-                         <div>
-                            <p className="text-xs font-black text-text uppercase tracking-tighter">{t.shared.cardPayment}</p>
-                            <p className="text-[10px] text-text-muted font-bold mt-0.5 tracking-tight italic">{service?.price || "---"}</p>
-                         </div>
+                        <div>
+                          <p className="text-xs font-black text-text uppercase tracking-tighter">{t.shared.cardPayment}</p>
+                          <p className="text-[10px] text-text-muted font-bold mt-0.5 tracking-tight italic">{service?.price || "---"}</p>
+                        </div>
                       </td>
 
                       <td className="px-8 py-6">
                         <div className="flex items-center justify-end gap-6 w-full">
                           <div className="text-right flex flex-col items-end min-w-[160px]">
                             <div className="flex items-center gap-2 mb-2">
-                               <StatusIndicator status={p.status || 'pending'} isApproved={isApproved} isDenied={isDenied} isFinalized={isFinalized} />
-                               <p className={`text-[10px] font-black uppercase tracking-tight ${isDenied ? 'text-danger' : isApproved ? 'text-success' : 'text-text'}`}>
-                                 {isApproved ? t.cases.statusLabel.uscisApproved : 
+                              <StatusIndicator status={p.status || 'pending'} isApproved={isApproved} isDenied={isDenied} isFinalized={isFinalized} />
+                              <p className={`text-[10px] font-black uppercase tracking-tight ${isDenied ? 'text-danger' : isApproved ? 'text-success' : 'text-text'}`}>
+                                {isApproved ? t.cases.statusLabel.uscisApproved :
                                   isDenied ? t.cases.statusLabel.uscisDenied :
-                                  isFinalized ? t.cases.statusLabel.completed :
-                                  (service?.steps[currentStep] ? (vt.processSteps[service.steps[currentStep].id]?.title || service.steps[currentStep].title) : (p.status === "awaiting_review" ? t.cases.statusLabel.awaitingReview : p.status))}
-                                 <span className="ml-2 text-text-muted">{currentStep}/{totalSteps}</span>
-                               </p>
+                                    isFinalized ? t.cases.statusLabel.completed :
+                                      (service?.steps[currentStep] ? (vt.processSteps[service.steps[currentStep].id]?.title || service.steps[currentStep].title) : (p.status === "awaiting_review" ? t.cases.statusLabel.awaitingReview : p.status))}
+                                <span className="ml-2 text-text-muted">{currentStep}/{totalSteps}</span>
+                              </p>
                             </div>
                             <div className="h-1.5 w-full max-w-[160px] bg-bg-subtle rounded-full overflow-hidden">
-                               <motion.div 
-                                 initial={{ width: 0 }}
-                                 animate={{ width: `${progressPerc}%` }}
-                                 className={`h-full rounded-full ${
-                                    isApproved ? "bg-success" :
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progressPerc}%` }}
+                                className={`h-full rounded-full ${isApproved ? "bg-success" :
                                     isDenied ? "bg-danger" :
-                                    isFinalized ? "bg-success" :
-                                    p.status === "awaiting_review" ? "bg-warning shadow-[0_0_8px_rgba(251,191,36,0.5)]" : 
-                                    "bg-primary"
-                                 }`}
-                               />
+                                      isFinalized ? "bg-success" :
+                                        p.status === "awaiting_review" ? "bg-warning shadow-[0_0_8px_rgba(251,191,36,0.5)]" :
+                                          "bg-primary"
+                                  }`}
+                              />
                             </div>
                           </div>
 
                           <div className="flex items-center gap-2">
-                             <button 
-                               onClick={() => navigate(`${processRoutePrefix}/processes/${p.id}`)}
-                               className="p-2.5 rounded-xl border border-border text-text-muted hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all"
-                             >
-                               <RiArrowRightSLine className="text-xl" />
-                             </button>
+                            <button
+                              onClick={() => navigate(`${processRoutePrefix}/processes/${p.id}`)}
+                              className="p-2.5 rounded-xl border border-border text-text-muted hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all"
+                            >
+                              <RiArrowRightSLine className="text-xl" />
+                            </button>
                           </div>
                         </div>
                       </td>
@@ -378,7 +384,7 @@ export default function AdminProcessesPage() {
   );
 }
 
- function StatCard({ label, value, icon, color, highlight }: { label: string, value: number, icon: React.ReactNode, color: string, highlight?: boolean }) {
+function StatCard({ label, value, icon, color, highlight }: { label: string, value: number, icon: React.ReactNode, color: string, highlight?: boolean }) {
   return (
     <div className={`p-6 rounded-[24px] bg-card border ${highlight ? 'border-warning/30' : 'border-border'} shadow-sm transition-all hover:shadow-md h-full flex flex-col justify-between`}>
       <div className="flex items-center justify-between mb-4">
@@ -390,7 +396,7 @@ export default function AdminProcessesPage() {
       <div>
         <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none">{label}</p>
         <div className="w-full h-1.5 bg-bg-subtle rounded-full mt-3 overflow-hidden shadow-inner">
-           <div className={`h-full rounded-full ${color.split(' ')[1]} opacity-30`} style={{ width: '60%' }} />
+          <div className={`h-full rounded-full ${color.split(' ')[1]} opacity-30`} style={{ width: '60%' }} />
         </div>
       </div>
     </div>
@@ -399,12 +405,11 @@ export default function AdminProcessesPage() {
 
 function StatusIndicator({ status, isApproved, isDenied, isFinalized }: { status: string, isApproved?: boolean, isDenied?: boolean, isFinalized?: boolean }) {
   const color = isApproved ? "bg-success" : isDenied ? "bg-danger" : isFinalized ? "bg-success" : status === 'awaiting_review' ? "bg-warning" : status === 'completed' ? "bg-success" : "bg-info";
-  
+
   return (
     <div className="flex items-center gap-1.5">
-       <span className={`w-2 h-2 rounded-full ${color} ${
-         status === 'awaiting_review' ? 'animate-pulse ring-4 ring-warning/20 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : ''
-       }`} />
+      <span className={`w-2 h-2 rounded-full ${color} ${status === 'awaiting_review' ? 'animate-pulse ring-4 ring-warning/20 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : ''
+        }`} />
     </div>
   );
 }

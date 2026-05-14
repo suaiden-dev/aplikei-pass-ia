@@ -9,11 +9,11 @@ import { cn } from "../../utils/cn";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../atoms/dialog";
 import { Input } from "../atoms/input";
 import { Button } from "../atoms/button";
+import Flag from "../atoms/flag";
+import { LANGUAGE_FLAG_CODE } from "../atoms/flags";
 import { authService } from "../../features/auth/lib/auth";
 import { storageService } from "../../shared/storage/profile-photos";
 import { toast } from "sonner";
-
-const FLAG: Record<Language, string> = { pt: "🇧🇷", en: "🇺🇸", es: "🇪🇸" };
 const AVATAR_SHIFT_FACTOR = 0.6;
 const avatarTransform = (x: number, y: number, zoom: number) =>
   `translate(${x * AVATAR_SHIFT_FACTOR}%, ${y * AVATAR_SHIFT_FACTOR}%) scale(${zoom})`;
@@ -85,11 +85,11 @@ interface DashboardNavbarProps {
   role?: "client" | "admin" | "master" | "seller";
 }
 
-export function DashboardNavbar({ 
-  onMenuClick, 
-  title, 
-  subtitle, 
-  role = "client" 
+export function DashboardNavbar({
+  onMenuClick,
+  title,
+  subtitle,
+  role = "client"
 }: DashboardNavbarProps) {
   const { user, logout, refreshAccount } = useAuth();
   const { lang, setLang } = useLocale();
@@ -260,7 +260,7 @@ export function DashboardNavbar({
                   lang === l ? "opacity-100" : "opacity-40 hover:opacity-70",
                 )}
               >
-                {FLAG[l]}
+                <Flag countryCode={LANGUAGE_FLAG_CODE[l]} size={20} />
               </button>
             </React.Fragment>
           ))}

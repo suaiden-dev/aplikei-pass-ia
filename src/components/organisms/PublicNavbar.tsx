@@ -6,11 +6,13 @@ import { cn } from "../../utils/cn";
 import { useLocale, useT, type Language } from "../../i18n";
 import { useTheme } from "../../contexts/useTheme";
 import { Button } from "../atoms/button";
+import Flag from "../atoms/flag";
+import { LANGUAGE_FLAG_CODE } from "../atoms/flags";
 
-const LANGS: { code: Language; src: string; label: string }[] = [
-  { code: "pt", src: "https://flagcdn.com/w20/br.png", label: "Português" },
-  { code: "en", src: "https://flagcdn.com/w20/us.png", label: "English" },
-  { code: "es", src: "https://flagcdn.com/w20/es.png", label: "Español" },
+const LANGS: { code: Language; label: string }[] = [
+  { code: "pt", label: "Português" },
+  { code: "en", label: "English" },
+  { code: "es", label: "Español" },
 ];
 
 function LangDropdown({ size = "sm" }: { size?: "sm" | "lg" }) {
@@ -41,7 +43,7 @@ function LangDropdown({ size = "sm" }: { size?: "sm" | "lg" }) {
         )}
         aria-label="Selecionar idioma"
       >
-        <img src={active.src} alt={active.label} className={cn(flagH, "w-auto rounded-[3px]")} />
+        <Flag countryCode={LANGUAGE_FLAG_CODE[active.code]} alt={active.label} className={cn(flagH, "w-auto rounded-[3px]")} />
         <RiArrowDownSLine
           size={14}
           className={cn("text-text-muted transition-transform duration-200", open && "rotate-180")}
@@ -68,7 +70,7 @@ function LangDropdown({ size = "sm" }: { size?: "sm" | "lg" }) {
                     : "text-text-muted hover:bg-bg-subtle hover:text-text",
                 )}
               >
-                <img src={l.src} alt={l.label} className={cn(flagHDrop, "w-auto rounded-[3px]")} />
+                <Flag countryCode={LANGUAGE_FLAG_CODE[l.code]} alt={l.label} className={cn(flagHDrop, "w-auto rounded-[3px]")} />
                 {l.label}
                 {lang === l.code && (
                   <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
