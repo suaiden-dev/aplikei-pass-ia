@@ -48,6 +48,7 @@ export interface UserUpdateInput {
   avatar_offset_y?: number;
   avatar_zoom?: number;
   passport_photo_url?: string | null;
+  has_completed_onboarding?: boolean;
 }
 
 interface UserAccountRow {
@@ -62,6 +63,7 @@ interface UserAccountRow {
   passport_photo_url: string | null;
   role: string;
   office_id: string | null;
+  has_completed_onboarding: boolean;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -81,6 +83,7 @@ function mapRow(row: UserAccountRow): UserAccount {
     passportPhotoUrl: row.passport_photo_url,
     role: normalizeRole(row.role),
     officeId: row.office_id,
+    hasCompletedOnboarding: row.has_completed_onboarding ?? false,
     isActive: row.is_active !== false,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -202,6 +205,7 @@ export function buildFallbackAccount(authUser: User): UserAccount {
     passportPhotoUrl: null,
     role: normalizeRole(authUser.user_metadata?.role),
     officeId: null,
+    hasCompletedOnboarding: false,
     isActive: true,
     createdAt: authUser.created_at,
     updatedAt: authUser.updated_at || authUser.created_at,

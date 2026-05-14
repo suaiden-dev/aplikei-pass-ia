@@ -1,32 +1,88 @@
-
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   RiArrowLeftLine,
   RiLoader4Line,
-  RiAlertLine,
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
 import { useT } from "../../../i18n";
-
-
+import { AdminFeedbackBanner } from '../../../components/organisms/AdminFeedbackBanner';
 import { F1StepContent } from "./components/F1StepContent";
-
 import { useF1Onboarding } from "../../../features/onboarding/f1/hooks/useF1Onboarding";
+import { type F1OnboardingLabels } from './types';
+import { type DS160FormValues } from '../../../schemas/ds160.schema';
+
+function buildLabels(t: any): F1OnboardingLabels {
+  return {
+    stepLabel: t.onboardingPage.stepLabel || "Step",
+    ds160Form: t.onboardingPage.ds160Form || "DS-160 Form",
+    saveDraft: t.onboardingPage.saveDraft,
+    finalizeAndSubmit: t.onboardingPage.finalizeAndSubmit,
+    awaitingReview: t.onboardingPage.awaitingReview,
+    errorNotFound: t.onboardingPage.errorNotFound,
+    errorLoad: t.onboardingPage.errorLoad,
+    successSubmit: t.onboardingPage.successSubmit,
+    successDraft: t.onboardingPage.successDraft,
+    errorSave: t.onboardingPage.errorSave,
+    errorDraft: t.onboardingPage.errorDraft,
+    adjustmentsRequested: t.onboardingPage.adjustmentsRequested,
+    of: t.onboardingPage.of,
+    f1Title: t.onboardingPage.f1?.title || "F1 Student",
+    f1ReapplicationTitle: t.onboardingPage.f1?.reapplicationTitle || "F1 Reapplication",
+    guidedFilling: t.onboardingPage.guidedFilling || "Guided Filling",
+    consularFee: t.onboardingPage.consularFee,
+    slipGeneratingByTeam: t.onboardingPage.slipGeneratingByTeam,
+    slipGenerationDesc: t.onboardingPage.slipGenerationDesc,
+    backToDashboard: t.onboardingPage.backToDashboard,
+    accountCreationNotice: t.onboardingPage.accountCreationNotice,
+    accountCreationNoticeHeader: t.onboardingPage.accountCreationNoticeHeader,
+    accountCreationDesc: t.onboardingPage.accountCreationDesc,
+    requiredFieldsTitle: t.onboardingPage.requiredFieldsTitle,
+    requiredFieldsDesc: t.onboardingPage.requiredFieldsDesc,
+    creatingCredentialsTitle: t.onboardingPage.feeProcessing?.creatingCredentialsTitle,
+    creatingCredentialsDesc: t.onboardingPage.feeProcessing?.creatingCredentialsDesc,
+    onboardingPage: t.onboardingPage
+  }
+}
 
 export default function F1OnboardingPage() {
   const t = useT('visas') as any
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const labels = buildLabels(t)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
     isLoading,
     procId,
+    procStatus,
+    currentStep,
     slug,
     stepIdx,
     adminFeedback,
     savedValues,
-    handleSubmit,
-    handleSaveDraft,
-    navigate,
+    handleSubmit: controllerSubmit,
+    handleSaveDraft: controllerSaveDraft,
   } = useF1Onboarding(user?.id);
+
+  const handleSubmit = async (values: Partial<DS160FormValues>) => {
+    setIsSubmitting(true)
+    await controllerSubmit(values)
+    setIsSubmitting(false)
+  }
+
+  const handleSaveDraft = async (values: Partial<DS160FormValues>) => {
+    await controllerSaveDraft(values)
+  }
+
+  const handleNavigateToProcess = () => {
+    navigate(`/dashboard/processes/${slug}${procId ? `?id=${procId}` : ""}`)
+  }
+
+  const formatStepLabel = (idx: number) => {
+    const total = 13
+    return `${idx + 1} ${labels.of} ${total}`
+  }
 
   if (isLoading) {
     return (
@@ -43,7 +99,7 @@ export default function F1OnboardingPage() {
           <div className='flex items-center gap-4'>
             <button
               type='button'
-              onClick={() => navigate(`/dashboard/processes/${slug}`)}
+              onClick={handleNavigateToProcess}
               className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-bg-subtle transition-colors text-text-muted hover:text-text"
             >
               <RiArrowLeftLine className='text-xl' />
@@ -51,13 +107,13 @@ export default function F1OnboardingPage() {
             <div>
               <h1 className="text-sm font-black text-text uppercase tracking-tight">
                 {stepIdx === 1
-                  ? t.onboardingPage.f1.supportDocsStep
-                  : t.onboardingPage.f1.ds160Step}
+                  ? labels.onboardingPage.f1.supportDocsStep
+                  : labels.ds160Form}
               </h1>
               <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">
-                {slug === 'visto-f1-reaplicacao'
-                  ? `${t.onboardingPage.f1.reapplicationTitle} — ${t.onboardingPage.guidedFilling}`
-                  : `${t.onboardingPage.f1.title} — ${t.onboardingPage.guidedFilling}`}
+                {slug === 'visto-f1-reaplicacao' || slug === 'visa-f1-reaplicacao'
+                  ? `${labels.f1ReapplicationTitle} — ${labels.guidedFilling}`
+                  : `${labels.f1Title} — ${labels.guidedFilling}`}
               </p>
             </div>
           </div>
@@ -65,8 +121,7 @@ export default function F1OnboardingPage() {
           <div className='hidden sm:flex items-center gap-2 bg-primary/5 border border-primary/20 px-4 py-2 rounded-full'>
             <span className='w-1.5 h-1.5 rounded-full bg-primary animate-pulse' />
             <span className='text-[11px] font-black text-primary tracking-widest uppercase'>
-              {t.onboardingPage.stepLabel} {stepIdx + 1}{' '}
-              {t.onboardingPage.of} 13
+              {labels.stepLabel} {formatStepLabel(stepIdx)}
             </span>
           </div>
         </div>
@@ -74,30 +129,24 @@ export default function F1OnboardingPage() {
 
       <div className='max-w-4xl mx-auto px-4 sm:px-6 mt-8'>
         {adminFeedback && (
-          <div className='mb-8 bg-amber-50 border border-amber-200 p-6 rounded-3xl flex gap-4 items-start shadow-sm'>
-            <div className='w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0'>
-              <RiAlertLine className='text-xl' />
-            </div>
-            <div>
-              <h4 className='text-[10px] font-black text-amber-900 uppercase tracking-widest mb-1'>
-                {t.onboardingPage.adjustmentsRequested}
-              </h4>
-              <p className='text-xs text-amber-800 font-bold leading-relaxed'>
-                {adminFeedback}
-              </p>
-            </div>
-          </div>
+          <AdminFeedbackBanner
+            feedback={adminFeedback}
+            label={labels.adjustmentsRequested}
+          />
         )}
 
         <F1StepContent
-          labels={t}
+          stepIdx={stepIdx}
           procId={procId}
           userId={user!.id}
           savedValues={savedValues}
+          labels={labels}
+          procStatus={procStatus}
+          currentStep={currentStep}
+          isSubmitting={isSubmitting}
           onSubmit={handleSubmit}
           onSaveDraft={handleSaveDraft}
-          onNavigateToProcess={() => navigate(`/dashboard/processes/${slug}`)}
-          stepIdx={stepIdx}
+          onNavigateToProcess={handleNavigateToProcess}
         />
       </div>
     </div>

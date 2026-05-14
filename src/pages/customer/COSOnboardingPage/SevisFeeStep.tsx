@@ -67,13 +67,13 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
 
   useEffect(() => {
     const data = proc.step_data || {};
-    const docs = (data.docs as Record<string, string>) || {};
+    const docs = ((data as any).docs as Record<string, string>) || {};
     if (docs.sevis_receipt) {
       setReceiptPath(docs.sevis_receipt);
       setAlreadyPaid(true);
     }
-    if (data.sevis_already_paid !== undefined) {
-      setAlreadyPaid(data.sevis_already_paid as boolean);
+    if ((data as any).sevis_already_paid !== undefined) {
+      setAlreadyPaid((data as any).sevis_already_paid as boolean);
     }
   }, [proc]);
 
@@ -94,7 +94,7 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
       setReceiptPath(filePath);
       
       // Update step data
-      const currentDocs = (proc.step_data?.docs as Record<string, string>) || {};
+      const currentDocs = ((proc.step_data as any)?.docs as Record<string, string>) || {};
       await processService.updateStepData(proc.id, {
         docs: { ...currentDocs, sevis_receipt: filePath },
         sevis_already_paid: true

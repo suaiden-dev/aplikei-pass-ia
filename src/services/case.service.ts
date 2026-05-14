@@ -238,8 +238,13 @@ async function fetchRealCaseOnboarding(caseId: string): Promise<CaseOnboardingRe
         return result;
       };
 
+      const logicalStepId =
+        serviceMeta?.steps?.[index]?.id ??
+        step.product_step?.id ??
+        step.id;
+
       return {
-        id: step.id,
+        id: logicalStepId,
         title: step.product_step?.title ?? `Etapa ${index + 1}`,
         owner: customerName,
         dueLabel: isCompleted ? "Concluído" : stepStatus === "in_progress" ? "Atual" : "Próxima etapa",
@@ -249,8 +254,10 @@ async function fetchRealCaseOnboarding(caseId: string): Promise<CaseOnboardingRe
         receivedData: step.data ? stringifyData(step.data) : {},
         // sentData = step metadata (status, order info for admin panels)
         sentData: {
+          current_step: index,
           step_order: String(step.product_step?.order ?? index + 1),
           step_type: step.product_step?.type ?? "unknown",
+          step_db_id: step.id,
         },
       };
     });

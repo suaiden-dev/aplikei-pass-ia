@@ -151,8 +151,8 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
   const [errors1450, setErrors1450] = useState<Partial<Record<keyof FinalFormsData["g1450"], string>>>({});
 
   useEffect(() => {
-    if (proc.step_data?.finalForms) {
-      setData(proc.step_data.finalForms as FinalFormsData);
+    if ((proc.step_data as any)?.finalForms) {
+      setData((proc.step_data as any).finalForms as FinalFormsData);
     } else if (user) {
       const names = (user.fullName ?? user.full_name ?? "").split(" ").filter(Boolean);
       const first = names[0] || "";

@@ -8,10 +8,15 @@ const baseUser: UserAccount = {
   email: "teste@example.com",
   phoneNumber: "+55 11 99999-9999",
   avatarUrl: null,
+  avatarOffsetX: 0,
+  avatarOffsetY: 0,
+  avatarZoom: 1,
   passportPhotoUrl: null,
   role: "customer",
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
+  officeId: null,
+  hasCompletedOnboarding: false,
 };
 
 describe("shouldPromptForIdentityPhoto", () => {

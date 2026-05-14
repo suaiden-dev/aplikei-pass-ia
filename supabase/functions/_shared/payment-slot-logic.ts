@@ -27,6 +27,18 @@ export function isAuxiliaryServiceSlug(serviceSlug: string): boolean {
     serviceSlug.includes("-support");
 }
 
+function shouldForceStandaloneService(serviceSlug: string): boolean {
+  const slug = (serviceSlug || "").toLowerCase();
+  return (
+    slug.startsWith("mentoring-") ||
+    slug.startsWith("mentoria-") ||
+    slug === "consultoria-especialista" ||
+    slug === "consultancy-negative-b1b2" ||
+    slug === "consultoria-f1-negativa" ||
+    slug === "mentoria-negativa-consular"
+  );
+}
+
 export function calculateIncrementedSlots(
   currentCount: number,
   dependentsMetadata: number,
@@ -99,6 +111,10 @@ async function resolveTargetProcessId(data: {
   parent_service_slug?: string | null;
 }) {
   const { supabase, user_id, service_slug } = data;
+  if (shouldForceStandaloneService(service_slug)) {
+    return { targetProcId: null, parentServiceSlug: null };
+  }
+
   let targetProcId = data.proc_id || null;
   let parentServiceSlug = data.parent_service_slug || null;
 

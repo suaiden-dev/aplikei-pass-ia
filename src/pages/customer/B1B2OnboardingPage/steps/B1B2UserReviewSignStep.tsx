@@ -27,6 +27,7 @@ interface B1B2UserReviewSignStepProps {
   stepData: Record<string, unknown>;
   procStatus?: string | null;
   currentStep?: number;
+  nextStepIdx?: number;
   onComplete: () => void;
   onBack: () => void;
 }
@@ -37,6 +38,7 @@ export function B1B2UserReviewSignStep({
   stepData,
   procStatus,
   currentStep = 0,
+  nextStepIdx = 4,
   onComplete,
   onBack,
 }: B1B2UserReviewSignStepProps) {
@@ -127,7 +129,7 @@ export function B1B2UserReviewSignStep({
         rejected_items: [],
         rejected_at: null,
       });
-      await processService.approveStep(procId, 4, false);
+      await processService.approveStep(procId, nextStepIdx, false);
       await processService.requestStepReview(procId);
 
       await notificationService.notifyAdmin({

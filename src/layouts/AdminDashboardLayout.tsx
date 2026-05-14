@@ -12,6 +12,7 @@ export function AdminDashboardLayout() {
   return (
     <RoleDashboardLayout
       allowedRoles={["master", "manager", "admin_lawyer"]}
+      headerEyebrow={t.layout.admin.headerEyebrow}
       consoleTitle={t.layout.shared.consoleTitle}
       consoleSubtitle={t.layout.admin.subtitle}
       roleLabel={t.layout.admin.roleLabel}

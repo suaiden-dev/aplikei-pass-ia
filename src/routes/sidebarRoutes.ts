@@ -22,11 +22,11 @@ export function buildSidebarNavItems(
   return appRoutes
     .filter((route) =>
       route.sidebarLayouts !== undefined
-        ? route.sidebarLayouts.includes(role)
+        ? route.sidebarLayouts.includes(role as any)
         : route.layout === layout,
     )
     .filter((route) => route.showInSidebar)
-    .filter((route) => route.accessLevels.includes(role))
+    .filter((route) => route.accessLevels.includes(role as any))
     .filter((route): route is typeof route & { icon: NonNullable<typeof route.icon> } => Boolean(route.icon))
     .map((route) => ({
       to: route.layout === "protected"

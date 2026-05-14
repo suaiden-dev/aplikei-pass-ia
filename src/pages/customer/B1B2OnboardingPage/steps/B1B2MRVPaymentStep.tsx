@@ -19,10 +19,11 @@ import { useT } from "../../../../i18n";
 interface B1B2MRVPaymentStepProps {
   procId: string;
   stepData: Record<string, unknown>;
+  nextStepIdx?: number;
   onComplete: () => void;
 }
 
-export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaymentStepProps) {
+export function B1B2MRVPaymentStep({ procId, stepData, nextStepIdx = 10, onComplete }: B1B2MRVPaymentStepProps) {
   const [method, setMethod] = useState<"credit_card" | "boleto" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const t = useT("visas");
@@ -40,7 +41,7 @@ export function B1B2MRVPaymentStep({ procId, stepData, onComplete }: B1B2MRVPaym
         mrv_payment_method: method,
         mrv_payment_confirmed_at: new Date().toISOString(),
       });
-      await processService.approveStep(procId, 10, false); 
+      await processService.approveStep(procId, nextStepIdx, false); 
       // Notifica admin para o agendamento final
       await processService.updateProcessStatus(procId, "awaiting_review");
       

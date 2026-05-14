@@ -9,11 +9,12 @@ import {
 } from "react-icons/ri";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNotifications } from "../hooks/useNotifications";
+import { useAuth } from "../../../hooks/useAuth";
 import { cn } from "../../../utils/cn";
 import type { AppNotification } from "../../../contexts/NotificationContext/context";
 
 interface NotificationBellProps {
-  role: "admin" | "client";
+  role: "admin" | "client" | "master" | "seller";
   theme?: "light" | "dark";
   align?: "left" | "right";
 }
@@ -27,9 +28,26 @@ export function NotificationBell({ role, align = "right" }: NotificationBellProp
     realtimeStatus,
   } = useNotifications();
   
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  const resolveLink = (link: string | null) => {
+    if (!link || !user?.role) return link;
+    
+    // For admin users, ensure the process link matches their dashboard prefix
+    if (user.role !== "customer" && link.includes("/processes/")) {
+      const parts = link.split("/processes/");
+      const id = parts[1]?.split("/")[0];
+      if (!id) return link;
+
+      const prefix = user.role === "master" ? "/master" : (user.role === "manager" ? "/manager" : "/admin");
+      return `${prefix}/processes/${id}`;
+    }
+    
+    return link;
+  };
 
   // Close on click outside
   useEffect(() => {
@@ -117,8 +135,9 @@ export function NotificationBell({ role, align = "right" }: NotificationBellProp
                           await markAsRead(n.id);
                         }
                         setIsOpen(false);
-                        if (n.link) {
-                          navigate(n.link);
+                        const targetLink = resolveLink(n.link);
+                        if (targetLink) {
+                          navigate(targetLink);
                         }
                       }} 
                     />

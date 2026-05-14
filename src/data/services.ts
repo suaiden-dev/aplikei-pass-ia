@@ -186,7 +186,6 @@ export const servicesData: ServiceMeta[] = [
       { id: "b1b2_admin_mrv_setup", title: "Geração de Taxa MRV", description: "Emissão do boleto da taxa consular.", type: "admin_action" },
       { id: "b1b2_user_mrv_payment", title: "Pagamento da Taxa", description: "Confirmação do pagamento da taxa consular.", type: "form" },
       { id: "b1b2_final_scheduling", title: "Agendamento Final", description: "Confirmação da data da entrevista.", type: "admin_action" },
-      { id: "b1b2_final_preparation", title: "Preparação de Elite", description: "Dicas e simulador para a entrevista.", type: "form" },
     ],
     faq: [],
   },
@@ -217,8 +216,7 @@ export const servicesData: ServiceMeta[] = [
       { id: "b1b2_user_confirm_email", title: "Confirmação de E-mail", description: "Validação da conta consular.", type: "form" },
       { id: "b1b2_admin_mrv_setup", title: "Geração de Taxa MRV", description: "Emissão do boleto da taxa consular.", type: "admin_action" },
       { id: "b1b2_user_mrv_payment", title: "Pagamento da Taxa", description: "Confirmação do pagamento da taxa consular.", type: "form" },
-      { id: "f1_final_scheduling", title: "Agendamento Final", description: "Confirmação da data da entrevista.", type: "admin_action" },
-      { id: "b1b2_final_preparation", title: "Preparação de Elite", description: "Treinamento focado em reverter a negativa.", type: "form" },
+      { id: "b1b2_final_scheduling", title: "Agendamento Final", description: "Confirmação da data da entrevista.", type: "admin_action" },
     ],
     faq: [],
   },
@@ -369,6 +367,10 @@ export function getCanonicalSlug(slug: string): string {
     "visa-f1-reaplicacao": "visto-f1-reaplicacao",
     "visa-eos": "extensao-status",
     "visa-cos": "troca-status",
+    "mentoring-bronze": "mentoria-individual",
+    "mentoring-silver": "mentoria-bronze",
+    "mentoring-gold": "mentoria-gold",
+    "consultancy-negative-b1b2": "mentoria-negativa-consular",
   };
   return slugMap[slug] || slug;
 }
@@ -387,6 +389,10 @@ export function getServiceSlugs(slug: string): string[] {
     "visto-f1-reaplicacao": ["visa-f1-reaplicacao"],
     "extensao-status": ["visa-eos"],
     "troca-status": ["visa-cos"],
+    "mentoria-individual": ["mentoring-bronze"],
+    "mentoria-bronze": ["mentoring-silver"],
+    "mentoria-gold": ["mentoring-gold"],
+    "mentoria-negativa-consular": ["consultancy-negative-b1b2"],
   };
   const aliases = inverseMap[canonical] || [];
   return [canonical, ...aliases];

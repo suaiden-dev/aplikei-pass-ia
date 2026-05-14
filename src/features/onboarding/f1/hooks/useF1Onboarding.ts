@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "../../../../shared/lib/supabase";
-import { updateStepData, approveStep } from "../../../process/lib/processOps";
+import { updateStepData, approveStep, requestStepReview } from "../../../process/lib/processOps";
 import { getServiceSlugs, isSameService } from "../../../../data/services";
 import { notifyAdmin } from "../../../notifications/lib/notify";
 import type { DS160FormValues } from "../../b1b2/schemas/ds160.schema";
@@ -48,35 +48,43 @@ export function useF1Onboarding(userId: string | undefined) {
 
   const [isLoading, setIsLoading] = useState(true);
   const [procId, setProcId] = useState<string | null>(null);
+  const [procStatus, setProcStatus] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<number>(0);
   const [adminFeedback, setAdminFeedback] = useState<string | null>(null);
   const [savedValues, setSavedValues] = useState<Partial<DS160FormValues>>(INITIAL_VALUES);
 
-  useEffect(() => {
+  const loadService = useCallback(async (idParam?: string) => {
     if (!userId) return;
+    setIsLoading(true);
+    try {
+      const data = await fetchProcess(userId, slug, idParam);
+      if (!data) {
+        toast.error("Serviço não encontrado");
+        navigate("/dashboard");
+        return;
+      }
+      setProcId(data.id);
+      setProcStatus(data.status);
+      setCurrentStep(data.current_step ?? 0);
 
+      if (data.step_data) {
+        if ((data.step_data as Record<string, unknown>).admin_feedback) {
+          setAdminFeedback((data.step_data as Record<string, unknown>).admin_feedback as string);
+        }
+        setSavedValues({ ...INITIAL_VALUES, ...(data.step_data as Partial<DS160FormValues>) });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao carregar serviço");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId, slug, navigate]);
+
+  useEffect(() => {
     const idParam = searchParams.get("id");
-
-    fetchProcess(userId, slug, idParam)
-      .then((data) => {
-        if (!data) {
-          toast.error("Serviço não encontrado");
-          navigate("/dashboard");
-          return;
-        }
-        setProcId(data.id);
-        if (data.step_data) {
-          if ((data.step_data as Record<string, unknown>).admin_feedback) {
-            setAdminFeedback((data.step_data as Record<string, unknown>).admin_feedback as string);
-          }
-          setSavedValues({ ...INITIAL_VALUES, ...(data.step_data as Partial<DS160FormValues>) });
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error("Erro ao carregar serviço");
-      })
-      .finally(() => setIsLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadService(idParam ?? undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const handleSubmit = async (values: Partial<DS160FormValues>) => {
@@ -87,6 +95,7 @@ export function useF1Onboarding(userId: string | undefined) {
       delete payload["rejected_items"];
 
       await updateStepData(procId, payload);
+      await requestStepReview(procId);
 
       const { data: freshProc } = await supabase
         .from("user_services")
@@ -99,15 +108,16 @@ export function useF1Onboarding(userId: string | undefined) {
       if (currentDBStep === 0) {
         await approveStep(procId, 1, false);
         await notifyAdmin({
-          title: "Início de Fluxo F1",
-          body: `O cliente concluiu o formulário inicial de Estudante (${slug}).`,
+          title: "DS-160 Preenchida (F1)",
+          body: `O cliente finalizou a DS-160 para ${slug}.`,
           serviceId: procId,
           userId,
           link: `/master/processes/${procId}`,
         });
-        toast.success("Documentos salvos com sucesso!");
-        const idParam = searchParams.get("id");
-        navigate(`/dashboard/processes/${slug}/onboarding?step=1${idParam ? `&id=${idParam}` : ""}`);
+        setProcStatus('awaiting_review');
+        setCurrentStep(1);
+        toast.success("DS-160 enviada com sucesso!");
+        navigate(`/dashboard/processes/${slug}`);
       } else {
         toast.success("Rascunho salvo!");
         navigate(`/dashboard/processes/${slug}`);
@@ -131,6 +141,8 @@ export function useF1Onboarding(userId: string | undefined) {
   return {
     isLoading,
     procId,
+    procStatus,
+    currentStep,
     slug,
     stepIdx,
     adminFeedback,

@@ -4,22 +4,36 @@ import { isCustomerChatEligible, getAnalysisChatTitle } from "../lib/eligibility
 import type { SpecialistChatThread } from "../types";
 import type { UserService } from "../../process/types";
 
-export function useAdminChats() {
+interface UseAdminChatsOptions {
+  role?: string | null;
+  officeId?: string | null;
+  disableLoad?: boolean;
+}
+
+export function useAdminChats(options: UseAdminChatsOptions = {}) {
+  const { role, officeId, disableLoad = false } = options;
   const [threads, setThreads] = useState<SpecialistChatThread[]>([]);
   const [unreadByProcess, setUnreadByProcess] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(true);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const load = useCallback(async () => {
+    if (disableLoad) {
+      setThreads([]);
+      setUnreadByProcess({});
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("user_services")
         .select(`
           id,
           user_id,
           service_slug,
           status,
+          office_id,
           step_data,
           created_at,
           user_accounts:user_id (
@@ -28,8 +42,19 @@ export function useAdminChats() {
             email,
             avatar_url
           )
-        `)
-        .order("created_at", { ascending: false });
+        `);
+
+      if (role === "manager") {
+        if (!officeId) {
+          setThreads([]);
+          setUnreadByProcess({});
+          setIsLoading(false);
+          return;
+        }
+        query = query.eq("office_id", officeId);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) throw new Error(error.message);
 
@@ -101,9 +126,16 @@ export function useAdminChats() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [disableLoad, officeId, role]);
 
   useEffect(() => {
+    if (disableLoad) {
+      setThreads([]);
+      setUnreadByProcess({});
+      setIsLoading(false);
+      return;
+    }
+
     void load();
 
     channelRef.current = supabase
@@ -121,7 +153,7 @@ export function useAdminChats() {
         channelRef.current = null;
       }
     };
-  }, [load]);
+  }, [disableLoad, load]);
 
   const closeChat = useCallback(async (processId: string) => {
     const { error } = await supabase

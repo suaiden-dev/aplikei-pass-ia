@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   RiChat3Line,
@@ -17,8 +18,10 @@ import { cn } from '../../../utils/cn'
 export default function AIChatPage() {
   const t = useT('dashboard')
   const { user } = useAuth()
+  const [searchParams] = useSearchParams()
+  const processIdFromQuery = searchParams.get('processId')
   const { threads, isLoading } = useCustomerChats(user?.id ?? '')
-  const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null)
+  const [selectedProcessId, setSelectedProcessId] = useState<string | null>(processIdFromQuery)
   const selected = useMemo(
     () =>
       threads.find((thread) => thread.processId === selectedProcessId) ??

@@ -299,7 +299,6 @@ function PaymentRow({
 
 export default function ZellePaymentsPage() {
     const { user } = useAuth();
-    console.log("teste:", user);
     const isMaster = user?.role === "master";
     const officeId = user?.officeId ?? null;
 
@@ -323,7 +322,6 @@ export default function ZellePaymentsPage() {
             "visto-b1-b2": tVisas.processDetail.services["visto-b1-b2"].label,
             "visto-b1-b2-reaplicacao": tVisas.processDetail.services["visto-b1-b2-reaplicacao"].label,
             "visto-f1": tVisas.processDetail.services["visto-f1"].label,
-            "visto-f1-reaplicacao": tVisas.processDetail.services["visto-f1-reaplicacao"].label,
             "visto-f1-reaplicacao": tVisas.processDetail.services["visto-f1-reaplicacao"].label,
             "extensao-status": tVisas.processDetail.services["extensao-status"].label,
             "troca-status": tVisas.processDetail.services["troca-status"].label,
@@ -389,143 +387,135 @@ export default function ZellePaymentsPage() {
                     discountAmount: r.discount_amount ?? 0,
                 });
             });
+        } else if (tab === "approved") {
+            // Zelle approved
+            let zelleApprovedQuery = supabase
+                .from("zelle_payments")
+                .select("*")
+                .eq("status", "approved")
+                .order("created_at", { ascending: false });
 
-            results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-            if (tab === "approved") {
-                // Zelle approved
-                let zelleApprovedQuery = supabase
-                    .from("zelle_payments")
-                    .select("*")
-                    .eq("status", "approved")
-                    .order("created_at", { ascending: false });
-
-                if (!isMaster && officeId) {
-                    zelleApprovedQuery = zelleApprovedQuery.eq("office_id", officeId);
-                }
-
-                const { data: zelleData } = await zelleApprovedQuery;
-
-                (zelleData ?? []).forEach((r: ZelleRecord) => {
-                    results.push({
-                        id: r.id,
-                        source: "zelle",
-                        zelleId: r.id,
-                        userId: r.user_id ?? null,
-                        clientName: r.guest_name ?? "",
-                        clientEmail: r.guest_email ?? "",
-                        serviceName: slugToName(r.service_slug),
-                        serviceSlug: r.service_slug,
-                        amount: r.amount,
-                        method: "zelle",
-                        createdAt: r.created_at,
-                        proofUrl: buildProofUrl(r.image_url || r.proof_path),
-                        confirmationCode: r.confirmation_code,
-                        expectedAmount: r.expected_amount ?? null,
-                        couponCode: r.coupon_code || null,
-                        discountAmount: r.discount_amount ?? 0,
-                    });
-                });
-
-                // Stripe/Parcelow approved (orders) — auto-approved payments
-                let ordersApprovedQuery = supabase
-                    .from("orders")
-                    .select("id, client_name, client_email, product_slug, total_price_usd, payment_method, created_at, payment_status")
-                    .in("payment_status", ["paid", "complete", "succeeded", "completed"])
-                    .order("created_at", { ascending: false });
-
-                if (!isMaster && officeId) {
-                    ordersApprovedQuery = ordersApprovedQuery.eq("office_id", officeId);
-                }
-
-                const { data: stripeData, error: stripeError } = await ordersApprovedQuery;
-
-                if (stripeError) console.error("[Payments] orders error:", stripeError);
-
-                (stripeData ?? []).forEach((r: StripeRecord) => {
-                    results.push({
-                        id: r.id,
-                        source: "stripe",
-                        clientName: r.client_name ?? "",
-                        clientEmail: r.client_email ?? "",
-                        serviceName: slugToName(r.product_slug ?? ""),
-                        serviceSlug: r.product_slug ?? "",
-                        amount: typeof r.total_price_usd === "string" ? parseFloat(r.total_price_usd) : (Number(r.total_price_usd) || 0),
-                        method: r.payment_method ?? "stripe_card",
-                        createdAt: r.created_at,
-                        paymentStatus: r.payment_status,
-                    });
-                });
-
-                // Sort combined by date
-                results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            if (!isMaster && officeId) {
+                zelleApprovedQuery = zelleApprovedQuery.eq("office_id", officeId);
             }
 
-            if (tab === "rejected") {
-                let zelleRejectedQuery = supabase
-                    .from("zelle_payments")
-                    .select("*")
-                    .eq("status", "rejected")
-                    .order("created_at", { ascending: false });
+            const { data: zelleData } = await zelleApprovedQuery;
 
-                let ordersRejectedQuery = supabase
-                    .from("orders")
-                    .select("id, client_name, client_email, product_slug, total_price_usd, payment_method, created_at, payment_status")
-                    .in("payment_status", ["rejected", "cancelled", "failed", "error"])
-                    .order("created_at", { ascending: false });
-
-                if (!isMaster && officeId) {
-                    zelleRejectedQuery = zelleRejectedQuery.eq("office_id", officeId);
-                    ordersRejectedQuery = ordersRejectedQuery.eq("office_id", officeId);
-                }
-
-                const [{ data: zelleData }, { data: stripeData }] = await Promise.all([
-                    zelleRejectedQuery,
-                    ordersRejectedQuery,
-                ]);
-
-                (zelleData ?? []).forEach((r: ZelleRecord) => {
-                    results.push({
-                        id: r.id,
-                        source: "zelle",
-                        zelleId: r.id,
-                        clientName: r.guest_name ?? "",
-                        clientEmail: r.guest_email ?? "",
-                        serviceName: slugToName(r.service_slug),
-                        serviceSlug: r.service_slug,
-                        amount: r.amount,
-                        method: "zelle",
-                        createdAt: r.created_at,
-                        paymentStatus: r.status,
-                        proofUrl: buildProofUrl(r.image_url || r.proof_path),
-                        confirmationCode: r.confirmation_code,
-                        adminNotes: r.admin_notes,
-                        expectedAmount: r.expected_amount ?? null,
-                        couponCode: r.coupon_code || null,
-                        discountAmount: r.discount_amount ?? 0,
-                    });
+            (zelleData ?? []).forEach((r: ZelleRecord) => {
+                results.push({
+                    id: r.id,
+                    source: "zelle",
+                    zelleId: r.id,
+                    userId: r.user_id ?? null,
+                    clientName: r.guest_name ?? "",
+                    clientEmail: r.guest_email ?? "",
+                    serviceName: slugToName(r.service_slug),
+                    serviceSlug: r.service_slug,
+                    amount: r.amount,
+                    method: "zelle",
+                    createdAt: r.created_at,
+                    proofUrl: buildProofUrl(r.image_url || r.proof_path),
+                    confirmationCode: r.confirmation_code,
+                    expectedAmount: r.expected_amount ?? null,
+                    couponCode: r.coupon_code || null,
+                    discountAmount: r.discount_amount ?? 0,
                 });
+            });
 
-                (stripeData ?? []).forEach((r: StripeRecord) => {
-                    results.push({
-                        id: r.id,
-                        source: "stripe",
-                        clientName: r.client_name ?? "",
-                        clientEmail: r.client_email ?? "",
-                        serviceName: slugToName(r.product_slug ?? ""),
-                        serviceSlug: r.product_slug ?? "",
-                        amount: typeof r.total_price_usd === "string" ? parseFloat(r.total_price_usd) : (Number(r.total_price_usd) || 0),
-                        method: r.payment_method ?? "stripe_card",
-                        createdAt: r.created_at,
-                        paymentStatus: r.payment_status,
-                    });
-                });
-                results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            // Stripe/Parcelow approved (orders) — auto-approved payments
+            let ordersApprovedQuery = supabase
+                .from("orders")
+                .select("id, client_name, client_email, product_slug, total_price_usd, payment_method, created_at, payment_status")
+                .in("payment_status", ["paid", "complete", "succeeded", "completed"])
+                .order("created_at", { ascending: false });
+
+            if (!isMaster && officeId) {
+                ordersApprovedQuery = ordersApprovedQuery.eq("office_id", officeId);
             }
 
-            setPayments(results);
-            setIsLoading(false);
-        }, [tab, slugToName, isMaster, officeId]);
+            const { data: stripeData, error: stripeError } = await ordersApprovedQuery;
+
+            if (stripeError) console.error("[Payments] orders error:", stripeError);
+
+            (stripeData ?? []).forEach((r: StripeRecord) => {
+                results.push({
+                    id: r.id,
+                    source: "stripe",
+                    clientName: r.client_name ?? "",
+                    clientEmail: r.client_email ?? "",
+                    serviceName: slugToName(r.product_slug ?? ""),
+                    serviceSlug: r.product_slug ?? "",
+                    amount: typeof r.total_price_usd === "string" ? parseFloat(r.total_price_usd) : (Number(r.total_price_usd) || 0),
+                    method: r.payment_method ?? "stripe_card",
+                    createdAt: r.created_at,
+                    paymentStatus: r.payment_status,
+                });
+            });
+        } else if (tab === "rejected") {
+            let zelleRejectedQuery = supabase
+                .from("zelle_payments")
+                .select("*")
+                .eq("status", "rejected")
+                .order("created_at", { ascending: false });
+
+            let ordersRejectedQuery = supabase
+                .from("orders")
+                .select("id, client_name, client_email, product_slug, total_price_usd, payment_method, created_at, payment_status")
+                .in("payment_status", ["rejected", "cancelled", "failed", "error"])
+                .order("created_at", { ascending: false });
+
+            if (!isMaster && officeId) {
+                zelleRejectedQuery = zelleRejectedQuery.eq("office_id", officeId);
+                ordersRejectedQuery = ordersRejectedQuery.eq("office_id", officeId);
+            }
+
+            const [{ data: zelleData }, { data: stripeData }] = await Promise.all([
+                zelleRejectedQuery,
+                ordersRejectedQuery,
+            ]);
+
+            (zelleData ?? []).forEach((r: ZelleRecord) => {
+                results.push({
+                    id: r.id,
+                    source: "zelle",
+                    zelleId: r.id,
+                    clientName: r.guest_name ?? "",
+                    clientEmail: r.guest_email ?? "",
+                    serviceName: slugToName(r.service_slug),
+                    serviceSlug: r.service_slug,
+                    amount: r.amount,
+                    method: "zelle",
+                    createdAt: r.created_at,
+                    paymentStatus: r.status,
+                    proofUrl: buildProofUrl(r.image_url || r.proof_path),
+                    confirmationCode: r.confirmation_code,
+                    adminNotes: r.admin_notes,
+                    expectedAmount: r.expected_amount ?? null,
+                    couponCode: r.coupon_code || null,
+                    discountAmount: r.discount_amount ?? 0,
+                });
+            });
+
+            (stripeData ?? []).forEach((r: StripeRecord) => {
+                results.push({
+                    id: r.id,
+                    source: "stripe",
+                    clientName: r.client_name ?? "",
+                    clientEmail: r.client_email ?? "",
+                    serviceName: slugToName(r.product_slug ?? ""),
+                    serviceSlug: r.product_slug ?? "",
+                    amount: typeof r.total_price_usd === "string" ? parseFloat(r.total_price_usd) : (Number(r.total_price_usd) || 0),
+                    method: r.payment_method ?? "stripe_card",
+                    createdAt: r.created_at,
+                    paymentStatus: r.payment_status,
+                });
+            });
+        }
+
+        results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setPayments(results);
+        setIsLoading(false);
+    }, [tab, slugToName, isMaster, officeId]);
 
     useEffect(() => { load(); }, [load]);
 

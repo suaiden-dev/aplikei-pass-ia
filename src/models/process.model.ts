@@ -13,16 +13,9 @@ export interface StepData {
   [key: string]: unknown;
 }
 
-export interface UserService {
-  id: string;
-  user_id: string;
-  service_slug: string;
-  status: string;
-  current_step: number | null;
-  step_data: StepData;
-  created_at: string;
-  updated_at: string;
-}
+import type { UserService as FeatureUserService } from '../features/process/types';
+
+export type UserService = FeatureUserService;
 
 export interface ServiceMeta {
   title?: string;

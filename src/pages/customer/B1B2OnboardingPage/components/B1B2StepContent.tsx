@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { RiCheckLine, RiLoader4Line, RiArrowLeftLine, RiArrowRightLine, RiCheckboxCircleFill } from 'react-icons/ri'
-import { DS160SingleFormStep } from '../steps/DS160SingleFormStep'
+import { RiLoader4Line, RiArrowLeftLine, RiArrowRightLine, RiCheckboxCircleFill } from 'react-icons/ri'
 import { B1B2UserReviewSignStep } from '../steps/B1B2UserReviewSignStep'
 import { B1B2CASVSchedulingStep } from '../steps/B1B2CASVSchedulingStep'
 import { B1B2UserConfirmEmailStep } from '../steps/B1B2UserConfirmEmailStep'
 import { B1B2MRVPaymentStep } from '../steps/B1B2MRVPaymentStep'
 import { B1B2FinalPreparationStep } from '../steps/B1B2FinalPreparationStep'
+import { DS160SingleFormStep } from '../steps/DS160SingleFormStep'
 import { DS160FormShell } from '../../shared/DS160FormShell'
 import { DS160_SECTION_FIELDS } from '../../shared/ds160Sections'
 import { OnboardingNoticeStep } from '../../shared/OnboardingNoticeStep'
@@ -67,10 +67,10 @@ export function B1B2StepContent({
         icon={<RiLoader4Line className='text-3xl animate-spin text-amber-500' />}
         iconContainerClassName='bg-amber-50'
         title={labels.consularFee}
-        emphasis={labels.slipGeneratingByTeam}
+        emphasis="amber"
         description={labels.slipGenerationDesc}
+        buttonLabel={labels.backToDashboard}
         onBack={onNavigateToProcess}
-        buttonClassName='px-8 py-3 rounded-xl border border-border text-text font-bold text-[10px] uppercase tracking-widest hover:bg-bg-subtle transition-all font-mono'
       />
     )
   }
@@ -130,6 +130,7 @@ export function B1B2StepContent({
         icon={<RiLoader4Line className='text-3xl animate-spin text-purple-500' />}
         iconContainerClassName='bg-purple-50'
         title={labels.creatingCredentialsTitle || 'Criando suas credenciais...'}
+        emphasis="primary"
         description={labels.creatingCredentialsDesc || 'Nossa equipe está configurando seu acesso no sistema consular. Isso costuma ser rápido.'}
         buttonLabel={labels.backToDashboard}
         onBack={onNavigateToProcess}

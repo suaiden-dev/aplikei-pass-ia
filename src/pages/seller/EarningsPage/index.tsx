@@ -87,12 +87,9 @@ export default function EarningsPage() {
           .eq("office_id", officeId)
           .eq("is_active", true);
 
-        const mapped: Service[] = ((priceRows ?? []) as Array<{
-          price: number;
-          services: { id: string; name: string; slug: string; category: string } | null;
-        }>)
-          .filter((r) => r.services?.category === "main_visa")
-          .map((r) => ({
+        const mapped: Service[] = ((priceRows ?? []) as any)
+          .filter((r: any) => r.services?.category === "main_visa")
+          .map((r: any) => ({
             id: r.services!.id,
             name: r.services!.name,
             slug: r.services!.slug,

@@ -9,6 +9,7 @@ import {
   RiCheckLine,
 } from "react-icons/ri";
 import type { ServiceMeta } from '../../data/services';
+import { getServiceSlugs } from "../../data/services";
 import { cn } from '../../utils/cn';
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -37,6 +38,7 @@ interface ServiceCardProps {
   isOwned: boolean;
   isActive?: boolean;
   hasActiveProcess?: boolean;
+  officeId?: string | null;
   labels: {
     badges: {
       active: string;
@@ -60,6 +62,7 @@ export function ServiceCard({
   isOwned,
   isActive,
   hasActiveProcess,
+  officeId,
   labels,
   index,
 }: ServiceCardProps) {
@@ -75,6 +78,15 @@ export function ServiceCard({
   const features = service.included.slice(0, 3).map((item) =>
     item.split(":")[0].replace(/Guia |Checklist |Pacote /, "").trim()
   );
+
+  const checkoutSlug = (() => {
+    const slugs = getServiceSlugs(service.slug);
+    const dbSlug = slugs.find((s) => s.startsWith("visa-"));
+    return dbSlug ?? service.slug;
+  })();
+  const checkoutUrl = officeId
+    ? `/checkout/${checkoutSlug}?office_id=${encodeURIComponent(officeId)}`
+    : `/checkout/${checkoutSlug}`;
 
   return (
     <motion.div
@@ -159,7 +171,7 @@ export function ServiceCard({
         ) : (
           <div className="group/btn relative w-full">
             <Link
-              to={hasActiveProcess ? "#" : `/checkout/${service.slug}`}
+              to={hasActiveProcess ? "#" : checkoutUrl}
               className={cn(
                 "flex items-center justify-center gap-3 w-full py-5 rounded-2xl text-[14px] font-black uppercase tracking-[0.1em] transition-all shadow-lg",
                 hasActiveProcess

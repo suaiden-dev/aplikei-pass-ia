@@ -359,7 +359,7 @@ export default function SubscriptionPage() {
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-3 py-1 rounded-full bg-danger/10 text-danger text-[10px] font-black uppercase tracking-widest border border-danger/20 mt-1">
-                          {status === 'none' ? t.subscription.status.none : t.subscription.status.inactive}
+                          {!isActive && !planName ? t.subscription.status.none : t.subscription.status.inactive}
                         </span>
                       )}
                     </div>

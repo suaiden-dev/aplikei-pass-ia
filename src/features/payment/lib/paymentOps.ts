@@ -2,6 +2,7 @@ import { supabase } from "../../../shared/lib/supabase";
 import { notifyAdmin } from "../../notifications/lib/notify";
 import { ZELLE_RECIPIENT } from "../../../config/zelle";
 import { toast } from "sonner";
+import { getCanonicalSlug, getServiceBySlug, getServiceSlugs } from "../../../data/services";
 
 export type StripePaymentMethod = "card" | "pix";
 
@@ -48,6 +49,38 @@ export interface CheckoutResult {
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const N8N_BOT_CHECKPROOF = import.meta.env.VITE_N8N_BOT_CHECKPROOF as string;
 const ZELLE_BUCKET = "zelle_comprovantes";
+
+function getReapplicationSlug(slug: string): string | null {
+  const canonical = getCanonicalSlug(slug);
+  const candidate = `${canonical}-reaplicacao`;
+  return getServiceBySlug(candidate)?.slug ?? null;
+}
+
+async function resolveCheckoutSlugForUser(userId: string | undefined, slug: string): Promise<string> {
+  const canonical = getCanonicalSlug(slug);
+  const requestedIsReapplication = canonical.includes("reaplicacao");
+
+  if (!userId || requestedIsReapplication) {
+    return canonical;
+  }
+
+  const serviceAliases = getServiceSlugs(canonical);
+  const reapplicationSlug = getReapplicationSlug(canonical);
+
+  if (!reapplicationSlug) {
+    return canonical;
+  }
+
+  const { data: previousProcess } = await supabase
+    .from("user_services")
+    .select("id")
+    .eq("user_id", userId)
+    .in("service_slug", serviceAliases)
+    .limit(1)
+    .maybeSingle();
+
+  return previousProcess ? reapplicationSlug : canonical;
+}
 
 async function preRegisterOrder(params: {
   userId?: string;
@@ -146,12 +179,14 @@ async function preRegisterOrder(params: {
 export async function createStripeCheckout(
   params: StripeCheckoutParams,
 ): Promise<CheckoutResult> {
+  const resolvedSlug = await resolveCheckoutSlugForUser(params.userId, params.slug);
+
   const orderId = await preRegisterOrder({
     userId: params.userId,
     fullName: params.fullName,
     email: params.email,
     amount: params.amount || 0,
-    slug: params.slug,
+    slug: resolvedSlug,
     paymentMethod: params.paymentMethod === "card" ? "stripe_card" : "stripe_pix",
     dependents: params.dependents,
     procId: params.proc_id,
@@ -165,7 +200,7 @@ export async function createStripeCheckout(
     body: {
       order_id: orderId,
       userId: params.userId,
-      slug: params.slug,
+      slug: resolvedSlug,
       email: params.email,
       fullName: params.fullName,
       amount: params.amount,
@@ -195,12 +230,14 @@ export async function createStripeCheckout(
 export async function createParcelowCheckout(
   params: ParcelowCheckoutParams,
 ): Promise<CheckoutResult> {
+  const resolvedSlug = await resolveCheckoutSlugForUser(params.userId, params.slug);
+
   const orderId = await preRegisterOrder({
     userId: params.userId,
     fullName: params.fullName,
     email: params.email,
     amount: params.amount ?? 0,
-    slug: params.slug,
+    slug: resolvedSlug,
     paymentMethod: "parcelow",
     dependents: params.dependents,
     procId: params.proc_id,
@@ -215,7 +252,7 @@ export async function createParcelowCheckout(
     body: {
       order_id: orderId,
       userId: params.userId,
-      slug: params.slug,
+      slug: resolvedSlug,
       email: params.email,
       fullName: params.fullName,
       amount: params.amount,
@@ -268,12 +305,14 @@ export async function createZellePayment(params: {
   serviceId?: string;
   seller_id?: string;
 }): Promise<{ paymentId: string; autoApproved: boolean }> {
+  const resolvedSlug = await resolveCheckoutSlugForUser(params.userId ?? undefined, params.slug);
+
   const orderId = await preRegisterOrder({
     userId: params.userId || undefined,
     fullName: params.guestName,
     email: params.guestEmail,
     amount: params.expectedAmount,
-    slug: params.slug,
+    slug: resolvedSlug,
     paymentMethod: "zelle",
     dependents: params.dependents,
     procId: params.proc_id,
@@ -289,7 +328,7 @@ export async function createZellePayment(params: {
       amount: params.amount,
       payment_date: params.paymentDate,
       proof_path: params.proofPath,
-      service_slug: params.slug,
+      service_slug: resolvedSlug,
       visa_order_id: orderId,
       guest_email: params.guestEmail,
       guest_name: params.guestName,
@@ -323,7 +362,7 @@ export async function createZellePayment(params: {
     amount: params.amount,
     proof_path: params.proofPath,
     image_url: imageUrl,
-    service_slug: params.slug,
+    service_slug: resolvedSlug,
     timestamp: new Date().toISOString(),
   };
 

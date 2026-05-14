@@ -19,7 +19,7 @@ import {
   RiFlashlightFill,
 } from "react-icons/ri";
 import { MdPix } from "react-icons/md";
-import { Input } from "../../../components/Input";
+import { Input } from "../../../components/atoms/input";
 import { LogoLoader } from "../../../components/atoms/logo-loader";
 import {
   validateCoupon,
@@ -27,7 +27,7 @@ import {
   type CouponValidation
 } from "../../../services/coupon.service";
 import { getSupabaseClient } from "../../../lib/supabase/client";
-import { Label } from "../../../components/Label";
+import { Label } from "../../../components/atoms/label";
 import { Button } from "../../../components/atoms/button";
 import { zodValidate } from "../../../utils/zodValidate";
 import { getServiceBySlug, getServiceSlugs } from "../../../data/services";
@@ -38,7 +38,7 @@ import {
   estimatePixTotal,
   type StripePaymentMethod,
 } from "../../../services/payment.service";
-import PhoneInput from "../../../components/PhoneInput";
+import PhoneInput from "../../../components/molecules/PhoneInput";
 import { ZELLE_RECIPIENT } from "../../../config/zelle";
 import { maskCPF, validateCPF } from "../../../utils/cpf";
 import { useT } from "../../../i18n";
@@ -229,6 +229,13 @@ export default function CheckoutPage() {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const formatTimeParts = (seconds: number) => {
+    const hh = Math.floor(seconds / 3600).toString().padStart(2, "0");
+    const mm = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
+    const ss = (seconds % 60).toString().padStart(2, "0");
+    return { hh, mm, ss };
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -635,7 +642,7 @@ export default function CheckoutPage() {
                   <Input
                     placeholder={p?.coupon?.placeholder}
                     value={couponInput}
-                    onChange={(e) => setCouponInput(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCouponInput(e.target.value)}
                     disabled={!!appliedCoupon || isValidatingCoupon}
                     className={`h-12 uppercase font-black tracking-widest rounded-xl ${appliedCoupon ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : ''}`}
                   />
@@ -681,7 +688,6 @@ export default function CheckoutPage() {
                       <Label htmlFor="fullName" className="text-xs font-black uppercase tracking-widest mb-2 block">{p?.userData?.fullName}</Label>
                       <Input
                         id="fullName"
-                        name="fullName"
                         className="h-14 rounded-2xl text-base font-medium"
                         placeholder="João da Silva"
                         {...formik.getFieldProps("fullName")}
@@ -695,7 +701,6 @@ export default function CheckoutPage() {
                       <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest mb-2 block">{p?.userData?.email}</Label>
                       <Input
                         id="email"
-                        name="email"
                         type="email"
                         className="h-14 rounded-2xl text-base font-medium"
                         placeholder="seu@email.com"
@@ -711,7 +716,7 @@ export default function CheckoutPage() {
                       <div className="h-14">
                         <PhoneInput
                           value={formik.values.phone}
-                          onChange={(v) => {
+                          onChange={(v: string) => {
                             formik.setFieldValue("phone", v);
                             formik.setFieldTouched("phone", true);
                           }}
@@ -727,7 +732,6 @@ export default function CheckoutPage() {
                         <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest mb-2 block">{p?.userData?.password}</Label>
                         <Input
                           id="password"
-                          name="password"
                           type="password"
                           className="h-14 rounded-2xl text-base font-medium"
                           placeholder={p?.userData?.passwordDesc}
@@ -813,7 +817,7 @@ export default function CheckoutPage() {
                               placeholder={p?.paymentMethods?.parcelow?.cpfPlaceholder}
                               className="h-14 rounded-xl font-mono text-lg"
                               value={formik.values.parcelowCpf}
-                              onChange={(e) => formik.setFieldValue("parcelowCpf", maskCPF(e.target.value))}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => formik.setFieldValue("parcelowCpf", maskCPF(e.target.value))}
                             />
                             {formik.touched.parcelowCpf && formik.errors.parcelowCpf && (
                               <p className="text-xs font-bold text-red-500 mt-2">{formik.errors.parcelowCpf}</p>

@@ -25,6 +25,7 @@ import {
   RiUser3Line,
   RiTimeLine,
   RiPulseLine,
+  RiBookOpenLine,
 } from "react-icons/ri";
 import { getServiceBySlug } from "../../../data/services";
 import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "../../../data/workflowTemplates";
@@ -401,7 +402,7 @@ function MRVSetupPanel({ proc, onApprove, onRefresh, isActive }: { proc: Process
   const t = useT("admin");
 
   useEffect(() => {
-    const d = proc.step_data || {};
+    const d = (proc.step_data as Record<string, unknown> | null) ?? {};
     setLogin((d.mrv_login as string) || "");
     setPassword((d.mrv_password as string) || "");
     setBoletoPath((d.mrv_boleto_path as string) || "");
@@ -538,13 +539,14 @@ function FinalSchedulingPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
   const [consuladoLocation, setConsuladoLocation] = useState("");
   const [loading, setLoading] = useState(false);
   const t = useT("admin");
+  const vt = useT("visas");
 
   const currentStepIdx = proc.current_step ?? 0;
   const isPast = currentStepIdx > 10;
   const canEdit = isActive || isPast;
 
   useEffect(() => {
-    const d = proc.step_data || {};
+    const d = (proc.step_data as Record<string, unknown> | null) ?? {};
     setSameLocation(d.final_same_location === undefined ? true : !!d.final_same_location);
     setCasvDate((d.final_casv_date as string) || "");
     setCasvTime((d.final_casv_time as string) || "");
@@ -592,7 +594,7 @@ function FinalSchedulingPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
     }
   };
 
-  const upsellPlan = proc.step_data?.upsell_plan as string;
+  const upsellPlan = (proc.step_data as any)?.upsell_plan as string;
 
   return (
     <div className="space-y-8">
@@ -694,15 +696,28 @@ function FinalSchedulingPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
         )}
       </div>
 
-      {canEdit && (
-        <button
-          onClick={handleSave}
-          disabled={loading}
-          className="w-full h-14 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
-        >
-          {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {isPast ? t.processDetail.scheduling.updateScheduling : t.processDetail.scheduling.informClient}</>}
-        </button>
-      )}
+      <div className="pt-4 flex flex-col gap-4">
+        {/* Botão de Preparação (Visível para B1B2 e F1) */}
+        {(proc.service_slug.includes("b1b2") || proc.service_slug.includes("b1-b2") || proc.service_slug.includes("f1")) && (
+          <button
+            onClick={() => window.open('/guides/b1b2-interview-guide.pdf', '_blank')}
+            className="w-full h-12 border-2 border-primary/20 text-primary rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-primary/5 transition-all"
+          >
+            <RiBookOpenLine className="text-xl" />
+            {vt.prepareForInterview}
+          </button>
+        )}
+
+        {canEdit && (
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="w-full h-14 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {loading ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {isPast ? t.processDetail.scheduling.updateScheduling : t.processDetail.scheduling.informClient}</>}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -1149,7 +1164,7 @@ function B1B2CredentialsPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
   const t = useT("admin");
 
   useEffect(() => {
-    const d = proc.step_data || {};
+    const d = (proc.step_data as Record<string, unknown> | null) ?? {};
     setAppId((d.ds160_application_id as string) || "");
     setMotherName((d.ds160_security_answer as string) || (d.motherName as string) || "");
     setBirthDate((d.ds160_birth_date as string) || (d.birthDate as string) || "");
@@ -1212,7 +1227,10 @@ export default function AdminProcessDetailPage() {
   const t = useT("admin");
   const vt = useT("visas");
   const { user } = useAuth();
-  const processRoutePrefix = user?.role === "master" ? "/master" : "/admin";
+  const processRoutePrefix =
+    user?.role === "master" ? "/master" :
+      user?.role === "manager" ? "/manager" :
+        "/admin";
   const [proc, setProc] = useState<ProcessWithUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1237,7 +1255,7 @@ export default function AdminProcessDetailPage() {
 
       if (error) throw error;
       const processRow = data as ProcessWithUser;
-      let account: { full_name: string; email?: string } | undefined;
+      let account: { full_name: string; email: string; phone?: string } = { full_name: "Cliente", email: "" };
       if (processRow.user_id) {
         const { data: userDataPrimary, error: userErrorPrimary } = await supabase
           .from("profiles")
@@ -1246,12 +1264,15 @@ export default function AdminProcessDetailPage() {
           .maybeSingle();
 
         if (userErrorPrimary) throw userErrorPrimary;
-        account = userDataPrimary ? { full_name: userDataPrimary.full_name || "Cliente", email: userDataPrimary.email || undefined } : undefined;
+        if (userDataPrimary) {
+          account = { full_name: userDataPrimary.full_name || "Cliente", email: userDataPrimary.email || "" };
+        }
       }
 
       setProc({ ...processRow, user_accounts: account });
-      if (data?.step_data?.generatedCoverLetterHTML) {
-        const rawHtml = data.step_data.generatedCoverLetterHTML as string;
+      const stepData = (data?.step_data as Record<string, unknown> | null) ?? null;
+      if (stepData?.generatedCoverLetterHTML) {
+        const rawHtml = stepData.generatedCoverLetterHTML as string;
         setCoverLetterHtml(rawHtml.replace(/color:\s*#000;?/gi, '').replace(/color:\s*black;?/gi, ''));
       }
     } catch (err: unknown) {
@@ -1292,18 +1313,24 @@ export default function AdminProcessDetailPage() {
         <RiErrorWarningLine className="text-4xl text-danger mx-auto mb-4" />
         <h2 className="text-xl font-black text-text uppercase mb-2">Serviço não configurado</h2>
         <p className="text-text-muted mb-6">O serviço "{proc.service_slug}" não possui uma definição de workflow no sistema.</p>
-        <button onClick={() => navigate("/admin/processes")} className="bg-primary text-white px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest">
+        <button onClick={() => navigate(`${processRoutePrefix}/processes`)} className="bg-primary text-white px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest">
           Voltar para Lista
         </button>
       </div>
     );
   }
-  const currentStepIdx = proc.current_step ?? 0;
-  const history = (proc.step_data?.history as Array<{ type?: string; steps?: unknown[] }>) || [];
+  const history = ((proc.step_data as any)?.history as Array<{ type?: string; steps?: unknown[] }>) || [];
   const effectiveSteps = service ? buildEffectiveSteps(service.steps, history) : [];
+  const rawCurrentStep =
+    proc.current_step ??
+    (typeof (proc.step_data as any)?.current_step === "number"
+      ? (proc.step_data as any).current_step
+      : Number((proc.step_data as any)?.current_step ?? 0));
+  const normalizedCurrentStep = Number.isFinite(rawCurrentStep) ? Math.max(0, Math.floor(rawCurrentStep)) : 0;
+  const currentStepIdx = Math.min(normalizedCurrentStep, Math.max(0, effectiveSteps.length - 1));
   const currentStep = effectiveSteps[currentStepIdx];
   const currentStepBaseId = normalizeLegacyStepId(currentStep?.id);
-  const workflowStatus = String(proc.step_data?.workflow_status ?? "").toLowerCase();
+  const workflowStatus = String((proc.step_data as any)?.workflow_status ?? "").toLowerCase();
 
   const handleApproveStep = async (extraData?: Record<string, unknown>) => {
     if (!service || isSubmitting) return;
@@ -1314,7 +1341,7 @@ export default function AdminProcessDetailPage() {
       // --- SKIP LOGIC: Se o visto de destino NÃO for F1, pula I-20 e SEVIS ---
       const isCOS = proc.service_slug.includes("troca-status") || proc.service_slug.includes("extensao-status");
       if (isCOS) {
-        const targetVisa = proc.step_data?.targetVisa as string;
+        const targetVisa = (proc.step_data as any)?.targetVisa as string;
         if (targetVisa !== "F1") {
           const stepsToSkipIds = ["cos_i20_upload", "cos_sevis_fee", "cos_analysis_i20_sevis", "eos_i20_upload", "eos_sevis_fee", "eos_analysis_i20_sevis"];
           while (nextStep < service.steps.length && stepsToSkipIds.includes(service.steps[nextStep].id)) {
@@ -1464,7 +1491,7 @@ export default function AdminProcessDetailPage() {
     setIsGeneratingCoverLetter(true);
     try {
       const payload = {
-        coverLetter: proc.step_data?.coverLetter,
+        coverLetter: (proc.step_data as any)?.coverLetter,
         user: proc.user_accounts
       };
       const res = await fetch(import.meta.env.VITE_N8N_BOT_COVERLATTER as string, {
@@ -1493,8 +1520,13 @@ export default function AdminProcessDetailPage() {
 
     if (entries.length === 0) return null;
 
-    const isActive = currentStepBaseId === "cos_analysis_form_docs" || currentStepBaseId === "b1b2_admin_analysis";
-    const isPast = currentStepBaseId === "b1b2_admin_analysis" ? currentStepIdx > 1 : currentStepIdx > 2;
+    const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
+    const analysisIdx = effectiveSteps.findIndex(s =>
+      normalizeLegacyStepId(s.id) === "b1b2_admin_analysis" ||
+      normalizeLegacyStepId(s.id) === `${prefix}analysis_form_docs`
+    );
+    const isActive = analysisIdx !== -1 && currentStepIdx === analysisIdx;
+    const isPast = analysisIdx !== -1 && currentStepIdx > analysisIdx;
 
     return (
       <CollapsibleStep
@@ -1564,12 +1596,15 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderOfficialForms = () => {
-    const pdfUrl = proc.step_data?.i539PdfUrl as string | undefined;
+    const pdfUrl = (proc.step_data as any)?.i539PdfUrl as string | undefined;
     if (!pdfUrl) return null;
 
     const isSelected = selectedItems.includes('i539PdfUrl');
-    const isActive = currentStepBaseId === "cos_analysis_official_forms";
-    const isPast = currentStepIdx > 4;
+    const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
+    const stepId = `${prefix}analysis_official_forms`;
+    const officialFormsIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
+    const isActive = officialFormsIdx !== -1 && currentStepIdx === officialFormsIdx;
+    const isPast = officialFormsIdx !== -1 && currentStepIdx > officialFormsIdx;
 
     return (
       <CollapsibleStep
@@ -1602,9 +1637,12 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderCoverLetterAdmin = () => {
-    if (!proc.step_data?.coverLetter) return null;
-    const isActive = currentStepBaseId === "cos_analysis_presentation_letter";
-    const isPast = currentStepIdx > 6;
+    if (!(proc.step_data as any)?.coverLetter) return null;
+    const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
+    const stepId = `${prefix}analysis_presentation_letter`;
+    const coverLetterIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
+    const isActive = coverLetterIdx !== -1 && currentStepIdx === coverLetterIdx;
+    const isPast = coverLetterIdx !== -1 && currentStepIdx > coverLetterIdx;
 
     return (
       <CollapsibleStep title={t.processDetail.coverLetter.title || "Análise: Cover Letter"} icon={RiFileTextLine} isActive={isActive} isPast={isPast}>
@@ -1633,11 +1671,12 @@ export default function AdminProcessDetailPage() {
   const renderFinalFormsAdmin = () => {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const g1145PdfUrl = proc.step_data?.g1145PdfUrl as string;
-    const g1450PdfUrl = proc.step_data?.g1450PdfUrl as string;
+    const g1145PdfUrl = (proc.step_data as any)?.g1145PdfUrl as string;
+    const g1450PdfUrl = (proc.step_data as any)?.g1450PdfUrl as string;
     if (!g1145PdfUrl && !g1450PdfUrl) return null;
     const isActive = currentStepBaseId === `${prefix}analysis_final_forms`;
-    const isPast = currentStepIdx > 11;
+    const finalFormsIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === `${prefix}analysis_final_forms`);
+    const isPast = finalFormsIdx !== -1 && currentStepIdx > finalFormsIdx;
 
     return (
       <CollapsibleStep title={`${t.processDetail.finalForms?.g1145} / ${t.processDetail.finalForms?.g1450}`} icon={RiBankCardLine} isActive={isActive} isPast={isPast}>
@@ -1668,10 +1707,12 @@ export default function AdminProcessDetailPage() {
   const renderCOSDocumentsAdmin = () => {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const isActive = currentStepBaseId === `${prefix}analysis_form_docs`;
-    const isPast = currentStepIdx > 2;
+    const stepId = `${prefix}analysis_form_docs`;
+    const docsIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
+    const isActive = docsIdx !== -1 && currentStepIdx === docsIdx;
+    const isPast = docsIdx !== -1 && currentStepIdx > docsIdx;
 
-    const docs = (proc.step_data?.docs || {}) as Record<string, string>;
+    const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
     if (Object.keys(docs).length === 0) return null;
 
     return (
@@ -1708,10 +1749,12 @@ export default function AdminProcessDetailPage() {
   const renderCOSAnalysisI20SevisAdmin = () => {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const isActive = currentStepBaseId === `${prefix}analysis_i20_sevis`;
-    const isPast = currentStepIdx > 9;
+    const stepId = `${prefix}analysis_i20_sevis`;
+    const i20Idx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
+    const isActive = i20Idx !== -1 && currentStepIdx === i20Idx;
+    const isPast = i20Idx !== -1 && currentStepIdx > i20Idx;
 
-    const docs = (proc.step_data?.docs || {}) as Record<string, string>;
+    const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
     const i20Url = docs.i20_document ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.i20_document).data.publicUrl : null;
     const sevisUrl = docs.sevis_receipt ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.sevis_receipt).data.publicUrl : null;
 
@@ -1775,10 +1818,11 @@ export default function AdminProcessDetailPage() {
 
   const renderF1DocumentsAdmin = () => {
     if (!proc.service_slug.includes("f1")) return null;
-    const isActive = currentStepBaseId === "f1_admin_analysis";
-    const isPast = currentStepIdx > 2;
+    const analysisIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === "f1_admin_analysis");
+    const isActive = analysisIdx !== -1 && currentStepIdx === analysisIdx;
+    const isPast = analysisIdx !== -1 && currentStepIdx > analysisIdx;
 
-    const docs = (proc.step_data?.docs || {}) as Record<string, string>;
+    const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
     const i20Url = docs.i20_document ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.i20_document).data.publicUrl : null;
 
     if (!isActive && !isPast && !i20Url) return null;
@@ -1825,10 +1869,11 @@ export default function AdminProcessDetailPage() {
 
   const renderF1FinalDocsAdmin = () => {
     if (!proc.service_slug.includes("f1")) return null;
-    const isActive = currentStepBaseId === "f1_admin_final_analysis";
-    const isPast = currentStepIdx > 5;
+    const finalAnalysisIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === "f1_admin_final_analysis");
+    const isActive = finalAnalysisIdx !== -1 && currentStepIdx === finalAnalysisIdx;
+    const isPast = finalAnalysisIdx !== -1 && currentStepIdx > finalAnalysisIdx;
 
-    const docs = (proc.step_data?.docs || {}) as Record<string, string>;
+    const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
     const ds160Url = docs.ds160_assinada ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_assinada).data.publicUrl : null;
     const comprovanteUrl = docs.ds160_comprovante ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_comprovante).data.publicUrl : null;
 
@@ -1892,7 +1937,7 @@ export default function AdminProcessDetailPage() {
     const isActive = currentStepBaseId === "b1b2_admin_final_analysis";
     const isPast = currentStepIdx > 4;
 
-    const docs = (proc.step_data?.docs || {}) as Record<string, string>;
+    const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
     const ds160Url = docs.ds160_assinada ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_assinada).data.publicUrl : null;
     const comprovanteUrl = docs.ds160_comprovante ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_comprovante).data.publicUrl : null;
 
@@ -1972,8 +2017,8 @@ export default function AdminProcessDetailPage() {
     const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 6 : 5);
     if (!isActive && !isPast) return null;
 
-    const casvDate = proc.step_data?.casv_preferred_date as string;
-    const consulado = proc.step_data?.interviewLocation as string;
+    const casvDate = (proc.step_data as any)?.casv_preferred_date as string;
+    const consulado = (proc.step_data as any)?.interviewLocation as string;
 
     const consuladoLabels: Record<string, { flag: string; cidade: string; estado: string }> = {
       Brasilia: { flag: "🏛️", cidade: "Brasília", estado: "DF" },
@@ -2049,9 +2094,9 @@ export default function AdminProcessDetailPage() {
     const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 7 : 6);
     if (!isActive && !isPast) return null;
 
-    const email = (proc.step_data?.primaryEmail || proc.user_accounts?.email || t.processDetail.accountCreation.notInformed) as string;
-    const name = (proc.step_data?.fullName || proc.user_accounts?.full_name || t.processDetail.accountCreation.notInformed) as string;
-    const phone = (proc.step_data?.phone || t.processDetail.accountCreation.notInformed) as string;
+    const email = ((proc.step_data as any)?.primaryEmail || proc.user_accounts?.email || t.processDetail.accountCreation.notInformed) as string;
+    const name = ((proc.step_data as any)?.fullName || proc.user_accounts?.full_name || t.processDetail.accountCreation.notInformed) as string;
+    const phone = ((proc.step_data as any)?.phone || t.processDetail.accountCreation.notInformed) as string;
 
     return (
       <CollapsibleStep title={t.processDetail.accountCreation.title} icon={RiUser3Line} isActive={isActive} isPast={isPast} badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}>
@@ -2118,9 +2163,11 @@ export default function AdminProcessDetailPage() {
   const renderFinalPackageAdmin = () => {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const finalPackageUrl = proc.step_data?.finalPackagePdfUrl as string;
-    const isActive = currentStepBaseId === `${prefix}final_package`;
-    const isPast = currentStepIdx > 12;
+    const finalPackageUrl = (proc.step_data as any)?.finalPackagePdfUrl as string;
+    const stepId = `${prefix}final_package`;
+    const packageIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
+    const isActive = packageIdx !== -1 && currentStepIdx === packageIdx;
+    const isPast = packageIdx !== -1 && currentStepIdx > packageIdx;
 
     return (
       <CollapsibleStep title={`${proc.service_slug === 'extensao-status' ? 'EOS' : 'COS'} Final Package`} icon={RiCheckDoubleLine} isActive={isActive} isPast={isPast}>
@@ -2176,7 +2223,7 @@ export default function AdminProcessDetailPage() {
         </div>
         <div className="flex items-center gap-3 bg-card px-5 py-3 rounded-2xl border border-border shadow-sm text-text-muted text-[10px] font-black uppercase tracking-widest">
           <RiCalendarLine className="text-text-muted" />
-          <span className="flex items-center gap-1.5">{new Date(proc.created_at).toLocaleDateString()}</span>
+          <span className="flex items-center gap-1.5">{new Date(proc.created_at ?? Date.now()).toLocaleDateString()}</span>
         </div>
       </div>
 
@@ -2250,10 +2297,46 @@ export default function AdminProcessDetailPage() {
                   </span>
                 </div>
               ))}
+
+              {/* Resultado Final (se houver) */}
+              {proc.status === 'completed' && (
+                <div className="flex items-center gap-3 pt-3 mt-4 border-t border-border/50 animate-in fade-in slide-in-from-bottom-2">
+                  <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-[10px] shadow-lg shadow-emerald-500/20">
+                    <RiCheckDoubleLine />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-black uppercase text-emerald-600 tracking-tight">
+                      {vt.onboardingPage?.processingStatus?.outcomeApproved}
+                    </span>
+                    {(proc.step_data as any)?.reported_at && (
+                      <span className="text-[8px] font-bold text-emerald-600/60 uppercase">
+                        {new Date((proc.step_data as any).reported_at as string).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {proc.status === 'rejected' && (
+                <div className="flex items-center gap-3 pt-3 mt-4 border-t border-border/50 animate-in fade-in slide-in-from-bottom-2">
+                  <div className="w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center text-white text-[10px] shadow-lg shadow-rose-500/20">
+                    <RiCloseLine />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-black uppercase text-rose-600 tracking-tight">
+                      {vt.onboardingPage?.processingStatus?.outcomeRejected}
+                    </span>
+                    {(proc.step_data as any)?.reported_at && (
+                      <span className="text-[8px] font-bold text-rose-600/60 uppercase">
+                        {new Date((proc.step_data as any).reported_at as string).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          <PurchasesPanel stepData={proc?.step_data} />
+          <PurchasesPanel stepData={(proc?.step_data as any) || {}} />
 
 
           <ProcessLogPanel

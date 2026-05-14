@@ -5,7 +5,9 @@ import type {
 } from "../../shared/db/types";
 
 // ── DB-derived types (fonte única: gerado pelo Supabase) ──────────────────────
-export type UserService = UserServiceRow;
+export interface UserService extends UserServiceRow {
+  updated_at: string;
+}
 export type UserServiceInsert = UserServiceInsertDb;
 export type UserServiceUpdate = UserServiceUpdateDb;
 

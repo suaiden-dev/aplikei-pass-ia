@@ -1,22 +1,23 @@
-import { RiCheckLine, RiLoader4Line } from 'react-icons/ri'
-import { DS160SingleFormStep } from '../B1B2OnboardingPage/steps/DS160SingleFormStep'
-import { B1B2UserReviewSignStep } from '../B1B2OnboardingPage/steps/B1B2UserReviewSignStep'
-import { B1B2CASVSchedulingStep } from '../B1B2OnboardingPage/steps/B1B2CASVSchedulingStep'
-import { B1B2UserConfirmEmailStep } from '../B1B2OnboardingPage/steps/B1B2UserConfirmEmailStep'
-import { B1B2MRVPaymentStep } from '../B1B2OnboardingPage/steps/B1B2MRVPaymentStep'
-import { F1I20UploadStep } from '../F1OnboardingPage/steps/F1I20UploadStep'
-import { F1FinalPreparationStep } from '../F1OnboardingPage/steps/F1FinalPreparationStep'
+import { RiLoader4Line } from 'react-icons/ri'
+import { DS160SingleFormStep } from '../../B1B2OnboardingPage/steps/DS160SingleFormStep'
+import { B1B2UserReviewSignStep } from '../../B1B2OnboardingPage/steps/B1B2UserReviewSignStep'
+import { B1B2CASVSchedulingStep } from '../../B1B2OnboardingPage/steps/B1B2CASVSchedulingStep'
+import { B1B2UserConfirmEmailStep } from '../../B1B2OnboardingPage/steps/B1B2UserConfirmEmailStep'
+import { B1B2MRVPaymentStep } from '../../B1B2OnboardingPage/steps/B1B2MRVPaymentStep'
+import { F1I20UploadStep } from '../steps/F1I20UploadStep'
+import { F1FinalPreparationStep } from '../steps/F1FinalPreparationStep'
 import { DS160FormShell } from '../../shared/DS160FormShell'
 import { DS160_SECTION_FIELDS } from '../../shared/ds160Sections'
 import { OnboardingNoticeStep } from '../../shared/OnboardingNoticeStep'
 import { ds160Validator, type DS160FormValues } from '../../../../schemas/ds160.schema'
+import { type F1OnboardingLabels } from '../types'
 
 interface F1StepContentProps {
   stepIdx: number
   procId: string | null
   userId: string
   savedValues: Partial<DS160FormValues>
-  labels: any
+  labels: F1OnboardingLabels
   procStatus?: string | null
   currentStep?: number
   isSubmitting?: boolean
@@ -56,9 +57,11 @@ export function F1StepContent({
     return (
       <OnboardingNoticeStep
         icon={<RiLoader4Line className='text-3xl animate-spin text-primary' />}
+        iconContainerClassName='bg-primary/5'
         title={labels.onboardingPage.f1.awaitingSchedulingF1}
+        emphasis={labels.onboardingPage.f1.awaitingSchedulingF1}
         description={labels.onboardingPage.f1.awaitingSchedulingF1Desc}
-        buttonLabel={labels.onboardingPage.backToDashboard}
+        buttonLabel={labels.backToDashboard}
         onBack={onNavigateToProcess}
       />
     )
@@ -70,6 +73,7 @@ export function F1StepContent({
       <B1B2MRVPaymentStep
         procId={procId}
         stepData={savedValues}
+        nextStepIdx={11}
         onComplete={onNavigateToProcess}
       />
     )
@@ -81,10 +85,10 @@ export function F1StepContent({
       <OnboardingNoticeStep
         icon={<RiLoader4Line className='text-3xl animate-spin text-amber-500' />}
         iconContainerClassName='bg-amber-50'
-        title={labels.onboardingPage.consularFee}
-        emphasis={labels.onboardingPage.slipGeneratingByTeam}
+        title={labels.consularFee}
+        emphasis={labels.slipGeneratingByTeam}
         description={labels.onboardingPage.f1.mrvF1Desc}
-        buttonLabel={labels.onboardingPage.backToDashboard}
+        buttonLabel={labels.backToDashboard}
         onBack={onNavigateToProcess}
       />
     )
@@ -95,6 +99,7 @@ export function F1StepContent({
     return (
       <B1B2UserConfirmEmailStep
         procId={procId}
+        nextStepIdx={9}
         onComplete={onNavigateToProcess}
         onBack={onNavigateToProcess}
       />
@@ -110,7 +115,7 @@ export function F1StepContent({
         title={labels.onboardingPage.f1.creationNoticeF1}
         emphasis={labels.onboardingPage.f1.creationNoticeF1}
         description={labels.onboardingPage.f1.creationLongDesc}
-        buttonLabel={labels.onboardingPage.backToDashboard}
+        buttonLabel={labels.backToDashboard}
         onBack={onNavigateToProcess}
       />
     )
@@ -122,6 +127,7 @@ export function F1StepContent({
       <B1B2CASVSchedulingStep
         procId={procId}
         stepData={savedValues}
+        nextStepIdx={7}
         onComplete={onNavigateToProcess}
         onBack={onNavigateToProcess}
       />
@@ -133,9 +139,11 @@ export function F1StepContent({
     return (
       <OnboardingNoticeStep
         icon={<RiLoader4Line className='text-3xl animate-spin text-primary' />}
-        title={labels.onboardingPage.processingStatus.awaitingReview}
+        iconContainerClassName='bg-primary/5'
+        title={labels.awaitingReview}
+        emphasis={labels.awaitingReview}
         description={labels.onboardingPage.processingStatus.processingDataDesc}
-        buttonLabel={labels.onboardingPage.backToDashboard}
+        buttonLabel={labels.backToDashboard}
         onBack={onNavigateToProcess}
       />
     )
@@ -150,6 +158,7 @@ export function F1StepContent({
         stepData={savedValues}
         procStatus={procStatus}
         currentStep={currentStep}
+        nextStepIdx={5}
         onComplete={onNavigateToProcess}
         onBack={onNavigateToProcess}
       />
@@ -161,9 +170,11 @@ export function F1StepContent({
     return (
       <OnboardingNoticeStep
         icon={<RiLoader4Line className='text-3xl animate-spin text-primary' />}
-        title={labels.onboardingPage.feeProcessing.creatingCredentialsTitle}
-        description={labels.onboardingPage.feeProcessing.creatingCredentialsDesc}
-        buttonLabel={labels.onboardingPage.backToDashboard}
+        iconContainerClassName='bg-primary/5'
+        title={labels.creatingCredentialsTitle || labels.ds160Form}
+        emphasis={labels.creatingCredentialsTitle || labels.ds160Form}
+        description={labels.creatingCredentialsDesc || ""}
+        buttonLabel={labels.backToDashboard}
         onBack={onNavigateToProcess}
       />
     )
@@ -174,9 +185,11 @@ export function F1StepContent({
     return (
       <OnboardingNoticeStep
         icon={<RiLoader4Line className='text-3xl animate-spin text-primary' />}
+        iconContainerClassName='bg-primary/5'
         title={labels.onboardingPage.processingStatus.reviewingDocs}
+        emphasis={labels.onboardingPage.processingStatus.reviewingDocs}
         description={labels.onboardingPage.processingStatus.documentsReceivedDesc}
-        buttonLabel={labels.onboardingPage.backToDashboard}
+        buttonLabel={labels.backToDashboard}
         onBack={onNavigateToProcess}
       />
     )
@@ -188,7 +201,10 @@ export function F1StepContent({
       <F1I20UploadStep
         procId={procId}
         userId={userId}
+        stepData={savedValues}
+        labels={labels}
         onComplete={onNavigateToProcess}
+        onBack={onNavigateToProcess}
       />
     )
   }
@@ -202,21 +218,20 @@ export function F1StepContent({
       validate={ds160Validator}
       onSubmit={(values) => onSubmit(values)}
       onSaveDraft={onSaveDraft}
-      requiredTitle={labels.onboardingPage.requiredFieldsTitle}
-      requiredDescription={labels.onboardingPage.requiredFieldsDesc}
-      saveLabel={labels.onboardingPage.saveDraft}
-      submitLabel={labels.onboardingPage.finalizeAndSubmit}
+      requiredTitle={labels.requiredFieldsTitle}
+      requiredDescription={labels.requiredFieldsDesc}
+      saveLabel={labels.saveDraft}
+      submitLabel={labels.finalizeAndSubmit}
       sectionFields={DS160_SECTION_FIELDS}
       isBusy={isSubmitting}
       readOnly={isReadOnly}
       renderFooter={({
         values,
         isSubmitting: formBusy,
-        currentSection,
-        isFirstSection,
-        isLastSection,
         onPrevious,
         onNext,
+        isFirstSection,
+        isLastSection,
       }) => (
         <div className='flex flex-col border-t border-slate-100 bg-slate-50/50'>
           <div className='px-6 sm:px-10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4'>
@@ -239,7 +254,7 @@ export function F1StepContent({
                   disabled={formBusy}
                   className='w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50'
                 >
-                  {labels.onboardingPage.saveDraft}
+                  {labels.saveDraft}
                 </button>
               )}
             </div>
@@ -274,7 +289,7 @@ export function F1StepContent({
                     <RiLoader4Line className="animate-spin text-lg" />
                   ) : (
                     <>
-                      {labels.onboardingPage.finalizeAndSubmit}
+                      {labels.finalizeAndSubmit}
                       <span className="text-lg">&rarr;</span>
                     </>
                   )}

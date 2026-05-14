@@ -1,10 +1,9 @@
-import type { AuthStatus } from "../../../contexts/AuthContext/context";
 import type { UserAccount } from "../../../models";
 
 export function shouldPromptForIdentityPhoto(
   user: UserAccount | null,
   proc: { current_step?: number | null } | null,
-  status: AuthStatus,
+  status: "loading" | "authenticated" | "unauthenticated",
   accountHydrated: boolean,
 ): boolean {
   if (!user || !proc || status === "loading" || !accountHydrated) {

@@ -306,7 +306,7 @@ export default function ProductsPage() {
     } else {
       setProducts(
         (
-          (data ?? []) as Array<{
+          (data ?? []) as unknown as Array<{
             id: string;
             office_id: string;
             service_id: string;

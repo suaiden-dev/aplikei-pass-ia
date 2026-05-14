@@ -22,6 +22,7 @@ type CosAdminNotificationParams = {
   userId?: string | null;
   clientName?: string | null;
   clientEmail?: string | null;
+  metadata?: Record<string, unknown>;
 };
 
 function getClientLabel(clientName?: string | null, clientEmail?: string | null): string {

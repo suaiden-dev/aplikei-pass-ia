@@ -15,7 +15,8 @@ import { useT } from '../../../i18n'
 import { getSupabaseClient } from '../../../lib/supabase'
 import * as workflowOps from '../../../features/workflow/lib/workflowOps'
 import type { UserProductInstance, UserStep, StepReview } from '../../../features/workflow/types'
-import type { UserService, USCISOutcome, MotionOutcome, RFEOutcome } from '../../../models/process.model'
+import type { UserService } from '../../../features/process/types'
+import type { USCISOutcome, MotionOutcome, RFEOutcome } from '../../../models/process.model'
 import * as processService from '../../../features/process/lib/processOps'
 import { cosNotificationService } from '../../../features/onboarding/cos/lib/cos-notifications'
 import type { DocFile } from '../../../components/molecules/DocUploadCard'
@@ -96,10 +97,10 @@ function buildProcShim(
     service_slug: slug,
     status:       instance.status === 'approved' ? 'completed' : 'active',
     current_step: stepIdx,
-    step_data:    merged,
+    step_data:    merged as any,
     created_at:   instance.created_at,
     updated_at:   instance.updated_at,
-  }
+  } as unknown as UserService
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -206,15 +207,15 @@ export function useCOSOnboardingPage() {
     [instance, steps, slug, stepIdx, reviews],
   )
 
-  const hasFeedback     = !!proc?.step_data?.admin_feedback
-  const rejectedItems   = useMemo(() => (proc?.step_data?.rejected_items as string[]) ?? [], [proc])
+  const hasFeedback     = !!(proc?.step_data as any)?.admin_feedback
+  const rejectedItems   = useMemo(() => ((proc?.step_data as any)?.rejected_items as string[]) ?? [], [proc])
   const isFieldRejected = useCallback((k: string) => hasFeedback && rejectedItems.includes(k), [hasFeedback, rejectedItems])
   const isReadOnly      = stepIdx < dbCurrentStepIdx && !hasFeedback
   const canSubmit       = stepIdx === 0 ? (!!currentVisa && !!targetVisa && !!i94Date) : stepIdx === 1 ? Object.values(docs).every((d) => d.file || d.path) : true
 
-  const uscisResult          = String(proc?.step_data?.uscis_official_result ?? '').toLowerCase()
-  const rfeResult            = String(proc?.step_data?.uscis_rfe_result      ?? '').toLowerCase()
-  const motionReportedResult = String(proc?.step_data?.motion_final_result   ?? '').toLowerCase()
+  const uscisResult          = String((proc?.step_data as any)?.uscis_official_result ?? '').toLowerCase()
+  const rfeResult            = String((proc?.step_data as any)?.uscis_rfe_result      ?? '').toLowerCase()
+  const motionReportedResult = String((proc?.step_data as any)?.motion_final_result   ?? '').toLowerCase()
   const isMotionContext    = uscisResult === 'denied' || uscisResult === 'rejected' || rfeResult === 'denied' || stepIdx >= 19
   const isRFEContext       = !isMotionContext && (uscisResult === 'rfe' || rfeResult === 'rfe' || (stepIdx >= 13 && stepIdx <= 18))
   const isMotionResultStep = stepIdx === 23 || stepIdx === 24

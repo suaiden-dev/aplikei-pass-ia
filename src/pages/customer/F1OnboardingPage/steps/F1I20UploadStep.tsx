@@ -4,29 +4,27 @@ import {
   RiArrowRightLine,
   RiLoader4Line,
   RiCheckDoubleLine,
-  RiErrorWarningLine,
   RiFileTextLine
 } from "react-icons/ri";
 
 import { supabase } from "../../../../shared/lib/supabase";
 import * as processService from "../../../../features/process/lib/processOps";
 import * as notificationService from "../../../../features/notifications/lib/notify";
-import { useT } from "../../../../i18n";
 
 interface F1I20UploadStepProps {
   procId: string;
   userId: string;
   stepData: Record<string, unknown>;
+  labels: any;
   onComplete: () => void;
   onBack: () => void;
 }
 
 type DocType = "i20_document";
 
-export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }: F1I20UploadStepProps) {
+export function F1I20UploadStep({ procId, userId, stepData, labels, onComplete, onBack }: F1I20UploadStepProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState<DocType | null>(null);
-  const t = useT("visas");
   
   const [paths, setPaths] = useState<Record<DocType, string | null>>({
     i20_document: null
@@ -39,7 +37,6 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
     });
   }, [stepData]);
 
-  const adminFeedback = (stepData.admin_feedback as string) || null;
   const rejectedItems = (stepData.rejected_items as string[]) || [];
 
   const handleFileUpload = async (file: File, docType: DocType) => {
@@ -61,7 +58,7 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
       setPaths(prev => ({ ...prev, [docType]: filePath }));
 
       await processService.updateStepData(procId, { docs: updatedDocs });
-      toast.success(t.onboardingPage.f1.i20Success);
+      toast.success(labels.onboardingPage.f1.i20Success);
     } catch (err: unknown) {
       toast.error((err as Error).message || "Error");
     } finally {
@@ -71,7 +68,7 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
 
   const handleComplete = async () => {
     if (!paths.i20_document) {
-      toast.error(t.onboardingPage.f1.i20SelectError);
+      toast.error(labels.onboardingPage.f1.i20SelectError);
       return;
     }
     setIsSubmitting(true);
@@ -94,7 +91,7 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
         link: `/master/processes/${procId}`,
       });
 
-      toast.success(t.onboardingPage.f1.i20AnalysisToast);
+      toast.success(labels.onboardingPage.f1.i20AnalysisToast);
       onComplete();
     } catch (err: unknown) {
       toast.error((err as Error).message);
@@ -106,37 +103,20 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
   const docConfigs: { type: DocType; label: string; desc: string; icon: typeof RiFileTextLine }[] = [
     { 
       type: "i20_document", 
-      label: t.onboardingPage.f1.i20DocLabel, 
-      desc: t.onboardingPage.f1.i20DocDesc, 
+      label: labels.onboardingPage.f1.i20DocLabel, 
+      desc: labels.onboardingPage.f1.i20DocDesc, 
       icon: RiFileTextLine 
     }
   ];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Banner de Feedback */}
-      {adminFeedback && (
-        <div className="p-5 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-4">
-          <div className="w-9 h-9 rounded-xl bg-red-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-red-500/30">
-            <RiErrorWarningLine className="text-lg" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-[11px] font-black text-red-900 uppercase tracking-widest mb-1">
-              {t.onboardingPage.correctionRequested || "Correção Solicitada"}
-            </h3>
-            <p className="text-sm text-red-700 font-medium leading-relaxed">
-              &ldquo;{adminFeedback}&rdquo;
-            </p>
-          </div>
-        </div>
-      )}
-
       <div className="text-center max-w-2xl mx-auto mb-10">
         <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-3">
-          {t.onboardingPage.f1.i20UploadTitle}
+          {labels.onboardingPage.f1.i20UploadTitle}
         </h2>
         <p className="text-slate-500 font-medium text-sm leading-relaxed">
-          {t.onboardingPage.f1.i20UploadDesc}
+          {labels.onboardingPage.f1.i20UploadDesc}
         </p>
       </div>
 
@@ -172,7 +152,7 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
                   ${isUploaded ? 'border-emerald-200 bg-white text-emerald-600' : 'border-slate-100 bg-slate-50/50 hover:border-primary/40 hover:bg-white text-slate-400'}
                   ${isRejected ? 'border-red-300 bg-white text-red-500' : ''}
                 `}>
-                  {isUploading ? t.onboardingPage.uploadingBtn : isUploaded ? (isRejected ? t.onboardingPage.f1.resubmitFile : t.onboardingPage.fileSent) : t.onboardingPage.f1.selectFile}
+                  {isUploading ? labels.onboardingPage.uploadingBtn : isUploaded ? (isRejected ? labels.onboardingPage.f1.resubmitFile : labels.onboardingPage.fileSent) : labels.onboardingPage.f1.selectFile}
                 </div>
                 <input 
                   type="file" 
@@ -200,7 +180,7 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
           disabled={isSubmitting}
           className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all font-mono"
         >
-          {t.onboardingPage.backToDashboard}
+          {labels.onboardingPage.backToDashboard}
         </button>
 
         <button
@@ -213,7 +193,7 @@ export function F1I20UploadStep({ procId, userId, stepData, onComplete, onBack }
             <RiLoader4Line className="animate-spin text-lg" />
           ) : (
             <>
-              {t.onboardingPage.f1.confirmAndProceed}
+              {labels.onboardingPage.f1.confirmAndProceed}
               <RiArrowRightLine className="text-lg" />
             </>
           )}

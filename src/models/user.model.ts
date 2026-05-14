@@ -7,9 +7,13 @@ export interface UserAccount {
   email: string;
   phoneNumber: string;
   avatarUrl: string | null;
+  avatarOffsetX: number;
+  avatarOffsetY: number;
+  avatarZoom: number;
   passportPhotoUrl?: string | null;
   role: UserRole;
   officeId: string | null;
+  hasCompletedOnboarding: boolean;
   createdAt: string;
   updatedAt: string;
 }

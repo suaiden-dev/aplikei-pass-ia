@@ -128,8 +128,8 @@ export default function COSOnboardingPage() {
     bankStatement: { file: null, label: 'COS BANK STATEMENT' },
   })
 
-  const hasFeedback = !!proc?.step_data?.admin_feedback
-  const rejectedItems = (proc?.step_data?.rejected_items as string[]) || []
+  const hasFeedback = !!(proc?.step_data as any)?.admin_feedback
+  const rejectedItems = ((proc?.step_data as any)?.rejected_items as string[]) || []
   const isFieldRejected = (key: string) =>
     hasFeedback && rejectedItems.includes(key)
 
@@ -147,13 +147,13 @@ export default function COSOnboardingPage() {
   const isMotionResultStep =
     currentStepId === 'cos_motion_end' || stepIdx === 23 || stepIdx === 24
   const motionReportedResult = String(
-    proc?.step_data?.motion_final_result || '',
+    (proc?.step_data as any)?.motion_final_result || '',
   ).toLowerCase()
   const uscisResult = String(
-    proc?.step_data?.uscis_official_result || '',
+    (proc?.step_data as any)?.uscis_official_result || '',
   ).toLowerCase()
   const rfeResult = String(
-    proc?.step_data?.uscis_rfe_result || '',
+    (proc?.step_data as any)?.uscis_rfe_result || '',
   ).toLowerCase()
   const currentProcessStep = proc?.current_step ?? 0
   const isRecoveryRangeStep = stepIdx >= 13 && stepIdx <= 24
@@ -244,8 +244,8 @@ export default function COSOnboardingPage() {
 
       // --- AUTO-REPAIR: Sincronizar slots pagos com o histórico de compras (purchases) ---
       try {
-        if (data.step_data?.purchases) {
-          const purchases = data.step_data.purchases as Array<{
+        if ((data.step_data as any)?.purchases) {
+          const purchases = (data.step_data as any).purchases as Array<{
             dependents?: number | string
             slug?: string
           }>
@@ -269,7 +269,7 @@ export default function COSOnboardingPage() {
           })
 
           const currentInDB = parseInt(
-            String(data.step_data?.paid_dependents ?? 0),
+            String((data.step_data as any)?.paid_dependents ?? 0),
             10,
           )
           if (totalPaidViaPurchases > currentInDB) {
@@ -306,13 +306,14 @@ export default function COSOnboardingPage() {
       // --------------------------------------------------------------------------
 
       if (data.step_data) {
-        if (data.step_data.targetVisa)
-          setTargetVisa(data.step_data.targetVisa as VisaType)
-        if (data.step_data.currentVisa)
-          setCurrentVisa(data.step_data.currentVisa as VisaType)
-        if (data.step_data.i94Date) setI94Date(data.step_data.i94Date as string)
-        if (data.step_data.dependents)
-          setDependents(data.step_data.dependents as Dependent[])
+        const stepData = data.step_data as any
+        if (stepData.targetVisa)
+          setTargetVisa(stepData.targetVisa as VisaType)
+        if (stepData.currentVisa)
+          setCurrentVisa(stepData.currentVisa as VisaType)
+        if (stepData.i94Date) setI94Date(stepData.i94Date as string)
+        if (stepData.dependents)
+          setDependents(stepData.dependents as Dependent[])
 
         // Hydrate docs
         if (data.step_data.docs) {
@@ -583,8 +584,9 @@ export default function COSOnboardingPage() {
           )
         }
 
+        const currentStepData = (proc.step_data as Record<string, unknown> | null) ?? {}
         const currentDocs =
-          (proc.step_data?.docs as Record<string, string>) || {}
+          (currentStepData.docs as Record<string, string>) || {}
         const updatedDocs: Record<string, string> = { ...currentDocs }
         const slots = getDocSlots()
 
@@ -630,9 +632,10 @@ export default function COSOnboardingPage() {
       if (service) {
         let nextStepIdx = stepIdx + 1
 
-        const targetVisa = freshProc.step_data?.targetVisa as string
-        const uscisResult = freshProc.step_data?.uscis_official_result as string
-        const rfeResult = freshProc.step_data?.uscis_rfe_result as string
+        const freshStepData = (freshProc.step_data || {}) as any
+        const targetVisa = freshStepData.targetVisa as string
+        const uscisResult = freshStepData.uscis_official_result as string
+        const rfeResult = freshStepData.uscis_rfe_result as string
 
         const showF1Steps = targetVisa === 'F1'
         if (!showF1Steps) {
@@ -690,7 +693,7 @@ export default function COSOnboardingPage() {
         const nextStep = service.steps[nextStepIdx]
 
         const currentDBStep = freshProc.current_step ?? 0
-        const isCorrection = !!freshProc.step_data?.admin_feedback
+        const isCorrection = !!(freshProc.step_data as any)?.admin_feedback
         const isMotionEnd = nextStep?.id === 'cos_motion_end'
         const shouldRequestReview =
           !isMotionEnd &&

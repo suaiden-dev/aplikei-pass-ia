@@ -34,11 +34,12 @@ type VisasSchedulingText = {
 interface B1B2CASVSchedulingStepProps {
   procId: string;
   stepData: Record<string, unknown>;
+  nextStepIdx?: number;
   onComplete: () => void;
   onBack: () => void;
 }
 
-export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }: B1B2CASVSchedulingStepProps) {
+export function B1B2CASVSchedulingStep({ procId, stepData, nextStepIdx = 6, onComplete, onBack }: B1B2CASVSchedulingStepProps) {
   const t = useT("visas") as VisasSchedulingText;
   const { lang } = useLocale();
   const consulado = (stepData.interviewLocation as string) || "";
@@ -75,7 +76,7 @@ export function B1B2CASVSchedulingStep({ procId, stepData, onComplete, onBack }:
         casv_preferred_date: selectedDate,
       });
       // Avança para etapa 6 (Criação de Conta pelo Admin)
-      await processService.approveStep(procId, 6, false);
+      await processService.approveStep(procId, nextStepIdx, false);
       
       // Notifica Admin
       await notificationService.notifyAdmin({

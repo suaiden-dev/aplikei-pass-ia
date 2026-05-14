@@ -17,6 +17,8 @@ export interface UserAccount {
   passportPhotoUrl?: string | null;
   role: UserRole;
   officeId: string | null;
+  hasCompletedOnboarding: boolean;
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
 }

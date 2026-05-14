@@ -14,7 +14,6 @@ import {
   RiErrorWarningLine,
   RiBookOpenLine,
   RiUserVoiceLine,
-  RiUserStarLine,
   RiFlagLine,
 } from "react-icons/ri";
 import { useAuth } from "../../../hooks/useAuth";
@@ -31,6 +30,8 @@ import type { StepConfig } from "../../../templates/ServiceDetailTemplate";
 import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "../../../data/workflowTemplates";
 import { Skeleton } from "../../../components/atoms/skeleton";
 import { shouldPromptForIdentityPhoto } from "./identityPhotoPrompt";
+import type { UserService } from "../../../models/process.model";
+import { normalizeLegacyFinalShipSteps } from "../../../utils/legacyWorkflow";
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,
@@ -221,7 +222,7 @@ export default function ProcessDetailPage() {
   const isCOS = slug === "troca-status" || slug === "extensao-status";
   const prefix = slug === "extensao-status" ? "eos_" : "cos_";
 
-  const stepData = proc.step_data || {};
+  const stepData = (proc.step_data as any) || {};
   const uscisResult = stepData.uscis_official_result as string;
   const targetVisa = stepData.targetVisa as string;
   const showF1Steps = isCOS ? (targetVisa === "F1") : true;
@@ -488,20 +489,28 @@ export default function ProcessDetailPage() {
                       {t.processSteps?.[step.id]?.description || step.description}
                     </p>
 
-                    {/* Show View button ONLY for the final preparation step in B1/B2/F1 or cos_motion_end, NOT for completed forms */}
-                    {((isConsular && idx === (slug.includes("f1") ? 11 : 10)) || (isCurrent && isCOS && baseStepId === "cos_motion_end")) &&
-                      ((isConsular && idx === (slug.includes("f1") ? 11 : 10)) || baseStepId === "cos_motion_end") && (
+                    {/* Botão de Preparação para Vistos Consulares (Sempre visível se for a etapa final) */}
+                    {isConsular && idx === (slug.includes("f1") ? 11 : 10) && (
+                      <button
+                        onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${idx}`)}
+                        className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${isCurrent
+                            ? "border-primary text-primary hover:bg-primary/5 shadow-sm"
+                            : "border-border text-text-muted hover:border-primary hover:text-primary bg-card"
+                          }`}
+                      >
+                        <RiBookOpenLine className="text-sm" />
+                        {t.processDetail.prepareForInterview}
+                      </button>
+                    )}
+
+                    {/* Show View button for COS motion result step (different logic) */}
+                    {(isCurrent && isCOS && baseStepId === "cos_motion_end") && (
                         <button
                           onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${idx}`)}
-                          className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${idx === (slug.includes("f1") ? 11 : 10) && !isCompleted && !isCurrent
-                              ? "border-emerald-200 text-emerald-500 hover:bg-emerald-50"
-                              : "border-border text-text-muted hover:border-primary hover:text-primary bg-card"
-                            }`}
+                          className="mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border text-text-muted hover:border-primary hover:text-primary bg-card text-[10px] font-black uppercase tracking-widest transition-all"
                         >
-                          {idx === (slug.includes("f1") ? 11 : 10) ? <RiUserStarLine className="text-sm" /> : <RiInformationLine className="text-sm" />}
-                          {baseStepId === "cos_motion_end"
-                            ? "Ver resultado"
-                            : t.processDetail.prepareForInterview}
+                          <RiInformationLine className="text-sm" />
+                          Ver resultado
                         </button>
                       )}
 
@@ -525,7 +534,7 @@ export default function ProcessDetailPage() {
                                 <button
                                   onClick={() => {
                                     const targetIdx = step.id === 'b1b2_admin_analysis' ? 0 : (step.type === 'admin_action' ? idx - 1 : idx);
-                                    navigate(`/dashboard/processes/${slug}/onboarding?step=${targetIdx}`);
+                                    navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${targetIdx}`);
                                   }}
                                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-500/20 transition-all border-none"
                                 >
@@ -549,14 +558,7 @@ export default function ProcessDetailPage() {
                                           : t.processDetail.underReviewDesc}
                                   </p>
                                 </div>
-                                {isConsular && idx === (slug.includes("f1") ? 11 : 10) && (
-                                  <button
-                                    onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?step=${slug.includes("f1") ? 11 : 10}`)}
-                                    className="w-full py-3 rounded-xl border-2 border-primary/20 text-primary font-black text-[11px] uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all flex items-center justify-center gap-2 shadow-sm"
-                                  >
-                                    <RiBookOpenLine className="text-base" /> {t.processDetail.prepareForInterview}
-                                  </button>
-                                )}
+
                               </div>
                             )
                           ) : (
@@ -583,7 +585,7 @@ export default function ProcessDetailPage() {
                               </div>
                               <button
                                 onClick={() => {
-                                  navigate(`/dashboard/processes/${slug}/onboarding?step=${idx}`);
+                                  navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${idx}`);
                                 }}
                                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all"
                               >
