@@ -181,6 +181,19 @@ function PriceSummary({
     );
 }
 
+const logInteraction = async (eventName: string, email: string, officeId: string | null, details: string = "") => {
+    try {
+        await supabase.from("checkout_logs").insert({
+            event_name: eventName,
+            email: email,
+            office_id: officeId,
+            details: details,
+        });
+    } catch (err) {
+        console.error("Log error:", err);
+    }
+};
+
 export default function OfficeCheckoutPage() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
@@ -358,6 +371,7 @@ export default function OfficeCheckoutPage() {
         load();
     }, [officeSlug, serviceSlug, navigate]);
 
+
     const [timeLeft, setTimeLeft] = useState(() => {
         const saved = sessionStorage.getItem("checkout_timer");
         return saved ? parseInt(saved) : 3600;
@@ -411,6 +425,14 @@ export default function OfficeCheckoutPage() {
     const handleApplyCoupon = async () => {
         try {
             const result = await applyCoupon(serviceSlug!);
+
+            logInteraction(
+                "tentativa_cupom",
+                formik.values.email,
+                office?.id || officeSlug,
+                `${serviceSlug} | Tentativa de cupom: ${couponInput} | Válido: ${result.valid}${result.error ? ` | Erro: ${result.error}` : ""}`
+            );
+
             if (result.valid) {
                 if (result.min_purchase_usd && subtotalUSD < result.min_purchase_usd) {
                     toast.error(t.coupon.errors.minPurchase.replace("{{value}}", result.min_purchase_usd.toString()));
@@ -558,6 +580,30 @@ export default function OfficeCheckoutPage() {
         },
     });
 
+    // Logs de Interação (Posicionados corretamente após o formik)
+    useEffect(() => {
+        if (dbService) {
+            logInteraction("acesso_checkout", formik.values.email, office?.id || officeSlug, `${serviceSlug} | Acesso inicial ao office checkout`);
+        }
+    }, [dbService, office, officeSlug, serviceSlug]);
+
+    useEffect(() => {
+        const handleUnload = () => {
+            if (formik.values.email) {
+                const logData = {
+                    event_name: "aba_fechada_abandono",
+                    email: formik.values.email,
+                    office_id: office?.id || officeSlug,
+                    details: `${serviceSlug} | Abandono Office Checkout. Dependentes: ${dependents} | Método: ${activeMethod}`,
+                };
+                supabase.from("checkout_logs").insert(logData).then();
+            }
+        };
+
+        window.addEventListener("beforeunload", handleUnload);
+        return () => window.removeEventListener("beforeunload", handleUnload);
+    }, [formik.values.email, dependents, activeMethod, office, officeSlug, serviceSlug]);
+
     if (isLoading) return <div className="min-h-screen flex items-center justify-center"><LogoLoader /></div>;
     if (!officeSlug || !serviceSlug || !dbService) return <div className="min-h-screen flex items-center justify-center text-text-muted text-sm">Serviço não encontrado.</div>;
 
@@ -656,7 +702,11 @@ export default function OfficeCheckoutPage() {
                                 <div className="flex items-center gap-3">
                                     <button
                                         type="button"
-                                        onClick={() => setDependents(Math.max(isUpgrade ? 1 : 0, dependents - 1))}
+                                        onClick={() => {
+                                            const next = Math.max(isUpgrade ? 1 : 0, dependents - 1);
+                                            setDependents(next);
+                                            logInteraction("alterar_quantidade", formik.values.email, office?.id || officeSlug, `${serviceSlug} | Diminuído para: ${next}`);
+                                        }}
                                         className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle disabled:opacity-40 transition-colors"
                                         disabled={dependents <= (isUpgrade ? 1 : 0)}
                                     >
@@ -665,7 +715,11 @@ export default function OfficeCheckoutPage() {
                                     <span className="w-4 text-center font-bold text-text">{dependents}</span>
                                     <button
                                         type="button"
-                                        onClick={() => setDependents(Math.min(10, dependents + 1))}
+                                        onClick={() => {
+                                            const next = Math.min(10, dependents + 1);
+                                            setDependents(next);
+                                            logInteraction("alterar_quantidade", formik.values.email, office?.id || officeSlug, `${serviceSlug} | Aumentado para: ${next}`);
+                                        }}
                                         className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle transition-all font-mono"
                                     >
                                         <RiAddLine className="text-text-muted" />
@@ -761,7 +815,12 @@ export default function OfficeCheckoutPage() {
                                             className="mt-1.5"
                                             value={formik.values.email}
                                             onChange={formik.handleChange}
-                                            onBlur={formik.handleBlur}
+                                            onBlur={(e) => {
+                                                formik.handleBlur(e);
+                                                if (formik.errors.email) {
+                                                    logInteraction("erro_validacao_campo", e.target.value, office?.id || officeSlug, `${serviceSlug} | Erro e-mail: ${formik.errors.email}`);
+                                                }
+                                            }}
                                         />
                                         {formik.touched.email && formik.errors.email && (
                                             <p className="text-xs text-red-500 mt-1">{formik.errors.email}</p>
@@ -807,7 +866,12 @@ export default function OfficeCheckoutPage() {
                                             key={m.id}
                                             type="button"
                                             disabled={!m.available}
-                                            onClick={() => m.available && setActiveMethod(m.id)}
+                                            onClick={() => {
+                                                if (m.available) {
+                                                    setActiveMethod(m.id);
+                                                    logInteraction("selecionar_pagamento", formik.values.email, office?.id || officeSlug, `${serviceSlug} | Método selecionado: ${m.id}`);
+                                                }
+                                            }}
                                             className={`relative flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-center transition-all duration-150 ${activeMethod === m.id
                                                     ? "border-primary bg-primary/5 text-primary"
                                                     : m.available

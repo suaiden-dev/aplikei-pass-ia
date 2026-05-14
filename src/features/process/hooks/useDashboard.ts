@@ -33,12 +33,13 @@ export interface DashboardLabels {
     getCases: string;
     getCasesDesc: string;
   };
-  products: Record<string, { label: string; category: string }>;
+  products: Record<string, { label: string; category: string; subtitle?: string; included?: string[] }>;
   badges: {
     approved: string;
     denied: string;
     finished: string;
     active: string;
+    awaitingRfe: string;
     soldOut: string;
     available: string;
   };

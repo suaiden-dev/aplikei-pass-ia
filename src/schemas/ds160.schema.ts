@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { zodValidate } from "../utils/zodValidate";
+import { validateCPF } from "../utils/cpf";
 
 // ─── Base helpers ────────────────────────────────────────────────────────────
 const requiredString = (msg: string) => z.string({ message: msg }).min(1, msg);
@@ -35,7 +36,9 @@ export const DS160Schema = z
     otherNationalityDetails: optionalString(),
     hasOtherResidence: yesNo(),
     otherResidenceCountry: optionalString(),
-    cpf: requiredString("CPF é obrigatório"),
+    cpf: requiredString("CPF é obrigatório").refine((v) => validateCPF(v), {
+      message: "CPF inválido",
+    }),
 
     // 4. Passaporte
     passportNumber: requiredString("Número do passaporte é obrigatório"),

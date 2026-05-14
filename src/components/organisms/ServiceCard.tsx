@@ -45,7 +45,7 @@ interface ServiceCardProps {
       soldOut: string;
       available: string;
     };
-    products: Record<string, { label: string; category: string }>;
+    products: Record<string, { label: string; category: string; subtitle?: string; included?: string[] }>;
     serviceCard: {
       includedFeatures: string;
       accessProcess: string;
@@ -75,7 +75,8 @@ export function ServiceCard({
     category: "",
   };
 
-  const features = service.included.slice(0, 3).map((item) =>
+  const translatedFeatures = labels.products[service.slug]?.included;
+  const features = translatedFeatures || service.included.slice(0, 3).map((item) =>
     item.split(":")[0].replace(/Guia |Checklist |Pacote /, "").trim()
   );
 
@@ -134,7 +135,7 @@ export function ServiceCard({
         </div>
 
         <p className="text-[14px] text-text-muted font-medium leading-relaxed mb-10">
-          {service.subtitle}
+          {labels.products[service.slug]?.subtitle || service.subtitle}
         </p>
 
         <div className="rounded-3xl bg-bg-subtle/80 p-6 sm:p-8 mb-10 flex-1 border border-border">

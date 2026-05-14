@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary": "#263143",
+                      "on-tertiary-container": "#4f5a6e",
+                      "on-secondary-fixed": "#0d1c32",
+                      "on-error": "#690005",
+                      "tertiary-container": "#c6d1e9",
+                      "on-secondary-container": "#abb9d6",
+                      "outline-variant": "#3b494c",
+                      "on-primary-container": "#00626e",
+                      "on-primary-fixed-variant": "#004f58",
+                      "secondary-fixed-dim": "#b9c7e4",
+                      "error": "#ffb4ab",
+                      "surface-dim": "#0c1324",
+                      "surface-container-low": "#151b2d",
+                      "on-secondary-fixed-variant": "#39475f",
+                      "on-tertiary-fixed": "#111c2d",
+                      "on-error-container": "#ffdad6",
+                      "tertiary-fixed": "#d8e3fb",
+                      "background": "#0c1324",
+                      "surface-container-high": "#23293c",
+                      "on-secondary": "#233148",
+                      "tertiary-fixed-dim": "#bcc7de",
+                      "surface-variant": "#2e3447",
+                      "secondary-container": "#3c4962",
+                      "surface": "#0c1324",
+                      "on-primary-fixed": "#001f24",
+                      "on-tertiary-fixed-variant": "#3c475a",
+                      "surface-container-highest": "#2e3447",
+                      "surface-tint": "#00daf3",
+                      "secondary": "#b9c7e4",
+                      "primary-fixed": "#9cf0ff",
+                      "on-background": "#dce1fb",
+                      "tertiary": "#e6edff",
+                      "primary": "#c3f5ff",
+                      "on-surface": "#dce1fb",
+                      "surface-bright": "#33394c",
+                      "error-container": "#93000a",
+                      "outline": "#849396",
+                      "surface-container-lowest": "#070d1f",
+                      "on-primary": "#00363d",
+                      "inverse-primary": "#006875",
+                      "secondary-fixed": "#d6e3ff",
+                      "surface-container": "#191f31",
+                      "primary-container": "#00e5ff",
+                      "primary-fixed-dim": "#00daf3",
+                      "on-surface-variant": "#bac9cc",
+                      "inverse-on-surface": "#2a3043",
+                      "inverse-surface": "#dce1fb"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "stack-sm": "8px",
+                      "stack-md": "16px",
+                      "stack-lg": "32px",
+                      "container-max": "1440px",
+                      "gutter": "24px",
+                      "unit": "4px",
+                      "margin": "40px"
+              },
+              "fontFamily": {
+                      "headline-md": ["Inter"],
+                      "body-md": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "label-caps": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-sm": ["Inter"],
+                      "body-sm": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                      "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                      "headline-sm": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                      "body-sm": ["14px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary-container selection:text-on-primary-container">
+<!-- Header Section -->
+<header class="fixed top-0 w-full z-50 bg-white/5 dark:bg-slate-900/95 backdrop-blur-md border-b border-outline-variant shadow-sm">
+<div class="max-w-[1280px] mx-auto w-full flex justify-between items-center px-6 py-4">
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center w-10 h-10 rounded-md hover:bg-surface-variant transition-all active:scale-95 duration-200 text-primary-fixed-dim">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<div class="flex flex-col">
+<h1 class="text-headline-sm font-headline-sm text-on-surface">Logs de Interação - Checkout</h1>
+<span class="text-label-caps font-label-caps text-outline tracking-widest">ADMINISTRAÇÃO JURÍDICA</span>
+</div>
+</div>
+<div class="hidden md:flex items-center gap-4">
+<span class="text-body-sm font-body-sm text-outline">Aplikei Legal Technology</span>
+<span class="material-symbols-outlined text-primary-fixed-dim" data-icon="account_balance">account_balance</span>
+</div>
+</div>
+</header>
+<main class="pt-28 pb-12 max-w-[1280px] mx-auto px-6">
+<!-- Filter Section -->
+<section class="mb-stack-lg">
+<div class="bg-surface-container border border-outline-variant p-stack-md flex flex-wrap items-center justify-between gap-gutter">
+<div class="flex flex-wrap gap-stack-sm">
+<button class="bg-primary-fixed-dim text-on-primary-fixed px-stack-md py-unit rounded-lg font-label-caps text-label-caps hover:opacity-90 transition-all active:scale-95">
+                        Últimas 24h
+                    </button>
+<button class="border border-outline-variant text-on-surface-variant px-stack-md py-unit rounded-lg font-label-caps text-label-caps hover:bg-surface-variant transition-all active:scale-95">
+                        Erros
+                    </button>
+<button class="border border-outline-variant text-on-surface-variant px-stack-md py-unit rounded-lg font-label-caps text-label-caps hover:bg-surface-variant transition-all active:scale-95">
+                        Warnings
+                    </button>
+</div>
+<div class="relative flex-grow max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg pl-10 pr-4 py-2 text-body-sm font-body-sm text-on-surface focus:outline-none focus:border-primary-fixed-dim focus:ring-1 focus:ring-primary-fixed-dim transition-all" placeholder="Filtrar por IP..." type="text"/>
+</div>
+</div>
+</section>
+<!-- Log List -->
+<section class="space-y-unit">
+<!-- Table Header (Labels) -->
+<div class="grid grid-cols-12 gap-gutter px-stack-md py-stack-sm text-label-caps font-label-caps text-outline border-b border-outline-variant/30">
+<div class="col-span-5 md:col-span-4">EVENTO / STATUS</div>
+<div class="hidden md:block col-span-3">DETALHES DA CONEXÃO</div>
+<div class="hidden md:block col-span-3">TIMESTAMPS</div>
+<div class="col-span-7 md:col-span-2 text-right">AÇÕES</div>
+</div>
+<!-- Log Entry 1: Success -->
+<div class="grid grid-cols-12 gap-gutter items-center bg-surface-container-low hover:bg-surface-container border border-outline-variant/20 p-stack-md transition-colors group">
+<div class="col-span-5 md:col-span-4 flex items-center gap-stack-md">
+<div class="w-10 h-10 flex items-center justify-center bg-primary-container/10 rounded-lg text-primary-fixed-dim border border-primary-fixed-dim/20">
+<span class="material-symbols-outlined" data-icon="credit_card">credit_card</span>
+</div>
+<div>
+<p class="text-body-md font-body-md text-on-surface group-hover:text-primary-fixed-dim transition-colors">Confirmação de Pagamento</p>
+<span class="inline-flex items-center px-2 py-0.5 rounded-sm bg-on-primary-container/20 text-primary-container text-[10px] font-bold uppercase tracking-tighter">SUCESSO</span>
+</div>
+</div>
+<div class="hidden md:block col-span-3 space-y-1">
+<div class="flex items-center gap-2 text-body-sm font-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]" data-icon="public">public</span>
+                        187.45.122.9
+                    </div>
+<div class="flex items-center gap-2 text-body-sm font-body-sm text-outline">
+<span class="material-symbols-outlined text-[16px]" data-icon="location_on">location_on</span>
+                        São Paulo, BR
+                    </div>
+</div>
+<div class="hidden md:block col-span-3 space-y-1">
+<p class="text-body-sm font-body-sm text-on-surface-variant">24 Out 2024, 14:22:10</p>
+<p class="text-body-sm font-body-sm text-outline flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="devices">devices</span>
+                        Chrome / MacOS
+                    </p>
+</div>
+<div class="col-span-7 md:col-span-2 flex justify-end">
+<button class="flex items-center gap-2 text-label-caps font-label-caps text-primary-fixed-dim hover:text-primary-fixed transition-colors">
+                        DETALHES
+                        <span class="material-symbols-outlined text-[18px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Log Entry 2: Error -->
+<div class="grid grid-cols-12 gap-gutter items-center bg-surface-container-low hover:bg-surface-container border border-outline-variant/20 p-stack-md transition-colors group">
+<div class="col-span-5 md:col-span-4 flex items-center gap-stack-md">
+<div class="w-10 h-10 flex items-center justify-center bg-error-container/20 rounded-lg text-error border border-error-container">
+<span class="material-symbols-outlined" data-icon="fingerprint">fingerprint</span>
+</div>
+<div>
+<p class="text-body-md font-body-md text-on-surface group-hover:text-error transition-colors">Tentativa de Pagamento</p>
+<span class="inline-flex items-center px-2 py-0.5 rounded-sm bg-error-container text-error text-[10px] font-bold uppercase tracking-tighter">ERRO</span>
+</div>
+</div>
+<div class="hidden md:block col-span-3 space-y-1">
+<div class="flex items-center gap-2 text-body-sm font-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]" data-icon="public">public</span>
+                        45.112.90.3
+                    </div>
+<div class="flex items-center gap-2 text-body-sm font-body-sm text-outline">
+<span class="material-symbols-outlined text-[16px]" data-icon="location_on">location_on</span>
+                        Miami, USA
+                    </div>
+</div>
+<div class="hidden md:block col-span-3 space-y-1">
+<p class="text-body-sm font-body-sm text-on-surface-variant">24 Out 2024, 14:15:02</p>
+<p class="text-body-sm font-body-sm text-outline flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="devices">devices</span>
+                        Safari / iPhone
+                    </p>
+</div>
+<div class="col-span-7 md:col-span-2 flex justify-end">
+<button class="flex items-center gap-2 text-label-caps font-label-caps text-primary-fixed-dim hover:text-primary-fixed transition-colors">
+                        DETALHES
+                        <span class="material-symbols-outlined text-[18px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Log Entry 3: Warning -->
+<div class="grid grid-cols-12 gap-gutter items-center bg-surface-container-low hover:bg-surface-container border border-outline-variant/20 p-stack-md transition-colors group">
+<div class="col-span-5 md:col-span-4 flex items-center gap-stack-md">
+<div class="w-10 h-10 flex items-center justify-center bg-secondary-container/20 rounded-lg text-secondary-fixed-dim border border-secondary-container">
+<span class="material-symbols-outlined" data-icon="shopping_cart_checkout">shopping_cart_checkout</span>
+</div>
+<div>
+<p class="text-body-md font-body-md text-on-surface group-hover:text-secondary-fixed-dim transition-colors">Início de Checkout</p>
+<span class="inline-flex items-center px-2 py-0.5 rounded-sm bg-secondary-container text-secondary-fixed-dim text-[10px] font-bold uppercase tracking-tighter">AVISO</span>
+</div>
+</div>
+<div class="hidden md:block col-span-3 space-y-1">
+<div class="flex items-center gap-2 text-body-sm font-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]" data-icon="public">public</span>
+                        172.16.254.1
+                    </div>
+<div class="flex items-center gap-2 text-body-sm font-body-sm text-outline">
+<span class="material-symbols-outlined text-[16px]" data-icon="location_on">location_on</span>
+                        Lisboa, PT
+                    </div>
+</div>
+<div class="hidden md:block col-span-3 space-y-1">
+<p class="text-body-sm font-body-sm text-on-surface-variant">24 Out 2024, 13:58:45</p>
+<p class="text-body-sm font-body-sm text-outline flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="devices">devices</span>
+                        Firefox / Linux
+                    </p>
+</div>
+<div class="col-span-7 md:col-span-2 flex justify-end">
+<button class="flex items-center gap-2 text-label-caps font-label-caps text-primary-fixed-dim hover:text-primary-fixed transition-colors">
+                        DETALHES
+                        <span class="material-symbols-outlined text-[18px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Log Entry 4: Success -->
+<div class="grid grid-cols-12 gap-gutter items-center bg-surface-container-low hover:bg-surface-container border border-outline-variant/20 p-stack-md transition-colors group">
+<div class="col-span-5 md:col-span-4 flex items-center gap-stack-md">
+<div class="w-10 h-10 flex items-center justify-center bg-primary-container/10 rounded-lg text-primary-fixed-dim border border-primary-fixed-dim/20">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</div>
+<div>
+<p class="text-body-md font-body-md text-on-surface group-hover:text-primary-fixed-dim transition-colors">Validação de Identidade</p>
+<span class="inline-flex items-center px-2 py-0.5 rounded-sm bg-on-primary-container/20 text-primary-container text-[10px] font-bold uppercase tracking-tighter">SUCESSO</span>
+</div>
+</div>
+<div class="hidden md:block col-span-3 space-y-1">
+<div class="flex items-center gap-2 text-body-sm font-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]" data-icon="public">public</span>
+                        191.22.45.12
+                    </div>
+<div class="flex items-center gap-2 text-body-sm font-body-sm text-outline">
+<span class="material-symbols-outlined text-[16px]" data-icon="location_on">location_on</span>
+                        New York, USA
+                    </div>
+</div>
+<div class="hidden md:block col-span-3 space-y-1">
+<p class="text-body-sm font-body-sm text-on-surface-variant">24 Out 2024, 13:40:12</p>
+<p class="text-body-sm font-body-sm text-outline flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="devices">devices</span>
+                        Edge / Windows
+                    </p>
+</div>
+<div class="col-span-7 md:col-span-2 flex justify-end">
+<button class="flex items-center gap-2 text-label-caps font-label-caps text-primary-fixed-dim hover:text-primary-fixed transition-colors">
+                        DETALHES
+                        <span class="material-symbols-outlined text-[18px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Pagination/Footer Actions -->
+<div class="mt-stack-lg flex items-center justify-between border-t border-outline-variant pt-stack-md">
+<span class="text-body-sm font-body-sm text-outline">Exibindo 4 de 1,240 eventos de log</span>
+<div class="flex gap-2">
+<button class="p-2 bg-surface-container border border-outline-variant hover:bg-surface-variant rounded transition-all">
+<span class="material-symbols-outlined text-on-surface" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="p-2 bg-surface-container border border-outline-variant hover:bg-surface-variant rounded transition-all">
+<span class="material-symbols-outlined text-on-surface" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Detailed View Mock (As requested in "Technical Detail") -->
+<div class="fixed bottom-6 right-6 max-w-sm w-full bg-surface-container-high border-t-2 border-primary-fixed-dim shadow-2xl p-stack-md z-40 hidden md:block backdrop-blur-xl">
+<div class="flex justify-between items-center mb-stack-md">
+<h3 class="text-label-caps font-label-caps text-primary-fixed-dim">RAW DATA SNIPPET</h3>
+<span class="material-symbols-outlined text-outline cursor-pointer" data-icon="close">close</span>
+</div>
+<div class="bg-surface-container-lowest p-stack-sm rounded-lg overflow-hidden border border-outline-variant/30">
+<pre class="text-[10px] font-mono text-on-surface-variant leading-tight">{
+  "event_id": "log_8x99120",
+  "action": "PAYMENT_INIT",
+  "metadata": {
+    "gateway": "Stripe_V3",
+    "currency": "USD",
+    "risk_score": 0.02
+  },
+  "ip_context": "proxy_detected: false"
+}
+            </pre>
+</div>
+<button class="mt-stack-md w-full py-2 bg-primary-fixed-dim text-on-primary-fixed font-label-caps text-[10px] hover:opacity-90 transition-opacity">
+            EXPANDIR JSON COMPLETO
+        </button>
+</div>
+<!-- Footer Component -->
+<footer class="w-full py-12 bg-gray-50 dark:bg-slate-950 border-t border-gray-200 dark:border-gray-800">
+<div class="max-w-[1280px] mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+<div class="flex flex-col gap-2">
+<span class="text-lg font-black text-slate-900 dark:text-white">Aplikei</span>
+<p class="font-sans text-xs leading-relaxed text-gray-500 dark:text-gray-400">© 2024 Aplikei Legal Technology. Precision, trust, and efficiency for modern immigration law.</p>
+</div>
+<nav class="flex flex-wrap md:justify-end gap-6">
+<a class="text-gray-500 dark:text-gray-400 font-sans text-xs hover:underline decoration-blue-500 underline-offset-4 transition-opacity" href="#">Product</a>
+<a class="text-gray-500 dark:text-gray-400 font-sans text-xs hover:underline decoration-blue-500 underline-offset-4 transition-opacity" href="#">Solutions</a>
+<a class="text-gray-500 dark:text-gray-400 font-sans text-xs hover:underline decoration-blue-500 underline-offset-4 transition-opacity" href="#">Compliance</a>
+<a class="text-gray-500 dark:text-gray-400 font-sans text-xs hover:underline decoration-blue-500 underline-offset-4 transition-opacity" href="#">Pricing</a>
+<a class="text-gray-500 dark:text-gray-400 font-sans text-xs hover:underline decoration-blue-500 underline-offset-4 transition-opacity" href="#">Privacy Policy</a>
+</nav>
+</div>
+</footer>
+</body></html>

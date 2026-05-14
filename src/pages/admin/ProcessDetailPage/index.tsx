@@ -224,116 +224,6 @@ function ProcessFlowPanel({
 }
 
 
-function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientName: string }) {
-  const [logs, setLogs] = React.useState<ProcessLog[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const t = useT("admin");
-
-  React.useEffect(() => {
-    async function fetchLogs() {
-      setLoading(true);
-      const { data } = await supabase
-        .from("process_logs")
-        .select("*")
-        .eq("user_service_id", serviceId)
-        .order("created_at", { ascending: false })
-        .limit(30);
-      setLogs((data || []) as ProcessLog[]);
-      setLoading(false);
-    }
-    fetchLogs();
-  }, [serviceId]);
-
-  const formatDate = (dt: string) =>
-    new Date(dt).toLocaleString(t.shared.locale || "pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
-
-  const getStatusLabel = (s?: string) => {
-    const map: Record<string, string> = {
-      active: t.processDetail.logs.status.active,
-      awaiting_review: t.processDetail.logs.status.awaitingReview,
-      completed: t.processDetail.logs.status.completed,
-      rejected: t.processDetail.logs.status.rejected,
-    };
-    return s ? (map[s] || s) : "—";
-  };
-
-  const getActorLabel = (log: ProcessLog) => {
-    if (log.actor_name) return log.actor_name;
-    if (log.actor_role === "admin") return t.processDetail.logs.actor.admin;
-    return clientName || t.processDetail.logs.actor.client;
-  };
-
-  const getActorColor = (log: ProcessLog) => {
-    if (log.actor_role === "admin") return "bg-primary/10 text-primary border border-primary/20";
-    return "bg-info/10 text-info border border-info/20";
-  };
-
-  const getActionDescription = (log: ProcessLog) => {
-    // 1. Prioridade absoluta para a mensagem do banco de dados (nossa nova lógica clear)
-    if (log.message) return log.message;
-    if (log.action) return log.action;
-
-    const stepChanged = log.previous_step !== log.new_step;
-    const statusChanged = log.previous_status !== log.new_status;
-
-    if (log.actor_role === "admin") {
-      if (stepChanged && (log.new_step ?? 0) > (log.previous_step ?? 0)) return t.processDetail.logs.actions.approved;
-      if (statusChanged && log.new_status === "active" && log.previous_status === "awaiting_review") return t.processDetail.logs.actions.returned;
-      if (statusChanged && log.new_status === "awaiting_review") return t.processDetail.logs.actions.inReview;
-      if (statusChanged && log.new_status === "completed") return t.processDetail.logs.actions.completed;
-    } else {
-      if (stepChanged) return t.processDetail.logs.actions.formSubmitted;
-      if (statusChanged && log.new_status === "awaiting_review") return t.processDetail.logs.actions.sentForReview;
-    }
-    return t.processDetail.logs.actions.internalChange;
-  };
-
-  return (
-    <div className="bg-card rounded-[32px] border border-border shadow-sm p-6">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-8 h-8 rounded-xl bg-text flex items-center justify-center">
-          <RiTimeLine className="text-bg text-sm" />
-        </div>
-        <h3 className="font-black text-text text-sm uppercase tracking-tight">{t.processDetail.logs.title}</h3>
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-8">
-          <RiLoader4Line className="animate-spin text-2xl text-text-muted" />
-        </div>
-      ) : logs.length === 0 ? (
-        <p className="text-xs text-text-muted text-center py-6 font-medium">{t.processDetail.logs.noLogs}</p>
-      ) : (
-        <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-          {logs.map((log) => (
-            <div key={log.id} className="flex gap-3 items-start">
-              <div className="mt-1 w-6 h-6 rounded-full bg-bg-subtle flex items-center justify-center shrink-0">
-                <RiUser3Line className="text-text-muted text-xs" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${getActorColor(log)}`}>
-                    {getActorLabel(log)}
-                  </span>
-                  <span className="text-[9px] text-text-muted font-bold">{formatDate(log.created_at)}</span>
-                </div>
-                <p className="text-[11px] text-text font-bold">{getActionDescription(log)}</p>
-                <div className="text-[10px] text-text-muted font-medium space-y-0.5 mt-0.5">
-                  {log.previous_step !== log.new_step && (
-                    <p>{t.processDetail.logs.labels.step} <span className="text-text font-black">{(log.previous_step ?? 0) + 1}</span> → <span className="text-primary font-black">{(log.new_step ?? 0) + 1}</span></p>
-                  )}
-                  {log.previous_status !== log.new_status && (
-                    <p>{t.processDetail.logs.labels.status}: <span className="text-text-muted font-black">{getStatusLabel(log.previous_status)}</span> → <span className="text-text font-black">{getStatusLabel(log.new_status)}</span></p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function CollapsibleStep({
   title,
@@ -2339,10 +2229,7 @@ export default function AdminProcessDetailPage() {
           <PurchasesPanel stepData={(proc?.step_data as any) || {}} />
 
 
-          <ProcessLogPanel
-            serviceId={proc.id}
-            clientName={proc.user_accounts?.full_name || proc.user_accounts?.email || "Cliente"}
-          />
+
         </div>
       </div>
 
