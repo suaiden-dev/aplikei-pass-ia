@@ -623,7 +623,7 @@ export const appRoutes: AppRouteDefinition[] = [
         component: B1B2OnboardingPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
-        layout: "customer",
+        layout: "standalone",
     },
     {
         path: "/dashboard/processes/visto-b1-b2-reaplicacao/onboarding",
@@ -631,7 +631,7 @@ export const appRoutes: AppRouteDefinition[] = [
         component: B1B2OnboardingPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
-        layout: "customer",
+        layout: "standalone",
     },
     {
         path: "/dashboard/processes/visa-b1b2/onboarding",
@@ -639,7 +639,7 @@ export const appRoutes: AppRouteDefinition[] = [
         component: B1B2OnboardingPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
-        layout: "customer",
+        layout: "standalone",
     },
     {
         path: "/dashboard/processes/visa-b1b2-reaplicacao/onboarding",
@@ -647,7 +647,7 @@ export const appRoutes: AppRouteDefinition[] = [
         component: B1B2OnboardingPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
-        layout: "customer",
+        layout: "standalone",
     },
     {
         path: "/dashboard/processes/visto-f1/onboarding",
@@ -655,7 +655,7 @@ export const appRoutes: AppRouteDefinition[] = [
         component: F1OnboardingPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
-        layout: "customer",
+        layout: "standalone",
     },
     {
         path: "/dashboard/processes/visto-f1-reaplicacao/onboarding",
@@ -663,7 +663,7 @@ export const appRoutes: AppRouteDefinition[] = [
         component: F1OnboardingPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
-        layout: "customer",
+        layout: "standalone",
     },
     {
         path: "/dashboard/processes/visa-f1/onboarding",
@@ -671,7 +671,7 @@ export const appRoutes: AppRouteDefinition[] = [
         component: F1OnboardingPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
-        layout: "customer",
+        layout: "standalone",
     },
     {
         path: "/dashboard/processes/visa-f1-reaplicacao/onboarding",
@@ -679,7 +679,7 @@ export const appRoutes: AppRouteDefinition[] = [
         component: F1OnboardingPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
-        layout: "customer",
+        layout: "standalone",
     },
     {
         path: "/dashboard/processes/extensao-status/onboarding",
@@ -687,7 +687,7 @@ export const appRoutes: AppRouteDefinition[] = [
         component: COSOnboardingPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
-        layout: "customer",
+        layout: "standalone",
     },
     {
         path: "/dashboard/processes/troca-status/onboarding",
@@ -695,7 +695,7 @@ export const appRoutes: AppRouteDefinition[] = [
         component: COSOnboardingPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
-        layout: "customer",
+        layout: "standalone",
     },
     {
         path: "/dashboard/processes/:slug/onboarding",
@@ -703,7 +703,7 @@ export const appRoutes: AppRouteDefinition[] = [
         component: COSOnboardingPage,
         authRequired: true,
         accessLevels: [AccessLevel.CUSTOMER],
-        layout: "customer",
+        layout: "standalone",
     },
     {
         path: "/dashboard/processes/:slug",

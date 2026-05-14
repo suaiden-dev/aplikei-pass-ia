@@ -148,6 +148,16 @@ const common = {
       closedAdmin: "Conversation closed. Reopen to continue.",
       closedCustomer: "This chat has been closed by the specialist. Register your Motion result in the dashboard."
     }
+  },
+  docUpload: {
+    uploadFile: "Upload File",
+    fileSelected: "File Selected",
+    newFileSelected: "New File",
+    needsCorrection: "Needs Correction",
+    requiredDocument: "Required Document",
+    pending: "Pending",
+    updated: "Updated",
+    ready: "Ready"
   }
 };
 export { common };

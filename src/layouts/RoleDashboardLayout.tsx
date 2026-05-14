@@ -407,7 +407,7 @@ export function RoleDashboardLayout({
           <button
             type="button"
             onClick={toggleCollapsed}
-            title={collapsed ? tProfile.expandSidebar : tProfile.collapseSidebar}
+            title={collapsed ? (tProfile.expandSidebar || "Expand") : (tProfile.collapseSidebar || "Collapse")}
             className={cn(
               "hidden lg:flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text",
               collapsed && "justify-center px-2",
@@ -416,7 +416,7 @@ export function RoleDashboardLayout({
             {collapsed ? <ChevronRight className="h-4 w-4 shrink-0" /> : (
               <>
                 <ChevronLeft className="h-4 w-4 shrink-0" />
-                <span>{tProfile.collapseSidebar.split(' ')[0]}</span>
+                <span>{(tProfile.collapseSidebar || "Collapse").split(' ')[0]}</span>
               </>
             )}
           </button>

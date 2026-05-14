@@ -64,9 +64,6 @@ export function CustomerLayout() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <img src="/logo.png" alt="Aplikei" className="h-10 w-auto object-contain" />
-                <div className="ml-1">
-                  <NotificationBell role="client" theme="dark" align="left" />
-                </div>
               </div>
               
               <button 

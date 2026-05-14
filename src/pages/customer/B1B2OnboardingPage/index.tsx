@@ -96,7 +96,7 @@ export default function B1B2OnboardingPage() {
   return (
     <div className='min-h-screen bg-bg pb-24'>
       <div className='bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-30 shadow-sm'>
-        <div className='max-w-4xl mx-auto px-6 h-18 py-4 flex items-center justify-between'>
+        <div className='max-w-4xl mx-auto px-6 h-[72px] py-4 flex items-center justify-between'>
           <div className='flex items-center gap-4'>
             <button
               type='button'

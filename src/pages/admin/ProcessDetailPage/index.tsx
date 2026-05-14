@@ -1323,7 +1323,7 @@ export default function AdminProcessDetailPage() {
         }
       }
 
-      const isConsular = proc.service_slug.includes("b1b2") || proc.service_slug.includes("f1");
+      const isConsular = proc.service_slug.includes("b1b2") || proc.service_slug.includes("b1-b2") || proc.service_slug.includes("f1");
 
       const additionalData = { ...extraData };
       if (currentStepBaseId === 'cos_analysis_presentation_letter') {
@@ -1387,7 +1387,7 @@ export default function AdminProcessDetailPage() {
     if (!rejectionReason || isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const isB1B2 = proc.service_slug.includes("b1b2");
+      const isB1B2 = proc.service_slug.includes("b1b2") || proc.service_slug.includes("b1-b2");
       const isF1 = proc.service_slug.includes("f1");
       const isFinal = currentStepIdx >= effectiveSteps.length - 1;
 
@@ -1874,7 +1874,7 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderB1B2CredentialsAdmin = () => {
-    if (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("f1")) return null;
+    if (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("b1-b2") && !proc.service_slug.includes("f1")) return null;
     const isActive = currentStepBaseId === "b1b2_admin_credentials" || currentStepBaseId === "f1_admin_credentials";
     const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 3 : 2);
 
@@ -1888,7 +1888,7 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderB1B2FinalDocsAdmin = () => {
-    if (!proc.service_slug.includes("b1b2")) return null;
+    if (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("b1-b2")) return null;
     const isActive = currentStepBaseId === "b1b2_admin_final_analysis";
     const isPast = currentStepIdx > 4;
 
@@ -1967,7 +1967,7 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderB1B2CASVAdmin = () => {
-    if (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("f1")) return null;
+    if (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("b1-b2") && !proc.service_slug.includes("f1")) return null;
     const isActive = currentStepBaseId === "b1b2_casv_scheduling" || currentStepBaseId === "f1_casv_scheduling";
     const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 6 : 5);
     if (!isActive && !isPast) return null;
@@ -2044,7 +2044,7 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderB1B2AccountCreationAdmin = () => {
-    if (!proc || (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("f1"))) return null;
+    if (!proc || (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("b1-b2") && !proc.service_slug.includes("f1"))) return null;
     const isActive = currentStepBaseId === "b1b2_admin_account_creation" || currentStepBaseId === "f1_admin_account_creation";
     const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 7 : 6);
     if (!isActive && !isPast) return null;
@@ -2091,7 +2091,7 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderB1B2MRVSetupAdmin = () => {
-    if (!proc || (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("f1"))) return null;
+    if (!proc || (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("b1-b2") && !proc.service_slug.includes("f1"))) return null;
     const isActive = currentStepBaseId === "b1b2_admin_mrv_setup" || currentStepBaseId === "f1_admin_mrv_setup";
     const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 9 : 8);
     if (!isActive && !isPast) return null;
@@ -2103,7 +2103,7 @@ export default function AdminProcessDetailPage() {
     );
   };
   const renderB1B2FinalSchedulingAdmin = () => {
-    if (!proc || (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("f1"))) return null;
+    if (!proc || (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("b1-b2") && !proc.service_slug.includes("f1"))) return null;
     const isActive = currentStepBaseId === "b1b2_final_scheduling" || currentStepBaseId === "f1_final_scheduling";
     const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 11 : 10);
     if (!isActive && !isPast) return null;
