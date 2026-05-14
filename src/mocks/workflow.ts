@@ -246,16 +246,16 @@ function syncLegacyUserService(instanceId: string) {
   }, {});
 
   const existingServices = readUserServices();
-  const nextService: UserService = {
+  const nextService = {
     id: instance.id,
     user_id: instance.user_id,
     service_slug: product.slug,
     status: deriveLegacyStatus(instance, steps),
     current_step: deriveLegacyCurrentStep(steps),
-    step_data: mergedStepData,
+    step_data: mergedStepData as any,
     created_at: instance.created_at,
     updated_at: instance.updated_at,
-  };
+  } as unknown as UserService;
 
   const existingIndex = existingServices.findIndex((service) => service.id === instance.id);
   if (existingIndex >= 0) {

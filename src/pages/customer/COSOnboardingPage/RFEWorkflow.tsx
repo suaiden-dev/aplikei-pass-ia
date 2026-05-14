@@ -35,6 +35,7 @@ import { getServiceBySlug } from "../../../data/services";
 import { cn } from "../../../utils/cn";
 import { useT } from "../../../i18n";
 import { normalizeLegacyFinalShipStep } from "../../../utils/legacyWorkflow";
+import type { RFEOutcome } from "../../../models/process.model";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -346,7 +347,7 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayP
 
 function RFEHistoryPanel({ proc }: { proc: UserService }) {
   const t = useT("onboarding");
-  const data = (proc.step_data || {}) as Record<string, unknown>;
+  const data = (proc.step_data as any || {}) as Record<string, unknown>;
   const history = (data.rfe_history as RFEHistoryItem[]) || [];
 
   if (history.length === 0) return null;
@@ -525,7 +526,7 @@ export function RFEExplanationStep({ proc }: StepProps) {
 
 export function RFEInstructionStep({ proc, onComplete }: StepProps) {
   const t = useT("onboarding");
-  const data = (proc.step_data || {}) as Record<string, unknown>;
+  const data = (proc.step_data as any || {}) as Record<string, unknown>;
 
   const handleFileUpload = async (file: File) => {
     try {
@@ -629,7 +630,7 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
 
 export function RFEAcceptProposalStep({ proc }: StepProps) {
   const t = useT("onboarding");
-  const data = (proc.step_data || {}) as Record<string, unknown>;
+  const data = (proc.step_data as any || {}) as Record<string, unknown>;
   const [showCheckout, setShowCheckout] = useState(false);
 
 
@@ -688,7 +689,8 @@ export function RFEAcceptProposalStep({ proc }: StepProps) {
 export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, onRFEResult }: StepProps) {
   const t = useT("onboarding");
   const [loading, setLoading] = useState(false);
-  const data = (proc.step_data || {}) as Record<string, unknown>;
+  const data = (proc.step_data as any || {}) as Record<string, unknown>;
+  const rfeResult = data.uscis_rfe_result as string | undefined;
   const docs = (data.docs as Record<string, string>) || {};
   const rfeFinalPath = docs.rfe_final_package;
   const rfeFinalUrl = rfeFinalPath ? supabase.storage.from('aplikei-profiles').getPublicUrl(rfeFinalPath).data.publicUrl : null;
@@ -815,15 +817,15 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
           </button>
         </div>
 
-        {data.uscis_rfe_result && (
+        {rfeResult && (
           <div className='mt-8 rounded-3xl bg-slate-50 border border-slate-100 p-8 text-center'>
             <p className='text-xs font-black uppercase tracking-widest text-slate-400 mb-2'>
               Resultado Final Informado
             </p>
             <p className='text-base font-black text-slate-800'>
-              {data.uscis_rfe_result === 'approved'
+              {rfeResult === 'approved'
                 ? 'RFE aprovada. Processo finalizado!'
-                : data.uscis_rfe_result === 'rfe'
+                : rfeResult === 'rfe'
                   ? 'Novo ciclo de RFE iniciado.'
                   : 'RFE negada. Iniciando fluxo de Motion.'}
             </p>

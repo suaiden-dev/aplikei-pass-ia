@@ -8,7 +8,7 @@ import {
 import { toast } from 'sonner'
 import { useT } from '../../../i18n'
 import {
-  processService,
+  updateStepData,
   type UserService,
 } from '../../../features/process/lib/processOps'
 
@@ -28,7 +28,7 @@ export function MotionAcquisitionStep({ proc, onComplete }: Props) {
   const handleAcquire = async () => {
     setLoading(true)
     try {
-      await processService.updateStepData(proc.id, {
+      await updateStepData(proc.id, {
         workflow_status: 'awaiting_user_input',
         motion_started_at: new Date().toISOString(),
       })

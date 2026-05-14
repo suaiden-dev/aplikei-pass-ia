@@ -12,6 +12,7 @@ export interface ActiveProcess {
   isApproved: boolean;
   isDenied: boolean;
   isFinalized: boolean;
+  displaySlug?: string;
 }
 
 export interface DashboardLabels {
@@ -163,7 +164,11 @@ export function useDashboardController({
   const baseProducts = useMemo(() => {
     return userServices
       .filter(s => !isAnalysisSlug(s.service_slug))
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      .sort((a, b) => {
+        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+        return bTime - aTime;
+      });
   }, [userServices]);
 
   const others = useMemo(() => {
@@ -174,11 +179,12 @@ export function useDashboardController({
       const isF1 = s.service_slug.startsWith("visto-f1");
       const isCOS = s.service_slug === 'troca-status' || s.service_slug === 'extensao-status';
 
-      if (['completed', 'rejected', 'denied', 'cancelled'].includes(s.status)) return true;
+      const status = s.status ?? "";
+      if (['completed', 'rejected', 'denied', 'cancelled'].includes(status)) return true;
       if ((isB1B2 || isF1) && stepData.interview_outcome) return true;
       if (isCOS && (s.current_step ?? 0) >= 19) return true;
 
-      if (activeStatuses.includes(s.status)) {
+      if (activeStatuses.includes(status)) {
          if (newestActiveSlugs.has(s.service_slug)) return true;
          newestActiveSlugs.add(s.service_slug);
       }
@@ -189,7 +195,7 @@ export function useDashboardController({
   const trulyActiveProcesses = useMemo(() => {
     return baseProducts
       .filter((s) =>
-        activeStatuses.includes(s.status) &&
+        activeStatuses.includes(s.status ?? "") &&
         !others.find(o => o.id === s.id) &&
         servicesData.some(sd => sd.slug === s.service_slug) &&
         !isAnalysisSlug(s.service_slug)
@@ -227,6 +233,7 @@ export function useDashboardController({
           isApproved,
           isDenied,
           isFinalized,
+          displaySlug: proc.service_slug,
         };
       });
   }, [baseProducts, activeStatuses, others]);

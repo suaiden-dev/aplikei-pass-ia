@@ -70,8 +70,8 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
 
   // Load saved data
   useEffect(() => {
-    if (proc.step_data?.coverLetter) {
-      setData(proc.step_data.coverLetter as CoverLetterData);
+    if ((proc.step_data as any)?.coverLetter) {
+      setData((proc.step_data as any).coverLetter as CoverLetterData);
     }
   }, [proc, user]);
 

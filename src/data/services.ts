@@ -216,7 +216,7 @@ export const servicesData: ServiceMeta[] = [
       { id: "b1b2_user_confirm_email", title: "Confirmação de E-mail", description: "Validação da conta consular.", type: "form" },
       { id: "b1b2_admin_mrv_setup", title: "Geração de Taxa MRV", description: "Emissão do boleto da taxa consular.", type: "admin_action" },
       { id: "b1b2_user_mrv_payment", title: "Pagamento da Taxa", description: "Confirmação do pagamento da taxa consular.", type: "form" },
-      { id: "f1_final_scheduling", title: "Agendamento Final", description: "Confirmação da data da entrevista.", type: "admin_action" },
+      { id: "b1b2_final_scheduling", title: "Agendamento Final", description: "Confirmação da data da entrevista.", type: "admin_action" },
     ],
     faq: [],
   },

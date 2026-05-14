@@ -129,6 +129,20 @@ export default function App() {
               ))}
             </Route>
 
+            <Route path="/manager" element={<AdminDashboardLayout />}>
+              {adminSharedRoutes.map((route) => (
+                <Route
+                  key={`manager-${route.path}`}
+                  element={<RoleRoute allowedRoles={(route.accessLevels as UserRole[] | undefined) ?? []} />}
+                >
+                  <Route
+                    path={nestedPath(appendToBase("/manager", route.path), "/manager")}
+                    element={<route.component />}
+                  />
+                </Route>
+              ))}
+            </Route>
+
             <Route path="/seller" element={<SellerDashboardLayout />}>
               {sellerActiveRoutes.map((route) => (
                 <Route key={route.path} path={nestedPath(route.path, "/seller")} element={<route.component />} />

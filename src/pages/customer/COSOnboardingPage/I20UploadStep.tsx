@@ -47,7 +47,7 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const docs = (proc.step_data?.docs as Record<string, string>) || {};
+    const docs = ((proc.step_data as any)?.docs as Record<string, string>) || {};
     if (docs.i20_document) {
       setI20Path(docs.i20_document);
     }
@@ -70,7 +70,7 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
       setI20Path(filePath);
       
       // Update step data
-      const currentDocs = (proc.step_data?.docs as Record<string, string>) || {};
+      const currentDocs = ((proc.step_data as any)?.docs as Record<string, string>) || {};
       await processService.updateStepData(proc.id, {
         docs: { ...currentDocs, i20_document: filePath }
       });

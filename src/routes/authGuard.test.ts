@@ -15,6 +15,8 @@ const customerUser: UserAccount = {
   role: "customer",
   createdAt: "2024-01-01T00:00:00.000Z",
   updatedAt: "2024-01-01T00:00:00.000Z",
+  officeId: null,
+  hasCompletedOnboarding: false,
 };
 
 const managerUser: UserAccount = {

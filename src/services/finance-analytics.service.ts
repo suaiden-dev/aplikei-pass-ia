@@ -52,11 +52,12 @@ function normalizeMethod(method?: string | null) {
 }
 
 export const financeAnalyticsService = {
-  async getMonthlyAnalytics(months = 6): Promise<FinanceMonthlyAnalytics[]> {
+  async getMonthlyAnalytics(months = 6, officeId?: string): Promise<FinanceMonthlyAnalytics[]> {
     const safeMonths = Number.isFinite(months) ? Math.min(Math.max(Math.trunc(months), 1), 24) : 6;
 
-    const { data, error } = await supabase.rpc("get_finance_analytics_master", {
+    const { data, error } = await supabase.rpc("get_finance_analytics", {
       p_months: safeMonths,
+      p_office_id: officeId || null,
     });
 
     if (error) {
@@ -70,14 +71,20 @@ export const financeAnalyticsService = {
     }));
   },
 
-  async getRecentTransactions(limit = 50): Promise<FinanceTransaction[]> {
+  async getRecentTransactions(limit = 50, officeId?: string): Promise<FinanceTransaction[]> {
     const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(Math.trunc(limit), 1), 200) : 50;
 
-    const { data, error } = await supabase
-      .from("v_finance_transactions_master")
+    let query = supabase
+      .from("v_finance_analytics_transactions")
       .select("id, created_at, client_name, client_email, office_name, product_slug, total_price_usd, payment_method, payment_status")
       .order("created_at", { ascending: false })
       .limit(safeLimit);
+
+    if (officeId) {
+      query = query.eq("office_id", officeId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       throw new Error(`Erro ao carregar transações recentes: ${error.message}`);

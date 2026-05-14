@@ -8,6 +8,7 @@ export interface UserUpdateInput {
   phone_number?: string;
   avatar_url?: string;
   passport_photo_url?: string;
+  has_completed_onboarding?: boolean;
 }
 
 export interface AuthSession {
@@ -26,6 +27,7 @@ type UserAccountsRow = {
   role: UserAccount["role"];
   office_id: string | null;
   email: string | null;
+  has_completed_onboarding: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -75,8 +77,12 @@ function mapFromUserAccountRow(row: UserAccountsRow): UserAccount {
     passportPhotoUrl: row.passport_photo_url,
     role: row.role,
     officeId: row.office_id ?? null,
+    hasCompletedOnboarding: row.has_completed_onboarding ?? false,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    avatarOffsetX: (row as any).avatar_offset_x ?? 0,
+    avatarOffsetY: (row as any).avatar_offset_y ?? 0,
+    avatarZoom: (row as any).avatar_zoom ?? 1,
   };
 }
 
@@ -110,8 +116,12 @@ function mapFromAuthUser(user: AuthUserRow): UserAccount {
         : null,
     role,
     officeId: typeof metadata.office_id === "string" ? metadata.office_id : null,
+    hasCompletedOnboarding: false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    avatarOffsetX: 0,
+    avatarOffsetY: 0,
+    avatarZoom: 1,
   };
 }
 
@@ -121,7 +131,7 @@ async function fetchAccountById(userId: string): Promise<UserAccount | null> {
   try {
     const { data, error } = await supabase
       .from("user_accounts")
-      .select("id, full_name, phone_number, avatar_url, passport_photo_url, role, office_id, email, created_at, updated_at")
+      .select("id, full_name, phone_number, avatar_url, passport_photo_url, role, office_id, email, has_completed_onboarding, created_at, updated_at")
       .eq("id", userId)
       .maybeSingle();
     if (error || !data) return null;
@@ -249,6 +259,7 @@ export const authService = {
     if (updates.phone_number !== undefined) patch.phone_number = updates.phone_number;
     if (updates.avatar_url !== undefined) patch.avatar_url = updates.avatar_url;
     if (updates.passport_photo_url !== undefined) patch.passport_photo_url = updates.passport_photo_url;
+    if (updates.has_completed_onboarding !== undefined) patch.has_completed_onboarding = updates.has_completed_onboarding;
 
     const { data, error } = await supabase
       .from("user_accounts")

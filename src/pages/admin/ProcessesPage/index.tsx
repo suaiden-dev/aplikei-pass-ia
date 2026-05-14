@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   RiFileListLine,
-  RiCheckLine,
-  RiCloseLine,
   RiUserLine,
   RiSearchLine,
   RiLoader4Line,
@@ -12,16 +10,17 @@ import {
   RiCheckboxCircleLine,
   RiArrowRightSLine,
   RiFilter3Line,
-  RiFilterOffLine
+  RiFilterOffLine,
+  RiCheckDoubleLine
 } from "react-icons/ri";
 import { supabase } from "../../../shared/lib/supabase";
-import * as processService from "../../../features/process/lib/processOps";
 import type { UserService } from "../../../features/process/types";
 import { getServiceBySlug } from "../../../data/services";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useT } from "../../../i18n";
 import { useAuth } from "../../../hooks/useAuth";
+import { RiCalendarLine } from "react-icons/ri";
 
 interface ProcessWithUser extends UserService {
   user_accounts?: {
@@ -29,6 +28,17 @@ interface ProcessWithUser extends UserService {
     email?: string;
   };
   service_name?: string;
+}
+
+function getCurrentStepIndex(process: ProcessWithUser): number {
+  const raw =
+    process.current_step ??
+    (typeof (process.step_data as any)?.current_step === "number"
+      ? (process.step_data as any).current_step
+      : Number((process.step_data as any)?.current_step ?? 0));
+
+  if (!Number.isFinite(raw)) return 0;
+  return Math.max(0, Math.floor(raw));
 }
 
 function isAuxiliarySlug(slug: string) {
@@ -52,13 +62,15 @@ export default function AdminProcessesPage() {
   const t = useT("admin");
   const vt = useT("visas");
   const { user } = useAuth();
-  const processRoutePrefix = user?.role === "master" ? "/master" : "/admin";
+  const processRoutePrefix =
+    user?.role === "master" ? "/master" :
+      user?.role === "manager" ? "/manager" :
+        "/admin";
   const [processes, setProcesses] = useState<ProcessWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedService, setSelectedService] = useState("all");
   const [showOnlyPending, setShowOnlyPending] = useState(false);
-  const [busy, setBusy] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -159,50 +171,6 @@ export default function AdminProcessesPage() {
     return result.filter(p => !isAuxiliarySlug(p.service_slug));
   }, [processes, searchTerm, selectedService, showOnlyPending]);
 
-  const handleApprove = async (p: ProcessWithUser) => {
-    const service = getServiceBySlug(p.service_slug);
-    setBusy(p.id);
-    try {
-      const totalSteps = service?.steps.length ?? 12;
-      const nextStep = (p.current_step ?? 0) + 1;
-      const isFinal = nextStep >= totalSteps;
-      const result = isFinal ? 'approved' : undefined;
-      
-      await processService.approveStep(p.id, nextStep, isFinal, result);
-      
-      toast.success(isFinal ? t.cases.messages.approveFinalSuccess : t.cases.messages.approveSuccess.replace("{name}", p.user_accounts?.full_name || t.shared.client));
-      await load();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : t.shared.error;
-      toast.error(t.cases.messages.errorAction + msg);
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const handleReject = async (p: ProcessWithUser) => {
-    const service = getServiceBySlug(p.service_slug);
-    const totalSteps = service?.steps.length ?? 12;
-    const isFinal = (p.current_step ?? 0) >= totalSteps;
-
-    setBusy(p.id);
-    try {
-      if (isFinal) {
-        await processService.rejectStep(p.id, true, 'denied');
-        toast.success(t.cases.messages.rejectFinalSuccess);
-      } else {
-        await processService.rejectStep(p.id);
-        toast.success(t.cases.messages.rejectSuccess);
-      }
-      await load();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : t.shared.error;
-      toast.error(t.cases.messages.errorAction + msg);
-    } finally {
-      setBusy(null);
-    }
-  };
-
   return (
     <div className="p-8 pb-20 max-w-[1400px] mx-auto">
       <div className="flex items-center justify-between mb-8">
@@ -295,7 +263,7 @@ export default function AdminProcessesPage() {
                 {filteredProcesses.map((p, idx) => {
                   const service = getServiceBySlug(p.service_slug);
                   const totalSteps = service?.steps.length || 12;
-                  const currentStep = p.current_step ?? 0;
+                  const currentStep = getCurrentStepIndex(p);
                   
                   // Derived status/progress
                   const isCOS = p.service_slug === 'troca-status' || p.service_slug === 'extensao-status';
@@ -311,14 +279,14 @@ export default function AdminProcessesPage() {
                     }
                   }
 
-                  const uscisResult = p.step_data?.uscis_official_result as string;
-                  const rfeResult = p.step_data?.rfe_final_result as string;
-                  const motionResult = p.step_data?.motion_final_result as string;
+                  const uscisResult = (p.step_data as any)?.uscis_official_result as string;
+                  const rfeResult = (p.step_data as any)?.rfe_final_result as string;
+                  const motionResult = (p.step_data as any)?.motion_final_result as string;
                   
                   // Approved if any of the phases were approved and no subsequent phase was denied
                   // Denied if the latest phase reached was denied and didn't move forward
                   const isApproved = motionResult === 'approved' || (rfeResult === 'approved' && !motionResult) || (uscisResult === 'approved' && !rfeResult && !motionResult);
-                  const isDenied = p.status === 'rejected' || motionResult === 'denied' || motionResult === 'rejected' || (rfeResult === 'denied' && !motionResult) || (uscisResult === 'denied' && !rfeResult && !motionResult) || (p.step_data?.interview_outcome === 'rejected');
+                  const isDenied = p.status === 'rejected' || motionResult === 'denied' || motionResult === 'rejected' || (rfeResult === 'denied' && !motionResult) || (uscisResult === 'denied' && !rfeResult && !motionResult) || ((p.step_data as any)?.interview_outcome === 'rejected');
                   
                   const isFinalized = p.status === 'completed' || p.status === 'rejected' || isApproved || (isDenied && (currentStep >= totalSteps || p.status === 'rejected'));
 
@@ -364,7 +332,7 @@ export default function AdminProcessesPage() {
                         <div className="flex items-center justify-end gap-6 w-full">
                           <div className="text-right flex flex-col items-end min-w-[160px]">
                             <div className="flex items-center gap-2 mb-2">
-                               <StatusIndicator status={p.status} isApproved={isApproved} isDenied={isDenied} isFinalized={isFinalized} />
+                               <StatusIndicator status={p.status || 'pending'} isApproved={isApproved} isDenied={isDenied} isFinalized={isFinalized} />
                                <p className={`text-[10px] font-black uppercase tracking-tight ${isDenied ? 'text-danger' : isApproved ? 'text-success' : 'text-text'}`}>
                                  {isApproved ? t.cases.statusLabel.uscisApproved : 
                                   isDenied ? t.cases.statusLabel.uscisDenied :
@@ -389,36 +357,12 @@ export default function AdminProcessesPage() {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            {(p.status === "awaiting_review" && !isApproved && !isDenied) ? (
-                              <>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleReject(p); }}
-                                  disabled={!!busy}
-                                  className="p-2.5 rounded-xl border-2 border-border text-text-muted hover:text-danger hover:bg-danger/10 hover:border-danger/20 transition-all flex items-center justify-center disabled:opacity-30 shadow-sm"
-                                  title={currentStep >= totalSteps ? t.cases.actions.rejectUscis : t.cases.actions.reject}
-                                >
-                                  <RiCloseLine className="text-lg" />
-                                </button>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleApprove(p); }}
-                                  disabled={!!busy}
-                                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-success text-white font-black text-[10px] uppercase tracking-widest hover:bg-success/90 shadow-lg shadow-success/20 transition-all active:scale-95 disabled:opacity-50"
-                                >
-                                  {busy === p.id ? (
-                                    <RiLoader4Line className="animate-spin text-base" />
-                                  ) : (
-                                    <>
-                                      <RiCheckLine className="text-base" />
-                                      {currentStep >= totalSteps ? t.cases.actions.approveUscis : t.cases.actions.approve}
-                                    </>
-                                  )}
-                                </button>
-                              </>
-                            ) : (
-                               <button className="p-2.5 rounded-xl border border-border text-text-muted hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all">
-                                 <RiArrowRightSLine className="text-xl" />
-                               </button>
-                            )}
+                             <button 
+                               onClick={() => navigate(`${processRoutePrefix}/processes/${p.id}`)}
+                               className="p-2.5 rounded-xl border border-border text-text-muted hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all"
+                             >
+                               <RiArrowRightSLine className="text-xl" />
+                             </button>
                           </div>
                         </div>
                       </td>

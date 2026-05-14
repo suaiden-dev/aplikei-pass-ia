@@ -14,7 +14,8 @@ import { authService } from "../features/auth/lib/auth";
 import { storageService } from "../shared/storage/profile-photos";
 import { cn } from "../utils/cn";
 import { toast } from "sonner";
-import { useT } from "../i18n";
+import { useT, useLocale, type Language } from "../i18n";
+import { OnboardingModal } from "../components/organisms/OnboardingModal";
 import { useSubscription } from "../features/admin/hooks/useSubscription";
 import { RiLockPasswordLine, RiErrorWarningLine } from "react-icons/ri";
 import { NotificationBell } from "../features/notifications/components/NotificationBell";
@@ -215,9 +216,37 @@ export function RoleDashboardLayout({
   unauthorizedFallback,
 }: RoleDashboardLayoutProps) {
   const tProfile = useT("admin").profile;
+  const { lang, setLang } = useLocale();
   const { theme, toggleTheme } = useTheme();
   const { user: currentUser, logout, refreshAccount } = useAuth();
   const navigate = useNavigate();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [hasDismissedOnboarding, setHasDismissedOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (currentUser?.role === "admin_lawyer" && !currentUser.hasCompletedOnboarding && !hasDismissedOnboarding) {
+      setShowOnboarding(true);
+    } else {
+      setShowOnboarding(false);
+    }
+  }, [currentUser, hasDismissedOnboarding]);
+
+  const handleOnboardingComplete = async () => {
+    if (!currentUser) return;
+    
+    // Mark as dismissed locally immediately to prevent re-triggering during refresh
+    setHasDismissedOnboarding(true);
+    setShowOnboarding(false);
+    
+    try {
+      await authService.updateAccount(currentUser.id, {
+        has_completed_onboarding: true
+      });
+      await refreshAccount();
+    } catch (error) {
+      console.error("Failed to complete onboarding:", error);
+    }
+  };
   const { isRestricted, status, loading: subLoading } = useSubscription();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -402,24 +431,85 @@ export function RoleDashboardLayout({
           <SidebarNav navItems={navItems} location={location} onNavigate={() => setMobileMenuOpen(false)} collapsed={collapsed} />
         </div>
 
-        {/* Footer — collapse toggle */}
-        <div className={cn("mt-4 border-t border-border pt-4", collapsed ? "flex justify-center" : "")}>
-          <button
-            type="button"
-            onClick={toggleCollapsed}
-            title={collapsed ? tProfile.expandSidebar : tProfile.collapseSidebar}
-            className={cn(
-              "hidden lg:flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text",
-              collapsed && "justify-center px-2",
-            )}
-          >
-            {collapsed ? <ChevronRight className="h-4 w-4 shrink-0" /> : (
-              <>
-                <ChevronLeft className="h-4 w-4 shrink-0" />
-                <span>{tProfile.collapseSidebar.split(' ')[0]}</span>
-              </>
-            )}
-          </button>
+        {/* Footer — collapse toggle & Mobile Actions */}
+        <div className="mt-auto border-t border-border pt-4">
+          {/* Mobile-only actions (Language, Theme, Profile) */}
+          <div className="lg:hidden px-4 mb-6 space-y-6">
+            {/* Language Selection */}
+            <div className="space-y-2">
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest px-1">Language</p>
+              <div className="flex items-center gap-2">
+                {(["pt", "en", "es"] as Language[]).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => setLang(l)}
+                    className={cn(
+                      "flex-1 py-2.5 rounded-xl border transition-all text-lg",
+                      lang === l 
+                        ? "bg-primary/10 border-primary shadow-sm" 
+                        : "bg-bg-subtle border-border opacity-50 grayscale"
+                    )}
+                  >
+                    {l === "pt" ? "🇧🇷" : l === "en" ? "🇺🇸" : "🇪🇸"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Theme & Profile Actions */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={toggleTheme}
+                className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border border-border bg-bg-subtle text-text-muted transition-colors hover:text-text"
+              >
+                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+                <span className="text-[10px] font-bold uppercase tracking-tight">{theme === "dark" ? "Light" : "Dark"}</span>
+              </button>
+              
+              <button
+                onClick={handleLogout}
+                className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border border-border bg-red-500/5 text-red-500 transition-colors hover:bg-red-500/10"
+              >
+                <RiLogoutBoxRLine size={18} />
+                <span className="text-[10px] font-bold uppercase tracking-tight">Logout</span>
+              </button>
+            </div>
+
+            <button
+              onClick={openEditProfile}
+              className="flex w-full items-center gap-3 p-3 rounded-2xl border border-border bg-bg-subtle transition-colors hover:border-primary/40"
+            >
+              <img
+                src={resolvedAvatar}
+                alt="Avatar"
+                className="h-8 w-8 rounded-full border border-border object-cover"
+              />
+              <div className="text-left overflow-hidden">
+                <p className="text-xs font-bold text-text truncate">{resolvedName}</p>
+                <p className="text-[10px] text-text-muted truncate">Edit Profile</p>
+              </div>
+              <RiPencilLine className="ml-auto text-text-muted" size={14} />
+            </button>
+          </div>
+
+          <div className={cn("hidden lg:flex", collapsed ? "justify-center" : "px-0")}>
+            <button
+              type="button"
+              onClick={toggleCollapsed}
+              title={collapsed ? tProfile.expandSidebar : tProfile.collapseSidebar}
+              className={cn(
+                "flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text",
+                collapsed && "justify-center px-2",
+              )}
+            >
+              {collapsed ? <ChevronRight className="h-4 w-4 shrink-0" /> : (
+                <>
+                  <ChevronLeft className="h-4 w-4 shrink-0" />
+                  <span>{tProfile.collapseSidebar.split(' ')[0]}</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -456,15 +546,19 @@ export function RoleDashboardLayout({
               <div className="rounded-xl p-1 transition-colors hover:bg-bg-subtle">
                 <NotificationBell role="admin" align="right" />
               </div>
+              
+              {/* Desktop-only Theme Toggle */}
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-text-muted transition-colors hover:text-text"
+                className="hidden lg:flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-text-muted transition-colors hover:text-text"
                 aria-label={tProfile.toggleTheme}
               >
                 {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </button>
-              <div className="relative" ref={menuRef}>
+
+              {/* Desktop-only Profile Menu */}
+              <div className="relative hidden lg:block" ref={menuRef}>
                 <button
                   type="button"
                   onClick={() => setMenuOpen((prev) => !prev)}
@@ -619,6 +713,13 @@ export function RoleDashboardLayout({
           </div>
         </DialogContent>
       </Dialog>
+      
+      <NotificationToaster />
+      <OnboardingModal 
+        isOpen={showOnboarding} 
+        onClose={() => setShowOnboarding(false)} 
+        onComplete={handleOnboardingComplete}
+      />
     </div>
     </NotificationProvider>
   );

@@ -24,6 +24,7 @@ import {
   RiInformationFill,
 } from 'react-icons/ri'
 import { useT } from '../../../i18n'
+import type { USCISOutcome } from '../../../models/process.model'
 
 interface Props {
   proc: UserService

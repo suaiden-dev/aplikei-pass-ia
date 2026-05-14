@@ -25,6 +25,7 @@ import {
 import { MdPix } from "react-icons/md";
 import { Input } from "../../components/atoms/input";
 import { Label } from "../../components/atoms/label";
+import { Button } from "../../components/atoms/button";
 import { zodValidate } from "../../utils/zodValidate";
 import { getServiceBySlug, getServiceSlugs } from "../../data/services";
 import { useAuth } from "../../hooks/useAuth";
@@ -390,7 +391,6 @@ export default function CheckoutPage() {
               password: values.password,
               fullName: values.fullName,
               phoneNumber: values.phone,
-              terms: true, // Auto-accept terms at checkout
               role: "customer",
             });
 

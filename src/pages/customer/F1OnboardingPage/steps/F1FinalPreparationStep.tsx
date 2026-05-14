@@ -16,7 +16,6 @@ import { toast } from "sonner";
 import { InlineWidget, useCalendlyEventListener } from "react-calendly";
 import { useAuth } from "../../../../hooks/useAuth";
 import { supabase } from "../../../../shared/lib/supabase";
-import { calendlyService } from "../../../../shared/integrations/calendly";
 import { useT, useLocale } from "../../../../i18n";
 
 interface F1FinalPreparationStepProps {
@@ -183,34 +182,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
     loadPlanPrices();
   }, [user?.officeId]);
 
-  useEffect(() => {
-    async function fetchCalendlyLink() {
-      if (!purchasedMentorship) return;
-      const planName =
-        purchasedMentorship.service_slug === "mentoring-gold" || purchasedMentorship.service_slug === "mentoria-gold" ? "Ouro" :
-        purchasedMentorship.service_slug === "mentoring-silver" || purchasedMentorship.service_slug === "mentoria-silver" ? "Prata" :
-          purchasedMentorship.service_slug === "consultoria-especialista" ? "Especialista" : "Bronze";
-
-      const event = await calendlyService.findEventByName(
-        purchasedMentorship.service_slug === "consultoria-especialista" ? "Consultoria Especialista" : `Mentoria ${planName}`
-      );
-      if (event) setCalendlyUrl(event.scheduling_url);
-      else setCalendlyUrl("https://calendly.com/infothefutureimmigration/treinamento-entrevista");
-    }
-    fetchCalendlyLink();
-  }, [purchasedMentorship]);
-
-  useEffect(() => {
-    async function fetchConsultationLink() {
-      if (!purchasedConsultation) return;
-      const event = await calendlyService.findEventByName("Consultoria Especialista");
-      if (event) {
-        // We don't have a specific state for this URL but we could add it if needed.
-        // For now just avoiding unused state error.
-      }
-    }
-    fetchConsultationLink();
-  }, [purchasedConsultation]);
+  // Mentoria now starts via support chat with manager, so no Calendly lookups here.
 
   useCalendlyEventListener({
     onEventScheduled: async () => {
@@ -496,7 +468,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
                         {isBotTyping && <div className="flex justify-start"><div className="bg-white p-4 rounded-3xl rounded-tl-none shadow-sm flex gap-1"><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" /><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.2s]" /><span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.4s]" /></div></div>}
                       </div>
                       <div className="p-4 bg-white border-t border-slate-200 relative flex gap-2">
-                        <input type="text" placeholder={t.onboardingPage.aiInterviewChat.placeholder} value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()} className="flex-1 px-4 py-3 bg-slate-100 rounded-xl text-xs font-bold" />
+                        <input type="text" placeholder={t.onboardingPage.aiInterviewChat.placeholder} value={chatInput || ""} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()} className="flex-1 px-4 py-3 bg-slate-100 rounded-xl text-xs font-bold" />
                         <button onClick={handleSendChatMessage} className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center font-black"><RiSendPlane2Fill /></button>
                       </div>
                     </div>

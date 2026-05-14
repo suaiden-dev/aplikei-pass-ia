@@ -247,8 +247,8 @@ export function DashboardNavbar({
       </div>
 
       <div className="flex items-center gap-6">
-        {/* Language selector — flags */}
-        <div className="flex items-center gap-1 rounded-full border border-border bg-bg-subtle px-2 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+        {/* Desktop-only Language selector */}
+        <div className="hidden xl:flex items-center gap-1 rounded-full border border-border bg-bg-subtle px-2 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
           {(["pt", "en", "es"] as Language[]).map((l, i) => (
             <React.Fragment key={l}>
               {i > 0 && <span className="text-border text-[10px]">|</span>}
@@ -266,10 +266,10 @@ export function DashboardNavbar({
           ))}
         </div>
 
-        {/* Theme toggle */}
+        {/* Desktop-only Theme toggle */}
         <button
           onClick={toggleTheme}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-bg-subtle text-text-muted transition-colors hover:border-primary/40 hover:text-text"
+          className="hidden xl:flex h-9 w-9 items-center justify-center rounded-full border border-border bg-bg-subtle text-text-muted transition-colors hover:border-primary/40 hover:text-text"
           aria-label="Toggle theme"
         >
           {theme === "dark" ? <RiSunLine size={16} /> : <RiMoonLine size={16} />}
@@ -280,9 +280,9 @@ export function DashboardNavbar({
             <NotificationBell role={role} align="right" />
           </div>
 
-          <div className="mx-2 h-8 w-px bg-border" />
+          <div className="hidden xl:block mx-2 h-8 w-px bg-border" />
 
-          <div className="relative" ref={menuRef}>
+          <div className="relative hidden xl:block" ref={menuRef}>
             <button
               type="button"
               onClick={() => setMenuOpen((prev) => !prev)}

@@ -198,7 +198,7 @@ export default function PaymentMethodsSettingsPage() {
             body: { action: "callback", code, state },
           });
         if (error) throw new Error(error.message);
-        setStripeConfig({ account_id: "__REDACTED__" });
+        setStripeConfig((prev) => ({ ...prev, account_id: "__REDACTED__" }));
         setStripeActive(true);
         toast.success(t.paymentMethods.stripe.messages.connectSuccess);
       } catch (err: unknown) {
@@ -256,7 +256,7 @@ export default function PaymentMethodsSettingsPage() {
           body: { action: "disconnect", user_id: user.id },
         });
       if (error) throw new Error(error.message);
-      setStripeConfig({ account_id: "" });
+      setStripeConfig((prev) => ({ ...prev, account_id: "" }));
       setStripeActive(false);
       toast.success(t.paymentMethods.stripe.messages.disconnectSuccess);
     } catch (err: unknown) {

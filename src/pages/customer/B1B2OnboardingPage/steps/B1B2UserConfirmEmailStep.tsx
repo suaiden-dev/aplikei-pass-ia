@@ -12,11 +12,12 @@ import confirmationEmailImg from "../../../../assets/email/confirmation_email.pn
 
 interface B1B2UserConfirmEmailStepProps {
   procId: string;
+  nextStepIdx?: number;
   onComplete: () => void;
   onBack: () => void;
 }
 
-export function B1B2UserConfirmEmailStep({ procId, onComplete, onBack }: B1B2UserConfirmEmailStepProps) {
+export function B1B2UserConfirmEmailStep({ procId, nextStepIdx = 8, onComplete, onBack }: B1B2UserConfirmEmailStepProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const t = useT("visas");
 
@@ -24,7 +25,7 @@ export function B1B2UserConfirmEmailStep({ procId, onComplete, onBack }: B1B2Use
     setIsSubmitting(true);
     try {
       // Step 8 (idx 7) is the last one in our list currently
-      await processService.approveStep(procId, 8, false);
+      await processService.approveStep(procId, nextStepIdx, false);
       await processService.requestStepReview(procId);
       toast.success(t.onboardingPage.emailConfirmation.confirmedSuccess);
       onComplete();

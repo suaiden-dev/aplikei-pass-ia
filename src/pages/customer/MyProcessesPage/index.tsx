@@ -83,7 +83,7 @@ function ProcessRow({ proc, index, displaySlug }: { proc: UserService; index: nu
   const isFinalized = proc.status === 'completed' || proc.status === 'rejected' || isApproved || isDenied;
   const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, totalSteps);
 
-  const statusKey = isFinalized ? 'completed' : proc.status;
+  const statusKey = (isFinalized ? 'completed' : (proc.status ?? 'pending')) as string;
   const displayLabel = isApproved ? t.dashboard.myCases.status.approved :
                        isDenied ? t.dashboard.myCases.status.denied :
                        (t.dashboard.myCases.status[statusKey] || t.dashboard.myCases.status.pending);

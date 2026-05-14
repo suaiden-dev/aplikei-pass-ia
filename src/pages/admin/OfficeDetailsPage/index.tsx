@@ -52,6 +52,10 @@ type OfficeProcess = {
   } | null;
 };
 
+type OfficeProcessRow = Omit<OfficeProcess, "user_accounts"> & {
+  user_accounts?: Array<{ full_name: string | null; email: string | null }> | { full_name: string | null; email: string | null } | null;
+};
+
 export default function OfficeDetailsPage() {
   const t = useT("admin");
   const { officeId = "" } = useParams<{ officeId: string }>();
@@ -78,8 +82,8 @@ export default function OfficeDetailsPage() {
           .in("role", ["seller", "manager", "admin_lawyer"]),
         supabase
           .from("user_services")
-          .select("id, service_slug, status, current_step, created_at, user_id, user_accounts!inner(full_name,email,office_id)")
-          .eq("user_accounts.office_id", officeId)
+          .select("id, service_slug, status, current_step, created_at, user_id, office_id, user_accounts:profiles(full_name, email)")
+          .eq("office_id", officeId)
           .order("created_at", { ascending: false }),
       ]);
 
@@ -93,7 +97,8 @@ export default function OfficeDetailsPage() {
       setSellers(members.filter((m) => m.role === "seller"));
       setManagers(members.filter((m) => m.role === "manager" || m.role === "admin_lawyer"));
 
-      setProcesses(((processData as OfficeProcess[] | null) ?? []).map((p) => ({
+      const processRows = ((processData as unknown as OfficeProcessRow[] | null) ?? []);
+      setProcesses(processRows.map((p) => ({
         ...p,
         user_accounts: Array.isArray(p.user_accounts) ? p.user_accounts[0] : p.user_accounts,
       })));

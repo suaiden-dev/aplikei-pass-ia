@@ -128,16 +128,7 @@ vi.mock('../../../i18n', () => ({
             draftError: "Draft Error",
             checkFields: "Check fields: {errorList}"
           },
-          labels: {
-            fullLegalName: "Full Legal Name",
-            familyName: "Family Name",
-            givenName: "Given Name",
-            saveDraft: "Save Draft",
-            submitForm: "Submit Form",
-            sending: "Sending...",
-            dob: "Date of Birth",
-            daytimePhone: "Daytime Phone",
-          }
+          // labels were moved to line 47
         },
         form: {
           dependents: {
@@ -162,7 +153,7 @@ describe('I539FormStep', () => {
   test('should render and have blank Preparer Information by default', async () => {
     render(
       <LanguageProvider>
-        <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
+        <I539FormStep proc={mockProc as any} user={mockUser as any} onComplete={mockOnComplete} />
       </LanguageProvider>
     )
 
@@ -177,7 +168,7 @@ describe('I539FormStep', () => {
     const user = userEvent.setup()
     render(
       <LanguageProvider>
-        <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
+        <I539FormStep proc={mockProc as any} user={mockUser as any} onComplete={mockOnComplete} />
       </LanguageProvider>
     )
 
@@ -191,7 +182,7 @@ describe('I539FormStep', () => {
   test('should handle date selection correctly', async () => {
     render(
       <LanguageProvider>
-        <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
+        <I539FormStep proc={mockProc as any} user={mockUser as any} onComplete={mockOnComplete} />
       </LanguageProvider>
     )
 
@@ -205,7 +196,7 @@ describe('I539FormStep', () => {
     const user = userEvent.setup()
     render(
       <LanguageProvider>
-        <I539FormStep proc={mockProc} user={mockUser} onComplete={mockOnComplete} />
+        <I539FormStep proc={mockProc as any} user={mockUser as any} onComplete={mockOnComplete} />
       </LanguageProvider>
     )
 

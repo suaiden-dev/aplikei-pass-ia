@@ -18,7 +18,6 @@ import { toast } from "sonner";
 import { InlineWidget, useCalendlyEventListener } from "react-calendly";
 import { useAuth } from "../../../../hooks/useAuth";
 import { supabase } from "../../../../shared/lib/supabase";
-import { calendlyService } from "../../../../shared/integrations/calendly";
 import { useT, useLocale } from "../../../../i18n";
 import { useInterviewTrainingController } from "../../../../controllers/shared/useInterviewTrainingController";
 
@@ -198,25 +197,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
     loadPlanPrices();
   }, [user?.officeId]);
 
-  useEffect(() => {
-    async function fetchCalendlyLink() {
-      if (!purchasedMentorship) return;
-      const planName =
-        purchasedMentorship.service_slug === "mentoring-gold" || purchasedMentorship.service_slug === "mentoria-gold" ? "Ouro" :
-          purchasedMentorship.service_slug === "mentoring-silver" || purchasedMentorship.service_slug === "mentoria-silver" || purchasedMentorship.service_slug === "mentoria-bronze" ? "Prata" :
-            purchasedMentorship.service_slug === "consultoria-especialista" ? "Especialista" : "Bronze";
-
-      const event = await calendlyService.findEventByName(
-        purchasedMentorship.service_slug === "consultoria-especialista" ? "Consultoria Especialista" : `Mentoria ${planName}`
-      );
-      if (event) {
-        setCalendlyUrl(event.scheduling_url);
-      } else {
-        setCalendlyUrl("https://calendly.com/infothefutureimmigration/treinamento-entrevista");
-      }
-    }
-    fetchCalendlyLink();
-  }, [purchasedMentorship]);
+  // Mentoria now starts via support chat with manager, so no Calendly lookup here.
 
   useCalendlyEventListener({
     onEventScheduled: async () => {
@@ -693,7 +674,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                         {isBotTyping && <div className="flex justify-start"><div className="bg-card p-4 rounded-3xl rounded-tl-none shadow-sm flex gap-1"><span className="w-1.5 h-1.5 bg-text-muted/30 rounded-full animate-bounce" /><span className="w-1.5 h-1.5 bg-text-muted/30 rounded-full animate-bounce [animation-delay:0.2s]" /><span className="w-1.5 h-1.5 bg-text-muted/30 rounded-full animate-bounce [animation-delay:0.4s]" /></div></div>}
                       </div>
                       <div className="p-4 bg-card border-t border-border/80 relative flex gap-2">
-                        <input type="text" placeholder={t.onboardingPage.aiInterviewChat.placeholder} value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()} className="flex-1 px-4 py-3 bg-bg-subtle rounded-xl text-xs font-bold" />
+                        <input type="text" placeholder={t.onboardingPage.aiInterviewChat.placeholder} value={chatInput || ""} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()} className="flex-1 px-4 py-3 bg-bg-subtle rounded-xl text-xs font-bold" />
                         <button onClick={handleSendChatMessage} className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center"><RiSendPlane2Fill /></button>
                       </div>
                     </div>

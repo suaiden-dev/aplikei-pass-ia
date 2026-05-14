@@ -54,12 +54,10 @@ async function insertNotification(payload: NotificationPayload): Promise<void> {
 }
 
 async function getUserLang(userId: string): Promise<NotifLang> {
-  const { data } = await supabase
-    .from("user_accounts")
-    .select("preferred_language")
-    .eq("id", userId)
-    .maybeSingle();
-  return (data?.preferred_language as NotifLang) ?? "en";
+  // preferred_language column was removed from user_accounts.
+  // Keep safe fallback to avoid 400 errors from PostgREST schema mismatch.
+  void userId;
+  return "en";
 }
 
 function isSilentError(e: unknown): boolean {

@@ -356,7 +356,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
     { key: "q20", label: t.cos.i539.securityQuestions.q20, yesKey: "q20Yes", noKey: "q20No" },
   ];
 
-  const saved = (proc.step_data?.i539 ?? {}) as Partial<I539Data> & { hasMiddleName?: boolean };
+  const saved = ((proc.step_data as any)?.i539 ?? {}) as Partial<I539Data> & { hasMiddleName?: boolean };
 
   const initialValues: I539FormInput = {
     familyName: saved.familyName ?? user.fullName?.split(" ").slice(-1)[0] ?? "",
@@ -384,7 +384,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
     countryOfBirth: saved.countryOfBirth ?? "",
     ssn: saved.ssn ?? "",
     dateOfArrival: saved.dateOfArrival ?? "",
-    i94Number: saved.i94Number ?? (proc.step_data?.i94Date as string ?? ""),
+    i94Number: saved.i94Number ?? ((proc.step_data as any)?.i94Date as string ?? ""),
     passportNumber: saved.passportNumber ?? "",
     travelDocCountry: saved.travelDocCountry ?? "",
     countryOfIssuance: saved.countryOfIssuance ?? "",
@@ -397,7 +397,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
     extendSpouse: saved.extendSpouse ?? false,
     extendChildren: saved.extendChildren ?? false,
     numberOfCoApplicants: saved.numberOfCoApplicants ?? "0",
-    newStatusDropdown: saved.newStatusDropdown ?? (proc.step_data?.targetVisa as string ?? ""),
+    newStatusDropdown: saved.newStatusDropdown ?? ((proc.step_data as any)?.targetVisa as string ?? ""),
     effectiveDate: saved.effectiveDate ?? "",
     priorExtensionDate: saved.priorExtensionDate ?? "",
     priorExtensionYes: saved.priorExtensionYes ?? false,
@@ -460,7 +460,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
     preparerEmail: saved.preparerEmail ?? "",
     preparerSignature: saved.preparerSignature ?? "",
     preparerSignatureDate: saved.preparerSignatureDate ?? "",
-    dependentsA: (proc.step_data?.dependents as Array<{ id: string; name: string; birthDate?: string; i94Date?: string; [key: string]: unknown }>)?.map(dep => {
+    dependentsA: ((proc.step_data as any)?.dependents as Array<{ id: string; name: string; birthDate?: string; i94Date?: string; [key: string]: unknown }>)?.map(dep => {
       const savedDep = ((saved.dependentsA as Array<{ id: string; [key: string]: unknown }>)?.find(d => d.id === dep.id) ?? {}) as Record<string, unknown>;
       const depName = typeof dep.name === 'string' ? dep.name : '';
       const depBirthDate = typeof dep.birthDate === 'string' ? dep.birthDate : '';
@@ -509,7 +509,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
   };
 
   const validate = (values: I539FormInput): Partial<Record<string, string>> => {
-    return flattenValues(i539Validator(unflattenValues(values))) as Partial<Record<string, string>>;
+    return flattenValues(i539Validator(unflattenValues(values) as any)) as Partial<Record<string, string>>;
   };
 
   const form = useForm<I539FormInput>({

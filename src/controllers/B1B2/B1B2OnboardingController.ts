@@ -33,6 +33,8 @@ export interface B1B2OnboardingLabels {
   requiredFieldsTitle: string;
   requiredFieldsDesc: string;
   adminFeedback?: string;
+  creatingCredentialsTitle?: string;
+  creatingCredentialsDesc?: string;
 }
 
 const INITIAL_VALUES: Partial<DS160FormValues> = {
@@ -108,8 +110,9 @@ export function useB1B2OnboardingController({
         setCurrentStep(data.current_step ?? 0);
 
         if (data.step_data) {
-          if (data.step_data.admin_feedback) {
-            setAdminFeedback(data.step_data.admin_feedback as string);
+          const stepData = data.step_data as Record<string, unknown>;
+          if (stepData.admin_feedback) {
+            setAdminFeedback(stepData.admin_feedback as string);
           }
           setSavedValues({ ...INITIAL_VALUES, ...(data.step_data as Partial<DS160FormValues>) });
         }

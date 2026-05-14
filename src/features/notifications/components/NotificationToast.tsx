@@ -8,6 +8,7 @@ import {
   RiCloseLine 
 } from "react-icons/ri";
 import type { ToastItem } from "../types";
+import { useAuth } from "../../../hooks/useAuth";
 
 interface NotificationToastProps {
   toast: ToastItem;
@@ -42,6 +43,23 @@ export function NotificationToast({
 }: NotificationToastProps) {
   const [isPaused, setIsPaused] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const resolveLink = (link: string | null | undefined): string | null => {
+    if (!link || !user?.role) return link ?? null;
+    
+    // For admin users, ensure the process link matches their dashboard prefix
+    if (user.role !== "customer" && link.includes("/processes/")) {
+      const parts = link.split("/processes/");
+      const id = parts[1]?.split("/")[0];
+      if (!id) return link;
+
+      const prefix = user.role === "master" ? "/master" : (user.role === "manager" ? "/manager" : "/admin");
+      return `${prefix}/processes/${id}`;
+    }
+    
+    return link;
+  };
 
   const config = typeConfig[toast.type] || typeConfig.system;
 
@@ -78,8 +96,9 @@ export function NotificationToast({
           type="button"
           onClick={() => {
             onDismiss();
-            if (toast.link) {
-              navigate(toast.link);
+            const targetLink = resolveLink(toast.link);
+            if (targetLink) {
+              navigate(targetLink);
             }
           }}
           className="flex-1 min-w-0 text-left"

@@ -8,6 +8,7 @@ import {
   RiArrowRightUpLine
 } from "react-icons/ri";
 import { useT } from "../../../i18n";
+import { useAuth } from "../../../hooks/useAuth";
 import { Button } from "../../../components/atoms/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "../../../components/atoms/dialog";
 import { cn } from "../../../utils/cn";
@@ -120,6 +121,7 @@ function AnalyticsChart({
 
 export default function FinanceAnalyticsPage() {
   const t = useT("admin");
+  const { user: currentUser } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData[]>([]);
@@ -130,9 +132,11 @@ export default function FinanceAnalyticsPage() {
     setIsLoading(true);
     setError(null);
     try {
+      const officeId = currentUser?.role === "admin_lawyer" ? currentUser.officeId : undefined;
+      
       const [txData, monthlyData] = await Promise.all([
-        financeAnalyticsService.getRecentTransactions(50),
-        financeAnalyticsService.getMonthlyAnalytics(6),
+        financeAnalyticsService.getRecentTransactions(50, officeId || undefined),
+        financeAnalyticsService.getMonthlyAnalytics(6, officeId || undefined),
       ]);
       setTransactions(txData);
       setAnalytics(monthlyData);
@@ -142,7 +146,7 @@ export default function FinanceAnalyticsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -151,7 +155,12 @@ export default function FinanceAnalyticsPage() {
       <div className="flex flex-col gap-1 text-left">
         <h1 className="text-3xl font-black text-text tracking-tighter uppercase flex items-center gap-3">
           {t.financeAnalytics.title}
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">{t.financeAnalytics.masterOnly}</span>
+          {currentUser?.role === "master" && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">{t.financeAnalytics.masterOnly}</span>
+          )}
+          {currentUser?.role === "admin_lawyer" && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/20">OFFICE CONTEXT</span>
+          )}
         </h1>
         <p className="text-text-muted font-medium text-sm">{t.financeAnalytics.subtitle}</p>
       </div>

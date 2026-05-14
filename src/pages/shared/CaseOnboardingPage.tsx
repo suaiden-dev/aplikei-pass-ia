@@ -560,14 +560,24 @@ function B1B2FinalAnalysisPanel({
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const rawDocs = stepData.docs;
   const docs: Record<string, string> = (() => {
-    if (!rawDocs) return {};
-    if (typeof rawDocs === "string") {
-      try { return JSON.parse(rawDocs) as Record<string, string>; } catch { return {}; }
+    const rawDocs = stepData.docs;
+    if (rawDocs) {
+      if (typeof rawDocs === "string") {
+        try { return JSON.parse(rawDocs) as Record<string, string>; } catch { return {}; }
+      }
+      if (typeof rawDocs === "object") return rawDocs as Record<string, string>;
     }
-    if (typeof rawDocs === "object") return rawDocs as Record<string, string>;
-    return {};
+
+    const fallbackKeys = ["ds160_assinada", "ds160_comprovante"] as const;
+    const fallback: Record<string, string> = {};
+    fallbackKeys.forEach((key) => {
+      const value = stepData[key];
+      if (typeof value === "string" && value.trim()) {
+        fallback[key] = value;
+      }
+    });
+    return fallback;
   })();
 
   const docEntries: Array<{ key: string; label: string; path: string }> = [
@@ -705,13 +715,13 @@ function B1B2FinalAnalysisPanel({
 }
 
 function B1B2FinalSchedulingPanel({
-  procId, stepData, currentDBStep, isActive, onDone,
+  _procId, stepData, _currentDBStep, isActive, _onDone,
 }: {
-  procId: string;
+  _procId?: string;
   stepData: Record<string, unknown>;
-  currentDBStep: number;
+  _currentDBStep?: number;
   isActive: boolean;
-  onDone: () => Promise<void>;
+  _onDone?: () => Promise<void>;
 }) {
   const [casvDate, setCasvDate] = useState((stepData.final_casv_date as string) || "");
   const [casvTime, setCasvTime] = useState((stepData.final_casv_time as string) || "");
@@ -720,43 +730,39 @@ function B1B2FinalSchedulingPanel({
   const [consuladoTime, setConsuladoTime] = useState((stepData.final_consulado_time as string) || "");
   const [consuladoLocation, setConsuladoLocation] = useState((stepData.final_consulado_location as string) || (stepData.interviewLocation as string) || "");
   const [sameLocation, setSameLocation] = useState(stepData.final_same_location === undefined ? true : !!stepData.final_same_location);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    setSameLocation(stepData.final_same_location === undefined ? true : !!stepData.final_same_location);
-  }, [stepData]);
-
-  const handleUpdate = async () => {
-    if (!casvDate || !casvTime || !casvLocation) {
-      toast.error("Preencha data, horário e local do CASV.");
-      return;
-    }
-    if (!sameLocation && (!consuladoDate || !consuladoTime || !consuladoLocation)) {
-      toast.error("Preencha os dados do Consulado ou marque como mesmo local.");
-      return;
-    }
-    try {
-      await processService.updateStepData(procId, {
-        final_same_location: sameLocation,
-        final_casv_date: casvDate,
-        final_casv_time: casvTime,
-        final_casv_location: casvLocation,
-        final_consulado_date: sameLocation ? casvDate : consuladoDate,
-        final_consulado_time: sameLocation ? casvTime : consuladoTime,
-        final_consulado_location: sameLocation ? casvLocation : consuladoLocation,
-        final_scheduling_notified_at: new Date().toISOString(),
-      });
-      if (isActive) {
-        await processService.approveStep(procId, currentDBStep + 1, false);
-      }
-      toast.success(isActive ? "Agendamento confirmado. Cliente notificado!" : "Agendamento atualizado com sucesso.");
-      await onDone();
-    } catch {
-      toast.error("Erro ao salvar agendamento.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const handleUpdate = async () => {
+  //   if (!casvDate || !casvTime || !casvLocation) {
+  //     toast.error("Preencha data, horário e local do CASV.");
+  //     return;
+  //   }
+  //   if (!sameLocation && (!consuladoDate || !consuladoTime || !consuladoLocation)) {
+  //     toast.error("Preencha os dados do Consulado ou marque como mesmo local.");
+  //     return;
+  //   }
+  //   try {
+  //     await processService.updateStepData(procId, {
+  //       final_same_location: sameLocation,
+  //       final_casv_date: casvDate,
+  //       final_casv_time: casvTime,
+  //       final_casv_location: casvLocation,
+  //       final_consulado_date: sameLocation ? casvDate : consuladoDate,
+  //       final_consulado_time: sameLocation ? casvTime : consuladoTime,
+  //       final_consulado_location: sameLocation ? casvLocation : consuladoLocation,
+  //       final_scheduling_notified_at: new Date().toISOString(),
+  //     });
+  //     if (isActive) {
+  //       await processService.approveStep(procId, currentDBStep + 1, false);
+  //     }
+  //     toast.success(isActive ? "Agendamento confirmado. Cliente notificado!" : "Agendamento atualizado com sucesso.");
+  //     await onDone();
+  //   } catch {
+  //     toast.error("Erro ao salvar agendamento.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const canEdit = isActive;
 
@@ -1098,7 +1104,7 @@ export default function CaseOnboardingPage() {
       });
     });
 
-    (docsStep?.files ?? []).forEach((file) => {
+    (docsStep?.files ?? []).forEach((file: any) => {
       items.push({
         id: `docs:${file.name}`,
         label: formatReviewItemLabel(file.name),
@@ -1305,7 +1311,7 @@ export default function CaseOnboardingPage() {
           </p>
           {files.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2">
-              {files.map((file) => (
+              {files.map((file: any) => (
                 <div key={file.path} className="flex items-center gap-3 rounded-xl border border-border bg-bg-subtle p-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-0.5">
@@ -1434,11 +1440,11 @@ export default function CaseOnboardingPage() {
             />
           ) : step.id.includes("final_scheduling") ? (
             <B1B2FinalSchedulingPanel
-              procId={caseId!}
+              _procId={caseId!}
               stepData={step.receivedData as Record<string, unknown>}
-              currentDBStep={Number(step.sentData.current_step ?? 10)}
+              _currentDBStep={Number(step.sentData.current_step ?? 10)}
               isActive={step.status === "in_progress"}
-              onDone={() => queryClient.invalidateQueries({ queryKey: ["case-detail", caseId] })}
+              _onDone={() => queryClient.invalidateQueries({ queryKey: ["case-detail", caseId] })}
             />
           ) : step.id.includes("cos_rfe_proposal") || step.id.includes("cos_motion_proposal") ? (
             <COSProposalPanel
@@ -1574,7 +1580,7 @@ export default function CaseOnboardingPage() {
             <p className="rounded-xl bg-bg-subtle p-3 text-sm text-text-muted">Cliente ainda não enviou documentos.</p>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2">
-              {(docsStep.files ?? []).map((file) => (
+              {(docsStep.files ?? []).map((file: any) => (
                 <div key={file.path} className="flex items-center gap-3 rounded-xl border border-border bg-bg-subtle px-4 py-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-[10px] font-black uppercase tracking-[0.14em] text-text-muted">

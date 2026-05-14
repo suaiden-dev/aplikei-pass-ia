@@ -461,7 +461,6 @@ export default function OfficeCheckoutPage() {
                             password: values.password,
                             fullName: values.fullName,
                             phoneNumber: values.phone,
-                            terms: true,
                             role: "customer",
                         });
                         if (signUpRes.user) currentUserId = signUpRes.user.id;

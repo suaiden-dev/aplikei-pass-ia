@@ -67,9 +67,9 @@ const CustomersPage = lazyPage(() => import("../pages/admin/CustomersPage"));
 const RevenuePage = lazyPage(() => import("../pages/admin/RevenuePage"));
 const FinanceAnalyticsPage = lazyPage(() => import("../pages/admin/FinanceAnalyticsPage"));
 const PlansPage = lazyPage(() => import("../pages/admin/PlansPage"));
-const ZellePaymentsPage = lazyPage(
-    () => import("../pages/admin/ZellePaymentsPage"),
-);
+// const ZellePaymentsPage = lazyPage(
+//     () => import("../pages/admin/ZellePaymentsPage"),
+// );
 const AdminChatsPage = lazyPage(() => import("../pages/admin/ChatsPage"));
 const CouponsPage = lazyPage(() => import("../pages/admin/CouponsPage"));
 const ProductsPage = lazyPage(() => import("../pages/admin/ProductsPage"));
@@ -83,7 +83,7 @@ const AdminProcessesPage = lazyPage(
 const AdminProcessDetailPage = lazyPage(
     () => import("../pages/admin/ProcessDetailPage"),
 );
-const RolesPage = lazyPage(() => import("../pages/admin/RolesPage"));
+// const RolesPage = lazyPage(() => import("../pages/admin/RolesPage"));
 const TeamsPage = lazyPage(() => import("../pages/admin/TeamsPage"));
 const PageBuilderPage = lazyPage(() => import("../pages/PageBuilderPage"));
 const SellerEarningsPage = lazyPage(() => import("../pages/seller/EarningsPage"));
@@ -390,10 +390,10 @@ export const appRoutes: AppRouteDefinition[] = [
         titleKey: "finance_analytics",
         component: FinanceAnalyticsPage,
         authRequired: true,
-        accessLevels: [AccessLevel.MASTER],
+        accessLevels: [AccessLevel.MASTER, AccessLevel.ADMIN_LAWYER],
         layout: "protected",
         showInSidebar: true,
-        sidebarLayouts: ["master"],
+        sidebarLayouts: ["master", "admin_lawyer"],
         icon: TrendingUp,
     },
     {
@@ -551,6 +551,30 @@ export const appRoutes: AppRouteDefinition[] = [
         icon: BriefcaseBusiness,
     },
     {
+        path: "/admin/processes",
+        title: "Processes",
+        component: AdminProcessesPage,
+        authRequired: true,
+        accessLevels: STAFF,
+        layout: "protected",
+    },
+    {
+        path: "/manager/processes",
+        title: "Processes",
+        component: AdminProcessesPage,
+        authRequired: true,
+        accessLevels: STAFF,
+        layout: "protected",
+    },
+    {
+        path: "/master/processes",
+        title: "Processes",
+        component: AdminProcessesPage,
+        authRequired: true,
+        accessLevels: STAFF,
+        layout: "protected",
+    },
+    {
         path: "/roles",
         title: "Teams",
         component: TeamsPage,
@@ -593,6 +617,30 @@ export const appRoutes: AppRouteDefinition[] = [
     },
     {
         path: "/processes/:id",
+        title: "Process Detail",
+        component: AdminProcessDetailPage,
+        authRequired: true,
+        accessLevels: STAFF,
+        layout: "protected",
+    },
+    {
+        path: "/admin/processes/:id",
+        title: "Process Detail",
+        component: AdminProcessDetailPage,
+        authRequired: true,
+        accessLevels: STAFF,
+        layout: "protected",
+    },
+    {
+        path: "/manager/processes/:id",
+        title: "Process Detail",
+        component: AdminProcessDetailPage,
+        authRequired: true,
+        accessLevels: STAFF,
+        layout: "protected",
+    },
+    {
+        path: "/master/processes/:id",
         title: "Process Detail",
         component: AdminProcessDetailPage,
         authRequired: true,

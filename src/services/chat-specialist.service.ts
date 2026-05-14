@@ -20,7 +20,7 @@ export interface SpecialistChatThread {
   fullName?: string;
   email?: string;
   avatarUrl?: string | null;
-  createdAt: string;
+  createdAt: string | null;
   chatClosedAt?: string | null;
   lastMessage?: string | null;
 }
@@ -54,7 +54,7 @@ function buildThreads(processes: UserService[]) {
         email: account?.email ?? "",
         avatarUrl: account?.profileUrl ?? null,
         createdAt: process.created_at,
-        chatClosedAt: typeof process.step_data.chat_closed_at === "string" ? process.step_data.chat_closed_at : null,
+        chatClosedAt: typeof (process.step_data as any)?.chat_closed_at === "string" ? (process.step_data as any).chat_closed_at : null,
         lastMessage: last?.content ?? null,
       } satisfies SpecialistChatThread;
     })
@@ -103,7 +103,7 @@ export const chatService = {
 
   async getChatClosedAt(processId: string) {
     const process = readUserServices().find((entry) => entry.id === processId);
-    return typeof process?.step_data.chat_closed_at === "string" ? process.step_data.chat_closed_at : null;
+    return typeof (process?.step_data as any)?.chat_closed_at === "string" ? (process?.step_data as any).chat_closed_at : null;
   },
 
   async getCustomerSpecialistThread(userId: string): Promise<SpecialistChatThread | null> {

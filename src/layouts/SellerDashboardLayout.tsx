@@ -10,6 +10,7 @@ export function SellerDashboardLayout() {
     <RoleDashboardLayout
       allowedRoles={["master", "manager", "seller"]}
       consoleTitle={t.layout.shared.consoleTitle}
+      headerEyebrow={t.layout.seller.roleLabel}
       consoleSubtitle={t.layout.seller.subtitle}
       roleLabel={t.layout.seller.roleLabel}
       navItems={navItems}

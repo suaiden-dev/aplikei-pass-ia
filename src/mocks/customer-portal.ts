@@ -163,7 +163,7 @@ function seedCustomerDemoServices(): UserService[] {
       created_at: now,
       updated_at: now,
     },
-  ];
+  ] as any as UserService[];
 }
 
 function seedUserServices(): UserService[] {
@@ -183,7 +183,7 @@ function seedUserServices(): UserService[] {
       updated_at: now,
     },
     ...seedCustomerDemoServices(),
-  ];
+  ] as any as UserService[];
 }
 
 function seedChatMessages(): PortalChatMessage[] {
