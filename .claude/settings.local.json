@@ -10,7 +10,17 @@
       "Bash(rtk grep *)",
       "Bash(rtk find *)",
       "Bash(rtk read *)",
-      "Bash(rtk tsc *)"
+      "Bash(rtk tsc *)",
+      "Bash([ -d \"/home/vileladev/Desk/aplikei/aplikei-pass-ia/src/pages/$page\" ])",
+      "Bash(rtk npx *)",
+      "Bash(git *)",
+      "Bash(grep -v \"^$\")",
+      "Bash(timeout 15 npx vite --port 5174)",
+      "Bash(sed -i 's/import { processService } from/import * as processService from/g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/pages/customer/COSOnboardingPage/index.tsx /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/pages/customer/COSOnboardingPage/FinalPackageStep.tsx /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/pages/customer/COSOnboardingPage/MotionWorkflow.tsx)",
+      "Bash(sed -i 's/import { paymentService } from/import * as paymentService from/g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/pages/customer/COSOnboardingPage/MotionWorkflow.tsx)",
+      "Bash(grep -v \"^$\\\\|─\\\\|│\\\\|╭\\\\|╰\\\\|^  \\\\|^\\\\[38\")",
+      "Bash(rtk wc *)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
     ]
   }
 }

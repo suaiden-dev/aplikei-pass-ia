@@ -20,7 +20,134 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useT } from "../../../i18n";
 import { useAuth } from "../../../hooks/useAuth";
-import { RiCalendarLine } from "react-icons/ri";
+import { RiCalendarLine, RiHistoryLine, RiCloseLine } from "react-icons/ri";
+import { AnimatePresence } from "framer-motion";
+
+interface ProcessLog {
+  id: string;
+  user_service_id: string;
+  actor_id?: string;
+  actor_name?: string;
+  actor_role?: string;
+  action_type?: string;
+  action?: string;
+  message?: string;
+  previous_step?: number;
+  new_step?: number;
+  previous_status?: string;
+  new_status?: string;
+  created_at: string;
+}
+
+function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientName: string }) {
+  const [logs, setLogs] = useState<ProcessLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const t = useT("admin");
+
+  useEffect(() => {
+    async function fetchLogs() {
+      setLoading(true);
+      const { data } = await supabase
+        .from("process_logs")
+        .select("*")
+        .eq("user_service_id", serviceId)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      setLogs((data || []) as ProcessLog[]);
+      setLoading(false);
+    }
+    fetchLogs();
+  }, [serviceId]);
+
+  const formatDate = (dt: string) =>
+    new Date(dt).toLocaleString(t.shared.locale || "pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+  const getStatusLabel = (s?: string) => {
+    const map: Record<string, string> = {
+      active: t.processDetail.logs.status.active,
+      awaiting_review: t.processDetail.logs.status.awaitingReview,
+      completed: t.processDetail.logs.status.completed,
+      rejected: t.processDetail.logs.status.rejected,
+    };
+    return s ? (map[s] || s) : "—";
+  };
+
+  const getActorLabel = (log: ProcessLog) => {
+    if (log.actor_name) return log.actor_name;
+    if (log.actor_role === "admin") return t.processDetail.logs.actor.admin;
+    return clientName || t.processDetail.logs.actor.client;
+  };
+
+  const getActorColor = (log: ProcessLog) => {
+    if (log.actor_role === "admin") return "bg-primary/10 text-primary border border-primary/20";
+    return "bg-info/10 text-info border border-info/20";
+  };
+
+  const getActionDescription = (log: ProcessLog) => {
+    if (log.message) return log.message;
+    if (log.action) return log.action;
+
+    const stepChanged = log.previous_step !== log.new_step;
+    const statusChanged = log.previous_status !== log.new_status;
+
+    if (log.actor_role === "admin") {
+      if (stepChanged && (log.new_step ?? 0) > (log.previous_step ?? 0)) return t.processDetail.logs.actions.approved;
+      if (statusChanged && log.new_status === "active" && log.previous_status === "awaiting_review") return t.processDetail.logs.actions.returned;
+      if (statusChanged && log.new_status === "awaiting_review") return t.processDetail.logs.actions.inReview;
+      if (statusChanged && log.new_status === "completed") return t.processDetail.logs.actions.completed;
+    } else {
+      if (stepChanged) return t.processDetail.logs.actions.formSubmitted;
+      if (statusChanged && log.new_status === "awaiting_review") return t.processDetail.logs.actions.sentForReview;
+    }
+    return t.processDetail.logs.actions.internalChange;
+  };
+
+  return (
+    <div className="bg-card rounded-[32px] p-6">
+      <div className="flex items-center gap-3 mb-5">
+        <div className="w-8 h-8 rounded-xl bg-text flex items-center justify-center">
+          <RiTimeLine className="text-bg text-sm" />
+        </div>
+        <h3 className="font-black text-text text-sm uppercase tracking-tight">{t.processDetail.logs.title}</h3>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <RiLoader4Line className="animate-spin text-2xl text-text-muted" />
+        </div>
+      ) : logs.length === 0 ? (
+        <p className="text-xs text-text-muted text-center py-6 font-medium">{t.processDetail.logs.noLogs}</p>
+      ) : (
+        <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
+          {logs.map((log) => (
+            <div key={log.id} className="flex gap-3 items-start">
+              <div className="mt-1 w-6 h-6 rounded-full bg-bg-subtle flex items-center justify-center shrink-0">
+                <RiUserLine className="text-text-muted text-xs" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1 text-left">
+                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${getActorColor(log)}`}>
+                    {getActorLabel(log)}
+                  </span>
+                  <span className="text-[9px] text-text-muted font-bold">{formatDate(log.created_at)}</span>
+                </div>
+                <p className="text-[11px] text-text font-bold text-left">{getActionDescription(log)}</p>
+                <div className="text-[10px] text-text-muted font-medium space-y-0.5 mt-0.5 text-left">
+                  {log.previous_step !== log.new_step && (
+                    <p>{t.processDetail.logs.labels.step} <span className="text-text font-black">{(log.previous_step ?? 0) + 1}</span> → <span className="text-primary font-black">{(log.new_step ?? 0) + 1}</span></p>
+                  )}
+                  {log.previous_status !== log.new_status && (
+                    <p>{t.processDetail.logs.labels.status}: <span className="text-text-muted font-black">{getStatusLabel(log.previous_status)}</span> → <span className="text-text font-black">{getStatusLabel(log.new_status)}</span></p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface ProcessWithUser extends UserService {
   user_accounts?: {
@@ -71,6 +198,7 @@ export default function AdminProcessesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedService, setSelectedService] = useState("all");
   const [showOnlyPending, setShowOnlyPending] = useState(false);
+  const [logModalProcess, setLogModalProcess] = useState<{ id: string; name: string } | null>(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -363,12 +491,22 @@ export default function AdminProcessesPage() {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => navigate(`${processRoutePrefix}/processes/${p.id}`)}
-                              className="p-2.5 rounded-xl border border-border text-text-muted hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all"
-                            >
-                              <RiArrowRightSLine className="text-xl" />
-                            </button>
+                             <button 
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 setLogModalProcess({ id: p.id, name: p.user_accounts?.full_name || t.cases.table.noName });
+                               }}
+                               className="p-2.5 rounded-xl border border-border text-text-muted hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all"
+                               title="Ver histórico de logs"
+                             >
+                               <RiHistoryLine className="text-xl" />
+                             </button>
+                             <button 
+                               onClick={() => navigate(`${processRoutePrefix}/processes/${p.id}`)}
+                               className="p-2.5 rounded-xl border border-border text-text-muted hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all"
+                             >
+                               <RiArrowRightSLine className="text-xl" />
+                             </button>
                           </div>
                         </div>
                       </td>
@@ -380,6 +518,48 @@ export default function AdminProcessesPage() {
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {logModalProcess && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 text-center">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setLogModalProcess(null)} 
+              className="absolute inset-0 bg-bg/60 backdrop-blur-md" 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.95, y: 20 }} 
+              className="relative w-full max-w-2xl bg-card border border-border rounded-[40px] shadow-2xl flex flex-col overflow-hidden"
+            >
+              <div className="p-8 border-b border-border flex items-center justify-between bg-bg-subtle/50">
+                <div className="text-left">
+                  <h3 className="font-display font-black text-text text-2xl uppercase tracking-tight flex items-center gap-3">
+                    <RiHistoryLine className="text-primary" />
+                    Histórico do Processo
+                  </h3>
+                  <p className="text-xs text-text-muted font-bold uppercase tracking-widest mt-1">
+                    Eventos de {logModalProcess.name}
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setLogModalProcess(null)}
+                  className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-text-muted hover:text-danger transition-all hover:rotate-90"
+                >
+                  <RiCloseLine className="text-2xl" />
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <ProcessLogPanel serviceId={logModalProcess.id} clientName={logModalProcess.name} />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -394,7 +574,7 @@ function StatCard({ label, value, icon, color, highlight }: { label: string, val
         <div className="text-2xl font-black text-text tracking-tight">{value}</div>
       </div>
       <div>
-        <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none">{label}</p>
+        <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none text-left">{label}</p>
         <div className="w-full h-1.5 bg-bg-subtle rounded-full mt-3 overflow-hidden shadow-inner">
           <div className={`h-full rounded-full ${color.split(' ')[1]} opacity-30`} style={{ width: '60%' }} />
         </div>

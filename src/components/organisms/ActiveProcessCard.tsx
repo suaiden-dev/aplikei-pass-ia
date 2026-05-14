@@ -53,6 +53,7 @@ interface ActiveProcessCardProps {
       denied: string;
       finished: string;
       active: string;
+      awaitingRfe: string;
     };
     status: {
       uscisApproved: string;
@@ -92,7 +93,7 @@ export function ActiveProcessCard({
   const getBadgeLabel = () => {
     if (isApproved) return labels.badges.approved;
     if (isDenied) return labels.badges.denied;
-    if (isRFE) return "RFE PENDENTE";
+    if (isRFE) return labels.badges.awaitingRfe;
     if (isFinalized) return labels.badges.finished;
     return labels.badges.active;
   };

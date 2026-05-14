@@ -193,6 +193,19 @@ function PriceSummary({
   );
 }
 
+const logInteraction = async (eventName: string, email: string, officeId: string | null, details: string = "") => {
+  try {
+    await supabase.from("checkout_logs").insert({
+      event_name: eventName,
+      email: email,
+      office_id: officeId,
+      details: details,
+    });
+  } catch (err) {
+    console.error("Log error:", err);
+  }
+};
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function CheckoutPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -205,7 +218,7 @@ export default function CheckoutPage() {
       : "/dashboard";
   const [officeStatus, setOfficeStatus] = useState<string>("active");
   const [checkingOffice, setCheckingOffice] = useState(false);
-  const officeId = searchParams.get("office_id") || searchParams.get("officeId");
+  const officeId = searchParams.get("office_id") || searchParams.get("officeId") || searchParams.get("office");
   const sellerRef = searchParams.get("ref") || undefined;
 
   const isUpgrade = searchParams.get("upgrade") === "true";
@@ -340,6 +353,14 @@ export default function CheckoutPage() {
   const handleApplyCoupon = async () => {
     try {
       const result = await applyCoupon(slug);
+
+      logInteraction(
+        "tentativa_cupom",
+        formik.values.email,
+        officeId,
+        `${service?.slug || slug} | Tentativa de cupom: ${couponInput} | Válido: ${result.valid}${result.error ? ` | Erro: ${result.error}` : ""}`
+      );
+
       if (result.valid) {
         if (result.min_purchase_usd && subtotalUSD < result.min_purchase_usd) {
           toast.error(t.coupon.errors.minPurchase.replace("{{value}}", result.min_purchase_usd.toString()));
@@ -487,6 +508,31 @@ export default function CheckoutPage() {
       }
     },
   });
+
+  // Log de entrada inicial
+  useEffect(() => {
+    if (service) {
+      logInteraction("acesso_checkout", formik.values.email, officeId, `${service.slug} | Acesso inicial ao checkout`);
+    }
+  }, [service, officeId]);
+
+  useEffect(() => {
+    const handleUnload = () => {
+      if (formik.values.email) {
+        const logData = {
+          event_name: "aba_fechada_abandono",
+          email: formik.values.email,
+          office_id: officeId,
+          details: `${service?.slug || slug} | Abandono do checkout (Aba fechada). Dependentes: ${dependents} | Método: ${activeMethod}`,
+        };
+        // We use a simple insert and don't await because the page is closing
+        supabase.from("checkout_logs").insert(logData).then();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleUnload);
+    return () => window.removeEventListener("beforeunload", handleUnload);
+  }, [formik.values.email, dependents, activeMethod, officeId]);
 
   if (!service) return <Navigate to="/dashboard" replace />;
 
@@ -817,7 +863,11 @@ export default function CheckoutPage() {
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => setDependents(Math.max(isUpgrade ? 1 : 0, dependents - 1))}
+                      onClick={() => {
+                        const next = Math.max(isUpgrade ? 1 : 0, dependents - 1);
+                        setDependents(next);
+                        logInteraction("alterar_quantidade", formik.values.email, officeId, `${service?.slug || slug} | Diminuído para: ${next}`);
+                      }}
                       className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle disabled:opacity-40 transition-colors"
                       disabled={dependents <= (isUpgrade ? 1 : 0)}
                     >
@@ -826,7 +876,11 @@ export default function CheckoutPage() {
                     <span className="w-4 text-center font-bold text-text">{dependents}</span>
                     <button
                       type="button"
-                      onClick={() => setDependents(Math.min(10, dependents + 1))}
+                      onClick={() => {
+                        const next = Math.min(10, dependents + 1);
+                        setDependents(next);
+                        logInteraction("alterar_quantidade", formik.values.email, officeId, `${service?.slug || slug} | Aumentado para: ${next}`);
+                      }}
                       className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle transition-all font-mono"
                     >
                       <RiAddLine className="text-text-muted" />
@@ -927,7 +981,12 @@ export default function CheckoutPage() {
                         className="mt-1.5"
                         value={formik.values.email}
                         onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
+                        onBlur={(e) => {
+                          formik.handleBlur(e);
+                          if (formik.errors.email) {
+                            logInteraction("erro_validacao_campo", e.target.value, officeId, `${service?.slug || slug} | Erro e-mail: ${formik.errors.email}`);
+                          }
+                        }}
                       />
                       {formik.touched.email && formik.errors.email && (
                         <p className="text-xs text-red-500 mt-1">{formik.errors.email}</p>
@@ -988,7 +1047,12 @@ export default function CheckoutPage() {
                         key={m.id}
                         type="button"
                         disabled={!m.available}
-                        onClick={() => m.available && setActiveMethod(m.id)}
+                        onClick={() => {
+                          if (m.available) {
+                            setActiveMethod(m.id);
+                            logInteraction("selecionar_pagamento", formik.values.email, officeId, `${service?.slug || slug} | Método selecionado: ${m.id}`);
+                          }
+                        }}
                         className={`relative flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-center transition-all duration-150 ${activeMethod === m.id
                           ? "border-primary bg-primary/5 text-primary"
                           : m.available

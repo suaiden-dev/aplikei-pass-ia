@@ -24,7 +24,7 @@ function buildLabels(t: TranslationMap): DashboardLabels {
   const badges = asMap(d.badges);
   const status = asMap(d.status);
   const serviceCard = asMap(d.serviceCard);
-  const products = asMap(d.products) as Record<string, { label: string; category: string }>;
+  const products = asMap(d.products) as Record<string, { label: string; category: string; subtitle?: string; included?: string[] }>;
 
   return {
     title: asString(d.title),
@@ -43,6 +43,7 @@ function buildLabels(t: TranslationMap): DashboardLabels {
       denied: asString(badges.denied),
       finished: asString(badges.finished),
       active: asString(badges.active),
+      awaitingRfe: asString(badges.awaitingRfe),
       soldOut: asString(badges.soldOut),
       available: asString(badges.available),
     },

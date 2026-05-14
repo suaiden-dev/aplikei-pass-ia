@@ -233,11 +233,11 @@ export function RoleDashboardLayout({
 
   const handleOnboardingComplete = async () => {
     if (!currentUser) return;
-    
+
     // Mark as dismissed locally immediately to prevent re-triggering during refresh
     setHasDismissedOnboarding(true);
     setShowOnboarding(false);
-    
+
     try {
       await authService.updateAccount(currentUser.id, {
         has_completed_onboarding: true
@@ -389,338 +389,277 @@ export function RoleDashboardLayout({
 
   return (
     <NotificationProvider role="admin">
-    <div className="min-h-screen bg-bg text-text">
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute left-0 top-0 h-96 w-96 -translate-x-1/3 -translate-y-1/3 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-[30rem] w-[30rem] translate-x-1/4 translate-y-1/4 rounded-full bg-info/10 blur-3xl" />
-      </div>
-
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-card/95 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur lg:translate-x-0",
-          "w-72 p-5 transition-all duration-300",
-          collapsed && "lg:w-16 lg:p-2",
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
-        )}
-      >
-        {/* Header */}
-        <div className={cn("flex items-center justify-between", collapsed && "lg:justify-center")}>
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-bg-subtle p-2.5 text-text shrink-0 border border-border">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <div className={cn(collapsed && "lg:hidden")}>
-              <p className="text-sm font-bold text-text uppercase tracking-tight">{consoleTitle}</p>
-              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none mt-0.5">{roleLabel}</p>
-              <p className="text-[10px] font-medium text-text-muted mt-1">{consoleSubtitle}</p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className={cn("rounded-xl border border-border p-2 text-text-muted lg:hidden", collapsed && "lg:hidden")}
-            onClick={() => setMobileMenuOpen(false)}
-            aria-label={tProfile.closeMenu}
-          >
-            <X className="h-4 w-4" />
-          </button>
+      <div className="min-h-screen bg-bg text-text">
+        <div className="pointer-events-none fixed inset-0 overflow-hidden">
+          <div className="absolute left-0 top-0 h-96 w-96 -translate-x-1/3 -translate-y-1/3 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-[30rem] w-[30rem] translate-x-1/4 translate-y-1/4 rounded-full bg-info/10 blur-3xl" />
         </div>
 
-        {/* Nav — grows to fill space */}
-        <div className="flex-1 overflow-y-auto">
-          <SidebarNav navItems={navItems} location={location} onNavigate={() => setMobileMenuOpen(false)} collapsed={collapsed} />
-        </div>
-
-        {/* Footer — collapse toggle & Mobile Actions */}
-        <div className="mt-auto border-t border-border pt-4">
-          {/* Mobile-only actions (Language, Theme, Profile) */}
-          <div className="lg:hidden px-4 mb-6 space-y-6">
-            {/* Language Selection */}
-            <div className="space-y-2">
-              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest px-1">Language</p>
-              <div className="flex items-center gap-2">
-                {(["pt", "en", "es"] as Language[]).map((l) => (
-                  <button
-                    key={l}
-                    onClick={() => setLang(l)}
-                    className={cn(
-                      "flex-1 py-2.5 rounded-xl border transition-all text-lg",
-                      lang === l 
-                        ? "bg-primary/10 border-primary shadow-sm" 
-                        : "bg-bg-subtle border-border opacity-50 grayscale"
-                    )}
-                  >
-                    {l === "pt" ? "🇧🇷" : l === "en" ? "🇺🇸" : "🇪🇸"}
-                  </button>
-                ))}
+        <aside
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-card/95 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur lg:translate-x-0",
+            "w-72 p-5 transition-all duration-300",
+            collapsed && "lg:w-16 lg:p-2",
+            mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+          )}
+        >
+          {/* Header */}
+          <div className={cn("flex items-center justify-between", collapsed && "lg:justify-center")}>
+            <div className="flex items-center gap-3">
+              <div className="rounded-2xl bg-bg-subtle p-2.5 text-text shrink-0 border border-border">
+                <ShieldCheck className="h-5 w-5" />
               </div>
-            </div>
-
-            {/* Theme & Profile Actions */}
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={toggleTheme}
-                className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border border-border bg-bg-subtle text-text-muted transition-colors hover:text-text"
-              >
-                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-                <span className="text-[10px] font-bold uppercase tracking-tight">{theme === "dark" ? "Light" : "Dark"}</span>
-              </button>
-              
-              <button
-                onClick={handleLogout}
-                className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border border-border bg-red-500/5 text-red-500 transition-colors hover:bg-red-500/10"
-              >
-                <RiLogoutBoxRLine size={18} />
-                <span className="text-[10px] font-bold uppercase tracking-tight">Logout</span>
-              </button>
+              <div className={cn(collapsed && "lg:hidden")}>
+                <p className="text-sm font-bold text-text uppercase tracking-tight">{consoleTitle}</p>
+                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none mt-0.5">{roleLabel}</p>
+                <p className="text-[10px] font-medium text-text-muted mt-1">{consoleSubtitle}</p>
+              </div>
             </div>
 
             <button
-              onClick={openEditProfile}
-              className="flex w-full items-center gap-3 p-3 rounded-2xl border border-border bg-bg-subtle transition-colors hover:border-primary/40"
+              type="button"
+              className={cn("rounded-xl border border-border p-2 text-text-muted lg:hidden", collapsed && "lg:hidden")}
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label={tProfile.closeMenu}
             >
-              <img
-                src={resolvedAvatar}
-                alt="Avatar"
-                className="h-8 w-8 rounded-full border border-border object-cover"
-              />
-              <div className="text-left overflow-hidden">
-                <p className="text-xs font-bold text-text truncate">{resolvedName}</p>
-                <p className="text-[10px] text-text-muted truncate">Edit Profile</p>
-              </div>
-              <RiPencilLine className="ml-auto text-text-muted" size={14} />
+              <X className="h-4 w-4" />
             </button>
           </div>
 
-          <div className={cn("hidden lg:flex", collapsed ? "justify-center" : "px-0")}>
+          {/* Nav — grows to fill space */}
+          <div className="flex-1 overflow-y-auto">
+            <SidebarNav navItems={navItems} location={location} onNavigate={() => setMobileMenuOpen(false)} collapsed={collapsed} />
+          </div>
+
+          {/* Footer — collapse toggle */}
+          <div className={cn("mt-4 border-t border-border pt-4", collapsed ? "flex justify-center" : "")}>
             <button
               type="button"
               onClick={toggleCollapsed}
-              title={collapsed ? tProfile.expandSidebar : tProfile.collapseSidebar}
+              title={collapsed ? (tProfile.expandSidebar || "Expand") : (tProfile.collapseSidebar || "Collapse")}
               className={cn(
-                "flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text",
+                "hidden lg:flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text",
                 collapsed && "justify-center px-2",
               )}
             >
               {collapsed ? <ChevronRight className="h-4 w-4 shrink-0" /> : (
                 <>
                   <ChevronLeft className="h-4 w-4 shrink-0" />
-                  <span>{tProfile.collapseSidebar.split(' ')[0]}</span>
+                  <span>{(tProfile.collapseSidebar || "Collapse").split(' ')[0]}</span>
                 </>
               )}
             </button>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      {mobileMenuOpen ? (
-        <button
-          type="button"
-          className="fixed inset-0 z-40 bg-slate-950/40 lg:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-          aria-label={tProfile.closeMenu}
-        />
-      ) : null}
+        {mobileMenuOpen ? (
+          <button
+            type="button"
+            className="fixed inset-0 z-40 bg-slate-950/40 lg:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label={tProfile.closeMenu}
+          />
+        ) : null}
 
-      <div className={cn("relative lg:transition-all lg:duration-300", collapsed ? "lg:pl-16" : "lg:pl-72")}>
-        <header className="sticky top-0 z-30 border-b border-border bg-bg/80 px-4 py-4 backdrop-blur sm:px-6 lg:px-8">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-text-muted lg:hidden"
-                onClick={() => setMobileMenuOpen(true)}
-                aria-label={tProfile.openMenu}
-              >
-                <Menu className="h-5 w-5" />
-              </button>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">{headerEyebrow}</p>
-                <h1 className="font-display text-2xl font-black tracking-[-0.04em] text-text">
-                  {activeItem?.label ?? "Overview"}
-                </h1>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl p-1 transition-colors hover:bg-bg-subtle">
-                <NotificationBell role="admin" align="right" />
-              </div>
-              
-              {/* Desktop-only Theme Toggle */}
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="hidden lg:flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-text-muted transition-colors hover:text-text"
-                aria-label={tProfile.toggleTheme}
-              >
-                {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </button>
-
-              {/* Desktop-only Profile Menu */}
-              <div className="relative hidden lg:block" ref={menuRef}>
+        <div className={cn("relative lg:transition-all lg:duration-300", collapsed ? "lg:pl-16" : "lg:pl-72")}>
+          <header className="sticky top-0 z-30 border-b border-border bg-bg/80 px-4 py-4 backdrop-blur sm:px-6 lg:px-8">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setMenuOpen((prev) => !prev)}
-                  className="flex h-11 items-center gap-2 rounded-2xl border border-border bg-card px-3 text-sm font-semibold text-text transition-colors hover:border-primary/40"
+                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-text-muted lg:hidden"
+                  onClick={() => setMobileMenuOpen(true)}
+                  aria-label={tProfile.openMenu}
                 >
-                  <img
-                    src={resolvedAvatar}
-                    alt="Avatar"
-                    className="h-7 w-7 rounded-full object-cover border border-border"
-                  />
-                  <span className="max-w-[120px] truncate">{resolvedName}</span>
-                  <RiArrowDownSLine className="text-text-muted" size={16} />
+                  <Menu className="h-5 w-5" />
                 </button>
-                {menuOpen && (
-                  <div className="absolute right-0 mt-2 w-52 overflow-hidden rounded-xl border border-border bg-card shadow-xl">
-                    <button
-                      type="button"
-                      onClick={openEditProfile}
-                      className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-text transition-colors hover:bg-bg-subtle"
-                    >
-                      <RiPencilLine size={16} />
-                      {tProfile.changeProfile}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-red-500 transition-colors hover:bg-red-500/10"
-                    >
-                      <RiLogoutBoxRLine size={16} />
-                      {tProfile.logout}
-                    </button>
-                  </div>
-                )}
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">{headerEyebrow}</p>
+                  <h1 className="font-display text-2xl font-black tracking-[-0.04em] text-text">
+                    {activeItem?.label ?? "Overview"}
+                  </h1>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl p-1 transition-colors hover:bg-bg-subtle">
+                  <NotificationBell role="admin" align="right" />
+                </div>
+
+                {/* Desktop-only Theme Toggle */}
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="hidden lg:flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-text-muted transition-colors hover:text-text"
+                  aria-label={tProfile.toggleTheme}
+                >
+                  {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </button>
+
+                {/* Desktop-only Profile Menu */}
+                <div className="relative hidden lg:block" ref={menuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpen((prev) => !prev)}
+                    className="flex h-11 items-center gap-2 rounded-2xl border border-border bg-card px-3 text-sm font-semibold text-text transition-colors hover:border-primary/40"
+                  >
+                    <img
+                      src={resolvedAvatar}
+                      alt="Avatar"
+                      className="h-7 w-7 rounded-full object-cover border border-border"
+                    />
+                    <span className="max-w-[120px] truncate">{resolvedName}</span>
+                    <RiArrowDownSLine className="text-text-muted" size={16} />
+                  </button>
+                  {menuOpen && (
+                    <div className="absolute right-0 mt-2 w-52 overflow-hidden rounded-xl border border-border bg-card shadow-xl">
+                      <button
+                        type="button"
+                        onClick={openEditProfile}
+                        className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-text transition-colors hover:bg-bg-subtle"
+                      >
+                        <RiPencilLine size={16} />
+                        {tProfile.changeProfile}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-red-500 transition-colors hover:bg-red-500/10"
+                      >
+                        <RiLogoutBoxRLine size={16} />
+                        {tProfile.logout}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </header>
+          </header>
 
-        <main className="relative z-10 px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            {subLoading ? (
-              <div className="flex items-center justify-center min-h-[40vh]">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : isRestricted && isSubscriptionLockedPath ? (
-              <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center animate-in zoom-in-95 duration-500">
-                <div className="w-24 h-24 rounded-[32px] bg-warning/10 flex items-center justify-center text-warning mb-8">
-                  <RiLockPasswordLine className="text-5xl" />
+          <main className="relative z-10 px-4 py-6 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-7xl">
+              {subLoading ? (
+                <div className="flex items-center justify-center min-h-[40vh]">
+                  <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                 </div>
-                <h2 className="text-3xl font-black text-text mb-4 tracking-tighter">Feature Locked</h2>
-                <p className="text-text-muted max-w-md mx-auto font-medium mb-8">
-                  This feature is part of professional plans. Activate your subscription to manage products, discounts and your custom website.
-                </p>
-                <Button 
-                  onClick={() => navigate("/subscription")}
-                  className="h-14 px-10 rounded-2xl bg-primary text-white font-black uppercase tracking-widest shadow-xl shadow-primary/20"
-                >
-                  View Available Plans
-                </Button>
-              </div>
-            ) : (
-              <>
-                {isRestricted && !location.pathname.includes("/subscription") && (
-                  <div className="mb-6 flex items-center justify-between p-4 rounded-2xl bg-warning/10 border border-warning/20 animate-in slide-in-from-top duration-500">
-                    <div className="flex items-center gap-3 text-warning">
-                      <RiErrorWarningLine className="text-xl" />
-                      <p className="text-xs font-black uppercase tracking-widest">Your subscription is not active</p>
-                    </div>
-                    <button 
-                      onClick={() => navigate("/subscription")}
-                      className="text-[10px] font-black uppercase tracking-widest text-warning hover:underline"
-                    >
-                      Activate now
-                    </button>
+              ) : isRestricted && isSubscriptionLockedPath ? (
+                <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center animate-in zoom-in-95 duration-500">
+                  <div className="w-24 h-24 rounded-[32px] bg-warning/10 flex items-center justify-center text-warning mb-8">
+                    <RiLockPasswordLine className="text-5xl" />
                   </div>
-                )}
-                <Outlet />
-              </>
-            )}
-          </div>
-        </main>
-      </div>
-      <NotificationToaster />
+                  <h2 className="text-3xl font-black text-text mb-4 tracking-tighter">Feature Locked</h2>
+                  <p className="text-text-muted max-w-md mx-auto font-medium mb-8">
+                    This feature is part of professional plans. Activate your subscription to manage products, discounts and your custom website.
+                  </p>
+                  <Button
+                    onClick={() => navigate("/subscription")}
+                    className="h-14 px-10 rounded-2xl bg-primary text-white font-black uppercase tracking-widest shadow-xl shadow-primary/20"
+                  >
+                    View Available Plans
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {isRestricted && !location.pathname.includes("/subscription") && (
+                    <div className="mb-6 flex items-center justify-between p-4 rounded-2xl bg-warning/10 border border-warning/20 animate-in slide-in-from-top duration-500">
+                      <div className="flex items-center gap-3 text-warning">
+                        <RiErrorWarningLine className="text-xl" />
+                        <p className="text-xs font-black uppercase tracking-widest">Your subscription is not active</p>
+                      </div>
+                      <button
+                        onClick={() => navigate("/subscription")}
+                        className="text-[10px] font-black uppercase tracking-widest text-warning hover:underline"
+                      >
+                        Activate now
+                      </button>
+                    </div>
+                  )}
+                  <Outlet />
+                </>
+              )}
+            </div>
+          </main>
+        </div>
+        <NotificationToaster />
 
-      <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
-        <DialogContent className="max-w-xl border-border bg-card p-6">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-black text-text">{tProfile.title}</DialogTitle>
-          </DialogHeader>
+        <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+          <DialogContent className="max-w-xl border-border bg-card p-6">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-black text-text">{tProfile.title}</DialogTitle>
+            </DialogHeader>
 
-          <div className="space-y-6">
-            <div className="flex items-center gap-6">
-              <div className="h-28 w-28 overflow-hidden rounded-full border border-border">
-                <img
-                  src={avatarUrl}
-                  alt={tProfile.previewAlt}
-                  className="h-full w-full object-cover"
-                  style={{ transform: avatarTransform(xOffset, yOffset, zoom) }}
+            <div className="space-y-6">
+              <div className="flex items-center gap-6">
+                <div className="h-28 w-28 overflow-hidden rounded-full border border-border">
+                  <img
+                    src={avatarUrl}
+                    alt={tProfile.previewAlt}
+                    className="h-full w-full object-cover"
+                    style={{ transform: avatarTransform(xOffset, yOffset, zoom) }}
+                  />
+                </div>
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm text-text hover:bg-bg-subtle">
+                  <RiUploadLine size={16} />
+                  {tProfile.uploadBtn}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageSelected} />
+                </label>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{tProfile.xAxis}</label>
+                <input
+                  type="range"
+                  min={-50}
+                  max={50}
+                  value={xOffset}
+                  onChange={(e) => setXOffset(Number(e.target.value))}
+                  className="w-full"
+                />
+                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{tProfile.yAxis}</label>
+                <input
+                  type="range"
+                  min={-50}
+                  max={50}
+                  value={yOffset}
+                  onChange={(e) => setYOffset(Number(e.target.value))}
+                  className="w-full"
+                />
+                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{tProfile.zoom}</label>
+                <input
+                  type="range"
+                  min={0.8}
+                  max={2.5}
+                  step={0.05}
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-full"
                 />
               </div>
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm text-text hover:bg-bg-subtle">
-                <RiUploadLine size={16} />
-                {tProfile.uploadBtn}
-                <input type="file" accept="image/*" className="hidden" onChange={handleImageSelected} />
-              </label>
-            </div>
 
-            <div className="space-y-3">
-              <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{tProfile.xAxis}</label>
-              <input
-                type="range"
-                min={-50}
-                max={50}
-                value={xOffset}
-                onChange={(e) => setXOffset(Number(e.target.value))}
-                className="w-full"
-              />
-              <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{tProfile.yAxis}</label>
-              <input
-                type="range"
-                min={-50}
-                max={50}
-                value={yOffset}
-                onChange={(e) => setYOffset(Number(e.target.value))}
-                className="w-full"
-              />
-              <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{tProfile.zoom}</label>
-              <input
-                type="range"
-                min={0.8}
-                max={2.5}
-                step={0.05}
-                value={zoom}
-                onChange={(e) => setZoom(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{tProfile.nameLabel}</label>
+                <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={tProfile.namePlaceholder} />
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{tProfile.nameLabel}</label>
-              <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={tProfile.namePlaceholder} />
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setIsProfileDialogOpen(false)} disabled={isSaving}>
+                  {tProfile.cancelBtn}
+                </Button>
+                <Button onClick={handleSaveProfile} disabled={isSaving}>
+                  {isSaving ? tProfile.savingBtn : tProfile.saveBtn}
+                </Button>
+              </div>
             </div>
+          </DialogContent>
+        </Dialog>
 
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsProfileDialogOpen(false)} disabled={isSaving}>
-                {tProfile.cancelBtn}
-              </Button>
-              <Button onClick={handleSaveProfile} disabled={isSaving}>
-                {isSaving ? tProfile.savingBtn : tProfile.saveBtn}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-      
-      <NotificationToaster />
-      <OnboardingModal 
-        isOpen={showOnboarding} 
-        onClose={() => setShowOnboarding(false)} 
-        onComplete={handleOnboardingComplete}
-      />
-    </div>
+        <NotificationToaster />
+        <OnboardingModal
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+          onComplete={handleOnboardingComplete}
+        />
+      </div>
     </NotificationProvider>
   );
 }

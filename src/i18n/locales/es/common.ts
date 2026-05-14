@@ -124,6 +124,39 @@ const common = {
       description: "Programe una demostración personalizada y vea cómo Aplikei puede escalar sus ingresos y eficiencia.",
       button: "Solicitar Demo B2B"
     }
+  },
+  chat: {
+    title: "Chat con Especialista",
+    inputPlaceholder: "Escribe tu mensaje...",
+    noMessages: "No hay mensajes aún",
+    statusActive: "Chat activo",
+    statusClosed: "Chat cerrado",
+    roles: {
+      admin: "Especialista",
+      customer: "Cliente"
+    },
+    actions: {
+      send: "Enviar",
+      upload: "Adjuntar",
+      viewResult: "Ver resultado y registrar"
+    },
+    messages: {
+      fileSent: "Archivo enviado: {{name}}",
+      uploadSuccess: "¡Archivo subido con éxito!",
+      uploadError: "Error al subir el archivo.",
+      closedAdmin: "Conversación cerrada. Reabre para continuar.",
+      closedCustomer: "Este chat ha sido cerrado por el especialista. Registra tu resultado de Motion en el panel."
+    }
+  },
+  docUpload: {
+    uploadFile: "Enviar Archivo",
+    fileSelected: "Archivo Seleccionado",
+    newFileSelected: "Nuevo Archivo",
+    needsCorrection: "Corrección Necesaria",
+    requiredDocument: "Documento Obligatorio",
+    pending: "Pendiente",
+    updated: "Actualizado",
+    ready: "Listo"
   }
 };
 export { common };

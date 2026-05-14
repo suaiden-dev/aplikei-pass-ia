@@ -1,6 +1,7 @@
 import { useFormikContext, Field, ErrorMessage } from "formik";
 import type { DS160FormValues } from "../../../../schemas/ds160.schema";
 import { useT } from "../../../../i18n";
+import { maskCPF } from "../../../../utils/cpf";
 
 type VisasOnboardingFormText = {
   onboardingPage: {
@@ -27,12 +28,14 @@ const FormInput = ({
   type = "text",
   placeholder = "",
   required = false,
+  onChange,
 }: {
   name: string;
   label: string;
   type?: string;
   placeholder?: string;
   required?: boolean;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
   const { errors, touched } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
@@ -42,16 +45,27 @@ const FormInput = ({
       <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
         {label} {required && <span className="text-primary">*</span>}
       </label>
-      <Field
-        id={name}
-        name={name}
-        type={type}
-        placeholder={placeholder}
-        className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
-          ? "border-red-300 bg-red-50/50 focus:border-red-400"
-          : "border-border bg-card focus:border-primary"
-          }`}
-      />
+      <Field name={name}>
+        {({ field }: any) => (
+          <input
+            {...field}
+            id={name}
+            type={type}
+            placeholder={placeholder}
+            className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
+              ? "border-red-300 bg-red-50/50 focus:border-red-400"
+              : "border-border bg-card focus:border-primary"
+              }`}
+            onChange={(e) => {
+              if (onChange) {
+                onChange(e);
+              } else {
+                field.onChange(e);
+              }
+            }}
+          />
+        )}
+      </Field>
       <FieldError name={name} />
     </div>
   );
@@ -239,7 +253,7 @@ export const DS160SingleFormStep = ({
   currentSection?: number
   readOnly?: boolean
 }) => {
-  const { values } = useFormikContext<DS160FormValues>()
+  const { values, setFieldValue } = useFormikContext<DS160FormValues>()
   const t = useT('visas') as VisasOnboardingFormText
 
   const sections = [
@@ -351,7 +365,13 @@ export const DS160SingleFormStep = ({
       )}
 
       <div className="max-w-xs">
-        <FormInput name="cpf" label={t.onboardingPage.form.cpfLabel} placeholder={t.onboardingPage.form.cpfPlaceholder} required />
+        <FormInput
+          name="cpf"
+          label={t.onboardingPage.form.cpfLabel}
+          placeholder={t.onboardingPage.form.cpfPlaceholder}
+          required
+          onChange={(e) => setFieldValue("cpf", maskCPF(e.target.value))}
+        />
       </div>
     </Section>,
 
