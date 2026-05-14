@@ -40,6 +40,22 @@ import { useT } from "../../../i18n";
 import { useAuth } from "../../../hooks/useAuth";
 import type { StepConfig } from "../../../templates/ServiceDetailTemplate";
 
+interface ProcessLog {
+  id: string;
+  user_service_id: string;
+  actor_id?: string;
+  actor_name?: string;
+  actor_role?: string;
+  action_type?: string;
+  action?: string;
+  message?: string;
+  previous_step?: number;
+  new_step?: number;
+  previous_status?: string;
+  new_status?: string;
+  created_at: string;
+}
+
 interface ProcessWithUser extends UserService {
   user_accounts: {
     full_name: string;
@@ -92,6 +108,118 @@ function buildEffectiveSteps(baseSteps: StepConfig[], history: Array<{ type?: st
 
 // ─── Process Log Panel ────────────────────────────────────────────────────────
 // ─── Purchases History Panel ──────────────────────────────────────────────────
+
+// ————— Process Log Panel ——————————————————————————————————————————————————————————————————————
+function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientName: string }) {
+  const [logs, setLogs] = React.useState<ProcessLog[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const t = useT("admin");
+
+  React.useEffect(() => {
+    async function fetchLogs() {
+      setLoading(true);
+      const { data } = await supabase
+        .from("process_logs")
+        .select("*")
+        .eq("user_service_id", serviceId)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      setLogs((data || []) as ProcessLog[]);
+      setLoading(false);
+    }
+    fetchLogs();
+  }, [serviceId]);
+
+  const formatDate = (dt: string) =>
+    new Date(dt).toLocaleString(t.shared.locale || "pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+  const getStatusLabel = (s?: string) => {
+    const map: Record<string, string> = {
+      active: t.processDetail.logs.status.active,
+      awaiting_review: t.processDetail.logs.status.awaitingReview,
+      completed: t.processDetail.logs.status.completed,
+      rejected: t.processDetail.logs.status.rejected,
+    };
+    return s ? (map[s] || s) : "—";
+  };
+
+  const getActorLabel = (log: ProcessLog) => {
+    if (log.actor_name) return log.actor_name;
+    if (log.actor_role === "admin") return t.processDetail.logs.actor.admin;
+    return clientName || t.processDetail.logs.actor.client;
+  };
+
+  const getActorColor = (log: ProcessLog) => {
+    if (log.actor_role === "admin") return "bg-primary/10 text-primary border border-primary/20";
+    return "bg-info/10 text-info border border-info/20";
+  };
+
+  const getActionDescription = (log: ProcessLog) => {
+    if (log.message) return log.message;
+    if (log.action) return log.action;
+
+    const stepChanged = log.previous_step !== log.new_step;
+    const statusChanged = log.previous_status !== log.new_status;
+
+    if (log.actor_role === "admin") {
+      if (stepChanged && (log.new_step ?? 0) > (log.previous_step ?? 0)) return t.processDetail.logs.actions.approved;
+      if (statusChanged && log.new_status === "active" && log.previous_status === "awaiting_review") return t.processDetail.logs.actions.returned;
+      if (statusChanged && log.new_status === "awaiting_review") return t.processDetail.logs.actions.inReview;
+      if (statusChanged && log.new_status === "completed") return t.processDetail.logs.actions.completed;
+    } else {
+      if (stepChanged) return t.processDetail.logs.actions.formSubmitted;
+      if (statusChanged && log.new_status === "awaiting_review") return t.processDetail.logs.actions.sentForReview;
+    }
+    return t.processDetail.logs.actions.internalChange;
+  };
+
+  return (
+    <div className="bg-card rounded-[32px] border border-border shadow-sm p-6">
+      <div className="flex items-center gap-3 mb-5">
+        <div className="w-8 h-8 rounded-xl bg-text flex items-center justify-center">
+          <RiTimeLine className="text-bg text-sm" />
+        </div>
+        <h3 className="font-black text-text text-sm uppercase tracking-tight">{t.processDetail.logs.title}</h3>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <RiLoader4Line className="animate-spin text-2xl text-text-muted" />
+        </div>
+      ) : logs.length === 0 ? (
+        <p className="text-xs text-text-muted text-center py-6 font-medium">{t.processDetail.logs.noLogs}</p>
+      ) : (
+        <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
+          {logs.map((log) => (
+            <div key={log.id} className="flex gap-3 items-start">
+              <div className="mt-1 w-6 h-6 rounded-full bg-bg-subtle flex items-center justify-center shrink-0">
+                <RiUser3Line className="text-text-muted text-xs" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1 text-left">
+                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${getActorColor(log)}`}>
+                    {getActorLabel(log)}
+                  </span>
+                  <span className="text-[9px] text-text-muted font-bold">{formatDate(log.created_at)}</span>
+                </div>
+                <p className="text-[11px] text-text font-bold text-left">{getActionDescription(log)}</p>
+                <div className="text-[10px] text-text-muted font-medium space-y-0.5 mt-0.5 text-left">
+                  {log.previous_step !== log.new_step && (
+                    <p>{t.processDetail.logs.labels.step} <span className="text-text font-black">{(log.previous_step ?? 0) + 1}</span> → <span className="text-primary font-black">{(log.new_step ?? 0) + 1}</span></p>
+                  )}
+                  {log.previous_status !== log.new_status && (
+                    <p>{t.processDetail.logs.labels.status}: <span className="text-text-muted font-black">{getStatusLabel(log.previous_status)}</span> → <span className="text-text font-black">{getStatusLabel(log.new_status)}</span></p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PurchasesPanel({ stepData }: { stepData: Record<string, unknown> }) {
   const purchases = (stepData?.purchases || []) as Array<{
     id?: string;
@@ -1124,6 +1252,7 @@ export default function AdminProcessDetailPage() {
   const [proc, setProc] = useState<ProcessWithUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLogsModalOpen, setIsLogsModalOpen] = useState(false);
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -2107,7 +2236,16 @@ export default function AdminProcessDetailPage() {
             <RiArrowLeftLine className="text-xl" />
           </button>
           <div>
-            <h1 className="font-display font-black text-3xl text-text tracking-tight">{proc.user_accounts?.full_name}</h1>
+            <div className="flex items-center gap-4">
+              <h1 className="font-display font-black text-3xl text-text tracking-tight">{proc.user_accounts?.full_name}</h1>
+              <button 
+                onClick={() => setIsLogsModalOpen(true)}
+                className="w-10 h-10 flex items-center justify-center rounded-xl bg-bg-subtle border border-border text-text-muted hover:text-primary transition-all shadow-sm group"
+                title="Ver logs de interação"
+              >
+                <RiHistoryLine className="text-xl group-hover:scale-110 transition-transform" />
+              </button>
+            </div>
             <p className="text-xs text-text-muted font-bold uppercase tracking-wider">{service?.title}</p>
           </div>
         </div>
@@ -2228,14 +2366,29 @@ export default function AdminProcessDetailPage() {
 
           <PurchasesPanel stepData={(proc?.step_data as any) || {}} />
 
-
-
+          <button 
+            onClick={() => setIsLogsModalOpen(true)}
+            className="w-full p-6 bg-card border border-border rounded-[32px] shadow-sm hover:border-primary/30 transition-all group text-left"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                  <RiHistoryLine className="text-xl" />
+                </div>
+                <div>
+                  <h3 className="font-black text-text text-sm uppercase tracking-tight">Histórico de Logs</h3>
+                  <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5">Clique para visualizar</p>
+                </div>
+              </div>
+              <RiArrowRightLine className="text-text-muted group-hover:text-primary transition-colors" />
+            </div>
+          </button>
         </div>
       </div>
 
       <AnimatePresence>
         {showRejectionModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-6">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowRejectionModal(false)} className="absolute inset-0 bg-bg/80 backdrop-blur-sm" />
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-lg bg-card border border-border rounded-[32px] p-8 shadow-2xl">
               <h3 className="font-display font-black text-text text-xl mb-4">{t.analysisPanel.actions.requestMoreInfo}</h3>
@@ -2250,6 +2403,49 @@ export default function AdminProcessDetailPage() {
                 <button onClick={handleRejectStep} disabled={!rejectionReason || isSubmitting} className="flex-[2] h-12 bg-danger text-white rounded-xl font-black text-[10px] uppercase">
                   {t.cases.actions.reject}
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {isLogsModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => setIsLogsModalOpen(false)} 
+              className="absolute inset-0 bg-bg/60 backdrop-blur-md" 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.95, y: 20 }} 
+              className="relative w-full max-w-5xl max-h-[90vh] bg-card border border-border rounded-[40px] shadow-2xl flex flex-col overflow-hidden"
+            >
+              <div className="p-8 border-b border-border flex items-center justify-between bg-bg-subtle/50">
+                <div className="text-left">
+                  <h3 className="font-display font-black text-text text-2xl uppercase tracking-tight flex items-center gap-3">
+                    <RiHistoryLine className="text-primary" />
+                    Logs de Interação
+                  </h3>
+                  <p className="text-xs text-text-muted font-bold uppercase tracking-widest mt-1">
+                    Histórico de eventos para {proc.user_accounts?.full_name}
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setIsLogsModalOpen(false)}
+                  className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-text-muted hover:text-danger transition-all hover:rotate-90"
+                >
+                  <RiCloseLine className="text-2xl" />
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <ProcessLogPanel
+                  serviceId={proc.id}
+                  clientName={proc.user_accounts?.full_name || proc.user_accounts?.email || "Cliente"}
+                />
               </div>
             </motion.div>
           </div>

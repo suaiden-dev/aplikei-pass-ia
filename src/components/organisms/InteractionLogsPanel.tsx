@@ -48,7 +48,12 @@ const itemVariants = {
   }
 };
 
-export function InteractionLogsPanel() {
+interface InteractionLogsPanelProps {
+  userServiceId?: string;
+  hideHeader?: boolean;
+}
+
+export function InteractionLogsPanel({ userServiceId, hideHeader = false }: InteractionLogsPanelProps) {
   const [logs, setLogs] = useState<ProcessLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -69,6 +74,10 @@ export function InteractionLogsPanel() {
         .select("*", { count: "exact" })
         .order("created_at", { ascending: false })
         .range(page * pageSize, (page + 1) * pageSize - 1);
+
+      if (userServiceId) {
+        query = query.eq("user_service_id", userServiceId);
+      }
 
       if (filter === "error") {
         query = query.or("message.ilike.%erro%,action.ilike.%erro%");
@@ -116,29 +125,31 @@ export function InteractionLogsPanel() {
   return (
     <div className="relative z-10 w-full space-y-10">
       {/* Statistics Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { label: "Total de Eventos", value: totalCount, icon: RiHistoryLine, color: "text-primary" },
-          { label: "Falhas Identificadas", value: Math.floor(totalCount * 0.05), icon: RiErrorWarningLine, color: "text-red-400" },
-          { label: "Atividade Recente", value: "Monitoramento Ativo", icon: RiTerminalBoxLine, color: "text-emerald-400" }
-        ].map((stat, i) => (
-          <motion.div 
-            key={i}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-card border border-border rounded-2xl p-5 flex items-center gap-5 backdrop-blur-sm"
-          >
-            <div className={`w-12 h-12 rounded-xl bg-bg-subtle flex items-center justify-center ${stat.color}`}>
-              <stat.icon className="text-2xl" />
-            </div>
-            <div className="text-left">
-              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">{stat.label}</p>
-              <p className="text-xl font-black text-text">{stat.value}</p>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+      {!hideHeader && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            { label: "Total de Eventos", value: totalCount, icon: RiHistoryLine, color: "text-primary" },
+            { label: "Falhas Identificadas", value: Math.floor(totalCount * 0.05), icon: RiErrorWarningLine, color: "text-red-400" },
+            { label: "Atividade Recente", value: "Monitoramento Ativo", icon: RiTerminalBoxLine, color: "text-emerald-400" }
+          ].map((stat, i) => (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="bg-card border border-border rounded-2xl p-5 flex items-center gap-5 backdrop-blur-sm"
+            >
+              <div className={`w-12 h-12 rounded-xl bg-bg-subtle flex items-center justify-center ${stat.color}`}>
+                <stat.icon className="text-2xl" />
+              </div>
+              <div className="text-left">
+                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">{stat.label}</p>
+                <p className="text-xl font-black text-text">{stat.value}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
       {/* Control Bar */}
       <section className="flex flex-col md:flex-row gap-6 items-center justify-between">
