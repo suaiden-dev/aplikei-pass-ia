@@ -513,29 +513,9 @@ export default function AdminProcessesPage() {
         )}
       </div>
 
-    </div>
-  );
-}
-
- function StatCard({ label, value, icon, color, highlight }: { label: string, value: number, icon: React.ReactNode, color: string, highlight?: boolean }) {
-  return (
-    <div className={`p-6 rounded-[24px] bg-card border ${highlight ? 'border-warning/30' : 'border-border'} shadow-sm transition-all hover:shadow-md h-full flex flex-col justify-between`}>
-      <div className="flex items-center justify-between mb-4">
-        <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center text-lg shadow-sm font-black`}>
-          {icon}
-        </div>
-        <div className="text-2xl font-black text-text tracking-tight">{value}</div>
-      </div>
-      <div>
-        <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none">{label}</p>
-        <div className="w-full h-1.5 bg-bg-subtle rounded-full mt-3 overflow-hidden shadow-inner">
-           <div className={`h-full rounded-full ${color.split(' ')[1]} opacity-30`} style={{ width: '60%' }} />
-        </div>
-      </div>
-
       <AnimatePresence>
         {logModalProcess && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 text-center">
             <motion.div 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
@@ -574,6 +554,25 @@ export default function AdminProcessesPage() {
           </div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+ function StatCard({ label, value, icon, color, highlight }: { label: string, value: number, icon: React.ReactNode, color: string, highlight?: boolean }) {
+  return (
+    <div className={`p-6 rounded-[24px] bg-card border ${highlight ? 'border-warning/30' : 'border-border'} shadow-sm transition-all hover:shadow-md h-full flex flex-col justify-between`}>
+      <div className="flex items-center justify-between mb-4">
+        <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center text-lg shadow-sm font-black`}>
+          {icon}
+        </div>
+        <div className="text-2xl font-black text-text tracking-tight">{value}</div>
+      </div>
+      <div>
+        <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none text-left">{label}</p>
+        <div className="w-full h-1.5 bg-bg-subtle rounded-full mt-3 overflow-hidden shadow-inner">
+           <div className={`h-full rounded-full ${color.split(' ')[1]} opacity-30`} style={{ width: '60%' }} />
+        </div>
+      </div>
     </div>
   );
 }
