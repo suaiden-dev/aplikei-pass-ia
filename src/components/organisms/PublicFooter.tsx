@@ -55,9 +55,10 @@ export function PublicFooter() {
         <div className="flex flex-col items-center justify-between gap-4 pt-8 text-center sm:flex-row sm:text-left">
           <p className="text-xs text-text-muted">© 2026 Aplikei Technologies. {t.allRightsReserved}</p>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end sm:gap-6">
-            <Link to="/legal/terms" className="text-xs text-text-muted transition-colors hover:text-text">{t.terms}</Link>
-            <Link to="/legal/privacy" className="text-xs text-text-muted transition-colors hover:text-text">{t.privacy}</Link>
-            <Link to="/legal/refund" className="text-xs text-text-muted transition-colors hover:text-text">{t.refund}</Link>
+            <Link to="/termos" className="text-xs text-text-muted transition-colors hover:text-text">{t.terms}</Link>
+            <Link to="/privacidade" className="text-xs text-text-muted transition-colors hover:text-text">{t.privacy}</Link>
+            <Link to="/reembolso" className="text-xs text-text-muted transition-colors hover:text-text">{t.refund}</Link>
+
           </div>
         </div>
       </div>

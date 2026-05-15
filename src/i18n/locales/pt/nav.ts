@@ -2,7 +2,8 @@ const nav = {
   home: "Início",
   howItWorks: "Quem somos",
   services: "Serviços",
-  contact: "Contato",
+  contact: "Fale Conosco",
+
   login: "Entrar",
   getStarted: "Começar",
   dashboard: "Painel",

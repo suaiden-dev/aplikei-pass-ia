@@ -104,7 +104,7 @@ export function PublicNavbar() {
   const navLinks = [
     { to: "/quem-somos", label: t.howItWorks },
     { to: "/servicos", label: t.services },
-    { to: "/login", label: t.login },
+    { to: "/contato", label: t.contact },
   ];
 
   return (
@@ -199,12 +199,6 @@ export function PublicNavbar() {
               </button>
 
               <Button asChild className="w-full">
-                <Link to="/login" onClick={closeMenu}>
-                  {t.login}
-                </Link>
-              </Button>
-
-              <Button asChild variant="outline" className="w-full">
                 <Link to="/login" onClick={closeMenu}>
                   {t.login}
                 </Link>
