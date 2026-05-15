@@ -604,7 +604,7 @@ export default function OfficeCheckoutPage() {
         return () => window.removeEventListener("beforeunload", handleUnload);
     }, [formik.values.email, dependents, activeMethod, office, officeSlug, serviceSlug]);
 
-    if (isLoading) return <div className="min-h-screen flex items-center justify-center"><LogoLoader /></div>;
+    if (isLoading) return <div className="min-h-screen flex items-center justify-center"><LogoLoader officeId={user?.officeId ?? null} /></div>;
     if (!officeSlug || !serviceSlug || !dbService) return <div className="min-h-screen flex items-center justify-center text-text-muted text-sm">Serviço não encontrado.</div>;
 
     return (
