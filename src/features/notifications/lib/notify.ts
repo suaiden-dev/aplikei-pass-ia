@@ -101,7 +101,8 @@ async function createAdminNotificationsForUsers(
   userIds: string[],
   params: NotifyAdminParams,
 ): Promise<void> {
-  await Promise.all(userIds.map((id) => insertNotification({
+  // Use allSettled to ensure one failure doesn't block others
+  await Promise.allSettled(userIds.map((id) => insertNotification({
     type: "admin_action",
     target_role: "admin",
     user_id: id,
