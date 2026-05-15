@@ -45,7 +45,18 @@ function calculatePhaseProgress(proc: UserService, totalSteps: number): number {
   if (proc.status === 'completed') return 100;
   const isConsular = proc.service_slug.startsWith("visto-b1-b2") || proc.service_slug.startsWith("visto-f1");
   const maxProgress = isConsular ? 95 : 99;
-  return Math.min(maxProgress, Math.round((step / (totalSteps || 1)) * 100));
+  const stepForProgress = Math.max(0, step) + 1;
+  return Math.min(maxProgress, Math.round((stepForProgress / (totalSteps || 1)) * 100));
+}
+
+function resolveTotalStepsForProgress(proc: UserService): number {
+  const canonical = getCanonicalSlug(proc.service_slug);
+  if (canonical === "visto-f1") return 13;
+  if (canonical === "visto-b1-b2") return 11;
+
+  const service = servicesData.find((s) => s.slug === proc.service_slug)
+    || servicesData.find((s) => s.slug === canonical);
+  return service?.steps.length ?? 1;
 }
 
 function ProcessRow({ proc, index, displaySlug }: { proc: UserService; index: number; displaySlug: string }) {
@@ -64,8 +75,7 @@ function ProcessRow({ proc, index, displaySlug }: { proc: UserService; index: nu
   const iconName = heroIconNameBySlug[slugForDisplay] ?? "MdLanguage";
   const Icon = serviceIconMap[iconName] ?? MdLanguage;
 
-  const service = servicesData.find(s => s.slug === proc.service_slug);
-  const totalSteps = service?.steps.length ?? 1;
+  const totalSteps = resolveTotalStepsForProgress(proc);
   const stepData = (proc.step_data || {}) as Record<string, unknown>;
 
   const uscisResult = stepData.uscis_official_result as string;
@@ -73,12 +83,16 @@ function ProcessRow({ proc, index, displaySlug }: { proc: UserService; index: nu
   const motionResult = stepData.motion_final_result as string;
   const interviewResult = stepData.interview_outcome as string;
 
-  const isApproved = uscisResult === 'approved' || rfeResult === 'approved' || motionResult === 'approved' || interviewResult === 'approved';
   const isDenied = proc.status === 'rejected' ||
                    motionResult === 'denied' ||
                    motionResult === 'rejected' ||
                    interviewResult === 'denied' ||
                    interviewResult === 'rejected';
+  const isApproved = !isDenied &&
+    (uscisResult === 'approved' ||
+      rfeResult === 'approved' ||
+      motionResult === 'approved' ||
+      interviewResult === 'approved');
 
   const isFinalized = proc.status === 'completed' || proc.status === 'rejected' || isApproved || isDenied;
   const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, totalSteps);
