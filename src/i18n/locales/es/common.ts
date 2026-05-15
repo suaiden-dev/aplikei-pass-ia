@@ -24,17 +24,18 @@ const common = {
           description: "Integridad innegociable en cada etapa del proceso jurídico y administrativo."
         },
         {
-          title: "Precisão",
+          title: "Precisión",
           description: "Análisis técnico minucioso para maximizar las posibilidades de aprobación documental."
         },
         {
-          title: "Foco no Cliente",
+          title: "Foco en el Cliente",
           description: "Estrategias personalizadas que respetan el tiempo y los objetivos de cada individuo."
         },
         {
-          title: "Inovação",
+          title: "Innovación",
           description: "Uso de tecnología de punta para agilizar trámites y comunicación procesal."
         }
+
       ]
     },
     leadership: {

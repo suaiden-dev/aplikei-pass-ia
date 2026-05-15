@@ -494,6 +494,41 @@ export function RoleDashboardLayout({
             />
           </div>
 
+          {/* Profile & Logout (Mobile Only) */}
+          <div className="mt-auto border-t border-border pt-4 space-y-2 lg:hidden">
+            <div className="flex items-center gap-3 px-3 py-2">
+              <img
+                src={resolvedAvatar}
+                alt="Avatar"
+                className="h-9 w-9 rounded-full object-cover border border-border"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-text truncate">{resolvedName}</p>
+                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none mt-1">
+                  {currentUser.role.replace('_', ' ')}
+                </p>
+              </div>
+            </div>
+            
+            <button
+              onClick={toggleTheme}
+              className="flex w-full items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-text-muted hover:bg-bg-subtle hover:text-text transition-all"
+            >
+              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              <span>{theme === "dark" ? (tProfile.lightMode || "Modo Claro") : (tProfile.darkMode || "Modo Escuro")}</span>
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-red-500 hover:bg-red-500/10 transition-all"
+            >
+              <RiLogoutBoxRLine size={18} />
+              <span>{tProfile.logout}</span>
+            </button>
+          </div>
+
+
+
           {/* Footer — collapse toggle */}
           <div className={cn("mt-4 border-t border-border pt-4", collapsed ? "flex justify-center" : "")}>
             <button

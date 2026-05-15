@@ -21,17 +21,22 @@ const common = {
       title: "Nossos Pilares",
       items: [
         {
-          title: "Transparência",
-          description: "Comunicação clara e honesta em cada etapa do processo."
+          title: "Ética",
+          description: "Integridade inegociável em cada etapa do processo jurídico e administrativo."
         },
         {
           title: "Precisão",
           description: "Rigor técnico absoluto na análise documental e estratégica."
         },
         {
+          title: "Foco no Cliente",
+          description: "Estratégias personalizadas que respeitam o tempo e os objetivos de cada indivíduo."
+        },
+        {
           title: "Inovação",
           description: "Uso de tecnologia de ponta para otimizar fluxos e prazos."
         }
+
       ]
     },
     leadership: {

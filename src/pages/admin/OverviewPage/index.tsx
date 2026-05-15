@@ -219,7 +219,7 @@ export default function OverviewPage() {
         </p>
       </div>
 
-      <div className={`grid grid-cols-1 sm:grid-cols-2 ${!isMaster ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-4 sm:gap-6`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${!isMaster ? 'xl:grid-cols-6' : 'xl:grid-cols-5'} gap-4 sm:gap-6`}>
         {statItems.map((item, i) => (
           <StatCard key={item.id} {...item} index={i} />
         ))}

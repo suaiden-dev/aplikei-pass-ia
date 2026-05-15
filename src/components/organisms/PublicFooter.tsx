@@ -47,7 +47,7 @@ export function PublicFooter() {
             <h4 className="mb-7 text-xs font-bold uppercase tracking-widest text-text">{t.contact}</h4>
             <ul className="space-y-4 text-text-muted">
               <li><a href="mailto:contato@aplikei.com.br" className="transition-colors hover:text-text">contato@aplikei.com.br</a></li>
-              <li><a href="tel:+5511989890005" className="transition-colors hover:text-text">+55 (11) 98989-0005</a></li>
+              <li><a href="tel:+5511999999999" className="transition-colors hover:text-text">+55 (11) 99999-9999</a></li>
             </ul>
           </div>
         </div>

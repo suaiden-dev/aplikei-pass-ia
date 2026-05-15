@@ -39,7 +39,7 @@ export function ContactSection() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-text-muted uppercase tracking-wider">Telefone</p>
-                  <p className="text-lg font-medium text-text">+55 (11) 98989-0005</p>
+                  <p className="text-lg font-medium text-text">+55 (11) 99999-9999</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">

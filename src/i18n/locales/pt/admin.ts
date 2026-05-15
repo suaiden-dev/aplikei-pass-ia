@@ -812,6 +812,8 @@ const admin = {
         cancelBtn: "Cancelar",
         changeProfile: "Alterar Perfil",
         logout: "Sair",
+        lightMode: "Modo Claro",
+        darkMode: "Modo Escuro",
         successUpdate: "Perfil atualizado com sucesso.",
         errorUpdate: "Erro ao atualizar perfil.",
         selectImageError: "Selecione um arquivo de imagem.",

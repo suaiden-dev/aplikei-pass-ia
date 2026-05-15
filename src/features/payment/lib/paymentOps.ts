@@ -58,11 +58,6 @@ function getReapplicationSlug(slug: string): string | null {
 
 async function resolveCheckoutSlugForUser(userId: string | undefined, slug: string): Promise<string> {
   const canonical = getCanonicalSlug(slug);
-  const requestedIsReapplication = canonical.includes("reaplicacao");
-
-  if (!userId || requestedIsReapplication) {
-    return canonical;
-  }
 
   const serviceAliases = getServiceSlugs(canonical);
   const reapplicationSlug = getReapplicationSlug(canonical);
@@ -79,8 +74,9 @@ async function resolveCheckoutSlugForUser(userId: string | undefined, slug: stri
     .limit(1)
     .maybeSingle();
 
-  return previousProcess ? reapplicationSlug : canonical;
+  return canonical;
 }
+
 
 async function preRegisterOrder(params: {
   userId?: string;
