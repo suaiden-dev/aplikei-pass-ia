@@ -116,6 +116,8 @@ export function usePageBuilder() {
 
         const url = new URL(`${window.location.origin}/master`);
         url.searchParams.set("office", office.name);
+        const loginUrl = new URL(`${window.location.origin}/login`);
+        loginUrl.searchParams.set("officeId", office.id);
 
         setConfig((prev) => ({
           ...prev,
@@ -123,6 +125,7 @@ export function usePageBuilder() {
             ? (office.landing_page_config as Partial<LandingPageConfig>)
             : {}),
           adminLawyerUrl: url.toString(),
+          loginUrl: loginUrl.toString(),
           officeSlug: office.slug,
         }));
       } catch {

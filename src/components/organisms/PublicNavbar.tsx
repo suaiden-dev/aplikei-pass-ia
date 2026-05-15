@@ -8,12 +8,21 @@ import { useTheme } from "../../contexts/useTheme";
 import { Button } from "../atoms/button";
 import Flag from "../atoms/flag";
 import { LANGUAGE_FLAG_CODE } from "../atoms/flags";
+import { supabase } from "../../shared/lib/supabase";
 
 const LANGS: { code: Language; label: string }[] = [
   { code: "pt", label: "Português" },
   { code: "en", label: "English" },
   { code: "es", label: "Español" },
 ];
+const BRANDING_STORAGE_KEY = "aplikei.white_label.branding";
+
+interface StoredBranding {
+  officeId: string | null;
+  companyName: string;
+  logoUrl: string;
+  faviconUrl: string;
+}
 
 function LangDropdown({ size = "sm" }: { size?: "sm" | "lg" }) {
   const { lang, setLang } = useLocale();
@@ -88,6 +97,15 @@ export function PublicNavbar() {
   const t = useT("nav");
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const officeIdParam = searchParams.get("officeId") || searchParams.get("office_id") || searchParams.get("office");
+  const [brand, setBrand] = useState<StoredBranding>({
+    officeId: null,
+    companyName: "Aplikei",
+    logoUrl: "/logo.png",
+    faviconUrl: "/logo.png",
+  });
+  const [isBrandLoading, setIsBrandLoading] = useState(true);
   const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
   const isMenuOpen = menuOpenPath === location.pathname;
 
@@ -101,6 +119,110 @@ export function PublicNavbar() {
     };
   }, [isMenuOpen]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    const applyFavicon = (value: string) => {
+      const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement | null;
+      if (favicon) favicon.href = value;
+      const apple = document.querySelector("link[rel='apple-touch-icon']") as HTMLLinkElement | null;
+      if (apple) apple.href = value;
+    };
+
+    const readStored = (): StoredBranding | null => {
+      try {
+        const raw = localStorage.getItem(BRANDING_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw) as Partial<StoredBranding>;
+        if (!parsed || typeof parsed.companyName !== "string" || typeof parsed.logoUrl !== "string") return null;
+        return {
+          officeId: typeof parsed.officeId === "string" ? parsed.officeId : null,
+          companyName: parsed.companyName,
+          logoUrl: parsed.logoUrl,
+          faviconUrl: typeof parsed.faviconUrl === "string" ? parsed.faviconUrl : parsed.logoUrl,
+        };
+      } catch {
+        return null;
+      }
+    };
+
+    const persist = (value: StoredBranding) => {
+      try {
+        localStorage.setItem(BRANDING_STORAGE_KEY, JSON.stringify(value));
+      } catch {
+        // noop
+      }
+    };
+
+    async function loadBranding() {
+      const stored = readStored();
+      if (stored && mounted) {
+        setBrand(stored);
+        applyFavicon(stored.faviconUrl);
+      }
+
+      if (!officeIdParam) {
+        if (!stored && mounted) {
+          setBrand({
+            officeId: null,
+            companyName: "Aplikei",
+            logoUrl: "/logo.png",
+            faviconUrl: "/logo.png",
+          });
+          applyFavicon("/logo.png");
+        }
+        if (mounted) setIsBrandLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from("offices")
+          .select("name, landing_page_config")
+          .eq("id", officeIdParam)
+          .maybeSingle();
+        if (error) throw error;
+        if (!mounted) return;
+
+        const cfg =
+          data?.landing_page_config && typeof data.landing_page_config === "object"
+            ? (data.landing_page_config as Record<string, unknown>)
+            : null;
+        const next: StoredBranding = {
+          officeId: officeIdParam,
+          companyName: typeof data?.name === "string" && data.name.trim() ? data.name.trim() : "Aplikei",
+          logoUrl: typeof cfg?.logoUrl === "string" && cfg.logoUrl.trim() ? cfg.logoUrl.trim() : "/logo.png",
+          faviconUrl:
+            typeof cfg?.faviconUrl === "string" && cfg.faviconUrl.trim()
+              ? cfg.faviconUrl.trim()
+              : typeof cfg?.logoUrl === "string" && cfg.logoUrl.trim()
+                ? cfg.logoUrl.trim()
+                : "/logo.png",
+        };
+        setBrand(next);
+        persist(next);
+        applyFavicon(next.faviconUrl);
+      } catch {
+        if (!mounted) return;
+        if (!stored) {
+          setBrand({
+            officeId: null,
+            companyName: "Aplikei",
+            logoUrl: "/logo.png",
+            faviconUrl: "/logo.png",
+          });
+        }
+      } finally {
+        if (mounted) setIsBrandLoading(false);
+      }
+    }
+
+    void loadBranding();
+    return () => {
+      mounted = false;
+    };
+  }, [officeIdParam]);
+
   const navLinks = [
     { to: "/quem-somos", label: t.howItWorks },
     { to: "/servicos", label: t.services },
@@ -113,8 +235,8 @@ export function PublicNavbar() {
         <div className="flex items-center gap-10">
           <Link to="/" className="relative z-[110] flex items-center gap-2.5">
             <img
-              src="/logo.png"
-              alt="Aplikei"
+              src={isBrandLoading ? "/logo.png" : brand.logoUrl}
+              alt={isBrandLoading ? "Aplikei" : brand.companyName}
               className="h-12 w-auto object-contain drop-shadow-[0_8px_24px_rgba(15,23,42,0.12)]"
             />
           </Link>
@@ -150,7 +272,7 @@ export function PublicNavbar() {
           </button>
 
           <Button asChild>
-            <Link to="/login">{t.login}</Link>
+            <Link to={officeIdParam ? `/login?officeId=${encodeURIComponent(officeIdParam)}` : "/login"}>{t.login}</Link>
           </Button>
         </div>
 
@@ -199,14 +321,18 @@ export function PublicNavbar() {
               </button>
 
               <Button asChild className="w-full">
-                <Link to="/login" onClick={closeMenu}>
+                <Link
+                  to={officeIdParam ? `/login?officeId=${encodeURIComponent(officeIdParam)}` : "/login"}
+                  onClick={closeMenu}
+                >
                   {t.login}
                 </Link>
               </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div >
+          </motion.div >
+        )
+}
+      </AnimatePresence >
     </>
   );
 }
