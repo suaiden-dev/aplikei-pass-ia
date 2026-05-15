@@ -417,18 +417,22 @@ export default function RevenuePage() {
             const withdrawal = data.withdrawal as { id: string; office_id: string; amount: number; payment_link?: string | null };
 
             if (withdrawal?.office_id) {
-                await notificationService.notifyAdminLawyersByOffice(withdrawal.office_id, {
-                    title: status === "approved" ? "Saque aprovado" : "Saque rejeitado",
-                    body: `Seu pedido de saque de $${Number(withdrawal.amount || 0).toFixed(2)} foi ${status === "approved" ? "aprovado" : "rejeitado"} pelo master.`,
-                    serviceId: withdrawal.id,
-                    link: "/billings/withdrawals",
-                    metadata: {
-                        withdrawal_id: withdrawal.id,
-                        status,
-                        office_id: withdrawal.office_id,
-                        payment_link: withdrawal.payment_link || null,
-                    },
-                });
+                try {
+                    await notificationService.notifyAdminLawyersByOffice(withdrawal.office_id, {
+                        title: status === "approved" ? "Saque aprovado" : "Saque rejeitado",
+                        body: `Seu pedido de saque de $${Number(withdrawal.amount || 0).toFixed(2)} foi ${status === "approved" ? "aprovado" : "rejeitado"} pelo master.`,
+                        serviceId: withdrawal.id,
+                        link: "/billings/withdrawals",
+                        metadata: {
+                            withdrawal_id: withdrawal.id,
+                            status,
+                            office_id: withdrawal.office_id,
+                            payment_link: withdrawal.payment_link || null,
+                        },
+                    });
+                } catch (notificationError) {
+                    console.error("[withdrawals] approval notification failed:", notificationError);
+                }
             }
 
             toast.success(t.payments.messages.updateStatusSuccess.replace("{{status}}", status));

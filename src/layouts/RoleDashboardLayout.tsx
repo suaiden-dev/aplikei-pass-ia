@@ -22,6 +22,7 @@ import { NotificationBell } from "../features/notifications/components/Notificat
 import { NotificationToaster } from "../features/notifications/components/NotificationToaster";
 import { NotificationProvider } from "../contexts/NotificationContext";
 import { useOfficeBranding } from "../hooks/useOfficeBranding";
+import { RiSunLine, RiMoonLine } from "react-icons/ri";
 
 export interface DashboardNavItem {
   to: string;
@@ -558,6 +559,29 @@ export function RoleDashboardLayout({
                 </>
               )}
             </button>
+
+            {/* Mobile-only quick actions */}
+            <div className="mt-3 grid grid-cols-2 gap-2 lg:hidden">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-bg-subtle px-3 py-3 text-text-muted transition-colors hover:text-text"
+              >
+                {theme === "dark" ? <RiSunLine size={18} /> : <RiMoonLine size={18} />}
+                <span className="text-[10px] font-bold uppercase tracking-tight">
+                  {theme === "dark" ? "Light" : "Dark"}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-red-500/5 px-3 py-3 text-red-500 transition-colors hover:bg-red-500/10"
+              >
+                <RiLogoutBoxRLine size={18} />
+                <span className="text-[10px] font-bold uppercase tracking-tight">{tProfile.logout}</span>
+              </button>
+            </div>
           </div>
         </aside>
 
