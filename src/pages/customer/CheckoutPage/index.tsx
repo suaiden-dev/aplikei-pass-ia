@@ -207,6 +207,7 @@ export default function CheckoutPage() {
 
   const isUpgrade = searchParams.get("upgrade") === "true";
   const officeIdFromUrl = searchParams.get("office_id");
+  const procIdFromUrl = searchParams.get("proc_id") || searchParams.get("processId") || searchParams.get("instanceId");
   const [dynamicPrice, setDynamicPrice] = useState<number | null>(null);
   const [dynamicPriceName, setDynamicPriceName] = useState<string | null>(null);
 
@@ -421,6 +422,7 @@ export default function CheckoutPage() {
           customer_email: values.email,
           customer_phone: values.phone,
           office_id: officeIdFromUrl || user?.officeId || undefined,
+          proc_id: procIdFromUrl || undefined,
         };
 
         if (activeMethod === "card" || activeMethod === "pix") {

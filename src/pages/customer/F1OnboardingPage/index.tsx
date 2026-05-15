@@ -84,6 +84,13 @@ export default function F1OnboardingPage() {
     return `${idx + 1} ${labels.of} ${total}`
   }
 
+  const isFinalSchedulingStep = stepIdx >= 11
+  const headerTitle = isFinalSchedulingStep
+    ? (t.processSteps?.f1_final_scheduling?.title || t.processSteps?.b1b2_final_scheduling?.title || "Final Scheduling and Preparation")
+    : stepIdx === 1
+      ? labels.onboardingPage.f1.supportDocsStep
+      : labels.ds160Form
+
   if (isLoading) {
     return (
       <div className='flex items-center justify-center min-h-[60vh]'>
@@ -106,9 +113,7 @@ export default function F1OnboardingPage() {
             </button>
             <div>
               <h1 className="text-sm font-black text-text uppercase tracking-tight">
-                {stepIdx === 1
-                  ? labels.onboardingPage.f1.supportDocsStep
-                  : labels.ds160Form}
+                {headerTitle}
               </h1>
               <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">
                 {slug === 'visto-f1-reaplicacao' || slug === 'visa-f1-reaplicacao'

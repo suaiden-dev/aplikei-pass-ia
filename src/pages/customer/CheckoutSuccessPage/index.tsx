@@ -57,6 +57,11 @@ export default function CheckoutSuccessPage() {
         // Stripe: consulta a sessão e atualiza o payment direto (sem webhook)
         if (sessionId) {
           const result = await paymentService.confirmStripeSession(sessionId);
+          try {
+            await paymentService.verifyStripeSession(sessionId);
+          } catch (verifyErr) {
+            console.warn("[CheckoutSuccess] verify-stripe-session falhou:", verifyErr);
+          }
           if (result.payment_status === "failed") {
             setErrorMsg("Pagamento não foi concluído.");
             setActivation("error");

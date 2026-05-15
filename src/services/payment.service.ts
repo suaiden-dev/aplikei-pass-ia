@@ -13,6 +13,7 @@ export function estimatePixTotal(amount: number, exchangeRate: number) {
 
 const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-payment-aplikei`;
 const CONFIRM_STRIPE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/confirm-stripe-session`;
+const VERIFY_STRIPE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-stripe-session`;
 
 async function getAuthToken(): Promise<string> {
   const supabase = getSupabaseClient();
@@ -37,6 +38,9 @@ interface BaseCheckoutParams {
   customer_email?: string;
   customer_phone?: string;
   office_id?: string;
+  proc_id?: string;
+  processId?: string;
+  parent_service_slug?: string;
   // Campos extras toleráveis (workflows legados ainda passam email/serviceName/amount).
   // O servidor ignora qualquer amount enviado e recalcula a partir de product_prices.
   [key: string]: unknown;
@@ -64,6 +68,9 @@ export const paymentService = {
         customer_email: params.customer_email,
         customer_phone: params.customer_phone,
         office_id: params.office_id,
+        proc_id: params.proc_id || params.processId,
+        processId: params.processId || params.proc_id,
+        parent_service_slug: params.parent_service_slug,
       }),
     });
 
@@ -95,6 +102,9 @@ export const paymentService = {
         customer_email: params.customer_email,
         customer_phone: params.customer_phone,
         office_id: params.office_id,
+        proc_id: params.proc_id || params.processId,
+        processId: params.processId || params.proc_id,
+        parent_service_slug: params.parent_service_slug,
       }),
     });
 
@@ -142,6 +152,9 @@ export const paymentService = {
         customer_name: params.customer_name,
         customer_email: params.customer_email,
         office_id: params.office_id,
+        proc_id: params.proc_id || params.processId,
+        processId: params.processId || params.proc_id,
+        parent_service_slug: params.parent_service_slug,
       }),
     });
 
@@ -173,6 +186,21 @@ export const paymentService = {
       stripe_session_status?: string;
       already_confirmed?: boolean;
     };
+  },
+
+  async verifyStripeSession(sessionId: string) {
+    const token = await getAuthToken();
+    const res = await fetch(VERIFY_STRIPE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ session_id: sessionId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? "Falha ao verificar pagamento");
+    return data as { success?: boolean; status?: string; message?: string };
   },
 
   async verifyOrderActivation(params: {

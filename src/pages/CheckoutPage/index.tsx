@@ -222,7 +222,11 @@ export default function CheckoutPage() {
   const sellerRef = searchParams.get("ref") || undefined;
 
   const isUpgrade = searchParams.get("upgrade") === "true";
-  const parentId = searchParams.get("id") || searchParams.get("parentId") || searchParams.get("processId");
+  const parentId =
+    searchParams.get("proc_id") ||
+    searchParams.get("processId") ||
+    searchParams.get("id") ||
+    searchParams.get("parentId");
 
 
   const service = getServiceBySlug(slug || "");

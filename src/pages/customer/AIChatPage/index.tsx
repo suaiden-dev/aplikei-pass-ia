@@ -199,7 +199,7 @@ function ThreadView({
         </div>
 
         <a
-          href={`/dashboard/processes/${thread.serviceSlug}?id=${thread.processId}`}
+          href={`/dashboard/processes/${thread.processRouteSlug || thread.serviceSlug}?id=${thread.processRouteId || thread.processId}`}
           className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 hover:text-primary uppercase tracking-widest transition-colors"
         >
           Ver processo

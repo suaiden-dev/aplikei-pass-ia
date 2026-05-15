@@ -19,6 +19,7 @@ import { InlineWidget, useCalendlyEventListener } from "react-calendly";
 import { useAuth } from "../../../../hooks/useAuth";
 import { supabase } from "../../../../shared/lib/supabase";
 import { useT, useLocale } from "../../../../i18n";
+import { getCanonicalSlug } from "../../../../data/services";
 
 interface F1FinalPreparationStepProps {
   procId: string;
@@ -89,12 +90,17 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
       const purchases = Array.isArray(processStepData?.purchases)
         ? (processStepData?.purchases as Array<{ slug?: string }>)
         : [];
-      const purchaseSlugs = new Set(
-        purchases.map((purchase) => String(purchase.slug || "").trim()).filter(Boolean),
-      );
+      const purchaseSlugs = new Set<string>();
+      purchases.forEach((purchase) => {
+        const raw = String(purchase.slug || "").trim();
+        if (!raw) return;
+        purchaseSlugs.add(raw);
+        purchaseSlugs.add(getCanonicalSlug(raw));
+      });
+      const consultationSlugs = ["consultoria-f1-negativa", "consultancy-negative-f1"];
 
       const hasMentorshipInProcess = mentorshipSlugs.some((slug) => purchaseSlugs.has(slug));
-      const hasConsultationInProcess = purchaseSlugs.has("consultoria-f1-negativa");
+      const hasConsultationInProcess = consultationSlugs.some((slug) => purchaseSlugs.has(slug) || purchaseSlugs.has(getCanonicalSlug(slug)));
 
       setPurchasedMentorship(null);
       setPurchasedConsultation(null);
@@ -117,7 +123,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
           .from("user_services")
           .select("*")
           .eq("user_id", user.id)
-          .eq("service_slug", "consultoria-f1-negativa")
+          .in("service_slug", consultationSlugs)
           .eq("status", "active")
           .order("created_at", { ascending: false })
           .limit(1)
@@ -303,7 +309,10 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
   ];
 
   const handleSelectPlan = (plan: typeof PLANS[0]) => {
-    navigate(`/checkout/${plan.id}${user?.officeId ? `?office_id=${user.officeId}` : ""}`);
+    const query = new URLSearchParams();
+    if (user?.officeId) query.set("office_id", user.officeId);
+    if (procId) query.set("proc_id", procId);
+    navigate(`/checkout/${plan.id}${query.toString() ? `?${query.toString()}` : ""}`);
   };
 
   const handleOpenSpecialistSupport = async () => {
@@ -335,6 +344,39 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
       navigate(`/dashboard/support?processId=${processId}`);
     } catch (err) {
       console.error("[F1] open support chat failed:", err);
+      navigate("/dashboard/support");
+    }
+  };
+
+  const handleOpenConsultationSupport = async () => {
+    if (!user?.id) {
+      navigate("/dashboard/support");
+      return;
+    }
+
+    try {
+      const processId = String(purchasedConsultation?.id ?? procId);
+      const { data: lastMessage } = await supabase
+        .from("chat_messages")
+        .select("id")
+        .eq("process_id", processId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!lastMessage) {
+        await supabase.from("chat_messages").insert({
+          process_id: processId,
+          content: "Olá, comprei a consultoria pós-negativa e quero iniciar meu atendimento com o manager.",
+          sender_id: user.id,
+          sender_role: "customer",
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      navigate(`/dashboard/support?processId=${processId}`);
+    } catch (err) {
+      console.error("[F1] open consultation support chat failed:", err);
       navigate("/dashboard/support");
     }
   };
@@ -470,7 +512,26 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
                      <RiCloseLine className="text-5xl text-rose-500 mx-auto mb-4" />
                      <h4 className="text-xl font-black uppercase text-text">{t.onboardingPage.processingStatus.outcomeRejected}</h4>
                      <div className="flex flex-col gap-3 max-w-sm mx-auto">
-                        <button onClick={() => navigate(`/checkout/consultoria-f1-negativa${user?.officeId ? `?office_id=${user.officeId}` : ""}`)} className="py-4 bg-primary rounded-xl font-black uppercase text-xs tracking-widest text-white">{t.onboardingPage.processingStatus.consultationSpecialist}</button>
+                        {purchasedConsultation ? (
+                          <button
+                            onClick={handleOpenConsultationSupport}
+                            className="py-4 bg-emerald-600 rounded-xl font-black uppercase text-xs tracking-widest text-white"
+                          >
+                            Ir para o chat
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              const query = new URLSearchParams();
+                              if (user?.officeId) query.set("office_id", user.officeId);
+                              if (procId) query.set("proc_id", procId);
+                              navigate(`/checkout/consultoria-f1-negativa${query.toString() ? `?${query.toString()}` : ""}`);
+                            }}
+                            className="py-4 bg-primary rounded-xl font-black uppercase text-xs tracking-widest text-white"
+                          >
+                            {t.onboardingPage.processingStatus.consultationSpecialist}
+                          </button>
+                        )}
                         <button onClick={() => navigate(`/checkout/visto-f1-reaplicacao${user?.officeId ? `?office_id=${user.officeId}` : ""}`)} className="py-4 bg-card border border-border rounded-xl font-black uppercase text-xs tracking-widest text-text">{t.onboardingPage.processingStatus.restartProcess}</button>
                      </div>
                    </div>

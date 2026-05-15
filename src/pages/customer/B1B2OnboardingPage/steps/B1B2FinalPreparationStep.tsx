@@ -292,7 +292,10 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   const PLANS = isDenied ? [negativePlan, ...basePlans] : basePlans;
 
   const handleSelectPlan = (plan: typeof PLANS[0]) => {
-    navigate(`/checkout/${plan.id}${user?.officeId ? `?office_id=${user.officeId}` : ""}`);
+    const query = new URLSearchParams();
+    if (user?.officeId) query.set("office_id", user.officeId);
+    if (procId) query.set("proc_id", procId);
+    navigate(`/checkout/${plan.id}${query.toString() ? `?${query.toString()}` : ""}`);
   };
 
   const handleOpenSpecialistSupport = async () => {
@@ -598,7 +601,10 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                     ) : (
                       <button
                         onClick={() => {
-                          navigate(`/checkout/consultancy-negative-b1b2${user?.officeId ? `?office_id=${user.officeId}` : ""}`);
+                          const query = new URLSearchParams();
+                          if (user?.officeId) query.set("office_id", user.officeId);
+                          if (procId) query.set("proc_id", procId);
+                          navigate(`/checkout/consultancy-negative-b1b2${query.toString() ? `?${query.toString()}` : ""}`);
                         }}
                         className="p-6 bg-primary/5 border border-primary/20 rounded-3xl text-left hover:bg-primary/10 transition-all group/opt relative overflow-hidden"
                       >

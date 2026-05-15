@@ -59,6 +59,9 @@ interface RequestBody {
   customer_name?: string;
   customer_email?: string;
   customer_phone?: string;
+  proc_id?: string;
+  processId?: string;
+  parent_service_slug?: string;
   cpf?: string;
   proof_url?: string;     // Zelle
 }
@@ -83,7 +86,17 @@ async function createStripeSession(
   method: PaymentMethod,
   productName: string,
   amountUSD: number,
-  meta: { orderId: string; paymentId: string; slug: string; email?: string; originUrl: string; },
+  meta: {
+    orderId: string;
+    paymentId: string;
+    slug: string;
+    userId: string;
+    dependents: number;
+    procId?: string;
+    parentServiceSlug?: string;
+    email?: string;
+    originUrl: string;
+  },
 ) {
   const successUrl = `${meta.originUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&slug=${meta.slug}&order_id=${meta.orderId}`;
   const cancelUrl  = `${meta.originUrl}/checkout/${meta.slug}`;
@@ -98,7 +111,18 @@ async function createStripeSession(
       customer_email: meta.email,
       success_url: successUrl,
       cancel_url: cancelUrl,
-      metadata: { order_id: meta.orderId, payment_id: meta.paymentId },
+      metadata: {
+        order_id: meta.orderId,
+        payment_id: meta.paymentId,
+        service_slug: meta.slug,
+        slug: meta.slug,
+        user_id: meta.userId,
+        userId: meta.userId,
+        dependents: String(meta.dependents ?? 0),
+        proc_id: meta.procId || "",
+        processId: meta.procId || "",
+        parent_service_slug: meta.parentServiceSlug || "",
+      },
     });
   }
 
@@ -111,7 +135,18 @@ async function createStripeSession(
     customer_email: meta.email,
     success_url: successUrl,
     cancel_url: cancelUrl,
-    metadata: { order_id: meta.orderId, payment_id: meta.paymentId },
+    metadata: {
+      order_id: meta.orderId,
+      payment_id: meta.paymentId,
+      service_slug: meta.slug,
+      slug: meta.slug,
+      user_id: meta.userId,
+      userId: meta.userId,
+      dependents: String(meta.dependents ?? 0),
+      proc_id: meta.procId || "",
+      processId: meta.procId || "",
+      parent_service_slug: meta.parentServiceSlug || "",
+    },
   });
 }
 
@@ -227,9 +262,13 @@ Deno.serve(async (req: Request) => {
       customer_name,
       customer_email,
       customer_phone,
+      proc_id,
+      processId,
+      parent_service_slug,
       cpf = "",
       proof_url,
     } = body;
+    const targetProcId = proc_id || processId || "";
 
     if (!product_slug) return err("product_slug obrigatório");
     if (!["stripe_card", "stripe_pix", "zelle", "parcelow"].includes(payment_method)) {
@@ -252,7 +291,18 @@ Deno.serve(async (req: Request) => {
         status: "pending",
         total_amount: amount,
         currency: "USD",
-        metadata: { product_slug, product_name: productDisplayName, dependents, coupon_code: coupon_code ?? null, payment_method, env },
+        metadata: {
+          product_slug,
+          product_name: productDisplayName,
+          dependents,
+          coupon_code: coupon_code ?? null,
+          payment_method,
+          env,
+          proc_id: targetProcId,
+          processId: targetProcId,
+          parent_process_id: targetProcId,
+          parent_service_slug: parent_service_slug ?? null,
+        },
       })
       .select("id")
       .maybeSingle();
@@ -295,7 +345,15 @@ Deno.serve(async (req: Request) => {
       const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16", httpClient: Stripe.createFetchHttpClient() });
 
       const session = await createStripeSession(stripe, payment_method, productDisplayName, amount, {
-        orderId, paymentId, slug: product_slug, email: customer_email, originUrl,
+        orderId,
+        paymentId,
+        slug: product_slug,
+        userId,
+        dependents,
+        procId: targetProcId || undefined,
+        parentServiceSlug: parent_service_slug,
+        email: customer_email,
+        originUrl,
       });
 
       await supabase.from("payments").update({ external_id: session.id }).eq("id", paymentId);

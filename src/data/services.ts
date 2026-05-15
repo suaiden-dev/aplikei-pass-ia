@@ -371,6 +371,7 @@ export function getCanonicalSlug(slug: string): string {
     "mentoring-silver": "mentoria-bronze",
     "mentoring-gold": "mentoria-gold",
     "consultancy-negative-b1b2": "mentoria-negativa-consular",
+    "consultancy-negative-f1": "consultoria-f1-negativa",
   };
   return slugMap[slug] || slug;
 }
@@ -393,6 +394,7 @@ export function getServiceSlugs(slug: string): string[] {
     "mentoria-bronze": ["mentoring-silver"],
     "mentoria-gold": ["mentoring-gold"],
     "mentoria-negativa-consular": ["consultancy-negative-b1b2"],
+    "consultoria-f1-negativa": ["consultancy-negative-f1"],
   };
   const aliases = inverseMap[canonical] || [];
   return [canonical, ...aliases];

@@ -123,6 +123,8 @@ Deno.serve(async (req: Request) => {
             'mentoria-bronze': { name: 'Mentoria Bronze - 2 Simulados', price: 397 },
             'mentoria-gold': { name: 'Mentoria Gold - 3 Simulados', price: 697 },
             'mentoria-negativa-consular': { name: 'Consultoria Especializada (Pós-Negativa)', price: 97 },
+            'consultoria-f1-negativa': { name: 'Consultoria Especializada (Pós-Negativa F1)', price: 97 },
+            'consultancy-negative-f1': { name: 'Consultoria Especializada (Pós-Negativa F1)', price: 97 },
             'slot-dependente-cos': { name: 'Dependente Adicional (COS/EOS)', price: 100 },
         };
 
