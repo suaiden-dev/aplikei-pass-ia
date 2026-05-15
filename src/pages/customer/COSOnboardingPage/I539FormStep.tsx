@@ -164,8 +164,7 @@ function Field({ label, required, name, children, tooltip }: { label: string; re
   );
 }
 
-function TextInput({ name, placeholder, type = "text", disabled, mask }: {
-  name: string; placeholder?: string; type?: string; disabled?: boolean; mask?: "phone" | "date";
+  name: string; placeholder?: string; type?: string; disabled?: boolean; mask?: "phone" | "date" | "numeric";
 }) {
   const form = useI539FormContext();
   const field = form.register(name);
@@ -189,6 +188,9 @@ function TextInput({ name, placeholder, type = "text", disabled, mask }: {
       } else {
         form.setValue(name, "");
       }
+    } else if (mask === "numeric") {
+      val = val.replace(/\D/g, "");
+      form.setValue(name, val);
     } else {
       form.setValue(name, val);
     }
@@ -682,7 +684,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Field label={t.cos.i539.labels.zipCode} required name="zipCode" tooltip={I539_TOOLTIPS.zipCode}><TextInput name="zipCode" /></Field>
+                  <Field label={t.cos.i539.labels.zipCode} required name="zipCode" tooltip={I539_TOOLTIPS.zipCode}><TextInput name="zipCode" mask="numeric" /></Field>
                 </div>
                 
                 <div className="pt-3 border-t border-slate-100">
@@ -718,7 +720,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
                   <Field label={t.cos.i539.labels.unitNumber} name="aptSteFlrForeignNumber"><TextInput name="aptSteFlrForeignNumber" /></Field>
                   <Field label={t.cos.i539.labels.city} name="cityForeign"><TextInput name="cityForeign" /></Field>
                   <Field label={t.cos.i539.labels.state} name="stateForeign"><SelectInput name="stateForeign" options={US_STATES} /></Field>
-                  <Field label={t.cos.i539.labels.zipCode} name="zipCodeForeign"><TextInput name="zipCodeForeign" /></Field>
+                  <Field label={t.cos.i539.labels.zipCode} name="zipCodeForeign"><TextInput name="zipCodeForeign" mask="numeric" /></Field>
                 </div>
               </SectionCard>
             )}
@@ -839,7 +841,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
                     </div>
                     <Field label={t.cos.i539.labels.city} name="docCity" tooltip={I539_TOOLTIPS.city}><TextInput name="docCity" /></Field>
                     <Field label={t.cos.i539.labels.province} name="docProvince" tooltip={I539_TOOLTIPS.state}><TextInput name="docProvince" /></Field>
-                    <Field label={t.cos.i539.labels.postalCode} name="docPostalCode" tooltip={I539_TOOLTIPS.zipCode}><TextInput name="docPostalCode" /></Field>
+                    <Field label={t.cos.i539.labels.postalCode} name="docPostalCode" tooltip={I539_TOOLTIPS.zipCode}><TextInput name="docPostalCode" mask="numeric" /></Field>
                     <Field label={t.cos.i539.labels.country} name="docCountry" tooltip={I539_TOOLTIPS.countryOfBirth}><TextInput name="docCountry" /></Field>
                   </div>
                 </div>
