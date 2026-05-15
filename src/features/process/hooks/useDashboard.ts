@@ -197,10 +197,9 @@ export function useDashboard(userId: string | undefined) {
           !isAnalysisSlug(s.slug) &&
           !s.slug.toLowerCase().includes("reaplicacao") &&
           !s.slug.toLowerCase().includes("rfe") &&
-          !s.slug.toLowerCase().includes("motion") &&
-          !ownedSlugs.has(s.slug),
+          !s.slug.toLowerCase().includes("motion"),
       ),
-    [ownedSlugs],
+    [],
   );
 
   const refetch = useCallback(() => {

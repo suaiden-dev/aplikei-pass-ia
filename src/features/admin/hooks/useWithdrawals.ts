@@ -34,14 +34,21 @@ export function useWithdrawals(officeId?: string) {
 
   const createWithdrawal = useMutation({
     mutationFn: async (request: WithdrawalRequest) => {
-      const { data, error } = await supabase
-        .from("office_withdrawals")
-        .insert([request])
-        .select()
-        .single();
+      const { data, error } = await supabase.functions.invoke("withdrawals", {
+        body: {
+          action: "request",
+          office_id: request.office_id,
+          amount: request.amount,
+          method: request.method,
+          payment_link: request.payment_link ?? null,
+        },
+      });
 
       if (error) throw error;
-      return data;
+      if (!data?.success || !data?.withdrawal) {
+        throw new Error(data?.error || "Error creating withdrawal request.");
+      }
+      return data.withdrawal as WithdrawalRequest;
     },
     onSuccess: async (created) => {
       await notifyMaster({

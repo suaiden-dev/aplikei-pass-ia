@@ -153,15 +153,7 @@ export function ServiceCard({
           </ul>
         </div>
 
-        {isOwned ? (
-          <Link
-            to={`/dashboard/processes/${service.slug}`}
-            className="flex items-center justify-center gap-3 w-full py-5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-[14px] font-black uppercase tracking-[0.1em] transition-all shadow-lg shadow-emerald-500/20"
-          >
-            {labels.serviceCard.accessProcess}
-            <RiArrowRightLine className="text-xl" />
-          </Link>
-        ) : isActive === false ? (
+        {isActive === false ? (
           <button
             disabled
             className="flex items-center justify-center gap-3 w-full py-5 rounded-2xl bg-bg-subtle text-text-muted text-[14px] font-black uppercase tracking-[0.1em] cursor-not-allowed border border-border"

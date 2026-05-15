@@ -41,6 +41,15 @@ export function WithdrawalModal({
   const [paymentLink, setPaymentLink] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const validateAmount = (rawValue: string): string | null => {
+    if (!rawValue.trim()) return null;
+    const val = Number(rawValue);
+    if (!Number.isFinite(val)) return "Please enter a valid amount.";
+    if (val <= 0) return "Amount must be greater than zero.";
+    if (val > availableBalance) return `Amount cannot be greater than available ($${availableBalance.toFixed(2)}).`;
+    return null;
+  };
+
   useEffect(() => {
     if (settings) {
       setMethod(settings.default_payout_method || 'stripe');
@@ -49,8 +58,11 @@ export function WithdrawalModal({
 
   const handleSubmit = async () => {
     const val = parseFloat(amount);
-    if (isNaN(val) || val <= 0) return;
-    if (val > availableBalance) return;
+    const amountError = validateAmount(amount);
+    if (amountError) {
+      setError(amountError);
+      return;
+    }
     if (method === 'stripe' && !paymentLink) {
         toast.error("Please provide a Stripe payment link for this withdrawal.");
         return;
@@ -129,9 +141,13 @@ export function WithdrawalModal({
                         placeholder="0.00"
                         value={amount}
                         onChange={(e) => {
-                            setAmount(e.target.value);
-                            setError(null);
+                            const nextValue = e.target.value;
+                            setAmount(nextValue);
+                            setError(validateAmount(nextValue));
                         }}
+                        min={0}
+                        max={availableBalance}
+                        step="0.01"
                         className={`pl-8 h-14 text-lg font-bold rounded-2xl bg-bg-subtle border-border focus:ring-primary/20 ${error ? 'border-danger focus:ring-danger/20' : ''}`}
                     />
                 </div>

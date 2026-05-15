@@ -50,31 +50,33 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const N8N_BOT_CHECKPROOF = import.meta.env.VITE_N8N_BOT_CHECKPROOF as string;
 const ZELLE_BUCKET = "zelle_comprovantes";
 
-function getReapplicationSlug(slug: string): string | null {
-  const canonical = getCanonicalSlug(slug);
-  const candidate = `${canonical}-reaplicacao`;
-  return getServiceBySlug(candidate)?.slug ?? null;
+async function extractFunctionErrorMessage(error: unknown): Promise<string> {
+  const fallback =
+    (error as { message?: string })?.message ||
+    "Erro ao processar requisição.";
+
+  const context = (error as { context?: unknown })?.context;
+  if (!context) return fallback;
+
+  // Supabase Functions errors usually carry a Response in `context`.
+  if (typeof Response !== "undefined" && context instanceof Response) {
+    try {
+      const cloned = context.clone();
+      const body = await cloned.json() as { error?: string; message?: string };
+      return body?.error || body?.message || `${fallback} (HTTP ${context.status})`;
+    } catch {
+      return `${fallback} (HTTP ${context.status})`;
+    }
+  }
+
+  const asObj = context as { message?: string };
+  return asObj?.message || fallback;
 }
 
 async function resolveCheckoutSlugForUser(userId: string | undefined, slug: string): Promise<string> {
-  const canonical = getCanonicalSlug(slug);
-
-  const serviceAliases = getServiceSlugs(canonical);
-  const reapplicationSlug = getReapplicationSlug(canonical);
-
-  if (!reapplicationSlug) {
-    return canonical;
-  }
-
-  const { data: previousProcess } = await supabase
-    .from("user_services")
-    .select("id")
-    .eq("user_id", userId)
-    .in("service_slug", serviceAliases)
-    .limit(1)
-    .maybeSingle();
-
-  return canonical;
+  // Keep the original selected product slug/canonical slug.
+  // We no longer force "-reaplicacao" based on previous processes.
+  return getCanonicalSlug(slug);
 }
 
 
@@ -213,9 +215,7 @@ export async function createStripeCheckout(
   });
 
   if (error) {
-    const detail =
-      (error as { context?: { message?: string }; message: string }).context?.message ||
-      error.message;
+    const detail = await extractFunctionErrorMessage(error);
     throw new Error(detail || "Erro ao processar Stripe Checkout");
   }
 
@@ -263,7 +263,8 @@ export async function createParcelowCheckout(
   });
 
   if (error) {
-    throw new Error(error.message || "Erro ao processar Parcelow Checkout");
+    const detail = await extractFunctionErrorMessage(error);
+    throw new Error(detail || "Erro ao processar Parcelow Checkout");
   }
 
   if (!data?.checkoutUrl) throw new Error("URL de checkout Parcelow não retornada.");

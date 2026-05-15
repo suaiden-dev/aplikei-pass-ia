@@ -12,6 +12,12 @@ export function RevenueTrajectory({ data }: RevenueTrajectoryProps) {
   const chartData = data.length > 0 ? data : fallbackMonths.map((month) => ({ month, value: 0 }));
   const computedMaxRevenue = chartData.length > 0 ? Math.max(...chartData.map((m) => m.value)) : 0;
   const maxRevenue = Math.max(computedMaxRevenue, 1);
+  const previousValue = chartData.length >= 2 ? Number(chartData[chartData.length - 2]?.value ?? 0) : 0;
+  const currentValue = chartData.length >= 1 ? Number(chartData[chartData.length - 1]?.value ?? 0) : 0;
+  const growthPercent = (() => {
+    if (previousValue <= 0) return currentValue > 0 ? 100 : 0;
+    return Math.round(((currentValue - previousValue) / previousValue) * 100);
+  })();
 
   return (
     <motion.div
@@ -29,7 +35,7 @@ export function RevenueTrajectory({ data }: RevenueTrajectoryProps) {
         </div>
         <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success bg-success/10 px-2.5 py-1 rounded-full">
           <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
-          {t.overview.charts.growth.replace('{{percent}}', '14')}
+          {t.overview.charts.growth.replace('{{percent}}', String(growthPercent))}
         </span>
       </div>
 

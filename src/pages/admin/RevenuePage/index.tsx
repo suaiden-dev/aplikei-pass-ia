@@ -403,18 +403,18 @@ export default function RevenuePage() {
     const handleUpdateWithdrawalStatus = async (id: string, status: "approved" | "rejected") => {
         setBusy(id);
         try {
-            const { data: withdrawal } = await supabase
-                .from("office_withdrawals")
-                .select("id, office_id, amount, payment_link")
-                .eq("id", id)
-                .maybeSingle();
-
-            const { error } = await supabase
-                .from("office_withdrawals")
-                .update({ status })
-                .eq("id", id);
-
+            const { data, error } = await supabase.functions.invoke("withdrawals", {
+                body: {
+                    action: "approve",
+                    withdrawal_id: id,
+                    status,
+                },
+            });
             if (error) throw error;
+            if (!data?.success || !data?.withdrawal) {
+                throw new Error(data?.error || "Failed to update withdrawal.");
+            }
+            const withdrawal = data.withdrawal as { id: string; office_id: string; amount: number; payment_link?: string | null };
 
             if (withdrawal?.office_id) {
                 await notificationService.notifyAdminLawyersByOffice(withdrawal.office_id, {
