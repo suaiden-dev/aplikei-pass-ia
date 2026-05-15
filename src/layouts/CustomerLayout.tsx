@@ -24,6 +24,7 @@ import { NotificationProvider } from "../contexts/NotificationContext";
 import { NotificationToaster } from "../features/notifications/components/NotificationToaster";
 import { NotificationBell } from "../features/notifications/components/NotificationBell";
 import { DashboardNavbar } from "../components/organisms/DashboardNavbar";
+import { useOfficeBranding } from "../hooks/useOfficeBranding";
 
 export function CustomerLayout() {
   const { user, logout } = useAuth();
@@ -34,6 +35,10 @@ export function CustomerLayout() {
   const navigate = useNavigate();
   const [sidebarOpenPath, setSidebarOpenPath] = useState<string | null>(null);
   const isSidebarOpen = sidebarOpenPath === pathname;
+  const { companyName, logoUrl } = useOfficeBranding({
+    officeId: user?.officeId,
+    role: user?.role,
+  });
 
   const resolvedName = useMemo(() => {
     const raw = user?.fullName || "";
@@ -94,7 +99,8 @@ export function CustomerLayout() {
           <div className="px-6 py-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img src="/logo.png" alt="Aplikei" className="h-10 w-auto object-contain" />
+                <img src={logoUrl} alt={companyName} className="h-10 w-auto object-contain" />
+                <span className="text-sm font-black uppercase tracking-tight text-text">{companyName}</span>
               </div>
               
               <button 

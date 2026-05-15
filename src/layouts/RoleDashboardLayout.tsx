@@ -21,6 +21,7 @@ import { RiLockPasswordLine, RiErrorWarningLine } from "react-icons/ri";
 import { NotificationBell } from "../features/notifications/components/NotificationBell";
 import { NotificationToaster } from "../features/notifications/components/NotificationToaster";
 import { NotificationProvider } from "../contexts/NotificationContext";
+import { useOfficeBranding } from "../hooks/useOfficeBranding";
 
 export interface DashboardNavItem {
   to: string;
@@ -323,6 +324,10 @@ export function RoleDashboardLayout({
   const [zoom, setZoom] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const { companyName, logoUrl, isWhiteLabel } = useOfficeBranding({
+    officeId: currentUser?.officeId,
+    role: currentUser?.role,
+  });
 
   const resolvedName = useMemo(() => {
     const u = currentUser as unknown as { fullName?: string | null; full_name?: string | null; name?: string | null } | null;
@@ -463,11 +468,17 @@ export function RoleDashboardLayout({
           {/* Header */}
           <div className={cn("flex items-center justify-between", collapsed && "lg:justify-center")}>
             <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-bg-subtle p-2.5 text-text shrink-0 border border-border">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
+              {isWhiteLabel ? (
+                <div className="rounded-2xl bg-bg-subtle p-2 text-text shrink-0 border border-border">
+                  <img src={logoUrl} alt={companyName} className="h-6 w-6 object-contain" />
+                </div>
+              ) : (
+                <div className="rounded-2xl bg-bg-subtle p-2.5 text-text shrink-0 border border-border">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+              )}
               <div className={cn(collapsed && "lg:hidden")}>
-                <p className="text-sm font-bold text-text uppercase tracking-tight">{consoleTitle}</p>
+                <p className="text-sm font-bold text-text uppercase tracking-tight">{isWhiteLabel ? companyName : consoleTitle}</p>
                 <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none mt-0.5">{roleLabel}</p>
                 <p className="text-[10px] font-medium text-text-muted mt-1">{consoleSubtitle}</p>
               </div>
