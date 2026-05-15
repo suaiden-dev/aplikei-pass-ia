@@ -2238,13 +2238,6 @@ export default function AdminProcessDetailPage() {
           <div>
             <div className="flex items-center gap-4">
               <h1 className="font-display font-black text-3xl text-text tracking-tight">{proc.user_accounts?.full_name}</h1>
-              <button 
-                onClick={() => setIsLogsModalOpen(true)}
-                className="w-10 h-10 flex items-center justify-center rounded-xl bg-bg-subtle border border-border text-text-muted hover:text-primary transition-all shadow-sm group"
-                title="Ver logs de interação"
-              >
-                <RiHistoryLine className="text-xl group-hover:scale-110 transition-transform" />
-              </button>
             </div>
             <p className="text-xs text-text-muted font-bold uppercase tracking-wider">{service?.title}</p>
           </div>
@@ -2366,7 +2359,7 @@ export default function AdminProcessDetailPage() {
 
           <PurchasesPanel stepData={(proc?.step_data as any) || {}} />
 
-          <button 
+          <button
             onClick={() => setIsLogsModalOpen(true)}
             className="w-full p-6 bg-card border border-border rounded-[32px] shadow-sm hover:border-primary/30 transition-all group text-left"
           >
@@ -2410,17 +2403,17 @@ export default function AdminProcessDetailPage() {
 
         {isLogsModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              onClick={() => setIsLogsModalOpen(false)} 
-              className="absolute inset-0 bg-bg/60 backdrop-blur-md" 
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsLogsModalOpen(false)}
+              className="absolute inset-0 bg-bg/60 backdrop-blur-md"
             />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }} 
-              animate={{ opacity: 1, scale: 1, y: 0 }} 
-              exit={{ opacity: 0, scale: 0.95, y: 20 }} 
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-5xl max-h-[90vh] bg-card border border-border rounded-[40px] shadow-2xl flex flex-col overflow-hidden"
             >
               <div className="p-8 border-b border-border flex items-center justify-between bg-bg-subtle/50">
@@ -2433,14 +2426,14 @@ export default function AdminProcessDetailPage() {
                     Histórico de eventos para {proc.user_accounts?.full_name}
                   </p>
                 </div>
-                <button 
+                <button
                   onClick={() => setIsLogsModalOpen(false)}
                   className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-text-muted hover:text-danger transition-all hover:rotate-90"
                 >
                   <RiCloseLine className="text-2xl" />
                 </button>
               </div>
-              
+
               <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 <ProcessLogPanel
                   serviceId={proc.id}

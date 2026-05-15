@@ -129,8 +129,8 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             { label: "Total de Eventos", value: totalCount, icon: RiHistoryLine, color: "text-primary" },
-            { label: "Falhas Identificadas", value: Math.floor(totalCount * 0.05), icon: RiErrorWarningLine, color: "text-red-400" },
-            { label: "Atividade Recente", value: "Monitoramento Ativo", icon: RiTerminalBoxLine, color: "text-emerald-400" }
+            { label: "Falhas Identificadas", value: Math.floor(totalCount * 0.05), icon: RiErrorWarningLine, color: "text-danger" },
+            { label: "Atividade Recente", value: "Monitoramento Ativo", icon: RiTerminalBoxLine, color: "text-success" }
           ].map((stat, i) => (
             <motion.div 
               key={i}
@@ -156,8 +156,8 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
         <div className="flex p-1 bg-card border border-border rounded-xl backdrop-blur-md">
           {[
             { id: "all", label: "Tudo", color: "primary" },
-            { id: "error", label: "Erros", color: "red-500" },
-            { id: "warning", label: "Avisos", color: "amber-500" }
+            { id: "error", label: "Erros", color: "danger" },
+            { id: "warning", label: "Avisos", color: "warning" }
           ].map((btn) => (
             <button 
               key={btn.id}
@@ -231,10 +231,10 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
                   <div className="col-span-5 md:col-span-4 flex items-center gap-5">
                     <div className={`w-12 h-12 flex items-center justify-center rounded-2xl border transition-all duration-500 group-hover:scale-110 ${
                       status === "success" 
-                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.2)]" 
+                        ? "bg-success/10 text-success border-success/20 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.1)]" 
                         : status === "error"
-                          ? "bg-red-500/10 text-red-400 border-red-500/20 group-hover:shadow-[0_0_20px_rgba(239,68,68,0.2)]"
-                          : "bg-amber-500/10 text-amber-400 border-amber-500/20 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"
+                          ? "bg-danger/10 text-danger border-danger/20 group-hover:shadow-[0_0_20px_rgba(239,68,68,0.1)]"
+                          : "bg-warning/10 text-warning border-warning/20 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.1)]"
                     }`}>
                       {status === "error" ? <RiErrorWarningLine className="text-2xl" /> : <RiTerminalBoxLine className="text-2xl" />}
                     </div>
@@ -244,9 +244,9 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
                       </p>
                       <div className="flex items-center gap-3">
                         <span className={`text-[9px] font-black px-2 py-0.5 rounded-md border ${
-                          status === "success" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
-                          status === "error" ? "bg-red-500/10 text-red-400 border-red-500/20" :
-                          "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                          status === "success" ? "bg-success/10 text-success border-success/20" :
+                          status === "error" ? "bg-danger/10 text-danger border-danger/20" :
+                          "bg-warning/10 text-warning border-warning/20"
                         }`}>
                           {status.toUpperCase()}
                         </span>
@@ -263,7 +263,7 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
                       <span className="font-mono">{log.metadata?.ip || "0.0.0.0"}</span>
                     </div>
                     <div className="flex items-center gap-2 text-[10px] text-text-muted font-medium">
-                      <RiMapPinLine className="text-red-400/70" />
+                      <RiMapPinLine className="text-danger/70" />
                       {log.metadata?.location || "Localização Oculta"}
                     </div>
                   </div>
@@ -347,7 +347,7 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
                 </div>
                 <button 
                   onClick={() => setSelectedLog(null)}
-                  className="w-10 h-10 rounded-xl bg-bg-subtle hover:bg-red-500/10 hover:text-red-400 flex items-center justify-center transition-all"
+                  className="w-10 h-10 rounded-xl bg-bg-subtle hover:bg-danger/10 hover:text-danger flex items-center justify-center transition-all"
                 >
                   <RiCloseLine className="text-2xl" />
                 </button>
@@ -363,7 +363,7 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
                   <div className="p-5 bg-bg-subtle border border-border rounded-2xl text-left">
                     <p className="text-[10px] font-black text-text-muted uppercase mb-2 tracking-widest">Ocorrência</p>
                     <p className="text-sm font-black text-text truncate leading-tight">{formatDate(selectedLog.created_at).full}</p>
-                    <span className="text-[10px] text-emerald-500 font-black uppercase">Validado</span>
+                    <span className="text-[10px] text-success font-black uppercase">Validado</span>
                   </div>
                 </div>
 
