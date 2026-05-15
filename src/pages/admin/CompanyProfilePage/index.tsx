@@ -48,17 +48,17 @@ export default function CompanyProfilePage() {
 
   const fieldTour = React.useMemo(
     () => [
-      { id: "companyName", title: "Nome da Empresa", description: "Nome público do escritório exibido para clientes e em documentos." },
-      { id: "companySlug", title: "Slug", description: "Identificador único do escritório nas URLs. Use letras minúsculas e hífens." },
-      { id: "cnpj", title: "CNPJ", description: "Informação fiscal do escritório. Preencha para organização e validações futuras." },
-      { id: "address", title: "Endereço", description: "Endereço principal usado como referência operacional e de contato." },
-      { id: "email", title: "E-mail", description: "Canal oficial de contato da empresa." },
-      { id: "phone", title: "Telefone", description: "Número principal de atendimento do escritório." },
-      { id: "website", title: "Website", description: "Site institucional para reforçar credibilidade da sua marca." },
-      { id: "instagram", title: "Instagram", description: "Perfil social para presença digital e prova social." },
-      { id: "linkedin", title: "LinkedIn", description: "Página profissional da empresa." },
-      { id: "facebook", title: "Facebook", description: "Página social para relacionamento e divulgação." },
-      { id: "saveCompanyProfileBtn", title: "Salvar", description: "Após revisar os campos, clique em salvar para criar/atualizar sua empresa." },
+      { id: "companyName", title: "Company Name", description: "Public office name shown to clients and in documents." },
+      { id: "companySlug", title: "Slug", description: "Unique office identifier in URLs. Use lowercase letters and hyphens." },
+      { id: "cnpj", title: "CNPJ", description: "Office tax information. Fill it for organization and future validations." },
+      { id: "address", title: "Address", description: "Main address used as operational and contact reference." },
+      { id: "email", title: "Email", description: "Official company contact channel." },
+      { id: "phone", title: "Phone", description: "Primary office contact number." },
+      { id: "website", title: "Website", description: "Official website to reinforce your brand credibility." },
+      { id: "instagram", title: "Instagram", description: "Social profile for digital presence and social proof." },
+      { id: "linkedin", title: "LinkedIn", description: "Company professional page." },
+      { id: "facebook", title: "Facebook", description: "Social page for engagement and outreach." },
+      { id: "saveCompanyProfileBtn", title: "Save", description: "After reviewing the fields, click save to create/update your company." },
     ],
     [],
   );
@@ -107,7 +107,7 @@ export default function CompanyProfilePage() {
 
       const conflict = (data || []).find((row) => row.id !== currentOfficeId);
       if (conflict) {
-        setSlugConflict("Este slug já está em uso.");
+        setSlugConflict("This slug is already in use.");
         return true;
       }
 
@@ -171,7 +171,7 @@ export default function CompanyProfilePage() {
     const resolvedSlug = slugifyOfficeName(office.slug || office.name);
     const hasSlugConflict = await checkOfficeSlugConflict(resolvedSlug, office.id);
     if (hasSlugConflict) {
-      toast.error("Este slug já está em uso.");
+      toast.error("This slug is already in use.");
       return;
     }
 
@@ -306,7 +306,7 @@ export default function CompanyProfilePage() {
                   <p className="text-xs font-semibold text-danger">{slugConflict}</p>
                 )}
                 {isCheckingSlug && (
-                  <p className="text-xs font-semibold text-text-muted">Verificando slug...</p>
+                  <p className="text-xs font-semibold text-text-muted">Checking slug...</p>
                 )}
               </div>
 
@@ -329,7 +329,7 @@ export default function CompanyProfilePage() {
                     id="address"
                     value={office.address || ""}
                     onChange={(e) => setOffice({ ...office, address: e.target.value })}
-                    placeholder="Rua, Número, Bairro, Cidade - Estado"
+                    placeholder="Street, Number, District, City - State"
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("address")}`}
                   />
                 </div>
@@ -476,7 +476,7 @@ export default function CompanyProfilePage() {
 
       {activeTour && (
         <div className="fixed bottom-6 right-6 z-[130] w-[420px] max-w-[calc(100vw-24px)] rounded-2xl border border-border bg-card p-4 shadow-2xl">
-          <p className="text-[10px] font-black uppercase tracking-widest text-primary">Guia de preenchimento</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-primary">Field guide</p>
           <h3 className="mt-1 text-base font-black text-text">{activeTour.title}</h3>
           <p className="mt-2 text-sm text-text-muted">{activeTour.description}</p>
           <div className="mt-4 flex items-center justify-between">
@@ -487,7 +487,7 @@ export default function CompanyProfilePage() {
               onClick={() => setTourStep((prev) => Math.max(0, prev - 1))}
               disabled={tourStep === 0}
             >
-              Voltar
+              Back
             </Button>
             <Button
               type="button"
@@ -495,7 +495,7 @@ export default function CompanyProfilePage() {
               onClick={() => setTourStep((prev) => Math.min(fieldTour.length - 1, prev + 1))}
               disabled={tourStep === fieldTour.length - 1}
             >
-              Próximo
+              Next
             </Button>
           </div>
         </div>

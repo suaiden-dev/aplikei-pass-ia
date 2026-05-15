@@ -37,6 +37,14 @@ interface OfficeStats {
   plan_id: string;
 }
 
+function normalizePlanName(name: string | null | undefined): string {
+  const value = String(name || "").trim();
+  const key = value.toLowerCase();
+  if (key === "crescimento (variável)" || key === "crescimento (variavel)") return "Scalable Plan";
+  if (key === "plano fixo") return "Fixed Plan";
+  return value || "-";
+}
+
 export default function OfficesPage() {
   const t = useT("admin");
   const navigate = useNavigate();
@@ -181,7 +189,7 @@ export default function OfficesPage() {
                       <td className="px-6 py-5">
                         {office.active_plan_name ? (
                           <div className="space-y-1">
-                            <p className="text-xs font-black text-text uppercase tracking-tight">{office.active_plan_name}</p>
+                            <p className="text-xs font-black text-text uppercase tracking-tight">{normalizePlanName(office.active_plan_name)}</p>
                             <span className={cn(
                               "inline-flex px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border",
                               office.subscription_status === 'active' 

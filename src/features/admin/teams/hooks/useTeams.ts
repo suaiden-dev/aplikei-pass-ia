@@ -76,7 +76,7 @@ export function useTeams() {
       setPending(p);
       setInviteLinks(links);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao carregar time.");
+      toast.error(err instanceof Error ? err.message : "Error loading team.");
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +102,7 @@ export function useTeams() {
       setInviteLinks((prev) => [link, ...prev]);
       return link.token;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao gerar link.");
+      toast.error(err instanceof Error ? err.message : "Error generating link.");
       return null;
     } finally {
       setIsGeneratingLink(false);
@@ -118,9 +118,9 @@ export function useTeams() {
         setPending((prev) => prev.filter((u) => u.id !== userId));
         setMembers((prev) => [{ ...activated, is_active: true }, ...prev]);
       }
-      toast.success("Membro ativado com sucesso.");
+      toast.success("Member activated successfully.");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao ativar membro.");
+      toast.error(err instanceof Error ? err.message : "Error activating member.");
     } finally {
       setSavingId(null);
     }
@@ -131,9 +131,9 @@ export function useTeams() {
     try {
       await rejectTeamMember(userId);
       setPending((prev) => prev.filter((u) => u.id !== userId));
-      toast.success("Solicitação rejeitada.");
+      toast.success("Request rejected.");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao rejeitar solicitação.");
+      toast.error(err instanceof Error ? err.message : "Error rejecting request.");
     } finally {
       setSavingId(null);
     }
@@ -144,23 +144,23 @@ export function useTeams() {
     try {
       await updateTeamMemberRole(userId, role);
       setMembers((prev) => prev.map((m) => (m.id === userId ? { ...m, role } : m)));
-      toast.success("Cargo atualizado.");
+      toast.success("Role updated.");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao atualizar cargo.");
+      toast.error(err instanceof Error ? err.message : "Error updating role.");
     } finally {
       setSavingId(null);
     }
   }, []);
 
   const handleRemoveMember = useCallback(async (userId: string) => {
-    if (!window.confirm("Remover este membro do time?")) return;
+    if (!window.confirm("Remove this team member?")) return;
     setSavingId(userId);
     try {
       await rejectTeamMember(userId);
       setMembers((prev) => prev.filter((u) => u.id !== userId));
-      toast.success("Membro removido.");
+      toast.success("Member removed.");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao remover membro.");
+      toast.error(err instanceof Error ? err.message : "Error removing member.");
     } finally {
       setSavingId(null);
     }

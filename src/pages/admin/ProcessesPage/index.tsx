@@ -497,7 +497,7 @@ export default function AdminProcessesPage() {
                                  setLogModalProcess({ id: p.id, name: p.user_accounts?.full_name || t.cases.table.noName });
                                }}
                                className="p-2.5 rounded-xl border border-border text-text-muted hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all"
-                               title="Ver histórico de logs"
+                               title="View log history"
                              >
                                <RiHistoryLine className="text-xl" />
                              </button>
@@ -539,7 +539,7 @@ export default function AdminProcessesPage() {
                 <div className="text-left">
                   <h3 className="font-display font-black text-text text-2xl uppercase tracking-tight flex items-center gap-3">
                     <RiHistoryLine className="text-primary" />
-                    Histórico do Processo
+                    Process History
                   </h3>
                   <p className="text-xs text-text-muted font-bold uppercase tracking-widest mt-1">
                     Eventos de {logModalProcess.name}

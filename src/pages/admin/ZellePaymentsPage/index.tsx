@@ -163,7 +163,7 @@ function RejectModal({
                     </button>
                     <button onClick={() => onConfirm(reason || t.payments.messages.rejectedByAdmin)}
                         className="flex-1 py-2.5 rounded-xl bg-danger text-white text-sm font-bold hover:bg-danger/90 transition-colors">
-                        {(tShared?.confirm || "Confirmar").replace('Confirmar', tShared?.rejection?.confirm || "Rejeitar")}
+                        {(tShared?.confirm || "Confirm").replace("Confirm", tShared?.rejection?.confirm || "Reject")}
                     </button>
                 </div>
             </motion.div>
@@ -267,7 +267,7 @@ function PaymentRow({
                         <button
                             onClick={onApprove}
                             disabled={busy}
-                            title={(tShared?.confirm || "Confirmar").replace('Confirmar', 'Aprovar')}
+                            title={(tShared?.confirm || "Confirm").replace("Confirm", "Approve")}
                             className="w-9 h-9 rounded-full border-2 border-success text-success flex items-center justify-center hover:bg-success/10 disabled:opacity-40 transition-colors"
                         >
                             <RiCheckboxCircleLine className="text-xl" />
@@ -275,7 +275,7 @@ function PaymentRow({
                         <button
                             onClick={onReject}
                             disabled={busy}
-                            title={tShared?.rejection?.confirm || "Rejeitar"}
+                            title={tShared?.rejection?.confirm || "Reject"}
                             className="w-9 h-9 rounded-full border-2 border-danger text-danger flex items-center justify-center hover:bg-danger/10 disabled:opacity-40 transition-colors"
                         >
                             <RiCloseCircleLine className="text-xl" />
@@ -284,7 +284,7 @@ function PaymentRow({
                 )}
                 {tab === "pending" && p.source === "stripe" && (
                     <p className="text-[10px] text-text-muted italic">
-                        {t.payments.table.autoProcessing || 'Processamento Automático'}
+                        {t.payments.table.autoProcessing || "Automatic Processing"}
                     </p>
                 )}
                 {tab === "rejected" && p.adminNotes && (
@@ -527,7 +527,7 @@ export default function ZellePaymentsPage() {
 
             await notificationService.notifyClient({
                 clientEmail: p.clientEmail,
-                clientName: p.clientName || "Cliente",
+                clientName: p.clientName || "Client",
                 template: "zelle_payment_approved",
                 userId: p.userId ?? undefined,
                 templateData: {
@@ -537,7 +537,7 @@ export default function ZellePaymentsPage() {
                 link: "/dashboard",
             });
 
-            toast.success(t.payments.messages.approveSuccess.replace('{{name}}', p.clientName || tShared?.client || "Cliente"));
+            toast.success(t.payments.messages.approveSuccess.replace('{{name}}', p.clientName || tShared?.client || "Client"));
             await load();
         } catch {
             toast.error(t.payments.messages.approveError);
@@ -555,11 +555,11 @@ export default function ZellePaymentsPage() {
 
             await notificationService.notifyClient({
                 clientEmail: p.clientEmail,
-                clientName: p.clientName || "Cliente",
+                clientName: p.clientName || "Client",
                 template: "zelle_payment_rejected",
                 userId: p.userId ?? undefined,
                 templateData: {
-                    reason: reason || "Pagamento rejeitado pelo administrador.",
+                    reason: reason || "Payment rejected by administrator.",
                     service_name: p.serviceName,
                 },
                 link: "/dashboard",
@@ -585,9 +585,9 @@ export default function ZellePaymentsPage() {
     });
 
     const TABS: { key: Tab; label: string }[] = [
-        { key: "pending", label: t.payments?.tabs?.pending || "Verificação Zelle" },
-        { key: "approved", label: t.payments?.tabs?.approved || "Pagamentos Aprovados" },
-        { key: "rejected", label: t.payments?.tabs?.rejected || "Rejeitados" },
+        { key: "pending", label: t.payments?.tabs?.pending || "Zelle Verification" },
+        { key: "approved", label: t.payments?.tabs?.approved || "Approved Payments" },
+        { key: "rejected", label: t.payments?.tabs?.rejected || "Rejected" },
     ];
 
     return (
@@ -642,7 +642,7 @@ export default function ZellePaymentsPage() {
                         </div>
                     ) : filtered.length === 0 ? (
                         <div className="py-16 text-center text-sm text-text-muted">
-                            {(tShared?.table?.empty || "Nenhum item encontrado").replace('Nenhum item encontrado', t.payments.title.toLowerCase())}
+                            {(tShared?.table?.empty || "No items found").replace('No items found', t.payments.title.toLowerCase())}
                         </div>
                     ) : (
                         <div className="overflow-x-auto">

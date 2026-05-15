@@ -148,9 +148,16 @@ export default function SubscriptionPage() {
   // Filter plans: show non-exclusive active plans, OR the specific exclusive plan if ID matches
   const availablePlans = dbPlans.filter(p => !p.is_exclusive || p.id === urlPlanId);
 
+  const normalizePlanName = useCallback((name: string) => {
+    const key = String(name || "").trim().toLowerCase();
+    if (key === "crescimento (variável)" || key === "crescimento (variavel)") return "Scalable Plan";
+    if (key === "plano fixo") return "Fixed Plan";
+    return name;
+  }, []);
+
    const handleCancelSubscription = async () => {
       if (!officeId) {
-        toast.error("Seu usuário não possui escritório vinculado para cancelar assinatura.");
+        toast.error("Your user has no linked office to cancel subscription.");
         return;
       }
       
@@ -164,8 +171,8 @@ export default function SubscriptionPage() {
         if (error) throw error;
 
         await notifyMaster({
-          title: "Inscricao cancelada",
-          body: `A office ${officeId} cancelou a inscricao ativa.`,
+          title: "Subscription canceled",
+          body: `Office ${officeId} canceled the active subscription.`,
           link: "/master/offices",
           metadata: { office_id: officeId, action: "cancel_subscription" },
         });
@@ -187,7 +194,7 @@ export default function SubscriptionPage() {
   const handleConfirmContract = async () => {
     if (!planToContract) return;
     if (!officeId) {
-      toast.error("Seu usuário não possui escritório vinculado. Vincule um escritório para ativar a assinatura.");
+      toast.error("Your user has no linked office. Link an office to activate subscription.");
       return;
     }
 
@@ -210,8 +217,8 @@ export default function SubscriptionPage() {
       if (error) throw error;
 
       await notifyMaster({
-        title: "Inscricao atualizada",
-        body: `A office ${officeId} ativou/alterou para o plano ${planToContract.name}.`,
+        title: "Subscription updated",
+        body: `Office ${officeId} activated/changed to plan ${planToContract.name}.`,
         link: "/master/offices",
         metadata: {
           office_id: officeId,
@@ -280,7 +287,7 @@ export default function SubscriptionPage() {
                   </div>
 
                   <h3 className="text-2xl font-black text-text mb-2 uppercase tracking-tight">
-                    {plan.name === "Crescimento (Variável)" ? "Scalable Plan" : (plan.name === "Plano Fixo" ? "Fixed Plan" : plan.name)}
+                    {normalizePlanName(plan.name)}
                   </h3>
                   <div className="mb-6">
                     <span className="text-4xl font-black tracking-tighter">
@@ -351,7 +358,7 @@ export default function SubscriptionPage() {
                     </div>
                     <div className="text-left">
                       <h2 className="text-2xl font-black text-text uppercase tracking-tight">
-                        {currentPlan.name === "Crescimento (Variável)" ? "Scalable Plan" : (currentPlan.name === "Plano Fixo" ? "Fixed Plan" : currentPlan.name)}
+                        {normalizePlanName(currentPlan.name)}
                       </h2>
                       {isActive ? (
                         <span className="inline-flex items-center px-3 py-1 rounded-full bg-success/10 text-success text-[10px] font-black uppercase tracking-widest border border-success/20 mt-1">
@@ -382,7 +389,7 @@ export default function SubscriptionPage() {
                 </div>
                 
                 <div className="mt-8 flex items-center justify-between">
-                  {currentPlan.name !== "Crescimento (Variável)" && currentPlan.name !== "Scalable Plan" && currentPeriodEnd && (
+                  {normalizePlanName(currentPlan.name) !== "Scalable Plan" && currentPeriodEnd && (
                     <div className="flex items-center gap-3">
                       <RiCalendarCheckLine className="text-2xl text-primary" />
                       <div className="text-left">
@@ -423,7 +430,7 @@ export default function SubscriptionPage() {
                         <RiBillLine />
                       </div>
                       <div className="text-left">
-                        <p className="text-sm font-black text-text">{item.planName}</p>
+                        <p className="text-sm font-black text-text">{normalizePlanName(item.planName)}</p>
                         <p className="text-xs text-text-muted font-bold">
                           {t.subscription.paidOn.replace("{{date}}", item.signedAt ? new Date(item.signedAt).toLocaleString("pt-BR") : "-")}
                         </p>
@@ -509,7 +516,7 @@ export default function SubscriptionPage() {
                       {getPlanIcon(plan.type)}
                     </div>
 
-                    <h3 className="text-xl font-black text-text mb-2 uppercase tracking-tight">{plan.name}</h3>
+                    <h3 className="text-xl font-black text-text mb-2 uppercase tracking-tight">{normalizePlanName(plan.name)}</h3>
                     <div className="mb-4">
                       <span className="text-3xl font-black tracking-tighter">
                         {plan.fixed_fee > 0 ? `$${plan.fixed_fee}` : `${plan.percentage_fee}%`}

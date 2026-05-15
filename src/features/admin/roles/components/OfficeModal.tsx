@@ -37,7 +37,7 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
           setMode("create");
         }
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Erro ao carregar escritório.";
+        const message = err instanceof Error ? err.message : "Error loading office.";
         toast.error(message);
       } finally {
         if (mounted) setIsLoading(false);
@@ -54,7 +54,7 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
     if (mode === "create") {
       const trimmedName = newOfficeName.trim();
       if (!trimmedName) {
-        toast.error("Nome do escritório é obrigatório.");
+        toast.error("Office name is required.");
         return;
       }
       const normalizedName = normalizeOfficeName(trimmedName);
@@ -63,7 +63,7 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
       );
 
       if (duplicateOffice) {
-        toast.error(`Já existe um office com esse nome: ${duplicateOffice.name}.`);
+        toast.error(`An office with this name already exists: ${duplicateOffice.name}.`);
         return;
       }
       await onConfirm({ mode: "create", name: trimmedName });
@@ -71,7 +71,7 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
     }
 
     if (!selectedOfficeId) {
-      toast.error("Selecione um escritório.");
+      toast.error("Select an office.");
       return;
     }
 
@@ -79,7 +79,7 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
     const requiresReplace = !!selected?.owner_id && selected.owner_id !== user.id;
     let forceReplace = false;
     if (requiresReplace) {
-      forceReplace = window.confirm("Este escritório já está vinculado a outro usuário. Deseja substituir?");
+      forceReplace = window.confirm("This office is already linked to another user. Replace it?");
       if (!forceReplace) return;
     }
 
@@ -90,9 +90,9 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
     <div className="fixed inset-0 z-50 bg-black/55 flex items-center justify-center p-4">
       <div className="w-full max-w-lg rounded-2xl border border-border bg-card shadow-xl">
         <div className="px-6 py-5 border-b border-border">
-          <h2 className="text-xl font-black text-text tracking-tight">Escritório do Admin Lawyer</h2>
+          <h2 className="text-xl font-black text-text tracking-tight">Admin Lawyer Office</h2>
           <p className="text-sm text-text-muted mt-1">
-            Defina os dados do escritório para {user.full_name || user.email}.
+            Set office data for {user.full_name || user.email}.
           </p>
         </div>
 
@@ -100,18 +100,18 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
           {isLoading ? (
             <div className="py-8 text-center text-text-muted font-semibold inline-flex items-center justify-center gap-2 w-full">
               <RiLoader4Line className="animate-spin" />
-              Carregando escritório...
+              Loading office...
             </div>
           ) : (
             <>
               <div className="flex items-center gap-4">
                 <label className="inline-flex items-center gap-2 text-sm text-text">
                   <input type="radio" checked={mode === "existing"} onChange={() => setMode("existing")} />
-                  Selecionar office existente
+                  Select existing office
                 </label>
                 <label className="inline-flex items-center gap-2 text-sm text-text">
                   <input type="radio" checked={mode === "create"} onChange={() => setMode("create")} />
-                  Criar novo office
+                  Create new office
                 </label>
               </div>
 
@@ -123,12 +123,12 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
                     onChange={(e) => setSelectedOfficeId(e.target.value)}
                     className="mt-2 w-full h-11 px-3 bg-card border border-border rounded-xl text-sm text-text outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/5"
                   >
-                    <option value="">Selecione...</option>
+                    <option value="">Select...</option>
                     {offices.map((office) => (
                       <option key={office.id} value={office.id}>
                         {office.name}
                         {office.owner_id && office.owner_id !== user.id
-                          ? ` (vinculado: ${office.owner_name || office.owner_email || office.owner_id})`
+                          ? ` (linked: ${office.owner_name || office.owner_email || office.owner_id})`
                           : ""}
                       </option>
                     ))}
@@ -136,7 +136,7 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
                 </label>
               ) : (
                 <label className="block">
-                  <span className="text-xs font-black uppercase tracking-widest text-text-muted">Nome do novo office *</span>
+                  <span className="text-xs font-black uppercase tracking-widest text-text-muted">New office name *</span>
                   <input
                     value={newOfficeName}
                     onChange={(e) => setNewOfficeName(e.target.value)}
@@ -155,7 +155,7 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
             disabled={isSaving}
             className="h-10 px-4 rounded-xl border border-border text-text text-xs font-black uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-50"
           >
-            Cancelar
+            Cancel
           </button>
           <button
             type="button"
@@ -164,7 +164,7 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
             className="h-10 px-4 rounded-xl bg-primary text-white text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all disabled:opacity-50 inline-flex items-center gap-2"
           >
             {isSaving ? <RiLoader4Line className="animate-spin" /> : null}
-            Confirmar
+            Confirm
           </button>
         </div>
       </div>

@@ -27,9 +27,9 @@ export default function MasterOverviewPage() {
     return (
       <div className="p-8 max-w-[900px] mx-auto">
         <div className="rounded-3xl border border-danger/20 bg-danger/5 p-8 text-left space-y-4">
-          <h2 className="text-xl font-black text-danger uppercase tracking-widest">Erro ao carregar Overview Master</h2>
-          <p className="text-sm text-text-muted">Não foi possível buscar os dados globais da plataforma.</p>
-          <Button onClick={() => refetchAll()} className="rounded-xl h-11 px-5 font-bold">Tentar novamente</Button>
+          <h2 className="text-xl font-black text-danger uppercase tracking-widest">Error loading Master Overview</h2>
+          <p className="text-sm text-text-muted">Could not load global platform data.</p>
+          <Button onClick={() => refetchAll()} className="rounded-xl h-11 px-5 font-bold">Try again</Button>
         </div>
       </div>
     );

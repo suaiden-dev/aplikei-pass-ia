@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "./components/organisms/ScrollToTop";
 import { AdminDashboardLayout } from "./layouts/AdminDashboardLayout";
@@ -12,6 +12,8 @@ import { RoleRoute } from "./routes/RoleRoute";
 import { routesByLayout } from "./routes/appRoutes";
 import type { UserRole } from "./features/auth/types";
 import { AccessLevel } from "./routes/accessLevels";
+import { useAuth } from "./hooks/useAuth";
+import { useLocale } from "./i18n/context";
 
 function nestedPath(fullPath: string, basePath: string) {
   if (fullPath === basePath) return "";
@@ -29,6 +31,25 @@ function PageLoader() {
       <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
     </div>
   );
+}
+
+function AdminEnglishGuard() {
+  const { user } = useAuth();
+  const { lang, setLang } = useLocale();
+
+  const mustUseEnglish =
+    user?.role === "manager" ||
+    user?.role === "seller" ||
+    user?.role === "admin_lawyer" ||
+    user?.role === "master";
+
+  useEffect(() => {
+    if (mustUseEnglish && lang !== "en") {
+      void setLang("en");
+    }
+  }, [lang, mustUseEnglish, setLang]);
+
+  return null;
 }
 
 export default function App() {
@@ -58,6 +79,7 @@ export default function App() {
 
   return (
     <>
+      <AdminEnglishGuard />
       <ScrollToTop />
       <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -166,9 +188,9 @@ export default function App() {
             element={
               <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg text-text">
                 <h1 className="text-6xl font-black text-primary">404</h1>
-                <p className="text-text-muted">Página não encontrada</p>
+                <p className="text-text-muted">Page not found</p>
                 <a href="/" className="text-primary underline">
-                  Voltar ao início
+                  Back to home
                 </a>
               </div>
             }

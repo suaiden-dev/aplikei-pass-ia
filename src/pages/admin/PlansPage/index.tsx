@@ -33,6 +33,13 @@ type EditablePlanData = {
   category_minimums: Record<string, number>;
 };
 
+function normalizePlanName(name: string): string {
+  const key = String(name || "").trim().toLowerCase();
+  if (key === "crescimento (variável)" || key === "crescimento (variavel)") return "Scalable Plan";
+  if (key === "plano fixo") return "Fixed Plan";
+  return name;
+}
+
 function toNumber(value: unknown, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -105,7 +112,7 @@ function PlanEditModal({
       });
       onClose();
     } catch (error) {
-      toast.error("Erro ao salvar plano");
+      toast.error("Error saving plan");
     } finally {
       setIsSubmitting(false);
     }
@@ -117,17 +124,17 @@ function PlanEditModal({
         <DialogHeader className="p-6 border-b border-border bg-bg-subtle/50">
           <DialogTitle className="text-xl font-black text-text uppercase flex items-center gap-2">
             <RiEditLine className="text-primary" />
-            Editar Regras do Plano
+            Edit Plan Rules
           </DialogTitle>
           <DialogDescription className="text-xs text-text-muted">
-            Você só pode alterar a porcentagem e o valor mínimo cobrado por categoria.
+            You can only change the percentage and minimum value charged per category.
           </DialogDescription>
         </DialogHeader>
 
         <form id="plan-edit-form" onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
           <div className="space-y-2">
             <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">
-              Porcentagem do Plano (%)
+              Plan Percentage (%)
             </label>
             <input
               type="number"
@@ -141,7 +148,7 @@ function PlanEditModal({
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">
-              Tempo para Valor Disponível (minutos)
+              Time Until Funds Are Available (minutes)
             </label>
             <input
               type="number"
@@ -153,16 +160,16 @@ function PlanEditModal({
               className="w-full h-12 px-4 rounded-2xl border border-border bg-card text-sm font-medium focus:border-primary outline-none"
             />
             <p className="text-[10px] text-text-muted font-medium">
-              Padrão: 20160 minutos (14 dias). O master pode reduzir conforme necessário.
+              Default: 20160 minutes (14 days). Master can reduce it as needed.
             </p>
           </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-3">
               <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">
-                Mínimo por Categoria (Produtos)
+                Minimum by Category (Products)
               </label>
-              <span className="text-[10px] text-text-muted font-medium">Deixe em branco para sem mínimo específico.</span>
+              <span className="text-[10px] text-text-muted font-medium">Leave blank for no specific minimum.</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -173,9 +180,9 @@ function PlanEditModal({
                     <div className="flex items-center gap-2">
                       <p className="text-xs font-bold text-text uppercase tracking-wide">{item.category}</p>
                       <span
-                        title={item.description || "Sem descrição disponível"}
+                        title={item.description || "No description available"}
                         className="text-text-muted cursor-help"
-                        aria-label={`Descrição da categoria ${item.category}`}
+                        aria-label={`Category description ${item.category}`}
                       >
                         <RiInformationLine className="text-sm" />
                       </span>
@@ -198,7 +205,7 @@ function PlanEditModal({
 
         <DialogFooter className="p-6 border-t border-border bg-bg-subtle/30">
           <Button variant="outline" onClick={onClose} className="rounded-xl h-12 px-6 font-bold">
-            Cancelar
+            Cancel
           </Button>
           <Button
             type="submit"
@@ -206,7 +213,7 @@ function PlanEditModal({
             disabled={isSubmitting}
             className="rounded-xl h-12 px-10 font-bold bg-primary text-white"
           >
-            {isSubmitting ? "Salvando..." : "Salvar"}
+            {isSubmitting ? "Saving..." : "Save"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -229,26 +236,26 @@ function PlanCard({ plan, onEdit }: { plan: Plan; onEdit: () => void }) {
       </div>
 
       <div>
-        <h3 className="text-xl font-black text-text uppercase tracking-tight">{plan.name}</h3>
+        <h3 className="text-xl font-black text-text uppercase tracking-tight">{normalizePlanName(plan.name)}</h3>
         <p className="text-[10px] text-text-muted font-black uppercase tracking-widest mt-1">
-          {plan.is_active ? "Ativo" : "Inativo"}
+          {plan.is_active ? "Active" : "Inactive"}
         </p>
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-sm text-text">
           <RiPercentLine className="text-primary" />
-          <span className="font-bold">Porcentagem:</span>
+          <span className="font-bold">Percentage:</span>
           <span className="font-black">{plan.percentage_fee}%</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-text">
           <RiStackLine className="text-primary" />
-          <span className="font-bold">Categorias com mínimo:</span>
+          <span className="font-bold">Categories with minimum:</span>
           <span className="font-black">{minimumCount}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-text">
           <RiStackLine className="text-primary" />
-          <span className="font-bold">Disponível após:</span>
+          <span className="font-bold">Available after:</span>
           <span className="font-black">{plan.available_after_minutes} min</span>
         </div>
       </div>
@@ -259,7 +266,7 @@ function PlanCard({ plan, onEdit }: { plan: Plan; onEdit: () => void }) {
         className="h-11 rounded-2xl text-[10px] font-black uppercase tracking-widest border-border hover:border-primary hover:text-primary"
       >
         <RiEditLine className="text-lg" />
-        Editar Regras
+        Edit Rules
       </Button>
     </div>
   );
@@ -312,7 +319,7 @@ export default function PlansPage() {
     try {
       await Promise.all([loadPlans(), loadCategories()]);
     } catch (error) {
-      toast.error("Erro ao carregar planos");
+      toast.error("Error loading plans");
     } finally {
       setIsLoading(false);
     }
@@ -336,7 +343,7 @@ export default function PlansPage() {
 
     if (error) throw error;
 
-    toast.success("Plano atualizado");
+    toast.success("Plan updated");
     await loadPlans();
   };
 
@@ -348,17 +355,17 @@ export default function PlansPage() {
       <div className="text-left">
         <h1 className="text-3xl font-black text-text tracking-tighter uppercase">Subscription Plans</h1>
         <p className="text-text-muted font-medium mt-1">
-          Nesta tela, só é possível alterar porcentagem do plano e mínimo por categoria.
+          On this screen, you can only change plan percentage and minimum by category.
         </p>
       </div>
 
       {isLoading ? (
-        <div className="text-sm text-text-muted font-medium">Carregando planos...</div>
+        <div className="text-sm text-text-muted font-medium">Loading plans...</div>
       ) : (
         <div className="space-y-8">
           <section className="space-y-4">
             <h2 className="text-sm font-black text-success uppercase tracking-widest">
-              Ativos ({activePlans.length})
+              Active ({activePlans.length})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {activePlans.map((plan) => (
@@ -370,7 +377,7 @@ export default function PlansPage() {
           {inactivePlans.length > 0 && (
             <section className="space-y-4 pt-8 border-t border-border">
               <h2 className="text-sm font-black text-text-muted uppercase tracking-widest">
-                Inativos ({inactivePlans.length})
+                Inactive ({inactivePlans.length})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {inactivePlans.map((plan) => (

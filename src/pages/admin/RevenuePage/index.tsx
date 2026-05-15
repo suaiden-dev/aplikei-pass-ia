@@ -419,8 +419,8 @@ export default function RevenuePage() {
             if (withdrawal?.office_id) {
                 try {
                     await notificationService.notifyAdminLawyersByOffice(withdrawal.office_id, {
-                        title: status === "approved" ? "Saque aprovado" : "Saque rejeitado",
-                        body: `Seu pedido de saque de $${Number(withdrawal.amount || 0).toFixed(2)} foi ${status === "approved" ? "aprovado" : "rejeitado"} pelo master.`,
+                        title: status === "approved" ? "Withdrawal approved" : "Withdrawal rejected",
+                        body: `Your withdrawal request of $${Number(withdrawal.amount || 0).toFixed(2)} was ${status === "approved" ? "approved" : "rejected"} by master.`,
                         serviceId: withdrawal.id,
                         link: "/billings/withdrawals",
                         metadata: {
@@ -512,7 +512,7 @@ export default function RevenuePage() {
             {isAdminLawyer ? (
                 <div className="border-b border-border pb-4">
                     <p className="text-sm font-black uppercase tracking-widest text-primary">
-                        {"Pagamentos"}
+                        {"Payments"}
                     </p>
                 </div>
             ) : (
@@ -524,7 +524,7 @@ export default function RevenuePage() {
                             tab === "zelle" ? "text-primary" : "text-text-muted hover:text-text"
                         )}
                     >
-                        {t.payments?.tabs?.pending || "Verificação Zelle"}
+                        {t.payments?.tabs?.pending || "Zelle Verification"}
                         {tab === "zelle" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
                     </button>
                     {canAccessOfficeRequests && (
@@ -535,7 +535,7 @@ export default function RevenuePage() {
                                 tab === "office_requests" ? "text-primary" : "text-text-muted hover:text-text"
                             )}
                         >
-                            {t.payments?.tabs?.officeRequests || "Solicitações de Saque"}
+                            {t.payments?.tabs?.officeRequests || "Withdrawal Requests"}
                             {tab === "office_requests" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
                         </button>
                     )}
@@ -546,7 +546,7 @@ export default function RevenuePage() {
                             tab === "approved_payments" ? "text-primary" : "text-text-muted hover:text-text"
                         )}
                     >
-                        {"Pagamentos"}
+                        {"Payments"}
                         {tab === "approved_payments" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
                     </button>
                 </div>

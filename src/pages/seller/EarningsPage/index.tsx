@@ -45,7 +45,7 @@ function CopyButton({ text }: { text: string }) {
       className="flex items-center gap-1.5 rounded-xl border border-border bg-bg-subtle px-3 py-1.5 text-xs font-semibold text-text-muted transition-colors hover:border-primary/40 hover:text-primary"
     >
       {copied ? <RiCheckLine className="text-success" /> : <RiLinkM />}
-      {copied ? "Copiado!" : "Copiar link"}
+      {copied ? "Copied!" : "Copy link"}
     </button>
   );
 }
@@ -110,7 +110,7 @@ export default function EarningsPage() {
 
       setOrders((ordersData as OrderRow[]) ?? []);
     } catch (err: unknown) {
-      toast.error("Erro ao carregar dados.");
+      toast.error("Error loading data.");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -156,28 +156,28 @@ export default function EarningsPage() {
   return (
     <div className="space-y-8 p-6 pb-20 max-w-5xl mx-auto">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-text">Faturamento</h1>
+        <h1 className="text-2xl font-black tracking-tight text-text">Billing</h1>
         <p className="mt-1 text-sm text-text-muted">
-          Acompanhe suas vendas e compartilhe links de pagamento com clientes.
+          Track your sales and share payment links with clients.
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
-          label="Total acumulado"
+          label="Total earned"
           value={`US$ ${totalEarned.toFixed(2)}`}
           icon={<RiMoneyDollarCircleLine className="text-xl" />}
           color="bg-success/10 text-success"
         />
         <StatCard
-          label="Este mês"
+          label="This month"
           value={`US$ ${monthEarned.toFixed(2)}`}
           icon={<RiCalendarLine className="text-xl" />}
           color="bg-primary/10 text-primary"
         />
         <StatCard
-          label="Vendas realizadas"
+          label="Sales completed"
           value={String(orders.length)}
           icon={<RiShoppingCartLine className="text-xl" />}
           color="bg-info/10 text-info"
@@ -187,18 +187,18 @@ export default function EarningsPage() {
       {/* Payment links */}
       <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
         <div className="border-b border-border px-6 py-4">
-          <h2 className="text-sm font-black uppercase tracking-widest text-text">Links de Pagamento</h2>
+          <h2 className="text-sm font-black uppercase tracking-widest text-text">Payment Links</h2>
           <p className="mt-0.5 text-xs text-text-muted">
-            Compartilhe com seus clientes para que eles comprem diretamente.
+            Share with your clients so they can buy directly.
           </p>
         </div>
 
         {!office ? (
           <div className="px-6 py-10 text-center text-sm text-text-muted">
-            Você ainda não está vinculado a um escritório. Solicite ao administrador.
+            You are not linked to an office yet. Ask your administrator.
           </div>
         ) : services.length === 0 ? (
-          <div className="px-6 py-10 text-center text-sm text-text-muted">Nenhum produto disponível.</div>
+          <div className="px-6 py-10 text-center text-sm text-text-muted">No products available.</div>
         ) : (
           <div className="divide-y divide-border">
             {Object.entries(grouped).map(([category, items]) => (
@@ -232,15 +232,15 @@ export default function EarningsPage() {
       {orders.length > 0 && (
         <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
           <div className="border-b border-border px-6 py-4">
-            <h2 className="text-sm font-black uppercase tracking-widest text-text">Últimas Vendas</h2>
+            <h2 className="text-sm font-black uppercase tracking-widest text-text">Latest Sales</h2>
           </div>
           <div className="divide-y divide-border">
             {orders.slice(0, 20).map((order) => (
               <div key={order.id} className="flex items-center justify-between gap-4 px-6 py-4">
                 <div>
-                  <p className="text-sm font-semibold text-text">{order.client_name || "Cliente"}</p>
+                  <p className="text-sm font-semibold text-text">{order.client_name || "Client"}</p>
                   <p className="text-xs text-text-muted mt-0.5">
-                    {order.product_slug} · {new Date(order.created_at).toLocaleDateString("pt-BR")}
+                    {order.product_slug} · {new Date(order.created_at).toLocaleDateString("en-US")}
                   </p>
                 </div>
                 <span className="text-sm font-black text-success">

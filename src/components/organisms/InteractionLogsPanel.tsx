@@ -128,9 +128,9 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
       {!hideHeader && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { label: "Total de Eventos", value: totalCount, icon: RiHistoryLine, color: "text-primary" },
-            { label: "Falhas Identificadas", value: Math.floor(totalCount * 0.05), icon: RiErrorWarningLine, color: "text-danger" },
-            { label: "Atividade Recente", value: "Monitoramento Ativo", icon: RiTerminalBoxLine, color: "text-success" }
+            { label: "Total Events", value: totalCount, icon: RiHistoryLine, color: "text-primary" },
+            { label: "Detected Failures", value: Math.floor(totalCount * 0.05), icon: RiErrorWarningLine, color: "text-danger" },
+            { label: "Recent Activity", value: "Live Monitoring", icon: RiTerminalBoxLine, color: "text-success" }
           ].map((stat, i) => (
             <motion.div 
               key={i}
@@ -155,9 +155,9 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
       <section className="flex flex-col md:flex-row gap-6 items-center justify-between">
         <div className="flex p-1 bg-card border border-border rounded-xl backdrop-blur-md">
           {[
-            { id: "all", label: "Tudo", color: "primary" },
-            { id: "error", label: "Erros", color: "danger" },
-            { id: "warning", label: "Avisos", color: "warning" }
+            { id: "all", label: "All", color: "primary" },
+            { id: "error", label: "Errors", color: "danger" },
+            { id: "warning", label: "Warnings", color: "warning" }
           ].map((btn) => (
             <button 
               key={btn.id}
@@ -181,7 +181,7 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
               setSearch(e.target.value);
               setPage(0);
             }}
-            placeholder="Pesquisar logs..."
+            placeholder="Search logs..."
             className="w-full bg-card border border-border rounded-xl pl-12 pr-4 py-3 text-sm text-text focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-text-muted"
           />
         </div>
@@ -194,7 +194,7 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
           <div className="col-span-5 md:col-span-4 text-left">Evento Principal</div>
           <div className="hidden md:block col-span-3 text-left">Origem e Contexto</div>
           <div className="hidden md:block col-span-3 text-left">Temporalidade</div>
-          <div className="col-span-7 md:col-span-2 text-right">Ação</div>
+          <div className="col-span-7 md:col-span-2 text-right">Action</div>
         </div>
 
         {loading ? (
@@ -203,12 +203,12 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
               <div className="w-16 h-16 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
               <RiLoader4Line className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl text-primary animate-pulse" />
             </div>
-            <p className="text-sm text-text-muted font-bold uppercase tracking-widest animate-pulse">Sincronizando Registros...</p>
+            <p className="text-sm text-text-muted font-bold uppercase tracking-widest animate-pulse">Syncing records...</p>
           </div>
         ) : logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 gap-6 opacity-60">
             <RiInformationLine className="text-5xl text-text-muted" />
-            <p className="text-sm text-text-muted font-medium italic">Nenhum dado interceptado para esta consulta.</p>
+            <p className="text-sm text-text-muted font-medium italic">No intercepted data for this query.</p>
           </div>
         ) : (
           <motion.div 
@@ -264,7 +264,7 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
                     </div>
                     <div className="flex items-center gap-2 text-[10px] text-text-muted font-medium">
                       <RiMapPinLine className="text-danger/70" />
-                      {log.metadata?.location || "Localização Oculta"}
+                      {log.metadata?.location || "Hidden Location"}
                     </div>
                   </div>
 
@@ -304,14 +304,14 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
             className="flex items-center gap-2 px-5 py-3 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-20"
           >
             <RiArrowLeftSLine className="text-xl" />
-            Anterior
+            Previous
           </button>
           <button 
             disabled={(page + 1) * pageSize >= totalCount}
             onClick={() => setPage(p => p + 1)}
             className="flex items-center gap-2 px-5 py-3 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-20"
           >
-            Próximo
+            Next
             <RiArrowRightSLine className="text-xl" />
           </button>
         </div>
@@ -341,7 +341,7 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
                     <RiTerminalBoxLine className="text-2xl" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-lg font-black text-text uppercase tracking-tight">Análise de Payload</h3>
+                    <h3 className="text-lg font-black text-text uppercase tracking-tight">Payload Analysis</h3>
                     <p className="text-[10px] text-text-muted font-mono">{selectedLog.id}</p>
                   </div>
                 </div>
@@ -356,12 +356,12 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
               <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-5 bg-bg-subtle border border-border rounded-2xl text-left">
-                    <p className="text-[10px] font-black text-text-muted uppercase mb-2 tracking-widest">Ator / Responsável</p>
+                    <p className="text-[10px] font-black text-text-muted uppercase mb-2 tracking-widest">Actor / Owner</p>
                     <p className="text-sm font-black text-text leading-tight">{selectedLog.actor_name || "System"}</p>
                     <span className="text-[10px] text-primary font-black uppercase">{selectedLog.actor_role}</span>
                   </div>
                   <div className="p-5 bg-bg-subtle border border-border rounded-2xl text-left">
-                    <p className="text-[10px] font-black text-text-muted uppercase mb-2 tracking-widest">Ocorrência</p>
+                    <p className="text-[10px] font-black text-text-muted uppercase mb-2 tracking-widest">Event</p>
                     <p className="text-sm font-black text-text truncate leading-tight">{formatDate(selectedLog.created_at).full}</p>
                     <span className="text-[10px] text-success font-black uppercase">Validado</span>
                   </div>
@@ -370,7 +370,7 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-black text-text-muted uppercase tracking-widest flex items-center gap-2">
                     <RiInformationLine className="text-primary" /> 
-                    Dados Brutos (JSON)
+                    Raw Data (JSON)
                   </h4>
                   <div className="bg-bg rounded-2xl p-6 border border-border font-mono text-[11px] leading-relaxed text-text-muted overflow-x-auto shadow-inner text-left">
                     <pre>{JSON.stringify(selectedLog, null, 2)}</pre>
@@ -400,14 +400,14 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
                   onClick={() => setSelectedLog(null)}
                   className="flex-1 py-4 bg-card border border-border rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-bg-subtle transition-all"
                 >
-                  Fechar Painel
+                  Close Panel
                 </button>
                 {selectedLog.user_service_id && (
                   <button 
                     onClick={() => navigate(`/admin/processes/${selectedLog.user_service_id}`)}
                     className="flex-1 py-4 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:opacity-90 shadow-lg shadow-primary/20 transition-all"
                   >
-                    Investigar Processo
+                    Investigate Process
                   </button>
                 )}
               </div>

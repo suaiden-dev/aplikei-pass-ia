@@ -479,7 +479,7 @@ export const appRoutes: AppRouteDefinition[] = [
   },
   {
     path: "/earnings",
-    title: "Faturamento",
+    title: "Billing",
     titleKey: "earnings",
     component: SellerEarningsPage,
     authRequired: true,

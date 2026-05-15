@@ -346,7 +346,7 @@ export default function FinanceAnalyticsPage() {
           <RoleActorChart
             title="Vendas por Seller"
             items={sellerMetrics}
-            emptyLabel="Sem vendas de seller no período"
+            emptyLabel="No seller sales in the period"
           />
         )}
       </div>

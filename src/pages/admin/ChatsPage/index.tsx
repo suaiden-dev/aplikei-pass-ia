@@ -259,7 +259,7 @@ function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: Anal
         toast.success(t.chats.settings.closedSuccess);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erro desconhecido";
+      const message = err instanceof Error ? err.message : "Unknown error";
       toast.error(t.chats.settings.errorToggle + message);
     } finally {
       setIsUpdating(false);

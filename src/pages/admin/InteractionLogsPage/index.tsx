@@ -81,15 +81,15 @@ export default function InteractionLogsPage() {
         .order("created_at", { ascending: false })
         .range(page * pageSize, (page + 1) * pageSize - 1);
 
-      // Filtro por escritório (se não for master)
+      // Office filter (if not master)
       if (user?.role !== "master") {
         query = query.eq("office_id", user?.officeId);
       }
 
       if (filter === "error") {
-        query = query.ilike("event_name", "%erro%");
+        query = query.ilike("event_name", "%error%");
       } else if (filter === "warning") {
-        query = query.or("event_name.ilike.%aviso%,details.ilike.%falhou%");
+        query = query.or("event_name.ilike.%warning%,details.ilike.%failed%");
       }
 
       if (search) {
@@ -114,9 +114,9 @@ export default function InteractionLogsPage() {
   const formatDate = (dt: string) => {
     const date = new Date(dt);
     return {
-      full: date.toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
-      time: date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
-      relative: new Intl.RelativeTimeFormat("pt-BR", { numeric: "auto" }).format(
+      full: date.toLocaleString("en-US", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
+      time: date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+      relative: new Intl.RelativeTimeFormat("en-US", { numeric: "auto" }).format(
         Math.ceil((date.getTime() - new Date().getTime()) / (1000 * 60)), "minute"
       )
     };
@@ -124,8 +124,8 @@ export default function InteractionLogsPage() {
 
   const getStatusType = (log: InteractionLog): "success" | "error" | "warning" => {
     const name = log.event_name.toLowerCase();
-    if (name.includes("erro")) return "error";
-    if (name.includes("aviso") || name.includes("tentativa")) return "warning";
+    if (name.includes("error")) return "error";
+    if (name.includes("warning") || name.includes("attempt")) return "warning";
     return "success";
   };
 
@@ -157,7 +157,7 @@ export default function InteractionLogsPage() {
             </motion.button>
             <div className="flex flex-col">
               <h1 className="text-2xl font-bold tracking-tight text-text flex items-center gap-2 text-left">
-                Logs de Interação
+                Interaction Logs
                 <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">LIVE</span>
               </h1>
               <div className="flex items-center gap-2 mt-0.5">
@@ -170,7 +170,7 @@ export default function InteractionLogsPage() {
               <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Database Sync</span>
               <span className="text-xs text-success flex items-center gap-1 font-medium">
                 <div className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" />
-                Conectado ao Realtime
+                Connected to Realtime
               </span>
             </div>
             <div className="w-px h-8 bg-border" />
@@ -183,9 +183,9 @@ export default function InteractionLogsPage() {
         {/* Statistics Bar */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           {[
-            { label: "Total de Eventos", value: totalCount, icon: RiHistoryLine, color: "text-primary" },
-            { label: "Falhas Identificadas", value: Math.floor(totalCount * 0.05), icon: RiErrorWarningLine, color: "text-danger" },
-            { label: "Atividade Recente", value: "Monitoramento Ativo", icon: RiTerminalBoxLine, color: "text-success" }
+            { label: "Total Events", value: totalCount, icon: RiHistoryLine, color: "text-primary" },
+            { label: "Detected Failures", value: Math.floor(totalCount * 0.05), icon: RiErrorWarningLine, color: "text-danger" },
+            { label: "Recent Activity", value: "Live Monitoring", icon: RiTerminalBoxLine, color: "text-success" }
           ].map((stat, i) => (
             <motion.div 
               key={i}
@@ -209,9 +209,9 @@ export default function InteractionLogsPage() {
         <section className="mb-8 flex flex-col md:flex-row gap-6 items-center justify-between">
           <div className="flex p-1 bg-card border border-border rounded-xl backdrop-blur-md">
             {[
-              { id: "all", label: "Tudo", color: "primary" },
-              { id: "error", label: "Erros", color: "danger" },
-              { id: "warning", label: "Avisos", color: "warning" }
+              { id: "all", label: "All", color: "primary" },
+              { id: "error", label: "Errors", color: "danger" },
+              { id: "warning", label: "Warnings", color: "warning" }
             ].map((btn) => (
               <button 
                 key={btn.id}
@@ -241,9 +241,9 @@ export default function InteractionLogsPage() {
           <div className="grid grid-cols-12 gap-4 md:gap-6 px-6 md:px-8 py-5 border-b border-border text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
             <div className="col-span-6 md:col-span-4 text-left">Evento Principal</div>
             <div className="hidden lg:block col-span-2 text-left">Origem</div>
-            <div className="hidden md:block col-span-4 lg:col-span-3 text-left">Contexto / Ação</div>
+            <div className="hidden md:block col-span-4 lg:col-span-3 text-left">Context / Action</div>
             <div className="hidden xl:block col-span-2 text-left">Temporalidade</div>
-            <div className="col-span-6 md:col-span-2 xl:col-span-1 text-right">Ação</div>
+            <div className="col-span-6 md:col-span-2 xl:col-span-1 text-right">Action</div>
           </div>
 
           {loading ? (
@@ -257,7 +257,7 @@ export default function InteractionLogsPage() {
           ) : logs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-32 gap-6 opacity-60">
               <RiInformationLine className="text-5xl text-[#64748b]" />
-              <p className="text-sm text-[#64748b] font-medium italic">Nenhum dado interceptado para esta consulta.</p>
+              <p className="text-sm text-[#64748b] font-medium italic">No intercepted data for this query.</p>
             </div>
           ) : (
             <motion.div 
@@ -353,7 +353,7 @@ export default function InteractionLogsPage() {
               onClick={() => setPage(p => p + 1)}
               className="flex items-center gap-2 px-5 py-3 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-20"
             >
-              Próximo
+              Next
               <RiArrowRightSLine className="text-xl" />
             </button>
           </div>
@@ -384,7 +384,7 @@ export default function InteractionLogsPage() {
                     <RiTerminalBoxLine className="text-2xl" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-lg font-bold text-text uppercase tracking-tight">Análise de Payload</h3>
+                    <h3 className="text-lg font-bold text-text uppercase tracking-tight">Payload Analysis</h3>
                     <p className="text-xs text-text-muted font-mono">{selectedLog.id}</p>
                   </div>
                 </div>
@@ -399,12 +399,12 @@ export default function InteractionLogsPage() {
               <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
                 <div className="grid grid-cols-2 gap-4 text-left">
                   <div className="p-5 bg-bg-subtle border border-border rounded-2xl">
-                    <p className="text-[10px] font-black text-text-muted uppercase mb-2 tracking-widest">Usuário / E-mail</p>
-                    <p className="text-sm font-bold text-text truncate">{selectedLog.email || "Visitante Anônimo"}</p>
+                    <p className="text-[10px] font-black text-text-muted uppercase mb-2 tracking-widest">User / Email</p>
+                    <p className="text-sm font-bold text-text truncate">{selectedLog.email || "Anonymous Visitor"}</p>
                     <span className="text-[10px] text-primary font-bold uppercase">Checkout Flow</span>
                   </div>
                   <div className="p-5 bg-bg-subtle border border-border rounded-2xl text-left">
-                    <p className="text-[10px] font-black text-text-muted uppercase mb-2 tracking-widest">Ocorrência</p>
+                    <p className="text-[10px] font-black text-text-muted uppercase mb-2 tracking-widest">Event</p>
                     <p className="text-sm font-bold text-text truncate">{formatDate(selectedLog.created_at).full}</p>
                     <span className="text-[10px] text-success font-bold uppercase">Interceptado</span>
                   </div>
@@ -424,7 +424,7 @@ export default function InteractionLogsPage() {
 
                   <h4 className="text-[10px] font-black text-text-muted uppercase tracking-widest flex items-center gap-2">
                     <RiInformationLine className="text-primary" /> 
-                    Contexto da Atividade
+                    Activity Context
                   </h4>
                   <div className="bg-bg-subtle rounded-2xl p-6 border border-border font-sans text-sm leading-relaxed text-text shadow-inner">
                     {parseDetails(selectedLog.details).context}
@@ -442,7 +442,7 @@ export default function InteractionLogsPage() {
                         <span className="text-xs text-text font-mono">{selectedLog.id}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-bg-subtle border border-border rounded-xl">
-                        <span className="text-[10px] text-text-muted font-bold uppercase">Escritório</span>
+                        <span className="text-[10px] text-text-muted font-bold uppercase">Office</span>
                         <span className="text-xs text-text font-mono">{selectedLog.office_id}</span>
                     </div>
                   </div>

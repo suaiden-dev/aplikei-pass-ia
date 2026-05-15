@@ -56,6 +56,14 @@ type OfficeProcessRow = Omit<OfficeProcess, "user_accounts"> & {
   user_accounts?: Array<{ full_name: string | null; email: string | null }> | { full_name: string | null; email: string | null } | null;
 };
 
+function normalizePlanName(name: string | null | undefined): string {
+  const value = String(name || "").trim();
+  const key = value.toLowerCase();
+  if (key === "crescimento (variável)" || key === "crescimento (variavel)") return "Scalable Plan";
+  if (key === "plano fixo") return "Fixed Plan";
+  return value || "-";
+}
+
 export default function OfficeDetailsPage() {
   const t = useT("admin");
   const { officeId = "" } = useParams<{ officeId: string }>();
@@ -138,7 +146,7 @@ export default function OfficeDetailsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-3xl border border-border bg-card p-6 text-left">
-          <div className="flex items-center gap-2 mb-4 font-black uppercase text-text"><RiBuilding2Line /> Informações principais</div>
+          <div className="flex items-center gap-2 mb-4 font-black uppercase text-text"><RiBuilding2Line /> Main information</div>
           <div className="space-y-2 text-sm">
             <p><strong>Office:</strong> {office.office_name}</p>
             <p><strong>Responsible:</strong> {office.responsible_name || "-"}</p>
@@ -146,12 +154,12 @@ export default function OfficeDetailsPage() {
             <p className="flex items-center gap-2"><RiMailLine /> {office.email || "-"}</p>
             <p className="flex items-center gap-2"><RiPhoneLine /> {office.phone || "-"}</p>
             <p><strong>Website:</strong> {office.website || "-"}</p>
-            <p><strong>Plano:</strong> {office.active_plan_name || "-"} ({office.subscription_status})</p>
+            <p><strong>Plan:</strong> {normalizePlanName(office.active_plan_name)} ({office.subscription_status})</p>
           </div>
         </div>
 
         <div className="rounded-3xl border border-border bg-card p-6 text-left">
-          <div className="flex items-center gap-2 mb-4 font-black uppercase text-text"><RiFileList3Line /> Métricas do escritório</div>
+          <div className="flex items-center gap-2 mb-4 font-black uppercase text-text"><RiFileList3Line /> Office metrics</div>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <Metric label="Revenue" value={`$${metrics.total.toFixed(2)}`} />
             <Metric label="Available" value={`$${metrics.available.toFixed(2)}`} />
@@ -165,20 +173,20 @@ export default function OfficeDetailsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ListCard
-          title="Todos os vendedores"
+          title="All sellers"
           icon={<RiUserLine />}
           items={sellers.map((s) => ({ id: s.id, title: s.full_name || s.email || "-", subtitle: s.email || "-" }))}
         />
 
         <ListCard
-          title="Todos os managers"
+          title="All managers"
           icon={<RiTeamLine />}
           items={managers.map((m) => ({ id: m.id, title: m.full_name || m.email || "-", subtitle: `${m.role} • ${m.email || "-"}` }))}
         />
       </div>
 
       <div className="rounded-3xl border border-border bg-card p-6 text-left">
-        <h3 className="font-black uppercase mb-4">Todos os processos</h3>
+        <h3 className="font-black uppercase mb-4">All processes</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -197,15 +205,15 @@ export default function OfficeDetailsPage() {
                   <td className="py-2">{p.status || "-"}</td>
                   <td className="py-2">
                     <div className="flex gap-2">
-                      <Link className="text-primary font-bold" to={`${routePrefix}/processes/${p.id}`}>Ver processo</Link>
-                      <Link className="text-text-muted font-bold" to={`${routePrefix}/customers`}>Ver cliente</Link>
+                      <Link className="text-primary font-bold" to={`${routePrefix}/processes/${p.id}`}>View process</Link>
+                      <Link className="text-text-muted font-bold" to={`${routePrefix}/customers`}>View customer</Link>
                     </div>
                   </td>
                 </tr>
               ))}
               {processes.length === 0 && (
                 <tr>
-                  <td className="py-4 text-text-muted" colSpan={4}>Nenhum processo encontrado.</td>
+                  <td className="py-4 text-text-muted" colSpan={4}>No processes found.</td>
                 </tr>
               )}
             </tbody>
@@ -244,7 +252,7 @@ function ListCard({
             <p className="text-xs text-text-muted">{item.subtitle}</p>
           </div>
         ))}
-        {items.length === 0 && <p className="text-sm text-text-muted">Nenhum registro.</p>}
+        {items.length === 0 && <p className="text-sm text-text-muted">No records.</p>}
       </div>
     </div>
   );

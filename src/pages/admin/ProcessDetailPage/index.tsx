@@ -1063,7 +1063,7 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
                           rel="noreferrer"
                           className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1"
                         >
-                          {t.shared.confirm.replace('Confirmar', 'Ver')} <RiArrowRightLine />
+                          {t.shared.confirm.replace("Confirm", "View").replace("Confirmar", "Ver")} <RiArrowRightLine />
                         </a>
                       )}
                     </div>
@@ -1139,7 +1139,7 @@ function RFEFinalShipPanel({ proc, onApprove, onRefresh, isActive }: { proc: Pro
                 rel="noreferrer"
                 className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
               >
-                {t.shared.confirm.replace('Confirmar', 'Ver')}
+                {t.shared.confirm.replace("Confirm", "View").replace("Confirmar", "Ver")}
               </a>
             </div>
           ) : (
@@ -1203,7 +1203,7 @@ function B1B2CredentialsPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
       await onApprove();
       onRefresh();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Erro";
+      const message = err instanceof Error ? err.message : "Error";
       toast.error(message);
     } finally {
       setLoading(false);
@@ -1330,10 +1330,10 @@ export default function AdminProcessDetailPage() {
     return (
       <div className="p-12 text-center bg-bg min-h-screen">
         <RiErrorWarningLine className="text-4xl text-danger mx-auto mb-4" />
-        <h2 className="text-xl font-black text-text uppercase mb-2">Serviço não configurado</h2>
-        <p className="text-text-muted mb-6">O serviço "{proc.service_slug}" não possui uma definição de workflow no sistema.</p>
+        <h2 className="text-xl font-black text-text uppercase mb-2">Service not configured</h2>
+        <p className="text-text-muted mb-6">Service "{proc.service_slug}" has no workflow definition in the system.</p>
         <button onClick={() => navigate(`${processRoutePrefix}/processes`)} className="bg-primary text-white px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest">
-          Voltar para Lista
+          Back to list
         </button>
       </div>
     );
@@ -1423,7 +1423,7 @@ export default function AdminProcessDetailPage() {
       fetchProcessData();
       window.scrollTo(0, 0);
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "Erro desconhecido";
+      const msg = error instanceof Error ? error.message : "Unknown error";
       console.error(error);
       toast.error(t.cases.messages.errorAction + msg);
     } finally {
@@ -1484,7 +1484,7 @@ export default function AdminProcessDetailPage() {
           templateData: { step_name: currentStep?.title ?? "", feedback: rejectionReason },
           link: `/dashboard/processes/${proc.service_slug}`,
         });
-        toast.success("Correção de I-20/DS160 solicitada.");
+        toast.success("I-20/DS160 correction requested.");
       } else {
         await processService.updateStepData(proc.id, {
           admin_feedback: rejectionReason,
@@ -1499,7 +1499,7 @@ export default function AdminProcessDetailPage() {
       fetchProcessData();
       window.scrollTo(0, 0);
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "Erro desconhecido";
+      const msg = error instanceof Error ? error.message : "Unknown error";
       console.error(error);
       toast.error(t.cases.messages.errorAction + msg);
     } finally {
@@ -1520,13 +1520,13 @@ export default function AdminProcessDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error("Falha na chamada do n8n");
+      if (!res.ok) throw new Error("n8n call failed");
       const result = await res.json();
       const html = result.html || result.content || result.response || result.data || JSON.stringify(result);
       setCoverLetterHtml(html);
       toast.success(t.processDetail.messages.aiCoverLetterSuccess);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Erro desconhecido";
+      const msg = e instanceof Error ? e.message : "Unknown error";
       toast.error(t.processDetail.messages.generateError + msg);
     } finally {
       setIsGeneratingCoverLetter(false);
@@ -1551,7 +1551,7 @@ export default function AdminProcessDetailPage() {
 
     return (
       <CollapsibleStep
-        title={proc.service_slug === "visto-b1-b2" || proc.service_slug === "visa-b1b2" ? "Revisão da DS-160" : "Dados do Formulário (Revisão)"}
+        title={proc.service_slug === "visto-b1-b2" || proc.service_slug === "visa-b1b2" ? "DS-160 Review" : "Form Data (Review)"}
         icon={RiFileTextLine}
         isActive={isActive}
         isPast={isPast}
@@ -1569,7 +1569,7 @@ export default function AdminProcessDetailPage() {
                     <button
                       onClick={() => toggleItem(key)}
                       className={`p-1.5 rounded-lg transition-all ${isSelected ? 'bg-danger text-white shadow-lg shadow-danger/20' : 'text-text-muted hover:bg-bg-subtle'}`}
-                      title="Marcar para correção"
+                      title="Mark for correction"
                     >
                       <RiErrorWarningLine className="text-sm" />
                     </button>
@@ -1666,7 +1666,7 @@ export default function AdminProcessDetailPage() {
     const isPast = coverLetterIdx !== -1 && currentStepIdx > coverLetterIdx;
 
     return (
-      <CollapsibleStep title={t.processDetail.coverLetter.title || "Análise: Cover Letter"} icon={RiFileTextLine} isActive={isActive} isPast={isPast}>
+      <CollapsibleStep title={t.processDetail.coverLetter.title || "Analysis: Cover Letter"} icon={RiFileTextLine} isActive={isActive} isPast={isPast}>
         <div>
           <div className="flex items-center justify-between mb-4">
             <h4 className="font-black text-text text-lg">{t.processDetail.coverLetter.finalLetter}</h4>
@@ -1790,7 +1790,7 @@ export default function AdminProcessDetailPage() {
                 <div className="w-16 h-16 bg-info/10 text-info rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <RiFileTextLine className="text-3xl" />
                 </div>
-                <h4 className="font-black text-text text-sm mb-1 uppercase">Formulário I-20</h4>
+                <h4 className="font-black text-text text-sm mb-1 uppercase">I-20 Form</h4>
                 <div className="flex gap-2 w-full mt-4">
                   <a href={i20Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                     {t.processDetail.officialForms.viewPdf}
@@ -1859,7 +1859,7 @@ export default function AdminProcessDetailPage() {
                 <div className="w-16 h-16 bg-info/10 text-info rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <RiFileTextLine className="text-3xl" />
                 </div>
-                <h4 className="font-black text-text text-sm mb-1 uppercase">Formulário I-20</h4>
+                <h4 className="font-black text-text text-sm mb-1 uppercase">I-20 Form</h4>
                 <div className="flex gap-2 w-full mt-4">
                   <a href={i20Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                     {t.processDetail.officialForms.viewPdf}
@@ -2371,7 +2371,7 @@ export default function AdminProcessDetailPage() {
                   <RiHistoryLine className="text-xl" />
                 </div>
                 <div>
-                  <h3 className="font-black text-text text-sm uppercase tracking-tight">Histórico de Logs</h3>
+                  <h3 className="font-black text-text text-sm uppercase tracking-tight">Log History</h3>
                   <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5">Clique para visualizar</p>
                 </div>
               </div>
@@ -2422,10 +2422,10 @@ export default function AdminProcessDetailPage() {
                 <div className="text-left">
                   <h3 className="font-display font-black text-text text-2xl uppercase tracking-tight flex items-center gap-3">
                     <RiHistoryLine className="text-primary" />
-                    Logs de Interação
+                    Interaction Logs
                   </h3>
                   <p className="text-xs text-text-muted font-bold uppercase tracking-widest mt-1">
-                    Histórico de eventos para {proc.user_accounts?.full_name}
+                    Event history for {proc.user_accounts?.full_name}
                   </p>
                 </div>
                 <button
