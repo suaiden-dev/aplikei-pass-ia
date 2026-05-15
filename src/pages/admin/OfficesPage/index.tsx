@@ -4,16 +4,10 @@ import {
   RiUserStarLine, 
   RiStackLine, 
   RiSearchLine, 
-  RiMore2Fill,
   RiEyeLine,
-  RiGlobalLine,
-  RiSettings4Line,
-  RiCloseCircleLine,
-  RiArrowLeftRightLine,
 } from "react-icons/ri";
 import { supabase } from "../../../shared/lib/supabase";
 import { Button } from "../../../components/atoms/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "../../../components/atoms/dialog";
 import { toast } from "sonner";
 import { cn } from "../../../utils/cn";
 import { useT } from "../../../i18n";
@@ -43,25 +37,12 @@ interface OfficeStats {
   plan_id: string;
 }
 
-interface Plan {
-  id: string;
-  name: string;
-  type: string;
-}
-
 export default function OfficesPage() {
   const t = useT("admin");
   const navigate = useNavigate();
   const [offices, setOffices] = React.useState<OfficeStats[]>([]);
-  const [plans, setPlans] = React.useState<Plan[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [searchTerm, setSearchTerm] = React.useState("");
-  
-  // Modal states
-  const [selectedOffice, setSelectedOffice] = React.useState<OfficeStats | null>(null);
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [newPlanId, setNewPlanId] = React.useState("");
-  const [isSaving, setIsSaving] = React.useState(false);
 
   const loadOffices = React.useCallback(async () => {
     const { data, error } = await supabase.from("v_master_office_stats").select("*");
@@ -97,14 +78,7 @@ export default function OfficesPage() {
   React.useEffect(() => {
     async function fetchData() {
       try {
-        const [officesRes, plansRes] = await Promise.all([
-          loadOffices(),
-          supabase.from("subscription_plans").select("id, name, type")
-        ]);
-
-        if (plansRes.error) throw plansRes.error;
-
-        setPlans(plansRes.data || []);
+        await loadOffices();
       } catch (err) {
         console.error("Error fetching data:", err);
         toast.error(t.offices.messages.loadError);
@@ -115,59 +89,6 @@ export default function OfficesPage() {
 
     fetchData();
   }, [loadOffices, t]);
-
-  const handleOpenModal = (office: OfficeStats) => {
-    setSelectedOffice(office);
-    setNewPlanId(office.plan_id || "");
-
-    setIsModalOpen(true);
-  };
-
-  const handleUpdateSubscription = async () => {
-    if (!selectedOffice) return;
-    setIsSaving(true);
-    try {
-      const { error } = await supabase
-        .from("office_subscriptions")
-        .upsert({
-          office_id: selectedOffice.office_id,
-          plan_id: newPlanId || null,
-          status: 'active',
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'office_id' });
-
-      if (error) throw error;
-
-      toast.success(t.offices.messages.updateSuccess);
-      setIsModalOpen(false);
-      
-      await loadOffices();
-    } catch (err) {
-      console.error("Error updating subscription:", err);
-      toast.error(t.offices.messages.updateError);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleExpirePlan = async (office: OfficeStats) => {
-    if (!confirm(t.offices.messages.expireConfirm.replace("{{name}}", office.office_name))) return;
-    
-    try {
-      const { error } = await supabase
-        .from("office_subscriptions")
-        .update({ status: 'canceled', current_period_end: new Date().toISOString() })
-        .eq("office_id", office.office_id);
-
-      if (error) throw error;
-      toast.success(t.offices.messages.expireSuccess);
-      
-      await loadOffices();
-    } catch (err) {
-      console.error("Error expiring plan:", err);
-      toast.error(t.offices.messages.expireError);
-    }
-  };
 
   const filteredOffices = offices.filter(o => 
     o.office_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -285,34 +206,6 @@ export default function OfficesPage() {
                           >
                             <RiEyeLine size={16} />
                           </Button>
-                          <Button variant="outline" size="sm" className="h-9 px-3 rounded-xl border-border" title={t.offices.tooltips.visitWebsite}>
-                            <RiGlobalLine size={16} />
-                          </Button>
-                          
-                          <div className="relative group/menu z-10 hover:z-[120]">
-                            <Button className="h-9 px-3 rounded-xl bg-bg-subtle text-text-muted hover:bg-primary/10 hover:text-primary transition-all border border-border">
-                              <RiMore2Fill size={16} />
-                            </Button>
-                            
-                          {/* Dropdown Menu */}
-                          <div className="absolute right-0 bottom-full mb-2 w-56 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden z-[200] opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-200 origin-bottom-right text-left">
-                              <button 
-                                onClick={() => handleOpenModal(office)}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-bold text-text hover:bg-primary/5 hover:text-primary transition-colors"
-                              >
-                                <RiArrowLeftRightLine className="text-lg opacity-60" />
-                                {t.offices.menu.changePlan}
-                              </button>
-                              <div className="h-px bg-border mx-2" />
-                              <button 
-                                onClick={() => handleExpirePlan(office)}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-bold text-danger hover:bg-danger/5 transition-colors"
-                              >
-                                <RiCloseCircleLine className="text-lg opacity-60" />
-                                {t.offices.menu.expirePlan}
-                              </button>
-                            </div>
-                          </div>
                         </div>
                       </td>
                     </tr>
@@ -323,60 +216,6 @@ export default function OfficesPage() {
           </div>
         )}
       </div>
-
-      {/* Change Plan Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-md border-border bg-card p-6">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-black text-text flex items-center gap-3 uppercase">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                <RiArrowLeftRightLine />
-              </div>
-              {t.offices.modals.manageSubscription}
-            </DialogTitle>
-            <DialogDescription className="sr-only">
-              Modal for changing plan.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6 py-4 text-left">
-            <div className="p-4 rounded-2xl bg-bg-subtle border border-border">
-              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">{t.offices.modals.selectedOffice}</p>
-              <p className="text-sm font-black text-text">{selectedOffice?.office_name}</p>
-            </div>
-
-            <div className="space-y-3">
-              <label className="text-xs font-black text-text-muted uppercase tracking-widest flex items-center gap-2">
-                <RiSettings4Line /> {t.offices.modals.changePlanTo}
-              </label>
-              <select 
-                value={newPlanId}
-                onChange={(e) => setNewPlanId(e.target.value)}
-                className="w-full h-12 px-4 rounded-xl border border-border bg-bg-subtle text-sm font-medium focus:border-primary outline-none"
-              >
-                <option value="">{t.offices.modals.noPlan}</option>
-                {plans.map(p => (
-                  <option key={p.id} value={p.id}>{p.name} ({p.type})</option>
-                ))}
-              </select>
-            </div>
-
-          </div>
-
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-xl h-12 flex-1 font-bold">
-              {t.shared.cancel}
-            </Button>
-            <Button 
-              onClick={handleUpdateSubscription} 
-              disabled={isSaving}
-              className="rounded-xl h-12 flex-1 bg-primary text-white shadow-xl shadow-primary/20 font-bold"
-            >
-              {isSaving ? t.shared.loading : t.shared.save}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
     </div>
   );

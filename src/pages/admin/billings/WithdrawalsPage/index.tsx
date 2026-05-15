@@ -23,11 +23,45 @@ import { WithdrawalModal } from "../../../../features/admin/components/Withdrawa
 interface Withdrawal {
   id: string;
   amount: number;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'pending' | 'completed' | 'approved' | 'processing' | 'paid' | 'cancelled';
   method: 'stripe' | 'zelle';
   created_at: string;
   completed_at: string | null;
   payment_link?: string;
+}
+
+function getWithdrawalStatusMeta(rawStatus: string | null | undefined) {
+  const status = String(rawStatus || "").toLowerCase();
+
+  const isApproved = status === "completed" || status === "approved" || status === "paid" || status === "processing";
+  const isPending = status === "pending";
+  const isRejected = status === "rejected" || status === "cancelled" || status === "canceled";
+
+  if (isApproved) {
+    return {
+      iconClass: "bg-green-500/10 text-green-600",
+      badgeClass: "bg-green-500/10 text-green-700 border-green-200",
+    };
+  }
+
+  if (isPending) {
+    return {
+      iconClass: "bg-amber-500/10 text-amber-600",
+      badgeClass: "bg-amber-500/10 text-amber-700 border-amber-200",
+    };
+  }
+
+  if (isRejected) {
+    return {
+      iconClass: "bg-red-500/10 text-red-600",
+      badgeClass: "bg-red-500/10 text-red-700 border-red-200",
+    };
+  }
+
+  return {
+    iconClass: "bg-red-500/10 text-red-600",
+    badgeClass: "bg-red-500/10 text-red-700 border-red-200",
+  };
 }
 
 export default function WithdrawalsPage() {
@@ -44,7 +78,10 @@ export default function WithdrawalsPage() {
     .reduce((sum, w) => sum + w.amount, 0);
 
   const totalWithdrawn = withdrawals
-    .filter(w => w.status === 'completed')
+    .filter((w) => {
+      const status = String(w.status || "").toLowerCase();
+      return status === "completed" || status === "approved" || status === "paid" || status === "processing";
+    })
     .reduce((sum, w) => sum + w.amount, 0);
 
   const fetchWithdrawals = React.useCallback(async () => {
@@ -159,12 +196,12 @@ export default function WithdrawalsPage() {
             <div className="divide-y divide-border">
               {withdrawals.map((withdrawal) => (
                 <div key={withdrawal.id} className="p-6 flex items-center justify-between hover:bg-bg-subtle/30 transition-colors">
+                  {(() => {
+                    const meta = getWithdrawalStatusMeta(withdrawal.status);
+                    return (
+                      <>
                   <div className="flex items-center gap-4">
-                    <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
-                      withdrawal.status === 'completed' ? 'bg-green-500/10 text-green-600' :
-                      withdrawal.status === 'pending' ? 'bg-amber-500/10 text-amber-600' :
-                      'bg-red-500/10 text-red-600'
-                    }`}>
+                    <div className={`h-12 w-12 rounded-full flex items-center justify-center ${meta.iconClass}`}>
                       <ArrowUpCircle className="h-6 w-6" />
                     </div>
                     <div className="text-left">
@@ -176,14 +213,13 @@ export default function WithdrawalsPage() {
                   </div>
                   
                   <div className="flex items-center gap-6">
-                    <Badge className={
-                      withdrawal.status === 'completed' ? 'bg-green-500/10 text-green-700 border-green-200' :
-                      withdrawal.status === 'pending' ? 'bg-amber-500/10 text-amber-700 border-amber-200' :
-                      'bg-red-500/10 text-red-700 border-red-200'
-                    }>
+                    <Badge className={meta.badgeClass}>
                       {withdrawal.status.toUpperCase()}
                     </Badge>
                   </div>
+                      </>
+                    );
+                  })()}
                 </div>
               ))}
             </div>

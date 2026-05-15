@@ -59,26 +59,28 @@ function serviceHref(config: LandingPageConfig, product: string) {
   return `/checkout?office=${encodeURIComponent(config.officeSlug)}&product=${encodeURIComponent(product)}`;
 }
 
-function replaceServiceCardLinkByTitle(
+function replaceServiceCardByIndex(
   html: string,
-  serviceTitle: string,
-  href: string,
+  index: number,
+  updater: (cardHtml: string) => string,
 ) {
-  const escapedTitle = serviceTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp(
-    `(<div class="service-card">[\\s\\S]*?<h3 class="service-name">${escapedTitle}<\\/h3>[\\s\\S]*?<a\\s+href=")([^"]*)(" class="btn btn-card">Contratar serviço<\\/a>)`,
-    "i",
-  );
-  return html.replace(regex, `$1${escapeHtml(href)}$3`);
+  const cardRegex = /<div class="service-card">[\s\S]*?<a\s+href="[^"]*" class="btn btn-card">Contratar serviço<\/a>[\s\S]*?<\/div>/gi;
+  const matches = html.match(cardRegex);
+  if (!matches || !matches[index]) return html;
+  return html.replace(matches[index], updater(matches[index]));
 }
 
-function removeServiceCard(html: string, serviceTitle: string) {
-  const escapedTitle = serviceTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp(
-    `<div class="service-card">[\\s\\S]*?<h3 class="service-name">${escapedTitle}<\\/h3>[\\s\\S]*?<\\/div>\\s*`,
-    "i",
+function replaceServiceCardLinkByIndex(html: string, index: number, href: string) {
+  return replaceServiceCardByIndex(html, index, (cardHtml) =>
+    cardHtml.replace(/(<a\s+href=")[^"]*(" class="btn btn-card">Contratar serviço<\/a>)/i, `$1${escapeHtml(href)}$2`),
   );
-  return html.replace(regex, "");
+}
+
+function removeServiceCardByIndex(html: string, index: number) {
+  const cardRegex = /<div class="service-card">[\s\S]*?<a\s+href="[^"]*" class="btn btn-card">Contratar serviço<\/a>[\s\S]*?<\/div>\s*/gi;
+  const matches = html.match(cardRegex);
+  if (!matches || !matches[index]) return html;
+  return html.replace(matches[index], "");
 }
 
 export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig) {
@@ -124,10 +126,10 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
   html = replaceByClassNth(html, "h3", "service-name", 3, config.serviceCOSName);
   html = replaceByClassNth(html, "p", "service-desc", 3, config.serviceCOSDesc);
 
-  html = replaceServiceCardLinkByTitle(html, config.serviceB1B2Name, serviceHref(config, "visa-b1b2"));
-  html = replaceServiceCardLinkByTitle(html, config.serviceF1Name, serviceHref(config, "visa-f1"));
-  html = replaceServiceCardLinkByTitle(html, config.serviceEOSName, serviceHref(config, "visa-eos"));
-  html = replaceServiceCardLinkByTitle(html, config.serviceCOSName, serviceHref(config, "visa-cos"));
+  html = replaceServiceCardLinkByIndex(html, 0, serviceHref(config, "visa-b1b2"));
+  html = replaceServiceCardLinkByIndex(html, 1, serviceHref(config, "visa-f1"));
+  html = replaceServiceCardLinkByIndex(html, 2, serviceHref(config, "visa-eos"));
+  html = replaceServiceCardLinkByIndex(html, 3, serviceHref(config, "visa-cos"));
 
   html = replaceByClassNth(html, "h2", "section-title", 1, config.howItWorksTitle);
   html = replaceByClassNth(html, "p", "section-subtitle", 1, config.howItWorksSubtitle);
@@ -174,10 +176,18 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
   html = replaceAnchorByText(html, "LinkedIn", "#", config.footerSocialLinkedinLabel);
   html = replaceAnchorByText(html, "WhatsApp", config.contactUrl, config.footerSocialWhatsappLabel);
 
-  if (!config.serviceB1B2Enabled) html = removeServiceCard(html, config.serviceB1B2Name);
-  if (!config.serviceF1Enabled) html = removeServiceCard(html, config.serviceF1Name);
-  if (!config.serviceEOSEnabled) html = removeServiceCard(html, config.serviceEOSName);
-  if (!config.serviceCOSEnabled) html = removeServiceCard(html, config.serviceCOSName);
+  const enabledByIndex = [
+    config.serviceB1B2Enabled,
+    config.serviceF1Enabled,
+    config.serviceEOSEnabled,
+    config.serviceCOSEnabled,
+  ];
+
+  for (let index = enabledByIndex.length - 1; index >= 0; index -= 1) {
+    if (!enabledByIndex[index]) {
+      html = removeServiceCardByIndex(html, index);
+    }
+  }
 
   return html;
 }

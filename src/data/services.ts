@@ -249,7 +249,7 @@ export const servicesData: ServiceMeta[] = [
       { id: "f1_admin_mrv_setup", title: "Geração de Taxa MRV", description: "Emissão do boleto da taxa consular.", type: "admin_action" },
       { id: "f1_user_mrv_payment", title: "Pagamento da Taxa", description: "Confirmação do pagamento da taxa consular.", type: "form" },
       { id: "f1_final_scheduling", title: "Agendamento Final", description: "Confirmação da data da entrevista.", type: "admin_action" },
-      { id: "f1_final_preparation", title: "Preparação Acadêmica", description: "Simulado focado em vistos de estudante.", type: "form" },
+      { id: "f1_final_preparation", title: "Encerramento do Processo", description: "Acompanhe o resultado final da entrevista.", type: "form" },
     ],
     faq: [],
   },
@@ -282,7 +282,7 @@ export const servicesData: ServiceMeta[] = [
       { id: "f1_admin_mrv_setup", title: "Geração de Taxa MRV", description: "Emissão do boleto da taxa consular.", type: "admin_action" },
       { id: "f1_user_mrv_payment", title: "Pagamento da Taxa", description: "Confirmação do pagamento da taxa consular.", type: "form" },
       { id: "f1_final_scheduling", title: "Agendamento Final", description: "Confirmação da data da entrevista.", type: "admin_action" },
-      { id: "f1_final_preparation", title: "Preparação Intensiva", description: "Treinamento especializado para reverter a negativa.", type: "form" },
+      { id: "f1_final_preparation", title: "Encerramento do Processo", description: "Acompanhe o resultado final da entrevista.", type: "form" },
     ],
     faq: [],
   },
@@ -371,6 +371,7 @@ export function getCanonicalSlug(slug: string): string {
     "mentoring-silver": "mentoria-bronze",
     "mentoring-gold": "mentoria-gold",
     "consultancy-negative-b1b2": "mentoria-negativa-consular",
+    "consultancy-negative-f1": "consultoria-f1-negativa",
   };
   return slugMap[slug] || slug;
 }
@@ -393,6 +394,7 @@ export function getServiceSlugs(slug: string): string[] {
     "mentoria-bronze": ["mentoring-silver"],
     "mentoria-gold": ["mentoring-gold"],
     "mentoria-negativa-consular": ["consultancy-negative-b1b2"],
+    "consultoria-f1-negativa": ["consultancy-negative-f1"],
   };
   const aliases = inverseMap[canonical] || [];
   return [canonical, ...aliases];

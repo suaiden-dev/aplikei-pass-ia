@@ -129,20 +129,30 @@ export default function ProcessDetailPage() {
       interviewOutcomeForConsultation === "denied" ||
       interviewOutcomeForConsultation === "rejected");
 
-  const { data: hasConsultation = false } = useQuery({
+  const { data: consultationProcessId = null } = useQuery({
     queryKey: ['mentoria-negativa', user?.id, slug, shouldCheckConsultation],
     queryFn: async () => {
-      if (!user) return false;
+      if (!user) return null;
       const { data } = await supabase
         .from("user_services")
         .select("id, status")
         .eq("user_id", user.id)
-        .eq("service_slug", "mentoria-negativa-consular")
+        .in("service_slug", [
+          "mentoria-negativa-consular",
+          "consultoria-f1-negativa",
+          "consultancy-negative-f1",
+          "consultancy-negative-b1b2",
+          "analise-especialista-cos",
+          "analise-especialista-eos",
+        ])
+        .in("status", ["active", "awaiting_review", "awaiting_payment", "paid", "completed"])
+        .order("created_at", { ascending: false })
         .maybeSingle();
-      return !!data && data.status !== "cancelled";
+      return data?.id ?? null;
     },
     enabled: shouldCheckConsultation,
   });
+  const hasConsultation = Boolean(consultationProcessId);
 
   useEffect(() => {
     if (!user || !proc) return;
@@ -252,21 +262,29 @@ export default function ProcessDetailPage() {
   }
 
   // --- LOGICA DE RESULTADO FINAL (Sincronizada) ---
-  const rfeResult = stepData.uscis_rfe_result as string;
-  const motionResult = stepData.motion_final_result as string;
-
-  const interviewOutcome = stepData.interview_outcome as string;
-  const isDenied = proc.status === 'rejected' ||
+  const rfeResult = String(stepData.uscis_rfe_result || '').toLowerCase();
+  const motionResult = String(stepData.motion_final_result || '').toLowerCase();
+  const uscisResultNormalized = String(uscisResult || '').toLowerCase();
+  const interviewOutcome = String(stepData.interview_outcome || '').toLowerCase();
+  const procStatusNormalized = String(proc.status || '').toLowerCase();
+  const isDenied = procStatusNormalized === 'rejected' ||
     interviewOutcome === 'rejected' ||
     interviewOutcome === 'denied' ||
-    motionResult === 'denied';
+    motionResult === 'denied' ||
+    motionResult === 'rejected' ||
+    rfeResult === 'denied' ||
+    rfeResult === 'rejected' ||
+    uscisResultNormalized === 'denied' ||
+    uscisResultNormalized === 'rejected';
 
-  const isApproved = uscisResult === 'approved' ||
+  const isApproved = !isDenied && (
+    uscisResultNormalized === 'approved' ||
     rfeResult === 'approved' ||
     motionResult === 'approved' ||
     interviewOutcome === 'approved' ||
     interviewOutcome === 'granted' ||
-    (proc.status === 'completed' && !isDenied && !uscisResult?.includes('denied'));
+    (procStatusNormalized === 'completed' && !uscisResultNormalized.includes('denied') && !uscisResultNormalized.includes('rejected'))
+  );
 
   const isFinalized = proc.status === 'completed' || isApproved || isDenied;
   const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, steps.length, isCOS);
@@ -392,10 +410,22 @@ export default function ProcessDetailPage() {
             </div>
 
             <div className="shrink-0 w-full lg:w-auto flex flex-col gap-4">
-              {!hasConsultation && (
+              {hasConsultation ? (
+                <Link
+                  to={`/dashboard/support${consultationProcessId ? `?processId=${consultationProcessId}` : ""}`}
+                  className="flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-black uppercase tracking-widest transition-all shadow-xl active:scale-[0.98]"
+                >
+                  <RiUserVoiceLine className="text-xl" />
+                  Ir para chat
+                  <RiArrowRightLine className="text-xl" />
+                </Link>
+              ) : (
                 <div>
                   <Link
-                    to={`/checkout/mentoria-negativa-consular${user?.officeId ? `?office_id=${user.officeId}` : ""}`}
+                    to={`/checkout/mentoria-negativa-consular?${new URLSearchParams({
+                      ...(user?.officeId ? { office_id: user.officeId } : {}),
+                      ...(proc?.id ? { proc_id: proc.id } : {}),
+                    }).toString()}`}
                     className="flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white text-sm font-black uppercase tracking-widest transition-all shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98]"
                   >
                     <RiUserVoiceLine className="text-xl" />

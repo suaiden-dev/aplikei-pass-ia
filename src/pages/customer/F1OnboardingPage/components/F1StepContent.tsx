@@ -41,28 +41,13 @@ export function F1StepContent({
 }: F1StepContentProps) {
   if (!procId) return null
 
-  // 12: f1_final_preparation
-  if (stepIdx >= 12) {
+  // Final scheduling/preparation screen (F1-specific)
+  if (stepIdx >= 11) {
     return (
       <F1FinalPreparationStep
         procId={procId}
         stepData={savedValues}
         onComplete={onNavigateToProcess}
-      />
-    )
-  }
-
-  // 11: f1_final_scheduling (Admin action)
-  if (stepIdx === 11) {
-    return (
-      <OnboardingNoticeStep
-        icon={<RiLoader4Line className='text-3xl animate-spin text-primary' />}
-        iconContainerClassName='bg-primary/5'
-        title={labels.onboardingPage.f1.awaitingSchedulingF1}
-        emphasis={labels.onboardingPage.f1.awaitingSchedulingF1}
-        description={labels.onboardingPage.f1.awaitingSchedulingF1Desc}
-        buttonLabel={labels.backToDashboard}
-        onBack={onNavigateToProcess}
       />
     )
   }
@@ -149,8 +134,8 @@ export function F1StepContent({
     )
   }
 
-  // 4: f1_user_review_sign
-  if (stepIdx === 4) {
+  // 3/4: f1_user_review_sign (compatibility with both workflow versions)
+  if (stepIdx === 3 || stepIdx === 4) {
     return (
       <B1B2UserReviewSignStep
         procId={procId}
@@ -158,23 +143,8 @@ export function F1StepContent({
         stepData={savedValues}
         procStatus={procStatus}
         currentStep={currentStep}
-        nextStepIdx={5}
+        nextStepIdx={stepIdx + 1}
         onComplete={onNavigateToProcess}
-        onBack={onNavigateToProcess}
-      />
-    )
-  }
-
-  // 3: f1_admin_credentials (Admin action)
-  if (stepIdx === 3) {
-    return (
-      <OnboardingNoticeStep
-        icon={<RiLoader4Line className='text-3xl animate-spin text-primary' />}
-        iconContainerClassName='bg-primary/5'
-        title={labels.creatingCredentialsTitle || labels.ds160Form}
-        emphasis={labels.creatingCredentialsTitle || labels.ds160Form}
-        description={labels.creatingCredentialsDesc || ""}
-        buttonLabel={labels.backToDashboard}
         onBack={onNavigateToProcess}
       />
     )
@@ -230,10 +200,11 @@ export function F1StepContent({
         isSubmitting: formBusy,
         onPrevious,
         onNext,
+        onFinalize,
         isFirstSection,
         isLastSection,
       }) => (
-        <div className='flex flex-col border-t border-slate-100 bg-slate-50/50'>
+        <div className='flex flex-col border-t border-border bg-bg-subtle/70'>
           <div className='px-6 sm:px-10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4'>
             <div className='flex w-full flex-col gap-3 sm:w-auto sm:flex-row'>
               {!isFirstSection && (
@@ -241,7 +212,7 @@ export function F1StepContent({
                   type='button'
                   onClick={onPrevious}
                   disabled={formBusy}
-                  className='w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50'
+                  className='w-full sm:w-auto px-6 py-3.5 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-50'
                 >
                   Anterior
                 </button>
@@ -252,7 +223,7 @@ export function F1StepContent({
                   type='button'
                   onClick={() => void onSaveDraft(values)}
                   disabled={formBusy}
-                  className='w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50'
+                  className='w-full sm:w-auto px-6 py-3.5 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-50'
                 >
                   {labels.saveDraft}
                 </button>
@@ -281,7 +252,8 @@ export function F1StepContent({
                 </button>
               ) : (
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={onFinalize}
                   disabled={formBusy}
                   className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                 >

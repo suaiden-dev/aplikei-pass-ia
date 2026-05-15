@@ -32,6 +32,8 @@ const SLUG_ALIASES: Record<string, string> = {
     "visto-f1": "visa-f1",
     "extensao-status": "visa-eos",
     "troca-status": "visa-cos",
+    "consultancy-negative-f1": "consultoria-f1-negativa",
+    "consultoria-f1-negativa": "consultancy-negative-f1",
 };
 
 function cleanDocumentNumber(doc: string | null | undefined): string | null {
@@ -96,6 +98,8 @@ Deno.serve(async (req: Request) => {
             'motion-support': { name: 'Motion de Reconsideração', price: 897 },
             'apoio-rfe-motion-inicio': { name: 'Análise Inicial de Motion', price: 50 },
             'proposta-rfe-motion': { name: 'Proposta de Motion (Customizada)', price: 0 },
+            'consultoria-f1-negativa': { name: 'Consultoria Especializada (Pós-Negativa F1)', price: 97 },
+            'consultancy-negative-f1': { name: 'Consultoria Especializada (Pós-Negativa F1)', price: 97 },
         };
 
         let mainPriceName = "";

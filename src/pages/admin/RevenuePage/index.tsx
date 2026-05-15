@@ -216,13 +216,14 @@ export default function RevenuePage() {
     const isMaster = user?.role === "master";
     const officeId = user?.officeId ?? null;
     const isAdminLawyer = user?.role === "admin_lawyer";
-    const canManageZelleVerification = !isAdminLawyer;
     const canAccessOfficeRequests = !isAdminLawyer;
 
-    const [tab, setTab] = useState<Tab>("zelle");
+    const [tab, setTab] = useState<Tab>(isAdminLawyer ? "approved_payments" : "zelle");
     const [search, setSearch] = useState("");
     const [officeRequestStatusFilter, setOfficeRequestStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
     const [officeRequestPeriodFilter, setOfficeRequestPeriodFilter] = useState<"all" | "7d" | "30d" | "90d">("all");
+    const [paymentsStatusFilter, setPaymentsStatusFilter] = useState<"all" | "approved" | "pending">("all");
+    const [paymentsPeriodFilter, setPaymentsPeriodFilter] = useState<"all" | "7d" | "30d" | "90d">("all");
     const [payments, setPayments] = useState<UnifiedPayment[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [busy, setBusy] = useState<string | null>(null);
@@ -325,7 +326,7 @@ export default function RevenuePage() {
             let approvedOrdersQuery = supabase
                 .from("orders")
                 .select("*")
-                .in("payment_status", ["paid", "approved", "complete", "completed", "succeeded"])
+                .in("payment_status", ["paid", "approved", "complete", "completed", "succeeded", "pending"])
                 .order("created_at", { ascending: false })
                 .limit(100);
 
@@ -453,6 +454,22 @@ export default function RevenuePage() {
                 const createdAt = new Date(p.createdAt).getTime();
                 if (createdAt < cutoff) return false;
             }
+        } else if (tab === "approved_payments") {
+            const normalizedStatus = String(p.status || "").toLowerCase();
+            const isApprovedStatus = ["paid", "approved", "complete", "completed", "succeeded"].includes(normalizedStatus);
+            const groupedStatus = isApprovedStatus ? "approved" : "pending";
+
+            if (paymentsStatusFilter !== "all" && groupedStatus !== paymentsStatusFilter) {
+                return false;
+            }
+
+            if (paymentsPeriodFilter !== "all") {
+                const now = Date.now();
+                const days = paymentsPeriodFilter === "7d" ? 7 : paymentsPeriodFilter === "30d" ? 30 : 90;
+                const cutoff = now - days * 24 * 60 * 60 * 1000;
+                const createdAt = new Date(p.createdAt).getTime();
+                if (createdAt < cutoff) return false;
+            }
         }
 
         if (!search) return true;
@@ -488,41 +505,48 @@ export default function RevenuePage() {
                 </div>
             </div>
 
-            {/* Tabs */}
-            <div className="flex flex-wrap items-end gap-6 border-b border-border">
-                <button
-                    onClick={() => setTab("zelle")}
-                    className={cn(
-                        "pb-4 text-sm font-black uppercase tracking-widest transition-all relative",
-                        tab === "zelle" ? "text-primary" : "text-text-muted hover:text-text"
-                    )}
-                >
-                    {t.payments?.tabs?.pending || "Verificação Zelle"}
-                    {tab === "zelle" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
-                </button>
-                {canAccessOfficeRequests && (
+            {isAdminLawyer ? (
+                <div className="border-b border-border pb-4">
+                    <p className="text-sm font-black uppercase tracking-widest text-primary">
+                        {"Pagamentos"}
+                    </p>
+                </div>
+            ) : (
+                <div className="flex flex-wrap items-end gap-6 border-b border-border">
                     <button
-                        onClick={() => setTab("office_requests")}
+                        onClick={() => setTab("zelle")}
                         className={cn(
                             "pb-4 text-sm font-black uppercase tracking-widest transition-all relative",
-                            tab === "office_requests" ? "text-primary" : "text-text-muted hover:text-text"
+                            tab === "zelle" ? "text-primary" : "text-text-muted hover:text-text"
                         )}
                     >
-                        {t.payments?.tabs?.officeRequests || "Solicitações de Saque"}
-                        {tab === "office_requests" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
+                        {t.payments?.tabs?.pending || "Verificação Zelle"}
+                        {tab === "zelle" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
                     </button>
-                )}
-                <button
-                    onClick={() => setTab("approved_payments")}
-                    className={cn(
-                        "pb-4 text-sm font-black uppercase tracking-widest transition-all relative",
-                        tab === "approved_payments" ? "text-primary" : "text-text-muted hover:text-text"
+                    {canAccessOfficeRequests && (
+                        <button
+                            onClick={() => setTab("office_requests")}
+                            className={cn(
+                                "pb-4 text-sm font-black uppercase tracking-widest transition-all relative",
+                                tab === "office_requests" ? "text-primary" : "text-text-muted hover:text-text"
+                            )}
+                        >
+                            {t.payments?.tabs?.officeRequests || "Solicitações de Saque"}
+                            {tab === "office_requests" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
+                        </button>
                     )}
-                >
-                    {t.payments?.tabs?.approved || "Pagamentos Aprovados"}
-                    {tab === "approved_payments" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
-                </button>
-            </div>
+                    <button
+                        onClick={() => setTab("approved_payments")}
+                        className={cn(
+                            "pb-4 text-sm font-black uppercase tracking-widest transition-all relative",
+                            tab === "approved_payments" ? "text-primary" : "text-text-muted hover:text-text"
+                        )}
+                    >
+                        {"Pagamentos"}
+                        {tab === "approved_payments" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
+                    </button>
+                </div>
+            )}
 
             {tab === "office_requests" && canAccessOfficeRequests && (
                 <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
@@ -559,6 +583,36 @@ export default function RevenuePage() {
                     </div>
                 </div>
             )}
+            {tab === "approved_payments" && (
+                <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Status</span>
+                        <select
+                            value={paymentsStatusFilter}
+                            onChange={(e) => setPaymentsStatusFilter(e.target.value as typeof paymentsStatusFilter)}
+                            className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wider"
+                        >
+                            <option value="all">All</option>
+                            <option value="approved">Approved</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Period</span>
+                        <select
+                            value={paymentsPeriodFilter}
+                            onChange={(e) => setPaymentsPeriodFilter(e.target.value as typeof paymentsPeriodFilter)}
+                            className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wider"
+                        >
+                            <option value="all">All time</option>
+                            <option value="7d">Last 7 days</option>
+                            <option value="30d">Last 30 days</option>
+                            <option value="90d">Last 90 days</option>
+                        </select>
+                    </div>
+                </div>
+            )}
 
             <div className="bg-card rounded-[32px] border border-border shadow-sm overflow-hidden">
                 <div className="overflow-x-auto min-h-[400px]">
@@ -578,6 +632,7 @@ export default function RevenuePage() {
                                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.offices.table.office}</th>
                                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.payments.table.serviceName}</th>
                                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.payments.table.payment}</th>
+                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">Date & Time</th>
                                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">Method</th>
                                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted text-right">Actions</th>
                                 </tr>
@@ -603,12 +658,34 @@ export default function RevenuePage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-5">
+                                            {(() => {
+                                                const normalizedStatus = String(p.status || "").toLowerCase();
+                                                const isApprovedStatus = ["paid", "approved", "complete", "completed", "succeeded"].includes(normalizedStatus);
+                                                const isRejectedStatus = ["rejected", "cancelled", "canceled", "failed"].includes(normalizedStatus);
+                                                const statusClass = isApprovedStatus
+                                                    ? "text-success"
+                                                    : isRejectedStatus
+                                                        ? "text-danger"
+                                                        : "text-warning";
+                                                return (
+                                                    <>
                                             <p className="text-sm font-black text-text">{fmtCurrency(p.amount)}</p>
                                             <p className={cn(
                                                 "text-[9px] font-black uppercase tracking-tighter",
-                                                p.status === 'paid' || p.status === 'approved' ? "text-success" : "text-warning"
+                                                statusClass
                                             )}>
                                                 {p.status}
+                                            </p>
+                                                    </>
+                                                );
+                                            })()}
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <p className="text-xs font-bold text-text">
+                                                {new Date(p.createdAt).toLocaleDateString("en-US")}
+                                            </p>
+                                            <p className="text-[10px] font-medium text-text-muted">
+                                                {new Date(p.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                                             </p>
                                         </td>
                                         <td className="px-6 py-5">
@@ -618,6 +695,24 @@ export default function RevenuePage() {
                                         </td>
                                         <td className="px-6 py-5 text-right">
                                             <div className="flex items-center justify-end gap-2">
+                                                {tab === "zelle" && p.source === "zelle" && String(p.status).toLowerCase() === "pending_verification" && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleApproveZelle(p)}
+                                                            className="w-8 h-8 rounded-lg border border-success/20 text-success hover:bg-success/10 flex items-center justify-center transition-all"
+                                                            title="Approve payment"
+                                                        >
+                                                            <RiCheckDoubleLine />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleRejectZelle(p)}
+                                                            className="w-8 h-8 rounded-lg border border-danger/20 text-danger hover:bg-danger/10 flex items-center justify-center transition-all"
+                                                            title="Reject payment"
+                                                        >
+                                                            <RiCloseCircleLine />
+                                                        </button>
+                                                    </>
+                                                )}
                                                 {tab === 'office_requests' && p.status?.toLowerCase() === "pending" && (
                                                     <>
                                                         <button
@@ -639,9 +734,10 @@ export default function RevenuePage() {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    className="h-8 rounded-xl border-border px-3 font-bold text-[11px] uppercase tracking-wider"
+                                                    className="h-8 rounded-xl border-border px-3 font-bold text-[11px] uppercase tracking-wider inline-flex items-center gap-1.5"
                                                     onClick={() => setSelectedPayment(p)}
                                                 >
+                                                    <RiInformationLine className="text-sm" />
                                                     {t.payments.table.detailsBtn}
                                                 </Button>
                                             </div>
@@ -662,17 +758,15 @@ export default function RevenuePage() {
                         onApprove={
                             tab === "zelle" &&
                             selectedPayment.source === "zelle" &&
-                            selectedPayment.status === "pending_verification" &&
-                            canManageZelleVerification
-                                ? () => handleApproveZelle(selectedPayment)
+                            String(selectedPayment.status).toLowerCase() === "pending_verification"
+                                ? () => void handleApproveZelle(selectedPayment)
                                 : undefined
                         }
                         onReject={
                             tab === "zelle" &&
                             selectedPayment.source === "zelle" &&
-                            selectedPayment.status === "pending_verification" &&
-                            canManageZelleVerification
-                                ? () => handleUpdateStatus(selectedPayment.id, "rejected")
+                            String(selectedPayment.status).toLowerCase() === "pending_verification"
+                                ? () => void handleRejectZelle(selectedPayment)
                                 : undefined
                         }
                         busy={!!busy}

@@ -550,6 +550,7 @@ export const appRoutes: AppRouteDefinition[] = [
     layout: "protected",
     showInSidebar: true,
     sidebarLayouts: ["admin_lawyer"],
+    sidebarGroupKey: "settings",
     icon: History,
   },
 

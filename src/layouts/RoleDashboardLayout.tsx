@@ -44,7 +44,31 @@ interface RoleDashboardLayoutProps {
 
 // ─── Sidebar Nav ─────────────────────────────────────────────────────────────
 
-function NavItem({ to, label, icon: Icon, exact, onNavigate, collapsed }: DashboardNavItem & { onNavigate: () => void; collapsed?: boolean }) {
+function NavItem({
+  to,
+  label,
+  icon: Icon,
+  exact,
+  onNavigate,
+  collapsed,
+  disabled,
+}: DashboardNavItem & { onNavigate: () => void; collapsed?: boolean; disabled?: boolean }) {
+  if (disabled) {
+    return (
+      <div
+        title={collapsed ? label : undefined}
+        className={cn(
+          "flex items-center gap-3 px-4 rounded-2xl py-3 text-sm font-semibold transition-all duration-200 opacity-40 cursor-not-allowed",
+          collapsed && "lg:justify-center lg:px-3 lg:gap-0",
+          "text-text-muted bg-bg-subtle/40",
+        )}
+      >
+        <Icon className="h-4 w-4 shrink-0" />
+        <span className={cn(collapsed && "lg:hidden")}>{label}</span>
+      </div>
+    );
+  }
+
   return (
     <NavLink
       to={to}
@@ -72,11 +96,13 @@ function SidebarNav({
   location,
   onNavigate,
   collapsed,
+  lockedAllowedPaths,
 }: {
   navItems: DashboardNavItem[];
   location: { pathname: string };
   onNavigate: () => void;
   collapsed?: boolean;
+  lockedAllowedPaths?: string[] | null;
 }) {
   const ungrouped = navItems.filter((i) => !i.group);
   const grouped = navItems.filter((i) => i.group);
@@ -100,7 +126,13 @@ function SidebarNav({
   return (
     <nav className="mt-6 space-y-1">
       {ungrouped.map((item) => (
-        <NavItem key={item.to} {...item} onNavigate={onNavigate} collapsed={collapsed} />
+        <NavItem
+          key={item.to}
+          {...item}
+          onNavigate={onNavigate}
+          collapsed={collapsed}
+          disabled={!!lockedAllowedPaths && !lockedAllowedPaths.includes(item.to)}
+        />
       ))}
 
       {groupNames.map((name) => {
@@ -127,7 +159,13 @@ function SidebarNav({
             <div className={cn(!collapsed && !isOpen && "hidden", collapsed && "lg:block")}>
               <div className={cn(!collapsed && "ml-3 mt-1 space-y-1 border-l border-border pl-3")}>
                 {items.map((item) => (
-                  <NavItem key={item.to} {...item} onNavigate={onNavigate} collapsed={collapsed} />
+                  <NavItem
+                    key={item.to}
+                    {...item}
+                    onNavigate={onNavigate}
+                    collapsed={collapsed}
+                    disabled={!!lockedAllowedPaths && !lockedAllowedPaths.includes(item.to)}
+                  />
                 ))}
               </div>
             </div>
@@ -220,6 +258,7 @@ export function RoleDashboardLayout({
   const { theme, toggleTheme } = useTheme();
   const { user: currentUser, logout, refreshAccount } = useAuth();
   const navigate = useNavigate();
+  const routeLocation = useLocation();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [hasDismissedOnboarding, setHasDismissedOnboarding] = useState(false);
 
@@ -233,10 +272,15 @@ export function RoleDashboardLayout({
 
   const handleOnboardingComplete = async () => {
     if (!currentUser) return;
+    if (!officeId || !isActive) {
+      toast.error("Complete company setup and activate your subscription before finishing onboarding.");
+      return;
+    }
 
     // Mark as dismissed locally immediately to prevent re-triggering during refresh
     setHasDismissedOnboarding(true);
     setShowOnboarding(false);
+    localStorage.removeItem("admin_lawyer_onboarding_step_v1");
 
     try {
       await authService.updateAccount(currentUser.id, {
@@ -247,7 +291,19 @@ export function RoleDashboardLayout({
       console.error("Failed to complete onboarding:", error);
     }
   };
-  const { isRestricted, status, loading: subLoading } = useSubscription();
+  const { isRestricted, status, loading: subLoading, officeId, isActive } = useSubscription();
+  const isAdminLawyerPendingOnboarding =
+    currentUser?.role === "admin_lawyer" && !currentUser.hasCompletedOnboarding;
+  const onboardingAccessLocked = isAdminLawyerPendingOnboarding && (!officeId || !isActive);
+  const onboardingAllowedPaths = ["/admin/settings/company", "/admin/subscription"];
+
+  useEffect(() => {
+    if (!onboardingAccessLocked) return;
+    const isAllowed = onboardingAllowedPaths.some((path) => routeLocation.pathname.startsWith(path));
+    if (isAllowed) return;
+
+    navigate(officeId ? "/admin/subscription" : "/admin/settings/company", { replace: true });
+  }, [navigate, officeId, onboardingAccessLocked, routeLocation.pathname]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem("sidebar-collapsed") === "true");
@@ -283,10 +339,11 @@ export function RoleDashboardLayout({
   }, [currentUser, resolvedName]);
 
   const activeItem = navItems.find((item) =>
-    item.exact ? location.pathname === item.to : location.pathname.startsWith(item.to),
+    item.exact ? routeLocation.pathname === item.to : routeLocation.pathname.startsWith(item.to),
   );
+  const isPageBuilderPath = routeLocation.pathname.includes("/page-builder");
   const subscriptionLockedPaths = ["/page-builder", "/products", "/settings/discount-rules"];
-  const isSubscriptionLockedPath = subscriptionLockedPaths.some((path) => location.pathname.includes(path));
+  const isSubscriptionLockedPath = subscriptionLockedPaths.some((path) => routeLocation.pathname.includes(path));
 
   useEffect(() => {
     return () => {
@@ -428,7 +485,13 @@ export function RoleDashboardLayout({
 
           {/* Nav — grows to fill space */}
           <div className="flex-1 overflow-y-auto">
-            <SidebarNav navItems={navItems} location={location} onNavigate={() => setMobileMenuOpen(false)} collapsed={collapsed} />
+            <SidebarNav
+              navItems={navItems}
+              location={routeLocation}
+              onNavigate={() => setMobileMenuOpen(false)}
+              collapsed={collapsed}
+              lockedAllowedPaths={onboardingAccessLocked ? onboardingAllowedPaths : null}
+            />
           </div>
 
           {/* Footer — collapse toggle */}
@@ -536,8 +599,8 @@ export function RoleDashboardLayout({
             </div>
           </header>
 
-          <main className="relative z-10 px-4 py-6 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-7xl">
+          <main className={cn("relative z-10 py-6", isPageBuilderPath ? "px-2 sm:px-3 lg:px-4" : "px-4 sm:px-6 lg:px-8")}>
+            <div className={cn("mx-auto", isPageBuilderPath ? "max-w-none" : "max-w-7xl")}>
               {subLoading ? (
                 <div className="flex items-center justify-center min-h-[40vh]">
                   <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -560,7 +623,7 @@ export function RoleDashboardLayout({
                 </div>
               ) : (
                 <>
-                  {isRestricted && !location.pathname.includes("/subscription") && (
+                  {isRestricted && !routeLocation.pathname.includes("/subscription") && (
                     <div className="mb-6 flex items-center justify-between p-4 rounded-2xl bg-warning/10 border border-warning/20 animate-in slide-in-from-top duration-500">
                       <div className="flex items-center gap-3 text-warning">
                         <RiErrorWarningLine className="text-xl" />
@@ -656,7 +719,14 @@ export function RoleDashboardLayout({
         <NotificationToaster />
         <OnboardingModal
           isOpen={showOnboarding}
-          onClose={() => setShowOnboarding(false)}
+          officeCreated={Boolean(officeId)}
+          subscriptionActive={Boolean(isActive)}
+          onGoCompany={() => navigate("/admin/settings/company")}
+          onGoSubscription={() => navigate("/admin/subscription")}
+          onGoOverview={() => navigate("/admin")}
+          onGoProcesses={() => navigate("/admin/processes")}
+          onGoTeam={() => navigate("/admin/roles")}
+          onRefreshStatus={refreshAccount}
           onComplete={handleOnboardingComplete}
         />
       </div>

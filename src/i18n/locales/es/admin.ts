@@ -559,6 +559,61 @@ const admin = {
     finalizeProcess: "Finalizar Proceso",
     finalizeConfirm: "¿Estás seguro de que deseas finalizar este proceso? Esta acción no se puede deshacer.",
     processFinalized: "¡Proceso finalizado con éxito!"
+  },
+  teams: {
+    title: "Gestión de Equipo",
+    subtitle: "Administra accesos y permisos de los miembros de tu oficina",
+    selectOffice: "Seleccionar oficina",
+    generateLinkBtn: "Agregar colaborador",
+    copySuccess: "¡Enlace de registro copiado!",
+    roles: {
+      vendedor: "Vendedor",
+      gerente: "Gerente",
+      seller: "Vendedor",
+      manager: "Gerente",
+      admin: "Admin"
+    },
+    pending: {
+      title: "Solicitudes pendientes",
+      subtitle: "Nuevos miembros esperando aprobación",
+      newBadge: "{{count}} NUEVOS",
+      table: {
+        candidate: "Candidato",
+        requestedRole: "Rol solicitado",
+        requestDate: "Fecha de solicitud",
+        actions: "Acciones"
+      },
+      approveBtn: "Aprobar",
+      rejectBtn: "Rechazar",
+      rejectConfirm: "¿Eliminar este usuario permanentemente del sistema?"
+    },
+    managers: {
+      title: "Gerentes",
+      subtitle: "Acceso administrativo completo"
+    },
+    sellers: {
+      title: "Vendedores",
+      subtitle: "Equipo de ventas y prospección"
+    },
+    table: {
+      member: "Miembro",
+      changeRole: "Cambiar rol",
+      joinDate: "Fecha de ingreso",
+      actions: "Acciones",
+      removeBtn: "Eliminar",
+      noMembers: "No se encontraron miembros.",
+      loading: "Cargando...",
+      noName: "Sin nombre"
+    },
+    modal: {
+      title: "Enlace de Registro",
+      description: "Comparte este enlace con nuevos miembros. Entrarán como <b>inactivos</b> hasta que los apruebes.",
+      defineRole: "Definir rol del nuevo miembro",
+      generateBtn: "Agregar colaborador",
+      linkTitle: "Enlace de registro — {{role}}",
+      copyBtn: "Copiar al portapapeles",
+      backBtn: "Volver"
+    }
   }
 };
 

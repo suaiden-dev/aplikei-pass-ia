@@ -1,21 +1,23 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   RiLineChartLine, 
   RiBarChartGroupedLine, 
   RiBuilding2Line, 
-  RiInformationLine,
-  RiArrowRightUpLine
+  RiInformationLine
 } from "react-icons/ri";
 import { useT } from "../../../i18n";
 import { useAuth } from "../../../hooks/useAuth";
 import { Button } from "../../../components/atoms/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "../../../components/atoms/dialog";
+import { FinanceAnalyticsLawyerChart } from "../../../components/organisms/FinanceAnalyticsLawyerChart";
 import { cn } from "../../../utils/cn";
 import {
   financeAnalyticsService,
   type FinanceMonthlyAnalytics,
   type FinanceTransaction,
+  type FinanceRoleAction,
+  type FinanceRoleActorMetric,
 } from "../../../services/finance-analytics.service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -44,12 +46,13 @@ function AnalyticsChart({
   revenueLabel: string;
   profitLabel: string;
 }) {
-  const maxVal = data.length
+  const computedMax = data.length
     ? Math.max(...data.map((d) => (type === "comparison" ? Math.max(d.revenue, d.profit) : d.revenue)))
-    : 1000;
+    : 0;
+  const maxVal = Math.max(computedMax, 1);
   
   return (
-    <div className="bg-card rounded-3xl border border-border p-6 shadow-sm flex flex-col h-full">
+    <div className="bg-card rounded-3xl border border-border p-6 shadow-sm flex flex-col h-[420px]">
       <div className="flex items-center justify-between mb-8">
         <h3 className="text-sm font-black uppercase tracking-widest text-text flex items-center gap-2">
           {type === "revenue" ? <RiLineChartLine className="text-primary" /> : <RiBarChartGroupedLine className="text-success" />}
@@ -117,6 +120,102 @@ function AnalyticsChart({
   );
 }
 
+function RoleActionsChart({
+  actions,
+  title,
+}: {
+  actions: FinanceRoleAction[];
+  title: string;
+}) {
+  const maxCount = actions.length ? Math.max(...actions.map((item) => item.count), 1) : 1;
+  const labels: Record<FinanceRoleAction["role"], string> = {
+    seller: "Seller",
+    vendor: "Vendor",
+    manager: "Manager",
+  };
+  const colors: Record<FinanceRoleAction["role"], string> = {
+    seller: "bg-primary",
+    vendor: "bg-warning",
+    manager: "bg-success",
+  };
+
+  return (
+    <div className="bg-card rounded-3xl border border-border p-6 shadow-sm flex flex-col h-full">
+      <div className="flex items-center justify-between mb-8">
+        <h3 className="text-sm font-black uppercase tracking-widest text-text flex items-center gap-2">
+          <RiBarChartGroupedLine className="text-warning" />
+          {title}
+        </h3>
+      </div>
+
+      <div className="space-y-4">
+        {actions.map((item, index) => (
+          <div key={item.role} className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase text-text">{labels[item.role]}</span>
+              <span className="text-[10px] font-black uppercase text-text-muted">{item.count} actions</span>
+            </div>
+            <div className="h-2 rounded-full bg-bg-subtle overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(item.count / maxCount) * 100}%` }}
+                transition={{ delay: index * 0.08 }}
+                className={cn("h-full rounded-full", colors[item.role])}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RoleActorChart({
+  title,
+  items,
+  emptyLabel,
+}: {
+  title: string;
+  items: FinanceRoleActorMetric[];
+  emptyLabel: string;
+}) {
+  const maxCount = items.length ? Math.max(...items.map((item) => item.count), 1) : 1;
+  return (
+    <div className="bg-card rounded-3xl border border-border p-6 shadow-sm flex flex-col h-full">
+      <div className="flex items-center justify-between mb-8">
+        <h3 className="text-sm font-black uppercase tracking-widest text-text flex items-center gap-2">
+          <RiBarChartGroupedLine className="text-primary" />
+          {title}
+        </h3>
+      </div>
+      {items.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center text-xs font-bold text-text-muted uppercase tracking-widest">
+          {emptyLabel}
+        </div>
+      ) : (
+        <div className="space-y-3 flex-1 overflow-y-auto pr-1">
+          {items.map((item, index) => (
+            <div key={item.userId} className="space-y-1">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-black text-text uppercase truncate">{item.name}</p>
+                <p className="text-[10px] font-black text-text-muted uppercase">{item.count}</p>
+              </div>
+              <div className="h-2 rounded-full bg-bg-subtle overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(item.count / maxCount) * 100}%` }}
+                  transition={{ delay: index * 0.06 }}
+                  className="h-full bg-primary rounded-full"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function FinanceAnalyticsPage() {
@@ -127,19 +226,40 @@ export default function FinanceAnalyticsPage() {
   const [analytics, setAnalytics] = useState<AnalyticsData[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+  const [roleActions, setRoleActions] = useState<FinanceRoleAction[]>([
+    { role: "seller", count: 0 },
+    { role: "vendor", count: 0 },
+    { role: "manager", count: 0 },
+  ]);
+  const [statusFilter, setStatusFilter] = useState<"all" | "approved" | "pending">("all");
+  const [methodFilter, setMethodFilter] = useState<"all" | "stripe" | "zelle">("all");
+  const [periodFilter, setPeriodFilter] = useState<"all" | "7d" | "30d" | "90d">("all");
+  const [sellerMetrics, setSellerMetrics] = useState<FinanceRoleActorMetric[]>([]);
+  const [managerMetrics, setManagerMetrics] = useState<FinanceRoleActorMetric[]>([]);
 
   const load = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const officeId = currentUser?.role === "admin_lawyer" ? currentUser.officeId : undefined;
+      const officeId =
+        currentUser?.role === "admin_lawyer" ||
+        currentUser?.role === "manager" ||
+        currentUser?.role === "seller"
+          ? currentUser.officeId
+          : undefined;
       
-      const [txData, monthlyData] = await Promise.all([
+      const [txData, monthlyData, actionsData, sellerData, managerData] = await Promise.all([
         financeAnalyticsService.getRecentTransactions(50, officeId || undefined),
         financeAnalyticsService.getMonthlyAnalytics(6, officeId || undefined),
+        financeAnalyticsService.getRoleActions(officeId || undefined),
+        financeAnalyticsService.getRoleActorMetrics("seller", officeId || undefined),
+        financeAnalyticsService.getRoleActorMetrics("manager", officeId || undefined),
       ]);
       setTransactions(txData);
       setAnalytics(monthlyData);
+      setRoleActions(actionsData);
+      setSellerMetrics(sellerData);
+      setManagerMetrics(managerData);
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Failed to load analytics data.");
@@ -149,6 +269,27 @@ export default function FinanceAnalyticsPage() {
   }, [currentUser]);
 
   useEffect(() => { load(); }, [load]);
+
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((tx) => {
+      const status = String(tx.status || "").toLowerCase();
+      const groupedStatus = ["paid", "approved", "complete", "completed", "succeeded"].includes(status) ? "approved" : "pending";
+      const method = String(tx.method || "").toLowerCase();
+
+      if (statusFilter !== "all" && groupedStatus !== statusFilter) return false;
+      if (methodFilter !== "all" && method !== methodFilter) return false;
+
+      if (periodFilter !== "all") {
+        const now = Date.now();
+        const days = periodFilter === "7d" ? 7 : periodFilter === "30d" ? 30 : 90;
+        const cutoff = now - days * 24 * 60 * 60 * 1000;
+        const createdAt = new Date(tx.createdAt).getTime();
+        if (createdAt < cutoff) return false;
+      }
+
+      return true;
+    });
+  }, [methodFilter, periodFilter, statusFilter, transactions]);
 
   return (
     <div className="p-4 sm:p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-700">
@@ -174,27 +315,80 @@ export default function FinanceAnalyticsPage() {
           revenueLabel={t.financeAnalytics.charts.revenueLegend}
           profitLabel={t.financeAnalytics.charts.profitLegend}
         />
-        <AnalyticsChart
-          data={analytics.length ? analytics : []}
-          title={t.financeAnalytics.charts.revenueVsProfit}
-          type="comparison"
-          revenueLabel={t.financeAnalytics.charts.revenueLegend}
-          profitLabel={t.financeAnalytics.charts.profitLegend}
-        />
+        {currentUser?.role === "admin_lawyer" ? (
+          <AnalyticsChart
+            data={analytics.length ? analytics : []}
+            title={t.financeAnalytics.charts.revenueVsProfit}
+            type="comparison"
+            revenueLabel={t.financeAnalytics.charts.revenueLegend}
+            profitLabel={t.financeAnalytics.charts.profitLegend}
+          />
+        ) : currentUser?.role === "seller" ? (
+          <FinanceAnalyticsLawyerChart
+            transactions={filteredTransactions}
+            title="Sales by Product"
+          />
+        ) : currentUser?.role === "manager" ? (
+          <AnalyticsChart
+            data={analytics.length ? analytics : []}
+            title={t.financeAnalytics.charts.revenueVsProfit}
+            type="comparison"
+            revenueLabel={t.financeAnalytics.charts.revenueLegend}
+            profitLabel={t.financeAnalytics.charts.profitLegend}
+          />
+        ) : (
+          <FinanceAnalyticsLawyerChart
+            transactions={filteredTransactions}
+            title="Sales by Product"
+          />
+        )}
+        {currentUser?.role === "admin_lawyer" && (
+          <RoleActorChart
+            title="Vendas por Seller"
+            items={sellerMetrics}
+            emptyLabel="Sem vendas de seller no período"
+          />
+        )}
       </div>
 
       {/* Transactions Table */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <h2 className="text-lg font-black text-text uppercase tracking-tight">{t.financeAnalytics.table.title}</h2>
-          <div className="flex items-center gap-2 text-xs font-bold text-success">
-            <RiArrowRightUpLine />
-            <span>{t.financeAnalytics.table.growthBadge}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+              className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wider"
+            >
+              <option value="all">All status</option>
+              <option value="approved">Approved</option>
+              <option value="pending">Pending</option>
+            </select>
+            <select
+              value={methodFilter}
+              onChange={(e) => setMethodFilter(e.target.value as typeof methodFilter)}
+              className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wider"
+            >
+              <option value="all">All methods</option>
+              <option value="stripe">Stripe</option>
+              <option value="zelle">Zelle</option>
+            </select>
+            <select
+              value={periodFilter}
+              onChange={(e) => setPeriodFilter(e.target.value as typeof periodFilter)}
+              className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wider"
+            >
+              <option value="all">All time</option>
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="90d">Last 90 days</option>
+            </select>
           </div>
         </div>
 
         <div className="bg-card rounded-[32px] border border-border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto min-h-[300px]">
+          <div className="overflow-auto min-h-[300px] max-h-[520px]">
             {isLoading ? (
                <div className="flex items-center justify-center py-20">
                  <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -207,7 +401,7 @@ export default function FinanceAnalyticsPage() {
                   {t.financeAnalytics.states.retry}
                 </Button>
               </div>
-            ) : transactions.length === 0 ? (
+            ) : filteredTransactions.length === 0 ? (
               <div className="flex items-center justify-center py-20 px-6 text-center">
                 <p className="text-xs font-bold text-text-muted uppercase tracking-wider">{t.financeAnalytics.table.empty}</p>
               </div>
@@ -224,7 +418,7 @@ export default function FinanceAnalyticsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {transactions.map((tx) => (
+                  {filteredTransactions.map((tx) => (
                     <tr key={tx.id} className="hover:bg-bg-subtle/30 transition-colors">
                       <td className="px-6 py-4">
                         <p className="text-sm font-black text-text">{tx.clientName}</p>
@@ -267,6 +461,8 @@ export default function FinanceAnalyticsPage() {
           </div>
         </div>
       </div>
+
+
 
       <AnimatePresence>
         {selectedTx && (

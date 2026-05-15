@@ -170,26 +170,13 @@ export function ServiceCard({
             <MdTimer className="text-xl" />
           </button>
         ) : (
-          <div className="group/btn relative w-full">
-            <Link
-              to={hasActiveProcess ? "#" : checkoutUrl}
-              className={cn(
-                "flex items-center justify-center gap-3 w-full py-5 rounded-2xl text-[14px] font-black uppercase tracking-[0.1em] transition-all shadow-lg",
-                hasActiveProcess
-                  ? "bg-bg-subtle text-text-muted cursor-not-allowed border border-border shadow-none pointer-events-none"
-                  : "bg-primary hover:bg-primary-hover text-white shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
-              )}
-            >
-              {labels.serviceCard.startNow}
-              <RiArrowRightLine className="text-xl" />
-            </Link>
-            {hasActiveProcess && (
-              <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-max px-3 py-1.5 bg-highlight text-white text-[10px] font-bold rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none shadow-xl border border-border">
-                {labels.serviceCard.finishCurrentFirst}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-highlight" />
-              </div>
-            )}
-          </div>
+          <Link
+            to={checkoutUrl}
+            className="flex items-center justify-center gap-3 w-full py-5 rounded-2xl text-[14px] font-black uppercase tracking-[0.1em] transition-all shadow-lg bg-primary hover:bg-primary-hover text-white shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
+          >
+            {labels.serviceCard.startNow}
+            <RiArrowRightLine className="text-xl" />
+          </Link>
         )}
       </div>
     </motion.div>

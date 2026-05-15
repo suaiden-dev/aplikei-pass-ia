@@ -34,6 +34,7 @@ function shouldForceStandaloneService(serviceSlug: string): boolean {
     slug.startsWith("mentoria-") ||
     slug === "consultoria-especialista" ||
     slug === "consultancy-negative-b1b2" ||
+    slug === "consultancy-negative-f1" ||
     slug === "consultoria-f1-negativa" ||
     slug === "mentoria-negativa-consular"
   );
@@ -219,6 +220,39 @@ async function syncParentOrderMetadata(data: {
     .eq("id", parentOrder.id);
 }
 
+async function mirrorPurchaseToParentProcess(data: {
+  supabase: SupabaseClient;
+  targetProcId: string;
+  office_id?: string | null;
+  purchaseRecord: ReturnType<typeof buildPurchaseRecord>;
+}) {
+  const { supabase, targetProcId, office_id, purchaseRecord } = data;
+
+  const { data: proc } = await supabase
+    .from("user_services")
+    .select("step_data")
+    .eq("id", targetProcId)
+    .maybeSingle();
+
+  if (!proc) return;
+
+  const stepData = (proc.step_data as Record<string, unknown>) || {};
+  const purchases = Array.isArray(stepData.purchases) ? [...stepData.purchases] : [];
+
+  if (hasMatchingPurchaseRecord(purchases, purchaseRecord)) return;
+
+  await supabase
+    .from("user_services")
+    .update({
+      office_id: office_id || null,
+      step_data: {
+        ...stepData,
+        purchases: [...purchases, purchaseRecord],
+      },
+    })
+    .eq("id", targetProcId);
+}
+
 async function findExistingStandalonePurchaseProcess(data: {
   supabase: SupabaseClient;
   user_id: string;
@@ -397,6 +431,7 @@ export async function applySuccessfulPayment(data: {
   const effectiveParentServiceSlug = data.parent_service_slug ||
     orderMetadata.parent_service_slug ||
     null;
+  const inferredParentServiceSlug = effectiveParentServiceSlug || await getProcessServiceSlug(supabase, effectiveProcId);
 
   const { targetProcId, parentServiceSlug } = await resolveTargetProcessId({
     supabase,
@@ -436,6 +471,8 @@ export async function applySuccessfulPayment(data: {
       status: "active",
       current_step: 0,
       step_data: {
+        parent_process_id: effectiveProcId,
+        parent_service_slug: inferredParentServiceSlug,
         paid_dependents: effectiveDependents,
         purchases: [purchaseRecord],
       },
@@ -443,6 +480,18 @@ export async function applySuccessfulPayment(data: {
     });
 
     if (insertServiceError) throw insertServiceError;
+
+    if (shouldForceStandaloneService(service_slug)) {
+      if (!effectiveProcId) {
+        throw new Error(`Missing proc_id for standalone service purchase: ${service_slug}`);
+      }
+      await mirrorPurchaseToParentProcess({
+        supabase,
+        targetProcId: effectiveProcId,
+        office_id: officeIdToUse,
+        purchaseRecord,
+      });
+    }
 
     return;
   }

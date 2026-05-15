@@ -697,6 +697,61 @@ const admin = {
             errorToggle: "Erro ao alterar status do chat: "
         }
     },
+    teams: {
+        title: "Gestão de Equipe",
+        subtitle: "Gerencie acessos e permissões dos membros do seu escritório",
+        selectOffice: "Selecionar escritório",
+        generateLinkBtn: "Adicionar colaborador",
+        copySuccess: "Link de cadastro copiado!",
+        roles: {
+            vendedor: "Vendedor",
+            gerente: "Gerente",
+            seller: "Vendedor",
+            manager: "Gerente",
+            admin: "Admin",
+        },
+        pending: {
+            title: "Solicitações pendentes",
+            subtitle: "Novos membros aguardando aprovação",
+            newBadge: "{{count}} NOVOS",
+            table: {
+                candidate: "Candidato",
+                requestedRole: "Função solicitada",
+                requestDate: "Data da solicitação",
+                actions: "Ações",
+            },
+            approveBtn: "Aprovar",
+            rejectBtn: "Rejeitar",
+            rejectConfirm: "Remover este usuário permanentemente do sistema?",
+        },
+        managers: {
+            title: "Gerentes",
+            subtitle: "Acesso administrativo completo",
+        },
+        sellers: {
+            title: "Vendedores",
+            subtitle: "Equipe de vendas e prospecção",
+        },
+        table: {
+            member: "Membro",
+            changeRole: "Alterar função",
+            joinDate: "Data de entrada",
+            actions: "Ações",
+            removeBtn: "Remover",
+            noMembers: "Nenhum membro encontrado.",
+            loading: "Carregando...",
+            noName: "Sem nome",
+        },
+        modal: {
+            title: "Link de Cadastro",
+            description: "Envie este link para novos membros. Eles entrarão como <b>inativos</b> até você aprovar.",
+            defineRole: "Definir função do novo membro",
+            generateBtn: "Adicionar colaborador",
+            linkTitle: "Link de cadastro — {{role}}",
+            copyBtn: "Copiar para área de transferência",
+            backBtn: "Voltar",
+        },
+    },
     lawyers: {
         title: "Advogados Admin",
         subtitle: "Gestão de desempenho e acompanhamento de comissões para advogados.",
