@@ -155,7 +155,7 @@ export default function PageBuilderPage() {
                 <main className="min-h-[52vh] flex-1 overflow-hidden bg-[#0f172a] lg:min-h-0">
                     <div className="flex h-full items-start justify-center overflow-y-auto overflow-x-hidden p-2 sm:p-4">
                         {previewViewport === "desktop" ? (
-                            <div className="mx-auto w-full max-w-[1280px] overflow-hidden shadow-2xl">
+                            <div className="w-full overflow-hidden shadow-2xl">
                                 <LandingPagePreview config={config} />
                             </div>
                         ) : (

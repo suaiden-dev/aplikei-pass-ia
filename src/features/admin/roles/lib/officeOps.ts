@@ -116,6 +116,8 @@ export async function upsertOffice(payload: UpsertOfficePayload): Promise<Office
   const trimmedName = payload.name.trim().replace(/\s+/g, " ");
   const slug = payload.slug || generateSlug(trimmedName);
   const existingOffice = await findOfficeByName(trimmedName);
+  const existingOfficeForOwner = await fetchOfficeByOwner(payload.owner_id);
+  const isCreatingOffice = !existingOfficeForOwner;
 
   if (existingOffice && existingOffice.owner_id !== payload.owner_id) {
     const err = new Error("OFFICE_NAME_ALREADY_EXISTS");
@@ -130,6 +132,16 @@ export async function upsertOffice(payload: UpsertOfficePayload): Promise<Office
     .single();
 
   if (error) throw Error(error.message);
+
+  if (isCreatingOffice) {
+    const { error: disableProductsError } = await supabase
+      .from("user_service_prices")
+      .update({ is_active: false })
+      .eq("office_id", data.id);
+
+    if (disableProductsError) throw Error(disableProductsError.message);
+  }
+
   return data as OfficeRow;
 }
 

@@ -28,6 +28,8 @@ interface SupportChatProps {
 
 export function SupportChat({ processId, userId, role, userName, title, isClosed = false, serviceSlug }: SupportChatProps) {
   const t = useT("common").chat;
+  const roleCustomerLabel = t?.roles?.customer ?? "Customer";
+  const roleAdminLabel = t?.roles?.admin ?? "Admin";
   const navigate = useNavigate();
   const { messages, isLoading, isSending, sendMessage } = useChat(processId);
   const [newMessage, setNewMessage] = useState("");
@@ -86,7 +88,7 @@ export function SupportChat({ processId, userId, role, userName, title, isClosed
               {title || t.title}
             </h4>
             <p className="text-[11px] font-bold text-text leading-none truncate max-w-[150px]">
-              {userName || (role === "admin" ? t.roles.customer : t.roles.admin)}
+              {userName || (role === "admin" ? roleCustomerLabel : roleAdminLabel)}
             </p>
           </div>
         </div>

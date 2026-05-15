@@ -1370,18 +1370,20 @@ export default function AdminProcessDetailPage() {
       }
 
       const isConsular = proc.service_slug.includes("b1b2") || proc.service_slug.includes("b1-b2") || proc.service_slug.includes("f1");
+      const isF1FinalScheduling = currentStepBaseId === "f1_final_scheduling";
 
       const additionalData = { ...extraData };
       if (currentStepBaseId === 'cos_analysis_presentation_letter') {
         additionalData.generatedCoverLetterHTML = coverLetterHtml;
       }
-      const isFinal = nextStep >= effectiveSteps.length && !isConsular;
+      const isFinal = isF1FinalScheduling || (nextStep >= effectiveSteps.length && !isConsular);
+      const targetStep = isF1FinalScheduling ? currentStepIdx : nextStep;
 
-      await processService.approveStep(proc.id, nextStep, isFinal, isFinal ? 'approved' : undefined, additionalData);
+      await processService.approveStep(proc.id, targetStep, isFinal, isFinal ? 'approved' : undefined, additionalData);
 
       // se a próxima etapa para o B1/B2 ou F1 for credenciais ou criação de conta,
       // certifique-se de que o card aparecerá na fila do administrador na página de listagem
-      const nextStepId = effectiveSteps[nextStep]?.id;
+      const nextStepId = effectiveSteps[targetStep]?.id;
       const nextStepBaseId = normalizeLegacyStepId(nextStepId);
       const isAdminTask =
         !!nextStepBaseId &&

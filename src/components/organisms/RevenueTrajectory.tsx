@@ -8,7 +8,10 @@ interface RevenueTrajectoryProps {
 
 export function RevenueTrajectory({ data }: RevenueTrajectoryProps) {
   const t = useT("admin");
-  const maxRevenue = data.length > 0 ? Math.max(...data.map((m) => m.value)) : 1000;
+  const fallbackMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+  const chartData = data.length > 0 ? data : fallbackMonths.map((month) => ({ month, value: 0 }));
+  const computedMaxRevenue = chartData.length > 0 ? Math.max(...chartData.map((m) => m.value)) : 0;
+  const maxRevenue = Math.max(computedMaxRevenue, 1);
 
   return (
     <motion.div
@@ -29,19 +32,19 @@ export function RevenueTrajectory({ data }: RevenueTrajectoryProps) {
           {t.overview.charts.growth.replace('{{percent}}', '14')}
         </span>
       </div>
-      
+
       <div className="flex items-end gap-3 h-48 mt-6">
-        {data.map((item, i) => {
-          const heightPct = (item.value / (maxRevenue || 1)) * 100;
+        {chartData.map((item, i) => {
+          const heightPct = (item.value / maxRevenue) * 100;
           return (
-            <div key={item.month} className="flex flex-col items-center gap-2 flex-1">
-              <div className="relative flex-1 w-full flex items-end justify-center group">
+            <div key={item.month} className="flex flex-col items-center justify-end gap-2 flex-1 h-full">
+              <div className="relative w-full h-40 flex items-end justify-center group">
                 <motion.div
                   initial={{ scaleY: 0 }}
                   animate={{ scaleY: 1 }}
                   transition={{ duration: 0.5, delay: i * 0.07, ease: "easeOut" }}
-                  style={{ height: `${Math.max(heightPct, 5)}%`, originY: 1 }}
-                  className="w-full max-w-[40px] rounded-t-lg bg-primary/80 group-hover:bg-primary group-hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all cursor-default relative"
+                  style={{ height: `${Math.max(heightPct, 5)}%`, minHeight: 10, transformOrigin: "bottom" }}
+                  className="w-full max-w-[40px] rounded-t-lg bg-primary group-hover:bg-primary group-hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all cursor-default relative"
                 >
                   <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
                     ${(item.value / 1000).toFixed(1)}k

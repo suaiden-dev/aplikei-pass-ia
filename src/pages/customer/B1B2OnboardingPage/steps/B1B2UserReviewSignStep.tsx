@@ -68,8 +68,8 @@ export function B1B2UserReviewSignStep({
   const birthDate = (stepData.ds160_birth_date as string) || null;
   const credentialsReady = !!(appId && motherName && birthDate);
 
-  const isAwaitingReview = procStatus === "awaiting_review" && currentStep >= 4;
-  const isStepApproved = currentStep > 3;
+  const isAwaitingReview = procStatus === "awaiting_review" && currentStep >= nextStepIdx;
+  const isStepApproved = currentStep > nextStepIdx;
 
   const tutorialSteps = [
     {

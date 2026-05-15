@@ -43,6 +43,39 @@ export default function CompanyProfilePage() {
   const [office, setOffice] = React.useState<OfficeData | null>(null);
   const [isCheckingSlug, setIsCheckingSlug] = React.useState(false);
   const [slugConflict, setSlugConflict] = React.useState<string | null>(null);
+  const shouldShowFieldTour = user?.role === "admin_lawyer" && !user?.hasCompletedOnboarding;
+  const [tourStep, setTourStep] = React.useState(0);
+
+  const fieldTour = React.useMemo(
+    () => [
+      { id: "companyName", title: "Nome da Empresa", description: "Nome público do escritório exibido para clientes e em documentos." },
+      { id: "companySlug", title: "Slug", description: "Identificador único do escritório nas URLs. Use letras minúsculas e hífens." },
+      { id: "cnpj", title: "CNPJ", description: "Informação fiscal do escritório. Preencha para organização e validações futuras." },
+      { id: "address", title: "Endereço", description: "Endereço principal usado como referência operacional e de contato." },
+      { id: "email", title: "E-mail", description: "Canal oficial de contato da empresa." },
+      { id: "phone", title: "Telefone", description: "Número principal de atendimento do escritório." },
+      { id: "website", title: "Website", description: "Site institucional para reforçar credibilidade da sua marca." },
+      { id: "instagram", title: "Instagram", description: "Perfil social para presença digital e prova social." },
+      { id: "linkedin", title: "LinkedIn", description: "Página profissional da empresa." },
+      { id: "facebook", title: "Facebook", description: "Página social para relacionamento e divulgação." },
+      { id: "saveCompanyProfileBtn", title: "Salvar", description: "Após revisar os campos, clique em salvar para criar/atualizar sua empresa." },
+    ],
+    [],
+  );
+
+  const activeTour = shouldShowFieldTour ? fieldTour[tourStep] : null;
+
+  React.useEffect(() => {
+    if (!activeTour) return;
+    const el = document.getElementById(activeTour.id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [activeTour]);
+
+  const getTourClass = React.useCallback(
+    (id: string) => (activeTour?.id === id ? "ring-2 ring-primary/60 ring-offset-2 ring-offset-bg" : ""),
+    [activeTour?.id],
+  );
 
   const slugifyOfficeName = React.useCallback((value: string) => {
     const normalized = value
@@ -186,6 +219,13 @@ export default function CompanyProfilePage() {
           .eq("id", user.id);
 
         if (userOfficeError) throw userOfficeError;
+
+        const { error: disableProductsError } = await supabase
+          .from("user_service_prices")
+          .update({ is_active: false })
+          .eq("office_id", officeId);
+
+        if (disableProductsError) throw disableProductsError;
       }
 
       if (officeId && !office.id) {
@@ -243,7 +283,7 @@ export default function CompanyProfilePage() {
                     setOffice({ ...office, name: e.target.value });
                   }}
                   placeholder="Ex: Silva & Associados"
-                  className="rounded-xl border-border bg-bg-subtle"
+                  className={`rounded-xl border-border bg-bg-subtle ${getTourClass("companyName")}`}
                   required
                 />
               </div>
@@ -259,7 +299,7 @@ export default function CompanyProfilePage() {
                   }}
                   onBlur={() => { void checkOfficeSlugConflict(office.slug || office.name, office.id); }}
                   placeholder="silva-associados"
-                  className="rounded-xl border-border bg-bg-subtle"
+                  className={`rounded-xl border-border bg-bg-subtle ${getTourClass("companySlug")}`}
                   required
                 />
                 {slugConflict && (
@@ -277,7 +317,7 @@ export default function CompanyProfilePage() {
                   value={office.cnpj || ""}
                   onChange={(e) => setOffice({ ...office, cnpj: e.target.value })}
                   placeholder="00.000.000/0000-00"
-                  className="rounded-xl border-border bg-bg-subtle"
+                  className={`rounded-xl border-border bg-bg-subtle ${getTourClass("cnpj")}`}
                 />
               </div>
 
@@ -290,7 +330,7 @@ export default function CompanyProfilePage() {
                     value={office.address || ""}
                     onChange={(e) => setOffice({ ...office, address: e.target.value })}
                     placeholder="Rua, Número, Bairro, Cidade - Estado"
-                    className="pl-10 rounded-xl border-border bg-bg-subtle"
+                    className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("address")}`}
                   />
                 </div>
               </div>
@@ -323,7 +363,7 @@ export default function CompanyProfilePage() {
                     value={office.email || ""}
                     onChange={(e) => setOffice({ ...office, email: e.target.value })}
                     placeholder="contato@escritorio.com"
-                    className="pl-10 rounded-xl border-border bg-bg-subtle"
+                    className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("email")}`}
                   />
                 </div>
               </div>
@@ -337,7 +377,7 @@ export default function CompanyProfilePage() {
                     value={office.phone || ""}
                     onChange={(e) => setOffice({ ...office, phone: e.target.value })}
                     placeholder="+55 (00) 00000-0000"
-                    className="pl-10 rounded-xl border-border bg-bg-subtle"
+                    className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("phone")}`}
                   />
                 </div>
               </div>
@@ -351,7 +391,7 @@ export default function CompanyProfilePage() {
                     value={office.website || ""}
                     onChange={(e) => setOffice({ ...office, website: e.target.value })}
                     placeholder="https://www.meusite.com"
-                    className="pl-10 rounded-xl border-border bg-bg-subtle"
+                    className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("website")}`}
                   />
                 </div>
               </div>
@@ -381,7 +421,7 @@ export default function CompanyProfilePage() {
                     value={office.instagram_url || ""}
                     onChange={(e) => setOffice({ ...office, instagram_url: e.target.value })}
                     placeholder="@seuusuario"
-                    className="pl-10 rounded-xl border-border bg-bg-subtle"
+                    className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("instagram")}`}
                   />
                 </div>
               </div>
@@ -395,7 +435,7 @@ export default function CompanyProfilePage() {
                     value={office.linkedin_url || ""}
                     onChange={(e) => setOffice({ ...office, linkedin_url: e.target.value })}
                     placeholder="linkedin.com/company/seu-escritorio"
-                    className="pl-10 rounded-xl border-border bg-bg-subtle"
+                    className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("linkedin")}`}
                   />
                 </div>
               </div>
@@ -409,7 +449,7 @@ export default function CompanyProfilePage() {
                     value={office.facebook_url || ""}
                     onChange={(e) => setOffice({ ...office, facebook_url: e.target.value })}
                     placeholder="facebook.com/seu-escritorio"
-                    className="pl-10 rounded-xl border-border bg-bg-subtle"
+                    className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("facebook")}`}
                   />
                 </div>
               </div>
@@ -418,7 +458,7 @@ export default function CompanyProfilePage() {
         </div>
 
         <div className="flex justify-end pt-4">
-          <Button type="submit" disabled={saving || isCheckingSlug || !!slugConflict} className="rounded-xl px-12 h-12 text-base font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all uppercase">
+          <Button id="saveCompanyProfileBtn" type="submit" disabled={saving || isCheckingSlug || !!slugConflict} className={`rounded-xl px-12 h-12 text-base font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all uppercase ${getTourClass("saveCompanyProfileBtn")}`}>
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -433,6 +473,33 @@ export default function CompanyProfilePage() {
           </Button>
         </div>
       </form>
+
+      {activeTour && (
+        <div className="fixed bottom-6 right-6 z-[130] w-[420px] max-w-[calc(100vw-24px)] rounded-2xl border border-border bg-card p-4 shadow-2xl">
+          <p className="text-[10px] font-black uppercase tracking-widest text-primary">Guia de preenchimento</p>
+          <h3 className="mt-1 text-base font-black text-text">{activeTour.title}</h3>
+          <p className="mt-2 text-sm text-text-muted">{activeTour.description}</p>
+          <div className="mt-4 flex items-center justify-between">
+            <Button
+              type="button"
+              variant="ghost"
+              className="rounded-xl"
+              onClick={() => setTourStep((prev) => Math.max(0, prev - 1))}
+              disabled={tourStep === 0}
+            >
+              Voltar
+            </Button>
+            <Button
+              type="button"
+              className="rounded-xl"
+              onClick={() => setTourStep((prev) => Math.min(fieldTour.length - 1, prev + 1))}
+              disabled={tourStep === fieldTour.length - 1}
+            >
+              Próximo
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

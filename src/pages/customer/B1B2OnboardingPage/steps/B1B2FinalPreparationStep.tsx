@@ -20,6 +20,7 @@ import { useAuth } from "../../../../hooks/useAuth";
 import { supabase } from "../../../../shared/lib/supabase";
 import { useT, useLocale } from "../../../../i18n";
 import { useInterviewTrainingController } from "../../../../controllers/shared/useInterviewTrainingController";
+import { getCanonicalSlug } from "../../../../data/services";
 
 interface B1B2FinalPreparationStepProps {
   procId: string;
@@ -28,6 +29,30 @@ interface B1B2FinalPreparationStepProps {
 }
 
 type PreparationModule = "guide" | "ai" | "specialist";
+
+function extractProcessPurchaseSlugs(stepData: Record<string, unknown> | null): Set<string> {
+  const purchases = Array.isArray(stepData?.purchases)
+    ? (stepData?.purchases as Array<Record<string, unknown>>)
+    : [];
+
+  const slugs = new Set<string>();
+  purchases.forEach((purchase) => {
+    const candidates = [
+      purchase.slug,
+      purchase.service_slug,
+      purchase.product_slug,
+      purchase.productSlug,
+      purchase.serviceSlug,
+    ];
+    candidates.forEach((candidate) => {
+      const raw = String(candidate || "").trim();
+      if (!raw) return;
+      slugs.add(raw);
+      slugs.add(getCanonicalSlug(raw));
+    });
+  });
+  return slugs;
+}
 
 export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2FinalPreparationStepProps) {
   const t = useT("visas");
@@ -49,6 +74,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
 
   // Consultation State
   const [purchasedConsultation, setPurchasedConsultation] = useState<Record<string, unknown> | null>(null);
+  const [hasConsultationInCurrentProcess, setHasConsultationInCurrentProcess] = useState(false);
 
   const {
     messages: chatMessages,
@@ -69,43 +95,59 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
 
   useEffect(() => {
     async function checkMentorship() {
-      if (!user) return;
-      const { data } = await supabase
+      if (!user || !procId) return;
+      const mentorshipSlugs = [
+        "mentoring-bronze",
+        "mentoring-silver",
+        "mentoring-gold",
+        "mentoria-individual",
+        "mentoria-bronze",
+        "mentoria-silver",
+        "mentoria-gold",
+        "consultoria-especialista",
+      ];
+      const consultationSlugs = ["consultancy-negative-b1b2", "mentoria-negativa-consular"];
+
+      const { data: currentProcess } = await supabase
         .from("user_services")
-        .select("*")
-        .eq("user_id", user.id)
-        .in("service_slug", [
-          "mentoring-bronze",
-          "mentoring-silver",
-          "mentoring-gold",
-          "mentoria-individual",
-          "mentoria-bronze",
-          "mentoria-silver",
-          "mentoria-gold",
-          "consultoria-especialista",
-        ])
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-        .limit(1)
+        .select("step_data")
+        .eq("id", procId)
         .maybeSingle();
 
+      const processStepData = (currentProcess?.step_data as Record<string, unknown> | null) ?? null;
+      const purchaseSlugs = extractProcessPurchaseSlugs(processStepData);
 
-      const { data: consultationData } = await supabase
-        .from("user_services")
-        .select("*")
-        .eq("user_id", user.id)
-        .in("service_slug", ["consultancy-negative-b1b2", "mentoria-negativa-consular"])
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const hasMentorshipInProcess = mentorshipSlugs.some((slug) => purchaseSlugs.has(slug) || purchaseSlugs.has(getCanonicalSlug(slug)));
+      const hasConsultationInProcess = consultationSlugs.some((slug) => purchaseSlugs.has(slug) || purchaseSlugs.has(getCanonicalSlug(slug)));
+      setHasConsultationInCurrentProcess(hasConsultationInProcess);
 
+      setPurchasedMentorship(null);
+      setPurchasedConsultation(null);
 
-      if (data) {
-        setPurchasedMentorship(data);
+      if (hasMentorshipInProcess) {
+        const { data } = await supabase
+          .from("user_services")
+          .select("*")
+          .eq("user_id", user.id)
+          .in("service_slug", mentorshipSlugs)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (data) setPurchasedMentorship(data);
       }
-      if (consultationData) {
-        setPurchasedConsultation(consultationData);
+
+      if (hasConsultationInProcess) {
+        const { data: consultationData } = await supabase
+          .from("user_services")
+          .select("*")
+          .eq("user_id", user.id)
+          .in("service_slug", consultationSlugs)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (consultationData) setPurchasedConsultation(consultationData);
       }
     }
 
@@ -287,13 +329,13 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   };
 
   const handleOpenConsultationSupport = async () => {
-    if (!user?.id || !purchasedConsultation?.id) {
+    if (!user?.id) {
       navigate("/dashboard/support");
       return;
     }
 
     try {
-      const processId = String(purchasedConsultation.id);
+      const processId = String(purchasedConsultation?.id ?? procId);
       const { data: lastMessage } = await supabase
         .from("chat_messages")
         .select("id")
@@ -540,7 +582,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                       <RiArrowRightLine className="absolute right-6 top-1/2 -translate-y-1/2 text-text-muted group-hover/opt:text-primary group-hover/opt:translate-x-1 transition-all" />
                     </button>
 
-                    {purchasedConsultation ? (
+                    {(hasConsultationInCurrentProcess || purchasedConsultation) ? (
                       <button
                         onClick={handleOpenConsultationSupport}
                         className="p-6 bg-emerald-500/20 border border-emerald-500/30 rounded-3xl text-left hover:bg-emerald-500/30 transition-all group/opt relative overflow-hidden"
