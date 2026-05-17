@@ -61,14 +61,41 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
   const [selectedLog, setSelectedLog] = useState<ProcessLog | null>(null);
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [globalTotalCount, setGlobalTotalCount] = useState(0);
+  const [globalErrorCount, setGlobalErrorCount] = useState(0);
   const pageSize = 12;
 
   const navigate = useNavigate();
   const t = useT("admin");
 
+  const fetchGlobalStats = async () => {
+    try {
+      let totalQuery = supabase.from("process_logs").select("id", { count: "exact", head: true });
+      if (userServiceId) {
+        totalQuery = totalQuery.eq("user_service_id", userServiceId);
+      }
+      const { count: total } = await totalQuery;
+      setGlobalTotalCount(total || 0);
+
+      let errorQuery = supabase
+        .from("process_logs")
+        .select("id", { count: "exact", head: true })
+        .or("message.ilike.%erro%,action.ilike.%erro%");
+      if (userServiceId) {
+        errorQuery = errorQuery.eq("user_service_id", userServiceId);
+      }
+      const { count: errors } = await errorQuery;
+      setGlobalErrorCount(errors || 0);
+    } catch (err) {
+      console.error("Error fetching global stats:", err);
+    }
+  };
+
   const fetchLogs = async () => {
     setLoading(true);
     try {
+      void fetchGlobalStats();
+
       let query = supabase
         .from("process_logs")
         .select("*", { count: "exact" })
@@ -82,7 +109,7 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
       if (filter === "error") {
         query = query.or("message.ilike.%erro%,action.ilike.%erro%");
       } else if (filter === "warning") {
-        query = query.or("message.ilike.%aviso%,action.ilike.%warning%,message.ilike.%warning%");
+        query = query.or("message.ilike.%aviso%,message.ilike.%warning%,message.ilike.%pendente%,message.ilike.%tentativa%,action.ilike.%aviso%,action.ilike.%warning%,action.ilike.%pendente%,action.ilike.%tentativa%");
       }
 
       if (search) {
@@ -102,7 +129,7 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
 
   useEffect(() => {
     fetchLogs();
-  }, [page, filter, search]);
+  }, [page, filter, search, userServiceId]);
 
   const formatDate = (dt: string) => {
     const date = new Date(dt);
@@ -126,11 +153,10 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
     <div className="relative z-10 w-full space-y-10">
       {/* Statistics Bar */}
       {!hideHeader && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[
-            { label: "Total de Eventos", value: totalCount, icon: RiHistoryLine, color: "text-primary" },
-            { label: "Falhas Identificadas", value: Math.floor(totalCount * 0.05), icon: RiErrorWarningLine, color: "text-danger" },
-            { label: "Atividade Recente", value: "Monitoramento Ativo", icon: RiTerminalBoxLine, color: "text-success" }
+            { label: "Total de Eventos", value: globalTotalCount, icon: RiHistoryLine, color: "text-primary" },
+            { label: "Falhas Identificadas", value: globalErrorCount, icon: RiErrorWarningLine, color: "text-danger" }
           ].map((stat, i) => (
             <motion.div 
               key={i}
