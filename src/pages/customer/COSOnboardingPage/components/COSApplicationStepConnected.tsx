@@ -29,13 +29,13 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  pending:            'bg-slate-100 text-slate-500',
-  in_progress:        'bg-[#0b2a5b] text-white',
-  completed:          'bg-emerald-50 text-emerald-600',
-  in_review:          'bg-amber-50 text-amber-600',
-  approved:           'bg-emerald-50 text-emerald-700',
-  revision_requested: 'bg-red-50 text-red-600',
-  skipped:            'bg-slate-50 text-slate-400',
+  pending:            'bg-bg-subtle text-text-muted border border-border/50',
+  in_progress:        'bg-primary/10 text-primary border border-primary/20',
+  completed:          'bg-success/10 text-success border border-success/20',
+  in_review:          'bg-warning/10 text-warning border border-warning/20',
+  approved:           'bg-success/10 text-success border border-success/20',
+  revision_requested: 'bg-danger/10 text-danger border border-danger/20',
+  skipped:            'bg-bg-subtle text-text-muted/50 border border-border/30',
 }
 
 // ─── Modal de confirmação de compra de dependente ─────────────────────────────

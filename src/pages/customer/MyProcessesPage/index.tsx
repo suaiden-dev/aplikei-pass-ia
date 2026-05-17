@@ -103,14 +103,14 @@ function ProcessRow({ proc, index, displaySlug }: { proc: UserService; index: nu
                        (t.dashboard.myCases.status[statusKey] || t.dashboard.myCases.status.pending);
 
   const getStatusColor = () => {
-    if (isApproved) return "text-emerald-700 bg-emerald-50 border-emerald-200";
-    if (isDenied) return "text-red-700 bg-red-50 border-red-200";
+    if (isApproved) return "text-success bg-success/10 border-success/20";
+    if (isDenied) return "text-danger bg-danger/10 border-danger/20";
     switch (statusKey) {
-      case 'active': return "text-primary bg-primary/5 border-primary/20";
-      case 'pending': return "text-amber-600 bg-amber-50 border-amber-200";
-      case 'completed': return "text-emerald-600 bg-emerald-50 border-emerald-200";
-      case 'cancelled': return "text-red-500 bg-red-50 border-red-200";
-      default: return "text-amber-600 bg-amber-50 border-amber-200";
+      case 'active': return "text-primary bg-primary/10 border-primary/20";
+      case 'pending': return "text-warning bg-warning/10 border-warning/20";
+      case 'completed': return "text-success bg-success/10 border-success/20";
+      case 'cancelled': return "text-danger bg-danger/10 border-danger/20";
+      default: return "text-warning bg-warning/10 border-warning/20";
     }
   };
 
@@ -229,10 +229,10 @@ export default function MyProcessesPage() {
         transition={{ duration: 0.25 }}
         className="mb-8 md:mb-12 text-left"
       >
-        <h1 className="font-display font-black text-2xl md:text-[32px] text-slate-900 leading-tight tracking-tight uppercase">
+        <h1 className="font-display font-black text-2xl md:text-[32px] text-text leading-tight tracking-tight uppercase">
           {t.dashboard.myCases.title}
         </h1>
-        <p className="text-sm md:text-base font-medium text-slate-500 mt-2 italic">
+        <p className="text-sm md:text-base font-medium text-text-muted mt-2 italic">
           {t.dashboard.myCases.subtitle}
         </p>
       </motion.div>
@@ -242,12 +242,12 @@ export default function MyProcessesPage() {
           <LogoLoader />
         </div>
       ) : userServices.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[32px] border border-slate-100 shadow-sm">
-          <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mb-6">
-            <RiBriefcaseLine className="text-4xl text-slate-200" />
+        <div className="flex flex-col items-center justify-center py-24 bg-card rounded-[32px] border border-border shadow-sm">
+          <div className="w-20 h-20 rounded-full bg-bg-subtle flex items-center justify-center mb-6">
+            <RiBriefcaseLine className="text-4xl text-text-muted/40" />
           </div>
-          <p className="text-lg font-bold text-slate-400">{t.dashboard.myCases.noCases}</p>
-          <p className="text-sm font-medium text-slate-300 mt-1">
+          <p className="text-lg font-bold text-text-muted">{t.dashboard.myCases.noCases}</p>
+          <p className="text-sm font-medium text-text-muted/60 mt-1">
             {t.dashboard.myCases.noCasesDesc}
           </p>
           <Link
@@ -266,7 +266,7 @@ export default function MyProcessesPage() {
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                   <RiFlashlightFill className="text-primary text-base rotate-12" />
                 </div>
-                <h2 className="font-display font-black text-slate-800 text-base uppercase tracking-tight">
+                <h2 className="font-display font-black text-text text-base uppercase tracking-tight">
                   {t.dashboard.myCases.active}
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-primary/5 text-primary text-xs font-black">
@@ -292,7 +292,7 @@ export default function MyProcessesPage() {
                 <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
                   <RiTimeLine className="text-slate-400 text-base" />
                 </div>
-                <h2 className="font-display font-black text-slate-800 text-base uppercase tracking-tight">
+                <h2 className="font-display font-black text-text text-base uppercase tracking-tight">
                   {t.dashboard.myCases.history}
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs font-black">

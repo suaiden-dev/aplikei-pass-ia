@@ -149,7 +149,7 @@ export function useCOSOnboardingPage() {
 
 
       const productId = await workflowOps.getProductIdBySlug(slug)
-      if (!productId) { toast.error('Produto não encontrado: ' + slug); return }
+      if (!productId) { toast.error((t?.cos?.toasts?.productNotFound ?? 'Produto não encontrado') + ': ' + slug); return }
 
       const inst = await workflowOps.getOrCreateInstance(user.id, productId)
       setInstance(inst)
@@ -189,12 +189,12 @@ export function useCOSOnboardingPage() {
       }
     } catch (err) {
       console.error('[useCOSOnboardingPage]', err)
-      toast.error('Erro ao carregar o processo.')
+      toast.error(t?.cos?.toasts?.processLoadError ?? 'Erro ao carregar o processo.')
     } finally {
       setIsLoading(false)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, slug])
+  }, [user?.id, slug, t])
 
   useEffect(() => { void loadWorkflow() }, [loadWorkflow])
 
@@ -360,10 +360,10 @@ export function useCOSOnboardingPage() {
     try {
       const last = steps.at(-1)!
       await workflowOps.saveDraft(last.id, { motion_final_result: result, motion_result_reported_at: new Date().toISOString() })
-      toast.success(result === 'approved' ? 'Resultado informado como aprovado.' : 'Resultado informado como reprovado.')
-    } catch { toast.error('Não foi possível salvar o resultado.') }
+      toast.success(result === 'approved' ? (t?.cos?.toasts?.approvedResultSaved ?? 'Resultado informado como aprovado.') : (t?.cos?.toasts?.rejectedResultSaved ?? 'Resultado informado como reprovado.'))
+    } catch { toast.error(t?.cos?.toasts?.resultSaveError ?? 'Não foi possível salvar o resultado.') }
     finally { setIsSavingMotionResult(false) }
-  }, [steps])
+  }, [steps, t])
 
   const goToProcess        = useCallback(() => {
     if (instance) {

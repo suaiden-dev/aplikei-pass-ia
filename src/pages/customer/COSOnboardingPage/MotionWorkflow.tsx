@@ -787,7 +787,7 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
       })
     } catch (e: unknown) {
       const err = e as Error
-      toast.error('Erro no upload: ' + err.message, { id: 'upload' })
+      toast.error((t?.workflows?.shared?.uploadError ?? 'Erro no upload: ') + err.message, { id: 'upload' })
     } finally {
       setLoading(false)
     }
@@ -1062,8 +1062,8 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
         ? motionResult
         : 'in_progress'
   const specialistMessage = chatSeeded || data.motion_chat_started_at
-    ? 'O acesso ao especialista ja foi liberado e um chat foi aberto para conduzir sua Motion.'
-    : 'Seu acesso ao especialista foi liberado. Entre no chat para conduzir sua Motion com nossa equipe.'
+    ? (t?.workflows?.motion?.end?.specialistMessageActive ?? 'O acesso ao especialista ja foi liberado e um chat foi aberto para conduzir sua Motion.')
+    : (t?.workflows?.motion?.end?.specialistMessageReady ?? 'Seu acesso ao especialista foi liberado. Entre no chat para conduzir sua Motion com nossa equipe.')
 
   useEffect(() => {
     if (chatSeededRef.current || chatSeeded) return
@@ -1076,7 +1076,7 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
         const created = await processService.ensureChatThread(
           proc.id,
           user.id,
-          'Olá! Quero falar com o especialista sobre o resultado da minha Motion.',
+          t?.workflows?.motion?.end?.chatSeedText ?? 'Olá! Quero falar com o especialista sobre o resultado da minha Motion.',
         )
 
         if (created) {
@@ -1089,7 +1089,7 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
         console.error('[MotionEndStep] failed to seed chat:', error)
       }
     })()
-  }, [chatSeeded, proc.id, user?.id])
+  }, [chatSeeded, proc.id, user?.id, t])
 
   return (
     <div className='max-w-2xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-700'>
@@ -1110,7 +1110,7 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
             rel='noreferrer'
             className='px-12 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/20 transition-all flex items-center gap-2'
           >
-            <RiDownload2Line className='text-lg' /> Baixar Pacote de Motion
+            <RiDownload2Line className='text-lg' /> {t?.workflows?.motion?.end?.downloadBtn ?? 'Baixar Pacote de Motion'}
           </a>
         </div>
       )}
@@ -1120,7 +1120,7 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
           <RiInformationLine className='text-4xl' />
         </div>
         <h2 className='text-2xl font-black text-slate-800 mb-3 uppercase tracking-tight'>
-          Fale com o especialista pelo chat
+          {t?.workflows?.motion?.end?.chatTitle ?? 'Fale com o especialista pelo chat'}
         </h2>
         <p className='text-sm text-slate-400 font-medium max-w-sm mx-auto leading-relaxed mb-10'>
           {specialistMessage}
@@ -1130,7 +1130,7 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
           onClick={() => navigate('/dashboard/support')}
           className='h-12 px-8 rounded-2xl bg-primary hover:bg-primary-hover text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20 transition-all'
         >
-          Ir para o Specialist
+          {t?.workflows?.motion?.end?.chatBtn ?? 'Ir para o Specialist'}
           <RiArrowRightLine className='inline ml-2 text-base' />
         </button>
       </div>
@@ -1140,20 +1140,20 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
           <RiCheckDoubleLine className='text-4xl' />
         </div>
         <h2 className='text-2xl font-black text-slate-800 mb-3 uppercase tracking-tight'>
-          Como foi o resultado da Motion?
+          {t?.workflows?.motion?.end?.resultQuestion ?? 'Como foi o resultado da Motion?'}
         </h2>
         <p className='text-sm text-slate-400 font-medium max-w-sm mx-auto leading-relaxed mb-10'>
-          Nos informe selecionando o botao abaixo.
+          {t?.workflows?.motion?.end?.resultSubtitle ?? 'Nos informe selecionando o botao abaixo.'}
         </p>
         <div
           className={`rounded-3xl border p-6 ${normalizedStatus === 'approved' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : normalizedStatus === 'rejected' ? 'bg-red-50 border-red-100 text-red-700' : 'bg-amber-50 border-amber-100 text-amber-700'}`}
         >
           <p className='text-xs font-black uppercase tracking-widest mb-1'>
             {normalizedStatus === 'approved'
-              ? 'Aprovado'
+              ? (t?.workflows?.motion?.end?.approved ?? 'Aprovado')
               : normalizedStatus === 'rejected'
-                ? 'Rejeitado'
-                : 'Informe o resultado'}
+                ? (t?.workflows?.motion?.end?.denied ?? 'Rejeitado')
+                : (t?.workflows?.motion?.end?.reportResult ?? 'Informe o resultado')}
           </p>
           <p className='text-sm font-medium leading-relaxed'>
             {normalizedStatus === 'approved'
@@ -1162,7 +1162,7 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
               : normalizedStatus === 'rejected'
                 ? t?.workflows?.motion?.end?.deniedDesc ||
                   'Seu Motion foi rejeitado.'
-                : 'Selecione uma opcao abaixo para nos informar como foi a Motion.'}
+                : (t?.workflows?.motion?.end?.selectOptionPrompt ?? 'Selecione uma opcao abaixo para nos informar como foi a Motion.')}
           </p>
         </div>
 
@@ -1186,10 +1186,10 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
                       })
                     }
                     setLocalResult('approved')
-                    toast.success('Resultado informado como aprovado.')
+                    toast.success(t?.cos?.toasts?.approvedResultSaved ?? 'Resultado informado como aprovado.')
                   } catch (error) {
                     console.error('[MotionEndStep] failed to save approved result:', error)
-                    toast.error('Nao foi possivel salvar o resultado.')
+                    toast.error(t?.cos?.toasts?.resultSaveError ?? 'Nao foi possivel salvar o resultado.')
                   } finally {
                     setSavingResult(false)
                   }
@@ -1197,7 +1197,7 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
                 className='h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-60'
               >
                 <RiCheckLine className='inline mr-2 text-base' />
-                Aprovado
+                {t?.workflows?.motion?.end?.approved ?? 'Aprovado'}
               </button>
               <button
                 type='button'
@@ -1216,10 +1216,10 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
                       })
                     }
                     setLocalResult('rejected')
-                    toast.success('Resultado informado como reprovado.')
+                    toast.success(t?.cos?.toasts?.rejectedResultSaved ?? 'Resultado informado como reprovado.')
                   } catch (error) {
                     console.error('[MotionEndStep] failed to save rejected result:', error)
-                    toast.error('Nao foi possivel salvar o resultado.')
+                    toast.error(t?.cos?.toasts?.resultSaveError ?? 'Nao foi possivel salvar o resultado.')
                   } finally {
                     setSavingResult(false)
                   }
@@ -1227,25 +1227,25 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
                 className='h-12 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all disabled:opacity-60'
               >
                 <RiCloseLine className='inline mr-2 text-base' />
-                Reprovado
+                {t?.workflows?.motion?.end?.denied ?? 'Reprovado'}
               </button>
             </div>
           </div>
         ) : (
           <div className='mt-8 rounded-3xl bg-slate-50 border border-slate-100 p-8 text-center'>
             <p className='text-xs font-black uppercase tracking-widest text-slate-400 mb-2'>
-              Processo Encerrado
+              {t?.workflows?.motion?.end?.processClosed ?? 'Processo Encerrado'}
             </p>
             <p className='text-base font-black text-slate-800'>
               {normalizedStatus === 'approved'
-                ? 'Motion aprovada. Processo finalizado com sucesso!'
-                : 'Motion encerrada como reprovada. Processo finalizado.'}
+                ? (t?.workflows?.motion?.end?.approvedFinal ?? 'Motion aprovada. Processo finalizado com sucesso!')
+                : (t?.workflows?.motion?.end?.rejectedFinal ?? 'Motion encerrada como reprovada. Processo finalizado.')}
             </p>
             <button
               onClick={() => navigate('/dashboard')}
               className='mt-6 px-8 py-3 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest'
             >
-              Ir para o Dashboard
+              {t?.workflows?.motion?.end?.goDashboard ?? 'Ir para o Dashboard'}
             </button>
           </div>
         )}
