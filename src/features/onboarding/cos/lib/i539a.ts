@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import i539aPdfUrl from "../assets/i539a_flat_template.pdf?url";
+import i539aPdfUrl from "@app/assets/documents/cos/i539a_flat_template.pdf?url";
 import { I539A_LAYOUT } from "./i539a-layout";
 
 export type I539AData = {

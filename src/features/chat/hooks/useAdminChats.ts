@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "../../../shared/lib/supabase";
-import { isCustomerChatEligible, getAnalysisChatTitle } from "../lib/eligibility";
+import { supabase } from "@shared/lib/supabase";
+import { isCustomerChatEligible, getAnalysisChatTitle } from "../services/eligibility";
 import type { SpecialistChatThread } from "../types";
 import type { UserService } from "../../process/types";
 

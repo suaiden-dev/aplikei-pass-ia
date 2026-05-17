@@ -1,0 +1,149 @@
+import { Link, useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import { toast } from "sonner";
+import { zodValidate } from "@shared/utils/zodValidate";
+import { Shield } from "lucide-react";
+import { Button } from "@shared/components/atoms/button";
+import { Checkbox } from "@shared/components/atoms/checkbox";
+import { Field } from "@shared/components/molecules/Field";
+import { AuthCard } from "@shared/components/organisms/AuthCard";
+import { PhoneInput } from "@shared/components/molecules/PhoneInput";
+import { useAuthForm } from "../hooks/useAuthForm";
+import { getSignUpSchema } from "../schemas/auth.schema";
+import { useT } from "@app/app/i18n";
+import { useSearchParams } from "react-router-dom";
+
+export default function SignUp() {
+  const t = useT("auth");
+  const v = useT("validation");
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { signUp } = useAuthForm();
+
+  const roleParam = searchParams.get("role");
+  const officeIdParam = searchParams.get("officeId");
+
+  const formik = useFormik({
+    initialValues: {
+      fullName: "",
+      email: "",
+      password: "",
+      phoneNumber: "",
+      terms: false,
+      role: roleParam || "admin_lawyer",
+      officeId: officeIdParam || undefined,
+    },
+    validate: zodValidate(getSignUpSchema(v)),
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        await signUp(values);
+        toast.success(t.signup.success);
+        navigate("/login");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : t.signup.error);
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
+
+  return (
+    <AuthCard title={t.signup.title} subtitle={t.signup.subtitle}>
+      <form className="space-y-5" onSubmit={formik.handleSubmit}>
+        <Field
+          id="fullName"
+          name="fullName"
+          label={t.signup.fullName}
+          placeholder={t.signup.namePlaceholder}
+          value={formik.values.fullName}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.fullName ? formik.errors.fullName : undefined}
+        />
+
+        <Field
+          id="email"
+          name="email"
+          type="email"
+          label={t.signup.email}
+          placeholder={t.signup.emailPlaceholder}
+          value={formik.values.email}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.email ? formik.errors.email : undefined}
+        />
+
+        <Field
+          id="password"
+          name="password"
+          type="password"
+          label={t.signup.password}
+          placeholder={t.signup.passwordPlaceholder}
+          value={formik.values.password}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.password ? formik.errors.password : undefined}
+        />
+
+        <div className="space-y-2">
+          <label className="text-[13px] font-semibold tracking-[0.02em] text-text">{t.signup.phone}</label>
+          <PhoneInput
+            name="phoneNumber"
+            value={formik.values.phoneNumber}
+            onChange={(val) => formik.setFieldValue("phoneNumber", val)}
+            onBlur={() => formik.setFieldTouched("phoneNumber", true)}
+          />
+          {formik.touched.phoneNumber && formik.errors.phoneNumber ? (
+            <p className="text-xs text-danger">{formik.errors.phoneNumber as string}</p>
+          ) : null}
+        </div>
+
+        <div className="rounded-xl border border-warning/20 bg-warning/5 p-4">
+          <div className="flex items-start gap-3">
+            <Shield className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+            <p className="text-[11px] leading-relaxed text-text-muted">
+              {t.signup.securityNotice}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 py-2">
+          <Checkbox
+            id="terms"
+            name="terms"
+            className="mt-1"
+            checked={formik.values.terms}
+            onCheckedChange={(checked) => {
+              formik.setFieldValue("terms", checked);
+              if (checked) {
+                formik.setFieldError("terms", undefined);
+              } else {
+                formik.setFieldTouched("terms", true);
+              }
+            }}
+          />
+          <label htmlFor="terms" className="cursor-pointer text-xs leading-relaxed text-text-muted">
+            {t.signup.acceptTerms}{" "}
+            <Link to="/legal/terms" className="font-bold text-primary hover:underline">{t.signup.termsLink}</Link>,{" "}
+            <Link to="/legal/privacy" className="font-bold text-primary hover:underline">{t.signup.privacyLink}</Link> e{" "}
+            <Link to="/legal/disclaimers" className="font-bold text-primary hover:underline">{t.signup.disclaimersLink}</Link>.
+          </label>
+        </div>
+        {formik.touched.terms && formik.errors.terms ? (
+          <p className="-mt-3 text-xs text-danger">{formik.errors.terms as string}</p>
+        ) : null}
+
+        <Button type="submit" disabled={formik.isSubmitting} className="w-full">
+          {formik.isSubmitting ? t.signup.submitting : t.signup.submit}
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-text-muted">
+        {t.signup.hasAccount}{" "}
+        <Link to="/login" className="font-medium text-primary hover:underline">
+          {t.signup.loginLink}
+        </Link>
+      </p>
+    </AuthCard>
+  );
+}

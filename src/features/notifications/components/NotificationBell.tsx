@@ -9,9 +9,9 @@ import {
 } from "react-icons/ri";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNotifications } from "../hooks/useNotifications";
-import { useAuth } from "../../../hooks/useAuth";
-import { cn } from "../../../utils/cn";
-import type { AppNotification } from "../../../contexts/NotificationContext/context";
+import { useAuth } from "@shared/hooks/useAuth";
+import { cn } from "@shared/utils/cn";
+import type { AppNotification } from "@app/app/providers/NotificationProvider";
 
 interface NotificationBellProps {
   role: "admin" | "client" | "master" | "seller";

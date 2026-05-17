@@ -1,6 +1,6 @@
 import { PDFDocument } from "pdf-lib"; 
-import { supabase } from "../../../../shared/lib/supabase";
-import { getUserServiceBySlug, updateStepData } from "../../../process/lib/processOps";
+import { supabase } from "@shared/lib/supabase";
+import { getUserServiceBySlug, updateStepData } from "../../../process/services/processOps";
 
 /**
  * Service to handle final package generation (PDF merging)

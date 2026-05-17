@@ -1,42 +1,13 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { supabase } from "../../../../shared/lib/supabase";
-import { updateStepData, approveStep, requestStepReview } from "../../../process/lib/processOps";
-import { getServiceSlugs, isSameService } from "../../../../data/services";
-import { notifyAdmin } from "../../../notifications/lib/notify";
+import { supabase } from "@shared/lib/supabase";
+import { updateStepData, approveStep, requestStepReview } from "../../../process/services/processOps";
+import { getServiceSlugs, isSameService } from "@shared/data/services";
+import { notifyAdmin } from "@features/notifications/services/notify";
 import type { DS160FormValues } from "../schemas/ds160.schema";
 
-export interface B1B2OnboardingLabels {
-  stepLabel: string;
-  ds160Form: string;
-  saveDraft: string;
-  finalizeAndSubmit: string;
-  awaitingReview: string;
-  errorNotFound: string;
-  errorLoad: string;
-  successSubmit: string;
-  successDraft: string;
-  errorSave: string;
-  errorDraft: string;
-  adjustmentsRequested: string;
-  of: string;
-  b1b2Title: string;
-  b1b2ReapplicationTitle: string;
-  guidedFilling: string;
-  consularFee: string;
-  slipGeneratingByTeam: string;
-  slipGenerationDesc: string;
-  backToDashboard: string;
-  accountCreationNotice: string;
-  accountCreationNoticeHeader: string;
-  accountCreationDesc: string;
-  requiredFieldsTitle: string;
-  requiredFieldsDesc: string;
-  creatingCredentialsTitle?: string;
-  creatingCredentialsDesc?: string;
-  adminFeedback?: string;
-}
+import type { B1B2OnboardingLabels } from "../types";
 
 const INITIAL_VALUES: Partial<DS160FormValues> = {
   homeCountry: "Brasil",

@@ -1,13 +1,13 @@
 import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "../../../shared/lib/supabase";
+import { supabase } from "@shared/lib/supabase";
 import {
   servicesData,
   type ServiceMeta,
   getCanonicalSlug,
   getServiceBySlug,
   isSameService,
-} from "../../../data/services";
+} from "@shared/data/services";
 import { useUserProcesses } from "./useUserProcesses";
 import { calculateProcessProgress, isAnalysisSlug } from "../utils";
 import type { UserService } from "../types";

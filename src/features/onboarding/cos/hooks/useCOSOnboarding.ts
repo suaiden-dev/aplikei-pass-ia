@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "../../../../shared/lib/supabase";
+import { supabase } from "@shared/lib/supabase";
 import type { UserService } from "../../../process/types";
 
 async function fetchCOSProcess(

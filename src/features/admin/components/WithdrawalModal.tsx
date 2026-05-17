@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Loader2, AlertCircle, DollarSign } from "lucide-react";
-import { useT } from "../../../i18n";
+import { useT } from "@app/app/i18n";
 import { 
   Dialog, 
   DialogContent, 
@@ -12,8 +12,8 @@ import {
   Input, 
   Label, 
   Badge 
-} from "../../../components/atoms";
-import { useOfficePaymentSettings } from "../hooks/useOfficePaymentSettings";
+} from "@shared/components/atoms";
+import { useOfficePaymentSettings } from "@features/offices/hooks/useOfficePaymentSettings";
 import { useWithdrawals } from "../hooks/useWithdrawals";
 import { toast } from "sonner";
 

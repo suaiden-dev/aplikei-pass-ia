@@ -3,8 +3,8 @@
  * Uses only pdf-lib (works in browser) — no Node.js dependencies.
  */
 import { PDFDocument } from "pdf-lib";
-import { supabase } from "../../../../shared/lib/supabase";
-import i539PdfUrl from "../assets/i539_template.pdf?url";
+import { supabase } from "@shared/lib/supabase";
+import i539PdfUrl from "@app/assets/documents/cos/i539_template.pdf?url";
 import { fillI539AForm } from "./i539a";
 
 export type I539AData = {

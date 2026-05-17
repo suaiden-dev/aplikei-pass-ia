@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "../../../shared/lib/supabase";
+import { supabase } from "@shared/lib/supabase";
 import { toast } from "sonner";
-import { notifyMaster } from "../../notifications/lib/notify";
+import { notifyMaster } from "@features/notifications/services/notify";
 
 export interface WithdrawalRequest {
   id?: string;

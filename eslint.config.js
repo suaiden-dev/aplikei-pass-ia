@@ -27,4 +27,18 @@ export default defineConfig([
       'react-hooks/preserve-manual-memoization': 'warn',
     },
   },
+  {
+    files: ['src/shared/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: ['@features/*'], message: 'shared layer must not import from features.' },
+            { group: ['**/features/**'], message: 'shared layer must not import from features.' },
+          ],
+        },
+      ],
+    },
+  },
 ])

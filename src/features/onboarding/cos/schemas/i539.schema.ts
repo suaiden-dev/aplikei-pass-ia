@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodValidate } from "../../../../utils/zodValidate";
+import { zodValidate } from "@shared/utils/zodValidate";
 
 /**
  * Standard USCIS Format Regexes

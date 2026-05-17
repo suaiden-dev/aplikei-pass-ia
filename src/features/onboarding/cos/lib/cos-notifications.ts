@@ -1,4 +1,4 @@
-import { notifyAdmin } from "../../../notifications/lib/notify";
+import { notifyAdmin } from "@features/notifications/services/notify";
 
 type CosAdminEvent =
   | "i20_uploaded"

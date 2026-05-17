@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "../../../shared/lib/supabase";
+import { supabase } from "@shared/lib/supabase";
 import type { ChatMessage } from "../types";
 
 export function useChat(processId: string) {

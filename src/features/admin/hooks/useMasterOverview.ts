@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "../../../shared/lib/supabase";
-import { useLocale } from "../../../i18n";
+import { supabase } from "@shared/lib/supabase";
+import { useLocale } from "@app/app/i18n";
 
 export interface MasterDashboardStats {
     revenueTotal: number;

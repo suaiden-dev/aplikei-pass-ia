@@ -1,4 +1,4 @@
-import type { UserAccount, UserRole } from "../auth/types";
+import type { UserAccount, UserRole } from "@features/auth/types";
 
 export type Action = "read" | "create" | "update" | "delete" | "manage";
 

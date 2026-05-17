@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { supabase } from "../../../../shared/lib/supabase";
-import { updateStepData, approveStep, requestStepReview } from "../../../process/lib/processOps";
-import { getServiceSlugs, isSameService } from "../../../../data/services";
-import { notifyAdmin } from "../../../notifications/lib/notify";
+import { supabase } from "@shared/lib/supabase";
+import { updateStepData, approveStep, requestStepReview } from "../../../process/services/processOps";
+import { getServiceSlugs, isSameService } from "@shared/data/services";
+import { notifyAdmin } from "@features/notifications/services/notify";
 import type { DS160FormValues } from "../../b1b2/schemas/ds160.schema";
 
 const INITIAL_VALUES: Partial<DS160FormValues> = {

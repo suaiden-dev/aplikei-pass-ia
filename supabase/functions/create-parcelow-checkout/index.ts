@@ -1,45 +1,19 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
+import { corsHeaders } from "../_shared/core/http.ts";
+import { applyCoupon } from "../_shared/payments/domain/fees.ts";
+import {
+    getSlugCandidates,
+} from "../_shared/payments/domain/catalog.ts";
+import { resolveCatalogPricing } from "../_shared/payments/application/resolve-catalog-pricing.ts";
+import {
+    cleanDocumentNumber,
+    createParcelowOrder,
+    resolveParcelowEnvironment,
+} from "../_shared/payments/providers/parcelow.ts";
 import { 
     resolveUseAplicei, 
-    resolveParcelowConfig, 
-    resolveServicePrice 
-} from "../_shared/office-payment.ts";
-
-const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-customer-auth",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-// Mapeamento de dependentes por serviço
-const DEPENDENT_SERVICE_MAP: Record<string, string> = {
-    'visto-b1-b2': 'dependente-b1-b2',
-    'visa-b1b2': 'dependente-b1-b2',
-    'visto-f1': 'dependente-estudante',
-    'visa-f1': 'dependente-estudante',
-    'extensao-status': 'dependente-estudante',
-    'visa-eos': 'dependente-estudante',
-    'troca-status': 'dependente-estudante',
-    'visa-cos': 'dependente-estudante',
-};
-
-const SLUG_ALIASES: Record<string, string> = {
-    "visa-b1b2": "visto-b1-b2",
-    "visa-f1": "visto-f1",
-    "visa-eos": "extensao-status",
-    "visa-cos": "troca-status",
-    "visto-b1-b2": "visa-b1b2",
-    "visto-f1": "visa-f1",
-    "extensao-status": "visa-eos",
-    "troca-status": "visa-cos",
-    "consultancy-negative-f1": "consultoria-f1-negativa",
-    "consultoria-f1-negativa": "consultancy-negative-f1",
-};
-
-function cleanDocumentNumber(doc: string | null | undefined): string | null {
-    if (!doc) return null;
-    return doc.replace(/\D/g, '');
-}
+    resolveParcelowConfig,
+} from "../_shared/payments/office-payment.ts";
 
 Deno.serve(async (req: Request) => {
     // 1. CORS
@@ -58,8 +32,7 @@ Deno.serve(async (req: Request) => {
         } = payload;
 
         const rawSlug = String(slug || "").toLowerCase();
-        const aliasSlug = SLUG_ALIASES[rawSlug];
-        const slugCandidates = Array.from(new Set([rawSlug, aliasSlug].filter(Boolean))) as string[];
+        const slugCandidates = getSlugCandidates(rawSlug);
         const normalizedSlug = rawSlug;
 
         if (!rawSlug || !email || (!cpf && !payerInfo?.cpf)) {
@@ -77,62 +50,16 @@ Deno.serve(async (req: Request) => {
             },
         });
 
-        // 2. Buscar preços na nova tabela services_prices
-        const dependentId = DEPENDENT_SERVICE_MAP[normalizedSlug] || DEPENDENT_SERVICE_MAP[aliasSlug || ""] || 'dependente-b1-b2';
-        const { data: dbPrices } = await supabase
-            .from("services_prices")
-            .select("service_id, name, price")
-            .in("service_id", [...slugCandidates, dependentId]);
-
-        // Fallback catalog
-        const FALLBACK_PRICES: Record<string, { name: string; price: number }> = {
-            'analise-especialista-cos': { name: 'Análise de Especialista (COS)', price: 50 },
-            'analise-especialista-eos': { name: 'Análise de Especialista (EOS)', price: 50 },
-            'motion-reconsideracao-cos': { name: 'Motion para Reconsideração (COS)', price: 150 },
-            'motion-reconsideracao-eos': { name: 'Motion para Reconsideração (EOS)', price: 150 },
-            'rfe-support': { name: 'Apoio Técnico ao RFE', price: 497 },
-            'suporte-rfe-eos': { name: 'Suporte ao RFE (EOS)', price: 497 },
-            'suporte-rfe-cos': { name: 'Apoio ao RFE (Troca de Status)', price: 497 },
-            'recovery-eos': { name: 'Recuperação de Caso - Motion (EOS)', price: 897 },
-            'recovery-cos': { name: 'Recuperação de Caso - Motion (Troca de Status)', price: 897 },
-            'motion-support': { name: 'Motion de Reconsideração', price: 897 },
-            'apoio-rfe-motion-inicio': { name: 'Análise Inicial de Motion', price: 50 },
-            'proposta-rfe-motion': { name: 'Proposta de Motion (Customizada)', price: 0 },
-            'consultoria-f1-negativa': { name: 'Consultoria Especializada (Pós-Negativa F1)', price: 97 },
-            'consultancy-negative-f1': { name: 'Consultoria Especializada (Pós-Negativa F1)', price: 97 },
-        };
-
-        let mainPriceName = "";
-        let basePriceUSD = 0;
-        let depPriceUSD = 0;
-
-        if (office_id && serviceId) {
-            const officePrice = await resolveServicePrice(supabase, office_id, serviceId);
-            basePriceUSD = officePrice.price;
-            mainPriceName = officePrice.name;
-            // Para escritórios, assumimos que dependentes estão embutidos ou calculados via regra específica?
-            // A spec não detalha preço de dependente por office, mas vamos manter o fallback ou buscar se houver slug.
-            const depPriceInfo = dbPrices?.find(p => p.service_id === dependentId);
-            depPriceUSD = depPriceInfo ? Number(depPriceInfo.price) : 0;
-        } else {
-            let mainPriceInfo = dbPrices?.find(p => slugCandidates.includes(String(p.service_id || "").toLowerCase()));
-            if (!mainPriceInfo) {
-                const fallbackKey = slugCandidates.find((k) => Boolean(FALLBACK_PRICES[k]));
-                if (fallbackKey) {
-                    mainPriceInfo = { service_id: fallbackKey, ...FALLBACK_PRICES[fallbackKey] };
-                }
-            }
-
-            if (!mainPriceInfo) {
-                console.error("[parcelow-checkout] Serviço não encontrado:", normalizedSlug);
-                throw new Error(`Serviço não encontrado no catálogo: ${normalizedSlug}`);
-            }
-
-            const depPriceInfo = dbPrices?.find(p => p.service_id === dependentId);
-            mainPriceName = mainPriceInfo.name;
-            basePriceUSD = Number(mainPriceInfo.price);
-            depPriceUSD = depPriceInfo ? Number(depPriceInfo.price) : 0;
-        }
+        const pricing = await resolveCatalogPricing({
+            supabase,
+            slug: normalizedSlug,
+            slugCandidates,
+            officeId: office_id,
+            serviceId,
+        });
+        const mainPriceName = pricing.mainPriceName;
+        const basePriceUSD = pricing.basePriceUSD;
+        const depPriceUSD = pricing.dependentPriceUSD;
 
         const serviceName = mainPriceName;
         const subtotalUSD = basePriceUSD + (dependents * depPriceUSD);
@@ -150,11 +77,7 @@ Deno.serve(async (req: Request) => {
             if (!couponError && couponData?.valid) {
                 const minPurchase = couponData.min_purchase_usd || 0;
                 if (subtotalUSD >= minPurchase) {
-                    if (couponData.discount_type === "percentage") {
-                        finalSubtotalUSD = Math.max(0, subtotalUSD * (1 - (couponData.discount_value / 100)));
-                    } else {
-                        finalSubtotalUSD = Math.max(0, subtotalUSD - couponData.discount_value);
-                    }
+                    finalSubtotalUSD = applyCoupon(subtotalUSD, couponData).finalAmount;
                     appliedCouponId = couponData.coupon_id;
                     console.log(`[Coupon Parcelow] Aplicado ${coupon_code}: $${subtotalUSD} -> $${finalSubtotalUSD}`);
                 }
@@ -166,18 +89,8 @@ Deno.serve(async (req: Request) => {
         // -------------------------------------------------------------
         // DETECÇÃO DINÂMICA DE AMBIENTE (PRODUÇÃO VS HOMOLOGAÇÃO)
         // -------------------------------------------------------------
-        const host = req.headers.get("host") || "";
-        const originUrlRaw = origin_url || req.headers.get("origin") || req.headers.get("referer") || "";
-
-        const isProductionDomain =
-            originUrlRaw.includes('aplikei.com') ||
-            host.includes('aplikei.com');
-
-        const parcelowEnvironment = isProductionDomain ? 'production' : 'staging';
-
-        const parcelowApiUrl = parcelowEnvironment === 'staging'
-            ? "https://sandbox-2.parcelow.com.br"
-            : "https://app.parcelow.com";
+        const { name: parcelowEnvironment, apiUrl: parcelowApiUrl } =
+            resolveParcelowEnvironment(req, origin_url);
 
         let rawId = parcelowEnvironment === 'staging'
             ? Deno.env.get("PARCELOW_CLIENT_ID_STAGING")
@@ -297,46 +210,14 @@ Deno.serve(async (req: Request) => {
 
         if (clientIdToUse && clientSecret) {
             try {
-                // 5.1 Obter Token OAuth2
-                const oauthUrl = `${parcelowApiUrl}/oauth/token`;
-                const authRes = await fetch(oauthUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        client_id: clientIdToUse,
-                        client_secret: clientSecret,
-                        grant_type: "client_credentials"
-                    })
+                const orderData = await createParcelowOrder({
+                    apiUrl: parcelowApiUrl,
+                    clientId: clientIdToUse,
+                    clientSecret,
+                    payload: parcelowPayload,
                 });
-
-                if (!authRes.ok) {
-                    throw new Error(`Falha na autenticação Parcelow (${authRes.status}).`);
-                }
-
-                const { access_token } = await authRes.json();
-
-                // 5.2 Criar Ordem
-                const apiOrderEndpoint = `${parcelowApiUrl}/api/orders`;
-                const orderRes = await fetch(apiOrderEndpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${access_token}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(parcelowPayload)
-                });
-
-                const orderData = await orderRes.json();
-                if (orderRes.ok && orderData.success) {
-                    checkoutUrl = orderData.data?.url_checkout || checkoutUrl;
-                    parcelowGenOrderId = orderData.data?.order_id?.toString() || parcelowGenOrderId;
-                } else {
-                    throw new Error(orderData.message || "Erro ao gerar link na Parcelow.");
-                }
+                checkoutUrl = orderData.data?.url_checkout || checkoutUrl;
+                parcelowGenOrderId = orderData.data?.order_id?.toString() || parcelowGenOrderId;
 
             } catch (apiErr: unknown) {
                 console.error("Parcelow API Error", apiErr);

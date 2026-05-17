@@ -22,3 +22,11 @@ export {
   supabaseAnonKey,
   supabaseUrl,
 };
+
+export function requireSupabaseEnv() {
+  return {
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
+    functionsUrl: `${supabaseUrl}/functions/v1`,
+  };
+}

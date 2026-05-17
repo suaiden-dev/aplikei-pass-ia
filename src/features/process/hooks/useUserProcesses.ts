@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "../../../shared/lib/supabase";
+import { supabase } from "@shared/lib/supabase";
 import type { UserService } from "../types";
 
 // ── COS step normalisation (side-effectful: corrects stale DB rows on read) ──
