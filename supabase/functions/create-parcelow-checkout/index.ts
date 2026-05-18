@@ -1,23 +1,19 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
-
-const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-customer-auth",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-// Mapeamento de dependentes por serviço
-const DEPENDENT_SERVICE_MAP: Record<string, string> = {
-    'visto-b1-b2': 'dependente-b1-b2',
-    'visto-f1': 'dependente-estudante',
-    'extensao-status': 'dependente-estudante',
-    'troca-status': 'dependente-estudante',
-};
-
-function cleanDocumentNumber(doc: string | null | undefined): string | null {
-    if (!doc) return null;
-    return doc.replace(/\D/g, '');
-}
+import { corsHeaders } from "../_shared/core/http.ts";
+import { applyCoupon } from "../_shared/payments/domain/fees.ts";
+import {
+    getSlugCandidates,
+} from "../_shared/payments/domain/catalog.ts";
+import { resolveCatalogPricing } from "../_shared/payments/application/resolve-catalog-pricing.ts";
+import {
+    cleanDocumentNumber,
+    createParcelowOrder,
+    resolveParcelowEnvironment,
+} from "../_shared/payments/providers/parcelow.ts";
+import { 
+    resolveUseAplicei, 
+    resolveParcelowConfig,
+} from "../_shared/payments/office-payment.ts";
 
 Deno.serve(async (req: Request) => {
     // 1. CORS
@@ -31,11 +27,16 @@ Deno.serve(async (req: Request) => {
         const {
             slug, email, fullName, phone, dependents = 0,
             cpf, payerInfo, paymentMethod, origin_url,
-            action, serviceId, processId, proc_id, order_id, parent_service_slug, coupon_code
+            action, serviceId, processId, proc_id, order_id, parent_service_slug, coupon_code,
+            office_id
         } = payload;
 
-        if (!slug || !email || (!cpf && !payerInfo?.cpf)) {
-            console.error("[create-parcelow-checkout] Falha na validação. Dados recebidos:", { slug, email, cpf, hasPayer: !!payerInfo?.cpf });
+        const rawSlug = String(slug || "").toLowerCase();
+        const slugCandidates = getSlugCandidates(rawSlug);
+        const normalizedSlug = rawSlug;
+
+        if (!rawSlug || !email || (!cpf && !payerInfo?.cpf)) {
+            console.error("[create-parcelow-checkout] Falha na validação. Dados recebidos:", { slug: normalizedSlug, email, cpf, hasPayer: !!payerInfo?.cpf });
             throw new Error("Parâmetros obrigatórios ausentes (slug, email ou CPF do pagador). [V2]");
         }
 
@@ -49,45 +50,18 @@ Deno.serve(async (req: Request) => {
             },
         });
 
-        // 2. Buscar preços na nova tabela services_prices
-        const dependentId = DEPENDENT_SERVICE_MAP[slug] || 'dependente-b1-b2';
-        const { data: dbPrices } = await supabase
-            .from("services_prices")
-            .select("service_id, name, price")
-            .in("service_id", [slug, dependentId]);
+        const pricing = await resolveCatalogPricing({
+            supabase,
+            slug: normalizedSlug,
+            slugCandidates,
+            officeId: office_id,
+            serviceId,
+        });
+        const mainPriceName = pricing.mainPriceName;
+        const basePriceUSD = pricing.basePriceUSD;
+        const depPriceUSD = pricing.dependentPriceUSD;
 
-        // Fallback catalog
-        const FALLBACK_PRICES: Record<string, { name: string; price: number }> = {
-            'analise-especialista-cos': { name: 'Análise de Especialista (COS)', price: 50 },
-            'analise-especialista-eos': { name: 'Análise de Especialista (EOS)', price: 50 },
-            'motion-reconsideracao-cos': { name: 'Motion para Reconsideração (COS)', price: 150 },
-            'motion-reconsideracao-eos': { name: 'Motion para Reconsideração (EOS)', price: 150 },
-            'rfe-support': { name: 'Apoio Técnico ao RFE', price: 497 },
-            'suporte-rfe-eos': { name: 'Suporte ao RFE (EOS)', price: 497 },
-            'suporte-rfe-cos': { name: 'Apoio ao RFE (Troca de Status)', price: 497 },
-            'recovery-eos': { name: 'Recuperação de Caso - Motion (EOS)', price: 897 },
-            'recovery-cos': { name: 'Recuperação de Caso - Motion (Troca de Status)', price: 897 },
-            'motion-support': { name: 'Motion de Reconsideração', price: 897 },
-            'apoio-rfe-motion-inicio': { name: 'Análise Inicial de Motion', price: 50 },
-            'proposta-rfe-motion': { name: 'Proposta de Motion (Customizada)', price: 0 },
-        };
-
-        let mainPriceInfo = dbPrices?.find(p => p.service_id === slug);
-        if (!mainPriceInfo && FALLBACK_PRICES[slug]) {
-            mainPriceInfo = { service_id: slug, ...FALLBACK_PRICES[slug] };
-        }
-
-        if (!mainPriceInfo) {
-            console.error("[parcelow-checkout] Serviço não encontrado:", slug);
-            throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
-        }
-
-        const depPriceInfo = dbPrices?.find(p => p.service_id === dependentId);
-
-        const serviceName = mainPriceInfo.name;
-        const basePriceUSD = Number(mainPriceInfo.price);
-        const depPriceUSD = depPriceInfo ? Number(depPriceInfo.price) : 0;
-
+        const serviceName = mainPriceName;
         const subtotalUSD = basePriceUSD + (dependents * depPriceUSD);
 
         // --- NOVA LÓGICA DE CUPOM (ESTENDIDA) ---
@@ -97,17 +71,13 @@ Deno.serve(async (req: Request) => {
         if (coupon_code) {
             const { data: couponData, error: couponError } = await supabase.rpc("validate_coupon", {
                 p_code: coupon_code.toUpperCase().trim(),
-                p_slug: slug
+                p_slug: normalizedSlug
             });
 
             if (!couponError && couponData?.valid) {
                 const minPurchase = couponData.min_purchase_usd || 0;
                 if (subtotalUSD >= minPurchase) {
-                    if (couponData.discount_type === "percentage") {
-                        finalSubtotalUSD = Math.max(0, subtotalUSD * (1 - (couponData.discount_value / 100)));
-                    } else {
-                        finalSubtotalUSD = Math.max(0, subtotalUSD - couponData.discount_value);
-                    }
+                    finalSubtotalUSD = applyCoupon(subtotalUSD, couponData).finalAmount;
                     appliedCouponId = couponData.coupon_id;
                     console.log(`[Coupon Parcelow] Aplicado ${coupon_code}: $${subtotalUSD} -> $${finalSubtotalUSD}`);
                 }
@@ -119,26 +89,28 @@ Deno.serve(async (req: Request) => {
         // -------------------------------------------------------------
         // DETECÇÃO DINÂMICA DE AMBIENTE (PRODUÇÃO VS HOMOLOGAÇÃO)
         // -------------------------------------------------------------
-        const host = req.headers.get("host") || "";
-        const originUrlRaw = origin_url || req.headers.get("origin") || req.headers.get("referer") || "";
+        const { name: parcelowEnvironment, apiUrl: parcelowApiUrl } =
+            resolveParcelowEnvironment(req, origin_url);
 
-        const isProductionDomain =
-            originUrlRaw.includes('aplikei.com') ||
-            host.includes('aplikei.com');
-
-        const parcelowEnvironment = isProductionDomain ? 'production' : 'staging';
-
-        const parcelowApiUrl = parcelowEnvironment === 'staging'
-            ? "https://sandbox-2.parcelow.com.br"
-            : "https://app.parcelow.com";
-
-        const rawId = parcelowEnvironment === 'staging'
+        let rawId = parcelowEnvironment === 'staging'
             ? Deno.env.get("PARCELOW_CLIENT_ID_STAGING")
             : Deno.env.get("PARCELOW_CLIENT_ID_PRODUCTION");
 
-        const clientSecret = parcelowEnvironment === 'staging'
+        let clientSecret = parcelowEnvironment === 'staging'
             ? Deno.env.get("PARCELOW_CLIENT_SECRET_STAGING")
             : Deno.env.get("PARCELOW_CLIENT_SECRET_PRODUCTION");
+
+        if (office_id) {
+            const useAplicei = await resolveUseAplicei(supabase, office_id);
+            if (!useAplicei) {
+                const officeParcelow = await resolveParcelowConfig(supabase, office_id);
+                if (officeParcelow.merchant_id && officeParcelow.api_key) {
+                    rawId = officeParcelow.merchant_id;
+                    clientSecret = officeParcelow.api_key;
+                    console.log(`[create-parcelow-checkout] Usando credenciais do Office: ${office_id}`);
+                }
+            }
+        }
 
         let clientIdToUse: number | string = rawId || "";
         const parsedId = parseInt(rawId || "");
@@ -177,10 +149,12 @@ Deno.serve(async (req: Request) => {
                 order_number: parcelowReference,
                 total_price_usd: finalSubtotalUSD,
                 payment_method: `parcelow_${paymentMethod || 'credit_card'}`,
+                office_id: office_id || null,
                 payment_metadata: {
                     ...existingMetadata,
                     dependents,
                     phone,
+                    office_id: office_id || "",
                     payerInfo: payerInfo || null,
                     parcelow_cpf: finalPayerCpf,
                     parcelow_phone: finalPayerPhone,
@@ -194,7 +168,9 @@ Deno.serve(async (req: Request) => {
                     applied_coupon_id: appliedCouponId || "",
                     original_subtotal: subtotalUSD.toString(),
                     discount_amount: (subtotalUSD - finalSubtotalUSD).toString(),
-                    product_type: slug === 'troca-status' ? 'COS' : (slug === 'extensao-status' ? 'EOS' : 'B1B2'),
+                    product_type: normalizedSlug === 'troca-status' || normalizedSlug === 'visa-cos'
+                        ? 'COS'
+                        : (normalizedSlug === 'extensao-status' || normalizedSlug === 'visa-eos' ? 'EOS' : 'B1B2'),
                 }
             })
             .eq("id", orderUuid);
@@ -217,7 +193,7 @@ Deno.serve(async (req: Request) => {
             },
             items: [
                 {
-                    reference: slug,
+                    reference: normalizedSlug,
                     description: `Aplikei Checkout - ${serviceName}${coupon_code ? ' (Com Cupom)' : ''}`,
                     quantity: 1,
                     amount: amountInCents
@@ -225,7 +201,7 @@ Deno.serve(async (req: Request) => {
             ],
             redirect: {
                 success: `${origin_url}/checkout-success?s=s&pid=${orderUuid}&ce=${btoa(email)}`,
-                failed: `${origin_url}/servicos/${slug}`
+                failed: `${origin_url}/servicos/${normalizedSlug}`
             }
         };
 
@@ -234,46 +210,14 @@ Deno.serve(async (req: Request) => {
 
         if (clientIdToUse && clientSecret) {
             try {
-                // 5.1 Obter Token OAuth2
-                const oauthUrl = `${parcelowApiUrl}/oauth/token`;
-                const authRes = await fetch(oauthUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        client_id: clientIdToUse,
-                        client_secret: clientSecret,
-                        grant_type: "client_credentials"
-                    })
+                const orderData = await createParcelowOrder({
+                    apiUrl: parcelowApiUrl,
+                    clientId: clientIdToUse,
+                    clientSecret,
+                    payload: parcelowPayload,
                 });
-
-                if (!authRes.ok) {
-                    throw new Error(`Falha na autenticação Parcelow (${authRes.status}).`);
-                }
-
-                const { access_token } = await authRes.json();
-
-                // 5.2 Criar Ordem
-                const apiOrderEndpoint = `${parcelowApiUrl}/api/orders`;
-                const orderRes = await fetch(apiOrderEndpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${access_token}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(parcelowPayload)
-                });
-
-                const orderData = await orderRes.json();
-                if (orderRes.ok && orderData.success) {
-                    checkoutUrl = orderData.data?.url_checkout || checkoutUrl;
-                    parcelowGenOrderId = orderData.data?.order_id?.toString() || parcelowGenOrderId;
-                } else {
-                    throw new Error(orderData.message || "Erro ao gerar link na Parcelow.");
-                }
+                checkoutUrl = orderData.data?.url_checkout || checkoutUrl;
+                parcelowGenOrderId = orderData.data?.order_id?.toString() || parcelowGenOrderId;
 
             } catch (apiErr: unknown) {
                 console.error("Parcelow API Error", apiErr);

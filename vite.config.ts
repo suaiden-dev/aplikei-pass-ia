@@ -1,47 +1,30 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import path from 'node:path'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router-dom')) {
-            return 'vendor-react';
-          }
-          if (id.includes('node_modules/framer-motion')) {
-            return 'vendor-motion';
-          }
-          if (id.includes('node_modules/@supabase')) {
-            return 'vendor-supabase';
-          }
-          if (id.includes('node_modules/@radix-ui')) {
-            return 'vendor-radix';
-          }
-          if (id.includes('node_modules/react-icons') || id.includes('node_modules/lucide-react')) {
-            return 'vendor-ui-icons';
-          }
-          if (id.includes('node_modules/pdf-lib')) {
-            return 'vendor-pdf';
-          }
-          if (id.includes('node_modules/@tanstack/react-query')) {
-            return 'vendor-query';
-          }
-          if (id.includes('node_modules/recharts')) {
-            return 'vendor-charts';
-          }
-          if (id.includes('node_modules/formik') || id.includes('node_modules/zod') || id.includes('node_modules/validator')) {
-            return 'vendor-forms';
-          }
-          if (id.includes('node_modules/date-fns')) {
-            return 'vendor-utils';
-          }
-        },
-      },
+  resolve: {
+    alias: {
+      '@app': path.resolve(__dirname, 'src'),
+      '@shared': path.resolve(__dirname, 'src/shared'),
+      '@features': path.resolve(__dirname, 'src/features'),
+      '@assets': path.resolve(__dirname, 'src/assets'),
     },
-    chunkSizeWarningLimit: 1000,
+  },
+  optimizeDeps: {
+    include: [
+      '@radix-ui/react-popover',
+      '@radix-ui/react-select',
+      '@radix-ui/react-separator',
+      'cmdk',
+      'pdf-lib',
+    ],
+  },
+  server: {
+    watch: {
+      usePolling: true,
+    },
   },
 })

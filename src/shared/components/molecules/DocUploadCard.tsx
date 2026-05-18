@@ -1,0 +1,116 @@
+import { useRef } from "react";
+import { useT } from "@app/app/i18n";
+import { 
+  RiUploadCloud2Line, 
+  RiCheckDoubleLine, 
+  RiErrorWarningLine 
+} from "react-icons/ri";
+
+export interface DocFile {
+  file: File | null;
+  label: string;
+  path?: string;
+}
+
+interface DocUploadCardProps {
+  docKey: string;
+  title: string;
+  subtitle?: string;
+  doc: DocFile;
+  onChange: (key: string, file: File) => void;
+  isReadOnly?: boolean;
+  isRejected?: boolean;
+}
+
+export function DocUploadCard({ docKey, title, subtitle, doc, onChange, isReadOnly, isRejected }: DocUploadCardProps) {
+  const t = useT("common");
+  const uploadText = t?.docUpload ?? {
+    needsCorrection: "Needs correction",
+    newFileSelected: "New file selected",
+    fileSelected: "File selected",
+    uploadFile: "Upload file",
+    requiredDocument: "Required document",
+    pending: "Pending",
+    updated: "Updated",
+    ready: "Ready",
+  };
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isUploaded = !!doc.file || !!doc.path;
+  const isCorrecting = !!doc.file; // User just selected a new local file
+  const showAsRejected = isRejected && !isCorrecting;
+
+  return (
+    <div className="flex flex-col h-full" data-testid={`upload-${docKey}`}>
+      <button
+        type="button"
+        onClick={() => !isReadOnly && inputRef.current?.click()}
+        disabled={isReadOnly}
+        className={`group relative w-full rounded-2xl border-2 border-dashed flex flex-col items-center justify-between p-6 transition-all min-h-[220px] ${
+          showAsRejected
+            ? "border-red-500 bg-red-500/10 shadow-lg shadow-red-500/5"
+            : isUploaded
+              ? "border-emerald-500 bg-emerald-500/10"
+              : "border-border hover:border-primary hover:bg-primary/5 bg-card"
+        } ${isReadOnly ? "cursor-default opacity-80" : "cursor-pointer"}`}
+      >
+        <div className="flex-1 flex flex-col items-center justify-center w-full text-center">
+          {showAsRejected ? (
+            <div className="w-14 h-14 rounded-full bg-red-500/20 flex items-center justify-center mb-3 animate-pulse shadow-sm">
+              <RiErrorWarningLine className="text-3xl text-red-500" />
+            </div>
+          ) : isUploaded ? (
+            <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3 shadow-inner">
+              <RiCheckDoubleLine className="text-3xl text-emerald-500" />
+            </div>
+          ) : (
+            <div className="w-14 h-14 rounded-full bg-bg-subtle flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+              <RiUploadCloud2Line className="text-3xl text-text-muted/40 group-hover:text-primary transition-colors" />
+            </div>
+          )}
+          <span className={`text-[10px] font-black uppercase tracking-widest text-center px-2 ${
+            showAsRejected ? "text-red-500" : isUploaded ? "text-emerald-500" : "text-text-muted group-hover:text-primary"
+          }`}>
+            {showAsRejected 
+              ? uploadText.needsCorrection 
+              : isUploaded 
+                ? (isCorrecting ? uploadText.newFileSelected : uploadText.fileSelected) 
+                : uploadText.uploadFile}
+          </span>
+        </div>
+
+        <div className="w-full pt-4 border-t border-border mt-4 text-left">
+          <p className="text-[11px] font-black leading-tight truncate uppercase tracking-tight text-text">{title}</p>
+          {subtitle ? (
+            <p className="text-[9px] text-text-muted font-bold mt-0.5 leading-snug line-clamp-2 uppercase tracking-tighter italic">{subtitle}</p>
+          ) : (
+             <p className="text-[9px] text-text-muted/60 font-bold mt-0.5 leading-snug uppercase tracking-tighter italic">{uploadText.requiredDocument}</p>
+          )}
+        </div>
+
+        {showAsRejected ? (
+          <div className="absolute top-3 right-3 flex gap-1">
+            <span className="text-[8px] font-black bg-red-500 text-white px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+              {uploadText.pending}
+            </span>
+          </div>
+        ) : isUploaded ? (
+          <div className="absolute top-3 right-3 flex gap-1">
+            <span className={`text-[8px] font-black ${isCorrecting ? 'bg-amber-500' : 'bg-emerald-500'} text-white px-2 py-0.5 rounded-full shadow-sm`}>
+              {isCorrecting ? uploadText.updated : uploadText.ready}
+            </span>
+          </div>
+        ) : null}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*,.pdf"
+        className="sr-only"
+        onChange={e => {
+          const f = e.target.files?.[0];
+          if (f) onChange(docKey, f);
+        }}
+      />
+    </div>
+  );
+}

@@ -1,14 +1,30 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
-/* ─── Static tokens (fonts) ──────────────────────────────────── */
 @theme {
-  --font-sans:    'Inter', system-ui, sans-serif;
-  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Manrope", system-ui, sans-serif;
 }
 
-/* ─── Dynamic tokens → inlined into Tailwind utilities ──────── */
-/* Tailwind generates: bg-bg, text-text, border-border, etc.     */
 @theme inline {
+  --color-surface: var(--surface);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-bright: var(--surface-bright);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-surface-tint: var(--surface-tint);
+  --color-primary-fixed: var(--primary-fixed);
+  --color-primary-fixed-dim: var(--primary-fixed-dim);
+  --color-on-primary-fixed: var(--on-primary-fixed);
+  --color-on-primary-fixed-variant: var(--on-primary-fixed-variant);
+
   --color-bg:           var(--bg);
   --color-bg-subtle:    var(--bg-subtle);
   --color-card:         var(--card);
@@ -18,14 +34,30 @@
   --color-border:       var(--border);
   --color-primary:      var(--primary);
   --color-primary-hover:var(--primary-hover);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary:   var(--on-primary);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-button-primary: var(--button-primary);
+  --color-button-primary-hover: var(--button-primary-hover);
+  --color-button-primary-foreground: var(--button-primary-foreground);
+  --color-secondary:    var(--secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary: var(--on-secondary);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-tertiary:     var(--tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary:  var(--on-tertiary);
+  --color-on-tertiary-container: var(--on-tertiary-container);
   --color-success:      var(--success);
   --color-warning:      var(--warning);
   --color-danger:       var(--danger);
   --color-info:         var(--info);
 
-  /* Common Shadcn/Tailwind mappings */
   --color-background:   var(--bg);
   --color-foreground:   var(--text);
+  --color-card-foreground: var(--text);
+  --color-popover:      var(--card);
+  --color-popover-foreground: var(--text);
   --color-muted:        var(--bg-subtle);
   --color-muted-foreground: var(--text-muted);
   --color-accent:       var(--bg-subtle);
@@ -34,51 +66,141 @@
   --color-ring:         var(--primary);
   --color-destructive:  var(--danger);
   --color-destructive-foreground: #FFFFFF;
-  --color-primary-foreground: #FFFFFF;
-  --color-secondary:    var(--bg-subtle);
-  --color-secondary-foreground: var(--text);
+  --color-primary-foreground: var(--on-primary);
+  --color-secondary-foreground: var(--on-secondary);
+
+  /* Spacing Gutter */
+  --spacing-gutter: 1.5rem;
 }
 
-/* ─── Light theme (padrão) ───────────────────────────────────── */
+/* Custom Utilities that don't fit in @theme */
+@layer utilities {
+  /* Typography scale utilities */
+  .text-label-sm  { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.02em; }
+  .text-body-sm   { font-size: 14px; line-height: 20px; font-weight: 400; }
+  .text-label-md  { font-size: 14px; line-height: 20px; letter-spacing: 0.01em; font-weight: 500; }
+  .text-body-md   { font-size: 16px; line-height: 24px; font-weight: 400; }
+  .text-body-lg   { font-size: 18px; line-height: 28px; font-weight: 400; }
+  .text-h3        { font-size: 24px; line-height: 32px; letter-spacing: -0.01em; font-weight: 600; }
+  .text-h2        { font-size: 30px; line-height: 38px; letter-spacing: -0.02em; font-weight: 600; }
+  .text-h1        { font-size: 36px; line-height: 44px; letter-spacing: -0.02em; font-weight: 700; }
+
+  /* Compound font utilities (font-family + weight shorthand used in JSX as `font-h2`, etc.) */
+  .font-label-sm  { font-family: 'Inter', system-ui, sans-serif; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.02em; }
+  .font-label-md  { font-family: 'Inter', system-ui, sans-serif; font-size: 14px; line-height: 20px; letter-spacing: 0.01em; font-weight: 500; }
+  .font-body-sm   { font-family: 'Inter', system-ui, sans-serif; font-size: 14px; line-height: 20px; font-weight: 400; }
+  .font-body-md   { font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 24px; font-weight: 400; }
+  .font-body-lg   { font-family: 'Inter', system-ui, sans-serif; font-size: 18px; line-height: 28px; font-weight: 400; }
+  .font-h3        { font-family: 'Inter', system-ui, sans-serif; font-size: 24px; line-height: 32px; letter-spacing: -0.01em; font-weight: 600; }
+  .font-h2        { font-family: 'Inter', system-ui, sans-serif; font-size: 30px; line-height: 38px; letter-spacing: -0.02em; font-weight: 600; }
+  .font-h1        { font-family: 'Inter', system-ui, sans-serif; font-size: 36px; line-height: 44px; letter-spacing: -0.02em; font-weight: 700; }
+
+  /* Gutter spacing */
+  .gap-gutter { gap: 1.5rem; }
+}
+
 :root {
   color-scheme: light;
 
-  --bg:             #F8FAFC;
-  --bg-subtle:      #F1F5F9;
-  --card:           #FFFFFF;
-  --highlight:      #0F172A;
-  --text:           #0F172A;
-  --text-muted:     #64748B;
-  --border:         #E2E8F0;
-  --primary:        #1A56DB;
-  --primary-hover:  #1649C0;
-  --success:        #16A34A;
-  --warning:        #D97706;
-  --danger:         #DC2626;
-  --info:           #0284C7;
+  /* B2B Colors */
+  --surface: #faf8ff;
+  --surface-dim: #d9d9e4;
+  --surface-bright: #faf8ff;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f3f3fd;
+  --surface-container: #ededf8;
+  --surface-container-high: #e7e7f2;
+  --surface-container-highest: #e1e2ec;
+  --on-surface: #191b23;
+  --on-surface-variant: #434654;
+  --outline: #737685;
+  --outline-variant: #c3c6d6;
+  --surface-tint: #0c56d0;
+  
+  --primary: #003d9b;
+  --primary-container: #0052cc;
+  --on-primary: #ffffff;
+  --on-primary-container: #c4d2ff;
+  
+  --secondary: #585f6c;
+  --secondary-container: #dce2f3;
+  --on-secondary: #ffffff;
+  --on-secondary-container: #5e6572;
+  
+  --tertiary: #7b2600;
+  --tertiary-container: #a33500;
+  --on-tertiary: #ffffff;
+  --on-tertiary-container: #ffc6b2;
+  
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #ba1a1a;
+  --info: #0284c7;
+
+  --bg: var(--surface-container-lowest);
+  --bg-subtle: var(--surface-container-low);
+  --card: var(--surface-bright);
+  --highlight: #f0f0fb;
+  --text: var(--on-surface);
+  --text-muted: var(--on-surface-variant);
+  --border: var(--outline-variant);
+  --primary-hover: #0040a2;
+  --button-primary: var(--primary);
+  --button-primary-hover: var(--primary-hover);
+  --button-primary-foreground: var(--on-primary);
 }
 
-/* ─── Dark theme ─────────────────────────────────────────────── */
-/* Baseado no visual da landing page (hero + navbar) do aplikei-pass-ia */
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --bg:             #020617;
-  --bg-subtle:      #0F172A;
-  --card:           #0F172A;
-  --highlight:      #000000;
-  --text:           #FFFFFF;
-  --text-muted:     #CBD5E1;
-  --border:         #1E293B;
-  --primary:        #3B82F6;
-  --primary-hover:  #60A5FA;
-  --success:        #22C55E;
-  --warning:        #F59E0B;
-  --danger:         #EF4444;
-  --info:           #38BDF8;
+  /* ── B2B Surface scale (deep indigo-navy) ── */
+  --surface:                  #0d1117;
+  --surface-dim:              #080c12;
+  --surface-bright:           #1e2a3e;
+  --surface-container-lowest: #07090f;
+  --surface-container-low:    #111827;
+  --surface-container:        #161f30;
+  --surface-container-high:   #1e2a3e;
+  --surface-container-highest:#253249;
+  --on-surface:               #dce6f7;
+  --on-surface-variant:       #a8bcd8;
+  --outline:                  #4a6080;
+  --outline-variant:          #263450;
+  --surface-tint:             #93b4ff;
+
+  --primary:                  #93b4ff;
+  --primary-container:        #2563eb;
+  --on-primary:               #001253;
+  --on-primary-container:     #dce6ff;
+
+  --secondary:                #8fa8cc;
+  --secondary-container:      #1e3354;
+  --on-secondary:             #0d1e35;
+  --on-secondary-container:   #c8dcf5;
+
+  --tertiary:                 #f9a74b;
+  --tertiary-container:       #7a3d00;
+  --on-tertiary:              #3d1e00;
+  --on-tertiary-container:    #ffddb8;
+
+  --success:                  #22c55e;
+  --warning:                  #f59e0b;
+  --danger:                   #ff8c8c;
+  --info:                     #38bdf8;
+
+  --bg: var(--surface-container-lowest);
+  --bg-subtle: var(--surface-container-low);
+  --card: var(--surface-container);
+  --highlight: var(--surface);
+  --text: var(--on-surface);
+  --text-muted: var(--on-surface-variant);
+  --border: var(--outline-variant);
+  --primary-hover: #60a5fa;
+  --button-primary: var(--primary);
+  --button-primary-hover: var(--primary-hover);
+  --button-primary-foreground: var(--on-primary);
 }
 
-/* ─── Accordion animations ───────────────────────────────────── */
 @keyframes accordion-down {
   from { height: 0; }
   to { height: var(--radix-accordion-content-height); }
@@ -90,13 +212,47 @@
 .animate-accordion-down { animation: accordion-down 150ms ease-in-out; }
 .animate-accordion-up   { animation: accordion-up   150ms ease-in-out; }
 
-/* ─── Base ───────────────────────────────────────────────────── */
+/* ─── Custom CSS for B2B ─────────────────────────────────────── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(225, 226, 236, 0.5);
+}
+
+[data-theme="dark"] .glass-card {
+  background: rgba(22, 31, 48, 0.88);
+  border: 1px solid rgba(38, 52, 80, 0.6);
+}
+
+/* ─── Dark: adapta cards com bg-white hardcoded ────────────────── */
+[data-theme="dark"] .bg-white {
+  background-color: var(--color-surface-container-high) !important;
+}
+
+[data-theme="dark"] .border-outline-variant {
+  border-color: var(--color-outline-variant);
+}
+
+[data-theme="dark"] .shadow-sm,
+[data-theme="dark"] .shadow-md {
+  --tw-shadow-color: rgba(0, 0, 0, 0.4);
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
 html {
-  background-color: var(--bg);
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(173, 198, 255, 0.08), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(77, 142, 255, 0.08), transparent 30%),
+    var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -104,8 +260,18 @@ html {
 }
 
 body {
+  min-height: 100vh;
   margin: 0;
-  background-color: var(--bg);
+  background:
+    radial-gradient(circle at top left, rgba(173, 198, 255, 0.08), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(77, 142, 255, 0.08), transparent 30%),
+    var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--primary) 28%, transparent);
   color: var(--text);
 }
 

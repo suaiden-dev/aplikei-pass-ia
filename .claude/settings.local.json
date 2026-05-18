@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rtk ls *)",
+      "Bash(rtk tsc *)",
+      "Bash(rtk wc *)",
+      "Bash(sed -i 's|from \"@app/core/auth/roles\"|from \"@features/auth/lib/roles\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/app/router/authRedirect.ts /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/admin/pages/TeamsPage/index.tsx /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/layouts/CustomerLayout.tsx /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/layouts/RoleDashboardLayout.tsx)",
+      "Bash(sed -i 's|from \"../../../../core/auth/roles\"|from \"@features/auth/lib/roles\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/admin/hooks/useAdminRoles.ts)",
+      "Bash(sed -i 's|from \"../../../core/auth/roles\"|from \"@features/auth/lib/roles\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/admin/pages/RolesPage/index.tsx)",
+      "Bash(sed -i 's|from \"../../../core/auth/roles\"|from \"../lib/roles\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/auth/services/authService.ts)",
+      "Bash(sed -i 's|from \"../../../data/workflowTemplates\"|from \"@shared/data/workflowTemplates\"|g;    s|from '\\\\''@shared/data/workflowTemplates'\\\\''|from '\\\\''@shared/data/workflowTemplates'\\\\''|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/admin/pages/ProcessDetailPage/index.tsx)",
+      "Bash(sed -i 's|from \"@app/data/services.i18n\"|from \"@shared/data/services.i18n\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/pages/ServiceDetailPage/index.tsx)",
+      "Bash(sed -i 's|from \"../../core/db/types\"|from \"@shared/types/db\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/notifications/types.ts /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/process/types.ts)",
+      "Bash(sed -i 's|from \"@app/core/storage/profile-photos\"|from \"@features/auth/services/storage\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/shared/components/organisms/PhotoUploadOverlay.tsx)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

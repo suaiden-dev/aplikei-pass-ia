@@ -1,13 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 import Stripe from "https://esm.sh/stripe@14.16.0";
-import { 
-    calculateSubtotal, 
-    applyCoupon, 
-    calculateCardAmountWithFees, 
+import { corsHeaders } from "../_shared/core/http.ts";
+import { createAdminClient } from "../_shared/core/supabase.ts";
+import {
+    applyCoupon,
+    calculateCardAmountWithFees,
     calculateUSDToPixFinalBRL,
     CouponData
-} from "./payment-logic.ts";
+} from "../_shared/payments/domain/fees.ts";
+import { resolveCatalogPricing } from "../_shared/payments/application/resolve-catalog-pricing.ts";
+import { getUsdToBrl } from "../_shared/payments/exchange-rate.ts";
+import {
+    resolveUseAplicei,
+    getOfficeStripeConfig,
+} from "../_shared/payments/office-payment.ts";
 
 const NOTIFICATIONS_WEBHOOK = Deno.env.get("NOTIFICATIONS_WEBHOOK_URL");
 
@@ -26,33 +32,6 @@ async function sendAlert(message: string, metadata: any = {}) {
     }
 }
 
-async function getExchangeRate(): Promise<number> {
-    try {
-        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-        if (!response.ok) throw new Error('Failed to fetch exchange rate');
-        const data = await response.json();
-        const baseRate = parseFloat(data.rates.BRL);
-        const exchangeRateWithMarkup = baseRate * 1.04;
-        return Math.round(exchangeRateWithMarkup * 1000) / 1000;
-    } catch (error: unknown) {
-        console.error("Error fetching exchange rate, using fallback:", (error as Error).message);
-        return 5.60;
-    }
-}
-
-const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-customer-auth",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-const DEPENDENT_SERVICE_MAP: Record<string, string> = {
-    'visto-b1-b2': 'dependente-b1-b2',
-    'visto-f1': 'dependente-estudante',
-    'visa-f1f2': 'dependente-estudante',
-    'extensao-status': 'dependente-estudante',
-    'troca-status': 'dependente-estudante',
-};
 
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -63,12 +42,10 @@ Deno.serve(async (req: Request) => {
         const body = await req.json();
         const {
             order_id, action, serviceId, discountPct = 0, coupon_code,
-            paymentMethod = 'card'
+            paymentMethod = 'card', office_id
         } = body;
 
-        const supabaseUrl = Deno.env.get("SUPABASE_URL");
-        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-        const supabase = createClient(supabaseUrl!, supabaseKey!);
+        const supabase = createAdminClient();
 
         // 🔎 Buscar dados do pedido se houver order_id
         let orderData: any = null;
@@ -94,46 +71,21 @@ Deno.serve(async (req: Request) => {
 
         metadata_for_logs.email = email;
         metadata_for_logs.slug = slug;
-        
+
         let origin_url = body.origin_url || body.originUrl || req.headers.get("origin") || req.headers.get("referer") || "https://aplikei.com";
         if (!origin_url.startsWith("http")) origin_url = `https://${origin_url}`;
 
         const urlObj = new URL(origin_url);
         metadata_for_logs.env = (urlObj.hostname === 'aplikei.com') ? 'PROD' : 'TEST';
 
-        const FALLBACK_PRICES: Record<string, { name: string; price: number }> = {
-            'analise-especialista-cos': { name: 'Análise de Especialista (COS)', price: 50 },
-            'analise-especialista-eos': { name: 'Análise de Especialista (EOS)', price: 50 },
-            'motion-reconsideracao-cos': { name: 'Motion para Reconsideração (COS)', price: 150 },
-            'motion-reconsideracao-eos': { name: 'Motion para Reconsideração (EOS)', price: 150 },
-            'rfe-support': { name: 'Apoio Técnico ao RFE', price: 497 },
-            'suporte-rfe-eos': { name: 'Suporte ao RFE (EOS)', price: 497 },
-            'suporte-rfe-cos': { name: 'Apoio ao RFE (Troca de Status)', price: 497 },
-            'recovery-eos': { name: 'Recuperação de Caso - Motion (EOS)', price: 897 },
-            'recovery-cos': { name: 'Recuperação de Caso - Motion (Troca de Status)', price: 897 },
-            'motion-support': { name: 'Motion de Reconsideração', price: 897 },
-            'apoio-rfe-motion-inicio': { name: 'Análise Inicial de Motion', price: 50 },
-            'proposta-rfe-motion': { name: 'Proposta de Motion (Customizada)', price: 0 },
-            'mentoria-individual': { name: 'Mentoria Individual - 1 Simulado', price: 197 },
-            'mentoria-bronze': { name: 'Mentoria Bronze - 2 Simulados', price: 397 },
-            'mentoria-gold': { name: 'Mentoria Gold - 3 Simulados', price: 697 },
-            'mentoria-negativa-consular': { name: 'Consultoria Especializada (Pós-Negativa)', price: 97 },
-            'slot-dependente-cos': { name: 'Dependente Adicional (COS/EOS)', price: 100 },
-        };
-
-        const dependentId = DEPENDENT_SERVICE_MAP[slug] || 'dependente-b1-b2';
-        const { data: dbPrices } = await supabase.from("services_prices").select("service_id, name, price").in("service_id", [slug, dependentId]);
-
-        let mainPriceInfo = dbPrices?.find(p => p.service_id === slug);
-        const depPriceInfo = dbPrices?.find(p => p.service_id === dependentId);
-
-        if (!mainPriceInfo && FALLBACK_PRICES[slug]) {
-            mainPriceInfo = { service_id: slug, ...FALLBACK_PRICES[slug] };
-        }
-
-        if (!mainPriceInfo) throw new Error(`Serviço não encontrado no catálogo: ${slug}`);
-
-        let basePriceUSD = Number(mainPriceInfo.price);
+        const pricing = await resolveCatalogPricing({
+            supabase,
+            slug,
+            officeId: office_id,
+            serviceId,
+        });
+        let basePriceUSD = pricing.basePriceUSD;
+        const mainPriceName = pricing.mainPriceName;
 
         // Validação dinâmica de preço (Segurança)
         if (targetProcId) {
@@ -150,8 +102,8 @@ Deno.serve(async (req: Request) => {
             basePriceUSD = Number(requestAmount);
         }
 
-        const depPriceUSD = depPriceInfo ? Number(depPriceInfo.price) : 0;
-        const subtotalUSD = calculateSubtotal(basePriceUSD, dependents, depPriceUSD);
+        const depPriceUSD = pricing.dependentPriceUSD;
+        const subtotalUSD = basePriceUSD + dependents * depPriceUSD;
 
         let finalSubtotalUSD = subtotalUSD;
         let appliedCouponId = null;
@@ -179,21 +131,43 @@ Deno.serve(async (req: Request) => {
         if (paymentMethod === 'pix') {
             currency = "brl";
             payment_method_types = ["pix"];
-            appliedExchangeRate = await getExchangeRate();
+            appliedExchangeRate = await getUsdToBrl();
             unitAmount = Math.round(calculateUSDToPixFinalBRL(finalSubtotalUSD, appliedExchangeRate) * 100);
         } else {
             unitAmount = Math.round(calculateCardAmountWithFees(finalSubtotalUSD) * 100);
         }
 
-        const stripeSecret = Deno.env.get(`STRIPE_SECRET_KEY_${metadata_for_logs.env}`) || Deno.env.get("STRIPE_SECRET_KEY");
+        const platformSecret = Deno.env.get(`STRIPE_SECRET_KEY_${metadata_for_logs.env}`) || Deno.env.get("STRIPE_SECRET_KEY");
+
+        let stripeSecret = platformSecret;
+        let connectAccountId: string | null = null;
+
+        if (office_id) {
+            const useAplicei = await resolveUseAplicei(supabase, office_id);
+            if (!useAplicei) {
+                const officeStripe = await getOfficeStripeConfig(supabase, office_id);
+
+                if (officeStripe.accountId) {
+                    // Stripe Connect: process on the office's connected account
+                    // using the platform key + stripeAccount option
+                    connectAccountId = officeStripe.accountId;
+                } else if (officeStripe.secretKey) {
+                    // Legacy fallback: office has its own secret key
+                    stripeSecret = officeStripe.secretKey;
+                }
+            }
+        }
+
         const stripe = new Stripe(stripeSecret!, { apiVersion: "2023-10-16", httpClient: Stripe.createFetchHttpClient() });
+
+        const sessionOptions = connectAccountId ? { stripeAccount: connectAccountId } : undefined;
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: payment_method_types as any,
             line_items: [{
                 price_data: {
                     currency,
-                    product_data: { name: mainPriceInfo.name, description: `Serviço Aplikei - ${paymentMethod.toUpperCase()}` },
+                    product_data: { name: mainPriceName, description: `Serviço Aplikei - ${paymentMethod.toUpperCase()}` },
                     unit_amount: unitAmount,
                 },
                 quantity: 1,
@@ -218,6 +192,8 @@ Deno.serve(async (req: Request) => {
                 proc_id: targetProcId || "",
                 processId: targetProcId || "",
                 order_id: order_id || "",
+                office_id: office_id || "",
+                stripe_connect_account: connectAccountId || "",
                 parent_service_slug: parentServiceSlug,
                 coupon_code: coupon_code || "",
                 applied_coupon_id: appliedCouponId || "",
@@ -228,7 +204,7 @@ Deno.serve(async (req: Request) => {
                 charged_amount: (unitAmount / 100).toString(),
                 charged_currency: currency
             },
-        });
+        }, sessionOptions);
 
         return new Response(JSON.stringify({ url: session.url }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },

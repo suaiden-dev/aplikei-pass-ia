@@ -26,7 +26,13 @@ END $$;
 -- New policy for Admins
 DO $$
 BEGIN
-  IF NOT EXISTS (
+  IF EXISTS (
+    SELECT 1
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.proname = 'current_user_role'
+  ) AND NOT EXISTS (
     SELECT 1 FROM pg_policies
     WHERE schemaname = 'public'
       AND tablename = 'notifications'
@@ -35,17 +41,11 @@ BEGIN
     CREATE POLICY "admins_can_update_admin_notifications" ON public.notifications
       FOR UPDATE USING (
         target_role = 'admin' AND
-        EXISTS (
-          SELECT 1 FROM public.user_accounts
-          WHERE id = auth.uid() AND role = 'admin'
-        )
+        coalesce(public.current_user_role()::text in ('master', 'admin', 'manager', 'admin_lawyer'), false)
       )
       WITH CHECK (
         target_role = 'admin' AND
-        EXISTS (
-          SELECT 1 FROM public.user_accounts
-          WHERE id = auth.uid() AND role = 'admin'
-        )
+        coalesce(public.current_user_role()::text in ('master', 'admin', 'manager', 'admin_lawyer'), false)
       );
   END IF;
 END $$;

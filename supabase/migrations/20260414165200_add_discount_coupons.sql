@@ -20,13 +20,19 @@ ALTER TABLE public.discount_coupons ENABLE ROW LEVEL SECURITY;
 -- Remover policy se já existir para evitar erro
 DO $$
 BEGIN
-    IF NOT EXISTS (
+    IF (
+      to_regclass('public.users_accounts') IS NOT NULL
+      OR to_regclass('public.user_accounts') IS NOT NULL
+    ) AND NOT EXISTS (
         SELECT 1 FROM pg_policies 
         WHERE tablename = 'discount_coupons' AND policyname = 'Admin full access'
     ) THEN
         CREATE POLICY "Admin full access" ON public.discount_coupons
         FOR ALL USING (
-            EXISTS (SELECT 1 FROM public.user_accounts WHERE id = auth.uid() AND role = 'admin')
+            coalesce(
+              public.current_user_role()::text in ('master', 'admin', 'manager', 'admin_lawyer'),
+              false
+            )
         );
     END IF;
 END
