@@ -608,6 +608,19 @@ const onboarding = {
           deniedDesc: "Seu Motion foi negado.",
           inReview: "Em análise",
           inReviewDesc: "Nossa equipe está analisando seu caso.",
+          chatTitle: "Fale com o especialista pelo chat",
+          specialistMessageActive: "O acesso ao especialista já foi liberado e um chat foi aberto para conduzir sua Motion.",
+          specialistMessageReady: "Seu acesso ao especialista foi liberado. Entre no chat para conduzir sua Motion com nossa equipe.",
+          chatBtn: "Ir para o Specialist",
+          resultQuestion: "Como foi o resultado da Motion?",
+          resultSubtitle: "Nos informe selecionando o botão abaixo.",
+          reportResult: "Informe o resultado",
+          selectOptionPrompt: "Selecione uma opção abaixo para nos informar como foi a Motion.",
+          processClosed: "Processo Encerrado",
+          approvedFinal: "Motion aprovada. Processo finalizado com sucesso!",
+          rejectedFinal: "Motion encerrada como reprovada. Processo finalizado.",
+          goDashboard: "Ir para o Dashboard",
+          chatSeedText: "Olá! Quero falar com o especialista sobre o resultado da minha Motion."
         }
       },
       rfe: {
@@ -652,6 +665,10 @@ const onboarding = {
           approved: "Aprovado",
           rfe: "Segunda RFE",
           denied: "Negado",
+          resultFinalReported: "Resultado Final Informado",
+          approvedFinal: "RFE aprovada. Processo finalizado com sucesso!",
+          newRfeCycle: "Novo ciclo de RFE iniciado.",
+          deniedFinal: "RFE negada. Iniciando fluxo de Motion."
         }
       }
     },
@@ -669,6 +686,18 @@ const onboarding = {
       finishSuccess: "Processo finalizado com sucesso!",
       resetRfe: "Ciclo resetado para nova RFE.",
       deniedMotion: "Visto negado. Iniciando fluxo de Motion.",
+      productNotFound: "Produto não encontrado",
+      processLoadError: "Erro ao carregar o processo.",
+      approvedResultSaved: "Resultado informado como aprovado.",
+      rejectedResultSaved: "Resultado informado como reprovado.",
+      resultSaveError: "Não foi possível salvar o resultado.",
+      motionResultSaveError: "Não foi possível salvar o resultado da Motion.",
+      resultReported: "Resultado informado.",
+      resultReportError: "Erro ao salvar resultado.",
+      uploadError: "Erro no upload",
+      checkoutError: "Erro no checkout",
+      zelleError: "Erro no Zelle",
+      parcelowError: "Erro Parcelow",
     }
 } as const;
 

@@ -62,10 +62,36 @@ export default function InteractionLogsPage() {
   const [selectedLog, setSelectedLog] = useState<InteractionLog | null>(null);
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [globalTotalCount, setGlobalTotalCount] = useState(0);
+  const [globalErrorCount, setGlobalErrorCount] = useState(0);
   const pageSize = 12;
 
   const navigate = useNavigate();
   const t = useT("admin");
+
+  const fetchGlobalStats = async () => {
+    if (!user?.officeId && user?.role !== "master") return;
+    try {
+      let totalQuery = supabase.from("checkout_logs").select("id", { count: "exact", head: true });
+      if (user?.role !== "master") {
+        totalQuery = totalQuery.eq("office_id", user?.officeId);
+      }
+      const { count: total } = await totalQuery;
+      setGlobalTotalCount(total || 0);
+
+      let errorQuery = supabase
+        .from("checkout_logs")
+        .select("id", { count: "exact", head: true })
+        .ilike("event_name", "%erro%");
+      if (user?.role !== "master") {
+        errorQuery = errorQuery.eq("office_id", user?.officeId);
+      }
+      const { count: errors } = await errorQuery;
+      setGlobalErrorCount(errors || 0);
+    } catch (err) {
+      console.error("Error fetching global stats:", err);
+    }
+  };
 
   const fetchLogs = async () => {
     if (!user?.officeId && user?.role !== "master") {
@@ -75,6 +101,8 @@ export default function InteractionLogsPage() {
     
     setLoading(true);
     try {
+      void fetchGlobalStats();
+
       let query = supabase
         .from("checkout_logs")
         .select("*", { count: "exact" })
@@ -89,7 +117,7 @@ export default function InteractionLogsPage() {
       if (filter === "error") {
         query = query.ilike("event_name", "%error%");
       } else if (filter === "warning") {
-        query = query.or("event_name.ilike.%warning%,details.ilike.%failed%");
+        query = query.or("event_name.ilike.%aviso%,event_name.ilike.%tentativa%,event_name.ilike.%recusad%,event_name.ilike.%warning%,details.ilike.%aviso%,details.ilike.%tentativa%,details.ilike.%recusad%,details.ilike.%warning%");
       }
 
       if (search) {
@@ -109,7 +137,7 @@ export default function InteractionLogsPage() {
 
   useEffect(() => {
     fetchLogs();
-  }, [page, filter, search]);
+  }, [page, filter, search, user]);
 
   const formatDate = (dt: string) => {
     const date = new Date(dt);
@@ -181,11 +209,10 @@ export default function InteractionLogsPage() {
 
       <main className="relative z-10 max-w-[1400px] mx-auto px-8 py-10">
         {/* Statistics Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
           {[
-            { label: "Total Events", value: totalCount, icon: RiHistoryLine, color: "text-primary" },
-            { label: "Detected Failures", value: Math.floor(totalCount * 0.05), icon: RiErrorWarningLine, color: "text-danger" },
-            { label: "Recent Activity", value: "Live Monitoring", icon: RiTerminalBoxLine, color: "text-success" }
+            { label: "Total de Eventos", value: globalTotalCount, icon: RiHistoryLine, color: "text-primary" },
+            { label: "Falhas Identificadas", value: globalErrorCount, icon: RiErrorWarningLine, color: "text-danger" }
           ].map((stat, i) => (
             <motion.div 
               key={i}

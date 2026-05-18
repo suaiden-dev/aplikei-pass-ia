@@ -201,12 +201,12 @@ export default function COSOnboardingPage() {
 
       toast.success(
         result === 'approved'
-          ? 'Resultado informado como aprovado.'
-          : 'Resultado informado como reprovado.',
+          ? (t?.cos?.toasts?.approvedResultSaved ?? 'Resultado informado como aprovado.')
+          : (t?.cos?.toasts?.rejectedResultSaved ?? 'Resultado informado como reprovado.'),
       )
     } catch (error) {
       console.error('[COSOnboardingPage] failed to save motion result:', error)
-      toast.error('Nao foi possivel salvar o resultado da Motion.')
+      toast.error(t?.cos?.toasts?.motionResultSaveError ?? 'Não foi possível salvar o resultado da Motion.')
     } finally {
       setIsSavingMotionResult(false)
     }
@@ -401,10 +401,10 @@ export default function COSOnboardingPage() {
       await processService.updateStepData(proc.id, {
         uscis_official_result: result,
       })
-      toast.success('Resultado informado.')
+      toast.success(t?.cos?.toasts?.resultReported ?? 'Resultado informado.')
       window.location.reload()
     } catch (err) {
-      toast.error('Erro ao salvar resultado.')
+      toast.error(t?.cos?.toasts?.resultReportError ?? 'Erro ao salvar resultado.')
     }
   }
 
@@ -418,10 +418,10 @@ export default function COSOnboardingPage() {
       await processService.updateStepData(proc.id, {
         uscis_rfe_result: result,
       })
-      toast.success('Resultado informado.')
+      toast.success(t?.cos?.toasts?.resultReported ?? 'Resultado informado.')
       window.location.reload()
     } catch (err) {
-      toast.error('Erro ao salvar resultado.')
+      toast.error(t?.cos?.toasts?.resultReportError ?? 'Erro ao salvar resultado.')
     }
   }
 

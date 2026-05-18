@@ -24,9 +24,19 @@ interface SupportChatProps {
   title?: string;
   isClosed?: boolean;
   serviceSlug?: string;
+  className?: string;
 }
 
-export function SupportChat({ processId, userId, role, userName, title, isClosed = false, serviceSlug }: SupportChatProps) {
+export function SupportChat({
+  processId,
+  userId,
+  role,
+  userName,
+  title,
+  isClosed = false,
+  serviceSlug,
+  className
+}: SupportChatProps) {
   const t = useT("common").chat;
   const roleCustomerLabel = t?.roles?.customer ?? "Customer";
   const roleAdminLabel = t?.roles?.admin ?? "Admin";
@@ -76,7 +86,7 @@ export function SupportChat({ processId, userId, role, userName, title, isClosed
   };
 
   return (
-    <div className="flex flex-col h-[500px] bg-card rounded-3xl border border-border shadow-sm overflow-hidden animate-in fade-in duration-500">
+    <div className={cn("flex flex-col h-[500px] bg-card rounded-3xl border border-border shadow-sm overflow-hidden animate-in fade-in duration-500", className)}>
       {/* Header */}
       <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-bg-subtle/50 shrink-0">
         <div className="flex items-center gap-3">

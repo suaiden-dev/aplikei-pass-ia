@@ -13,8 +13,6 @@ import {
   RiLoader4Line,
   RiErrorWarningLine,
   RiBookOpenLine,
-  RiUserVoiceLine,
-  RiFlagLine,
 } from "react-icons/ri";
 import { useAuth } from "@shared/hooks/useAuth";
 import { calculateProcessProgress } from "@features/process/utils";
@@ -118,41 +116,6 @@ export default function ProcessDetailPage() {
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
   });
-
-  const interviewOutcomeForConsultation = String(
-    (proc?.step_data as Record<string, unknown> | undefined)?.interview_outcome || "",
-  ).toLowerCase();
-  const shouldCheckConsultation =
-    !!user &&
-    (slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1") || slug.startsWith("visa-b1b2") || slug.startsWith("visa-f1")) &&
-    (proc?.status === "rejected" ||
-      interviewOutcomeForConsultation === "denied" ||
-      interviewOutcomeForConsultation === "rejected");
-
-  const { data: consultationProcessId = null } = useQuery({
-    queryKey: ['mentoria-negativa', user?.id, slug, shouldCheckConsultation],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data } = await supabase
-        .from("user_services")
-        .select("id, status")
-        .eq("user_id", user.id)
-        .in("service_slug", [
-          "mentoria-negativa-consular",
-          "consultoria-f1-negativa",
-          "consultancy-negative-f1",
-          "consultancy-negative-b1b2",
-          "analise-especialista-cos",
-          "analise-especialista-eos",
-        ])
-        .in("status", ["active", "awaiting_review", "awaiting_payment", "paid", "completed"])
-        .order("created_at", { ascending: false })
-        .maybeSingle();
-      return data?.id ?? null;
-    },
-    enabled: shouldCheckConsultation,
-  });
-  const hasConsultation = Boolean(consultationProcessId);
 
   useEffect(() => {
     if (!user || !proc) return;
@@ -367,83 +330,6 @@ export default function ProcessDetailPage() {
               >
                 <RiPlayFill className="text-base" /> {t.processDetail.fixProblems}
               </button>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Denial Recovery Banner */}
-      {(slug?.startsWith("visto-b1-b2") || slug?.startsWith("visto-f1")) && isDenied && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-12 p-10 rounded-[40px] bg-text/90 text-white overflow-hidden relative group"
-        >
-          {/* Decoration */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32" />
-
-          <div className="relative flex flex-col lg:flex-row items-center justify-between gap-8">
-            <div className="flex-1 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest mb-6">
-                <RiFlagLine className="text-sm" /> Status: {t.processDetail.visaDenied}
-              </div>
-
-              {hasConsultation ? (
-                <>
-                  <h2 className="font-display font-black text-3xl sm:text-4xl leading-tight tracking-tight mb-4" dangerouslySetInnerHTML={{
-                    __html: t.processDetail.denialBanner?.consultationConfirmed.replace('{highlight}', `<span className="text-primary">${t.processDetail.denialBanner?.consultationConfirmedHighlight}</span>`) || `Consulta <span className="text-primary">Confirmada</span>.`
-                  }} />
-                  <p className="text-text-muted text-base font-medium max-w-xl">
-                    {t.processDetail.denialBanner?.consultationConfirmedDesc}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h2 className="font-display font-black text-3xl sm:text-4xl leading-tight tracking-tight mb-4" dangerouslySetInnerHTML={{
-                    __html: t.processDetail.denialTitle.replace('{highlight}', `<span className="text-primary">${t.processDetail.denialTitleHighlight}</span>`)
-                  }} />
-                  <p className="text-text-muted text-base font-medium max-w-xl">
-                    {t.processDetail.denialDesc.replace('{slug}', slug.includes("f1") ? "F-1" : "B1/B2")}
-                  </p>
-                </>
-              )}
-            </div>
-
-            <div className="shrink-0 w-full lg:w-auto flex flex-col gap-4">
-              {hasConsultation ? (
-                <Link
-                  to={`/dashboard/support${consultationProcessId ? `?processId=${consultationProcessId}` : ""}`}
-                  className="flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-black uppercase tracking-widest transition-all shadow-xl active:scale-[0.98]"
-                >
-                  <RiUserVoiceLine className="text-xl" />
-                  Ir para chat
-                  <RiArrowRightLine className="text-xl" />
-                </Link>
-              ) : (
-                <div>
-                  <Link
-                    to={`/checkout/mentoria-negativa-consular?${new URLSearchParams({
-                      ...(user?.officeId ? { office_id: user.officeId } : {}),
-                      ...(proc?.id ? { proc_id: proc.id } : {}),
-                    }).toString()}`}
-                    className="flex items-center justify-center gap-3 px-8 py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white text-sm font-black uppercase tracking-widest transition-all shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98]"
-                  >
-                    <RiUserVoiceLine className="text-xl" />
-                    {t.processDetail.scheduleConsultation.replace('{price}', " ($97)")}
-                    <RiArrowRightLine className="text-xl" />
-                  </Link>
-                  <p className="text-center text-[10px] text-text-muted mt-4 uppercase font-bold tracking-widest">
-                    {t.processDetail.limitedSlots}
-                  </p>
-                </div>
-              )}
-              <Link
-                to={slug.includes("f1") ? `/checkout/visto-f1-reaplicacao${user?.officeId ? `?office_id=${user.officeId}` : ""}` : `/checkout/visto-b1-b2-reaplicacao${user?.officeId ? `?office_id=${user.officeId}` : ""}`}
-                className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-black uppercase tracking-widest transition-all"
-              >
-                {t.processDetail.restartProcess}
-                <RiArrowRightLine className="text-xl" />
-              </Link>
             </div>
           </div>
         </motion.div>
@@ -692,14 +578,14 @@ export default function ProcessDetailPage() {
             <div className="flex items-center gap-3 mb-6">
               <div className={cn(
                 "w-3 h-3 rounded-full animate-pulse",
-                isApproved ? "bg-emerald-400" :
-                  isDenied ? "bg-red-400" :
-                    isFinalized ? "bg-emerald-400" : "bg-[#0b2a5b]"
+                isApproved ? "bg-success" :
+                  isDenied ? "bg-danger" :
+                    isFinalized ? "bg-success" : "bg-primary"
               )} />
               <span className={cn(
                 "text-lg font-black uppercase tracking-tight",
-                isApproved ? "text-emerald-400" :
-                  isDenied ? "text-red-400" : "text-[#0b2a5b]"
+                isApproved ? "text-success" :
+                  isDenied ? "text-danger" : "text-primary"
               )}>
                 {isApproved ? t.processDetail.approved :
                   isDenied ? t.processDetail.denied :
@@ -714,7 +600,7 @@ export default function ProcessDetailPage() {
                 <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">{t.processDetail.progressLabel}</span>
                 <span className={cn(
                   "text-2xl font-black tabular-nums",
-                  isApproved ? "text-emerald-400" : isDenied ? "text-red-400" : "text-[#0b2a5b]"
+                  isApproved ? "text-success" : isDenied ? "text-danger" : "text-primary"
                 )}>
                   {progressPercent}%
                 </span>
@@ -725,7 +611,7 @@ export default function ProcessDetailPage() {
                   animate={{ width: `${progressPercent}%` }}
                   className={cn(
                     "h-full",
-                    isApproved ? "bg-emerald-500" : isDenied ? "bg-red-500" : "bg-[#0b2a5b]"
+                    isApproved ? "bg-success" : isDenied ? "bg-danger" : "bg-primary"
                   )}
                 />
               </div>
