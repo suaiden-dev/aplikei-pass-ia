@@ -189,7 +189,7 @@ export function B1B2StepContent({
                     className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <RiArrowLeftLine className="text-lg" />
-                    Anterior
+                    {labels.previous || 'Anterior'}
                   </button>
                 )}
 
@@ -213,7 +213,7 @@ export function B1B2StepContent({
                     disabled={formBusy}
                     className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                   >
-                    Próxima seção
+                    {labels.nextSection || 'Próxima seção'}
                     <RiArrowRightLine className="text-lg" />
                   </button>
                 ) : (
@@ -223,7 +223,7 @@ export function B1B2StepContent({
                       onClick={onNavigateToProcess}
                       className='w-full sm:w-auto px-8 py-3.5 rounded-xl bg-card border border-border text-text font-black text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all flex items-center justify-center gap-2'
                     >
-                      Voltar ao Painel
+                      {labels.backToDashboard || 'Voltar ao Painel'}
                     </button>
                   ) : isValid ? (
                     <button
@@ -239,7 +239,7 @@ export function B1B2StepContent({
                           ) : (
                             <RiLoader4Line className='animate-spin text-lg' />
                           )}
-                          {justSubmitted ? 'Enviado com sucesso!' : 'Processando...'}
+                          {justSubmitted ? (labels.sentSuccessfully || 'Enviado com sucesso!') : (labels.processing || 'Processando...')}
                         </>
                       ) : (
                         <>

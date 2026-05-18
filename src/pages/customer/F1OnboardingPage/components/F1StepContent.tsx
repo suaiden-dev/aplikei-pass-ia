@@ -214,7 +214,7 @@ export function F1StepContent({
                   disabled={formBusy}
                   className='w-full sm:w-auto px-6 py-3.5 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-50'
                 >
-                  Anterior
+                  {labels.previous || 'Anterior'}
                 </button>
               )}
 
@@ -238,7 +238,7 @@ export function F1StepContent({
                   disabled={formBusy}
                   className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                 >
-                  Próxima seção
+                  {labels.nextSection || 'Próxima seção'}
                   <span className="text-lg">&rarr;</span>
                 </button>
               ) : isReadOnly ? (
@@ -247,7 +247,7 @@ export function F1StepContent({
                   onClick={onNavigateToProcess}
                   className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3"
                 >
-                  Voltar ao Painel
+                  {labels.backToDashboard || 'Voltar ao Painel'}
                   <span className="text-lg">&rarr;</span>
                 </button>
               ) : (

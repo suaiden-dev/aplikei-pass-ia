@@ -36,6 +36,10 @@ export interface B1B2OnboardingLabels {
   creatingCredentialsTitle?: string;
   creatingCredentialsDesc?: string;
   adminFeedback?: string;
+  previous?: string;
+  nextSection?: string;
+  processing?: string;
+  sentSuccessfully?: string;
 }
 
 const INITIAL_VALUES: Partial<DS160FormValues> = {
