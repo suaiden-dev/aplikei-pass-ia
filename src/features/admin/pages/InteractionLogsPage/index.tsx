@@ -211,8 +211,8 @@ export default function InteractionLogsPage() {
         {/* Statistics Bar */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
           {[
-            { label: "Total de Eventos", value: globalTotalCount, icon: RiHistoryLine, color: "text-primary" },
-            { label: "Falhas Identificadas", value: globalErrorCount, icon: RiErrorWarningLine, color: "text-danger" }
+            { label: "Total Events", value: globalTotalCount, icon: RiHistoryLine, color: "text-primary" },
+            { label: "Detected Failures", value: globalErrorCount, icon: RiErrorWarningLine, color: "text-danger" }
           ].map((stat, i) => (
             <motion.div 
               key={i}
@@ -256,7 +256,7 @@ export default function InteractionLogsPage() {
               type="text" 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Pesquisar logs..."
+              placeholder="Search logs..."
               className="w-full bg-card border border-border rounded-xl pl-12 pr-4 py-3 text-sm text-text focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-text-muted"
             />
           </div>
@@ -266,10 +266,10 @@ export default function InteractionLogsPage() {
         <div className="bg-card border border-border rounded-[32px] overflow-hidden backdrop-blur-sm">
           {/* Header Row */}
           <div className="grid grid-cols-12 gap-4 md:gap-6 px-6 md:px-8 py-5 border-b border-border text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
-            <div className="col-span-6 md:col-span-4 text-left">Evento Principal</div>
-            <div className="hidden lg:block col-span-2 text-left">Origem</div>
+            <div className="col-span-6 md:col-span-4 text-left">Primary Event</div>
+            <div className="hidden lg:block col-span-2 text-left">Source</div>
             <div className="hidden md:block col-span-4 lg:col-span-3 text-left">Context / Action</div>
-            <div className="hidden xl:block col-span-2 text-left">Temporalidade</div>
+            <div className="hidden xl:block col-span-2 text-left">Timeline</div>
             <div className="col-span-6 md:col-span-2 xl:col-span-1 text-right">Action</div>
           </div>
 
@@ -279,12 +279,12 @@ export default function InteractionLogsPage() {
                 <div className="w-16 h-16 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
                 <RiLoader4Line className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl text-primary animate-pulse" />
               </div>
-              <p className="text-sm text-[#64748b] font-bold uppercase tracking-widest animate-pulse">Sincronizando Registros...</p>
+              <p className="text-sm text-[#64748b] font-bold uppercase tracking-widest animate-pulse">Synchronizing Records...</p>
             </div>
           ) : logs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-32 gap-6 opacity-60">
               <RiInformationLine className="text-5xl text-[#64748b]" />
-              <p className="text-sm text-[#64748b] font-medium italic">No intercepted data for this query.</p>
+              <p className="text-sm text-[#64748b] font-medium italic">No records found for this query.</p>
             </div>
           ) : (
             <motion.div 
@@ -319,7 +319,7 @@ export default function InteractionLogsPage() {
                           {log.event_name.replace(/_/g, ' ')}
                         </p>
                         <span className="text-[10px] text-text-muted font-bold truncate block">
-                          {log.email || "Visitante"}
+                          {log.email || "Visitor"}
                         </span>
                       </div>
                     </div>
@@ -333,7 +333,7 @@ export default function InteractionLogsPage() {
 
                     <div className="hidden md:block col-span-4 lg:col-span-3 text-left min-w-0">
                       <p className="text-[11px] text-text-muted truncate" title={parseDetails(log.details).context}>
-                        {parseDetails(log.details).context || "—"}
+                          {parseDetails(log.details).context || "—"}
                       </p>
                     </div>
 
@@ -373,7 +373,7 @@ export default function InteractionLogsPage() {
               className="flex items-center gap-2 px-5 py-3 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-20"
             >
               <RiArrowLeftSLine className="text-xl" />
-              Anterior
+              Previous
             </button>
             <button 
               disabled={(page + 1) * pageSize >= totalCount}
@@ -433,18 +433,18 @@ export default function InteractionLogsPage() {
                   <div className="p-5 bg-bg-subtle border border-border rounded-2xl text-left">
                     <p className="text-[10px] font-black text-text-muted uppercase mb-2 tracking-widest">Event</p>
                     <p className="text-sm font-bold text-text truncate">{formatDate(selectedLog.created_at).full}</p>
-                    <span className="text-[10px] text-success font-bold uppercase">Interceptado</span>
+                    <span className="text-[10px] text-success font-bold uppercase">Intercepted</span>
                   </div>
                 </div>
 
                 <div className="space-y-6 text-left">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-bg-subtle border border-border rounded-xl">
-                      <p className="text-[10px] font-black text-text-muted uppercase mb-1 tracking-widest">Origem</p>
+                      <p className="text-[10px] font-black text-text-muted uppercase mb-1 tracking-widest">Source</p>
                       <p className="text-xs font-mono text-primary font-bold">{parseDetails(selectedLog.details).origin}</p>
                     </div>
                     <div className="p-4 bg-bg-subtle border border-border rounded-xl">
-                      <p className="text-[10px] font-black text-text-muted uppercase mb-1 tracking-widest">Evento</p>
+                      <p className="text-[10px] font-black text-text-muted uppercase mb-1 tracking-widest">Event</p>
                       <p className="text-xs font-bold text-text uppercase">{selectedLog.event_name.replace(/_/g, ' ')}</p>
                     </div>
                   </div>
@@ -465,7 +465,7 @@ export default function InteractionLogsPage() {
                   </h4>
                   <div className="grid grid-cols-1 gap-3">
                     <div className="flex items-center justify-between p-3 bg-bg-subtle border border-border rounded-xl">
-                        <span className="text-[10px] text-text-muted font-bold uppercase">ID do Log</span>
+                        <span className="text-[10px] text-text-muted font-bold uppercase">Log ID</span>
                         <span className="text-xs text-text font-mono">{selectedLog.id}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-bg-subtle border border-border rounded-xl">
@@ -481,7 +481,7 @@ export default function InteractionLogsPage() {
                   onClick={() => setSelectedLog(null)}
                   className="flex-1 py-4 bg-card border border-border rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-bg-subtle transition-all"
                 >
-                  Fechar Painel
+                  Close Panel
                 </button>
               </div>
             </motion.div>

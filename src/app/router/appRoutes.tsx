@@ -77,7 +77,7 @@ const PlansPage = lazyPage(() => import("@features/admin/pages/PlansPage/index")
 // );
 const AdminChatsPage = lazyPage(() => import("@features/admin/pages/ChatsPage"));
 const CouponsPage = lazyPage(() => import("@features/admin/pages/CouponsPage/index"));
-const ProductsPage = lazyPage(() => import("@features/admin/pages/master/ProductsPage"));
+const ProductsPage = lazyPage(() => import("@features/admin/pages/ProductsPage"));
 const PaymentMethodsSettingsPage = lazyPage(
   () => import("@features/admin/pages/PaymentMethodsSettingsPage"),
 );
