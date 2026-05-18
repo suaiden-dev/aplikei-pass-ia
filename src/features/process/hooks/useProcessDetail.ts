@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "../../../shared/lib/supabase";
-import { notifyAdmin, notifyClient } from "../../notifications/lib/notify";
-import { getServiceBySlug } from "../../../data/services";
+import { supabase } from "@shared/lib/supabase";
+import { notifyAdmin, notifyClient } from "@features/notifications/services/notify";
+import { getServiceBySlug } from "@shared/data/services";
 import type { UserService } from "../types";
 
 async function fetchProcess(

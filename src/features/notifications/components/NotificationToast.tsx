@@ -8,7 +8,7 @@ import {
   RiCloseLine 
 } from "react-icons/ri";
 import type { ToastItem } from "../types";
-import { useAuth } from "../../../hooks/useAuth";
+import { useAuth } from "@shared/hooks/useAuth";
 
 interface NotificationToastProps {
   toast: ToastItem;

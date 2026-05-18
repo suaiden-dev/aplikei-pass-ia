@@ -11,10 +11,10 @@ import {
   RiExternalLinkLine
 } from "react-icons/ri";
 import { toast } from "sonner";
-import { cn } from "../../../utils/cn";
+import { cn } from "@shared/utils/cn";
 import { useChat } from "../hooks/useChat";
 import type { ChatMessage } from "../types";
-import { useT } from "../../../i18n";
+import { useT } from "@app/app/i18n";
 
 interface SupportChatProps {
   processId: string;

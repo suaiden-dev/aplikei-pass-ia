@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "../../../shared/lib/supabase";
-import { isCustomerChatEligible, getAnalysisChatTitle } from "../lib/eligibility";
+import { supabase } from "@shared/lib/supabase";
+import { isCustomerChatEligible, getAnalysisChatTitle } from "../services/eligibility";
 import type { SpecialistChatThread } from "../types";
 import type { UserService } from "../../process/types";
 
@@ -26,7 +26,13 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
     }
     setIsLoading(true);
     try {
-      let query = supabase
+      if (role === "manager" && !officeId) {
+        setThreads([]);
+        setUnreadByProcess({});
+        return;
+      }
+
+      let servicesQuery = supabase
         .from("user_services")
         .select(`
           id,
@@ -45,22 +51,54 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
         `);
 
       if (role === "manager") {
-        if (!officeId) {
-          setThreads([]);
-          setUnreadByProcess({});
-          setIsLoading(false);
-          return;
-        }
-        query = query.eq("office_id", officeId);
+        servicesQuery = servicesQuery.eq("office_id", officeId);
       }
 
-      const { data, error } = await query.order("created_at", { ascending: false });
+      const { data: serviceRows, error: serviceError } = await servicesQuery.order("created_at", { ascending: false });
+      if (serviceError) throw new Error(serviceError.message);
 
-      if (error) throw new Error(error.message);
+      const services = (serviceRows || []) as Array<Record<string, unknown>>;
+      if (!services.length) {
+        setThreads([]);
+        setUnreadByProcess({});
+        return;
+      }
 
-      const services = (data || []) as Array<Record<string, unknown>>;
-      const candidates = services.filter((row) =>
-        isCustomerChatEligible({
+      const processIds = services.map((row) => row.id as string);
+      const { data: chatRows, error: chatError } = await supabase
+        .from("chat_messages")
+        .select("process_id, sender_role, created_at")
+        .in("process_id", processIds)
+        .order("created_at", { ascending: true });
+      if (chatError) throw new Error(chatError.message);
+
+      const activeProcessIds = new Set(
+        (chatRows || []).map((row: Record<string, unknown>) => row.process_id as string),
+      );
+
+      const unread: Record<string, number> = {};
+      const lastMessageAtByProcess: Record<string, string> = {};
+      processIds.forEach((id) => { unread[id] = 0; });
+      (chatRows || []).forEach((row: Record<string, unknown>) => {
+        const processId = row.process_id as string;
+        const createdAt = row.created_at as string | undefined;
+        if (createdAt) {
+          const prev = lastMessageAtByProcess[processId];
+          if (!prev || new Date(createdAt).getTime() > new Date(prev).getTime()) {
+            lastMessageAtByProcess[processId] = createdAt;
+          }
+        }
+        if (row.sender_role === "admin") {
+          unread[processId] = 0;
+        } else if (row.sender_role === "customer") {
+          unread[processId] = (unread[processId] || 0) + 1;
+        }
+      });
+      setUnreadByProcess(unread);
+
+      const result: SpecialistChatThread[] = [];
+      services.forEach((row) => {
+        const eligible = isCustomerChatEligible({
           id: row.id as string,
           user_id: row.user_id as string,
           service_slug: row.service_slug as string,
@@ -69,42 +107,9 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
           current_step: (row.current_step as number | null) ?? null,
           created_at: row.created_at as string,
           updated_at: row.created_at as string,
-        } as UserService),
-      );
+        } as UserService);
+        if (!activeProcessIds.has(row.id as string) && !eligible) return;
 
-      if (!candidates.length) {
-        setThreads([]);
-        return;
-      }
-
-      const processIds = candidates.map((row) => row.id as string);
-
-      const { data: chatRows, error: chatError } = await supabase
-        .from("chat_messages")
-        .select("process_id, sender_role, created_at")
-        .in("process_id", processIds)
-        .order("created_at", { ascending: true });
-
-      if (chatError) throw new Error(chatError.message);
-
-      const activeProcessIds = new Set(
-        (chatRows || []).map((row: Record<string, unknown>) => row.process_id as string),
-      );
-
-      const unread: Record<string, number> = {};
-      processIds.forEach((id) => { unread[id] = 0; });
-      (chatRows || []).forEach((row: Record<string, unknown>) => {
-        if (row.sender_role === "admin") {
-          unread[row.process_id as string] = 0;
-        } else if (row.sender_role === "customer") {
-          unread[row.process_id as string] = (unread[row.process_id as string] || 0) + 1;
-        }
-      });
-      setUnreadByProcess(unread);
-
-      const result: SpecialistChatThread[] = [];
-      candidates.forEach((row) => {
-        if (!activeProcessIds.has(row.id as string)) return;
         const account = row.user_accounts as Record<string, unknown> | undefined;
         if (!account) return;
 
@@ -116,10 +121,11 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
           fullName: (account.full_name as string | undefined) || "Sem Nome",
           email: (account.email as string | undefined) || "",
           avatarUrl: (account.avatar_url as string | null | undefined) ?? null,
-          createdAt: row.created_at as string,
+          createdAt: lastMessageAtByProcess[row.id as string] || (row.created_at as string),
         });
       });
 
+      result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setThreads(result);
     } catch (err) {
       console.error("[useAdminChats] load error:", err);

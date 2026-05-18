@@ -1,9 +1,9 @@
-import { supabase } from "../../../../shared/lib/supabase";
-import { updateStepData } from "../../../process/lib/processOps";
+import { supabase } from "@shared/lib/supabase";
+import { updateStepData } from "../../../process/services/processOps";
 import { PDFDocument } from "pdf-lib";
-import type { FinalFormsData } from "../../../../pages/customer/COSOnboardingPage/FinalFormsStep";
-import g1145Url from "../assets/g1145_template.pdf?url";
-import g1450Url from "../assets/g1450_template.pdf?url";
+import type { FinalFormsData } from "../pages/COSOnboardingPage/FinalFormsStep";
+import g1145Url from "@app/assets/documents/cos/g1145_template.pdf?url";
+import g1450Url from "@app/assets/documents/cos/g1450_template.pdf?url";
 
 export const finalFormsService = {
   async generateAndUploadFinalForms(userId: string, processId: string, data: FinalFormsData): Promise<void> {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodValidate } from "../../../../utils/zodValidate";
+import { zodValidate } from "@shared/utils/zodValidate";
 
 // ─── Base helpers ────────────────────────────────────────────────────────────
 const requiredString = (msg: string) => z.string({ message: msg }).min(1, msg);
@@ -15,6 +15,11 @@ export const DS160Schema = z
     isBrazilian: yesNo(),
 
     // 2. Dados Pessoais
+    surname: requiredString("Sobrenome é obrigatório"),
+    givenName: requiredString("Nome é obrigatório"),
+    fullNameNativeAlphabet: optionalString(),
+    hasTelecodeForName: yesNoOptional(),
+    maternalGrandmotherName: requiredString("Nome da avó materna é obrigatório"),
     fullName: requiredString("Nome completo é obrigatório (conforme passaporte)"),
     hasOtherNames: yesNo(),
     otherNames: optionalString(),

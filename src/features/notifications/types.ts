@@ -1,4 +1,4 @@
-import type { NotificationRow } from "../../shared/db/types";
+import type { NotificationRow } from "@shared/types/db";
 
 export type Notification = NotificationRow;
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../../../shared/lib/supabase";
-import { useAuth } from "../../../hooks/useAuth";
+import { supabase } from "@shared/lib/supabase";
+import { useAuth } from "@shared/hooks/useAuth";
 
 export type SubscriptionStatus = "active" | "past_due" | "canceled" | "trialing" | "none";
 

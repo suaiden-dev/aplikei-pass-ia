@@ -1,4 +1,4 @@
-import { AccessLevel } from "../../routes/accessLevels";
+import { AccessLevel } from "../../app/router/accessLevels";
 
 // UserAccount é um tipo de visão (camelCase) mapeado da tabela user_accounts
 // Mantido manualmente pois a tabela usa snake_case mas o app usa camelCase

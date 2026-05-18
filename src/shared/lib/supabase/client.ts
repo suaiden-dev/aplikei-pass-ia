@@ -86,3 +86,7 @@ if (
 ) {
   (window as unknown as Window & { supabase: SupabaseClient }).supabase = supabase;
 }
+
+export function getSupabaseClient(): SupabaseClient {
+  return supabase;
+}

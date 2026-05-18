@@ -2,7 +2,7 @@ import type {
   UserServiceRow,
   UserServiceInsert as UserServiceInsertDb,
   UserServiceUpdate as UserServiceUpdateDb,
-} from "../../shared/db/types";
+} from "@shared/types/db";
 
 // ── DB-derived types (fonte única: gerado pelo Supabase) ──────────────────────
 export interface UserService extends UserServiceRow {

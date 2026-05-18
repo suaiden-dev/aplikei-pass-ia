@@ -1,26 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc *)",
-      "Bash(supabase --version)",
-      "Read(//home/vileladev/www/aplikei/**)",
-      "Read(//home/vileladev/www/**)",
-      "Bash(rtk git *)",
       "Bash(rtk ls *)",
-      "Bash(rtk grep *)",
-      "Bash(rtk find *)",
-      "Bash(rtk read *)",
       "Bash(rtk tsc *)",
-      "Bash([ -d \"/home/vileladev/Desk/aplikei/aplikei-pass-ia/src/pages/$page\" ])",
-      "Bash(rtk npx *)",
-      "Bash(git *)",
-      "Bash(grep -v \"^$\")",
-      "Bash(timeout 15 npx vite --port 5174)",
-      "Bash(sed -i 's/import { processService } from/import * as processService from/g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/pages/customer/COSOnboardingPage/index.tsx /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/pages/customer/COSOnboardingPage/FinalPackageStep.tsx /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/pages/customer/COSOnboardingPage/MotionWorkflow.tsx)",
-      "Bash(sed -i 's/import { paymentService } from/import * as paymentService from/g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/pages/customer/COSOnboardingPage/MotionWorkflow.tsx)",
-      "Bash(grep -v \"^$\\\\|─\\\\|│\\\\|╭\\\\|╰\\\\|^  \\\\|^\\\\[38\")",
       "Bash(rtk wc *)",
-      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
+      "Bash(sed -i 's|from \"@app/core/auth/roles\"|from \"@features/auth/lib/roles\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/app/router/authRedirect.ts /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/admin/pages/TeamsPage/index.tsx /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/layouts/CustomerLayout.tsx /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/layouts/RoleDashboardLayout.tsx)",
+      "Bash(sed -i 's|from \"../../../../core/auth/roles\"|from \"@features/auth/lib/roles\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/admin/hooks/useAdminRoles.ts)",
+      "Bash(sed -i 's|from \"../../../core/auth/roles\"|from \"@features/auth/lib/roles\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/admin/pages/RolesPage/index.tsx)",
+      "Bash(sed -i 's|from \"../../../core/auth/roles\"|from \"../lib/roles\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/auth/services/authService.ts)",
+      "Bash(sed -i 's|from \"../../../data/workflowTemplates\"|from \"@shared/data/workflowTemplates\"|g;    s|from '\\\\''@shared/data/workflowTemplates'\\\\''|from '\\\\''@shared/data/workflowTemplates'\\\\''|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/admin/pages/ProcessDetailPage/index.tsx)",
+      "Bash(sed -i 's|from \"@app/data/services.i18n\"|from \"@shared/data/services.i18n\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/pages/ServiceDetailPage/index.tsx)",
+      "Bash(sed -i 's|from \"../../core/db/types\"|from \"@shared/types/db\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/notifications/types.ts /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/process/types.ts)",
+      "Bash(sed -i 's|from \"@app/core/storage/profile-photos\"|from \"@features/auth/services/storage\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/shared/components/organisms/PhotoUploadOverlay.tsx)",
+      "Bash(npx tsc *)"
     ]
   }
 }

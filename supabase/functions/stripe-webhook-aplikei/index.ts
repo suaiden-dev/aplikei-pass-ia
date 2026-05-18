@@ -9,7 +9,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 import Stripe from "https://esm.sh/stripe@14.16.0";
-import { corsHeaders } from "../_shared/cors.ts";
+import { corsHeaders } from "../_shared/core/http.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
