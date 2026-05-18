@@ -52,10 +52,7 @@ const FormInput = ({
             id={name}
             type={type}
             placeholder={placeholder}
-            className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
-              ? "border-red-300 bg-red-50/50 focus:border-red-400"
-              : "border-border bg-card focus:border-primary"
-              }`}
+            value={field.value || ""}
             onChange={(e) => {
               if (onChange) {
                 onChange(e);
@@ -63,6 +60,54 @@ const FormInput = ({
                 field.onChange(e);
               }
             }}
+            className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
+              ? "border-red-300 bg-red-50/50 focus:border-red-400"
+              : "border-border bg-card focus:border-primary"
+              }`}
+          />
+        )}
+      </Field>
+      <FieldError name={name} />
+    </div>
+  );
+};
+
+const FormNumericInput = ({
+  name,
+  label,
+  placeholder = "",
+  required = false,
+}: {
+  name: string;
+  label: string;
+  placeholder?: string;
+  required?: boolean;
+}) => {
+  const { errors, touched, setFieldValue } = useFormikContext<Record<string, unknown>>();
+  const hasError = !!(errors[name] && touched[name]);
+
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+        {label} {required && <span className="text-primary">*</span>}
+      </label>
+      <Field name={name}>
+        {({ field, form }: any) => (
+          <input
+            {...field}
+            id={name}
+            type="text"
+            inputMode="numeric"
+            placeholder={placeholder}
+            value={field.value || ""}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, "");
+              form.setFieldValue(name, val);
+            }}
+            className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
+              ? "border-red-300 bg-red-50/50 focus:border-red-400"
+              : "border-border bg-card focus:border-primary"
+              }`}
           />
         )}
       </Field>
@@ -436,7 +481,7 @@ export const DS160SingleFormStep = ({
           </div>
           <FormInput name="usStayCity" label={t.onboardingPage.form.cityLabel} required />
           <FormInput name="usStayState" label={t.onboardingPage.form.stateLabelShort} placeholder={t.onboardingPage.form.statePlaceholderShort} required />
-          <FormInput name="usStayZip" label={t.onboardingPage.form.zipCodeLabel} placeholder={t.onboardingPage.form.zipCodePlaceholder} />
+          <FormNumericInput name="usStayZip" label={t.onboardingPage.form.zipCodeLabel} placeholder={t.onboardingPage.form.zipCodePlaceholder} />
         </div>
       </div>
 
@@ -522,7 +567,7 @@ export const DS160SingleFormStep = ({
         </div>
         <FormInput name="homeCity" label={t.onboardingPage.form.cityLabel} required />
         <FormInput name="homeState" label={t.onboardingPage.form.stateProvinceLabel} required />
-        <FormInput name="homeZip" label={t.onboardingPage.form.zipCodeLabel} required />
+        <FormNumericInput name="homeZip" label={t.onboardingPage.form.zipCodeLabel} required />
         <FormInput name="homeCountry" label={t.onboardingPage.form.countryLabel} required />
       </div>
 
@@ -619,7 +664,7 @@ export const DS160SingleFormStep = ({
             <FormInput name="primaryJobAddress" label={t.onboardingPage.form.fullAddressLabel} />
           </div>
           <FormInput name="primaryJobPhone" label={t.onboardingPage.form.phoneLabel} />
-          <FormInput name="primaryJobSalary" label={t.onboardingPage.form.monthlySalaryLabel} placeholder={t.onboardingPage.form.monthlySalaryPlaceholder} />
+          <FormNumericInput name="primaryJobSalary" label={t.onboardingPage.form.monthlySalaryLabel} placeholder={t.onboardingPage.form.monthlySalaryPlaceholder} />
           <div className="sm:col-span-2">
             <FormTextarea name="primaryJobDuties" label={t.onboardingPage.form.jobDutiesLabel} rows={2} />
           </div>

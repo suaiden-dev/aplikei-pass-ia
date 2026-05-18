@@ -52,16 +52,17 @@ export function useWithdrawals(officeId?: string) {
     },
     onSuccess: async (created) => {
       await notifyMaster({
-        title: "Nova requisicao de saque",
+        title: "Nova requisição de saque",
         body: `Uma office solicitou saque de $${Number(created?.amount || 0).toFixed(2)}.`,
-        serviceId: created?.id,
-        link: "/payments?tab=office_requests",
+        // Pass withdrawal_id in metadata instead of serviceId to avoid FK violations
+        // if serviceId is strictly for user_services
         metadata: {
           office_id: created?.office_id,
           withdrawal_id: created?.id,
           method: created?.method,
         },
-      });
+        link: "/payments?tab=office_requests",
+      }).catch(err => console.warn("[withdrawals] Notification failed but request was created:", err));
       queryClient.invalidateQueries({ queryKey: ["office-withdrawals", officeId] });
       queryClient.invalidateQueries({ queryKey: ["office-overview-stats", officeId] });
       toast.success("Withdrawal request created successfully!");
