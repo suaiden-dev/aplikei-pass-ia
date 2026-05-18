@@ -44,11 +44,11 @@ const common = {
       subtitle: "Compromisso com o sucesso de nossos clientes",
       members: [
         {
-          name: "Dr. Roberto Suaiden",
+          name: "Teste",
           description: "Sócio-fundador e especialista em Direito Internacional com mais de 15 anos de experiência em processos consulares complexos."
         },
         {
-          name: "Dra. Carolina Mendes",
+          name: "Dra. Teste",
           description: "Diretora Jurídica focada em vistos de negócios e estratégias corporativas de imigração para o mercado americano."
         }
       ]
