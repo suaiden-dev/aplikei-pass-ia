@@ -5,15 +5,15 @@ import { siteConfig } from "@app/app/config/site";
 
 export function PublicLayout() {
   const { pathname } = useLocation();
-  const hideNavbar = !siteConfig.isProd && pathname === "/";
+  const hideMaintenanceChrome = !siteConfig.isProd && pathname === "/";
 
   return (
     <div className="flex flex-col min-h-screen bg-bg antialiased">
-      {!hideNavbar && <Navbar />}
+      {!hideMaintenanceChrome && <Navbar />}
       <main className="flex-1">
         <Outlet />
       </main>
-      <Footer />
+      {!hideMaintenanceChrome && <Footer />}
     </div>
   );
 }
