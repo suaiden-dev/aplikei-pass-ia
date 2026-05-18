@@ -26,5 +26,9 @@ export interface F1OnboardingLabels {
   requiredFieldsDesc: string;
   creatingCredentialsTitle?: string;
   creatingCredentialsDesc?: string;
+  previous?: string;
+  nextSection?: string;
+  processing?: string;
+  sentSuccessfully?: string;
   onboardingPage: any; // Fallback for nested keys
 }

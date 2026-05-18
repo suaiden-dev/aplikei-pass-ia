@@ -565,6 +565,19 @@ const onboarding = {
           deniedDesc: "Your Motion was denied.",
           inReview: "In review",
           inReviewDesc: "Our team is reviewing your case.",
+          chatTitle: "Talk to the specialist via chat",
+          specialistMessageActive: "Access to the specialist has already been released and a chat has been opened to conduct your Motion.",
+          specialistMessageReady: "Your access to the specialist has been released. Enter the chat to conduct your Motion with our team.",
+          chatBtn: "Go to Specialist",
+          resultQuestion: "How was the Motion result?",
+          resultSubtitle: "Let us know by selecting the button below.",
+          reportResult: "Report the result",
+          selectOptionPrompt: "Select an option below to let us know how the Motion went.",
+          processClosed: "Process Closed",
+          approvedFinal: "Motion approved. Process successfully finalized!",
+          rejectedFinal: "Motion closed as denied. Process finalized.",
+          goDashboard: "Go to Dashboard",
+          chatSeedText: "Hello! I want to talk to the specialist about the outcome of my Motion."
         }
       },
       rfe: {
@@ -609,6 +622,10 @@ const onboarding = {
           approved: "Approved",
           rfe: "Second RFE",
           denied: "Denied",
+          resultFinalReported: "Final Result Reported",
+          approvedFinal: "RFE approved. Process successfully finalized!",
+          newRfeCycle: "New RFE cycle started.",
+          deniedFinal: "RFE denied. Starting Motion flow."
         }
       }
     },
@@ -626,6 +643,18 @@ const onboarding = {
       finishSuccess: "Process completed successfully!",
       resetRfe: "Cycle reset for a new RFE.",
       deniedMotion: "Visa denied. Starting Motion flow.",
+      productNotFound: "Product not found",
+      processLoadError: "Error loading the process.",
+      approvedResultSaved: "Result reported as approved.",
+      rejectedResultSaved: "Result reported as denied.",
+      resultSaveError: "Could not save the result.",
+      motionResultSaveError: "Could not save Motion result.",
+      resultReported: "Result reported.",
+      resultReportError: "Error saving result.",
+      uploadError: "Upload error",
+      checkoutError: "Checkout error",
+      zelleError: "Zelle error",
+      parcelowError: "Parcelow error",
     }
   }
 } as const;

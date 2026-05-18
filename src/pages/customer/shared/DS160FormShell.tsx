@@ -7,6 +7,7 @@ import {
   RiArrowRightLine,
   RiLoader4Line,
 } from 'react-icons/ri'
+import { useT } from '../../../i18n'
 import type { DS160FormValues } from '../../../schemas/ds160.schema'
 
 interface DS160FormShellProps {
@@ -21,6 +22,8 @@ interface DS160FormShellProps {
   requiredDescription: string
   saveLabel: string
   submitLabel: string
+  previousLabel?: string
+  nextSectionLabel?: string
   sectionFields: readonly (readonly string[])[]
   isBusy?: boolean
   readOnly?: boolean
@@ -49,6 +52,8 @@ export function DS160FormShell({
   requiredDescription,
   saveLabel,
   submitLabel,
+  previousLabel,
+  nextSectionLabel,
   sectionFields,
   isBusy = false,
   readOnly = false,
@@ -56,6 +61,7 @@ export function DS160FormShell({
   renderHeader,
   renderFooter,
 }: DS160FormShellProps) {
+  const t = useT('visas') as any
   const [currentSection, setCurrentSection] = useState(0)
   const [showErrors, setShowErrors] = useState(false)
   const [isValidating, setIsValidating] = useState(false)
@@ -181,12 +187,11 @@ export function DS160FormShell({
               <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                 <div>
                   <p className='text-[11px] font-black uppercase tracking-widest text-primary'>
-                    Seção {currentSection + 1} de {totalSections}
+                    {t.onboardingPage?.section || 'Seção'} {currentSection + 1} {t.onboardingPage?.of || 'de'} {totalSections}
                   </p>
                   {!readOnly && (
                     <p className='mt-1 text-sm font-medium text-text-muted'>
-                      Preencha esta etapa e avance para a próxima seção da
-                      DS-160.
+                      {t.onboardingPage?.fillStepAndAdvance || 'Preencha esta etapa e avance para a próxima seção da DS-160.'}
                     </p>
                   )}
                 </div>
@@ -245,11 +250,10 @@ export function DS160FormShell({
                   <RiAlertLine className='text-red-500 text-xl shrink-0 mt-0.5' />
                   <div>
                     <p className='text-xs font-black text-red-900 uppercase tracking-tight mb-1'>
-                      Atenção: Campos obrigatórios faltando
+                      {requiredTitle}
                     </p>
                     <p className='text-[11px] text-red-700 font-medium leading-relaxed'>
-                      Por favor, preencha todos os campos destacados em
-                      vermelho para prosseguir para a próxima seção.
+                      {t.onboardingPage?.scrollUpToFindErrors || 'Role para cima para localizar os erros destacados em vermelho.'}
                     </p>
                   </div>
                 </motion.div>
@@ -280,7 +284,7 @@ export function DS160FormShell({
                         className='w-full sm:w-auto px-6 py-3.5 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all disabled:opacity-50 flex items-center justify-center gap-2'
                       >
                         <RiArrowLeftLine className='text-lg' />
-                        Anterior
+                        {previousLabel || 'Anterior'}
                       </button>
                     )}
                     <button
@@ -315,7 +319,7 @@ export function DS160FormShell({
                       disabled={submitting}
                       className='w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50'
                     >
-                      Próxima seção
+                      {nextSectionLabel || 'Próxima seção'}
                       <RiArrowRightLine className='text-lg' />
                     </button>
                   )}

@@ -377,14 +377,14 @@ export default function ProcessDetailPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-12 p-10 rounded-[40px] bg-text/90 text-white overflow-hidden relative group"
+          className="mb-12 p-10 rounded-[40px] bg-card border border-border text-text overflow-hidden relative shadow-2xl group"
         >
           {/* Decoration */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32" />
 
           <div className="relative flex flex-col lg:flex-row items-center justify-between gap-8">
             <div className="flex-1 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-danger/10 border border-danger/20 text-danger text-[10px] font-black uppercase tracking-widest mb-6">
                 <RiFlagLine className="text-sm" /> Status: {t.processDetail.visaDenied}
               </div>
 
@@ -439,7 +439,7 @@ export default function ProcessDetailPage() {
               )}
               <Link
                 to={slug.includes("f1") ? `/checkout/visto-f1-reaplicacao${user?.officeId ? `?office_id=${user.officeId}` : ""}` : `/checkout/visto-b1-b2-reaplicacao${user?.officeId ? `?office_id=${user.officeId}` : ""}`}
-                className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-black uppercase tracking-widest transition-all"
+                className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-bg-subtle hover:bg-bg-subtle/80 border border-border text-text text-sm font-black uppercase tracking-widest transition-all"
               >
                 {t.processDetail.restartProcess}
                 <RiArrowRightLine className="text-xl" />
@@ -692,14 +692,14 @@ export default function ProcessDetailPage() {
             <div className="flex items-center gap-3 mb-6">
               <div className={cn(
                 "w-3 h-3 rounded-full animate-pulse",
-                isApproved ? "bg-emerald-400" :
-                  isDenied ? "bg-red-400" :
-                    isFinalized ? "bg-emerald-400" : "bg-[#0b2a5b]"
+                isApproved ? "bg-success" :
+                  isDenied ? "bg-danger" :
+                    isFinalized ? "bg-success" : "bg-primary"
               )} />
               <span className={cn(
                 "text-lg font-black uppercase tracking-tight",
-                isApproved ? "text-emerald-400" :
-                  isDenied ? "text-red-400" : "text-[#0b2a5b]"
+                isApproved ? "text-success" :
+                  isDenied ? "text-danger" : "text-primary"
               )}>
                 {isApproved ? t.processDetail.approved :
                   isDenied ? t.processDetail.denied :
@@ -714,7 +714,7 @@ export default function ProcessDetailPage() {
                 <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest">{t.processDetail.progressLabel}</span>
                 <span className={cn(
                   "text-2xl font-black tabular-nums",
-                  isApproved ? "text-emerald-400" : isDenied ? "text-red-400" : "text-[#0b2a5b]"
+                  isApproved ? "text-success" : isDenied ? "text-danger" : "text-primary"
                 )}>
                   {progressPercent}%
                 </span>
@@ -725,7 +725,7 @@ export default function ProcessDetailPage() {
                   animate={{ width: `${progressPercent}%` }}
                   className={cn(
                     "h-full",
-                    isApproved ? "bg-emerald-500" : isDenied ? "bg-red-500" : "bg-[#0b2a5b]"
+                    isApproved ? "bg-success" : isDenied ? "bg-danger" : "bg-primary"
                   )}
                 />
               </div>

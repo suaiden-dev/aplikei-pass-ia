@@ -40,6 +40,10 @@ function buildLabels(t: any): B1B2OnboardingLabels {
     requiredFieldsDesc: t.onboardingPage.requiredFieldsDesc,
     creatingCredentialsTitle: t.onboardingPage.feeProcessing?.creatingCredentialsTitle,
     creatingCredentialsDesc: t.onboardingPage.feeProcessing?.creatingCredentialsDesc,
+    previous: t.onboardingPage.previous,
+    nextSection: t.onboardingPage.nextSection,
+    processing: t.onboardingPage.processing,
+    sentSuccessfully: t.onboardingPage.sentSuccessfully,
   }
 }
 

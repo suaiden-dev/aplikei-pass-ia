@@ -774,7 +774,7 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
             rel="noreferrer"
             className="px-12 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/20 transition-all flex items-center gap-2"
            >
-             <RiDownload2Line className="text-lg" /> Baixar Resposta RFE
+             <RiDownload2Line className="text-lg" /> {t?.workflows?.rfe?.end?.downloadBtn ?? 'Baixar Resposta RFE'}
            </a>
         </div>
       )}
@@ -820,14 +820,14 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
         {rfeResult && (
           <div className='mt-8 rounded-3xl bg-slate-50 border border-slate-100 p-8 text-center'>
             <p className='text-xs font-black uppercase tracking-widest text-slate-400 mb-2'>
-              Resultado Final Informado
+              {t?.workflows?.rfe?.end?.resultFinalReported ?? 'Resultado Final Informado'}
             </p>
             <p className='text-base font-black text-slate-800'>
               {rfeResult === 'approved'
-                ? 'RFE aprovada. Processo finalizado!'
+                ? (t?.workflows?.rfe?.end?.approvedFinal ?? 'RFE aprovada. Processo finalizado!')
                 : rfeResult === 'rfe'
-                  ? 'Novo ciclo de RFE iniciado.'
-                  : 'RFE negada. Iniciando fluxo de Motion.'}
+                  ? (t?.workflows?.rfe?.end?.newRfeCycle ?? 'Novo ciclo de RFE iniciado.')
+                  : (t?.workflows?.rfe?.end?.deniedFinal ?? 'RFE negada. Iniciando fluxo de Motion.')}
             </p>
           </div>
         )}
