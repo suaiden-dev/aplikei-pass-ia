@@ -31,15 +31,12 @@ export function LandingFinalCTA() {
             </p>
             <div className="pt-4">
               <Link 
-                to="/cadastro"
+                to="/contato"
                 className="inline-block px-12 py-6 bg-white text-primary-container rounded-xl font-label-md text-lg hover:bg-surface-container transition-all shadow-xl active:scale-95"
               >
                 {t.finalCta.button}
               </Link>
             </div>
-            <p className="text-label-sm text-on-primary-container">
-              {t.finalCta.disclaimer}
-            </p>
           </div>
         </motion.div>
       </div>

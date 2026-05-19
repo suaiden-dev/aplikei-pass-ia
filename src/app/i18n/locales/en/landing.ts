@@ -5,6 +5,8 @@ const landing = {
     titleHighlight: "visa processes",
     subtitle: "Automate tasks, organize documents and scale your law firm with the efficiency of Artificial Intelligence applied to immigration law.",
     cta: "Schedule a demo",
+    statsLabel: "Preparation time",
+    statsValue: "-70%",
     ctaSecondary: "Talk to a specialist",
     trustedBy: "Trusted by leaders",
   },
@@ -112,14 +114,16 @@ const landing = {
     ],
     stats: {
       number: "10k+",
-      label: "Processes successfully automated"
+      label: "Processes successfully streamlined"
     }
   },
   testimonials: {
     title: "What the experts say",
+    heading: "Proven excellence by partners",
+    subtitle: "Law firms and consular visa consultancies that scaled their operations with our technology.",
     items: [
       {
-        quote: "The implementation of Aplikei drastically transformed our delivery. <span class='text-primary-container font-semibold'>We reduced operational time by 60%</span> for EB-1 and EB-2 NIW document preparation.",
+        quote: "The implementation of Aplikei drastically transformed our delivery. <span class='text-primary-container font-semibold'>We reduced operational time by 60%</span> for consular visa document preparation.",
         author: "Ricardo Mendes",
         role: "Managing Partner, Mendes Lex",
         image: "https://lh3.googleusercontent.com/aida-public/AB6AXuA66Qf9xmZaF-q5wdDes52yBwYSGfeJaamYjvVDCHinkORL9QjIUp7BtxhIZKoG1aJNCy0cuJFxfV2fKkVoHV8KUNFRFUeXJFB0V6II6TaRKS2jAprznp1c_iYCZy2lrflkvs6QRuJBV_7YDcBxjyEJLvhs3yjoIm9WgXkYfmjLSAlTp0F03bMlhRbu7ommCkQXykR1_tSm6hFmzVvcKZSR2vQUG5ykpXPr8Al72mBOshFx-cWlYqmYGQAk8_ZlwrvBqQC6_-CiSCA"
@@ -135,8 +139,7 @@ const landing = {
   finalCta: {
     title: "Ready to scale your operation?",
     description: "Join the firms that have already automated more than 10,000 processes with legal precision and cutting-edge technology.",
-    button: "Schedule a demo",
-    disclaimer: "No commitment. Free trial for 14 days for new partners."
+    button: "Schedule a demo"
   },
   faq: {
     title: "Frequently Asked Questions",
@@ -146,16 +149,16 @@ const landing = {
         a: "Yes, we use end-to-end encryption and comply with major data protection standards (LGPD/GDPR)."
       },
       {
-        q: "How does AI help in filling out forms?",
-        a: "Our AI analyzes the uploaded documents and extracts the necessary information to automatically fill out USCIS forms, validating data consistency."
+        q: "How does AI help in creating USCIS letters and consular training?",
+        a: "Our Artificial Intelligence assists in drafting robust and personalized letters for the USCIS, in addition to conducting dynamic consular training simulations to prepare your clients for visa interviews."
       },
       {
-        q: "Can I integrate it with my current system?",
-        a: "Yes, we offer APIs and integrations with the leading management and CRM tools on the market."
+        q: "How does purchasing and access work for my clients?",
+        a: "We offer exclusive login links and product pages so that your clients can make purchases directly and access the platform with ease."
       },
       {
-        q: "Is there support in English?",
-        a: "Absolutely. Our support team is composed of specialists who speak your language and understand the immigration market."
+        q: "Is there translation for the client?",
+        a: "Yes, the platform is fully available in Portuguese, English, and Spanish, allowing your clients to use the system in their preferred language."
       }
     ]
   },

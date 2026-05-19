@@ -10,7 +10,8 @@ import {
   RiEyeLine,
   RiEyeOffLine,
   RiInformationLine,
-  RiLoader4Line
+  RiLoader4Line,
+  RiFileCopyLine,
 } from "react-icons/ri";
 import { supabase } from "@shared/lib/supabase";
 import { useT } from "@app/app/i18n";
@@ -47,9 +48,11 @@ function cn(...classes: any[]) {
 function ProductRow({
   product,
   onSaved,
+  officeSlug,
 }: {
   product: ServicePrice;
   onSaved: () => void;
+  officeSlug: string | null;
 }) {
   const t = useT("admin");
   const [editing, setEditing] = useState(false);
@@ -226,6 +229,20 @@ function ProductRow({
       {/* Ações (Toggle) */}
       <td className="px-8 py-5 text-right">
         <div className="flex items-center justify-end gap-4">
+          {officeSlug && (
+            <button
+              onClick={() => {
+                const url = `${window.location.origin}/checkout?product=${product.slug}&office=${officeSlug}`;
+                navigator.clipboard.writeText(url);
+                toast.success("Link copiado!");
+              }}
+              className="text-[10px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-primary/20 transition-all uppercase tracking-widest"
+              title="Copiar link de vendas"
+            >
+              <RiFileCopyLine className="text-sm" />
+              Link
+            </button>
+          )}
           <span
             className={`inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border transition-all ${
               product.is_active
@@ -261,27 +278,31 @@ export default function ProductsPage() {
   const t = useT("admin");
   const { user } = useAuth();
   const [resolvedOfficeId, setResolvedOfficeId] = useState<string | null>(user?.officeId ?? null);
+  const [officeSlug, setOfficeSlug] = useState<string | null>(null);
   const [products, setProducts] = useState<ServicePrice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (user?.officeId) {
       setResolvedOfficeId(user.officeId);
+      supabase.from("offices").select("slug").eq("id", user.officeId).single().then(({ data }) => setOfficeSlug(data?.slug ?? null));
       return;
     }
 
     if (!user?.id) {
       setResolvedOfficeId(null);
+      setOfficeSlug(null);
       return;
     }
 
     supabase
       .from("offices")
-      .select("id")
+      .select("id, slug")
       .eq("owner_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         setResolvedOfficeId(data?.id ?? null);
+        setOfficeSlug(data?.slug ?? null);
       });
   }, [user?.id, user?.officeId]);
 
@@ -463,7 +484,7 @@ export default function ProductsPage() {
                   </thead>
                   <tbody className="divide-y divide-border">
                     {items.map((p) => (
-                      <ProductRow key={p.id} product={p} onSaved={load} />
+                      <ProductRow key={p.id} product={p} onSaved={load} officeSlug={officeSlug} />
                     ))}
                   </tbody>
                 </table>

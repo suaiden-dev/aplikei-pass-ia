@@ -6,6 +6,7 @@ import {
   RiArrowRightLine,
   RiFlashlightFill,
   RiTimeLine,
+  RiBuilding2Line,
 } from "react-icons/ri";
 import { useAuth } from "@shared/hooks/useAuth";
 import { getCanonicalSlug, getServiceBySlug, servicesData } from "@shared/data/services";
@@ -153,6 +154,12 @@ function ProcessRow({ proc, index, displaySlug }: { proc: UserService; index: nu
           <p className="text-[11px] font-bold text-text-muted tracking-widest uppercase">
             {t.dashboard.products[slugForDisplay]?.category || cfg.category}
           </p>
+          {proc.officeName && (
+            <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold text-text-muted uppercase tracking-widest bg-bg-subtle px-2.5 py-1.5 rounded-xl border border-border/40 w-fit">
+              <RiBuilding2Line className="text-primary text-xs shrink-0" />
+              <span>{proc.officeName}</span>
+            </div>
+          )}
         </div>
       </div>
 

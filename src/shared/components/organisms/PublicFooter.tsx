@@ -8,7 +8,7 @@ export function PublicFooter() {
   return (
     <footer className="bg-bg px-8 pb-8 pt-20 lg:px-16">
       <div className="mx-auto max-w-[1280px]">
-        <div className="grid grid-cols-1 gap-12 border-b border-border/70 pb-16 text-center text-sm lg:grid-cols-4 lg:text-left">
+        <div className="grid grid-cols-1 gap-12 border-b border-border/70 pb-16 text-center text-sm lg:grid-cols-3 lg:text-left">
           <div>
             <Link to="/" className="mb-6 flex items-center justify-center gap-2.5 lg:justify-start">
               <span className="text-xl font-black tracking-tight text-text">Aplikei</span>
@@ -22,16 +22,6 @@ export function PublicFooter() {
                 <FaInstagram size={18} />
               </a>
             </div>
-          </div>
-
-          <div>
-            <h4 className="mb-7 text-xs font-bold uppercase tracking-widest text-text">{t.services}</h4>
-            <ul className="space-y-4 text-text-muted">
-              <li><Link to="/servicos" className="transition-colors hover:text-text">{t.consularManagement}</Link></li>
-              <li><Link to="/servicos" className="transition-colors hover:text-text">{t.pageBuilder}</Link></li>
-              <li><Link to="/servicos" className="transition-colors hover:text-text">{t.fillingFlow}</Link></li>
-              <li><Link to="/servicos" className="transition-colors hover:text-text">{t.dataIntelligence}</Link></li>
-            </ul>
           </div>
 
           <div>
@@ -53,7 +43,7 @@ export function PublicFooter() {
         </div>
 
         <div className="flex flex-col items-center justify-between gap-4 pt-8 text-center sm:flex-row sm:text-left">
-          <p className="text-xs text-text-muted">© 2026 Aplikei Technologies. {t.allRightsReserved}</p>
+          <p className="text-xs text-text-muted">{t.copyright}</p>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end sm:gap-6">
             <Link to="/termos" className="text-xs text-text-muted transition-colors hover:text-text">{t.terms}</Link>
             <Link to="/privacidade" className="text-xs text-text-muted transition-colors hover:text-text">{t.privacy}</Link>

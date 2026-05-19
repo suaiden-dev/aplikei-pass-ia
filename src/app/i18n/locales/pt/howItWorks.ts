@@ -3,24 +3,20 @@ const howItWorks = {
   subtitle: "Um fluxo direto, com etapas claras e sem ruído operacional.",
   steps: [
     {
-      title: "Cadastro",
-      desc: "Importe os dados básicos do seu cliente e crie o perfil do caso."
+      title: "Crie uma conta",
+      desc: "Cadastre-se na plataforma de forma rápida e segura em poucos cliques."
     },
     {
-      title: "Coleta automatizada",
-      desc: "Portal do cliente inteligente para envio de documentos de forma organizada."
+      title: "Ative seu plano",
+      desc: "Escolha e ative o plano ideal com os recursos que seu escritório necessita."
     },
     {
-      title: "Organização e validação",
-      desc: "A IA valida se os documentos estão corretos e prontos para processamento."
+      title: "Configure sua empresa",
+      desc: "Complete a configuração da sua empresa com 7 passos simples e automatizados."
     },
     {
-      title: "Geração via IA",
-      desc: "Preenchimento automático de petições e formulários complexos."
-    },
-    {
-      title: "Entrega final",
-      desc: "Protocolo estruturado pronto para submissão oficial."
+      title: "Venda e gerencie",
+      desc: "Comece imediatamente a vender e gerenciar com maestria os processos de vistos dos seus clientes."
     }
   ]
 };

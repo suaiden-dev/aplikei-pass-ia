@@ -28,7 +28,7 @@ export function LexHero() {
 
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
             <h1 className="max-w-3xl font-display text-5xl font-bold leading-[1.1] tracking-[-0.05em] text-text lg:text-7xl">
-              {t.hero?.title || "Cuidamos de todo o seu processo imigratório com segurança e estratégia."}
+              {t.hero?.title || "Cuidamos de todo o seu processo de visto com segurança e estratégia."}
             </h1>
             <p className="mt-8 max-w-2xl text-lg leading-relaxed text-text-muted lg:text-xl">
               {t.hero?.subtitle || "A plataforma que simplifica sua jornada internacional com rigor profissional e tecnologia de ponta."}

@@ -376,7 +376,7 @@ export const appRoutes: AppRouteDefinition[] = [
     title: "Overview",
     component: OverviewPage,
     authRequired: true,
-    accessLevels: STAFF,
+    accessLevels: [AccessLevel.MASTER, AccessLevel.ADMIN_LAWYER],
     layout: "manager",
     showInSidebar: true,
     icon: LayoutDashboard,
@@ -479,13 +479,13 @@ export const appRoutes: AppRouteDefinition[] = [
   {
     path: "/products",
     title: "Products",
+    titleKey: "products",
     component: ProductsPage,
     authRequired: true,
     accessLevels: STAFF,
     layout: "protected",
     showInSidebar: true,
     sidebarLayouts: ["admin_lawyer"],
-    sidebarGroupKey: "settings",
     icon: Package2,
   },
   {
@@ -539,7 +539,7 @@ export const appRoutes: AppRouteDefinition[] = [
   },
   {
     path: "/settings/payout",
-    title: "Payout Configuration",
+    title: "Withdrawal Configuration",
     titleKey: "payoutSettings",
     component: PayoutSettingsPage,
     authRequired: true,
@@ -589,7 +589,8 @@ export const appRoutes: AppRouteDefinition[] = [
 
   {
     path: "/processes",
-    title: "Processes",
+    title: "Cases",
+    titleKey: "matters",
     component: AdminProcessesPage,
     authRequired: true,
     accessLevels: STAFF,
@@ -600,7 +601,8 @@ export const appRoutes: AppRouteDefinition[] = [
   },
   {
     path: "/admin/processes",
-    title: "Processes",
+    title: "Cases",
+    titleKey: "matters",
     component: AdminProcessesPage,
     authRequired: true,
     accessLevels: STAFF,
@@ -608,7 +610,8 @@ export const appRoutes: AppRouteDefinition[] = [
   },
   {
     path: "/manager/processes",
-    title: "Processes",
+    title: "Cases",
+    titleKey: "matters",
     component: AdminProcessesPage,
     authRequired: true,
     accessLevels: STAFF,
@@ -616,7 +619,8 @@ export const appRoutes: AppRouteDefinition[] = [
   },
   {
     path: "/master/processes",
-    title: "Processes",
+    title: "Cases",
+    titleKey: "matters",
     component: AdminProcessesPage,
     authRequired: true,
     accessLevels: STAFF,

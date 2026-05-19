@@ -18,7 +18,7 @@ export function LandingHowItWorks() {
           className="mb-16"
         />
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
           {steps.map((step: { title: string; desc: string }, index: number) => (
             <motion.div
               key={step.title}

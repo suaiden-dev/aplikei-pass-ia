@@ -33,10 +33,6 @@ export function RevenueTrajectory({ data }: RevenueTrajectoryProps) {
           </h2>
           <p className="text-xs text-text-muted mt-0.5">{t.overview.charts.last6Months}</p>
         </div>
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success bg-success/10 px-2.5 py-1 rounded-full">
-          <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
-          {t.overview.charts.growth.replace('{{percent}}', String(growthPercent))}
-        </span>
       </div>
 
       <div className="flex items-end gap-3 h-48 mt-6">

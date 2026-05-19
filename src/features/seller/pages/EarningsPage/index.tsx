@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { RiMoneyDollarCircleLine, RiLinkM, RiCheckLine, RiLoader4Line, RiShoppingCartLine, RiCalendarLine } from "react-icons/ri";
+import { RiMoneyDollarCircleLine, RiLinkM, RiCheckLine, RiLoader4Line, RiShoppingCartLine, RiCalendarLine, RiBarChartBoxLine } from "react-icons/ri";
 import { supabase } from "@shared/lib/supabase";
 import { useAuth } from "@shared/hooks/useAuth";
 import { encodeCheckoutToken } from "@shared/utils/checkoutToken";
@@ -63,7 +63,6 @@ export default function EarningsPage() {
     if (!user?.id) return;
     setIsLoading(true);
     try {
-      // 1. Office vem direto do user já carregado pelo auth (sem query extra)
       const officeId = user.officeId;
       let officeData: OfficeInfo | null = null;
 
@@ -79,7 +78,6 @@ export default function EarningsPage() {
 
       setOffice(officeData);
 
-      // 2. Preços reais da office (user_service_prices ⟶ services)
       if (officeId) {
         const { data: priceRows } = await supabase
           .from("user_service_prices")
@@ -100,7 +98,6 @@ export default function EarningsPage() {
         setServices(mapped);
       }
 
-      // 3. Orders pagos referenciados por este seller
       const { data: ordersData } = await supabase
         .from("orders")
         .select("id, total_price_usd, payment_status, created_at, client_name, product_slug")
@@ -119,11 +116,11 @@ export default function EarningsPage() {
 
   useEffect(() => { void load(); }, [load]);
 
-  const totalEarned = orders.reduce((sum, o) => sum + (Number(o.total_price_usd) || 0), 0);
+  const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.total_price_usd) || 0), 0);
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
-  const monthEarned = orders
+  const monthRevenue = orders
     .filter((o) => {
       const d = new Date(o.created_at);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
@@ -137,7 +134,6 @@ export default function EarningsPage() {
     return `${checkoutBase}/l/${token}`;
   };
 
-  // Group services by category
   const grouped = services.reduce<Record<string, Service[]>>((acc, s) => {
     const cat = s.category || "other";
     if (!acc[cat]) acc[cat] = [];
@@ -156,23 +152,23 @@ export default function EarningsPage() {
   return (
     <div className="space-y-8 p-6 pb-20 max-w-5xl mx-auto">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-text">Billing</h1>
+        <h1 className="text-2xl font-black tracking-tight text-text">Sales Revenue</h1>
         <p className="mt-1 text-sm text-text-muted">
-          Track your sales and share payment links with clients.
+          Track the total revenue from your completed sales.
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
-          label="Total earned"
-          value={`US$ ${totalEarned.toFixed(2)}`}
-          icon={<RiMoneyDollarCircleLine className="text-xl" />}
+          label="Total revenue"
+          value={`US$ ${totalRevenue.toFixed(2)}`}
+          icon={<RiBarChartBoxLine className="text-xl" />}
           color="bg-success/10 text-success"
         />
         <StatCard
           label="This month"
-          value={`US$ ${monthEarned.toFixed(2)}`}
+          value={`US$ ${monthRevenue.toFixed(2)}`}
           icon={<RiCalendarLine className="text-xl" />}
           color="bg-primary/10 text-primary"
         />
@@ -182,6 +178,36 @@ export default function EarningsPage() {
           icon={<RiShoppingCartLine className="text-xl" />}
           color="bg-info/10 text-info"
         />
+      </div>
+
+      {/* Recent orders */}
+      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+        <div className="border-b border-border px-6 py-4">
+          <h2 className="text-sm font-black uppercase tracking-widest text-text">Latest Sales</h2>
+          <p className="mt-0.5 text-xs text-text-muted">Confirmed and paid sales linked to you.</p>
+        </div>
+        {orders.length === 0 ? (
+          <div className="px-6 py-12 text-center text-sm text-text-muted">
+            <RiMoneyDollarCircleLine className="text-4xl mx-auto mb-3 opacity-30" />
+            No sales recorded yet.
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {orders.slice(0, 20).map((order) => (
+              <div key={order.id} className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-bg-subtle/50 transition-colors">
+                <div>
+                  <p className="text-sm font-semibold text-text">{order.client_name || "Cliente"}</p>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    {order.product_slug} · {new Date(order.created_at).toLocaleDateString("en-US")}
+                  </p>
+                </div>
+                <span className="text-sm font-black text-success shrink-0">
+                  US$ {Number(order.total_price_usd).toFixed(2)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Payment links */}
@@ -227,30 +253,6 @@ export default function EarningsPage() {
           </div>
         )}
       </div>
-
-      {/* Recent orders */}
-      {orders.length > 0 && (
-        <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-          <div className="border-b border-border px-6 py-4">
-            <h2 className="text-sm font-black uppercase tracking-widest text-text">Latest Sales</h2>
-          </div>
-          <div className="divide-y divide-border">
-            {orders.slice(0, 20).map((order) => (
-              <div key={order.id} className="flex items-center justify-between gap-4 px-6 py-4">
-                <div>
-                  <p className="text-sm font-semibold text-text">{order.client_name || "Client"}</p>
-                  <p className="text-xs text-text-muted mt-0.5">
-                    {order.product_slug} · {new Date(order.created_at).toLocaleDateString("en-US")}
-                  </p>
-                </div>
-                <span className="text-sm font-black text-success">
-                  US$ {Number(order.total_price_usd).toFixed(2)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

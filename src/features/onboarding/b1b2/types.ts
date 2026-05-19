@@ -1,8 +1,12 @@
 export interface B1B2OnboardingLabels {
   stepLabel: string;
   ds160Form: string;
+  previous?: string;
+  nextSection?: string;
   saveDraft: string;
   finalizeAndSubmit: string;
+  processing?: string;
+  sentSuccessfully?: string;
   awaitingReview: string;
   errorNotFound: string;
   errorLoad: string;

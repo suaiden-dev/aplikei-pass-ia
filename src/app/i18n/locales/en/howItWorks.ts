@@ -1,13 +1,12 @@
 const howItWorks = {
-  title: "Your 5-Step Journey to Success",
+  title: "Start in minutes",
   subtitle: "A transparent and efficient legal-tech process designed for the modern world. Professional results, simplified.",
   step: "Step",
   steps: [
-    { title: "Pre-purchase Consultation", desc: "Explore our curated list of services. Our tools help you find the exact fit for your specific requirements." },
-    { title: "Sign up & Agreements", desc: "Create your secure account and review terms. Everything is handled digitally with legal-grade security." },
-    { title: "Secure Payment", desc: "Transparent upfront pricing with zero hidden fees. We use encrypted processing for your peace of mind." },
-    { title: "AI-Powered Onboarding", desc: "Our intelligent assistant guides you through a dynamic questionnaire to capture all necessary details." },
-    { title: "Final Package Delivery", desc: "Your customized, organized documents are delivered directly to your portal in professional PDF format." }
+    { title: "Create an account", desc: "Sign up on the platform quickly and securely in just a few clicks." },
+    { title: "Activate your plan", desc: "Choose and activate the ideal plan with the features your firm needs." },
+    { title: "Configure your company", desc: "Complete your company setup with 7 simple and automated steps." },
+    { title: "Sell and manage", desc: "Immediately start selling and successfully managing your clients' visa processes." }
   ]
 };
 export default howItWorks;

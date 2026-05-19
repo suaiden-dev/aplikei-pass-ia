@@ -31,7 +31,7 @@ const admin = {
     revenue: "Finance",
     finance_analytics: "Finance Analytics",
     dashboard: "Dashboard",
-    matters: "Matters",
+    matters: "Cases",
     lawyers: "Lawyers",
     products: "Products",
     chats: "Messages",
@@ -50,7 +50,8 @@ const admin = {
     billings: "Billings",
     offices: "Offices",
     subscription: "My Subscription",
-    companyProfile: "Company Profile"
+    companyProfile: "Company Profile",
+    payoutSettings: "Withdrawal Settings"
   },
   financeAnalytics: {
     title: "Finance Analytics",
@@ -89,8 +90,16 @@ const admin = {
     }
   },
   payoutSettings: {
-    title: "Payout Configuration",
-    subtitle: "Configure your payment methods and payout preferences",
+    title: "Withdrawal Settings",
+    subtitle: "Configure your payment details to receive withdrawals",
+    methodTitle: "Withdrawal Method",
+    methodSubtitle: "Select how you want to be paid",
+    stripeInfo: "No configuration needed. You will provide your Stripe link during the withdrawal process.",
+    zelleInfo: "Configure your Zelle details below to enable direct transfers to your account.",
+    zelleTitle: "Zelle Details",
+    zelleSubtitle: "Required information for Zelle payments",
+    accountName: "Account Name",
+    zelleId: "Zelle ID (Email or Phone)",
     sections: {
       paymentLinks: {
         title: "Payment Links",
@@ -110,9 +119,9 @@ const admin = {
       }
     },
     messages: {
-      saveSuccess: "Payout settings updated successfully!",
-      saveError: "Error saving payout settings.",
-      loadError: "Error loading payout settings."
+      saveSuccess: "Withdrawal settings updated successfully!",
+      saveError: "Error saving withdrawal settings.",
+      loadError: "Error loading withdrawal settings."
     },
     saveBtn: "Save Configuration",
     savingBtn: "Saving..."

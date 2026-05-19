@@ -75,7 +75,7 @@ const initialConfig: LandingPageConfig = {
   faq2Answer: "O tempo varia de acordo com o tipo de visto e a demanda consular, mas nossa preparação leva em média 15 a 30 dias.",
   faq3Question: "Vocês garantem a aprovação?",
   faq3Answer: "Nenhum profissional pode garantir a aprovação, mas nossa estratégia jurídica maximiza as chances ao mitigar riscos comuns.",
-  footerDescription: "Assessoria jurídica estratégica para quem busca segurança e clareza no processo imigratório americano.",
+  footerDescription: "Assessoria jurídica estratégica para quem busca segurança e clareza no processo de visto americano.",
   footerLinksTitle: "Links Úteis",
   footerLink1Label: "Serviços",
   footerLink2Label: "Sobre Nós",

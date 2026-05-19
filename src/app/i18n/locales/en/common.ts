@@ -8,62 +8,62 @@ const common = {
   whoWeArePage: {
     hero: {
       tag: "Who we are",
-      title: "Legal Excellence",
-      titleHighlight: "in Immigration",
-      description: "Our mission is to provide legal security and strategic excellence for international journeys, transforming bureaucratic complexity into clear paths for global success.",
-      stats: "Approval rate in process reviews by our team."
+      title: "Empowering Law Firms",
+      titleHighlight: "with Aplikei",
+      description: "We develop cutting-edge technology that enables lawyers and consular visa consultancies to automate operations, reduce errors, and scale their offices with the power of Aplikei.",
+      stats: "preparation time reduction for our partner law firms."
     },
     history: {
-      title: "Our History",
-      description: "Aplikei was born from the need for legal services that balanced technical rigor with a strategic business vision. Founded by international law specialists, our platform has consolidated itself as a reference for executives and families seeking not just a visa, but a solid life transition.\n\nThroughout our trajectory, we have prioritized measurable results and absolute transparency. We believe each case is unique and requires a personalized legal architecture, protecting our clients' interests across all borders."
+      title: "Our Mission",
+      description: "Aplikei was born with a clear purpose: to revolutionize the management of consular visas. Recognizing the operational barriers, disorganized documents, and endless hours spent on repetitive tasks by lawyers and agencies, we built the first intelligent platform from Aplikei dedicated to consular law.\n\nToday, we are the tech solution connecting elite offices with maximum efficiency. We believe Aplikei should act as a copilot for legal professionals, ensuring technical precision, absolute data security, and unlimited scalability."
     },
     pillars: {
       title: "Our Pillars",
       items: [
         {
-          title: "Ethics",
-          description: "Non-negotiable integrity in every step of the legal and administrative process."
+          title: "Targeted Innovation",
+          description: "Platform specifically designed by Aplikei for the needs of consular processes."
         },
         {
-          title: "Precision",
-          description: "Thorough technical analysis to maximize the chances of document approval."
+          title: "Elite Security",
+          description: "End-to-end encryption and full compliance with LGPD and GDPR to protect legal data."
         },
         {
-          title: "Client Focus",
-          description: "Personalized strategies that respect each individual's time and goals."
+          title: "Operational Efficiency",
+          description: "Up to 70% reduction in preparation time, optimizing your team's manual work."
         },
         {
-          title: "Innovation",
-          description: "Use of cutting-edge technology to streamline procedures and procedural communication."
+          title: "Growth Partnership",
+          description: "We provide the ideal tools (Page Builder, login links, and products) for your office to scale."
         }
       ]
     },
     leadership: {
-      title: "Strategic Leadership",
-      subtitle: "The architects behind your international success.",
+      title: "Our Founders",
+      subtitle: "Technology and Consular Law in perfect harmony",
       members: [
         {
-          name: "Dr. Ricardo Menezes",
-          description: "With over 15 years of experience in the US and Europe, he leads the global strategy for high-complexity visas."
+          name: "CEO & Co-founder",
+          description: "Specialist in technology and system architectures focused on legal automation with Aplikei."
         },
         {
-          name: "Dra. Helena Albuquerque",
-          description: "Specialist in global mobility for multinationals and extraordinary talents in technology and arts."
+          name: "Co-founder & Advisor",
+          description: "Immigration lawyer with extensive experience in the US consular market, ensuring legal compliance and accuracy."
         }
       ]
     },
     stats: {
-      success: "500+",
-      successLabel: "Success Cases",
-      approval: "98%",
-      approvalLabel: "Approval Rate",
-      countries: "12",
-      countriesLabel: "Countries of Operation"
+      success: "10k+",
+      successLabel: "Processes Facilitated",
+      approval: "-70%",
+      approvalLabel: "Preparation Time",
+      countries: "3 Languages",
+      countriesLabel: "Platform Support"
     },
     cta: {
-      title: "Ready to start your journey?",
-      subtitle: "Our specialists are ready to design your international future with security and precision.",
-      button: "Talk to a specialist"
+      title: "Take your operation into the future",
+      subtitle: "Schedule a demo and discover how Aplikei can accelerate your firm.",
+      button: "Schedule a Demo"
     }
   },
   servicesPage: {

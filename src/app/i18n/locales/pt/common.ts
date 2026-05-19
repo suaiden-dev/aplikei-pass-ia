@@ -8,63 +8,62 @@ const common = {
   whoWeArePage: {
     hero: {
       tag: "Quem somos",
-      title: "Excelência Jurídica",
-      titleHighlight: "em Imigração",
-      description: "Nossa missão é prover segurança jurídica e excelência estratégica para jornadas internacionais, transformando complexidades burocráticas em caminhos claros para o sucesso global.",
-      stats: "Taxa de aprovação em revisões de processos pela nossa equipe."
+      title: "Empoderando a Advocacia",
+      titleHighlight: "com a Aplikei",
+      description: "Desenvolvemos a tecnologia de ponta que permite a advogados e assessorias de vistos consulares automatizarem suas operações, reduzirem erros e escalarem seus escritórios com o poder da Aplikei.",
+      stats: "tempo de preparação reduzido para nossos escritórios parceiros."
     },
     history: {
-      title: "Nossa História",
-      description: "A Aplikei nasceu da necessidade de serviços jurídicos que equilibrassem rigor técnico com uma visão estratégica de negócios. Fundada por especialistas em direito internacional, nossa plataforma se consolidou como referência para executivos e famílias que buscam não apenas um visto, mas uma transição de vida sólida.\n\nAo longo de nossa trajetória, priorizamos resultados mensuráveis e transparência absoluta. Acreditamos que cada caso é único e exige uma arquitetura jurídica personalizada, protegendo os interesses de nossos clientes em todas as fronteiras."
+      title: "Nossa Missão",
+      description: "A Aplikei nasceu com o propósito claro de revolucionar a gestão de vistos consulares. Percebendo as barreiras operacionais, a desorganização de documentos e as longas horas gastas em tarefas repetitivas por advogados e assessorias, criamos a primeira plataforma inteligente da Aplikei dedicada ao direito consular.\n\nHoje, somos a solução tecnológica que conecta escritórios de elite à máxima eficiência. Acreditamos que a Aplikei deve atuar como copilota da advocacia, assegurando precisão técnica, segurança absoluta de dados e escalabilidade ilimitada."
     },
     pillars: {
       title: "Nossos Pilares",
       items: [
         {
-          title: "Ética",
-          description: "Integridade inegociável em cada etapa do processo jurídico e administrativo."
+          title: "Inovação Direcionada",
+          description: "Plataforma desenhada especificamente pela Aplikei para as necessidades de processos consulares."
         },
         {
-          title: "Precisão",
-          description: "Rigor técnico absoluto na análise documental e estratégica."
+          title: "Segurança de Elite",
+          description: "Criptografia de ponta a ponta e total conformidade com a LGPD e GDPR para proteção de dados jurídicos."
         },
         {
-          title: "Foco no Cliente",
-          description: "Estratégias personalizadas que respeitam o tempo e os objetivos de cada indivíduo."
+          title: "Eficiência Operacional",
+          description: "Redução de até 70% no tempo de preparação, otimizando o trabalho manual da sua equipe."
         },
         {
-          title: "Inovação",
-          description: "Uso de tecnologia de ponta para otimizar fluxos e prazos."
+          title: "Parceria de Crescimento",
+          description: "Fornecemos as ferramentas ideais (Page Builder, links de login e vendas) para seu escritório escalar."
         }
-
       ]
     },
     leadership: {
-      title: "Liderança",
-      subtitle: "Compromisso com o sucesso de nossos clientes",
+      title: "Nossos Fundadores",
+      subtitle: "Tecnologia e Direito Consular em perfeita harmonia",
       members: [
         {
-          name: "Teste",
-          description: "Sócio-fundador e especialista em Direito Internacional com mais de 15 anos de experiência em processos consulares complexos."
+          name: "CEO & Co-fundador",
+          description: "Especialista em tecnologia e arquitetura de sistemas voltados para a automatização jurídica com a Aplikei."
         },
         {
-          name: "Dra. Teste",
-          description: "Diretora Jurídica focada em vistos de negócios e estratégias corporativas de imigração para o mercado americano."
+          name: "Co-fundador & Advisor",
+          description: "Advogado de imigração com vasta trajetória no mercado consular americano, garantindo a conformidade e precisão jurídica da plataforma."
         }
       ]
     },
     cta: {
-      title: "Pronto para sua Jornada?",
-      subtitle: "Fale com nossos especialistas hoje e descubra o melhor caminho para o seu sucesso internacional.",
-      button: "Agendar Consultoria"
+      title: "Leve sua operação para o futuro",
+      subtitle: "Agende uma demonstração e descubra como a Aplikei pode acelerar seu escritório.",
+      button: "Agendar Demonstração"
     },
     stats: {
-      success: "5.000+",
-      successLabel: "Casos de Sucesso",
-      approval: "99%",
-      approvalLabel: "Taxa de Aprovação",
-      countries: "12+",
-      countriesLabel: "Países Atendidos"
+      success: "10k+",
+      successLabel: "Processos Facilitados",
+      approval: "-70%",
+      approvalLabel: "Tempo de Preparação",
+      countries: "3 Idiomas",
+      countriesLabel: "Suporte da Plataforma"
     }
   },
 
@@ -132,7 +131,7 @@ const common = {
   contactPage: {
     hero: {
       title: "Vamos conversar?",
-      subtitle: "Estamos prontos para tirar suas dúvidas e ajudar você no seu processo imigratório."
+      subtitle: "Estamos prontos para tirar suas dúvidas e ajudar você no seu processo de visto."
     }
 
   },

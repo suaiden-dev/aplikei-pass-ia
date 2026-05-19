@@ -1,10 +1,12 @@
 const landing = {
   hero: {
-    badge: "IA Imigratória de Próxima Geração",
-    title: "A plataforma completa para gestão de",
-    titleHighlight: "processos de visto",
-    subtitle: "Automatize tarefas, organize documentos e escale seu escritório com a eficiência da Inteligência Artificial aplicada ao direito imigratório.",
+    badge: "IA Imigratória para Advogados e Escritórios",
+    title: "A plataforma completa para gerenciar seus",
+    titleHighlight: "processos de vistos consulares",
+    subtitle: "Automatize tarefas, organize documentos e escale seu escritório com a eficiência da Inteligência Artificial dedicada ao direito imigratório.",
     cta: "Agendar demonstração",
+    statsLabel: "Tempo de preparação",
+    statsValue: "-70%",
     ctaSecondary: "Falar com especialista",
     trustedBy: "Trusted by leaders",
   },
@@ -58,31 +60,23 @@ const landing = {
   },
   howItWorks: {
     title: "Como Funciona",
+    subtitle: "Comece em minutos",
     steps: [
       {
-        number: "1",
-        title: "Cadastro",
-        description: "Importe os dados básicos do seu cliente."
+        title: "Crie uma conta",
+        desc: "Cadastre-se na plataforma de forma rápida e segura em poucos cliques."
       },
       {
-        number: "2",
-        title: "Coleta automatizada",
-        description: "Portal do cliente inteligente para envio de docs."
+        title: "Ative seu plano",
+        desc: "Escolha e ative o plano ideal com os recursos que seu escritório necessita."
       },
       {
-        number: "3",
-        title: "Organização e validação",
-        description: "A IA valida se os documentos estão corretos."
+        title: "Configure sua empresa",
+        desc: "Complete a configuração da sua empresa com 7 passos simples e automatizados."
       },
       {
-        number: "4",
-        title: "Geração via IA",
-        description: "Preenchimento automático de petições e formulários."
-      },
-      {
-        number: "5",
-        title: "Entrega final",
-        description: "Protocolo pronto para submissão oficial."
+        title: "Venda e gerencie",
+        desc: "Comece imediatamente a vender e gerenciar com maestria os processos de vistos dos seus clientes."
       }
     ]
   },
@@ -112,14 +106,16 @@ const landing = {
     ],
     stats: {
       number: "10k+",
-      label: "Processos automatizados com sucesso"
+      label: "Processos facilitados com sucesso"
     }
   },
   testimonials: {
     title: "O que dizem os especialistas",
+    heading: "Excelência comprovada por parceiros",
+    subtitle: "Escritórios de advocacia e assessorias de vistos consulares que escalaram suas operações com a nossa tecnologia.",
     items: [
       {
-        quote: "A implementação da Aplikei transformou drasticamente nossa entrega. <span class='text-primary-container font-semibold'>Reduzimos em 60% o tempo operacional</span> de preparação documental para o EB-1 e EB-2 NIW.",
+        quote: "A implementação da Aplikei transformou drasticamente nossa entrega. <span class='text-primary-container font-semibold'>Reduzimos em 60% o tempo operacional</span> de preparação documental para vistos consulares.",
         author: "Ricardo Mendes",
         role: "Sócio-Diretor, Mendes Lex",
         image: "https://lh3.googleusercontent.com/aida-public/AB6AXuA66Qf9xmZaF-q5wdDes52yBwYSGfeJaamYjvVDCHinkORL9QjIUp7BtxhIZKoG1aJNCy0cuJFxfV2fKkVoHV8KUNFRFUeXJFB0V6II6TaRKS2jAprznp1c_iYCZy2lrflkvs6QRuJBV_7YDcBxjyEJLvhs3yjoIm9WgXkYfmjLSAlTp0F03bMlhRbu7ommCkQXykR1_tSm6hFmzVvcKZSR2vQUG5ykpXPr8Al72mBOshFx-cWlYqmYGQAk8_ZlwrvBqQC6_-CiSCA"
@@ -135,8 +131,7 @@ const landing = {
   finalCta: {
     title: "Pronto para escalar sua operação?",
     description: "Junte-se aos escritórios que já automatizaram mais de 10.000 processos com precisão jurídica e tecnologia de ponta.",
-    button: "Agendar demonstração",
-    disclaimer: "Sem compromisso. Teste gratuito por 14 dias para novos parceiros."
+    button: "Agendar demonstração"
   },
   faq: {
     title: "Perguntas Frequentes",
@@ -146,22 +141,22 @@ const landing = {
         a: "Sim, utilizamos criptografia de ponta a ponta e estamos em conformidade com as principais normas de proteção de dados (LGPD/GDPR)."
       },
       {
-        q: "Como a IA ajuda no preenchimento de formulários?",
-        a: "Nossa IA analisa os documentos enviados e extrai as informações necessárias para preencher automaticamente os formulários da USCIS, validando a consistência dos dados."
+        q: "Como a IA ajuda na criação de cartas para a USCIS e nos treinamentos consulares?",
+        a: "Nossa Inteligência Artificial auxilia na redação de cartas robustas e personalizadas para a USCIS, além de conduzir simulações de treinamentos consulares dinâmicos para preparar seus clientes para as entrevistas de visto."
       },
       {
-        q: "Posso integrar com meu sistema atual?",
-        a: "Sim, oferecemos APIs e integrações com as principais ferramentas de gestão e CRM do mercado."
+        q: "Como funciona a venda e o acesso para os meus clientes?",
+        a: "Oferecemos links exclusivos de login e páginas de produtos para que seus clientes possam realizar a compra diretamente e acessar a plataforma com facilidade."
       },
       {
-        q: "Existe suporte em português?",
-        a: "Com certeza. Nosso time de suporte é composto por especialistas que falam sua língua e entendem o mercado imigratório."
+        q: "Existe tradução para o cliente?",
+        a: "Sim, a plataforma possui suporte completo e está disponível em português, inglês e espanhol, permitindo que seu cliente utilize o sistema no idioma de sua preferência."
       }
     ]
   },
   lex: {
     hero: {
-      title: "Cuidamos de todo o seu processo imigratório com segurança, estratégia e eficiência.",
+      title: "Cuidamos de todo o seu processo de visto com segurança, estratégia e eficiência.",
       subtitle: "Garantindo que seus objetivos internacionais sejam alcançados com rigor profissional.",
       badge: "Processos auditados e revisados por advogados licenciados."
     },

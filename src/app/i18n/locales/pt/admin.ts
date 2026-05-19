@@ -30,7 +30,7 @@ const admin = {
         revenue: "Financeiro",
         finance_analytics: "Análise Financeira",
         dashboard: "Painel",
-        matters: "Processos",
+        matters: "Casos",
         lawyers: "Advogados",
         products: "Produtos",
         chats: "Mensagens",
@@ -49,7 +49,8 @@ const admin = {
         billings: "Cobranças",
         offices: "Escritórios",
         subscription: "Minha Assinatura",
-        companyProfile: "Perfil da Empresa"
+        companyProfile: "Perfil da Empresa",
+        payoutSettings: "Configuração de Saque"
     },
     financeAnalytics: {
         title: "Análise Financeira",
@@ -88,8 +89,16 @@ const admin = {
         }
     },
     payoutSettings: {
-      title: "Configuração de Recebimento",
-      subtitle: "Configure seus métodos de pagamento e preferências de saque",
+      title: "Configuração de Saque",
+      subtitle: "Configure seus dados de recebimento para receber o saque",
+      methodTitle: "Método de Recebimento",
+      methodSubtitle: "Selecione como deseja ser pago",
+      stripeInfo: "Nenhuma configuração é necessária. Você fornecerá seu link do Stripe durante o processo de solicitação de saque.",
+      zelleInfo: "Configure seus dados do Zelle abaixo para permitir transferências diretas para sua conta.",
+      zelleTitle: "Detalhes do Zelle",
+      zelleSubtitle: "Informações obrigatórias para pagamentos via Zelle",
+      accountName: "Nome da Conta",
+      zelleId: "Identificador Zelle (E-mail ou Telefone)",
       sections: {
         paymentLinks: {
           title: "Links de Pagamento",

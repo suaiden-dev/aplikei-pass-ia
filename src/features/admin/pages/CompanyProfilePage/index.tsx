@@ -11,6 +11,7 @@ import {
   Share2
 } from "lucide-react";
 import { FaInstagram, FaLinkedin, FaFacebook } from "react-icons/fa";
+import { RiUploadLine } from "react-icons/ri";
 import { supabase } from "@shared/lib/supabase";
 import { useAuth } from "@shared/hooks/useAuth";
 import { Button } from "@shared/components/atoms/button";
@@ -33,6 +34,8 @@ interface OfficeData {
   instagram_url: string | null;
   linkedin_url: string | null;
   facebook_url: string | null;
+  logo_url?: string | null;
+  landing_page_config?: any;
 }
 
 export default function CompanyProfilePage() {
@@ -41,6 +44,7 @@ export default function CompanyProfilePage() {
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [office, setOffice] = React.useState<OfficeData | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = React.useState(false);
   const [isCheckingSlug, setIsCheckingSlug] = React.useState(false);
   const [slugConflict, setSlugConflict] = React.useState<string | null>(null);
   const shouldShowFieldTour = user?.role === "admin_lawyer" && !user?.hasCompletedOnboarding;
@@ -122,6 +126,51 @@ export default function CompanyProfilePage() {
     }
   }, [slugifyOfficeName]);
 
+  const handleLogoSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id) return;
+    
+    setIsUploadingLogo(true);
+    try {
+      const ext = file.name.split(".").pop() ?? "png";
+      const baseName = file.name.replace(/\.[^/.]+$/, "");
+      const safeBaseName = baseName.replace(/\s+/g, "-").toLowerCase();
+      const path = `landing-logos/${user.id}/${Date.now()}-${safeBaseName}.${ext}`;
+      const { error } = await supabase.storage
+        .from("profiles")
+        .upload(path, file, { contentType: file.type, upsert: true });
+      if (error) throw new Error(error.message);
+      const publicUrl = supabase.storage.from("profiles").getPublicUrl(path).data.publicUrl;
+
+      // Update local state
+      setOffice(prev => prev ? { 
+        ...prev, 
+        logo_url: publicUrl,
+        landing_page_config: { 
+          ...(prev.landing_page_config || {}), 
+          logoUrl: publicUrl 
+        }
+      } : prev);
+
+      // Auto-save to the dedicated logo_url column if office already exists
+      if (office?.id) {
+        await supabase.from("offices").update({
+          logo_url: publicUrl,
+          landing_page_config: { 
+            ...(office.landing_page_config || {}), 
+            logoUrl: publicUrl 
+          }
+        }).eq("id", office.id);
+      }
+
+      toast.success("Logo uploaded successfully!");
+    } catch (err) {
+      toast.error("Failed to upload logo.");
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
   React.useEffect(() => {
     async function fetchOffice() {
       if (!user?.id) return;
@@ -129,7 +178,7 @@ export default function CompanyProfilePage() {
       try {
         const { data, error } = await supabase
           .from("offices")
-          .select("id, slug, name, cnpj, address, phone, email, website, instagram_url, linkedin_url, facebook_url")
+          .select("id, slug, name, cnpj, address, phone, email, website, instagram_url, linkedin_url, facebook_url, logo_url, landing_page_config")
           .eq("owner_id", user.id)
           .maybeSingle();
 
@@ -150,6 +199,7 @@ export default function CompanyProfilePage() {
               instagram_url: "",
               linkedin_url: "",
               facebook_url: "",
+              landing_page_config: {},
             });
           }
         }
@@ -187,6 +237,7 @@ export default function CompanyProfilePage() {
         instagram_url: office.instagram_url,
         linkedin_url: office.linkedin_url,
         facebook_url: office.facebook_url,
+        landing_page_config: office.landing_page_config,
       };
       let officeId = office.id;
       let createdSlug: string | null = null;
@@ -274,6 +325,33 @@ export default function CompanyProfilePage() {
           </CardHeader>
           <CardContent className="p-6">
             <div className="grid gap-6 md:grid-cols-2 text-left">
+              <div className="space-y-2 md:col-span-2 flex items-center gap-6">
+                <div className="h-16 w-16 bg-bg-subtle rounded-xl border border-border flex items-center justify-center overflow-hidden shrink-0">
+                  {(office.logo_url || office.landing_page_config?.logoUrl) ? (
+                    <img 
+                      src={office.logo_url || office.landing_page_config?.logoUrl} 
+                      alt="Logo" 
+                      className="w-full h-full object-contain p-1" 
+                    />
+                  ) : (
+                    <Building2 className="text-text-muted" />
+                  )}
+                </div>
+                <div>
+                  <Label className="mb-2 block">Company Logo</Label>
+                  <div className="flex items-center gap-3">
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm text-text hover:bg-bg-subtle transition-colors">
+                      {isUploadingLogo ? <Loader2 className="animate-spin h-4 w-4" /> : <RiUploadLine className="h-4 w-4" />}
+                      {isUploadingLogo ? "Uploading..." : (office.logo_url || office.landing_page_config?.logoUrl) ? "Trocar Logo" : "Upload Logo"}
+                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoSelected} disabled={isUploadingLogo} />
+                    </label>
+                    {(office.logo_url || office.landing_page_config?.logoUrl) && (
+                      <span className="text-xs text-success font-bold">✓ Logo salva</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="companyName">{t.companyProfile.sections.general.companyName}</Label>
                 <Input
@@ -294,7 +372,13 @@ export default function CompanyProfilePage() {
                   id="companySlug"
                   value={office.slug || ""}
                   onChange={(e) => {
-                    setOffice({ ...office, slug: e.target.value });
+                    const maskedValue = e.target.value
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .toLowerCase()
+                      .replace(/[^a-z0-9-]/g, "-")
+                      .replace(/-+/g, "-");
+                    setOffice({ ...office, slug: maskedValue });
                     if (slugConflict) setSlugConflict(null);
                   }}
                   onBlur={() => { void checkOfficeSlugConflict(office.slug || office.name, office.id); }}

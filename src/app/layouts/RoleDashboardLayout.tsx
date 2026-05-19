@@ -487,7 +487,7 @@ export function RoleDashboardLayout({
               location={routeLocation}
               onNavigate={() => setMobileMenuOpen(false)}
               collapsed={collapsed}
-              lockedAllowedPaths={onboardingAccessLocked ? onboardingAllowedPaths : null}
+              lockedAllowedPaths={onboardingAccessLocked ? ONBOARDING_ALLOWED_PATHS as unknown as string[] : null}
             />
           </div>
 

@@ -1,8 +1,8 @@
 const tracking = {
   title: "Acompanhamento do Pacote",
-  trackingLabel: "Código de Rastreio",
+  trackingLabel: "Código de Acompanhamento",
   trackingPlaceholder: "Ex: USPS-123456789",
-  description: "Os tempos de processamento do USCIS variam. Use seu código de rastreio para acompanhar a entrega física.",
+  description: "Os tempos de processamento do USCIS variam. Use seu código de acompanhamento para visualizar o andamento.",
   letterInfo: "A Carta de Recebimento (Form I-797) chegará em seu endereço em 2 a 4 semanas após o recebimento.",
   supportInfo: "Para atualizações de status oficiais, visite a ferramenta USCIS Case Status Online.",
   outcomes: {

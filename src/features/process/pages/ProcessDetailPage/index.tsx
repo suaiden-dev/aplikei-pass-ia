@@ -13,6 +13,7 @@ import {
   RiLoader4Line,
   RiErrorWarningLine,
   RiBookOpenLine,
+  RiBuilding2Line,
 } from "react-icons/ri";
 import { useAuth } from "@shared/hooks/useAuth";
 import { calculateProcessProgress } from "@features/process/utils";
@@ -86,6 +87,7 @@ export default function ProcessDetailPage() {
     queryKey: ['process-detail', slug, searchParams.get("id")],
     queryFn: async () => {
       if (!user || !slug) return null;
+      let procData = null;
       const idParam = searchParams.get("id");
 
       if (idParam) {
@@ -96,19 +98,34 @@ export default function ProcessDetailPage() {
           .single();
         if (error || !data) return null;
         if (data.user_id !== user.id || !isSameService(data.service_slug, slug)) return null;
-        return data;
+        procData = data;
+      } else {
+        const { data } = await supabase
+          .from("user_services")
+          .select("*")
+          .eq("user_id", user.id)
+          .in("service_slug", getServiceSlugs(slug))
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        procData = data ?? null;
       }
 
-      const { data } = await supabase
-        .from("user_services")
-        .select("*")
-        .eq("user_id", user.id)
-        .in("service_slug", getServiceSlugs(slug))
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      // Always try to resolve the office logo: process office_id first, then user's own office
+      const officeIdToFetch = procData?.office_id || user?.officeId;
+      if (procData && officeIdToFetch) {
+        const { data: officeData } = await supabase
+          .from("offices")
+          .select("name, logo_url, landing_page_config")
+          .eq("id", officeIdToFetch)
+          .single();
+        if (officeData) {
+          procData.officeName = officeData.name;
+          procData.officeLogoUrl = officeData.logo_url || (officeData.landing_page_config as any)?.logoUrl;
+        }
+      }
 
-      return data ?? null;
+      return procData;
     },
     enabled: !!user && !!slug,
     staleTime: 0,
@@ -343,16 +360,31 @@ export default function ProcessDetailPage() {
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-6 mb-12"
           >
-            <div className={`w-16 h-16 rounded-2xl ${cfg?.bg ?? "bg-bg-subtle/50"} flex items-center justify-center border border-black/5 shadow-sm`}>
-              <Icon className={`text-3xl ${cfg?.icon ?? "text-text-muted"}`} />
+            <div className={`w-16 h-16 rounded-2xl ${cfg?.bg ?? "bg-bg-subtle/50"} flex items-center justify-center border border-black/5 shadow-sm overflow-hidden shrink-0`}>
+              {(proc as any)?.officeLogoUrl ? (
+                <img src={(proc as any).officeLogoUrl} alt={(proc as any).officeName} className="w-full h-full object-contain p-1" />
+              ) : (
+                <Icon className={`text-3xl ${cfg?.icon ?? "text-text-muted"}`} />
+              )}
             </div>
             <div>
               <h1 className="font-display font-black text-[28px] text-text leading-tight tracking-tight">
                 {t.processDetail.services?.[slug]?.label || cfg?.label || service.title}
               </h1>
-              <p className="text-[11px] font-bold text-text-muted tracking-widest uppercase mt-1">
-                {t.processDetail.services?.[slug]?.category || cfg?.category || "Guia Completo"}
-              </p>
+              <div className="flex items-center flex-wrap gap-2 mt-1">
+                <p className="text-[11px] font-bold text-text-muted tracking-widest uppercase">
+                  {t.processDetail.services?.[slug]?.category || cfg?.category || "Guia Completo"}
+                </p>
+                {(proc as any)?.officeName && (
+                  <>
+                    <span className="text-border text-xs">•</span>
+                    <p className="text-[11px] font-black text-primary tracking-widest uppercase flex items-center gap-1">
+                      <RiBuilding2Line />
+                      {(proc as any).officeName}
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
           </motion.div>
 

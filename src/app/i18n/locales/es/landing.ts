@@ -5,6 +5,8 @@ const landing = {
     titleHighlight: "procesos de visa",
     subtitle: "Automatice tareas, organice documentos y escale su firma con la eficiencia de la Inteligencia Artificial aplicada al derecho migratorio.",
     cta: "Agendar demostración",
+    statsLabel: "Tiempo de preparación",
+    statsValue: "-70%",
     ctaSecondary: "Hablar con especialista",
     trustedBy: "Trusted by leaders",
   },
@@ -112,14 +114,16 @@ const landing = {
     ],
     stats: {
       number: "10k+",
-      label: "Procesos automatizados con éxito"
+      label: "Procesos facilitados con éxito"
     }
   },
   testimonials: {
     title: "Lo que dicen los expertos",
+    heading: "Excelencia comprobada por socios",
+    subtitle: "Bufetes de abogados y asesorías de visas consulares que escalaron sus operaciones con nuestra tecnología.",
     items: [
       {
-        quote: "La implementación de Aplikei transformó drásticamente nuestra entrega. <span class='text-primary-container font-semibold'>Redujimos en un 60% el tiempo operativo</span> de preparación documental para el EB-1 e EB-2 NIW.",
+        quote: "La implementación de Aplikei transformó drásticamente nuestra entrega. <span class='text-primary-container font-semibold'>Redujimos en un 60% el tiempo operativo</span> de preparación documental para visas consulares.",
         author: "Ricardo Mendes",
         role: "Socio Director, Mendes Lex",
         image: "https://lh3.googleusercontent.com/aida-public/AB6AXuA66Qf9xmZaF-q5wdDes52yBwYSGfeJaamYjvVDCHinkORL9QjIUp7BtxhIZKoG1aJNCy0cuJFxfV2fKkVoHV8KUNFRFUeXJFB0V6II6TaRKS2jAprznp1c_iYCZy2lrflkvs6QRuJBV_7YDcBxjyEJLvhs3yjoIm9WgXkYfmjLSAlTp0F03bMlhRbu7ommCkQXykR1_tSm6hFmzVvcKZSR2vQUG5ykpXPr8Al72mBOshFx-cWlYqmYGQAk8_ZlwrvBqQC6_-CiSCA"
@@ -135,8 +139,7 @@ const landing = {
   finalCta: {
     title: "¿Listo para escalar su operación?",
     description: "Únase a las firmas que ya han automatizado más de 10.000 procesos con precisión jurídica y tecnología de punta.",
-    button: "Agendar demostración",
-    disclaimer: "Sin compromiso. Prueba gratuita por 14 días para nuevos socios."
+    button: "Agendar demostración"
   },
   faq: {
     title: "Preguntas Frecuentes",
@@ -146,16 +149,16 @@ const landing = {
         a: "Sí, utilizamos cifrado de extremo a extremo y cumplimos con las principales normas de protección de datos (LGPD/GDPR)."
       },
       {
-        q: "¿Cómo ayuda la IA en el llenado de formularios?",
-        a: "Nuestra IA analiza los documentos enviados y extrae la información necesaria para completar automáticamente los formularios de USCIS, validando la consistencia de los datos."
+        q: "¿Cómo ayuda la IA en la creación de cartas para la USCIS y en los entrenamientos consulares?",
+        a: "Nuestra Inteligencia Artificial ayuda a redactar cartas sólidas y personalizadas para la USCIS, además de realizar simulaciones dinámicas de entrenamiento consular para preparar a sus clientes para las entrevistas de visa."
       },
       {
-        q: "¿Puedo integrarlo con mi sistema actual?",
-        a: "Sí, ofrecemos APIs e integraciones con las principales herramientas de gestión y CRM del mercado."
+        q: "¿Cómo funciona la venta y el acceso para mis clientes?",
+        a: "Ofrecemos enlaces exclusivos de inicio de sesión y páginas de productos para que sus clientes puedan realizar la compra directamente y acceder a la plataforma con facilidad."
       },
       {
-        q: "¿Existe soporte en español?",
-        a: "Por supuesto. Nuestro equipo de soporte está compuesto por especialistas que hablan su idioma y entienden el mercado migratorio."
+        q: "¿Existe traducción para el cliente?",
+        a: "Sí, la plataforma cuenta con soporte completo y está disponible en portugués, inglés y español, permitiendo que su cliente utilice el sistema en su idioma de preferencia."
       }
     ]
   },

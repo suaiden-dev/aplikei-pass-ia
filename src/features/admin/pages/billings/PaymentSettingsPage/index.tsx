@@ -114,8 +114,8 @@ export default function PaymentSettingsPage() {
     <div className="space-y-6 max-w-5xl pb-10">
       <DashboardPageHeader
         eyebrow={t?.nav?.settings || "Settings"}
-        title={t?.payoutSettings?.title || "Payout Configuration"}
-        description={t?.payoutSettings?.subtitle || "Configure your payout preferences"}
+        title={t?.payoutSettings?.title || "Withdrawal Configuration"}
+        description={t?.payoutSettings?.subtitle || "Configure your withdrawal preferences"}
       />
 
       <form onSubmit={handleSave} className="space-y-6">
@@ -127,8 +127,8 @@ export default function PaymentSettingsPage() {
                 <Wallet className="h-5 w-5" />
               </div>
               <div className="text-left">
-                <CardTitle className="uppercase">Payout Method</CardTitle>
-                <CardDescription>Select how you want to be paid</CardDescription>
+                <CardTitle className="uppercase">{t?.payoutSettings?.methodTitle || "Payout Method"}</CardTitle>
+                <CardDescription>{t?.payoutSettings?.methodSubtitle || "Select how you want to be paid"}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -158,14 +158,14 @@ export default function PaymentSettingsPage() {
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 text-blue-600 animate-in fade-in zoom-in-95 duration-300">
                   <Info className="h-5 w-5 mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-center w-full">
-                    No configuration needed. You will provide your Stripe link during the withdrawal process.
+                    {t?.payoutSettings?.stripeInfo || "No configuration needed. You will provide your Stripe link during the withdrawal process."}
                   </p>
                 </div>
               ) : (
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-[#6D1ED1]/5 border border-[#6D1ED1]/10 text-[#6D1ED1] animate-in fade-in zoom-in-95 duration-300">
                   <Info className="h-5 w-5 mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-center w-full">
-                    Configure your Zelle details below to enable direct transfers to your account.
+                    {t?.payoutSettings?.zelleInfo || "Configure your Zelle details below to enable direct transfers to your account."}
                   </p>
                 </div>
               )}
@@ -182,34 +182,34 @@ export default function PaymentSettingsPage() {
                   <Zap className="h-5 w-5" />
                 </div>
                 <div className="text-left">
-                  <CardTitle className="uppercase">Zelle Details</CardTitle>
-                  <CardDescription>Required information for Zelle payments</CardDescription>
+                  <CardTitle className="uppercase">{t?.payoutSettings?.zelleTitle || "Zelle Details"}</CardTitle>
+                  <CardDescription>{t?.payoutSettings?.zelleSubtitle || "Required information for Zelle payments"}</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid gap-6 md:grid-cols-2 text-left">
                 <div className="space-y-2">
-                  <Label htmlFor="zelleName">Account Name</Label>
+                  <Label htmlFor="zelleName">{t?.payoutSettings?.accountName || "Account Name"}</Label>
                   <Input
                     id="zelleName"
                     value={settings.zelle_name || ""}
                     onChange={(e) => setSettings({ ...settings, zelle_name: e.target.value })}
-                    placeholder="Full Name on Account"
+                    placeholder={t?.payoutSettings?.sections?.zelleConfig?.namePlaceholder || "Full Name on Account"}
                     className="rounded-xl border-border bg-bg-subtle"
                     required={isZelle}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="zelleIdentifier">Zelle ID (Email or Phone)</Label>
+                  <Label htmlFor="zelleIdentifier">{t?.payoutSettings?.zelleId || "Zelle ID (Email or Phone)"}</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
                     <Input
                       id="zelleIdentifier"
                       value={settings.zelle_identifier || ""}
                       onChange={(e) => setSettings({ ...settings, zelle_identifier: e.target.value })}
-                      placeholder="email@example.com or +1..."
+                      placeholder={t?.payoutSettings?.sections?.zelleConfig?.identifierPlaceholder || "email@example.com or phone"}
                       className="pl-10 rounded-xl border-border bg-bg-subtle"
                       required={isZelle}
                     />
@@ -225,12 +225,12 @@ export default function PaymentSettingsPage() {
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Saving...
+                {t?.payoutSettings?.savingBtn || "Saving..."}
               </>
             ) : (
               <>
                 <Save className="mr-2 h-5 w-5" />
-                Save Settings
+                {t?.payoutSettings?.saveBtn || "Save Settings"}
               </>
             )}
           </Button>

@@ -85,6 +85,7 @@ export function DashboardView({
         </motion.div>
       )}
 
+      {/* 
       <section>
         <SectionHeader
           title={labels.sections.getCases}
@@ -105,7 +106,8 @@ export function DashboardView({
             />
           ))}
         </div>
-      </section>
+      </section> 
+      */}
     </div>
   );
 }

@@ -24,7 +24,7 @@ const admin = {
   nav: {
     overview: "Resumen General",
     dashboard: "Dashboard",
-    matters: "Procesos",
+    matters: "Casos",
     revenue: "Finanzas",
     finance_analytics: "Analítica Financiera",
     lawyers: "Abogados",
@@ -34,6 +34,7 @@ const admin = {
     coupons: "Cupones",
     roles: "Roles",
     pageBuilder: "Page Builder",
+    payoutSettings: "Configuración de Retiro"
   },
   financeAnalytics: {
     title: "Analítica Financiera",
@@ -614,6 +615,43 @@ const admin = {
       copyBtn: "Copiar al portapapeles",
       backBtn: "Volver"
     }
+  },
+  payoutSettings: {
+    title: "Configuración de Retiro",
+    subtitle: "Configure sus datos para recibir el retiro",
+    methodTitle: "Método de Retiro",
+    methodSubtitle: "Seleccione cómo desea recibir sus pagos",
+    stripeInfo: "No se requiere configuración. Proporcionará su enlace de Stripe durante el proceso de solicitud de retiro.",
+    zelleInfo: "Configure sus datos de Zelle a continuación para habilitar transferencias directas a su cuenta.",
+    zelleTitle: "Detalles de Zelle",
+    zelleSubtitle: "Información requerida para pagos mediante Zelle",
+    accountName: "Nombre de la Cuenta",
+    zelleId: "Identificador Zelle (Correo o Teléfono)",
+    sections: {
+      paymentLinks: {
+        title: "Enlaces de Pago",
+        description: "Configure sus enlaces de pago directo para clientes",
+        stripe: "Enlace de Pago Stripe",
+        zelle: "Enlace de Pago Zelle",
+        stripePlaceholder: "https://buy.stripe.com/...",
+        zellePlaceholder: "https://zellepay.com/..."
+      },
+      zelleConfig: {
+        title: "Configuración Zelle",
+        description: "Detalles específicos para recibir mediante Zelle",
+        name: "Nombre de la Cuenta Zelle",
+        identifier: "Identificador Zelle (Correo/Teléfono)",
+        namePlaceholder: "Nombre completo en la cuenta",
+        identifierPlaceholder: "correo@ejemplo.com o teléfono"
+      }
+    },
+    messages: {
+      saveSuccess: "¡Configuración de retiro actualizada con éxito!",
+      saveError: "Error al guardar la configuración.",
+      loadError: "Error al cargar la configuración."
+    },
+    saveBtn: "Guardar Configuración",
+    savingBtn: "Guardando..."
   }
 };
 

@@ -101,7 +101,32 @@ export function useUserProcesses(userId: string | undefined) {
 
       if (error) throw error;
       const services = (data as UserService[]) ?? [];
-      return Promise.all(services.map(normaliseCOSStep));
+      const normalised = await Promise.all(services.map(normaliseCOSStep));
+
+      const officeIds = Array.from(
+        new Set(
+          normalised
+            .map((s: any) => s.office_id)
+            .filter((id): id is string => Boolean(id))
+        )
+      );
+
+      const officeNameMap: Record<string, string> = {};
+      if (officeIds.length > 0) {
+        const { data: officesData } = await supabase
+          .from("offices")
+          .select("id, name")
+          .in("id", officeIds);
+
+        (officesData ?? []).forEach((o: any) => {
+          officeNameMap[o.id] = o.name;
+        });
+      }
+
+      return normalised.map((s) => ({
+        ...s,
+        officeName: s.office_id ? officeNameMap[s.office_id] : undefined,
+      }));
     },
   });
 
