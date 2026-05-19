@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   RiUserLine,
+  RiBuilding2Line,
   RiSearchLine,
   RiChat3Line,
   RiCheckDoubleLine,
@@ -25,6 +26,7 @@ interface AnalysisChatItem {
   userId: string;
   processId: string;
   serviceSlug: string;
+  officeName: string;
   chatTitle: string;
   fullName: string;
   email: string;
@@ -51,6 +53,7 @@ export default function ChatsPage() {
         userId: row.userId,
         processId: row.processId,
         serviceSlug: row.serviceSlug,
+        officeName: row.officeName || "Office",
         chatTitle: row.chatTitle,
         fullName: row.fullName || "Sem Nome",
         email: row.email || "",
@@ -191,6 +194,10 @@ export default function ChatsPage() {
                         <RiCheckDoubleLine className="text-xs text-info" />
                         <p className="text-[10px] text-text-muted truncate font-medium">{chat.chatTitle}</p>
                       </div>
+                      <div className="flex items-center gap-1 mt-1">
+                        <RiBuilding2Line className="text-xs text-text-muted" />
+                        <p className="text-[10px] text-text-muted truncate font-semibold">{chat.officeName}</p>
+                      </div>
                     </div>
                   </button>
                 ))}
@@ -290,6 +297,12 @@ function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: Anal
               <RiCircleFill className={cn("text-[8px]", isClosed ? "text-text-muted" : "text-success")} />
               <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
                 {chat.chatTitle}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-1">
+              <RiBuilding2Line className="text-[10px] text-text-muted" />
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                {chat.officeName || "Office"}
               </span>
             </div>
           </div>

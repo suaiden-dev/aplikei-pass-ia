@@ -458,6 +458,35 @@ const admin = {
       productsCount: "{{count}} products"
     }
   },
+  notificationsCenter: {
+    title: "Notifications",
+    markAll: "Mark all",
+    emptyTitle: "No notifications",
+    emptySubtitle: "All caught up!",
+    viewFullLog: "View full log",
+    filters: {
+      all: "All",
+      unread: "Unread",
+      adminAction: "Admin",
+      clientAction: "Client",
+      system: "System",
+    },
+    labels: {
+      system: "Notification",
+      actionRequiredReview: "Action required: review step",
+      actionRequiredReviewMessage: "A client completed a step and is waiting for your review.",
+      clientCompletedStepMessage: "The client completed the \"{{step}}\" step of {{service}} and is waiting for your review.",
+      clientCompletedGenericMessage: "The client completed a step of {{service}} and is waiting for your review.",
+      stepApproved: "Step approved",
+      stepApprovedMessage: "Your step was approved and you can proceed to the next one.",
+      changesRequired: "Changes required",
+      changesRequiredMessage: "Changes were requested. Review details and submit again.",
+      processCompleted: "Process completed",
+      processCompletedMessage: "Your process has been completed.",
+      interviewScheduled: "Interview scheduled",
+      interviewScheduledMessage: "Your interview is scheduled. Check date and location in your process.",
+    },
+  },
   payments: {
     title: "Financial",
     subtitle: "Platform revenue and payout control",

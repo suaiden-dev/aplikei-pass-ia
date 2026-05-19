@@ -98,7 +98,15 @@ function getNormalizedCOSRecoveryStep(service: UserService): number | null {
   const motionInitialPaid =
     Boolean(stepData.motion_initial_paid) ||
     Boolean(stepData.motion_analysis_paid) ||
-    hasPurchase(stepData, ["apoio-rfe-motion-inicio", "analise-motion", "analise-especialista-cos"]);
+    hasPurchase(stepData, [
+      "analysis-rfe-cos",
+      "analysis-rfe-eos",
+      "consultancy-motion-cos",
+      "consultancy-motion-eos",
+      "apoio-rfe-motion-inicio",
+      "analise-motion",
+      "analise-especialista-cos",
+    ]);
   const motionReasonSubmitted =
     Boolean(stepData.motion_reason) || workflowStatus === "awaiting_proposal";
   const motionProposalSent =

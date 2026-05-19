@@ -44,7 +44,13 @@ function getTargetCOSStep(service: UserService): number | null {
 
     const rfeInitialPaid =
       Boolean(sd["rfe_initial_paid"]) ||
-      hasPurchase(sd, ["apoio-rfe-motion-inicio", "analise-rfe-cos", "apoio-rfe-cos"]);
+      hasPurchase(sd, [
+        "analysis-rfe-cos",
+        "analysis-rfe-eos",
+        "apoio-rfe-motion-inicio",
+        "analise-rfe-cos",
+        "apoio-rfe-cos",
+      ]);
     const target = rfeInitialPaid ? COS_RECOVERY_STEPS.rfeInstruction : COS_RECOVERY_STEPS.rfeStart;
     return step < target ? target : null;
   }
@@ -52,7 +58,15 @@ function getTargetCOSStep(service: UserService): number | null {
   const motionInitialPaid =
     Boolean(sd["motion_initial_paid"]) ||
     Boolean(sd["motion_analysis_paid"]) ||
-    hasPurchase(sd, ["apoio-rfe-motion-inicio", "analise-motion", "analise-especialista-cos"]);
+    hasPurchase(sd, [
+      "analysis-rfe-cos",
+      "analysis-rfe-eos",
+      "consultancy-motion-cos",
+      "consultancy-motion-eos",
+      "apoio-rfe-motion-inicio",
+      "analise-motion",
+      "analise-especialista-cos",
+    ]);
   const motionReasonSubmitted =
     Boolean(sd["motion_reason"]) || workflowStatus === "awaiting_proposal";
   const motionProposalSent =

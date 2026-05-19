@@ -62,6 +62,21 @@ interface MotionCheckoutOverlayProps {
   onClose: () => void
 }
 
+const LEGACY_MOTION_ANALYSIS_SLUG = 'apoio-rfe-motion-inicio'
+const LEGACY_MOTION_PROPOSAL_SLUG = 'proposta-rfe-motion'
+
+function getMotionAnalysisSlug(serviceSlug: string): string {
+  return serviceSlug === 'extensao-status'
+    ? 'analysis-rfe-eos'
+    : 'analysis-rfe-cos'
+}
+
+function getMotionProposalSlug(serviceSlug: string): string {
+  return serviceSlug === 'extensao-status'
+    ? 'consultancy-motion-eos'
+    : 'consultancy-motion-cos'
+}
+
 // ─── Payment method config ────────────────────────────────────────────────────
 
 /**
@@ -613,6 +628,7 @@ export function MotionExplanationStep({
           'Acesso ao fluxo guiado com suporte da equipe.',
         ]
   const [baseAmount, setBaseAmount] = useState(50)
+  const analysisSlug = getMotionAnalysisSlug(proc.service_slug)
   const analysisFeeTemplate = t?.workflows?.shared?.analysisFee
   const analysisFeeText =
     typeof analysisFeeTemplate === 'string' &&
@@ -624,7 +640,7 @@ export function MotionExplanationStep({
     supabase
       .from('services_prices')
       .select('price')
-      .eq('service_id', 'apoio-rfe-motion-inicio')
+      .in('service_id', [analysisSlug, LEGACY_MOTION_ANALYSIS_SLUG])
       .eq('is_active', true)
       .limit(1)
       .then(({ data, error }) => {
@@ -640,7 +656,7 @@ export function MotionExplanationStep({
         const parsedPrice = Number(firstPrice)
         setBaseAmount(Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 50)
       })
-  }, [])
+  }, [analysisSlug])
 
   return (
     <>
@@ -699,7 +715,7 @@ export function MotionExplanationStep({
       {showCheckout && (
         <MotionCheckoutOverlay
           amount={baseAmount}
-          slug='apoio-rfe-motion-inicio'
+          slug={analysisSlug}
           proc={proc}
           user={user}
           onClose={() => setShowCheckout(false)}
@@ -918,6 +934,7 @@ export function MotionAcceptProposalStep({
   const purchases = Array.isArray(data.purchases)
     ? (data.purchases as Array<{ slug?: string }>)
     : []
+  const proposalSlug = getMotionProposalSlug(proc.service_slug)
   const proposalText =
     (data.motion_proposal_text as string) ||
     t?.workflows?.motion?.proposal?.defaultStrategy
@@ -926,7 +943,9 @@ export function MotionAcceptProposalStep({
   const alreadyPaid =
     Boolean(data.motion_payment_completed_at) ||
     Boolean(data.motion_proposal_paid) ||
-    purchases.some((p) => p?.slug === 'proposta-rfe-motion')
+    purchases.some(
+      (p) => p?.slug === proposalSlug || p?.slug === LEGACY_MOTION_PROPOSAL_SLUG,
+    )
 
   return (
     <>
@@ -1018,7 +1037,7 @@ export function MotionAcceptProposalStep({
       {showCheckout && (
         <MotionCheckoutOverlay
           amount={proposalAmount}
-          slug='proposta-rfe-motion'
+          slug={proposalSlug}
           proc={proc}
           user={user}
           onClose={() => setShowCheckout(false)}

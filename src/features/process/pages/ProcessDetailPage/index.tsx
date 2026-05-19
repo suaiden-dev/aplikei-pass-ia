@@ -624,6 +624,10 @@ export default function ProcessDetailPage() {
               ? (stepData.purchases as Array<{ slug?: string }>)
               : [];
             const hasPaidProposal = purchases.some(p =>
+              p.slug === "analysis-rfe-cos" ||
+              p.slug === "analysis-rfe-eos" ||
+              p.slug === "consultancy-motion-cos" ||
+              p.slug === "consultancy-motion-eos" ||
               p.slug === "proposta-rfe-motion" ||
               p.slug === "apoio-rfe-motion-inicio" ||
               p.slug === "analise-rfe-cos" ||

@@ -65,6 +65,16 @@ interface RFECheckoutOverlayProps {
   onClose: () => void;
 }
 
+const LEGACY_RFE_ANALYSIS_SLUG = "apoio-rfe-motion-inicio";
+
+function getRFEAnalysisSlug(serviceSlug: string): string {
+  return serviceSlug === "extensao-status" ? "analysis-rfe-eos" : "analysis-rfe-cos";
+}
+
+function getRFEProposalSlug(serviceSlug: string): string {
+  return serviceSlug === "extensao-status" ? "consultancy-motion-eos" : "consultancy-motion-cos";
+}
+
 // ─── Payment method config ────────────────────────────────────────────────────
 
 
@@ -420,6 +430,7 @@ function RFEHistoryPanel({ proc }: { proc: UserService }) {
 export function RFEExplanationStep({ proc }: StepProps) {
   const t = useT("onboarding");
   const [showCheckout, setShowCheckout] = useState(false);
+  const analysisSlug = getRFEAnalysisSlug(proc.service_slug);
   const copy = t?.workflows?.rfe?.explanation;
   const textOr = (value: unknown, fallback: string) =>
     typeof value === "string" && value.trim().length > 0 ? value : fallback;
@@ -450,7 +461,7 @@ export function RFEExplanationStep({ proc }: StepProps) {
     supabase
       .from("services_prices")
       .select("price")
-      .eq("service_id", "apoio-rfe-motion-inicio")
+      .in("service_id", [analysisSlug, LEGACY_RFE_ANALYSIS_SLUG])
       .eq("is_active", true)
       .limit(1)
       .then(({ data, error }) => {
@@ -463,7 +474,7 @@ export function RFEExplanationStep({ proc }: StepProps) {
         const parsedPrice = Number(firstPrice);
         setBaseAmount(Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 50);
       });
-  }, []);
+  }, [analysisSlug]);
 
   return (
     <>
@@ -510,12 +521,12 @@ export function RFEExplanationStep({ proc }: StepProps) {
         </div>
 
         {showCheckout && (
-          <RFECheckoutOverlay 
-            amount={baseAmount} 
-            slug="apoio-rfe-motion-inicio" 
-            proc={proc} 
-            onClose={() => setShowCheckout(false)} 
-          />
+        <RFECheckoutOverlay 
+          amount={baseAmount} 
+          slug={analysisSlug}
+          proc={proc} 
+          onClose={() => setShowCheckout(false)} 
+        />
         )}
       </div>
     </>
@@ -632,6 +643,7 @@ export function RFEAcceptProposalStep({ proc }: StepProps) {
   const t = useT("onboarding");
   const data = (proc.step_data as any || {}) as Record<string, unknown>;
   const [showCheckout, setShowCheckout] = useState(false);
+  const proposalSlug = getRFEProposalSlug(proc.service_slug);
 
 
   return (
@@ -675,7 +687,7 @@ export function RFEAcceptProposalStep({ proc }: StepProps) {
       {showCheckout && (
         <RFECheckoutOverlay 
           amount={Number(data.rfe_proposal_amount || 0)} 
-          slug="proposta-rfe-motion" 
+          slug={proposalSlug}
           proc={proc} 
           onClose={() => setShowCheckout(false)} 
         />

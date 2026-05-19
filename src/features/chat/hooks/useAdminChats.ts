@@ -42,6 +42,9 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
           office_id,
           step_data,
           created_at,
+          offices:office_id (
+            name
+          ),
           user_accounts:user_id (
             id,
             full_name,
@@ -111,12 +114,14 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
         if (!activeProcessIds.has(row.id as string) && !eligible) return;
 
         const account = row.user_accounts as Record<string, unknown> | undefined;
+        const office = row.offices as Record<string, unknown> | undefined;
         if (!account) return;
 
         result.push({
           processId: row.id as string,
           userId: row.user_id as string,
           serviceSlug: row.service_slug as string,
+          officeName: (office?.name as string | undefined) || "Office",
           chatTitle: getAnalysisChatTitle(row.service_slug as string),
           fullName: (account.full_name as string | undefined) || "Sem Nome",
           email: (account.email as string | undefined) || "",

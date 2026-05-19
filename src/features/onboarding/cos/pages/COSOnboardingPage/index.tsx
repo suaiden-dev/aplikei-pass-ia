@@ -95,6 +95,7 @@ export default function COSOnboardingPage() {
     searchParams.get('parentId') ||
     searchParams.get('processId')
   const service = getServiceBySlug(slug)
+  const dependentUpsellSlug = slug === 'extensao-status' ? 'dependent-eos' : 'dependent-cos'
 
   // Safety guard: this component is only for COS products.
   // If somehow the generic :slug route catches a B1/B2 request, redirect immediately.
@@ -780,6 +781,7 @@ export default function COSOnboardingPage() {
             <COSStepContent
               t={t}
               stepIdx={stepIdx}
+              currentStepId={currentStepId}
               proc={proc}
               user={user}
               serviceTitle={currentStepTitle}
@@ -804,7 +806,7 @@ export default function COSOnboardingPage() {
               onComplete={handleConcluir}
               onBuyDependentSlot={() =>
                 window.location.assign(
-                  `/checkout/slot-dependente-cos?id=${proc?.id}&upgrade=true`,
+                  `/checkout/${dependentUpsellSlug}?proc_id=${proc?.id}&upgrade=true`,
                 )
               }
               onRefreshSlots={() => window.location.reload()}
@@ -826,9 +828,32 @@ export default function COSOnboardingPage() {
               </button>
 
               {!isReadOnly &&
-                ![3, 5, 7, 8, 10, 12, 13, 14, 16, 17, 18, 19, 20, 22, 23, 24].includes(
-                  stepIdx,
-                ) && (
+                ![
+                  'cos_admin_analysis',
+                  'cos_analysis_i20_sevis',
+                  'cos_admin_cover_analysis',
+                  'cos_admin_final_review',
+                  'cos_uscis_fee',
+                  'cos_i20_upload',
+                  'cos_sevis_fee',
+                  'cos_cover_letter',
+                  'cos_presentation_letter',
+                  'cos_official_forms',
+                  'cos_final_review',
+                  'cos_final_forms',
+                  'cos_final_package',
+                  'cos_rfe_explanation',
+                  'cos_rfe_instruction',
+                  'cos_rfe_proposal',
+                  'cos_rfe_accept_proposal',
+                  'cos_rfe_final_ship',
+                  'cos_rfe_end',
+                  'cos_motion_acquisition',
+                  'cos_motion_instruction',
+                  'cos_motion_proposal',
+                  'cos_motion_accept_proposal',
+                  'cos_motion_end',
+                ].includes(currentStepId || '') && (
                   <button
                     onClick={() => void handleConcluir()}
                     disabled={!canSubmit || isSubmitting}

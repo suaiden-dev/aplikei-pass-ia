@@ -35,6 +35,7 @@ type OnboardingTranslations = ReturnType<typeof useT>
 interface COSStepContentProps {
   t: OnboardingTranslations
   stepIdx: number
+  currentStepId?: string
   proc: UserService | null
   user: UserAccount | null | undefined
   serviceTitle?: string
@@ -73,6 +74,7 @@ interface COSStepContentProps {
 export function COSStepContent({
   t,
   stepIdx,
+  currentStepId,
   proc,
   user,
   serviceTitle,
@@ -102,7 +104,9 @@ export function COSStepContent({
   onMotionResult,
   onRFEResult,
 }: COSStepContentProps) {
-  if (stepIdx === 0) {
+  const isStep = (...ids: string[]) => ids.includes(currentStepId || '')
+
+  if (isStep('cos_form', 'cos_application_form')) {
     return (
       <COSApplicationStep
         t={t}
@@ -125,7 +129,7 @@ export function COSStepContent({
     )
   }
 
-  if (stepIdx === 1) {
+  if (isStep('cos_documents')) {
     return (
       <COSDocumentsStep
         t={t}
@@ -138,7 +142,7 @@ export function COSStepContent({
     )
   }
 
-  if (stepIdx === 3 && proc && user) {
+  if (isStep('cos_official_forms') && proc && user) {
     return (
       <div className='px-8 py-6'>
         <div className='mb-6 border-b border-slate-100 pb-6'>
@@ -154,7 +158,7 @@ export function COSStepContent({
     )
   }
 
-  if (stepIdx === 5 && proc && user) {
+  if (isStep('cos_cover_letter', 'cos_presentation_letter') && proc && user) {
     return (
       <div className='px-8 py-6'>
         <div className='mb-6 border-b border-slate-100 pb-6'>
@@ -171,7 +175,7 @@ export function COSStepContent({
     )
   }
 
-  if (stepIdx === 7 && proc && user) {
+  if (isStep('cos_i20_upload') && proc && user) {
     return (
       <div className='px-8 py-6'>
         <div className='mb-6 border-b border-slate-100 pb-6'>
@@ -187,7 +191,7 @@ export function COSStepContent({
     )
   }
 
-  if (stepIdx === 8 && proc && user) {
+  if (isStep('cos_sevis_fee') && proc && user) {
     return (
       <div className='px-8 py-6 pb-24'>
         <div className='mb-6 border-b border-slate-100 pb-6'>
@@ -203,11 +207,11 @@ export function COSStepContent({
     )
   }
 
-  if (stepIdx === 10 && proc && user) {
+  if (isStep('cos_final_review', 'cos_final_forms') && proc && user) {
     return <FinalFormsStep proc={proc} user={user} onComplete={onComplete} />
   }
 
-  if (stepIdx === 12 && proc && !isMotionContext && !isRFEContext) {
+  if (isStep('cos_final_package') && proc && !isMotionContext && !isRFEContext) {
     return (
       <FinalPackageStep
         proc={proc}
@@ -218,17 +222,17 @@ export function COSStepContent({
     )
   }
 
-  if (stepIdx >= 13 && stepIdx <= 18 && isRFEContext) {
-    if (stepIdx === 13 && proc) {
+  if (isRFEContext) {
+    if (isStep('cos_rfe_explanation') && proc) {
       return <RFEExplanationStep proc={proc} />
     }
-    if (stepIdx === 14 && proc) {
+    if (isStep('cos_rfe_instruction') && proc) {
       return <RFEInstructionStep proc={proc} onComplete={onComplete} />
     }
-    if (stepIdx === 16 && proc) {
+    if (isStep('cos_rfe_accept_proposal') && proc) {
       return <RFEAcceptProposalStep proc={proc} />
     }
-    if (stepIdx === 18 && proc) {
+    if (isStep('cos_rfe_end') && proc) {
       return (
         <RFEEndStep
           proc={proc}
@@ -241,17 +245,17 @@ export function COSStepContent({
     }
   }
 
-  if (stepIdx >= 19 && stepIdx <= 24 && isMotionContext) {
-    if (stepIdx === 19 && proc) {
+  if (isMotionContext) {
+    if (isStep('cos_motion_acquisition') && proc) {
       return <MotionExplanationStep proc={proc} user={user} onComplete={onComplete} />
     }
-    if (stepIdx === 20 && proc) {
+    if (isStep('cos_motion_instruction') && proc) {
       return <MotionInstructionStep proc={proc} user={user} onComplete={onComplete} />
     }
-    if (stepIdx === 22 && proc) {
+    if (isStep('cos_motion_accept_proposal') && proc) {
       return <MotionAcceptProposalStep proc={proc} user={user} onComplete={onComplete} />
     }
-    if (stepIdx === 24 && proc) {
+    if (isStep('cos_motion_end') && proc) {
       return (
         <MotionEndStep
           proc={proc}

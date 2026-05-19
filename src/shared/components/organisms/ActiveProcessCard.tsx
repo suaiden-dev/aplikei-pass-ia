@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { MdLanguage, MdSchool, MdHistory, MdSyncAlt } from "react-icons/md";
 import {
   RiCheckboxCircleFill,
+  RiBuilding2Line,
   RiFileTextLine,
   RiFlashlightFill,
 } from "react-icons/ri";
@@ -42,6 +43,7 @@ const heroIconNameBySlug: Record<string, string> = {
 interface ActiveProcessCardProps {
   proc: UserService;
   displaySlug?: string;
+  officeName: string;
   service: ServiceMeta | undefined;
   progress: number;
   isApproved: boolean;
@@ -70,6 +72,7 @@ interface ActiveProcessCardProps {
 export function ActiveProcessCard({
   proc,
   displaySlug,
+  officeName,
   progress,
   isApproved,
   isDenied,
@@ -130,6 +133,13 @@ export function ActiveProcessCard({
         <h3 className="font-display font-black text-text text-lg sm:text-xl leading-none tracking-tight mb-3">
           {labels.products[slugForDisplay]?.label || cfg.label}
         </h3>
+
+        <div className="flex items-center gap-2 mb-3">
+          <RiBuilding2Line className="text-text-muted text-sm" />
+          <span className="text-[11px] font-black uppercase tracking-wider text-text-muted">
+            {officeName || "Office"}
+          </span>
+        </div>
 
         <div className="flex items-center gap-2 mb-8">
           {isApproved ? (

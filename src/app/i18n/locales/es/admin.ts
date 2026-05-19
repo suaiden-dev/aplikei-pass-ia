@@ -357,6 +357,35 @@ const admin = {
       productsCount: "{{count}} productos"
     }
   },
+  notificationsCenter: {
+    title: "Notificaciones",
+    markAll: "Marcar todo",
+    emptyTitle: "Sin notificaciones",
+    emptySubtitle: "¡Todo al día!",
+    viewFullLog: "Ver log completo",
+    filters: {
+      all: "Todas",
+      unread: "No leídas",
+      adminAction: "Admin",
+      clientAction: "Cliente",
+      system: "Sistema",
+    },
+    labels: {
+      system: "Notificación",
+      actionRequiredReview: "Acción requerida: revisar etapa",
+      actionRequiredReviewMessage: "Un cliente finalizó una etapa y está esperando su revisión.",
+      clientCompletedStepMessage: "El cliente completó la etapa \"{{step}}\" de {{service}} y está esperando su revisión.",
+      clientCompletedGenericMessage: "El cliente completó una etapa de {{service}} y está esperando su revisión.",
+      stepApproved: "Etapa aprobada",
+      stepApprovedMessage: "Su etapa fue aprobada y ya puede continuar a la siguiente.",
+      changesRequired: "Cambios necesarios",
+      changesRequiredMessage: "Se solicitaron cambios. Revise los detalles y envíe nuevamente.",
+      processCompleted: "Proceso completado",
+      processCompletedMessage: "Su proceso ha sido completado.",
+      interviewScheduled: "Entrevista programada",
+      interviewScheduledMessage: "Su entrevista está programada. Revise fecha y lugar en su proceso.",
+    },
+  },
   payments: {
     title: "Gestión de Pagos",
     subtitle: "Cola para verificación manual de transferencias Zelle y activación de servicios.",

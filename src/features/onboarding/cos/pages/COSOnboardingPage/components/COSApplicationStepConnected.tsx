@@ -174,9 +174,10 @@ export function COSApplicationStepConnected({
   }
 
   function handleBuySlot() {
+    const dependentSlug = 'dependent-cos'
     // Navega para o checkout do subproduto com referência da instância
     window.location.assign(
-      `/checkout/slot-dependente-cos?instanceId=${instanceId}&upgrade=true`,
+      `/checkout/${dependentSlug}?instanceId=${instanceId}&upgrade=true`,
     )
   }
 

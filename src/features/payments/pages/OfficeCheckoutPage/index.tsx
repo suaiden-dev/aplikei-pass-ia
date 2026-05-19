@@ -413,8 +413,13 @@ export default function OfficeCheckoutPage() {
     };
 
     const baseUSD = customPrice?.price ?? 0;
-    const depUSD = isUpgrade ? baseUSD : (customPrice?.dependentPrice ?? 0);
-    const subtotalUSD = isUpgrade ? (dependents * baseUSD) : (baseUSD + (dependents * depUSD));
+    const supportsDependents = (() => {
+        const current = String(dbService?.slug || serviceSlug || "").toLowerCase();
+        return ["troca-status", "extensao-status", "visa-cos", "visa-eos"].includes(current);
+    })();
+    const checkoutCount = supportsDependents ? dependents : 0;
+    const depUSD = supportsDependents ? (isUpgrade ? baseUSD : (customPrice?.dependentPrice ?? 0)) : 0;
+    const subtotalUSD = isUpgrade ? (checkoutCount * baseUSD) : (baseUSD + (checkoutCount * depUSD));
 
     const discountUSD = appliedCoupon?.valid
         ? calculateDiscount(subtotalUSD, appliedCoupon.discount_type!, appliedCoupon.discount_value!)
@@ -505,7 +510,7 @@ export default function OfficeCheckoutPage() {
                         email: values.email,
                         fullName: values.fullName,
                         phone: values.phone,
-                        dependents: dependents,
+                        dependents: checkoutCount,
                         paymentMethod: activeMethod as StripePaymentMethod,
                         userId: currentUserId,
                         amount: totalToCharge,
@@ -518,7 +523,7 @@ export default function OfficeCheckoutPage() {
 
                     localStorage.setItem("checkout_slug", billingSlug);
                     if (orderId) localStorage.setItem("checkout_order_id", orderId);
-                    localStorage.setItem("checkout_dependents", dependents.toString());
+                    localStorage.setItem("checkout_dependents", checkoutCount.toString());
                     window.location.href = url;
 
                 } else if (activeMethod === "parcelow") {
@@ -532,7 +537,7 @@ export default function OfficeCheckoutPage() {
                         fullName: values.fullName,
                         phone: values.phone,
                         cpf: values.parcelowCpf,
-                        dependents: dependents,
+                        dependents: checkoutCount,
                         userId: currentUserId,
                         amount: totalToCharge,
                         proc_id: parentId || undefined,
@@ -544,7 +549,7 @@ export default function OfficeCheckoutPage() {
 
                     localStorage.setItem("checkout_slug", billingSlug);
                     if (orderId) localStorage.setItem("checkout_order_id", orderId);
-                    localStorage.setItem("checkout_dependents", dependents.toString());
+                    localStorage.setItem("checkout_dependents", checkoutCount.toString());
                     window.location.href = url;
 
                 } else if (activeMethod === "zelle") {
@@ -563,7 +568,7 @@ export default function OfficeCheckoutPage() {
                         guestName: values.fullName,
                         phone: values.phone,
                         userId: currentUserId || null,
-                        dependents: dependents,
+                        dependents: checkoutCount,
                         proc_id: parentId || undefined,
                         coupon_code: appliedCoupon?.valid ? couponInput : undefined,
                         office_id: office?.id,
@@ -594,7 +599,7 @@ export default function OfficeCheckoutPage() {
                     event_name: "aba_fechada_abandono",
                     email: formik.values.email,
                     office_id: office?.id || officeSlug,
-                    details: `${serviceSlug} | Abandono Office Checkout. Dependentes: ${dependents} | Método: ${activeMethod}`,
+                    details: `${serviceSlug} | Abandono Office Checkout. Dependentes: ${checkoutCount} | Método: ${activeMethod}`,
                 };
                 supabase.from("checkout_logs").insert(logData).then();
             }
@@ -602,7 +607,7 @@ export default function OfficeCheckoutPage() {
 
         window.addEventListener("beforeunload", handleUnload);
         return () => window.removeEventListener("beforeunload", handleUnload);
-    }, [formik.values.email, dependents, activeMethod, office, officeSlug, serviceSlug]);
+    }, [formik.values.email, checkoutCount, activeMethod, office, officeSlug, serviceSlug]);
 
     if (isLoading) return <div className="min-h-screen flex items-center justify-center"><LogoLoader officeId={user?.officeId ?? null} /></div>;
     if (!officeSlug || !serviceSlug || !dbService) return <div className="min-h-screen flex items-center justify-center text-text-muted text-sm">Serviço não encontrado.</div>;
@@ -667,6 +672,7 @@ export default function OfficeCheckoutPage() {
                         transition={{ delay: 0.1 }}
                         className="lg:col-span-2 space-y-4"
                     >
+                        {supportsDependents && (
                         <div className="rounded-2xl bg-card border border-border shadow-sm p-5">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center">
@@ -686,6 +692,7 @@ export default function OfficeCheckoutPage() {
                                 <span className="text-2xl font-black text-text">US$ {baseUSD.toFixed(2)}</span>
                             </div>
                         </div>
+                        )}
 
                         <div className="rounded-2xl bg-card border border-border shadow-sm p-5">
                             <div className="flex items-center justify-between mb-1">

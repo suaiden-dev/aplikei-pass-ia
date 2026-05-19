@@ -15,6 +15,7 @@ export interface SpecialistChatThread {
   processId: string;
   userId: string;
   serviceSlug: string;
+  officeName?: string;
   processRouteId?: string;
   processRouteSlug?: string;
   chatTitle: string;
