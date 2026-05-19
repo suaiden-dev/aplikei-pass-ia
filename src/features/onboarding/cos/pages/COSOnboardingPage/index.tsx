@@ -3,6 +3,8 @@ import {
   RiArrowLeftSLine,
   RiCheckDoubleLine,
   RiLoader4Line,
+  RiArrowUpSLine,
+  RiArrowDownSLine,
 } from 'react-icons/ri'
 import { MdPerson, MdAccountBalance } from 'react-icons/md'
 import { useAuth } from "@shared/hooks/useAuth";
@@ -425,6 +427,17 @@ export default function COSOnboardingPage() {
     }
   }
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const scrollToBottom = () => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    })
+  }
+
   if (isLoading || !t || !t.cos) {
     return (
       <div className='min-h-screen flex items-center justify-center bg-bg-subtle'>
@@ -636,21 +649,6 @@ export default function COSOnboardingPage() {
         const uscisResult = freshStepData.uscis_official_result as string
         const rfeResult = freshStepData.uscis_rfe_result as string
 
-        const showF1Steps = targetVisa === 'F1'
-        if (!showF1Steps) {
-          const stepsToSkipIds = [
-            'cos_i20_upload',
-            'cos_sevis_fee',
-            'cos_analysis_i20_sevis',
-          ]
-          while (
-            nextStepIdx < service.steps.length &&
-            stepsToSkipIds.includes(service.steps[nextStepIdx].id)
-          ) {
-            nextStepIdx++
-          }
-        }
-
         // Jump logic for RFE/Motion
         const finalPackageIdx = service.steps.findIndex(
           (s) => s.id === 'cos_final_package',
@@ -722,6 +720,33 @@ export default function COSOnboardingPage() {
 
   return (
     <div className='min-h-screen bg-bg flex flex-col'>
+      <div className='fixed right-3 bottom-28 z-50 flex flex-col items-stretch gap-2'>
+        <button
+          type='button'
+          onClick={scrollToTop}
+          className='group flex items-center justify-center gap-2 rounded-2xl border border-border bg-card/95 px-4 py-3 shadow-xl shadow-black/5 backdrop-blur-md transition-all hover:border-primary/30 hover:bg-primary hover:text-white'
+          aria-label='Ir para cima'
+          title='Ir para cima'
+        >
+          <RiArrowUpSLine className='text-xl transition-transform group-hover:-translate-y-0.5' />
+          <span className='text-[10px] font-black uppercase tracking-widest'>
+            Cima
+          </span>
+        </button>
+        <button
+          type='button'
+          onClick={scrollToBottom}
+          className='group flex items-center justify-center gap-2 rounded-2xl border border-border bg-card/95 px-4 py-3 shadow-xl shadow-black/5 backdrop-blur-md transition-all hover:border-primary/30 hover:bg-primary hover:text-white'
+          aria-label='Ir para baixo'
+          title='Ir para baixo'
+        >
+          <RiArrowDownSLine className='text-xl transition-transform group-hover:translate-y-0.5' />
+          <span className='text-[10px] font-black uppercase tracking-widest'>
+            Baixo
+          </span>
+        </button>
+      </div>
+
       {isSubmitting && (
         <div className='fixed inset-0 z-[120] bg-bg/70 backdrop-blur-sm flex items-center justify-center'>
           <div className='bg-card border border-border shadow-xl rounded-2xl px-6 py-5 flex items-center gap-3'>
@@ -780,6 +805,7 @@ export default function COSOnboardingPage() {
             <COSStepContent
               t={t}
               stepIdx={stepIdx}
+              currentStepId={currentStepId}
               proc={proc}
               user={user}
               serviceTitle={currentStepTitle}
@@ -826,9 +852,29 @@ export default function COSOnboardingPage() {
               </button>
 
               {!isReadOnly &&
-                ![3, 5, 7, 8, 10, 12, 13, 14, 16, 17, 18, 19, 20, 22, 23, 24].includes(
-                  stepIdx,
-                ) && (
+                ![
+                  'cos_analysis_form_docs',
+                  'cos_i20_upload',
+                  'cos_sevis_fee',
+                  'cos_presentation_letter',
+                  'cos_analysis_presentation_letter',
+                  'cos_official_forms',
+                  'cos_analysis_official_forms',
+                  'cos_final_forms',
+                  'cos_analysis_final_forms',
+                  'cos_final_package',
+                  'cos_rfe_explanation',
+                  'cos_rfe_instruction',
+                  'cos_rfe_accept_proposal',
+                  'cos_rfe_proposal',
+                  'cos_rfe_final_ship',
+                  'cos_rfe_end',
+                  'cos_motion_acquisition',
+                  'cos_motion_instruction',
+                  'cos_motion_accept_proposal',
+                  'cos_motion_proposal',
+                  'cos_motion_end',
+                ].includes(currentStepId || '') && (
                   <button
                     onClick={() => void handleConcluir()}
                     disabled={!canSubmit || isSubmitting}

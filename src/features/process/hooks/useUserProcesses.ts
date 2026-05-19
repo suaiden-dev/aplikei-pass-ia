@@ -103,29 +103,78 @@ export function useUserProcesses(userId: string | undefined) {
       const services = (data as UserService[]) ?? [];
       const normalised = await Promise.all(services.map(normaliseCOSStep));
 
+      const officeIdByProcessId: Record<string, string> = {};
+      const officeIdByUserId: Record<string, string> = {};
+      normalised.forEach((s) => {
+        if (s.office_id) {
+          officeIdByProcessId[s.id] = s.office_id;
+          if (!officeIdByUserId[s.user_id]) officeIdByUserId[s.user_id] = s.office_id;
+        }
+      });
+
+      const userIds = Array.from(new Set(normalised.map((s) => s.user_id).filter(Boolean)));
+      if (userIds.length > 0) {
+        const { data: accountRows } = await supabase
+          .from("user_accounts")
+          .select("id, office_id")
+          .in("id", userIds);
+
+        (accountRows ?? []).forEach((row: any) => {
+          if (row?.id && row?.office_id && !officeIdByUserId[row.id]) {
+            officeIdByUserId[row.id] = row.office_id;
+          }
+        });
+      }
+
+      const effectiveOfficeIdByProcessId: Record<string, string | undefined> = {};
+      normalised.forEach((s) => {
+        const sd = (s.step_data ?? {}) as Record<string, unknown>;
+        const parentProcessId = String(sd.parent_process_id ?? "").trim();
+
+        const effectiveOfficeId =
+          s.office_id ||
+          (parentProcessId ? officeIdByProcessId[parentProcessId] : undefined) ||
+          officeIdByUserId[s.user_id];
+
+        if (effectiveOfficeId) {
+          effectiveOfficeIdByProcessId[s.id] = effectiveOfficeId;
+        }
+      });
+
       const officeIds = Array.from(
         new Set(
-          normalised
-            .map((s: any) => s.office_id)
+          Object.values(effectiveOfficeIdByProcessId)
             .filter((id): id is string => Boolean(id))
         )
       );
 
       const officeNameMap: Record<string, string> = {};
+      const officeLogoMap: Record<string, string | undefined> = {};
       if (officeIds.length > 0) {
         const { data: officesData } = await supabase
           .from("offices")
-          .select("id, name")
+          .select("id, name, logo_url, landing_page_config")
           .in("id", officeIds);
 
         (officesData ?? []).forEach((o: any) => {
           officeNameMap[o.id] = o.name;
+          officeLogoMap[o.id] =
+            o.logo_url ||
+            (o.landing_page_config && typeof o.landing_page_config === "object"
+              ? (o.landing_page_config as Record<string, unknown>).logoUrl as string | undefined
+              : undefined);
         });
       }
 
       return normalised.map((s) => ({
         ...s,
-        officeName: s.office_id ? officeNameMap[s.office_id] : undefined,
+        office_id: effectiveOfficeIdByProcessId[s.id] ?? s.office_id,
+        officeName: effectiveOfficeIdByProcessId[s.id]
+          ? officeNameMap[effectiveOfficeIdByProcessId[s.id] as string]
+          : undefined,
+        officeLogoUrl: effectiveOfficeIdByProcessId[s.id]
+          ? officeLogoMap[effectiveOfficeIdByProcessId[s.id] as string]
+          : undefined,
       }));
     },
   });

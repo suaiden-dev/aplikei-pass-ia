@@ -210,13 +210,9 @@ export default function ProcessDetailPage() {
 
   const currentStepIndexInFull = proc.current_step ?? 0;
   const isCOS = slug === "troca-status" || slug === "extensao-status";
-  const prefix = slug === "extensao-status" ? "eos_" : "cos_";
 
   const stepData = (proc.step_data as any) || {};
   const uscisResult = stepData.uscis_official_result as string;
-  const targetVisa = stepData.targetVisa as string;
-  const showF1Steps = isCOS ? (targetVisa === "F1") : true;
-  const stepsToSkip = [`${prefix}i20_upload`, `${prefix}sevis_fee`, `${prefix}analysis_i20_sevis`];
 
   // Base steps (all of them, to maintain index consistency with onboarding)
   const steps = [...service.steps];
@@ -398,9 +394,6 @@ export default function ProcessDetailPage() {
               // Re-ajuste isCurrent para não fixar no último passo se o processo já estiver COMPLETED (status final de histórico)
               const isCurrent = (idx === currentStepIndex) || (isConsular && idx === (slug.includes("f1") ? 11 : 10) && isFinalized && proc.status !== 'completed');
               // const isLocked = idx > currentStepIndex;
-
-              const skipThisStep = isCOS && !showF1Steps && stepsToSkip.includes(step.id);
-              if (skipThisStep) return null;
 
               return (
 

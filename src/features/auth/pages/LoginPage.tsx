@@ -12,6 +12,11 @@ import { zodValidate } from "@shared/utils/zodValidate";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useT } from "@app/app/i18n";
 import {
+  canAccessLoginPortal,
+  getLoginPortalErrorMessage,
+  type LoginPortal,
+} from "@features/auth/lib/roles";
+import {
   getRedirectPathAfterLogin,
   type AuthRedirectState,
 } from "@app/app/router/authRedirect";
@@ -29,6 +34,7 @@ export default function Login() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { login } = useAuthForm();
   const initialRedirectHandled = useRef(false);
+  const loginPortal: LoginPortal = activeTab === "track" ? "tracking" : "professional";
 
   const redirectState = location.state as AuthRedirectState | null;
   useEffect(() => {
@@ -49,6 +55,12 @@ export default function Login() {
     validate: zodValidate(getLoginSchema(v)),
     onSubmit: async (values, { setSubmitting }) => {
       try {
+        const preflightRole = await authService.getLoginRoleByEmail(values.email);
+        if (preflightRole && !canAccessLoginPortal(preflightRole, loginPortal)) {
+          toast.error(getLoginPortalErrorMessage(preflightRole, loginPortal));
+          return;
+        }
+
         const result = await login(values);
 
         if (result.session) {

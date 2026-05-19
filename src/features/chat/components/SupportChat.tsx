@@ -18,6 +18,7 @@ import { useT } from "@app/app/i18n";
 
 interface SupportChatProps {
   processId: string;
+  officeId?: string | null;
   userId: string;
   role: "admin" | "customer";
   userName?: string;
@@ -29,6 +30,7 @@ interface SupportChatProps {
 
 export function SupportChat({
   processId,
+  officeId,
   userId,
   role,
   userName,
@@ -41,7 +43,7 @@ export function SupportChat({
   const roleCustomerLabel = t?.roles?.customer ?? "Customer";
   const roleAdminLabel = t?.roles?.admin ?? "Admin";
   const navigate = useNavigate();
-  const { messages, isLoading, isSending, sendMessage } = useChat(processId);
+  const { messages, isLoading, isSending, sendMessage } = useChat(processId, officeId);
   const [newMessage, setNewMessage] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);

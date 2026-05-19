@@ -139,11 +139,12 @@ async function createAccount(input: {
   office_id?: string | null;
   is_active?: boolean;
 }): Promise<UserAccount | null> {
+  const defaultIsActive = !["seller", "manager", "admin"].includes(input.role);
   const { data, error } = await supabase
     .from("user_accounts")
     .insert({
       ...input,
-      is_active: input.is_active ?? (input.role === "customer" ? true : false),
+      is_active: input.is_active ?? defaultIsActive,
     })
     .select("*")
     .single();
@@ -281,6 +282,19 @@ export const authService = {
     return data;
   },
 
+  async getLoginRoleByEmail(email: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase.rpc("get_login_role_by_email", {
+      p_email: normalizedEmail,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data ? normalizeRole(data) : null;
+  },
+
   async signUp({ email, password, fullName, phoneNumber, role, officeId }: Omit<SignUpInput, "terms">) {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -297,9 +311,9 @@ export const authService = {
     if (data.user) {
       const account = await this.ensureAccount(data.user);
       
-      // If team member (seller/manager), sign out immediately to wait for approval.
-      // admin_lawyer and customer can stay logged in.
-      if (account && (account.role === "seller" || account.role === "manager")) {
+      // If the created account is inactive, keep the auth session from leaking
+      // into the app and force the user to wait for approval.
+      if (account && account.isActive === false) {
         await supabase.auth.signOut();
         return { user: null, session: null };
       }
@@ -329,7 +343,13 @@ export const authService = {
         cachedUser = null;
         return null;
       }
-      cachedUser = await this.resolveAccount(session.user);
+      const resolved = await this.resolveAccount(session.user);
+      if (resolved.isActive === false) {
+        await supabase.auth.signOut();
+        cachedUser = null;
+        return null;
+      }
+      cachedUser = resolved;
       return cachedUser;
     } finally {
       loadCurrentUser_inFlight = false;
@@ -341,7 +361,13 @@ export const authService = {
       cachedUser = null;
       return null;
     }
-    cachedUser = await this.resolveAccount(session.user);
+    const resolved = await this.resolveAccount(session.user);
+    if (resolved.isActive === false) {
+      await supabase.auth.signOut();
+      cachedUser = null;
+      return null;
+    }
+    cachedUser = resolved;
     return cachedUser;
   },
 

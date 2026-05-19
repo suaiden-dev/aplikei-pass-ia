@@ -47,8 +47,8 @@ export function LandingBenefits() {
           >
             <img 
               alt="Team Work" 
-              className="rounded-2xl shadow-2xl grayscale hover:grayscale-0 transition-all duration-700 w-full h-auto" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-p16DTNlZOJn7AyGaifsPTt_KNgM_cO8yXsJUy_dOazrPf1dyrmFnVcJ0rPWjszRtxCt-I6BCXaz49G1pDAf0wyBeKMJ3Ym8VAbjdKHS-9EveHcyJQ4H5jsc6DGgzI_JLvO24LipwP6tMP-U-a2EVPygvlNxDXTujq1NqgwdMm-GBePlhNJ93zqXHImYLBlGl4mNOv1_4vZnxtrhc4r0jc4DWfcraY_D8oB2L0cHpo9HqFlCU6wvBbgY9mRx3LBXleKqBnq418Kg"
+              className="rounded-2xl shadow-2xl hover:grayscale-0 transition-all duration-700 w-full h-auto" 
+              src="https://images.unsplash.com/photo-1603201667141-5a2d4c673378?q=80&w=1196&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             />
             <motion.div 
               initial={{ opacity: 0, y: 20 }}

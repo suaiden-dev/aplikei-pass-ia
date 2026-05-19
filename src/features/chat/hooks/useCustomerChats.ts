@@ -9,12 +9,16 @@ export function useCustomerChats(userId: string) {
   const [isLoading, setIsLoading] = useState(true);
 
   const load = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setThreads([]);
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from("user_services")
-        .select("id, user_id, service_slug, status, step_data, created_at")
+        .select("id, user_id, office_id, service_slug, status, step_data, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
@@ -39,7 +43,6 @@ export function useCustomerChats(userId: string) {
         return;
       }
 
-      const processIds = eligible.map((r) => r.id as string);
       const parentProcessIds = Array.from(
         new Set(
           eligible
@@ -50,11 +53,20 @@ export function useCustomerChats(userId: string) {
             .filter(Boolean),
         ),
       );
+      const messageProcessIds = Array.from(
+        new Set(
+          eligible.map((row) => {
+            const stepData = (row.step_data as Record<string, unknown>) || {};
+            const parentProcessId = String(stepData.parent_process_id || "").trim();
+            return parentProcessId || (row.id as string);
+          }),
+        ),
+      );
 
       const { data: msgs } = await supabase
         .from("chat_messages")
         .select("process_id, content, created_at")
-        .in("process_id", processIds)
+        .in("process_id", messageProcessIds)
         .order("created_at", { ascending: false });
 
       const lastMsgByProcess = new Map<string, string>();
@@ -69,7 +81,7 @@ export function useCustomerChats(userId: string) {
         const { data: closedRows } = await supabase
           .from("user_services")
           .select("id, chat_closed_at")
-          .in("id", processIds);
+          .in("id", messageProcessIds);
         (closedRows || []).forEach((r: Record<string, unknown>) =>
           closedMap.set(r.id as string, (r.chat_closed_at as string | null) ?? null),
         );
@@ -109,13 +121,14 @@ export function useCustomerChats(userId: string) {
           return {
             processId,
             userId: row.user_id as string,
+            officeId: (row.office_id as string | null | undefined) ?? null,
             serviceSlug,
             processRouteId: routeId,
             processRouteSlug: routeSlug,
             chatTitle: getAnalysisChatTitle(serviceSlug),
             createdAt: row.created_at as string,
-            chatClosedAt: closedMap.get(processId) ?? null,
-            lastMessage: lastMsgByProcess.get(processId) ?? null,
+            chatClosedAt: closedMap.get(routeId) ?? null,
+            lastMessage: lastMsgByProcess.get(routeId) ?? null,
           };
         }),
       );

@@ -903,7 +903,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
             <Field label={t.cos.i539.labels.language} name="interpreterLanguage" tooltip={t.cos.i539.labels.language}><TextInput name="interpreterLanguage" /></Field>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-            <Field label={t.cos.i539.labels.signature} name="interpreterSignature" tooltip={I539_TOOLTIPS.preparerSignature}><TextInput name="interpreterSignature" /></Field>
+            <Field label={t.cos.i539.labels.signature} name="interpreterSignature" tooltip={I539_TOOLTIPS.preparerSignature}><TextInput name="interpreterSignature" disabled /></Field>
             <Field label={t.cos.i539.labels.date} name="interpreterSignatureDate" tooltip={I539_TOOLTIPS.preparerSignatureDate}><TextInput name="interpreterSignatureDate" type="date" /></Field>
           </div>
         </SectionCard>
@@ -920,7 +920,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
             <Field label={t.cos.i539.labels.email} name="preparerEmail" tooltip={I539_TOOLTIPS.preparerEmail}><TextInput name="preparerEmail" /></Field>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-            <Field label={t.cos.i539.labels.signature} name="preparerSignature" tooltip={I539_TOOLTIPS.preparerSignature}><TextInput name="preparerSignature" /></Field>
+            <Field label={t.cos.i539.labels.signature} name="preparerSignature" tooltip={I539_TOOLTIPS.preparerSignature}><TextInput name="preparerSignature" disabled /></Field>
             <Field label={t.cos.i539.labels.date} name="preparerSignatureDate" tooltip={I539_TOOLTIPS.preparerSignatureDate}><TextInput name="preparerSignatureDate" type="date" /></Field>
           </div>
         </SectionCard>
