@@ -202,7 +202,10 @@ export async function notifyClient(params: NotifyClientParams): Promise<void> {
       link: params.link ?? null,
       send_email: params.sendEmail ?? true,
       email_sent: false,
-      metadata: params.templateData ?? {},
+      metadata: {
+        ...(params.templateData ?? {}),
+        ...(params.template ? { template: params.template } : {}),
+      },
     });
   } catch (e) {
     if (isSilentError(e)) return;

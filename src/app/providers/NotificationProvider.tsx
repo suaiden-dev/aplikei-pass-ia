@@ -144,6 +144,7 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
       message: notif.message,
       type: (notif.type as ToastItem["type"]) || "system",
       link: notif.link ?? null,
+      metadata: notif.metadata,
       createdAt: notif.created_at,
     };
 

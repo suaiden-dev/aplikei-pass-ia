@@ -9,6 +9,8 @@ import {
 } from "react-icons/ri";
 import type { ToastItem } from "../types";
 import { useAuth } from "@shared/hooks/useAuth";
+import { useLocale, useT } from "@app/app/i18n";
+import { localizeNotificationContent } from "@features/notifications/lib/localizeNotification";
 
 interface NotificationToastProps {
   toast: ToastItem;
@@ -44,6 +46,10 @@ export function NotificationToast({
   const [isPaused, setIsPaused] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { lang } = useLocale();
+  const tAdmin = useT("admin");
+  const labels = tAdmin?.notificationsCenter?.labels ?? {};
+  const notificationLang: "pt" | "en" | "es" = user?.role === "customer" ? lang : "en";
 
   const resolveLink = (link: string | null | undefined): string | null => {
     if (!link || !user?.role) return link ?? null;
@@ -62,6 +68,7 @@ export function NotificationToast({
   };
 
   const config = typeConfig[toast.type] || typeConfig.system;
+  const localized = localizeNotificationContent(toast, notificationLang, labels);
 
   return (
     <motion.div
@@ -104,11 +111,11 @@ export function NotificationToast({
           className="flex-1 min-w-0 text-left"
         >
           <p className="text-sm font-bold text-slate-800 leading-snug">
-            {toast.title}
+            {localized.title}
           </p>
-          {toast.message && (
+          {localized.message && (
             <p className="text-xs text-slate-500 mt-0.5 leading-relaxed line-clamp-2">
-              {toast.message}
+              {localized.message}
             </p>
           )}
         </button>
