@@ -20,6 +20,9 @@ const admin = {
       seller: "Vendedor",
       customer: "Cliente",
     },
+    view: "Ver",
+    remove: "Eliminar",
+    locale: "es-ES"
   },
   nav: {
     overview: "Resumen General",

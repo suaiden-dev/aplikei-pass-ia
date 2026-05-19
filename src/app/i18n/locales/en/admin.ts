@@ -24,7 +24,10 @@ const admin = {
       seller: "Seller",
       customer: "Customer"
     },
-    cardPayment: "Card Payment"
+    cardPayment: "Card Payment",
+    view: "View",
+    remove: "Remove",
+    locale: "en-US"
   },
   nav: {
     overview: "Overview",

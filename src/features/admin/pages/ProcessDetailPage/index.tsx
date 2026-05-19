@@ -1299,7 +1299,7 @@ export default function AdminProcessDetailPage() {
           .maybeSingle();
         if (ownOfficeData) {
           setOfficeName(ownOfficeData.name ?? null);
-          setOfficeLogoUrl(ownOfficeData.logo_url || (ownOfficeData.landing_page_config as any)?.logoUrl ?? null);
+          setOfficeLogoUrl((ownOfficeData.logo_url || (ownOfficeData.landing_page_config as any)?.logoUrl) ?? null);
         } else {
           setOfficeName(null);
           setOfficeLogoUrl(null);

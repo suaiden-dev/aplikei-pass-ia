@@ -23,7 +23,10 @@ const admin = {
             manager: "Gerente",
             seller: "Vendedor",
             customer: "Cliente"
-        }
+        },
+        view: "Ver",
+        remove: "Remover",
+        locale: "pt-BR"
     },
     nav: {
         overview: "Visão Geral",

@@ -1,0 +1,1738 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.6 [39m[90mC:/Users/Matheus/Desktop/Suaiden/aplikei-pass-ia[39m
+
+ [31m❯[39m src/features/admin/services/financeAnalyticsService.test.ts [2m([22m[2m4 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[32m 24[2mms[22m[39m
+[31m     [31m×[31m maps monthly analytics rpc payload[39m[32m 12[2mms[22m[39m
+     [32m✓[39m throws when monthly analytics rpc fails[32m 2[2mms[22m[39m
+[31m     [31m×[31m maps recent transactions view payload[39m[32m 2[2mms[22m[39m
+[31m     [31m×[31m throws when recent transactions query fails[39m[32m 6[2mms[22m[39m
+ [32m✓[39m src/features/process/pages/ProcessDetailPage/index.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [31m❯[39m src/features/offices/services/officeOps.test.ts [2m([22m[2m7 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 20[2mms[22m[39m
+       [32m✓[39m should trim and lowercase the name[32m 3[2mms[22m[39m
+       [32m✓[39m should remove extra spaces[32m 0[2mms[22m[39m
+       [32m✓[39m should generate a simple slug[32m 0[2mms[22m[39m
+       [32m✓[39m should handle accents and special characters[32m 0[2mms[22m[39m
+       [32m✓[39m should remove multiple dashes[32m 0[2mms[22m[39m
+[31m       [31m×[31m should generate a slug if none is provided[39m[32m 5[2mms[22m[39m
+[31m       [31m×[31m should throw if office name already exists for another owner[39m[32m 8[2mms[22m[39m
+ [32m✓[39m src/features/payments/lib/fees.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [31m❯[39m src/app/router/authRedirect.test.ts [2m([22m[2m3 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 12[2mms[22m[39m
+     [32m✓[39m returns the default dashboard for each role[32m 2[2mms[22m[39m
+     [32m✓[39m redirects to the original protected route after login[32m 0[2mms[22m[39m
+[31m     [31m×[31m falls back to the role home when there is no valid origin[39m[32m 7[2mms[22m[39m
+ [31m❯[39m src/app/router/authGuard.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 16[2mms[22m[39m
+     [32m✓[39m builds the redirect state for protected routes[32m 3[2mms[22m[39m
+     [32m✓[39m redirects anonymous users to login[32m 1[2mms[22m[39m
+     [32m✓[39m redirects authenticated users away from unauthorized role routes[32m 1[2mms[22m[39m
+     [32m✓[39m allows authenticated users on allowed routes[32m 0[2mms[22m[39m
+[31m     [31m×[31m blocks non-master users from master-only routes[39m[32m 10[2mms[22m[39m
+ [31m❯[39m src/features/admin/pages/FinanceAnalyticsPage/index.test.tsx [2m([22m[2m4 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 27[2mms[22m[39m
+[31m     [31m×[31m renders loading and then success state[39m[32m 19[2mms[22m[39m
+[31m     [31m×[31m renders empty state when there are no transactions[39m[32m 2[2mms[22m[39m
+[31m     [31m×[31m renders error state and retries load[39m[32m 2[2mms[22m[39m
+[31m     [31m×[31m opens transaction details modal[39m[32m 2[2mms[22m[39m
+ [31m❯[39m src/features/onboarding/cos/pages/COSOnboardingPage/I539FormStep.test.tsx [2m([22m[2m4 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1795[2mms[22m[39m
+     [32m✓[39m should render and have blank Preparer Information by default[32m 163[2mms[22m[39m
+     [33m[2m✓[22m[39m should apply phone mask correctly [33m 553[2mms[22m[39m
+     [32m✓[39m should handle date selection correctly[32m 34[2mms[22m[39m
+[31m     [31m×[31m should show validation errors for invalid data[39m[33m 1042[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 12 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/app/router/authGuard.test.ts[2m > [22mauthGuard[2m > [22mblocks non-master users from master-only routes
+[31m[1mAssertionError[22m: expected { kind: 'redirect-role-home', …(1) } to deeply equal { kind: 'redirect-role-home', …(1) }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[2m    "kind": "redirect-role-home",[22m
+[32m-   "to": "/master",[39m
+[31m+   "to": "/processes",[39m
+[2m  }[22m
+
+[36m [2m❯[22m src/app/router/authGuard.test.ts:[2m111:9[22m[39m
+    [90m109|[39m       }[33m,[39m
+    [90m110|[39m       allowedRoles[33m:[39m [[32m"master"[39m][33m,[39m
+    [90m111|[39m     }))[33m.[39m[34mtoEqual[39m({
+    [90m   |[39m         [31m^[39m
+    [90m112|[39m       kind[33m:[39m [32m"redirect-role-home"[39m[33m,[39m
+    [90m113|[39m       to[33m:[39m [32m"/master"[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/app/router/authRedirect.test.ts[2m > [22mauthRedirect[2m > [22mfalls back to the role home when there is no valid origin
+[31m[1mAssertionError[22m: expected '/processes' to be '/admin' // Object.is equality[39m
+
+Expected: [32m"/[7madmin[27m"[39m
+Received: [31m"/[7mprocesses[27m"[39m
+
+[36m [2m❯[22m src/app/router/authRedirect.test.ts:[2m53:7[22m[39m
+    [90m 51|[39m         [35mfrom[39m[33m:[39m { pathname[33m:[39m [32m"/login"[39m[33m,[39m search[33m:[39m [32m""[39m[33m,[39m hash[33m:[39m [32m""[39m }[33m,[39m
+    [90m 52|[39m       })[33m,[39m
+    [90m 53|[39m     )[33m.[39m[34mtoBe[39m([32m"/admin"[39m)[33m;[39m
+    [90m   |[39m       [31m^[39m
+    [90m 54|[39m   })[33m;[39m
+    [90m 55|[39m })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/features/admin/services/financeAnalyticsService.test.ts[2m > [22mfinanceAnalyticsService[2m > [22mmaps monthly analytics rpc payload
+[31m[1mAssertionError[22m: expected "vi.fn()" to be called with arguments: [ 'get_finance_analytics', …(1) ][90m
+
+Received:
+
+[1m  1st vi.fn() call:
+
+[22m[2m  [[22m
+[2m    "get_finance_analytics",[22m
+[2m    {[22m
+[2m      "p_months": 6,[22m
+[31m+     "p_office_id": null,[90m
+[2m    },[22m
+[2m  ][22m
+[31m[90m
+
+Number of calls: [1m1[22m
+[31m[39m
+[36m [2m❯[22m src/features/admin/services/financeAnalyticsService.test.ts:[2m32:26[22m[39m
+    [90m 30|[39m       { month[33m:[39m [32m"2026-02"[39m[33m,[39m revenue[33m:[39m [34m0[39m[33m,[39m profit[33m:[39m [34m0[39m }[33m,[39m
+    [90m 31|[39m     ])[33m;[39m
+    [90m 32|[39m     expect(supabase.rpc).toHaveBeenCalledWith("get_finance_analytics",…
+    [90m   |[39m                          [31m^[39m
+    [90m 33|[39m   })[33m;[39m
+    [90m 34|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/features/admin/services/financeAnalyticsService.test.ts[2m > [22mfinanceAnalyticsService[2m > [22mmaps recent transactions view payload
+[31m[1mTypeError[22m: supabase.from(...).select(...).order is not a function[39m
+[36m [2m❯[22m Object.getRecentTransactions src/features/admin/services/financeAnalyticsService.ts:[2m92:8[22m[39m
+    [90m 90|[39m       [33m.[39m[35mfrom[39m([32m"v_finance_analytics_transactions"[39m)
+    [90m 91|[39m       .select("id, created_at, client_name, client_email, office_name,…
+    [90m 92|[39m       [33m.[39m[34morder[39m([32m"created_at"[39m[33m,[39m { ascending[33m:[39m [35mfalse[39m })
+    [90m   |[39m        [31m^[39m
+    [90m 93|[39m       [33m.[39m[34mlimit[39m(safeLimit)[33m;[39m
+    [90m 94|[39m
+[90m [2m❯[22m src/features/admin/services/financeAnalyticsService.test.ts:[2m70:50[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/features/admin/services/financeAnalyticsService.test.ts[2m > [22mfinanceAnalyticsService[2m > [22mthrows when recent transactions query fails
+[31m[1mAssertionError[22m: expected [Function] to throw error including 'Erro ao carregar transações recentes:…' but got '__vite_ssr_import_0__.supabase.from(.…'[39m
+
+Expected: [32m"Erro ao carregar transações recentes: query failed"[39m
+Received: [31m"__vite_ssr_import_0__.supabase.from(...).select(...).order is not a function"[39m
+
+[36m [2m❯[22m src/features/admin/services/financeAnalyticsService.test.ts:[2m99:68[22m[39m
+    [90m 97|[39m     vi.mocked(supabase.from).mockReturnValue({ select: selectMock } as…
+    [90m 98|[39m
+    [90m 99|[39m     await expect(financeAnalyticsService.getRecentTransactions(50)).re…
+    [90m   |[39m                                                                    [31m^[39m
+    [90m100|[39m       [32m"Erro ao carregar transações recentes: query failed"[39m[33m,[39m
+    [90m101|[39m     )[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/features/offices/services/officeOps.test.ts[2m > [22mofficeOps[2m > [22mupsertOffice[2m > [22mshould generate a slug if none is provided
+[31m[1mTypeError[22m: supabase.from(...).select(...).eq is not a function[39m
+[36m [2m❯[22m fetchOfficeByOwner src/features/offices/services/officeOps.ts:[2m24:6[22m[39m
+    [90m 22|[39m     [33m.[39m[35mfrom[39m([32m"offices"[39m)
+    [90m 23|[39m     .select("id, name, slug, landing_page_config, address, phone, cnpj…
+    [90m 24|[39m     [33m.[39m[34meq[39m([32m"owner_id"[39m[33m,[39m ownerId)
+    [90m   |[39m      [31m^[39m
+    [90m 25|[39m     [33m.[39m[34mmaybeSingle[39m()[33m;[39m
+    [90m 26|[39m
+[90m [2m❯[22m Module.upsertOffice src/features/offices/services/officeOps.ts:[2m89:40[22m[39m
+[90m [2m❯[22m src/features/offices/services/officeOps.test.ts:[2m72:22[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/features/offices/services/officeOps.test.ts[2m > [22mofficeOps[2m > [22mupsertOffice[2m > [22mshould throw if office name already exists for another owner
+[31m[1mAssertionError[22m: expected [Function] to throw error including 'OFFICE_NAME_ALREADY_EXISTS' but got '__vite_ssr_import_0__.supabase.from(.…'[39m
+
+Expected: [32m"OFFICE_NAME_ALREADY_EXISTS"[39m
+Received: [31m"__vite_ssr_import_0__.supabase.from(...).select(...).eq is not a function"[39m
+
+[36m [2m❯[22m src/features/offices/services/officeOps.test.ts:[2m98:42[22m[39m
+    [90m 96|[39m       } [35mas[39m any)[33m;[39m
+    [90m 97|[39m
+    [90m 98|[39m       await expect(upsertOffice(payload)).rejects.toThrow("OFFICE_NAME…
+    [90m   |[39m                                          [31m^[39m
+    [90m 99|[39m     })[33m;[39m
+    [90m100|[39m   })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/features/admin/pages/FinanceAnalyticsPage/index.test.tsx[2m > [22mFinanceAnalyticsPage[2m > [22mrenders loading and then success state
+[41m[1m FAIL [22m[49m src/features/admin/pages/FinanceAnalyticsPage/index.test.tsx[2m > [22mFinanceAnalyticsPage[2m > [22mrenders empty state when there are no transactions
+[41m[1m FAIL [22m[49m src/features/admin/pages/FinanceAnalyticsPage/index.test.tsx[2m > [22mFinanceAnalyticsPage[2m > [22mrenders error state and retries load
+[41m[1m FAIL [22m[49m src/features/admin/pages/FinanceAnalyticsPage/index.test.tsx[2m > [22mFinanceAnalyticsPage[2m > [22mopens transaction details modal
+[31m[1mError[22m: useAuth must be used within AuthProvider[39m
+[36m [2m❯[22m useAuth src/shared/hooks/useAuth.ts:[2m8:11[22m[39m
+    [90m  6|[39m
+    [90m  7|[39m   [35mif[39m ([33m![39mcontext) {
+    [90m  8|[39m     [35mthrow[39m [35mnew[39m [33mError[39m([32m"useAuth must be used within AuthProvider"[39m)[33m;[39m
+    [90m   |[39m           [31m^[39m
+    [90m  9|[39m   }
+    [90m 10|[39m
+[90m [2m❯[22m FinanceAnalyticsPage src/features/admin/pages/FinanceAnalyticsPage/index.tsx:[2m223:33[22m[39m
+[90m [2m❯[22m Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:[2m25904:20[22m[39m
+[90m [2m❯[22m renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:[2m7662:22[22m[39m
+[90m [2m❯[22m updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:[2m10166:19[22m[39m
+[90m [2m❯[22m beginWork node_modules/react-dom/cjs/react-dom-client.development.js:[2m11778:18[22m[39m
+[90m [2m❯[22m runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:[2m874:13[22m[39m
+[90m [2m❯[22m performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:[2m17641:22[22m[39m
+[90m [2m❯[22m workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:[2m17469:41[22m[39m
+[90m [2m❯[22m renderRootSync node_modules/react-dom/cjs/react-dom-client.development.js:[2m17450:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/12]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/features/onboarding/cos/pages/COSOnboardingPage/I539FormStep.test.tsx[2m > [22mI539FormStep[2m > [22mshould show validation errors for invalid data
+[31m[1mTestingLibraryElementError[22m[39m: Unable to find an accessible element with the role "button" and name `/Submit Form/i`
+
+Here are the accessible roles:
+
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-[10px] font-black text-primary uppercase tracking-widest mb-0.5"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-[10px] font-black text-primary uppercase tracking-widest mb-0.5"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-[10px] font-black text-primary uppercase tracking-widest mb-0.5"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-[11px] font-black text-slate-800 tracking-tight mb-2"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-[10px] font-black text-primary uppercase tracking-widest mb-0.5"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-[10px] font-black text-primary uppercase tracking-widest mb-0.5"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-[10px] font-black text-primary uppercase tracking-widest mb-0.5"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-800 mb-3"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-800 mb-4"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-[10px] font-black text-primary uppercase tracking-widest mb-0.5"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm font-bold text-slate-700 leading-snug md:max-w-2xl"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-[10px] font-black text-primary uppercase tracking-widest mb-0.5"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-[10px] font-black text-primary uppercase tracking-widest mb-0.5"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-[10px] font-black text-primary uppercase tracking-widest mb-0.5"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-xs font-semibold text-slate-500"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Full Legal Name":
+  [36m<h3[39m
+    [33mclass[39m=[32m"text-lg font-black text-slate-800 tracking-tight"[39m
+  [36m/>[39m
+
+  Name "Identifiers":
+  [36m<h3[39m
+    [33mclass[39m=[32m"text-lg font-black text-slate-800 tracking-tight"[39m
+  [36m/>[39m
+
+  Name "Mailing Address":
+  [36m<h3[39m
+    [33mclass[39m=[32m"text-lg font-black text-slate-800 tracking-tight"[39m
+  [36m/>[39m
+
+  Name "Travel ID":
+  [36m<h3[39m
+    [33mclass[39m=[32m"text-lg font-black text-slate-800 tracking-tight"[39m
+  [36m/>[39m
+
+  Name "Change of Status":
+  [36m<h3[39m
+    [33mclass[39m=[32m"text-lg font-black text-slate-800 tracking-tight"[39m
+  [36m/>[39m
+
+  Name "Processing Info":
+  [36m<h3[39m
+    [33mclass[39m=[32m"text-lg font-black text-slate-800 tracking-tight"[39m
+  [36m/>[39m
+
+  Name "Security Info":
+  [36m<h3[39m
+    [33mclass[39m=[32m"text-lg font-black text-slate-800 tracking-tight"[39m
+  [36m/>[39m
+
+  Name "Contact Info":
+  [36m<h3[39m
+    [33mclass[39m=[32m"text-lg font-black text-slate-800 tracking-tight"[39m
+  [36m/>[39m
+
+  Name "Interpreter Info":
+  [36m<h3[39m
+    [33mclass[39m=[32m"text-lg font-black text-slate-800 tracking-tight"[39m
+  [36m/>[39m
+
+  Name "Preparer Info":
+  [36m<h3[39m
+    [33mclass[39m=[32m"text-lg font-black text-slate-800 tracking-tight"[39m
+  [36m/>[39m
+
+  Name "Revise e Envie":
+  [36m<h3[39m
+    [33mclass[39m=[32m"text-base font-black text-slate-800 tracking-tight"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Family Name*":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"familyName"[39m
+    [33mname[39m=[32m"familyName"[39m
+    [33mplaceholder[39m=[32m"Silva"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m"Doe"[39m
+  [36m/>[39m
+
+  Name "Given Name*":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"givenName"[39m
+    [33mname[39m=[32m"givenName"[39m
+    [33mplaceholder[39m=[32m"Anderson"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m"John"[39m
+  [36m/>[39m
+
+  Name "Alien Registration Number":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"alienNumber"[39m
+    [33mname[39m=[32m"alienNumber"[39m
+    [33mplaceholder[39m=[32m"9 digits"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "USCIS Online Account":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"uscisOnlineAccountNumber"[39m
+    [33mname[39m=[32m"uscisOnlineAccountNumber"[39m
+    [33mplaceholder[39m=[32m"12 digits"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "In Care Of":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"inCareOf"[39m
+    [33mname[39m=[32m"inCareOf"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Street Name*":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"streetName"[39m
+    [33mname[39m=[32m"streetName"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m"123 Main St"[39m
+  [36m/>[39m
+
+  Name "Unit Number":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"aptSteFlrNumber"[39m
+    [33mname[39m=[32m"aptSteFlrNumber"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "City*":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"city"[39m
+    [33mname[39m=[32m"city"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m"Orlando"[39m
+  [36m/>[39m
+
+  Name "ZIP Code*":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"zipCode"[39m
+    [33mname[39m=[32m"zipCode"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m"32801"[39m
+  [36m/>[39m
+
+  Name "Citizenship*":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"countryOfCitizenship"[39m
+    [33mname[39m=[32m"countryOfCitizenship"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m"Brazil"[39m
+  [36m/>[39m
+
+  Name "Birth Country*":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"countryOfBirth"[39m
+    [33mname[39m=[32m"countryOfBirth"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m"Brazil"[39m
+  [36m/>[39m
+
+  Name "SSN":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"ssn"[39m
+    [33mname[39m=[32m"ssn"[39m
+    [33mplaceholder[39m=[32m"XXX-XX-XXXX"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "I-94 Number*":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"i94Number"[39m
+    [33mname[39m=[32m"i94Number"[39m
+    [33mplaceholder[39m=[32m"11 digits"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m"12345678901"[39m
+  [36m/>[39m
+
+  Name "Passport Number*":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"passportNumber"[39m
+    [33mname[39m=[32m"passportNumber"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m"AB123456"[39m
+  [36m/>[39m
+
+  Name "Passport Issuance":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"countryOfIssuance"[39m
+    [33mname[39m=[32m"countryOfIssuance"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Current Status*":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"currentStatus"[39m
+    [33mname[39m=[32m"currentStatus"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m"B-2"[39m
+  [36m/>[39m
+
+  Name "Receipt Number":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"receiptNumber"[39m
+    [33mname[39m=[32m"receiptNumber"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Foreign Street":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"docStreet"[39m
+    [33mname[39m=[32m"docStreet"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Unit Number":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"docUnitNumber"[39m
+    [33mname[39m=[32m"docUnitNumber"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "City":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"docCity"[39m
+    [33mname[39m=[32m"docCity"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Province":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"docProvince"[39m
+    [33mname[39m=[32m"docProvince"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Postal Code":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"docPostalCode"[39m
+    [33mname[39m=[32m"docPostalCode"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Country":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"docCountry"[39m
+    [33mname[39m=[32m"docCountry"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Daytime Phone*":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"daytimePhone"[39m
+    [33mname[39m=[32m"daytimePhone"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m"(321) 555-1234"[39m
+  [36m/>[39m
+
+  Name "Mobile Phone":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"mobilePhone"[39m
+    [33mname[39m=[32m"mobilePhone"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Email*":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"email"[39m
+    [33mname[39m=[32m"email"[39m
+    [33mtype[39m=[32m"email"[39m
+    [33mvalue[39m=[32m"john@example.com"[39m
+  [36m/>[39m
+
+  Name "Signature":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mid[39m=[32m"signature"[39m
+    [33mname[39m=[32m"signature"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Family Name":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"interpreterFamilyName"[39m
+    [33mname[39m=[32m"interpreterFamilyName"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Given Name":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"interpreterGivenName"[39m
+    [33mname[39m=[32m"interpreterGivenName"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Daytime Phone":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"interpreterPhone"[39m
+    [33mname[39m=[32m"interpreterPhone"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Email":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"interpreterEmail"[39m
+    [33mname[39m=[32m"interpreterEmail"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Language":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"interpreterLanguage"[39m
+    [33mname[39m=[32m"interpreterLanguage"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Signature":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"interpreterSignature"[39m
+    [33mname[39m=[32m"interpreterSignature"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Family Name":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"preparerFamilyName"[39m
+    [33mname[39m=[32m"preparerFamilyName"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Given Name":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"preparerGivenName"[39m
+    [33mname[39m=[32m"preparerGivenName"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Business":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"preparerBusiness"[39m
+    [33mname[39m=[32m"preparerBusiness"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Daytime Phone":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"preparerPhone"[39m
+    [33mname[39m=[32m"preparerPhone"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Fax":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"preparerFax"[39m
+    [33mname[39m=[32m"preparerFax"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Email":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"preparerEmail"[39m
+    [33mname[39m=[32m"preparerEmail"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Signature":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"preparerSignature"[39m
+    [33mname[39m=[32m"preparerSignature"[39m
+    [33mtype[39m=[32m"text"[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  checkbox:
+
+  Name "":
+  [36m<input[39m
+    [33mclass[39m=[32m"w-4 h-4 rounded text-primary focus:ring-primary border-slate-300"[39m
+    [33mtype[39m=[32m"checkbox"[39m
+  [36m/>[39m
+
+  Name "Duration of Status":
+  [36m<input[39m
+    [33mclass[39m=[32m"rounded border-slate-300 text-primary focus:ring-primary w-4 h-4"[39m
+    [33mname[39m=[32m"statusExpiresDS"[39m
+    [33mtype[39m=[32m"checkbox"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  combobox:
+
+  Name "Unit Type":
+  [36m<select[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"aptSteFlrUnit"[39m
+    [33mname[39m=[32m"aptSteFlrUnit"[39m
+  [36m/>[39m
+
+  Name "State*":
+  [36m<select[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"state"[39m
+    [33mname[39m=[32m"state"[39m
+  [36m/>[39m
+
+  Name "New Status Requested":
+  [36m<select[39m
+    [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 shadow-sm shadow-slate-100/50"[39m
+    [33mid[39m=[32m"newStatusDropdown"[39m
+    [33mname[39m=[32m"newStatusDropdown"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  option:
+
+  Name "N/A":
+  [36m<option[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Apt":
+  [36m<option[39m
+    [33mvalue[39m=[32m"Apt"[39m
+  [36m/>[39m
+
+  Name "Ste":
+  [36m<option[39m
+    [33mvalue[39m=[32m"Ste"[39m
+  [36m/>[39m
+
+  Name "Flr":
+  [36m<option[39m
+    [33mvalue[39m=[32m"Flr"[39m
+  [36m/>[39m
+
+  Name "Select...":
+  [36m<option[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "AL":
+  [36m<option[39m
+    [33mvalue[39m=[32m"AL"[39m
+  [36m/>[39m
+
+  Name "AK":
+  [36m<option[39m
+    [33mvalue[39m=[32m"AK"[39m
+  [36m/>[39m
+
+  Name "AZ":
+  [36m<option[39m
+    [33mvalue[39m=[32m"AZ"[39m
+  [36m/>[39m
+
+  Name "AR":
+  [36m<option[39m
+    [33mvalue[39m=[32m"AR"[39m
+  [36m/>[39m
+
+  Name "CA":
+  [36m<option[39m
+    [33mvalue[39m=[32m"CA"[39m
+  [36m/>[39m
+
+  Name "CO":
+  [36m<option[39m
+    [33mvalue[39m=[32m"CO"[39m
+  [36m/>[39m
+
+  Name "CT":
+  [36m<option[39m
+    [33mvalue[39m=[32m"CT"[39m
+  [36m/>[39m
+
+  Name "DE":
+  [36m<option[39m
+    [33mvalue[39m=[32m"DE"[39m
+  [36m/>[39m
+
+  Name "FL":
+  [36m<option[39m
+    [33mvalue[39m=[32m"FL"[39m
+  [36m/>[39m
+
+  Name "GA":
+  [36m<option[39m
+    [33mvalue[39m=[32m"GA"[39m
+  [36m/>[39m
+
+  Name "HI":
+  [36m<option[39m
+    [33mvalue[39m=[32m"HI"[39m
+  [36m/>[39m
+
+  Name "ID":
+  [36m<option[39m
+    [33mvalue[39m=[32m"ID"[39m
+  [36m/>[39m
+
+  Name "IL":
+  [36m<option[39m
+    [33mvalue[39m=[32m"IL"[39m
+  [36m/>[39m
+
+  Name "IN":
+  [36m<option[39m
+    [33mvalue[39m=[32m"IN"[39m
+  [36m/>[39m
+
+  Name "IA":
+  [36m<option[39m
+    [33mvalue[39m=[32m"IA"[39m
+  [36m/>[39m
+
+  Name "KS":
+  [36m<option[39m
+    [33mvalue[39m=[32m"KS"[39m
+  [36m/>[39m
+
+  Name "KY":
+  [36m<option[39m
+    [33mvalue[39m=[32m"KY"[39m
+  [36m/>[39m
+
+  Name "LA":
+  [36m<option[39m
+    [33mvalue[39m=[32m"LA"[39m
+  [36m/>[39m
+
+  Name "ME":
+  [36m<option[39m
+    [33mvalue[39m=[32m"ME"[39m
+  [36m/>[39m
+
+  Name "MD":
+  [36m<option[39m
+    [33mvalue[39m=[32m"MD"[39m
+  [36m/>[39m
+
+  Name "MA":
+  [36m<option[39m
+    [33mvalue[39m=[32m"MA"[39m
+  [36m/>[39m
+
+  Name "MI":
+  [36m<option[39m
+    [33mvalue[39m=[32m"MI"[39m
+  [36m/>[39m
+
+  Name "MN":
+  [36m<option[39m
+    [33mvalue[39m=[32m"MN"[39m
+  [36m/>[39m
+
+  Name "MS":
+  [36m<option[39m
+    [33mvalue[39m=[32m"MS"[39m
+  [36m/>[39m
+
+  Name "MO":
+  [36m<option[39m
+    [33mvalue[39m=[32m"MO"[39m
+  [36m/>[39m
+
+  Name "MT":
+  [36m<option[39m
+    [33mvalue[39m=[32m"MT"[39m
+  [36m/>[39m
+
+  Name "NE":
+  [36m<option[39m
+    [33mvalue[39m=[32m"NE"[39m
+  [36m/>[39m
+
+  Name "NV":
+  [36m<option[39m
+    [33mvalue[39m=[32m"NV"[39m
+  [36m/>[39m
+
+  Name "NH":
+  [36m<option[39m
+    [33mvalue[39m=[32m"NH"[39m
+  [36m/>[39m
+
+  Name "NJ":
+  [36m<option[39m
+    [33mvalue[39m=[32m"NJ"[39m
+  [36m/>[39m
+
+  Name "NM":
+  [36m<option[39m
+    [33mvalue[39m=[32m"NM"[39m
+  [36m/>[39m
+
+  Name "NY":
+  [36m<option[39m
+    [33mvalue[39m=[32m"NY"[39m
+  [36m/>[39m
+
+  Name "NC":
+  [36m<option[39m
+    [33mvalue[39m=[32m"NC"[39m
+  [36m/>[39m
+
+  Name "ND":
+  [36m<option[39m
+    [33mvalue[39m=[32m"ND"[39m
+  [36m/>[39m
+
+  Name "OH":
+  [36m<option[39m
+    [33mvalue[39m=[32m"OH"[39m
+  [36m/>[39m
+
+  Name "OK":
+  [36m<option[39m
+    [33mvalue[39m=[32m"OK"[39m
+  [36m/>[39m
+
+  Name "OR":
+  [36m<option[39m
+    [33mvalue[39m=[32m"OR"[39m
+  [36m/>[39m
+
+  Name "PA":
+  [36m<option[39m
+    [33mvalue[39m=[32m"PA"[39m
+  [36m/>[39m
+
+  Name "RI":
+  [36m<option[39m
+    [33mvalue[39m=[32m"RI"[39m
+  [36m/>[39m
+
+  Name "SC":
+  [36m<option[39m
+    [33mvalue[39m=[32m"SC"[39m
+  [36m/>[39m
+
+  Name "SD":
+  [36m<option[39m
+    [33mvalue[39m=[32m"SD"[39m
+  [36m/>[39m
+
+  Name "TN":
+  [36m<option[39m
+    [33mvalue[39m=[32m"TN"[39m
+  [36m/>[39m
+
+  Name "TX":
+  [36m<option[39m
+    [33mvalue[39m=[32m"TX"[39m
+  [36m/>[39m
+
+  Name "UT":
+  [36m<option[39m
+    [33mvalue[39m=[32m"UT"[39m
+  [36m/>[39m
+
+  Name "VT":
+  [36m<option[39m
+    [33mvalue[39m=[32m"VT"[39m
+  [36m/>[39m
+
+  Name "VA":
+  [36m<option[39m
+    [33mvalue[39m=[32m"VA"[39m
+  [36m/>[39m
+
+  Name "WA":
+  [36m<option[39m
+    [33mvalue[39m=[32m"WA"[39m
+  [36m/>[39m
+
+  Name "WV":
+  [36m<option[39m
+    [33mvalue[39m=[32m"WV"[39m
+  [36m/>[39m
+
+  Name "WI":
+  [36m<option[39m
+    [33mvalue[39m=[32m"WI"[39m
+  [36m/>[39m
+
+  Name "WY":
+  [36m<option[39m
+    [33mvalue[39m=[32m"WY"[39m
+  [36m/>[39m
+
+  Name "Select...":
+  [36m<option[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "F-1 (Academic Student)":
+  [36m<option[39m
+    [33mvalue[39m=[32m"F-1 (Academic Student)"[39m
+  [36m/>[39m
+
+  Name "F-2 (Spouse/Child of F-1)":
+  [36m<option[39m
+    [33mvalue[39m=[32m"F-2 (Spouse/Child of F-1)"[39m
+  [36m/>[39m
+
+  Name "B-1 (Visitor for Business)":
+  [36m<option[39m
+    [33mvalue[39m=[32m"B-1 (Visitor for Business)"[39m
+  [36m/>[39m
+
+  Name "B-2 (Visitor for Pleasure)":
+  [36m<option[39m
+    [33mvalue[39m=[32m"B-2 (Visitor for Pleasure)"[39m
+  [36m/>[39m
+
+  Name "M-1 (Vocational Student)":
+  [36m<option[39m
+    [33mvalue[39m=[32m"M-1 (Vocational Student)"[39m
+  [36m/>[39m
+
+  Name "J-1 (Exchange Visitor)":
+  [36m<option[39m
+    [33mvalue[39m=[32m"J-1 (Exchange Visitor)"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-amber-400 bg-amber-50 text-amber-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "I-130":
+  [36m<button[39m
+    [33mclass[39m=[32m"w-5 h-5 rounded border-2 flex items-center justify-center transition-all border-slate-300 bg-white"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "I-140":
+  [36m<button[39m
+    [33mclass[39m=[32m"w-5 h-5 rounded border-2 flex items-center justify-center transition-all border-slate-300 bg-white"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "I-360":
+  [36m<button[39m
+    [33mclass[39m=[32m"w-5 h-5 rounded border-2 flex items-center justify-center transition-all border-slate-300 bg-white"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Apt":
+  [36m<button[39m
+    [33mclass[39m=[32m"w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all border-slate-300 bg-white"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Ste":
+  [36m<button[39m
+    [33mclass[39m=[32m"w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all border-slate-300 bg-white"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Flr":
+  [36m<button[39m
+    [33mclass[39m=[32m"w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all border-slate-300 bg-white"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Yes":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50 cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "No":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex-1 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm cursor-pointer"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<button[39m
+    [33mclass[39m=[32m"text-slate-300 hover:text-primary transition-colors cursor-help"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Salvar Rascunho":
+  [36m<button[39m
+    [33mclass[39m=[32m"w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-300 text-sm font-black text-slate-600 bg-white hover:bg-slate-50 transition-all shadow-sm"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Enviar Formulário":
+  [36m<button[39m
+    [33mclass[39m=[32m"w-full md:w-auto flex items-center justify-center gap-2 px-10 py-3.5 rounded-xl bg-primary text-white text-sm font-black uppercase tracking-wider shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all disabled:opacity-50"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<form[39m
+      [33mclass[39m=[32m"space-y-4 pb-20"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"bg-white rounded-2xl border border-slate-200 shadow-sm overflow-visible mb-8"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"px-7 py-5 border-b border-slate-100 flex items-center gap-4 bg-slate-50/50 rounded-t-2xl"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"w-12 h-12 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-primary shrink-0"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"text-2xl"[39m
+              [33mfill[39m=[32m"currentColor"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-width[39m=[32m"0"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M0 0h24v24H0z"[39m
+                [33mfill[39m=[32m"none"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</div>[39m
+          [36m<div>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-[10px] font-black text-primary uppercase tracking-widest mb-0.5"[39m
+            [36m>[39m
+              [0mPart 1[0m
+            [36m</p>[39m
+            [36m<h3[39m
+              [33mclass[39m=[32m"text-lg font-black text-slate-800 tracking-tight"[39m
+            [36m>[39m
+              [0mFull Legal Name[0m
+            [36m</h3>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"px-7 py-8 space-y-7"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"grid grid-cols-1 md:grid-cols-3 gap-5"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mid[39m=[32m"field-familyName"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex justify-between items-center mb-2.5"[39m
+              [36m>[39m
+                [36m<label[39m
+                  [33mclass[39m=[32m"flex items-center gap-1.5 block text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none"[39m
+                  [33mfor[39m=[32m"familyName"[39m
+                [36m>[39m
+                  [0mFamily Name[0m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"text-red-500 ml-1"[39m
+                  [36m>[39m
+                    [0m*[0m
+                  [36m</span>[39m
+                [36m</label>[39m
+              [36m</div>[39m
+              [36m<input[39m
+                [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+                [33mid[39m=[32m"familyName"[39m
+                [33mname[39m=[32m"familyName"[39m
+                [33mplaceholder[39m=[32m"Silva"[39m
+                [33mtype[39m=[32m"text"[39m
+                [33mvalue[39m=[32m"Doe"[39m
+              [36m/>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mid[39m=[32m"field-givenName"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex justify-between items-center mb-2.5"[39m
+              [36m>[39m
+                [36m<label[39m
+                  [33mclass[39m=[32m"flex items-center gap-1.5 block text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none"[39m
+                  [33mfor[39m=[32m"givenName"[39m
+                [36m>[39m
+                  [0mGiven Name[0m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"text-red-500 ml-1"[39m
+                  [36m>[39m
+                    [0m*[0m
+                  [36m</span>[39m
+                [36m</label>[39m
+              [36m</div>[39m
+              [36m<input[39m
+                [33mclass[39m=[32m"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50"[39m
+                [33mid[39m=[32m"givenName"[39m
+                [33mname[39m=[32m"givenName"[39m
+                [33mplaceholder[39m=[32m"Anderson"[39m
+                [33mtype[39m=[32m"text"[39m
+                [33mvalue[39m=[32m"John"[39m
+              [36m/>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"space-y-4"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex items-center gap-3 bg-slate-50 border border-slate-100 px-4 py-3 rounded-xl"[39m
+              [36m>[39m
+                [36m<input[39m
+                  [33mclass[39m=[32m"w-4 h-4 rounded text-primary focus:ring-primary border-slate-300"[39m
+                  [33mtype[39m=[32m"checkbox"[39m
+                [36m/>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"text-[11px] font-black text-slate-500 uppercase tracking-widest"[39m
+                [36m>[39m
+                  [0mHas Middle Name[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"bg-white rounded-2xl border border-slate-200 shadow-sm overflow-visible mb-8"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"px-7 py-5 border-b border-slate-100 flex items-center gap-4 bg-slate-50/50 rounded-t-2xl"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"w-12 h-12 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-primary shrink-0"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"text-2xl"[39m
+              [33mfill[39m=[32m"currentColor"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+  ...
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m76:38[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m52:17[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/features/onboarding/cos/pages/COSOnboardingPage/I539FormStep.test.tsx:[2m203:33[22m[39m
+    [90m201|[39m     )
+    [90m202|[39m
+    [90m203|[39m     const submitButton = screen.getByRole('button', { name: /Submit Fo…
+    [90m   |[39m                                 [31m^[39m
+    [90m204|[39m     const familyNameInput = screen.getByLabelText(/Family Name/i, { se…
+    [90m205|[39m     [35mawait[39m user[33m.[39m[34mclear[39m(familyNameInput)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/12]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m6 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[31m12 failed[39m[22m[2m | [22m[1m[32m24 passed[39m[22m[90m (36)[39m
+[2m   Start at [22m 11:09:41
+[2m   Duration [22m 5.51s[2m (transform 1.64s, setup 1.57s, import 3.37s, tests 1.90s, environment 12.88s)[22m
+

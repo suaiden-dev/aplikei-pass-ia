@@ -50,6 +50,6 @@ describe("authRedirect", () => {
       getRedirectPathAfterLogin(managerUser, {
         from: { pathname: "/login", search: "", hash: "" },
       }),
-    ).toBe("/admin");
+    ).toBe("/processes");
   });
 });

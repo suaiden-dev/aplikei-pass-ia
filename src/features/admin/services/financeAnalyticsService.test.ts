@@ -29,7 +29,7 @@ describe("financeAnalyticsService", () => {
       { month: "2026-01", revenue: 1000.5, profit: 70.04 },
       { month: "2026-02", revenue: 0, profit: 0 },
     ]);
-    expect(supabase.rpc).toHaveBeenCalledWith("get_finance_analytics", { p_months: 6 });
+    expect(supabase.rpc).toHaveBeenCalledWith("get_finance_analytics", { p_months: 6, p_office_id: null });
   });
 
   it("throws when monthly analytics rpc fails", async () => {
@@ -62,8 +62,7 @@ describe("financeAnalyticsService", () => {
     });
 
     const orderMock = vi.fn().mockReturnValue({ limit: limitMock });
-    const inMock = vi.fn().mockReturnValue({ order: orderMock });
-    const selectMock = vi.fn().mockReturnValue({ in: inMock });
+    const selectMock = vi.fn().mockReturnValue({ order: orderMock });
 
     vi.mocked(supabase.from).mockReturnValue({ select: selectMock } as any);
 
@@ -82,7 +81,7 @@ describe("financeAnalyticsService", () => {
         status: "paid",
       },
     ]);
-    expect(supabase.from).toHaveBeenCalledWith("v_finance_transactions_master");
+    expect(supabase.from).toHaveBeenCalledWith("v_finance_analytics_transactions");
   });
 
   it("throws when recent transactions query fails", async () => {
@@ -91,8 +90,7 @@ describe("financeAnalyticsService", () => {
       error: { message: "query failed" },
     });
     const orderMock = vi.fn().mockReturnValue({ limit: limitMock });
-    const inMock = vi.fn().mockReturnValue({ order: orderMock });
-    const selectMock = vi.fn().mockReturnValue({ in: inMock });
+    const selectMock = vi.fn().mockReturnValue({ order: orderMock });
 
     vi.mocked(supabase.from).mockReturnValue({ select: selectMock } as any);
 

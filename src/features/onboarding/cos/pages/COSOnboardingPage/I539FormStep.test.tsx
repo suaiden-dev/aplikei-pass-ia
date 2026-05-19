@@ -149,6 +149,7 @@ describe('I539FormStep', () => {
     clear: vi.fn(),
   })
   vi.stubGlobal('scrollTo', vi.fn())
+  window.HTMLElement.prototype.scrollIntoView = vi.fn()
 
   test('should render and have blank Preparer Information by default', async () => {
     render(
@@ -200,7 +201,7 @@ describe('I539FormStep', () => {
       </LanguageProvider>
     )
 
-    const submitButton = screen.getByRole('button', { name: /Submit Form/i })
+    const submitButton = screen.getByRole('button', { name: /Enviar Formulário/i })
     const familyNameInput = screen.getByLabelText(/Family Name/i, { selector: '[name="familyName"]' })
     await user.clear(familyNameInput)
 
