@@ -1,17 +1,29 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import FinanceAnalyticsPage from "./index";
+
+const renderWithProviders = (ui: React.ReactElement) => {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      {ui}
+    </QueryClientProvider>
+  );
+};
 
 const serviceMocks = vi.hoisted(() => ({
   getRecentTransactions: vi.fn(),
   getMonthlyAnalytics: vi.fn(),
 }));
 
-vi.mock("../../../services/finance-analytics.service", () => ({
+vi.mock("@features/admin/services/financeAnalyticsService", () => ({
   financeAnalyticsService: {
     getRecentTransactions: serviceMocks.getRecentTransactions,
     getMonthlyAnalytics: serviceMocks.getMonthlyAnalytics,
+    getRoleActions: vi.fn().mockResolvedValue([]),
+    getRoleActorMetrics: vi.fn().mockResolvedValue([]),
   },
 }));
 
@@ -56,17 +68,23 @@ vi.mock("@app/app/i18n", () => ({
   }),
 }));
 
+vi.mock("@shared/hooks/useAuth", () => ({
+  useAuth: () => ({
+    user: { role: "master" },
+  }),
+}));
+
 describe("FinanceAnalyticsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("renders loading and then success state", async () => {
-    serviceMocks.getMonthlyAnalytics.mockResolvedValueOnce([
+    serviceMocks.getMonthlyAnalytics.mockResolvedValue([
       { month: "2026-04", revenue: 1000, profit: 70 },
       { month: "2026-05", revenue: 1500, profit: 105 },
     ]);
-    serviceMocks.getRecentTransactions.mockResolvedValueOnce([
+    serviceMocks.getRecentTransactions.mockResolvedValue([
       {
         id: "ord-1",
         clientName: "John",
@@ -80,7 +98,7 @@ describe("FinanceAnalyticsPage", () => {
       },
     ]);
 
-    render(<FinanceAnalyticsPage />);
+    renderWithProviders(<FinanceAnalyticsPage />);
 
     expect(screen.getByText("Finance Analytics")).toBeInTheDocument();
 
@@ -89,15 +107,15 @@ describe("FinanceAnalyticsPage", () => {
     });
 
     expect(screen.getByText("VISTO B1 B2")).toBeInTheDocument();
-    expect(serviceMocks.getMonthlyAnalytics).toHaveBeenCalledWith(6);
-    expect(serviceMocks.getRecentTransactions).toHaveBeenCalledWith(50);
+    expect(serviceMocks.getMonthlyAnalytics).toHaveBeenCalledWith(6, undefined);
+    expect(serviceMocks.getRecentTransactions).toHaveBeenCalledWith(50, undefined);
   });
 
   it("renders empty state when there are no transactions", async () => {
-    serviceMocks.getMonthlyAnalytics.mockResolvedValueOnce([{ month: "2026-05", revenue: 0, profit: 0 }]);
-    serviceMocks.getRecentTransactions.mockResolvedValueOnce([]);
+    serviceMocks.getMonthlyAnalytics.mockResolvedValue([{ month: "2026-05", revenue: 0, profit: 0 }]);
+    serviceMocks.getRecentTransactions.mockResolvedValue([]);
 
-    render(<FinanceAnalyticsPage />);
+    renderWithProviders(<FinanceAnalyticsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("No transactions found for analytics.")).toBeInTheDocument();
@@ -105,17 +123,17 @@ describe("FinanceAnalyticsPage", () => {
   });
 
   it("renders error state and retries load", async () => {
-    serviceMocks.getMonthlyAnalytics.mockRejectedValueOnce(new Error("forbidden"));
+    serviceMocks.getMonthlyAnalytics.mockRejectedValue(new Error("forbidden"));
     serviceMocks.getRecentTransactions.mockResolvedValue([]);
 
-    render(<FinanceAnalyticsPage />);
+    renderWithProviders(<FinanceAnalyticsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Failed to load data")).toBeInTheDocument();
     });
 
-    serviceMocks.getMonthlyAnalytics.mockResolvedValueOnce([{ month: "2026-05", revenue: 400, profit: 28 }]);
-    serviceMocks.getRecentTransactions.mockResolvedValueOnce([
+    serviceMocks.getMonthlyAnalytics.mockResolvedValue([{ month: "2026-05", revenue: 400, profit: 28 }]);
+    serviceMocks.getRecentTransactions.mockResolvedValue([
       {
         id: "ord-2",
         clientName: "Jane",
@@ -137,8 +155,8 @@ describe("FinanceAnalyticsPage", () => {
   });
 
   it("opens transaction details modal", async () => {
-    serviceMocks.getMonthlyAnalytics.mockResolvedValueOnce([{ month: "2026-05", revenue: 500, profit: 35 }]);
-    serviceMocks.getRecentTransactions.mockResolvedValueOnce([
+    serviceMocks.getMonthlyAnalytics.mockResolvedValue([{ month: "2026-05", revenue: 500, profit: 35 }]);
+    serviceMocks.getRecentTransactions.mockResolvedValue([
       {
         id: "ord-3",
         clientName: "Alice",
@@ -152,7 +170,7 @@ describe("FinanceAnalyticsPage", () => {
       },
     ]);
 
-    render(<FinanceAnalyticsPage />);
+    renderWithProviders(<FinanceAnalyticsPage />);
 
     await waitFor(() => {
       expect(screen.getByText("alice@example.com")).toBeInTheDocument();

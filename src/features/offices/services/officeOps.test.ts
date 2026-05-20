@@ -64,8 +64,10 @@ describe("officeOps", () => {
       fromSpy.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         ilike: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         maybeSingle: maybeSingleMock,
         upsert: vi.fn().mockReturnThis(),
+        update: vi.fn().mockReturnThis(),
         single: singleMock,
       } as any);
 
@@ -92,6 +94,7 @@ describe("officeOps", () => {
       fromSpy.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         ilike: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         maybeSingle: maybeSingleMock,
       } as any);
 

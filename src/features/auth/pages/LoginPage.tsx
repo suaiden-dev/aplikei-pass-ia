@@ -22,14 +22,18 @@ import {
 } from "@app/app/router/authRedirect";
 
 export default function Login() {
-  const [isWelcoming, setIsWelcoming] = useState(false);
-  const [activeTab, setActiveTab] = useState<"login" | "track">("login");
-
   const t = useT("auth");
   const v = useT("validation");
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  const hideTabs = location.pathname === "/login" || location.pathname === "/login-office";
+
+  const [isWelcoming, setIsWelcoming] = useState(false);
+  const [activeTab, setActiveTab] = useState<"login" | "track">(() =>
+    location.pathname === "/login" ? "track" : "login",
+  );
 
   const { user, isAuthenticated, isLoading } = useAuth();
   const { login } = useAuthForm();
@@ -125,7 +129,8 @@ export default function Login() {
       }}
     >
       {/* Premium Tabs Switcher */}
-      <div className="flex rounded-2xl bg-bg-subtle p-1 mb-8 border border-border/60 shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)]">
+      {!hideTabs && (
+        <div className="flex rounded-2xl bg-bg-subtle p-1 mb-8 border border-border/60 shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)]">
         <button
           type="button"
           onClick={() => setActiveTab("login")}
@@ -154,7 +159,8 @@ export default function Login() {
           </svg>
           {t.login.email === "Email" ? "Track Visa" : t.login.title === "Acceder a mi cuenta" ? "Acompañar Caso" : "Acompanhar Caso"}
         </button>
-      </div>
+        </div>
+      )}
 
       <form className="space-y-5" onSubmit={formik.handleSubmit}>
         <Field

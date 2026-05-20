@@ -218,6 +218,14 @@ export const appRoutes: AppRouteDefinition[] = [
 
   // ── Auth ───────────────────────────────────────────────────────────────────
   {
+    path: "/login-office",
+    title: "Login Advogado",
+    component: Login,
+    authRequired: false,
+    accessLevels: [],
+    layout: "auth",
+  },
+  {
     path: "/login",
     title: "Login",
     component: Login,
