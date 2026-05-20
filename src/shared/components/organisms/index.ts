@@ -19,3 +19,4 @@ export * from "./LandingProblem";
 export * from "./LandingSolution";
 export * from "./LandingFinalCTA";
 export * from "./ScrollToTop";
+export * from "./LandingProductShowcase";

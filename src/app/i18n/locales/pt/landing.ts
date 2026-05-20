@@ -3,7 +3,7 @@ const landing = {
     badge: "Próxima Geração de Vistos Com IA",
     title: "A plataforma completa para gerenciar seus",
     titleHighlight: "processos de vistos consulares",
-    subtitle: "Automatize tarefas, organize documentos e escale seu escritório com a eficiência da Inteligência Artificial dedicada ao direito imigratório.",
+    subtitle: "Automatize tarefas, organize documentos e escale seu escritório com a eficiência da Inteligência Artificial dedicada à gestão de vistos consulares (B1/B2, F-1, troca e extensão de status).",
     cta: "Agendar demonstração",
     statsLabel: "Tempo de preparação",
     statsValue: "-70%",
@@ -12,7 +12,7 @@ const landing = {
   },
   problem: {
     title: "Dores que resolvemos",
-    subtitle: "Entendemos as complexidades operacionais que impedem o crescimento de escritórios de imigração.",
+    subtitle: "Entendemos as complexidades operacionais que impedem o crescimento de escritórios de vistos consulares.",
     items: [
       {
         icon: "account_tree",
@@ -49,7 +49,7 @@ const landing = {
         icon: "auto_fix_high",
         title: "Automação com IA",
         badge: "-70% TEMPO",
-        description: "Utilize modelos neurais treinados em direito imigratório para preencher formulários complexos em segundos."
+        description: "Utilize modelos neurais treinados em vistos consulares para preencher formulários complexos em segundos."
       },
       {
         icon: "verified_user",
@@ -169,7 +169,7 @@ const landing = {
         },
         {
           title: "Planejamento estratégico",
-          description: "Definição da melhor rota imigratória visando o menor tempo e maior taxa de aprovação."
+          description: "Definição da melhor rota de visto consular visando o menor tempo e maior taxa de aprovação."
         },
         {
           title: "Preparação da documentação",
@@ -182,7 +182,7 @@ const landing = {
       ]
     },
     services: {
-      title: "Soluções modulares para cada perfil de imigração.",
+      title: "Soluções modulares para cada tipo de visto consular (B1/B2, F-1, troca e extensão de status).",
       items: [
         {
           title: "Vistos de trabalho",

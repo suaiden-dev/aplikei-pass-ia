@@ -29,11 +29,13 @@ export function LandingBenefits() {
                   transition={{ delay: index * 0.1 }}
                   className="p-6 bg-card rounded-2xl border border-border shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-200"
                 >
-                  <span className="material-symbols-outlined text-primary text-4xl mb-4">
-                    {item.icon}
-                  </span>
-                  <h4 className="font-display text-xl font-bold tracking-[-0.03em] text-text mb-2">{item.title}</h4>
-                  <p className="font-body-sm text-text-muted">{item.description}</p>
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
+                    <span className="material-symbols-outlined text-primary text-2xl">
+                      {item.icon}
+                    </span>
+                  </div>
+                  <h4 className="font-display text-lg font-bold tracking-[-0.02em] text-text mb-2">{item.title}</h4>
+                  <p className="text-xs leading-relaxed text-text-muted">{item.description}</p>
                 </motion.div>
               ))}
             </div>

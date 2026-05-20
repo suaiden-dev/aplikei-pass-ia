@@ -56,10 +56,10 @@ export function LandingHero({ heroImage, avatars }: LandingHeroProps) {
           className="relative"
         >
           <div className="absolute -inset-4 rounded-[3rem] bg-primary/10 blur-2xl" />
-          <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl border border-outline-variant bg-white">
+          <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-[#0d1527]/90 p-1.5 ring-1 ring-white/10 shadow-primary/10">
             <img
               alt={t.hero?.imageAlt}
-              className="w-full h-auto"
+              className="w-full h-auto rounded-2xl"
               src={heroImage}
             />
           </div>

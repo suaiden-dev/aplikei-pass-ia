@@ -170,8 +170,8 @@ export default function CouponsPage() {
     },
     validate: zodValidate(z.object({
       code: z.string().min(3, t.messages.invalidCode),
-      discount_value: z.number().min(0.01, t.messages.invalidValue),
-      min_purchase_usd: z.number().min(0),
+      discount_value: z.preprocess((val) => val === "" ? undefined : Number(val), z.number().min(0.01, t.messages.invalidValue)),
+      min_purchase_usd: z.preprocess((val) => val === "" ? 0 : Number(val), z.number().min(0)),
     })),
     onSubmit: async (values) => {
       let expiresAt: Date;
@@ -182,6 +182,9 @@ export default function CouponsPage() {
         expiresAt = new Date(Date.now() + (hours[values.expiration_type] ?? 168) * 3600000);
       }
 
+      const discountValue = Number(values.discount_value);
+      const minPurchaseUsd = Number(values.min_purchase_usd);
+
       if (isSeller) {
         if (values.discount_type === "percentage" && !rules.seller_allow_percentage) {
           toast.error(t.messages.rulePercentageNotAllowed); return;
@@ -189,10 +192,10 @@ export default function CouponsPage() {
         if (values.discount_type === "fixed" && !rules.seller_allow_fixed) {
           toast.error(t.messages.ruleFixedNotAllowed); return;
         }
-        if (values.discount_type === "percentage" && rules.seller_max_pct !== null && values.discount_value > rules.seller_max_pct) {
+        if (values.discount_type === "percentage" && rules.seller_max_pct !== null && discountValue > rules.seller_max_pct) {
           toast.error(t.messages.ruleMaxPct.replace("{{value}}", String(rules.seller_max_pct))); return;
         }
-        if (values.discount_type === "fixed" && rules.seller_max_fixed !== null && values.discount_value > rules.seller_max_fixed) {
+        if (values.discount_type === "fixed" && rules.seller_max_fixed !== null && discountValue > rules.seller_max_fixed) {
           toast.error(t.messages.ruleMaxFixed.replace("{{value}}", String(rules.seller_max_fixed))); return;
         }
         if (values.max_uses !== "" && rules.seller_max_uses !== null && parseInt(values.max_uses) > rules.seller_max_uses) {
@@ -213,10 +216,10 @@ export default function CouponsPage() {
       const { error } = await supabase.from("discount_coupons").insert({
         code: formatCouponCode(values.code),
         discount_type: values.discount_type,
-        discount_value: values.discount_value,
+        discount_value: discountValue,
         max_uses: values.max_uses === "" ? null : parseInt(values.max_uses),
         applicable_slugs: applicableSlugs,
-        min_purchase_usd: values.min_purchase_usd,
+        min_purchase_usd: minPurchaseUsd,
         expires_at: expiresAt.toISOString(),
         is_active: true,
         created_by: user?.id ?? null,
@@ -544,7 +547,7 @@ export default function CouponsPage() {
                 className="px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest text-text-muted hover:bg-bg-subtle transition-colors">
                 {tShared.cancel}
               </button>
-              <button type="submit" form="coupon-form" disabled={formik.isSubmitting}
+              <button type="submit" form="coupon-form" onClick={() => formik.handleSubmit()} disabled={formik.isSubmitting}
                 className="px-8 py-3 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20">
                 {formik.isSubmitting ? <RiRefreshLine className="animate-spin text-lg" /> : <RiCheckLine className="text-lg" />}
                 {t.form.submit}
