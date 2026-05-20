@@ -1,5 +1,5 @@
 const footer = {
-  tagline: "Tecnologia de elite para escritórios de imigração e assessoria global.",
+  tagline: "Tecnologia de elite para escritórios de advocacia e assessorias de vistos consulares.",
   servicesHeader: "Serviços",
   platformHeader: "Plataforma",
   legalHeader: "Legal",
@@ -10,7 +10,7 @@ const footer = {
   privacy: "Política de Privacidade",
   refund: "Política de Reembolso",
   copyright: "© 2026 Aplikei Technologies. Todos os direitos reservados. A Aplikei é uma plataforma de tecnologia e não um escritório de advocacia.",
-  description: "Simplificando a gestão de fluxos consulares com inteligência e automação.",
+  description: "Simplificando a gestão de vistos consulares com tecnologia e automação.",
   contact: "Contato",
   security: "Segurança de Dados",
   consularManagement: "Gestão de Vistos Consulares",

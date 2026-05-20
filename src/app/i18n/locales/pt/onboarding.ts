@@ -4,8 +4,8 @@ const onboarding = {
     subtitle: "Preencha as informações para montar seu pacote final.",
     badge: "TROCA DE STATUS",
     form: {
-      title: "Formulário de Aplicação",
-      desc: "Preencha as informações para sua troca de status.",
+      title: "Formulário Inicial",
+      desc: "Preencha as informações iniciais para sua troca de status.",
       currentVisaLabel: "Qual o seu visto atual?",
       targetVisaLabel: "Para qual visto você deseja trocar?",
       i94DateLabel: "Data de permanência autorizada do I-94",
@@ -57,7 +57,7 @@ const onboarding = {
       completeStep: "Concluir Etapa",
     },
     docs: {
-      title: "Upload de Documentos",
+      title: "Envios de Documentos",
       desc: "Envie os documentos necessários para o início do seu processo.",
       i94Instructions: "Instruções do I-94",
       i94InstructionsDesc: "Obtenha seu registro de entrada mais recente no site oficial do CBP.",
@@ -134,8 +134,8 @@ const onboarding = {
         business: "Empresa",
         fax: "Fax",
         language: "Idioma",
-        header: "Formulário I-539 Oficial",
-        fillInstruction: "Preencha todos os campos do formulário oficial I-539 do USCIS.",
+        header: "Formulário I-539",
+        fillInstruction: "Preencha todos os campos do formulário I-539 do USCIS.",
       },
       securityQuestions: {
         q6: "6. Esta aplicação está relacionada a um processo de remoção, exclusão, rescisão ou deportação contra você?",
@@ -203,7 +203,7 @@ const onboarding = {
       }
     },
     coverLetter: {
-      introTitle: "Carta de Apresentação (Cover Letter)",
+      introTitle: "Carta de Suporte",
       introDesc: "Responda as perguntas abaixo em detalhes. O sistema gerará automaticamente uma carta profissional e persuasiva para o USCIS.",
       tabs: {
         questions: "1. Perguntas",
@@ -237,13 +237,13 @@ const onboarding = {
       editInfo: "Você poderá editar o texto final se desejar. Por enquanto, valide se os pontos principais estão corretos conforme suas respostas.",
       btns: {
         saveDraft: "Salvar Rascunho",
-        generate: "Gerar Cover Letter",
+        generate: "Gerar Carta de Suporte",
         send: "Enviar",
         advance: "Avançar Etapa",
       },
       toasts: {
-        generateSuccess: "Cover Letter gerada com sucesso!",
-        generateError: "Erro ao gerar Cover Letter.",
+        generateSuccess: "Carta de Suporte gerada com sucesso!",
+        generateError: "Erro ao gerar Carta de Suporte.",
         saveSuccess: "Rascunho salvo com sucesso.",
         saveError: "Erro ao salvar rascunho.",
         advanceError: "Erro ao avançar.",
@@ -265,7 +265,7 @@ const onboarding = {
         uploading: "Enviando...",
       },
       footer: "O documento deve estar legível e completo",
-      nextBtn: "Continuar para Taxa SEVIS",
+      nextBtn: "Continuar para Confirmação de Pagamento",
       toasts: {
         success: "I-20 enviado com sucesso!",
         error: "Erro ao enviar I-20",
@@ -273,8 +273,8 @@ const onboarding = {
       }
     },
     sevisFee: {
-      title: "Taxa SEVIS I-901",
-      desc: "A Taxa SEVIS custa $350 e tem o objetivo de registrar o estudante no sistema de ensino americano. Você precisará do seu passaporte e do seu I-20 para realizar o pagamento.",
+      title: "Confirmação de Pagamento",
+      desc: "Confirme o pagamento da taxa SEVIS e envie o comprovante para que possamos seguir com a próxima etapa.",
       statusCard: {
         title: "Pergunta de Status",
         question: "Você já realizou o pagamento da Taxa SEVIS?",
@@ -316,7 +316,7 @@ const onboarding = {
         btn: "Selecionar Arquivo",
         uploading: "Enviando...",
       },
-      nextBtn: "Finalizar Documentação",
+      nextBtn: "Continuar para Carta de Suporte",
       toasts: {
         success: "Comprovante SEVIS enviado com sucesso!",
         error: "Erro ao enviar comprovante",
@@ -324,7 +324,7 @@ const onboarding = {
       }
     },
     finalForms: {
-      title: "Formulários Finais USCIS",
+      title: "Formulário Final",
       desc: "Preencha as informações abaixo para gerarmos automaticamente os formulários oficiais G-1145 e G-1450.",
       g1145: {
         title: "Form G-1145",
@@ -448,7 +448,7 @@ const onboarding = {
           i94Main: "I-94 (Aplicante Principal)",
           i94Dep: "I-94 (Dependentes)",
           financial: "Documentos Financeiros",
-          coverLetter: "Carta de Apresentação",
+          coverLetter: "Carta de Suporte",
           passport: "Passaporte e Visto",
           certificates: "Certidões de Família",
           residence: "Comprovante de Residência",

@@ -10,7 +10,7 @@ export { default as visas } from './visas';
 export { default as checkout } from './checkout';
 export { default as admin } from './admin';
 export { default as maintenance } from './maintenance';
-export { default as tracking } from './stubs';
+export { default as tracking } from './tracking';
 export { default as legal } from './stubs';
 export { default as validation } from './stubs';
 export { default as onboarding } from './onboarding';

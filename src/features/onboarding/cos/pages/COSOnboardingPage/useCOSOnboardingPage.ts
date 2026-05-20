@@ -41,6 +41,11 @@ function deriveCurrentStepIdx(steps: UserStep[]): number {
   return idx === -1 ? Math.max(0, steps.length - 1) : idx
 }
 
+function normalizeCosWorkflowSteps(slug: string, steps: UserStep[]): UserStep[] {
+  if (slug !== 'troca-status' && slug !== 'visa-cos') return steps
+  return steps.slice(0, 12)
+}
+
 function shouldFallbackStorageUpload(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error ?? '')
   const normalized = message.toLowerCase()
@@ -154,7 +159,7 @@ export function useCOSOnboardingPage() {
       const inst = await workflowOps.getOrCreateInstance(user.id, productId)
       setInstance(inst)
 
-      const userSteps = await workflowOps.getSteps(inst.id)
+      const userSteps = normalizeCosWorkflowSteps(slug, await workflowOps.getSteps(inst.id))
       setSteps(userSteps)
 
       const allReviews = (await Promise.all(userSteps.map((s) => workflowOps.getReviews(s.id)))).flat()
@@ -311,15 +316,7 @@ export function useCOSOnboardingPage() {
         await workflowOps.completeStep(currentUserStep.id)
       }
 
-      // Se não é F1, pula I-20 / SEVIS (índices 7, 8, 9)
-      let nextSteps = await workflowOps.getSteps(instance.id)
-      if (targetVisa !== 'F1') {
-        const toSkip = nextSteps.filter((_, i) => [7, 8, 9].includes(i) && _.status === 'pending')
-        if (toSkip.length > 0) {
-          await Promise.all(toSkip.map((s) => workflowOps.completeStep(s.id)))
-          nextSteps = await workflowOps.getSteps(instance.id)
-        }
-      }
+      const nextSteps = normalizeCosWorkflowSteps(slug, await workflowOps.getSteps(instance.id))
 
       setSteps(nextSteps)
 

@@ -24,7 +24,11 @@ export default function AIChatPage() {
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(processIdFromQuery)
   const selected = useMemo(
     () =>
-      threads.find((thread) => thread.processId === selectedProcessId) ??
+      threads.find(
+        (thread) =>
+          thread.processId === selectedProcessId ||
+          thread.processRouteId === selectedProcessId,
+      ) ??
       (threads.length === 1 ? threads[0] : null),
     [selectedProcessId, threads],
   )
@@ -208,7 +212,8 @@ function ThreadView({
       </div>
 
       <SupportChat
-        processId={thread.processId}
+        processId={thread.processRouteId || thread.processId}
+        officeId={thread.officeId}
         userId={userId}
         role="customer"
         title={thread.chatTitle}

@@ -25,6 +25,7 @@ interface AnalysisChatItem {
   id: string;
   userId: string;
   processId: string;
+  officeId: string | null;
   serviceSlug: string;
   officeName: string;
   chatTitle: string;
@@ -52,6 +53,7 @@ export default function ChatsPage() {
         id: row.processId,
         userId: row.userId,
         processId: row.processId,
+        officeId: row.officeId || null,
         serviceSlug: row.serviceSlug,
         officeName: row.officeName || "Office",
         chatTitle: row.chatTitle,
@@ -376,6 +378,7 @@ function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: Anal
         <SupportChat
           processId={chat.processId}
           userId={adminId}
+          officeId={chat.officeId}
           role="admin"
           userName={chat.fullName}
           title={chat.chatTitle}

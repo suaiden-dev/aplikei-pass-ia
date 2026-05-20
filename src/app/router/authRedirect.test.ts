@@ -28,7 +28,7 @@ const managerUser: UserAccount = {
 describe("authRedirect", () => {
   it("returns the default dashboard for each role", () => {
     expect(getDefaultRouteForRole("customer")).toBe("/dashboard");
-    expect(getDefaultRouteForRole("manager")).toBe("/admin");
+    expect(getDefaultRouteForRole("manager")).toBe("/manager/processes");
     expect(getDefaultRouteForRole("admin_lawyer")).toBe("/admin");
   });
 
@@ -50,6 +50,6 @@ describe("authRedirect", () => {
       getRedirectPathAfterLogin(managerUser, {
         from: { pathname: "/login", search: "", hash: "" },
       }),
-    ).toBe("/admin");
+    ).toBe("/manager/processes");
   });
 });

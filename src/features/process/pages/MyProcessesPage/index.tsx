@@ -6,6 +6,7 @@ import {
   RiArrowRightLine,
   RiFlashlightFill,
   RiTimeLine,
+  RiBuilding2Line,
 } from "react-icons/ri";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -156,12 +157,33 @@ function ProcessRow({ proc, index, displaySlug, officeName }: { proc: UserServic
           <p className="text-[11px] font-bold text-text-muted tracking-widest uppercase">
             {t.dashboard.products[slugForDisplay]?.category || cfg.category}
           </p>
+<<<<<<< HEAD
           <div className="flex items-center gap-1 mt-1">
             <RiBuilding2Line className="text-[11px] text-text-muted" />
             <p className="text-[10px] font-black text-text-muted tracking-widest uppercase truncate">
               {officeName || "Office"}
             </p>
           </div>
+=======
+          {proc.officeName && (
+            <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold text-text-muted uppercase tracking-widest bg-bg-subtle px-2.5 py-1.5 rounded-xl border border-border/40 w-fit">
+              {proc.officeLogoUrl ? (
+                <img
+                  src={proc.officeLogoUrl}
+                  alt={proc.officeName}
+                  className="w-3.5 h-3.5 rounded object-cover shrink-0"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              ) : (
+                <RiBuilding2Line className="text-primary text-xs shrink-0" />
+              )}
+              <span>{proc.officeName}</span>
+            </div>
+          )}
+>>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
         </div>
       </div>
 

@@ -1,4 +1,6 @@
 import type { ServiceData, StepConfig } from "../components/templates/ServiceDetailTemplate";
+import { getServiceLocale } from "./services.i18n";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, LANGUAGE_STORAGE_KEY, type Language } from "@shared/types/language";
 
 export interface ServiceMeta extends Omit<ServiceData, 'steps'> {
   heroImage: string;
@@ -336,19 +338,18 @@ export const servicesData: ServiceMeta[] = [
     requirements: ["I-94 válido"],
     dependentPrice: "US$ 150,00",
     steps: [
-      { id: "cos_form", title: "Formulário I-539", description: "Informações para mudança de categoria.", type: "form" },
-      { id: "cos_documents", title: "Documentos de Suporte", description: "Envio de extratos e passaporte.", type: "upload" },
-      { id: "cos_admin_analysis", title: "Análise Técnica", description: "Revisão detalhada da viabilidade da troca.", type: "admin_action" },
-      { id: "cos_uscis_fee", title: "Taxa do USCIS", description: "Pagamento da taxa oficial de mudança.", type: "form" },
-      { id: "cos_i20_upload", title: "Upload do I-20", description: "Obrigatório apenas para categoria F-1.", type: "upload" },
-      { id: "cos_sevis_fee", title: "Taxa SEVIS", description: "Apenas se aplicável à nova categoria.", type: "form" },
-      { id: "cos_analysis_i20_sevis", title: "Análise Acadêmica", description: "Validação técnica dos documentos escolares.", type: "admin_action" },
-      { id: "cos_cover_letter", title: "Carta de Suporte", description: "Elaboração da justificativa para a mudança.", type: "form" },
-      { id: "cos_admin_cover_analysis", title: "Análise da Carta", description: "Revisão da estratégia argumentativa.", type: "admin_action" },
-      { id: "cos_final_review", title: "Revisão Final", description: "Última checagem de todos os campos.", type: "form" },
-      { id: "cos_official_forms", title: "Formulários Oficiais", description: "Geração do pacote final para envio.", type: "form" },
-      { id: "cos_admin_final_review", title: "Aprovação Técnica", description: "Validação final antes do envio ao USCIS.", type: "admin_action" },
-      { id: "cos_final_package", title: "Pacote de Envio", description: "Instruções para postagem física/digital.", type: "form" },
+      { id: "cos_application_form", title: "Formulário Inicial", description: "Preencha suas informações pessoais, visto atual e o novo status desejado.", type: "form" },
+      { id: "cos_documents", title: "Envios de Documentos", description: "Faça o upload dos documentos pessoais e comprobatórios necessários.", type: "upload" },
+      { id: "cos_analysis_form_docs", title: "Revisão de Envio", description: "Nossa equipe está revisando seus dados e documentos enviados.", type: "admin_action" },
+      { id: "cos_i20_upload", title: "Upload do I-20", description: "Envie o formulário I-20 emitido pela sua instituição de ensino.", type: "upload" },
+      { id: "cos_sevis_fee", title: "Confirmação de Pagamento", description: "Envie o comprovante de pagamento da taxa SEVIS.", type: "upload" },
+      { id: "cos_presentation_letter", title: "Carta de Suporte", description: "Responda às perguntas para elaborar sua carta de suporte.", type: "form" },
+      { id: "cos_analysis_presentation_letter", title: "Análise da Carta", description: "Revisão da estratégia argumentativa da sua carta.", type: "admin_action" },
+      { id: "cos_official_forms", title: "Formulário I-539", description: "Preencha o formulário oficial I-539 exigido pelo USCIS.", type: "form" },
+      { id: "cos_analysis_official_forms", title: "Análise do I-539", description: "Nossa equipe está revisando o formulário I-539 preenchido.", type: "admin_action" },
+      { id: "cos_final_forms", title: "Formulário Final", description: "Últimos ajustes e assinaturas nos formulários do processo.", type: "form" },
+      { id: "cos_analysis_final_forms", title: "Análise Final", description: "Revisão final de todos os formulários antes do envio.", type: "admin_action" },
+      { id: "cos_final_package", title: "Pacote Final", description: "Seu pacote completo está pronto para o envio ao USCIS.", type: "form" },
     ],
     faq: [],
   },
@@ -356,7 +357,29 @@ export const servicesData: ServiceMeta[] = [
 
 export function getServiceBySlug(slug: string): ServiceMeta | undefined {
   const finalSlug = getCanonicalSlug(slug);
-  return servicesData.find((s) => s.slug === finalSlug);
+  const base = servicesData.find((s) => s.slug === finalSlug);
+  if (!base) return undefined;
+
+  const lang = getCurrentLanguage();
+  const localized = getServiceLocale(finalSlug, lang);
+  if (!localized) return base;
+
+  return {
+    ...base,
+    ...localized,
+    steps: localized.steps?.length
+      ? (base.steps.map((step, index) => ({
+          ...step,
+          ...(localized.steps?.[index] ?? {}),
+        })) as StepConfig[])
+      : base.steps,
+  };
+}
+
+function getCurrentLanguage(): Language {
+  if (typeof window === "undefined") return DEFAULT_LANGUAGE;
+  const saved = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  return saved && isSupportedLanguage(saved) ? saved : DEFAULT_LANGUAGE;
 }
 
 export function getCanonicalSlug(slug: string): string {

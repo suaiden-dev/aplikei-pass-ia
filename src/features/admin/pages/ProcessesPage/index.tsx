@@ -222,19 +222,61 @@ export default function AdminProcessesPage() {
         return;
       }
 
-      const query = supabase
-        .from("user_services")
-        .select("*")
-        .order("created_at", { ascending: false });
-
+      let base: ProcessWithUser[] = [];
       if (officeId && user?.role !== "master") {
-        query.eq("office_id", officeId);
+        const [officeServicesRes, officeCustomersRes] = await Promise.all([
+          supabase
+            .from("user_services")
+            .select("*")
+            .eq("office_id", officeId)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("office_customers" as any)
+            .select("user_id")
+            .eq("office_id", officeId),
+        ]);
+
+        if (officeServicesRes.error) throw officeServicesRes.error;
+        if (officeCustomersRes.error) throw officeCustomersRes.error;
+
+        const direct = (officeServicesRes.data || []) as ProcessWithUser[];
+        const customerUserIds = Array.from(
+          new Set(
+            ((officeCustomersRes.data || []) as Array<{ user_id: string }>)
+              .map((r) => r.user_id)
+              .filter(Boolean),
+          ),
+        );
+
+        let byCustomer: ProcessWithUser[] = [];
+        if (customerUserIds.length > 0) {
+          const { data: byCustomerRows, error: byCustomerError } = await supabase
+            .from("user_services")
+            .select("*")
+            .in("user_id", customerUserIds)
+            .order("created_at", { ascending: false });
+          if (byCustomerError) throw byCustomerError;
+          byCustomer = (byCustomerRows || []) as ProcessWithUser[];
+        }
+
+        const mergedById = new Map<string, ProcessWithUser>();
+        [...direct, ...byCustomer].forEach((proc) => {
+          mergedById.set(proc.id, proc);
+        });
+        base = Array.from(mergedById.values()).sort(
+          (a, b) =>
+            new Date(b.created_at || 0).getTime() -
+            new Date(a.created_at || 0).getTime(),
+        );
+      } else {
+        const { data, error } = await supabase
+          .from("user_services")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        base = (data || []) as ProcessWithUser[];
       }
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-      const base = (data || []) as ProcessWithUser[];
       const userIds = [...new Set(base.map((p) => p.user_id).filter(Boolean))];
       const slugs = [...new Set(base.map((p) => p.service_slug).filter(Boolean))];
 

@@ -334,6 +334,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
       if (!lastMessage) {
         await supabase.from("chat_messages").insert({
           process_id: processId,
+          office_id: purchasedMentorship?.office_id ?? user.officeId ?? null,
           content: "Olá, comprei o pacote Specialist Mentoring e quero iniciar meu atendimento com o manager.",
           sender_id: user.id,
           sender_role: "customer",
@@ -367,6 +368,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
       if (!lastMessage) {
         await supabase.from("chat_messages").insert({
           process_id: processId,
+          office_id: purchasedConsultation?.office_id ?? user.officeId ?? null,
           content: "Olá, comprei a consultoria pós-negativa e quero iniciar meu atendimento com o manager.",
           sender_id: user.id,
           sender_role: "customer",

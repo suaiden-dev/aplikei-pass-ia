@@ -7,6 +7,9 @@ import type {
 // ── DB-derived types (fonte única: gerado pelo Supabase) ──────────────────────
 export interface UserService extends UserServiceRow {
   updated_at: string;
+  office_id?: string | null;
+  officeName?: string;
+  officeLogoUrl?: string;
 }
 export type UserServiceInsert = UserServiceInsertDb;
 export type UserServiceUpdate = UserServiceUpdateDb;

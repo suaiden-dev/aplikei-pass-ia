@@ -1,5 +1,5 @@
 const footer = {
-  tagline: "Elite technology for immigration offices and global consultancy.",
+  tagline: "Elite technology for law firms and consular visa consultancies.",
   servicesHeader: "Services",
   platformHeader: "Platform",
   legalHeader: "Legal",
@@ -10,7 +10,7 @@ const footer = {
   privacy: "Privacy Policy",
   refund: "Refund Policy",
   copyright: "© 2026 Aplikei Technologies. All rights reserved. Aplikei is a technology platform and not a law firm.",
-  description: "Simplifying consular flow management with intelligence and automation.",
+  description: "Simplifying consular visa management with technology and automation.",
   contact: "Contact",
   security: "Data Security",
   consularManagement: "Consular Visa Management",

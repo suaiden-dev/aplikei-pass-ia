@@ -13,12 +13,15 @@ export function LandingFAQ() {
   return (
     <section className="bg-surface-container-lowest px-8 py-24 lg:px-16 lg:py-32">
       <div className="mx-auto max-w-4xl">
-        <SectionHeader
-          eyebrow="FAQ"
-          title={t.faq.title}
-          description="Respostas objetivas para reduzir atrito antes da conversão."
-          className="mb-16 text-center"
-        />
+        <div className="mb-16 text-center flex flex-col items-center">
+          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">FAQ</p>
+          <h2 className="font-display text-3xl font-bold tracking-[-0.03em] text-text lg:text-5xl text-center">
+            {t.faq.title}
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-text-muted lg:text-base text-center">
+            Respostas objetivas para reduzir atrito antes da conversão.
+          </p>
+        </div>
 
         <Accordion className="space-y-4" type="single" collapsible>
           {faqItems.map((item: { q: string; a: string }, idx: number) => (

@@ -1252,6 +1252,8 @@ export default function AdminProcessDetailPage() {
   const [proc, setProc] = useState<ProcessWithUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [officeLogoUrl, setOfficeLogoUrl] = useState<string | null>(null);
+  const [officeName, setOfficeName] = useState<string | null>(null);
   const [isLogsModalOpen, setIsLogsModalOpen] = useState(false);
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -1285,6 +1287,22 @@ export default function AdminProcessDetailPage() {
         if (userErrorPrimary) throw userErrorPrimary;
         if (userDataPrimary) {
           account = { full_name: userDataPrimary.full_name || "Cliente", email: userDataPrimary.email || "" };
+        }
+      }
+
+      // Always fetch the current admin's own company profile logo
+      if (user?.id) {
+        const { data: ownOfficeData } = await supabase
+          .from("offices")
+          .select("name, logo_url, landing_page_config")
+          .eq("owner_id", user.id)
+          .maybeSingle();
+        if (ownOfficeData) {
+          setOfficeName(ownOfficeData.name ?? null);
+          setOfficeLogoUrl(ownOfficeData.logo_url ?? (ownOfficeData.landing_page_config as any)?.logoUrl ?? null);
+        } else {
+          setOfficeName(null);
+          setOfficeLogoUrl(null);
         }
       }
 
@@ -1362,7 +1380,7 @@ export default function AdminProcessDetailPage() {
       if (isCOS) {
         const targetVisa = (proc.step_data as any)?.targetVisa as string;
         if (targetVisa !== "F1") {
-          const stepsToSkipIds = ["cos_i20_upload", "cos_sevis_fee", "cos_analysis_i20_sevis", "eos_i20_upload", "eos_sevis_fee", "eos_analysis_i20_sevis"];
+          const stepsToSkipIds = ["cos_i20_upload", "cos_sevis_fee", "eos_i20_upload", "eos_sevis_fee"];
           while (nextStep < service.steps.length && stepsToSkipIds.includes(service.steps[nextStep].id)) {
             nextStep++;
           }
@@ -1779,7 +1797,7 @@ export default function AdminProcessDetailPage() {
     const i20Url = docs.i20_document ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.i20_document).data.publicUrl : null;
     const sevisUrl = docs.sevis_receipt ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.sevis_receipt).data.publicUrl : null;
 
-    if (!isActive && !isPast && !i20Url && !sevisUrl) return null;
+    if (!isActive && !isPast) return null;
 
     return (
       <CollapsibleStep title={t.processDetail.i20Sevis.title} icon={RiShieldCheckLine} isActive={isActive} isPast={isPast} badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}>
@@ -2189,6 +2207,7 @@ export default function AdminProcessDetailPage() {
     const packageIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
     const isActive = packageIdx !== -1 && currentStepIdx === packageIdx;
     const isPast = packageIdx !== -1 && currentStepIdx > packageIdx;
+    if (!isActive && !isPast) return null;
 
     return (
       <CollapsibleStep title={`${proc.service_slug === 'extensao-status' ? 'EOS' : 'COS'} Final Package`} icon={RiCheckDoubleLine} isActive={isActive} isPast={isPast}>
@@ -2237,11 +2256,24 @@ export default function AdminProcessDetailPage() {
           <button onClick={() => navigate(`${processRoutePrefix}/processes`)} className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-text-muted hover:text-primary transition-all shadow-sm">
             <RiArrowLeftLine className="text-xl" />
           </button>
+          {officeLogoUrl && (
+            <div className="w-12 h-12 rounded-2xl bg-white border border-border flex items-center justify-center overflow-hidden shadow-sm p-1.5 shrink-0">
+              <img src={officeLogoUrl} alt={officeName ?? ""} className="w-full h-full object-contain" />
+            </div>
+          )}
           <div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <h1 className="font-display font-black text-3xl text-text tracking-tight">{proc.user_accounts?.full_name}</h1>
             </div>
-            <p className="text-xs text-text-muted font-bold uppercase tracking-wider">{service?.title}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-text-muted font-bold uppercase tracking-wider">{service?.title}</p>
+              {officeName && (
+                <>
+                  <span className="text-border text-xs">•</span>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">{officeName}</p>
+                </>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3 bg-card px-5 py-3 rounded-2xl border border-border shadow-sm text-text-muted text-[10px] font-black uppercase tracking-widest">

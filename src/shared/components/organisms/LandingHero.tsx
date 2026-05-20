@@ -38,34 +38,15 @@ export function LandingHero({ heroImage, avatars }: LandingHeroProps) {
               {t.hero?.subtitle}
             </p>
 
-            <div className="mt-10 flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
-              <Button asChild size="lg" className="w-full sm:w-auto">
-                <Link to="/cadastro">
+            <div className="mt-10 flex w-full flex-col items-center justify-center gap-4 sm:w-auto sm:flex-row lg:items-start lg:justify-start">
+              <Button asChild size="lg" className="w-fit sm:w-auto">
+                <Link to="/contato">
                   {t.hero?.cta || t.hero?.getStarted}
                   <FiArrowRight size={18} />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                <Link to="/contato">{t.hero?.ctaSecondary}</Link>
-              </Button>
             </div>
           </motion.div>
-
-          <div className="mt-14 flex flex-col items-center gap-8 sm:flex-row lg:items-start">
-            <div className="flex flex-col gap-4">
-              <p className="text-sm font-semibold tracking-wide text-text-muted uppercase">
-                {t.hero?.trustedBy}
-              </p>
-              <div className="flex items-center gap-6 opacity-60 grayscale">
-                <div className="flex items-center gap-2 font-bold text-xl text-on-surface">
-                  <span className="material-symbols-outlined">gavel</span> LEGALCO
-                </div>
-                <div className="flex items-center gap-2 font-bold text-xl text-on-surface">
-                  <span className="material-symbols-outlined">public</span> GLOBALVISA
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <motion.div
@@ -75,10 +56,10 @@ export function LandingHero({ heroImage, avatars }: LandingHeroProps) {
           className="relative"
         >
           <div className="absolute -inset-4 rounded-[3rem] bg-primary/10 blur-2xl" />
-          <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl border border-outline-variant bg-white">
+          <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-[#0d1527]/90 p-1.5 ring-1 ring-white/10 shadow-primary/10">
             <img
               alt={t.hero?.imageAlt}
-              className="w-full h-auto"
+              className="w-full h-auto rounded-2xl"
               src={heroImage}
             />
           </div>
@@ -95,9 +76,11 @@ export function LandingHero({ heroImage, avatars }: LandingHeroProps) {
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                  {tCommon.successRate || "Success Rate"}
+                  {t.hero?.statsLabel || "Tempo de preparação"}
                 </p>
-                <p className="text-2xl font-black tracking-[-0.03em] text-primary">98.2%</p>
+                <p className="text-2xl font-black tracking-[-0.03em] text-primary">
+                  {t.hero?.statsValue || "-70%"}
+                </p>
               </div>
             </Card>
           </motion.div>

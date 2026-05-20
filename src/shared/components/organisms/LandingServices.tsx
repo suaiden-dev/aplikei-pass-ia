@@ -55,7 +55,7 @@ export function LandingServices() {
         <SectionHeader
           eyebrow="Servicos"
           title="Nossos serviços"
-          description="Escolha o guia ideal para o seu processo imigratório."
+          description="Escolha o guia ideal para o seu processo de visto."
           className="mb-16"
         />
 

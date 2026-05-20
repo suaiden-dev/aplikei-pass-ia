@@ -24,10 +24,10 @@ export const TestimonialsSection = ({ avatars }: TestimonialsSectionProps) => {
         <div className="mb-16 text-center">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">{t.testimonials.title}</p>
           <h2 className="font-display text-3xl font-bold tracking-[-0.03em] text-white lg:text-5xl">
-            Excelência comprovada por especialistas
+            {t.testimonials.heading}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-slate-300 lg:text-base">
-            Escritórios de advocacia e agências de imigração que escalaram suas operações com a nossa tecnologia.
+            {t.testimonials.subtitle}
           </p>
         </div>
 

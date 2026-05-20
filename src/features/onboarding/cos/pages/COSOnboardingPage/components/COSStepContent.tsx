@@ -2,8 +2,8 @@ import I539FormStep from '../I539FormStep'
 import CoverLetterStep from '../CoverLetterStep'
 import FinalFormsStep from '../FinalFormsStep'
 import FinalPackageStep from '../FinalPackageStep'
-import I20UploadStep from '../I20UploadStep'
 import SevisFeeStep from '../SevisFeeStep'
+import { F1I20UploadStep } from "@features/onboarding/f1/pages/F1OnboardingPage/steps/F1I20UploadStep"
 import {
   MotionAcceptProposalStep,
   MotionEndStep,
@@ -104,9 +104,15 @@ export function COSStepContent({
   onMotionResult,
   onRFEResult,
 }: COSStepContentProps) {
+<<<<<<< HEAD
   const isStep = (...ids: string[]) => ids.includes(currentStepId || '')
 
   if (isStep('cos_form', 'cos_application_form')) {
+=======
+  const f1Labels = useT('visas')
+
+  if (currentStepId === 'cos_application_form') {
+>>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
     return (
       <COSApplicationStep
         t={t}
@@ -129,7 +135,11 @@ export function COSStepContent({
     )
   }
 
+<<<<<<< HEAD
   if (isStep('cos_documents')) {
+=======
+  if (currentStepId === 'cos_documents') {
+>>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
     return (
       <COSDocumentsStep
         t={t}
@@ -142,32 +152,72 @@ export function COSStepContent({
     )
   }
 
+<<<<<<< HEAD
   if (isStep('cos_official_forms') && proc && user) {
+=======
+  if (currentStepId === 'cos_i20_upload' && proc && user) {
+    if (targetVisa !== 'F1') {
+      return (
+        <COSProcessingFallbackStep
+          title={serviceTitle}
+          description={serviceDescription}
+        />
+      )
+    }
+
+>>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
     return (
       <div className='px-8 py-6'>
         <div className='mb-6 border-b border-slate-100 pb-6'>
           <h2 className='text-xl font-black text-slate-900 tracking-tight'>
-            {t.cos.i539.labels.header}
+            {serviceTitle}
           </h2>
           <p className='text-sm text-slate-400 font-medium mt-1'>
-            {t.cos.i539.labels.fillInstruction}
+            {serviceDescription}
           </p>
         </div>
-        <I539FormStep proc={proc} user={user} onComplete={onComplete} />
+        <F1I20UploadStep
+          procId={proc.id}
+          userId={user.id}
+          stepData={proc.step_data as Record<string, unknown>}
+          labels={f1Labels}
+          onComplete={onComplete}
+          onBack={() => onJumpToStep(2)}
+        />
       </div>
     )
   }
 
+<<<<<<< HEAD
   if (isStep('cos_cover_letter', 'cos_presentation_letter') && proc && user) {
+=======
+  if (currentStepId === 'cos_sevis_fee' && proc && user) {
+    if (targetVisa !== 'F1') {
+      return (
+        <COSProcessingFallbackStep
+          title={serviceTitle}
+          description={serviceDescription}
+        />
+      )
+    }
+
+    return (
+      <div className='px-8 py-6'>
+        <SevisFeeStep proc={proc} user={user} onComplete={onComplete} />
+      </div>
+    )
+  }
+
+  if (currentStepId === 'cos_presentation_letter' && proc && user) {
+>>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
     return (
       <div className='px-8 py-6'>
         <div className='mb-6 border-b border-slate-100 pb-6'>
           <h2 className='text-xl font-black text-slate-900 tracking-tight'>
-            Cover Letter Questionnaire
+            {serviceTitle}
           </h2>
           <p className='text-sm text-slate-400 font-medium mt-1'>
-            Please answer the questions below to help us generate your
-            presentation letter for USCIS.
+            {serviceDescription}
           </p>
         </div>
         <CoverLetterStep proc={proc} user={user} onComplete={onComplete} />
@@ -175,22 +225,27 @@ export function COSStepContent({
     )
   }
 
+<<<<<<< HEAD
   if (isStep('cos_i20_upload') && proc && user) {
+=======
+  if (currentStepId === 'cos_official_forms' && proc && user) {
+>>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
     return (
       <div className='px-8 py-6'>
         <div className='mb-6 border-b border-slate-100 pb-6'>
           <h2 className='text-xl font-black text-slate-900 tracking-tight'>
-            {t.cos.i20Upload.title}
+            {serviceTitle}
           </h2>
           <p className='text-sm text-slate-400 font-medium mt-1'>
-            {t.cos.i20Upload.desc}
+            {serviceDescription}
           </p>
         </div>
-        <I20UploadStep proc={proc} user={user} onComplete={onComplete} />
+        <I539FormStep proc={proc} user={user} onComplete={onComplete} />
       </div>
     )
   }
 
+<<<<<<< HEAD
   if (isStep('cos_sevis_fee') && proc && user) {
     return (
       <div className='px-8 py-6 pb-24'>
@@ -212,6 +267,13 @@ export function COSStepContent({
   }
 
   if (isStep('cos_final_package') && proc && !isMotionContext && !isRFEContext) {
+=======
+  if (currentStepId === 'cos_final_forms' && proc && user) {
+    return <FinalFormsStep proc={proc} user={user} onComplete={onComplete} />
+  }
+
+  if (currentStepId === 'cos_final_package' && proc && !isMotionContext && !isRFEContext) {
+>>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
     return (
       <FinalPackageStep
         proc={proc}
@@ -223,6 +285,7 @@ export function COSStepContent({
   }
 
   if (isRFEContext) {
+<<<<<<< HEAD
     if (isStep('cos_rfe_explanation') && proc) {
       return <RFEExplanationStep proc={proc} />
     }
@@ -233,6 +296,18 @@ export function COSStepContent({
       return <RFEAcceptProposalStep proc={proc} />
     }
     if (isStep('cos_rfe_end') && proc) {
+=======
+    if (currentStepId === 'cos_rfe_explanation' && proc) {
+      return <RFEExplanationStep proc={proc} />
+    }
+    if (currentStepId === 'cos_rfe_instruction' && proc) {
+      return <RFEInstructionStep proc={proc} onComplete={onComplete} />
+    }
+    if (currentStepId === 'cos_rfe_accept_proposal' && proc) {
+      return <RFEAcceptProposalStep proc={proc} />
+    }
+    if (currentStepId === 'cos_rfe_end' && proc) {
+>>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
       return (
         <RFEEndStep
           proc={proc}
@@ -246,6 +321,7 @@ export function COSStepContent({
   }
 
   if (isMotionContext) {
+<<<<<<< HEAD
     if (isStep('cos_motion_acquisition') && proc) {
       return <MotionExplanationStep proc={proc} user={user} onComplete={onComplete} />
     }
@@ -256,6 +332,18 @@ export function COSStepContent({
       return <MotionAcceptProposalStep proc={proc} user={user} onComplete={onComplete} />
     }
     if (isStep('cos_motion_end') && proc) {
+=======
+    if (currentStepId === 'cos_motion_acquisition' && proc) {
+      return <MotionExplanationStep proc={proc} user={user} onComplete={onComplete} />
+    }
+    if (currentStepId === 'cos_motion_instruction' && proc) {
+      return <MotionInstructionStep proc={proc} user={user} onComplete={onComplete} />
+    }
+    if (currentStepId === 'cos_motion_accept_proposal' && proc) {
+      return <MotionAcceptProposalStep proc={proc} user={user} onComplete={onComplete} />
+    }
+    if (currentStepId === 'cos_motion_end' && proc) {
+>>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
       return (
         <MotionEndStep
           proc={proc}

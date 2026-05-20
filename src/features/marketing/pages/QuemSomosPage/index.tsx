@@ -86,7 +86,7 @@ export default function QuemSomosPage() {
                 <img
                   src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop"
                   alt="Office history"
-                  className="w-full h-full object-cover grayscale opacity-60"
+                  className="w-full h-full object-cover "
                 />
               </div>
               <div className="absolute -top-6 -left-6 w-24 h-24 bg-primary/10 rounded-full blur-2xl"></div>
@@ -125,33 +125,6 @@ export default function QuemSomosPage() {
         </div>
       </section>
 
-      {/* Leadership Section */}
-      <section className="py-24 lg:py-32 px-8 lg:px-16">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 lg:mb-24">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <RiTeamLine className="text-primary text-2xl" />
-              <h2 className="text-2xl font-black uppercase tracking-widest text-primary">{p?.leadership?.title}</h2>
-            </div>
-            <p className="text-xl text-text-muted font-medium italic">{p?.leadership?.subtitle}</p>
-          </div>
-          <div className="grid lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
-            {(p?.leadership?.members || []).map((member: any, i: number) => (
-              <div key={i} className="flex flex-col md:flex-row items-center gap-8 p-8 rounded-[40px] bg-bg-subtle border border-border group hover:bg-card transition-all">
-                <div className="w-32 h-32 rounded-3xl bg-primary/10 overflow-hidden shrink-0">
-                   <div className="w-full h-full flex items-center justify-center bg-primary/5">
-                      <RiTeamLine className="text-primary text-4xl opacity-20" />
-                   </div>
-                </div>
-                <div>
-                  <h3 className="text-2xl font-black text-primary mb-2 tracking-tight">{member.name}</h3>
-                  <p className="text-sm text-text-muted leading-relaxed font-medium">{member.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* CTA */}
       <section className="py-24 px-8 lg:px-16">

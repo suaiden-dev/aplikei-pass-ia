@@ -1,16 +1,18 @@
 const landing = {
   hero: {
-    badge: "IA Migratoria de Próxima Generación",
+    badge: "IA VistasVisados ​​de próxima generación impulsados ​​por IA de Próxima Generación",
     title: "La plataforma completa para la gestión de",
     titleHighlight: "procesos de visa",
-    subtitle: "Automatice tareas, organice documentos y escale su firma con la eficiencia de la Inteligencia Artificial aplicada al derecho migratorio.",
+    subtitle: "Automatice tareas, organice documentos y escale su firma con la eficiencia de la Inteligencia Artificial dedicada a la gestión de visas consulares (B1/B2, F-1, cambio y extensión de estatus).",
     cta: "Agendar demostración",
+    statsLabel: "Tiempo de preparación",
+    statsValue: "-70%",
     ctaSecondary: "Hablar con especialista",
     trustedBy: "Trusted by leaders",
   },
   problem: {
     title: "Problemas que resolvemos",
-    subtitle: "Entendemos las complejidades operativas que impiden el crecimiento de las firmas de inmigración.",
+    subtitle: "Entendemos las complejidades operativas que impiden el crecimiento de las firmas de visas consulares.",
     items: [
       {
         icon: "account_tree",
@@ -47,7 +49,7 @@ const landing = {
         icon: "auto_fix_high",
         title: "Automatización con IA",
         badge: "-70% TIEMPO",
-        description: "Utilice modelos neuronales entrenados en derecho migratorio para completar formularios complejos en segundos."
+        description: "Utilice modelos neuronales entrenados en visas consulares para completar formularios complejos en segundos."
       },
       {
         icon: "verified_user",
@@ -58,31 +60,23 @@ const landing = {
   },
   howItWorks: {
     title: "Cómo Funciona",
+    subtitle: "Comience en minutos",
     steps: [
       {
-        number: "1",
-        title: "Registro",
-        description: "Importe los datos básicos de su cliente."
+        title: "Cree una cuenta",
+        desc: "Regístrese en la plataforma de forma rápida y segura en pocos clics."
       },
       {
-        number: "2",
-        title: "Recopilación automatizada",
-        description: "Portal del cliente inteligente para envío de documentos."
+        title: "Active su plan",
+        desc: "Elija y active el plan ideal con las características que su oficina necesita."
       },
       {
-        number: "3",
-        title: "Organización y validación",
-        description: "La IA valida si los documentos son correctos."
+        title: "Configure su empresa",
+        desc: "Complete la configuración de su empresa en 7 pasos simples y automatizados."
       },
       {
-        number: "4",
-        title: "Generación con IA",
-        description: "Llenado automático de peticiones y formularios."
-      },
-      {
-        number: "5",
-        title: "Entrega final",
-        description: "Protocolo listo para presentación oficial."
+        title: "Venda y gestione",
+        desc: "Comience inmediatamente a vender y gestionar con maestria los procesos de visa de sus clientes."
       }
     ]
   },
@@ -112,14 +106,16 @@ const landing = {
     ],
     stats: {
       number: "10k+",
-      label: "Procesos automatizados con éxito"
+      label: "Procesos facilitados con éxito"
     }
   },
   testimonials: {
     title: "Lo que dicen los expertos",
+    heading: "Excelencia comprobada por socios",
+    subtitle: "Bufetes de abogados y asesorías de visas consulares que escalaron sus operaciones con nuestra tecnología.",
     items: [
       {
-        quote: "La implementación de Aplikei transformó drásticamente nuestra entrega. <span class='text-primary-container font-semibold'>Redujimos en un 60% el tiempo operativo</span> de preparación documental para el EB-1 e EB-2 NIW.",
+        quote: "La implementación de Aplikei transformó drásticamente nuestra entrega. <span class='text-primary-container font-semibold'>Redujimos en un 60% el tiempo operativo</span> de preparación documental para visas consulares.",
         author: "Ricardo Mendes",
         role: "Socio Director, Mendes Lex",
         image: "https://lh3.googleusercontent.com/aida-public/AB6AXuA66Qf9xmZaF-q5wdDes52yBwYSGfeJaamYjvVDCHinkORL9QjIUp7BtxhIZKoG1aJNCy0cuJFxfV2fKkVoHV8KUNFRFUeXJFB0V6II6TaRKS2jAprznp1c_iYCZy2lrflkvs6QRuJBV_7YDcBxjyEJLvhs3yjoIm9WgXkYfmjLSAlTp0F03bMlhRbu7ommCkQXykR1_tSm6hFmzVvcKZSR2vQUG5ykpXPr8Al72mBOshFx-cWlYqmYGQAk8_ZlwrvBqQC6_-CiSCA"
@@ -135,8 +131,7 @@ const landing = {
   finalCta: {
     title: "¿Listo para escalar su operación?",
     description: "Únase a las firmas que ya han automatizado más de 10.000 procesos con precisión jurídica y tecnología de punta.",
-    button: "Agendar demostración",
-    disclaimer: "Sin compromiso. Prueba gratuita por 14 días para nuevos socios."
+    button: "Agendar demostración"
   },
   faq: {
     title: "Preguntas Frecuentes",
@@ -146,22 +141,22 @@ const landing = {
         a: "Sí, utilizamos cifrado de extremo a extremo y cumplimos con las principales normas de protección de datos (LGPD/GDPR)."
       },
       {
-        q: "¿Cómo ayuda la IA en el llenado de formularios?",
-        a: "Nuestra IA analiza los documentos enviados y extrae la información necesaria para completar automáticamente los formularios de USCIS, validando la consistencia de los datos."
+        q: "¿Cómo ayuda la IA en la creación de cartas para la USCIS y en los entrenamientos consulares?",
+        a: "Nuestra Inteligencia Artificial ayuda a redactar cartas sólidas y personalizadas para la USCIS, además de realizar simulaciones dinámicas de entrenamiento consular para preparar a sus clientes para las entrevistas de visa."
       },
       {
-        q: "¿Puedo integrarlo con mi sistema actual?",
-        a: "Sí, ofrecemos APIs e integraciones con las principales herramientas de gestión y CRM del mercado."
+        q: "¿Cómo funciona la venta y el acceso para mis clientes?",
+        a: "Ofrecemos enlaces exclusivos de inicio de sesión y páginas de productos para que sus clientes puedan realizar la compra directamente y acceder a la plataforma con facilidad."
       },
       {
-        q: "¿Existe soporte en español?",
-        a: "Por supuesto. Nuestro equipo de soporte está compuesto por especialistas que hablan su idioma y entienden el mercado migratorio."
+        q: "¿Existe traducción para el cliente?",
+        a: "Sí, la plataforma cuenta con soporte completo y está disponible en portugués, inglés y español, permitiendo que su cliente utilice el sistema en su idioma de preferencia."
       }
     ]
   },
   lex: {
     hero: {
-      title: "Cuidamos de todo su proceso migratorio con seguridad, estrategia y eficiencia.",
+      title: "Cuidamos de todo su proceso de visa consular con seguridad, estrategia y eficiencia.",
       subtitle: "Garantizando que sus objetivos internacionales se alcancen con rigor profesional.",
       badge: "Procesos auditados y revisados por abogados licenciados."
     },
@@ -174,7 +169,7 @@ const landing = {
         },
         {
           title: "Planificación estratégica",
-          description: "Definición de la mejor ruta migratoria buscando el menor tiempo y mayor tasa de aprobación."
+          description: "Definición de la mejor ruta de visa consular buscando el menor tiempo y mayor tasa de aprobación."
         },
         {
           title: "Preparación de documentación",
@@ -187,7 +182,7 @@ const landing = {
       ]
     },
     services: {
-      title: "Soluciones modulares para cada perfil de inmigración.",
+      title: "Soluciones modulares para cada tipo de visa consular (B1/B2, F-1, cambio y extensión de estatus).",
       items: [
         {
           title: "Visas de trabajo",

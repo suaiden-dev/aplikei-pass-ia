@@ -5,7 +5,7 @@ const landingTemplateHtml = String.raw`
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advocacia Imigratória Estratégica | Assessoria Premium de Vistos</title>
-    <meta name="description" content="Assessoria jurídica premium para vistos B1/B2, F1, extensão e troca de status. Estratégia jurídica do início ao fim do seu processo imigratório.">
+    <meta name="description" content="Assessoria jurídica premium para vistos B1/B2, F1, extensão e troca de status. Estratégia jurídica do início ao fim do seu processo de visto.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
@@ -804,7 +804,7 @@ const landingTemplateHtml = String.raw`
             <div class="footer-grid">
                 <div class="footer-brand">
                     <span class="logo-text">SEU LOGO</span>
-                    <p class="footer-desc">Assessoria jurídica estratégica para quem busca segurança e clareza no processo imigratório americano.</p>
+                    <p class="footer-desc">Assessoria jurídica estratégica para quem busca segurança e clareza no processo de visto americano.</p>
                 </div>
                 <div class="footer-links">
                     <h4>Links Úteis</h4>

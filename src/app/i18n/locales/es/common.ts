@@ -7,63 +7,62 @@ const common = {
   whoWeArePage: {
     hero: {
       tag: "Quiénes somos",
-      title: "Excelencia Jurídica",
-      titleHighlight: "en Inmigración",
-      description: "Nuestra misión es proporcionar seguridad jurídica y excelencia estratégica para viajes internacionales, transformando la complejidad burocrática en caminos claros para el éxito global.",
-      stats: "Tasa de aprobación en procesos revisados por nuestro equipo."
+      title: "Empoderando a las Firmas",
+      titleHighlight: "con Aplikei",
+      description: "Desarrollamos la tecnología de punta que permite a abogados y asesorías de visas consulares automatizar sus operaciones, reducir errores y escalar sus oficinas con el poder de Aplikei.",
+      stats: "reducción del tiempo de preparación para nuestras firmas socias."
     },
     history: {
-      title: "Nuestra Historia",
-      description: "Aplikei nació de la necesidad de un servicio jurídico que equilibrara el rigor técnico con una visión estratégica de negocios. Fundada por especialistas en derecho internacional, nuestra plataforma se ha consolidado como referente para ejecutivos y familias que buscan no solo una visa, sino una transición de vida sólida.\n\nA lo largo de nuestra trayectoria, hemos priorizado resultados medibles y transparencia absoluta. Creemos que cada caso es único y requiere una arquitectura jurídica personalizada, protegiendo los intereses de nuestros clientes en todas las fronteras."
+      title: "Nuestra Misión",
+      description: "Aplikei nació con el propósito claro de revolucionar la gestión de visas consulares. Al percibir las barreras operativas, la desorganización de documentos y las largas horas dedicadas a tareas repetitivas por abogados y agencias, creamos la primera plataforma inteligente de Aplikei dedicada al derecho consular.\n\nHoy, somos la solución tecnológica que conecta oficinas de élite con la máxima eficiencia. Creemos que Aplikei debe actuar como copiloto de la abogacía, asegurando precisión técnica, seguridad absoluta de datos y escalabilidad ilimitada."
     },
     pillars: {
-      title: "Pilares de Actuación",
+      title: "Nuestros Pilares",
       items: [
         {
-          title: "Ética",
-          description: "Integridad innegociable en cada etapa del proceso jurídico y administrativo."
+          title: "Innovación Enfocada",
+          description: "Plataforma diseñada específicamente por Aplikei para las necesidades de procesos consulares."
         },
         {
-          title: "Precisión",
-          description: "Análisis técnico minucioso para maximizar las posibilidades de aprobación documental."
+          title: "Seguridad de Élite",
+          description: "Cifrado de extremo a extremo y total conformidad con LGPD y GDPR para la protección de datos jurídicos."
         },
         {
-          title: "Foco en el Cliente",
-          description: "Estrategias personalizadas que respetan el tiempo y los objetivos de cada individuo."
+          title: "Eficiencia Operativa",
+          description: "Reducción de hasta un 70% en el tiempo de preparación, optimizando el trabajo manual de su equipo."
         },
         {
-          title: "Innovación",
-          description: "Uso de tecnología de punta para agilizar trámites y comunicación procesal."
+          title: "Alianza de Crecimiento",
+          description: "Proporcionamos las herramientas ideales (Page Builder, enlaces de inicio de sesión y ventas) para el crecimiento de su oficina."
         }
-
       ]
     },
     leadership: {
-      title: "Liderazgo Estratégico",
-      subtitle: "Los arquitectos detrás de su éxito internacional.",
+      title: "Nuestros Fundadores",
+      subtitle: "Tecnología y Derecho Consular en perfecta armonía",
       members: [
         {
-          name: "Dr. Ricardo Menezes",
-          description: "Con más de 15 años de trayectoria en EE. UU. y Europa, lidera la estrategia global de visas de alta complejidad."
+          name: "CEO & Co-fundador",
+          description: "Especialista en tecnología y arquitectura de sistemas orientados a la automatización jurídica con Aplikei."
         },
         {
-          name: "Dra. Helena Albuquerque",
-          description: "Especialista en movilidad global para multinacionales y talentos extraordinarios en las áreas de tecnología y artes."
+          name: "Co-fundador & Asesor",
+          description: "Abogado de inmigración con amplia experiencia en el mercado estadounidense, garantizando el cumplimiento legal y la precisión de la plataforma."
         }
       ]
     },
     stats: {
-      success: "500+",
-      successLabel: "Casos de Éxito",
-      approval: "98%",
-      approvalLabel: "Tasa de Aprobación",
-      countries: "12",
-      countriesLabel: "Países de Actuación"
+      success: "10k+",
+      successLabel: "Procesos Facilitados",
+      approval: "-70%",
+      approvalLabel: "Tiempo de Preparación",
+      countries: "3 Idiomas",
+      countriesLabel: "Soporte de la Plataforma"
     },
     cta: {
-      title: "¿Listo para iniciar su viaje?",
-      subtitle: "Nuestros especialistas están listos para diseñar su futuro internacional con seguridad y precisión.",
-      button: "Hablar con especialista"
+      title: "Lleve su operación al futuro",
+      subtitle: "Programe una demostración y descubra cómo Aplikei puede acelerar su firma.",
+      button: "Agendar Demostración"
     }
   },
   servicesPage: {

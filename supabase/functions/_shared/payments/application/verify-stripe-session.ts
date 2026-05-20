@@ -49,6 +49,7 @@ export async function verifyStripeSession(
   const dependents = parseInt(session.metadata?.dependents || "0", 10);
   const proc_id = session.metadata?.proc_id || session.metadata?.processId;
   const order_id = session.metadata?.order_id || null;
+  const office_id = session.metadata?.office_id || null;
   const parent_service_slug = session.metadata?.parent_service_slug || null;
 
   if (!user_id || !service_slug) {
@@ -75,6 +76,7 @@ export async function verifyStripeSession(
     dependents,
     proc_id,
     order_id,
+    office_id,
     parent_service_slug,
     payment_method: "stripe_verify",
     payment_id: session.id,

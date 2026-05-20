@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@shared/lib/supabase";
 import type { ChatMessage } from "../types";
 
-export function useChat(processId: string) {
+export function useChat(processId: string, officeId?: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
@@ -98,6 +98,7 @@ export function useChat(processId: string) {
 
         const { error } = await supabase.from("chat_messages").insert({
           process_id: processId,
+          office_id: officeId ?? null,
           content: params.content,
           sender_id: params.senderId,
           sender_role: params.senderRole,
@@ -112,7 +113,7 @@ export function useChat(processId: string) {
         setIsSending(false);
       }
     },
-    [processId],
+    [officeId, processId],
   );
 
   return { messages, isLoading, isSending, sendMessage, reload: loadMessages };
