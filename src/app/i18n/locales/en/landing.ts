@@ -1,6 +1,6 @@
 const landing = {
   hero: {
-    badge: "Next-Generation Immigration AI",
+    badge: "Next-Generation Visa AI",
     title: "The complete platform for managing",
     titleHighlight: "visa processes",
     subtitle: "Automate tasks, organize documents and scale your law firm with the efficiency of Artificial Intelligence applied to immigration law.",

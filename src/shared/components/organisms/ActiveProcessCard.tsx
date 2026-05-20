@@ -155,7 +155,19 @@ export function ActiveProcessCard({
 
         {proc.officeName && (
           <div className="flex items-center gap-1.5 mb-8 text-[11px] font-bold text-text-muted uppercase tracking-wider bg-bg-subtle/50 px-3 py-1.5 rounded-xl border border-border/40 w-fit">
-            <RiBuilding2Line className="text-primary text-sm shrink-0" />
+            {proc.officeLogoUrl ? (
+              <img
+                src={proc.officeLogoUrl}
+                alt={proc.officeName}
+                className="w-4 h-4 rounded object-cover shrink-0"
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            ) : (
+              <RiBuilding2Line className="text-primary text-sm shrink-0" />
+            )}
             <span>{proc.officeName}</span>
           </div>
         )}

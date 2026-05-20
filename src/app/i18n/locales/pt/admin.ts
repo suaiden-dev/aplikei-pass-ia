@@ -33,7 +33,7 @@ const admin = {
         revenue: "Financeiro",
         finance_analytics: "Análise Financeira",
         dashboard: "Painel",
-        matters: "Casos",
+        matters: "Processos",
         lawyers: "Advogados",
         products: "Produtos",
         chats: "Mensagens",
@@ -52,8 +52,7 @@ const admin = {
         billings: "Cobranças",
         offices: "Escritórios",
         subscription: "Minha Assinatura",
-        companyProfile: "Perfil da Empresa",
-        payoutSettings: "Configuração de Saque"
+        companyProfile: "Perfil da Empresa"
     },
     financeAnalytics: {
         title: "Análise Financeira",
@@ -92,16 +91,8 @@ const admin = {
         }
     },
     payoutSettings: {
-      title: "Configuração de Saque",
-      subtitle: "Configure seus dados de recebimento para receber o saque",
-      methodTitle: "Método de Recebimento",
-      methodSubtitle: "Selecione como deseja ser pago",
-      stripeInfo: "Nenhuma configuração é necessária. Você fornecerá seu link do Stripe durante o processo de solicitação de saque.",
-      zelleInfo: "Configure seus dados do Zelle abaixo para permitir transferências diretas para sua conta.",
-      zelleTitle: "Detalhes do Zelle",
-      zelleSubtitle: "Informações obrigatórias para pagamentos via Zelle",
-      accountName: "Nome da Conta",
-      zelleId: "Identificador Zelle (E-mail ou Telefone)",
+      title: "Configuração de Recebimento",
+      subtitle: "Configure seus métodos de pagamento e preferências de saque",
       sections: {
         paymentLinks: {
           title: "Links de Pagamento",
@@ -472,6 +463,35 @@ const admin = {
             productCount: "{{count}} produto",
             productsCount: "{{count}} produtos"
         }
+    },
+    notificationsCenter: {
+        title: "Notificações",
+        markAll: "Marcar tudo",
+        emptyTitle: "Sem notificações",
+        emptySubtitle: "Tudo em dia!",
+        viewFullLog: "Ver log completo",
+        filters: {
+            all: "Todas",
+            unread: "Não lidas",
+            adminAction: "Admin",
+            clientAction: "Cliente",
+            system: "Sistema",
+        },
+        labels: {
+            system: "Notificação",
+            actionRequiredReview: "Ação necessária: revisar etapa",
+            actionRequiredReviewMessage: "Um cliente finalizou uma etapa e está aguardando sua revisão.",
+            clientCompletedStepMessage: "O cliente concluiu a etapa \"{{step}}\" de {{service}} e aguarda sua revisão.",
+            clientCompletedGenericMessage: "O cliente concluiu uma etapa de {{service}} e aguarda sua revisão.",
+            stepApproved: "Etapa aprovada",
+            stepApprovedMessage: "Sua etapa foi aprovada e você pode seguir para a próxima.",
+            changesRequired: "Ajustes necessários",
+            changesRequiredMessage: "Foram solicitados ajustes. Revise os detalhes e envie novamente.",
+            processCompleted: "Processo concluído",
+            processCompletedMessage: "Seu processo foi concluído.",
+            interviewScheduled: "Entrevista agendada",
+            interviewScheduledMessage: "Sua entrevista foi agendada. Confira a data e local no processo.",
+        },
     },
     payments: {
         title: "Gestão de Pagamentos",

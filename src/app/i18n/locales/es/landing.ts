@@ -1,6 +1,6 @@
 const landing = {
   hero: {
-    badge: "IA Migratoria de Próxima Generación",
+    badge: "IA VistasVisados ​​de próxima generación impulsados ​​por IA de Próxima Generación",
     title: "La plataforma completa para la gestión de",
     titleHighlight: "procesos de visa",
     subtitle: "Automatice tareas, organice documentos y escale su firma con la eficiencia de la Inteligencia Artificial aplicada al derecho migratorio.",

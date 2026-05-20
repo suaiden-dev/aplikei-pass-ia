@@ -156,7 +156,19 @@ function ProcessRow({ proc, index, displaySlug }: { proc: UserService; index: nu
           </p>
           {proc.officeName && (
             <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold text-text-muted uppercase tracking-widest bg-bg-subtle px-2.5 py-1.5 rounded-xl border border-border/40 w-fit">
-              <RiBuilding2Line className="text-primary text-xs shrink-0" />
+              {proc.officeLogoUrl ? (
+                <img
+                  src={proc.officeLogoUrl}
+                  alt={proc.officeName}
+                  className="w-3.5 h-3.5 rounded object-cover shrink-0"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              ) : (
+                <RiBuilding2Line className="text-primary text-xs shrink-0" />
+              )}
               <span>{proc.officeName}</span>
             </div>
           )}

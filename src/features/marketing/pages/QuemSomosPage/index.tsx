@@ -86,7 +86,7 @@ export default function QuemSomosPage() {
                 <img
                   src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop"
                   alt="Office history"
-                  className="w-full h-full object-cover grayscale opacity-60"
+                  className="w-full h-full object-cover "
                 />
               </div>
               <div className="absolute -top-6 -left-6 w-24 h-24 bg-primary/10 rounded-full blur-2xl"></div>

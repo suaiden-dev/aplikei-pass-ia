@@ -1,6 +1,6 @@
 const landing = {
   hero: {
-    badge: "IA Imigratória para Advogados e Escritórios",
+    badge: "Próxima Geração de Vistos Com IA",
     title: "A plataforma completa para gerenciar seus",
     titleHighlight: "processos de vistos consulares",
     subtitle: "Automatize tarefas, organize documentos e escale seu escritório com a eficiência da Inteligência Artificial dedicada ao direito imigratório.",

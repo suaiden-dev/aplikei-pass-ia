@@ -34,7 +34,7 @@ const admin = {
     revenue: "Finance",
     finance_analytics: "Finance Analytics",
     dashboard: "Dashboard",
-    matters: "Cases",
+    matters: "Matters",
     lawyers: "Lawyers",
     products: "Products",
     chats: "Messages",
@@ -53,8 +53,7 @@ const admin = {
     billings: "Billings",
     offices: "Offices",
     subscription: "My Subscription",
-    companyProfile: "Company Profile",
-    payoutSettings: "Withdrawal Settings"
+    companyProfile: "Company Profile"
   },
   financeAnalytics: {
     title: "Finance Analytics",
@@ -93,16 +92,8 @@ const admin = {
     }
   },
   payoutSettings: {
-    title: "Withdrawal Settings",
-    subtitle: "Configure your payment details to receive withdrawals",
-    methodTitle: "Withdrawal Method",
-    methodSubtitle: "Select how you want to be paid",
-    stripeInfo: "No configuration needed. You will provide your Stripe link during the withdrawal process.",
-    zelleInfo: "Configure your Zelle details below to enable direct transfers to your account.",
-    zelleTitle: "Zelle Details",
-    zelleSubtitle: "Required information for Zelle payments",
-    accountName: "Account Name",
-    zelleId: "Zelle ID (Email or Phone)",
+    title: "Payout Configuration",
+    subtitle: "Configure your payment methods and payout preferences",
     sections: {
       paymentLinks: {
         title: "Payment Links",
@@ -122,9 +113,9 @@ const admin = {
       }
     },
     messages: {
-      saveSuccess: "Withdrawal settings updated successfully!",
-      saveError: "Error saving withdrawal settings.",
-      loadError: "Error loading withdrawal settings."
+      saveSuccess: "Payout settings updated successfully!",
+      saveError: "Error saving payout settings.",
+      loadError: "Error loading payout settings."
     },
     saveBtn: "Save Configuration",
     savingBtn: "Saving..."
@@ -469,6 +460,35 @@ const admin = {
       productCount: "{{count}} product",
       productsCount: "{{count}} products"
     }
+  },
+  notificationsCenter: {
+    title: "Notifications",
+    markAll: "Mark all",
+    emptyTitle: "No notifications",
+    emptySubtitle: "All caught up!",
+    viewFullLog: "View full log",
+    filters: {
+      all: "All",
+      unread: "Unread",
+      adminAction: "Admin",
+      clientAction: "Client",
+      system: "System",
+    },
+    labels: {
+      system: "Notification",
+      actionRequiredReview: "Action required: review step",
+      actionRequiredReviewMessage: "A client completed a step and is waiting for your review.",
+      clientCompletedStepMessage: "The client completed the \"{{step}}\" step of {{service}} and is waiting for your review.",
+      clientCompletedGenericMessage: "The client completed a step of {{service}} and is waiting for your review.",
+      stepApproved: "Step approved",
+      stepApprovedMessage: "Your step was approved and you can proceed to the next one.",
+      changesRequired: "Changes required",
+      changesRequiredMessage: "Changes were requested. Review details and submit again.",
+      processCompleted: "Process completed",
+      processCompletedMessage: "Your process has been completed.",
+      interviewScheduled: "Interview scheduled",
+      interviewScheduledMessage: "Your interview is scheduled. Check date and location in your process.",
+    },
   },
   payments: {
     title: "Financial",

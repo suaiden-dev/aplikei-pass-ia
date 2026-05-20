@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RiArrowLeftLine, RiArrowRightLine, RiBuilding4Line, RiCheckDoubleLine, RiLoader4Line, RiVipCrown2Line } from "react-icons/ri";
+import { RiAddLine, RiArrowLeftLine, RiArrowRightLine, RiBuilding4Line, RiCheckDoubleLine, RiLoader4Line, RiSubtractLine, RiVipCrown2Line } from "react-icons/ri";
 import { Button } from "../atoms/button";
 import { cn } from "@shared/utils/cn";
 
@@ -23,6 +23,7 @@ type Step = {
 };
 
 const ONBOARDING_STEP_STORAGE_KEY = "admin_lawyer_onboarding_step_v1";
+const ONBOARDING_MINIMIZED_STORAGE_KEY = "admin_lawyer_onboarding_minimized_v1";
 
 export function OnboardingModal({
   isOpen,
@@ -38,6 +39,7 @@ export function OnboardingModal({
 }: OnboardingModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const lastAutoNavigatedStepRef = useRef<string | null>(null);
 
   const requirementsDone = officeCreated && subscriptionActive;
@@ -132,8 +134,19 @@ export function OnboardingModal({
 
   useEffect(() => {
     if (!isOpen) return;
+    const raw = localStorage.getItem(ONBOARDING_MINIMIZED_STORAGE_KEY);
+    setIsMinimized(raw === "true");
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
     localStorage.setItem(ONBOARDING_STEP_STORAGE_KEY, String(currentStep));
   }, [currentStep, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    localStorage.setItem(ONBOARDING_MINIMIZED_STORAGE_KEY, String(isMinimized));
+  }, [isMinimized, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -150,16 +163,35 @@ export function OnboardingModal({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed bottom-6 right-6 z-[120] w-[420px] max-w-[calc(100vw-24px)] rounded-3xl border border-border bg-card shadow-2xl">
-      <div className="h-1.5 w-full overflow-hidden rounded-t-3xl bg-bg-subtle">
-        <div
-          className="h-full bg-primary transition-all duration-300"
-          style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-        />
+  if (isMinimized) {
+    return (
+      <div className="fixed right-6 top-6 z-[120] flex max-w-[calc(100vw-24px)] items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-2xl">
+        <div className="min-w-0">
+          <p className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+            Onboarding da operação
+          </p>
+          <p className="truncate text-sm font-black text-text">
+            Etapa {currentStep + 1}/{steps.length} - {step.title}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => setIsMinimized(false)}
+          className="rounded-xl"
+          aria-label="Expandir onboarding"
+          title="Expandir onboarding"
+        >
+          <RiAddLine className="mr-1" />
+          Abrir
+        </Button>
       </div>
+    );
+  }
 
-      <div className="p-5 space-y-4">
+  return (
+    <div className="fixed right-6 top-6 z-[120] w-[420px] max-w-[calc(100vw-24px)] rounded-3xl border border-border bg-card shadow-2xl">
+      <div className="flex items-start justify-between gap-3 rounded-t-3xl border-b border-border px-5 py-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
             {step.id === "company" ? <RiBuilding4Line /> : step.id === "subscription" ? <RiVipCrown2Line /> : <RiCheckDoubleLine />}
@@ -170,6 +202,25 @@ export function OnboardingModal({
           </div>
         </div>
 
+        <button
+          type="button"
+          onClick={() => setIsMinimized(true)}
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-bg-subtle text-text-muted transition-colors hover:bg-bg hover:text-text"
+          aria-label="Minimizar onboarding"
+          title="Minimizar onboarding"
+        >
+          <RiSubtractLine className="text-lg" />
+        </button>
+      </div>
+
+      <div className="h-1.5 w-full overflow-hidden bg-bg-subtle">
+        <div
+          className="h-full bg-primary transition-all duration-300"
+          style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+        />
+      </div>
+
+      <div className="p-5 space-y-4">
         <p className="text-sm text-text-muted">{step.description}</p>
 
         <div className="grid grid-cols-2 gap-2">
@@ -180,7 +231,6 @@ export function OnboardingModal({
             Inscrição: {subscriptionActive ? "Ativa" : "Pendente"}
           </div>
         </div>
-
       </div>
 
       <div className="p-4 border-t border-border flex items-center justify-between gap-2">

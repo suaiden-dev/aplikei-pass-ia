@@ -47,7 +47,7 @@ export default function CompanyProfilePage() {
   const [isUploadingLogo, setIsUploadingLogo] = React.useState(false);
   const [isCheckingSlug, setIsCheckingSlug] = React.useState(false);
   const [slugConflict, setSlugConflict] = React.useState<string | null>(null);
-  const shouldShowFieldTour = user?.role === "admin_lawyer" && !user?.hasCompletedOnboarding;
+  const shouldShowFieldTour = false;
   const [tourStep, setTourStep] = React.useState(0);
 
   const fieldTour = React.useMemo(
@@ -558,32 +558,6 @@ export default function CompanyProfilePage() {
         </div>
       </form>
 
-      {activeTour && (
-        <div className="fixed bottom-6 right-6 z-[130] w-[420px] max-w-[calc(100vw-24px)] rounded-2xl border border-border bg-card p-4 shadow-2xl">
-          <p className="text-[10px] font-black uppercase tracking-widest text-primary">Field guide</p>
-          <h3 className="mt-1 text-base font-black text-text">{activeTour.title}</h3>
-          <p className="mt-2 text-sm text-text-muted">{activeTour.description}</p>
-          <div className="mt-4 flex items-center justify-between">
-            <Button
-              type="button"
-              variant="ghost"
-              className="rounded-xl"
-              onClick={() => setTourStep((prev) => Math.max(0, prev - 1))}
-              disabled={tourStep === 0}
-            >
-              Back
-            </Button>
-            <Button
-              type="button"
-              className="rounded-xl"
-              onClick={() => setTourStep((prev) => Math.min(fieldTour.length - 1, prev + 1))}
-              disabled={tourStep === fieldTour.length - 1}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -33,6 +33,7 @@ export const chatService = {
 
   async sendMessage(params: {
     processId: string;
+    officeId?: string | null;
     senderId: string;
     senderRole: "admin" | "customer";
     content: string;
@@ -59,6 +60,7 @@ export const chatService = {
 
     const { error } = await supabase.from("chat_messages").insert({
       process_id: params.processId,
+      office_id: params.officeId ?? null,
       content: params.content,
       sender_id: params.senderId,
       sender_role: params.senderRole,

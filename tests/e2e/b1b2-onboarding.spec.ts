@@ -41,91 +41,82 @@ test.describe("B1/B2 onboarding", () => {
     await expect(page.getByText(/Estamos finalizando a emissão do seu boleto MRV/i)).toBeVisible();
   });
 
-  test("renders creating credentials notice at step 2", async ({ page }) => {
-    await mockB1B2Supabase(page, {
-      slug: "visto-b1-b2",
-      currentStep: 2,
-    });
+  test("covers all onboarding steps from 0 to 10", async ({ page }) => {
+    const processSlug = "visto-b1-b2";
+    const basePath = `/dashboard/processes/${processSlug}/onboarding`;
 
-    await page.goto("/dashboard/processes/visto-b1-b2/onboarding?step=2");
+    const assertStep = async (step: number) => {
+      await mockB1B2Supabase(page, {
+        slug: processSlug,
+        currentStep: step,
+        stepData: {
+          homeCountry: "Brasil",
+          securityExceptions: "nao",
+          interviewLocation: "São Paulo",
+        },
+      });
 
-    await expect(page.getByText("Criando suas credenciais...")).toBeVisible();
-    await expect(
-      page.getByText("Nossa equipe está configurando seu acesso no sistema consular. Isso costuma ser rápido.")
-    ).toBeVisible();
-  });
+      await page.goto(`${basePath}?step=${step}`);
 
-  test("renders review and sign stage at step 3", async ({ page }) => {
-    await mockB1B2Supabase(page, {
-      slug: "visto-b1-b2",
-      currentStep: 3,
-      stepData: {
-        ds160_application_id: "AA00123456",
-        ds160_security_answer: "SILVA",
-        ds160_birth_date: "1990",
-      },
-    });
+      if (step <= 1 || step === 4) {
+        await expect(page.getByRole("heading", { name: "Formulário DS-160" })).toBeVisible();
+        await expect(page.getByText(`Etapa ${step + 1} de 11`)).toBeVisible();
+        await expect(page.getByRole("button", { name: "Salvar Rascunho" })).toBeVisible();
+        return;
+      }
 
-    await page.goto("/dashboard/processes/visto-b1-b2/onboarding?step=3");
+      if (step === 2) {
+        await expect(page.getByText(/Criando suas credenciais/i)).toBeVisible();
+        await expect(page.getByRole("button", { name: /Voltar para Dashboard/i })).toBeVisible();
+        return;
+      }
 
-    await expect(page.getByText("Assinatura da DS-160")).toBeVisible();
-    await expect(page.getByText("Application ID")).toBeVisible();
-  });
+      if (step === 3) {
+        await expect(page.getByRole("heading", { name: /Assinatura da DS-160/i })).toBeVisible();
+        await expect(page.getByText(/Acesse o site do CEAC/i)).toBeVisible();
+        return;
+      }
 
-  test("renders CASV scheduling preference stage at step 5", async ({ page }) => {
-    await mockB1B2Supabase(page, {
-      slug: "visto-b1-b2",
-      currentStep: 5,
-    });
+      if (step === 5) {
+        await expect(page.getByRole("heading", { name: /AGENDAMENTO CASV/i })).toBeVisible();
+        await expect(page.getByRole("button", { name: /CONFIRMAR DATA E SOLICITAR AGENDAMENTO/i })).toBeVisible();
+        return;
+      }
 
-    await page.goto("/dashboard/processes/visto-b1-b2/onboarding?step=5");
+      if (step === 6) {
+        await expect(page.getByText(/UMA CONTA SERÁ CRIADA UTILIZANDO SEU EMAIL/i)).toBeVisible();
+        await expect(page.getByRole("button", { name: /Voltar para Dashboard/i })).toBeVisible();
+        return;
+      }
 
-    await expect(page.getByRole("heading", { name: "AGENDAMENTO CASV / CONSULADO" })).toBeVisible();
-  });
+      if (step === 7) {
+        await expect(page.getByRole("heading", { name: /Confirmação de E-mail/i })).toBeVisible();
+        await expect(page.getByRole("button", { name: /JÁ CONFIRMEI O EMAIL/i })).toBeVisible();
+        return;
+      }
 
-  test("renders account creation notice at step 6", async ({ page }) => {
-    await mockB1B2Supabase(page, {
-      slug: "visto-b1-b2",
-      currentStep: 6,
-    });
+      if (step === 8) {
+        await expect(page.getByRole("heading", { name: /Taxa Consular/i })).toBeVisible();
+        await expect(page.getByRole("button", { name: /Voltar para Dashboard/i })).toBeVisible();
+        return;
+      }
 
-    await page.goto("/dashboard/processes/visto-b1-b2/onboarding?step=6");
+      if (step === 9) {
+        await expect(page.getByRole("heading", { name: /Pagamento da Taxa MRV/i })).toBeVisible();
+        await expect(page.getByRole("button", { name: /Cartão de Crédito/i })).toBeVisible();
+        await expect(page.getByRole("button", { name: /Boleto Bancário/i })).toBeVisible();
+        return;
+      }
 
-    await expect(
-      page.getByText("UMA CONTA SERÁ CRIADA UTILIZANDO SEU EMAIL NO SITE DO CONSULADO.")
-    ).toBeVisible();
-  });
+      await expect(page.getByRole("heading", { name: /Agendamento Final e Preparação/i })).toBeVisible();
+      await expect(page.getByText(/Guia de Entrevista/i)).toBeVisible();
+      await expect(page.getByText(/Simulado com IA|Treino de Entrevista com IA/i)).toBeVisible();
+    };
 
-  test("renders confirm email stage at step 7", async ({ page }) => {
-    await mockB1B2Supabase(page, {
-      slug: "visto-b1-b2",
-      currentStep: 7,
-    });
-
-    await page.goto("/dashboard/processes/visto-b1-b2/onboarding?step=7");
-
-    await expect(page.getByRole("heading", { name: "Confirmação de E-mail" })).toBeVisible();
-  });
-
-  test("renders MRV fee payment stage at step 9", async ({ page }) => {
-    await mockB1B2Supabase(page, {
-      slug: "visto-b1-b2",
-      currentStep: 9,
-    });
-
-    await page.goto("/dashboard/processes/visto-b1-b2/onboarding?step=9");
-
-    await expect(page.getByRole("heading", { name: "Pagamento da Taxa MRV" })).toBeVisible();
-  });
-
-  test("renders final preparation stage at step 10", async ({ page }) => {
-    await mockB1B2Supabase(page, {
-      slug: "visto-b1-b2",
-      currentStep: 10,
-    });
-
-    await page.goto("/dashboard/processes/visto-b1-b2/onboarding?step=10");
-
-    await expect(page.getByRole("heading", { name: "Aguardando Agendamento Final" })).toBeVisible();
+    for (let step = 0; step <= 10; step += 1) {
+      await test.step(`step ${step}`, async () => {
+        await assertStep(step);
+      });
+    }
   });
 });

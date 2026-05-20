@@ -2,6 +2,7 @@
 export interface ChatMessage {
   id: string;
   process_id: string;
+  office_id?: string | null;
   sender_id: string;
   sender_role: "admin" | "customer";
   content: string;
@@ -14,6 +15,7 @@ export interface ChatMessage {
 export interface SpecialistChatThread {
   processId: string;
   userId: string;
+  officeId?: string | null;
   serviceSlug: string;
   processRouteId?: string;
   processRouteSlug?: string;

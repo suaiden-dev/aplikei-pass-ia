@@ -124,7 +124,7 @@ export function useProcessDetail(userId: string | undefined) {
   const prefix = slug === "extensao-status" ? "eos_" : "cos_";
   const targetVisa = stepData["targetVisa"] as string | undefined;
   const showF1Steps = isCOS ? targetVisa === "F1" : true;
-  const stepsToSkip = [`${prefix}i20_upload`, `${prefix}sevis_fee`, `${prefix}analysis_i20_sevis`];
+  const stepsToSkip = [`${prefix}i20_upload`, `${prefix}sevis_fee`];
   const history = (stepData["history"] as Array<{ type?: string; steps?: unknown[] }>) || [];
 
   return {
