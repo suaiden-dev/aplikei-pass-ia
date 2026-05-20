@@ -222,7 +222,10 @@ export default function ProcessDetailPage() {
     ? (stepData.history as Array<{ type?: string; steps?: StepConfig[] }>)
     : [];
   history.forEach((cycle, cIdx) => {
-    const baseTemplate = cycle.steps || (cycle.type === 'motion' ? MOTION_STEPS_TEMPLATE : RFE_STEPS_TEMPLATE);
+    let baseTemplate = cycle.steps || [];
+    if (!baseTemplate.length || !baseTemplate[0]?.id) {
+      baseTemplate = cycle.type === 'motion' ? MOTION_STEPS_TEMPLATE : RFE_STEPS_TEMPLATE;
+    }
     const template = normalizeLegacyFinalShipSteps(baseTemplate as StepConfig[]);
     template.forEach((s: StepConfig) => {
       steps.push({ ...s, id: `${s.id}_cycle_${cIdx}` });
@@ -262,7 +265,11 @@ export default function ProcessDetailPage() {
     (procStatusNormalized === 'completed' && !uscisResultNormalized.includes('denied') && !uscisResultNormalized.includes('rejected'))
   );
 
-  const isFinalized = proc.status === 'completed' || isApproved || isDenied;
+  const workflowStatus = String(stepData.workflow_status || '').toLowerCase();
+  const isRecovering = ['not_started', 'in_progress', 'rfeinit', 'awaiting_payment', 'awaiting_proposal', 'waitingproposal'].includes(workflowStatus);
+
+  const isFinalized = (procStatusNormalized === 'completed' || isApproved || isDenied) && !isRecovering;
+  let hasFinalResult = isFinalized;
   const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, steps.length, isCOS);
 
   return (

@@ -36,6 +36,7 @@ import {
   RFEAcceptProposalStep,
   RFEEndStep,
 } from './RFEWorkflow'
+import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "@shared/data/workflowTemplates";
 import { DocUploadCard, type DocFile } from '@shared/components/molecules/DocUploadCard'
 import {
   Dialog,
@@ -145,7 +146,14 @@ export default function COSOnboardingPage() {
   )
   const canSubmit =
     stepIdx === 0 ? canSubmitStep0 : stepIdx === 1 ? canSubmitStep1 : true
-  const currentStepId = service?.steps[stepIdx]?.id
+
+  let currentStepId = service?.steps[stepIdx]?.id
+  if (stepIdx >= 13 && stepIdx <= 18) {
+    currentStepId = RFE_STEPS_TEMPLATE[stepIdx - 13]?.id
+  } else if (stepIdx >= 19 && stepIdx <= 24) {
+    currentStepId = MOTION_STEPS_TEMPLATE[stepIdx - 19]?.id || (stepIdx === 24 ? 'cos_motion_end' : undefined)
+  }
+
   const isMotionResultStep =
     currentStepId === 'cos_motion_end' || stepIdx === 23 || stepIdx === 24
   const motionReportedResult = String(
@@ -339,6 +347,18 @@ export default function COSOnboardingPage() {
 
   useEffect(() => {
     if (!proc) return
+
+    if (!searchParams.has('step')) {
+      const nextParams = new URLSearchParams(searchParams)
+      nextParams.set('step', String(proc.current_step ?? 0))
+      navigate(`/dashboard/processes/${slug}/onboarding?${nextParams.toString()}`, { replace: true })
+      return
+    }
+
+    if (stepIdx < currentProcessStep) {
+      return
+    }
+
     const isInRFERange = stepIdx >= 13 && stepIdx <= 18
     const isInMotionRange = stepIdx >= 19 && stepIdx <= 24
 
@@ -352,7 +372,7 @@ export default function COSOnboardingPage() {
       navigate(
         `/dashboard/processes/${slug}/onboarding?${nextParams.toString()}`,
         {
-          replace: false,
+          replace: true,
         },
       )
       return
@@ -384,9 +404,28 @@ export default function COSOnboardingPage() {
   ],
   )
 
-  const totalSteps = service?.steps?.length || 0
-  const currentStepTitle = service?.steps?.[stepIdx]?.title || ''
-  const currentStepDescription = service?.steps?.[stepIdx]?.description || ''
+  let totalSteps = service?.steps?.length || 0
+  let currentStepTitle = service?.steps?.[stepIdx]?.title || ''
+  let currentStepDescription = service?.steps?.[stepIdx]?.description || ''
+
+  if (stepIdx >= 13 && stepIdx <= 18) {
+    totalSteps = 18
+    const tpl = RFE_STEPS_TEMPLATE[stepIdx - 13]
+    if (tpl) {
+      currentStepTitle = tpl.title
+      currentStepDescription = tpl.description
+    }
+  } else if (stepIdx >= 19) {
+    totalSteps = 24
+    const tpl = MOTION_STEPS_TEMPLATE[stepIdx - 19]
+    if (tpl) {
+      currentStepTitle = tpl.title
+      currentStepDescription = tpl.description
+    } else if (stepIdx === 24) {
+      currentStepTitle = 'Resultado'
+      currentStepDescription = 'Acompanhe o resultado final do seu Motion.'
+    }
+  }
 
   const goToProcess = () => navigate(`/dashboard/processes/${slug}`)
 
@@ -398,14 +437,39 @@ export default function COSOnboardingPage() {
     )
   }
 
-  const handleUSCISResult = async (result: string) => {
+  const handleUSCISResult = async (
+    result: string,
+    opts?: { jumpToStep?: (step: number) => void },
+  ) => {
     if (!proc) return
     try {
       await processService.updateStepData(proc.id, {
         uscis_official_result: result,
       })
+
+      if (result === 'denied') {
+        await processService.startAdditionalWorkflow(proc.id, 'motion')
+        toast.success(t?.cos?.toasts?.deniedMotion ?? 'Visto negado. Iniciando fluxo de Motion.')
+        if (opts?.jumpToStep) {
+          opts.jumpToStep(19)
+        } else {
+          jumpToOnboardingStep(19)
+        }
+        return
+      }
+
+      if (result === 'rfe') {
+        await processService.startAdditionalWorkflow(proc.id, 'rfe')
+        toast.success(t?.cos?.toasts?.resultReported ?? 'Resultado informado.')
+        if (opts?.jumpToStep) {
+          opts.jumpToStep(13)
+        } else {
+          jumpToOnboardingStep(13)
+        }
+        return
+      }
+
       toast.success(t?.cos?.toasts?.resultReported ?? 'Resultado informado.')
-      window.location.reload()
     } catch (err) {
       toast.error(t?.cos?.toasts?.resultReportError ?? 'Erro ao salvar resultado.')
     }
@@ -421,8 +485,24 @@ export default function COSOnboardingPage() {
       await processService.updateStepData(proc.id, {
         uscis_rfe_result: result,
       })
+
+      if (result === 'denied') {
+        await processService.updateStepData(proc.id, {
+          uscis_official_result: 'denied',
+        })
+        await processService.startAdditionalWorkflow(proc.id, 'motion')
+        toast.success(t?.cos?.toasts?.deniedMotion ?? 'Visto negado. Iniciando fluxo de Motion.')
+        jumpToOnboardingStep(19)
+        return
+      }
+
+      if (result === 'rfe') {
+        toast.success(t?.cos?.rfe?.end?.newRfeCycle ?? 'Novo ciclo de RFE iniciado.')
+        jumpToOnboardingStep(13)
+        return
+      }
+
       toast.success(t?.cos?.toasts?.resultReported ?? 'Resultado informado.')
-      window.location.reload()
     } catch (err) {
       toast.error(t?.cos?.toasts?.resultReportError ?? 'Erro ao salvar resultado.')
     }
@@ -687,8 +767,15 @@ export default function COSOnboardingPage() {
           }
         }
 
-        const isFinal = nextStepIdx >= service.steps.length
-        const nextStep = service.steps[nextStepIdx]
+        const isFinal = nextStepIdx >= totalSteps
+        let nextStep: any = service.steps[nextStepIdx]
+        if (!nextStep) {
+          if (nextStepIdx >= 13 && nextStepIdx <= 18) {
+            nextStep = RFE_STEPS_TEMPLATE[nextStepIdx - 13]
+          } else if (nextStepIdx >= 19 && nextStepIdx <= 24) {
+            nextStep = MOTION_STEPS_TEMPLATE[nextStepIdx - 19]
+          }
+        }
 
         const currentDBStep = freshProc.current_step ?? 0
         const isCorrection = !!(freshProc.step_data as any)?.admin_feedback
@@ -721,32 +808,7 @@ export default function COSOnboardingPage() {
 
   return (
     <div className='min-h-screen bg-bg flex flex-col'>
-      <div className='fixed right-3 bottom-28 z-50 flex flex-col items-stretch gap-2'>
-        <button
-          type='button'
-          onClick={scrollToTop}
-          className='group flex items-center justify-center gap-2 rounded-2xl border border-border bg-card/95 px-4 py-3 shadow-xl shadow-black/5 backdrop-blur-md transition-all hover:border-primary/30 hover:bg-primary hover:text-white'
-          aria-label='Ir para cima'
-          title='Ir para cima'
-        >
-          <RiArrowUpSLine className='text-xl transition-transform group-hover:-translate-y-0.5' />
-          <span className='text-[10px] font-black uppercase tracking-widest'>
-            Cima
-          </span>
-        </button>
-        <button
-          type='button'
-          onClick={scrollToBottom}
-          className='group flex items-center justify-center gap-2 rounded-2xl border border-border bg-card/95 px-4 py-3 shadow-xl shadow-black/5 backdrop-blur-md transition-all hover:border-primary/30 hover:bg-primary hover:text-white'
-          aria-label='Ir para baixo'
-          title='Ir para baixo'
-        >
-          <RiArrowDownSLine className='text-xl transition-transform group-hover:translate-y-0.5' />
-          <span className='text-[10px] font-black uppercase tracking-widest'>
-            Baixo
-          </span>
-        </button>
-      </div>
+
 
       {isSubmitting && (
         <div className='fixed inset-0 z-[120] bg-bg/70 backdrop-blur-sm flex items-center justify-center'>
