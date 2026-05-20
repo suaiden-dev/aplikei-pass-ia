@@ -1,7 +1,7 @@
 import { supabase } from "@shared/lib/supabase";
 import { notifyAdmin, notifyClient } from "@features/notifications/services/notify";
 import { getServiceBySlug, isSameService, getServiceSlugs } from "@shared/data/services";
-import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "../types";
+import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "@shared/data/workflowTemplates";
 import type { UserService, ProcessStatus } from "../types";
 
 export type { UserService };
@@ -438,7 +438,7 @@ export async function startAdditionalWorkflow(
     active_rfe_cycle: type === "rfe" ? rfeCycles.length : stepData.active_rfe_cycle,
   });
 
-  await dbUpdateStep(processId, targetStep, "active");
+  await dbUpdateStep(processId, targetStep, type === "motion" ? "rejected" : "active");
 }
 
 export async function hasChatMessages(processId: string): Promise<boolean> {
