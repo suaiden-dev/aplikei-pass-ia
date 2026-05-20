@@ -150,7 +150,7 @@ export function PublicNavbar() {
           </button>
 
           <Button asChild>
-            <Link to="/login">{t.login}</Link>
+            <Link to="/login-office">{t.login}</Link>
           </Button>
         </div>
 
@@ -199,7 +199,7 @@ export function PublicNavbar() {
               </button>
 
               <Button asChild className="w-full">
-                <Link to="/login" onClick={closeMenu}>
+                <Link to="/login-office" onClick={closeMenu}>
                   {t.login}
                 </Link>
               </Button>
