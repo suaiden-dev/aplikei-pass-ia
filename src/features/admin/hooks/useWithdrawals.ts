@@ -52,8 +52,8 @@ export function useWithdrawals(officeId?: string) {
     },
     onSuccess: async (created) => {
       await notifyMaster({
-        title: "Nova requisição de saque",
-        body: `Uma office solicitou saque de $${Number(created?.amount || 0).toFixed(2)}.`,
+        title: "New withdrawal request",
+        body: `An office requested a withdrawal of $${Number(created?.amount || 0).toFixed(2)}.`,
         // Pass withdrawal_id in metadata instead of serviceId to avoid FK violations
         // if serviceId is strictly for user_services
         metadata: {

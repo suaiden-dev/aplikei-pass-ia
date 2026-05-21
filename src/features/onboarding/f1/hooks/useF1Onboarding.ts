@@ -108,8 +108,8 @@ export function useF1Onboarding(userId: string | undefined) {
       if (currentDBStep === 0) {
         await approveStep(procId, 1, false);
         await notifyAdmin({
-          title: "DS-160 Preenchida (F1)",
-          body: `O cliente finalizou a DS-160 para ${slug}.`,
+          title: "DS-160 completed (F1)",
+          body: `Client completed the DS-160 for ${slug}.`,
           serviceId: procId,
           userId,
           link: `/master/processes/${procId}`,

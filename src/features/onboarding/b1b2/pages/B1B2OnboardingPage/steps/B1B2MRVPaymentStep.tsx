@@ -47,8 +47,8 @@ export function B1B2MRVPaymentStep({ procId, stepData, nextStepIdx = 10, onCompl
       
       // Notify Admin
       await notificationService.notifyAdmin({
-        title: "💳 Taxa MRV Confirmada",
-        body: `O cliente confirmou o pagamento da taxa MRV (${method === 'credit_card' ? 'Cartão' : 'Boleto'}). O processo aguarda agendamento final no portal.`,
+        title: "MRV fee payment confirmed",
+        body: `Client confirmed MRV fee payment (${method === "credit_card" ? "Credit card" : "Bank slip"}). Process is awaiting final scheduling in portal.`,
         serviceId: procId,
         link: `/master/processes/${procId}`,
       });

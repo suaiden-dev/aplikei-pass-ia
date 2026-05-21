@@ -36,6 +36,7 @@ import { useT } from "@app/app/i18n";
 import { useNavigate } from 'react-router-dom'
 import type { MotionOutcome } from '@shared/types/process.model'
 import { getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
+import { compressImageForUpload } from "@shared/utils/uploadCompression";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -674,7 +675,7 @@ export function MotionExplanationStep({
 
   return (
     <>
-      <div className='max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700'>
+      <div className='max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700' data-testid='motion-explanation-step'>
         <div className='bg-white rounded-[40px] border border-slate-100 p-12 shadow-sm text-center'>
           <div className='w-20 h-20 rounded-3xl bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-8 shadow-inner'>
             <RiErrorWarningLine className='text-4xl' />
@@ -786,12 +787,13 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
       toast.loading(t?.workflows?.shared?.sendingFile || 'Sending...', {
         id: 'upload',
       })
-      const fileExt = file.name.split('.').pop()
+      const fileToUpload = await compressImageForUpload(file)
+      const fileExt = fileToUpload.name.split('.').pop()
       const filePath = `${proc.user_id}/motion/${docKey}_${crypto.randomUUID()}.${fileExt}`
 
       const { error: uploadError } = await supabase.storage
         .from('aplikei-profiles')
-        .upload(filePath, file)
+        .upload(filePath, fileToUpload)
 
       if (uploadError) throw uploadError
 
@@ -965,7 +967,10 @@ export function MotionAcceptProposalStep({
 
   return (
     <>
-      <div className='max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700'>
+      <div
+        className='max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700'
+        data-testid='motion-proposal-step'
+      >
         <div className='bg-white rounded-[40px] border border-slate-100 p-12 shadow-sm text-center'>
           <div className='w-20 h-20 rounded-3xl bg-indigo-50 text-indigo-500 flex items-center justify-center mx-auto mb-8 shadow-inner'>
             <RiShieldCheckLine className='text-4xl' />
@@ -982,7 +987,7 @@ export function MotionAcceptProposalStep({
             <div className='h-px w-8 bg-slate-100' />
           </div>
 
-          <div className='bg-slate-50 rounded-3xl p-8 mb-10 border border-slate-100 italic text-slate-600 text-sm leading-relaxed font-serif text-center'>
+          <div className='bg-slate-50 rounded-3xl p-8 mb-10 border border-slate-100 italic text-slate-600 text-sm leading-relaxed font-serif text-center' data-testid='motion-proposal-text'>
             "{proposalText}"
           </div>
 
@@ -991,7 +996,7 @@ export function MotionAcceptProposalStep({
               <p className='text-[10px] font-black text-primary uppercase tracking-widest mb-1'>
                 {t?.workflows?.shared?.serviceCost}
               </p>
-              <h4 className='text-3xl font-black text-slate-800'>
+              <h4 className='text-3xl font-black text-slate-800' data-testid='motion-proposal-amount'>
                 $ {proposalAmount.toFixed(2)}
               </h4>
             </div>
@@ -1030,6 +1035,7 @@ export function MotionAcceptProposalStep({
           </div>
 
           <button
+            data-testid='motion-proposal-accept-btn'
             onClick={() => setShowCheckout(true)}
             disabled={proposalAmount <= 0 || alreadyPaid}
             className='w-full bg-primary hover:bg-primary-hover text-white py-6 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50'

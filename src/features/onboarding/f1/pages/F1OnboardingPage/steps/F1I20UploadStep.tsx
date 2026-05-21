@@ -84,8 +84,8 @@ export function F1I20UploadStep({ procId, userId, stepData, labels, onComplete, 
       await processService.requestStepReview(procId);
       
       await notificationService.notifyAdmin({
-        title: "🎓 Formulário I-20 Enviado",
-        body: `O cliente anexou o documento I-20 para conferência e início do processo F1.`,
+        title: "I-20 form uploaded",
+        body: "Client uploaded the I-20 document for review and F1 process continuation.",
         serviceId: procId,
         userId,
         link: `/master/processes/${procId}`,

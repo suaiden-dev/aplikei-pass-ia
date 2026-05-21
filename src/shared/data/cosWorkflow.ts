@@ -12,7 +12,6 @@ export const COS_MOTION_INSTRUCTION_STEP = 20;
 export const COS_MOTION_PROPOSAL_STEP = 21;
 export const COS_MOTION_ACCEPT_PROPOSAL_STEP = 22;
 export const COS_MOTION_END_STEP = 23;
-export const COS_MOTION_RESULT_STEP = 24;
 
 export type CosRecoveryType = "motion" | "rfe";
 
@@ -50,7 +49,7 @@ export function getCosOnboardingStepTargetFromStepId(
   const motionIdx = MOTION_STEPS_TEMPLATE.findIndex((s) => s.id === baseId);
   if (motionIdx !== -1) return COS_MOTION_ACQUISITION_STEP + motionIdx;
 
-  return Math.max(0, Math.min(COS_MOTION_RESULT_STEP, idx));
+  return Math.max(0, Math.min(COS_MOTION_END_STEP, idx));
 }
 
 export function getCosVisualStepIndexForProcessStep(
@@ -85,7 +84,7 @@ export function getCosVisualStepIndexForProcessStep(
     return Math.min(baseStepCount - 1, Math.max(expandedStepCount - 1, 0));
   }
 
-  if (currentStep >= COS_MOTION_ACQUISITION_STEP && currentStep <= COS_MOTION_RESULT_STEP) {
+  if (currentStep >= COS_MOTION_ACQUISITION_STEP && currentStep <= COS_MOTION_END_STEP) {
     const motionCycle = [...cycleStartIndexes].reverse().find((cycle) => cycle.type === "motion");
     if (motionCycle) {
       const offset = Math.min(

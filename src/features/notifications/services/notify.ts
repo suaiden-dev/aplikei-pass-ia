@@ -1,5 +1,6 @@
 import { getSessionSafe, supabase } from "@shared/lib/supabase";
 import { buildNotifContent, type NotifLang, type NotifTemplate } from "./templates";
+import { LANGUAGE_STORAGE_KEY, isSupportedLanguage } from "@shared/types/language";
 
 export interface NotifyClientParams {
   userId?: string;
@@ -54,10 +55,113 @@ async function insertNotification(payload: NotificationPayload): Promise<void> {
 }
 
 async function getUserLang(userId: string): Promise<NotifLang> {
-  // preferred_language column was removed from user_accounts.
-  // Keep safe fallback to avoid 400 errors from PostgREST schema mismatch.
-  void userId;
+  try {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("preferred_language")
+      .eq("id", userId)
+      .maybeSingle();
+    const value = String((profile as { preferred_language?: string } | null)?.preferred_language ?? "").toLowerCase();
+    if (isSupportedLanguage(value)) return value;
+  } catch {
+    // ignore profile lookup mismatch
+  }
+
+  try {
+    const { data: account } = await supabase
+      .from("user_accounts")
+      .select("preferred_language")
+      .eq("id", userId)
+      .maybeSingle();
+    const value = String((account as { preferred_language?: string } | null)?.preferred_language ?? "").toLowerCase();
+    if (isSupportedLanguage(value)) return value;
+  } catch {
+    // ignore user_accounts schema mismatch
+  }
+
+  if (typeof window !== "undefined") {
+    const local = String(window.localStorage.getItem(LANGUAGE_STORAGE_KEY) ?? "").toLowerCase();
+    if (isSupportedLanguage(local)) return local;
+  }
+
   return "en";
+}
+
+function normalizeAdminCopyToEnglish(input: string | undefined): string | undefined {
+  if (!input) return input;
+  const map: Array<[RegExp, string]> = [
+    [/Ac[aã]o necess[aá]ria: revisar etapa/gi, "Action required: review step"],
+    [/O cliente concluiu a etapa "(.+)" de (.+) e aguarda sua revis[aã]o\./gi, 'Client completed step "$1" in $2 and is waiting for your review.'],
+    [/O cliente concluiu uma etapa de (.+) e aguarda sua revis[aã]o\./gi, "Client completed a step in $1 and is waiting for your review."],
+    [/COS: novo I-20 recebido/gi, "COS: new I-20 received"],
+    [/COS: comprovante SEVIS recebido/gi, "COS: SEVIS receipt received"],
+    [/COS: cover letter respondida/gi, "COS: cover letter completed"],
+    [/COS: formulario I-539 gerado/gi, "COS: I-539 form generated"],
+    [/COS: carta de RFE recebida/gi, "COS: RFE letter received"],
+    [/COS: descricao de RFE enviada/gi, "COS: RFE description submitted"],
+    [/COS: justificativa de motion enviada/gi, "COS: motion reason submitted"],
+    [/COS: carta de negativa recebida/gi, "COS: denial letter received"],
+    [/COS: documentos de apoio enviados/gi, "COS: supporting docs uploaded"],
+    [/COS: resultado USCIS informado/gi, "COS: USCIS result reported"],
+    [/COS: workflow de Motion iniciado/gi, "COS: Motion workflow started"],
+    [/COS: workflow de RFE iniciado/gi, "COS: RFE workflow started"],
+    [/COS: resultado de Motion informado/gi, "COS: Motion result reported"],
+    [/COS: resultado de RFE informado/gi, "COS: RFE result reported"],
+    [/enviou o documento I-20 para analise no processo/gi, "uploaded the I-20 document for review in process"],
+    [/anexou o comprovante da taxa SEVIS para conferencia no processo/gi, "uploaded the SEVIS fee receipt for verification in process"],
+    [/concluiu o questionario da cover letter no processo/gi, "completed the cover letter questionnaire in process"],
+    [/concluiu o preenchimento e gerou o PDF do I-539 no processo/gi, "completed and generated the I-539 PDF in process"],
+    [/submeteu a carta de RFE no processo/gi, "submitted the RFE letter in process"],
+    [/descreveu os requisitos da RFE no processo/gi, "submitted the RFE requirements description in process"],
+    [/enviou a justificativa para o motion no processo/gi, "submitted the motion reason in process"],
+    [/submeteu a carta de negativa para iniciar o motion no processo/gi, "submitted the denial letter to start motion in process"],
+    [/anexou documentos de apoio para o motion no processo/gi, "uploaded supporting motion documents in process"],
+    [/informou um novo resultado do USCIS no processo/gi, "reported a new USCIS result in process"],
+    [/informou o resultado do Motion no processo/gi, "reported the Motion result in process"],
+    [/informou o resultado da RFE no processo/gi, "reported the RFE result in process"],
+  ];
+
+  let result = input;
+  for (const [pattern, replacement] of map) {
+    result = result.replace(pattern, replacement);
+  }
+  return result;
+}
+
+function localizeClientFreeformContent(
+  lang: NotifLang,
+  title: string,
+  message: string,
+): { title: string; message: string } {
+  const normalizedTitle = title.trim().toLowerCase();
+  const normalizedMessage = message.trim().toLowerCase();
+  const isReviewTitle = normalizedTitle === "estamos revisando!" || normalizedTitle === "we are reviewing!";
+  const isReviewMessage =
+    normalizedMessage.includes("sua etapa foi enviada com sucesso") ||
+    normalizedMessage.includes("your step was submitted successfully");
+
+  if (!isReviewTitle && !isReviewMessage) {
+    return { title, message };
+  }
+
+  if (lang === "pt") {
+    return {
+      title: "Estamos Revisando!",
+      message: "Sua etapa foi enviada com sucesso para nossa equipe de análise. Aguarde a validação.",
+    };
+  }
+
+  if (lang === "es") {
+    return {
+      title: "Estamos Revisando!",
+      message: "Tu etapa se envió correctamente para nuestro equipo de análisis. Espera la validación.",
+    };
+  }
+
+  return {
+    title: "We are reviewing!",
+    message: "Your step was submitted successfully to our review team. Please wait for validation.",
+  };
 }
 
 function isSilentError(e: unknown): boolean {
@@ -101,14 +205,16 @@ async function createAdminNotificationsForUsers(
   userIds: string[],
   params: NotifyAdminParams,
 ): Promise<void> {
+  const title = normalizeAdminCopyToEnglish(params.title) ?? params.title;
+  const body = normalizeAdminCopyToEnglish(params.body);
   // Use allSettled to ensure one failure doesn't block others
   await Promise.allSettled(userIds.map((id) => insertNotification({
     type: "admin_action",
     target_role: "admin",
     user_id: id,
     service_id: params.serviceId || null,
-    title: params.title,
-    message: params.body || null,
+    title,
+    message: body || null,
     link: params.link ?? null,
     email_sent: false,
     send_email: false,
@@ -118,6 +224,8 @@ async function createAdminNotificationsForUsers(
 
 export async function notifyAdmin(params: NotifyAdminParams): Promise<void> {
   try {
+    const title = normalizeAdminCopyToEnglish(params.title) ?? params.title;
+    const body = normalizeAdminCopyToEnglish(params.body);
     if (params.userId) {
       const actor = await getUserAccountLite(params.userId);
 
@@ -135,8 +243,8 @@ export async function notifyAdmin(params: NotifyAdminParams): Promise<void> {
       target_role: "admin",
       user_id: params.userId || null,
       service_id: params.serviceId || null,
-      title: params.title,
-      message: params.body || null,
+      title,
+      message: body || null,
       link: params.link ?? null,
       email_sent: false,
       send_email: false,
@@ -184,13 +292,18 @@ export async function notifyAdminLawyersByOffice(
 export async function notifyClient(params: NotifyClientParams): Promise<void> {
   try {
     const lang = params.userId ? await getUserLang(params.userId) : "en";
-    const { title, message } = params.template
+    const templated = params.template
       ? buildNotifContent(
           params.template,
           { ...(params.templateData ?? {}), title: params.title ?? "", body: params.body ?? "" },
           lang,
         )
       : { title: params.title ?? "", message: params.body ?? "" };
+    const { title, message } = localizeClientFreeformContent(
+      lang,
+      templated.title,
+      templated.message,
+    );
 
     await insertNotification({
       type: "client_action",

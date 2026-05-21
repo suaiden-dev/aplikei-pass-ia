@@ -37,6 +37,7 @@ import { useT } from "@app/app/i18n";
 import { normalizeLegacyFinalShipStep } from "@shared/utils/legacyWorkflow";
 import type { RFEOutcome } from "@shared/types/process.model";
 import { getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
+import { compressImageForUpload } from "@shared/utils/uploadCompression";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -388,7 +389,7 @@ function RFEHistoryPanel({ proc }: { proc: UserService }) {
   if (history.length === 0) return null;
 
   return (
-    <div className="max-w-2xl mx-auto mb-10">
+    <div className="max-w-2xl mx-auto mb-10" data-testid="rfe-history-panel">
       <div className="flex items-center gap-2 mb-4 px-1">
         <RiHistoryLine className="text-slate-400" />
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">{t?.workflows?.rfe?.history?.title?.replace("{count}", String(history.length)) || `Histórico (${history.length})`}</h3>
@@ -396,7 +397,7 @@ function RFEHistoryPanel({ proc }: { proc: UserService }) {
       
       <div className="grid grid-cols-1 gap-3">
         {history.map((hist, idx) => (
-          <div key={idx} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div key={idx} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-testid="rfe-history-item">
             <div className="flex items-center gap-4">
               <div className={cn(
                 "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
@@ -417,7 +418,7 @@ function RFEHistoryPanel({ proc }: { proc: UserService }) {
                     {hist.result === "approved" ? t?.workflows?.rfe?.history?.statusApproved : hist.result === "rfe" ? t?.workflows?.rfe?.history?.statusRfe : t?.workflows?.rfe?.history?.statusDenied}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium line-clamp-1 italic">"{hist.proposal_text}"</p>
+                <p className="text-xs text-slate-500 font-medium line-clamp-1 italic" data-testid="rfe-history-proposal">"{hist.proposal_text}"</p>
               </div>
             </div>
             
@@ -569,10 +570,11 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
   const handleFileUpload = async (file: File) => {
     try {
       toast.loading(t?.workflows?.shared?.sendingFile || "Sending...", { id: "u" });
-      const fileExt = file.name.split(".").pop();
+      const fileToUpload = await compressImageForUpload(file);
+      const fileExt = fileToUpload.name.split(".").pop();
       const filePath = `${proc.user_id}/rfe/rfe_letter_${crypto.randomUUID()}.${fileExt}`;
       
-      const { error: uploadError } = await supabase.storage.from("aplikei-profiles").upload(filePath, file);
+      const { error: uploadError } = await supabase.storage.from("aplikei-profiles").upload(filePath, fileToUpload);
       if (uploadError) throw uploadError;
 
       const currentDocs = (data.docs as Record<string, string>) || {};
@@ -671,10 +673,27 @@ export function RFEAcceptProposalStep({ proc }: StepProps) {
   const data = (proc.step_data as any || {}) as Record<string, unknown>;
   const [showCheckout, setShowCheckout] = useState(false);
   const proposalSlug = getRFEProposalSlug(proc.service_slug);
+  const latestHistory = Array.isArray(data.rfe_history)
+    ? (data.rfe_history as Array<Record<string, unknown>>).at(-1)
+    : null
+  const proposalText =
+    (data.rfe_proposal_text as string) ||
+    (data.motion_proposal_text as string) ||
+    (latestHistory?.proposal_text as string) ||
+    ''
+  const proposalAmount =
+    Number(
+      data.rfe_proposal_amount ??
+      data.motion_amount ??
+      data.motion_proposal_amount ??
+      latestHistory?.proposal_amount ??
+      0,
+    ) || 0
+  const canProceed = proposalText.trim().length > 0 && proposalAmount > 0
 
 
   return (
-    <div className="max-w-2xl mx-auto space-y-10 py-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+    <div className="max-w-2xl mx-auto space-y-10 py-6 animate-in fade-in slide-in-from-bottom-4 duration-1000" data-testid="rfe-proposal-step">
       <div className="text-center">
          <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-6">
             <RiShieldCheckLine className="text-3xl" />
@@ -686,15 +705,15 @@ export function RFEAcceptProposalStep({ proc }: StepProps) {
       <div className="bg-white border border-slate-100 rounded-[40px] p-10 shadow-sm">
         <div className="bg-slate-50 rounded-3xl p-8 mb-8 border border-slate-100/50">
            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{t?.workflows?.shared?.actionPlan}</h4>
-           <p className="text-sm text-slate-600 leading-relaxed italic whitespace-pre-wrap">
-              "{ (data.rfe_proposal_text as string) || t?.workflows?.shared?.waitingAnalysis}"
+           <p className="text-sm text-slate-600 leading-relaxed italic whitespace-pre-wrap" data-testid="rfe-proposal-text">
+              "{proposalText || t?.workflows?.shared?.waitingAnalysis}"
            </p>
         </div>
 
         <div className="grid grid-cols-2 gap-6 mb-10">
            <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100/50">
               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t?.workflows?.shared?.serviceCost}</span>
-              <span className="text-2xl font-black text-primary">${Number(data.rfe_proposal_amount || 0).toFixed(2)}</span>
+              <span className="text-2xl font-black text-primary" data-testid="rfe-proposal-amount">${proposalAmount.toFixed(2)}</span>
            </div>
            <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100/50">
               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Status</span>
@@ -702,9 +721,10 @@ export function RFEAcceptProposalStep({ proc }: StepProps) {
            </div>
         </div>
 
-        <button 
+        <button
+          data-testid="rfe-proposal-accept-btn"
           onClick={() => setShowCheckout(true)}
-          disabled={!(data.rfe_proposal_text as string)}
+          disabled={!canProceed}
           className="w-full bg-primary hover:bg-primary-hover text-white h-16 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
         >
           <RiCheckLine className="text-2xl" /> {t?.workflows?.shared?.acceptBtn}
@@ -713,7 +733,7 @@ export function RFEAcceptProposalStep({ proc }: StepProps) {
 
       {showCheckout && (
         <RFECheckoutOverlay 
-          amount={Number(data.rfe_proposal_amount || 0)} 
+          amount={proposalAmount} 
           slug={proposalSlug}
           proc={proc} 
           paymentStage="proposal"
@@ -756,6 +776,7 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
       };
 
       const updatedHistory = [...history, newHistoryItem];
+      const cycleNumber = history.length + 1
 
       // 2. Prepare update data
       const updateData: Record<string, unknown> = {
@@ -771,6 +792,12 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
       if (outcome === 'approved') {
         await processService.updateStepData(proc.id, updateData);
         await processService.updateProcessStatus(proc.id, 'completed');
+        await processService.ensureChatThread(
+          proc.id,
+          proc.user_id,
+          `RFE ciclo #${cycleNumber} finalizado com status: APPROVED.`,
+          true,
+        );
         toast.success(t?.toasts?.finishSuccess || "Finished");
         onComplete?.();
       } else if (outcome === 'rfe') {
@@ -780,6 +807,12 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
           current_step: 13, // Step 13 is RFE Explanation
           uscis_official_result: 'rfe' 
         });
+        await processService.ensureChatThread(
+          proc.id,
+          proc.user_id,
+          `RFE ciclo #${cycleNumber} finalizado com status: RFE.`,
+          true,
+        );
         toast.success(t?.toasts?.resetRfe || "Reset RFE");
         onJumpToNewRFE?.();
       } else if (outcome === 'denied') {
@@ -789,6 +822,12 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
           uscis_official_result: 'denied',
           current_step: 19 // Step 19 is Motion Explanation
         });
+        await processService.ensureChatThread(
+          proc.id,
+          proc.user_id,
+          `RFE ciclo #${cycleNumber} finalizado com status: DENIED.`,
+          true,
+        );
         toast.error(t?.toasts?.deniedMotion || "Denied");
         onJumpToMotion?.();
       }

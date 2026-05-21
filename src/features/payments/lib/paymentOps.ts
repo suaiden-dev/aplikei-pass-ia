@@ -3,6 +3,7 @@ import { notifyAdmin } from "@features/notifications/services/notify";
 import { ZELLE_RECIPIENT } from "@shared/zelle";
 import { toast } from "sonner";
 import { getCanonicalSlug, getServiceBySlug, getServiceSlugs } from "@shared/data/services";
+import { compressImageForUpload } from "@shared/utils/uploadCompression";
 
 export type StripePaymentMethod = "card" | "pix";
 
@@ -272,12 +273,13 @@ export async function createParcelowCheckout(
 }
 
 export async function uploadZelleProof(file: File, slug: string): Promise<string> {
-  const ext = file.name.split(".").pop() ?? "jpg";
+  const fileToUpload = await compressImageForUpload(file);
+  const ext = fileToUpload.name.split(".").pop() ?? "jpg";
   const path = `${slug}/${Date.now()}_proof.${ext}`;
 
   const { error } = await supabase.storage
     .from(ZELLE_BUCKET)
-    .upload(path, file, { contentType: file.type, upsert: false });
+    .upload(path, fileToUpload, { contentType: fileToUpload.type, upsert: false });
 
   if (error) throw new Error(`Erro ao enviar comprovante: ${error.message}`);
   return path;
@@ -382,8 +384,8 @@ export async function createZellePayment(params: {
     } else {
       autoApproved = false;
       await notifyAdmin({
-        title: "Zelle: Verificação Automática Falhou",
-        body: `O pagamento ${paymentId} ($${params.amount}) não passou na conferência automática do robô. Motivo: ${botData.response}. Uma análise manual é necessária.`,
+        title: "Zelle: automatic verification failed",
+        body: `Payment ${paymentId} ($${params.amount}) did not pass automatic bot verification. Reason: ${botData.response}. Manual review is required.`,
         userId: params.userId || undefined,
         metadata: { payment_id: paymentId, bot_response: botData.response },
       });
@@ -396,8 +398,8 @@ export async function createZellePayment(params: {
     autoApproved = false;
     console.warn("[paymentOps] Bot timeout:", (botErr as Error).message);
     await notifyAdmin({
-      title: "Erro Técnico: Robô Zelle Offline",
-      body: `Não foi possível contatar o robô de verificação para o pagamento ${paymentId}. O sistema seguirá para conferência manual.`,
+      title: "Technical error: Zelle bot offline",
+      body: `Could not contact verification bot for payment ${paymentId}. System will proceed with manual review.`,
       userId: params.userId || undefined,
     });
     toast.info(

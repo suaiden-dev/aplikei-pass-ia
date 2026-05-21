@@ -133,8 +133,8 @@ export function B1B2UserReviewSignStep({
       await processService.requestStepReview(procId);
 
       await notificationService.notifyAdmin({
-        title: "DS-160 Assinada e Revisada",
-        body: "O cliente concluiu a revisão e anexou os comprovantes de assinatura da DS-160.",
+        title: "DS-160 signed and reviewed",
+        body: "Client completed review and uploaded DS-160 signature confirmation documents.",
         serviceId: procId,
         userId,
         link: `/master/processes/${procId}`,

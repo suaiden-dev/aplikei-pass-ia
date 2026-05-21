@@ -95,10 +95,10 @@ export function useProcessDetail(userId: string | undefined) {
       const currentTitle = serviceMeta?.steps[proc.current_step ?? 0]?.title ?? "";
 
       await notifyAdmin({
-        title: "Acao necessaria: revisar etapa",
+        title: "Action required: review step",
         body: currentTitle
-          ? `O cliente concluiu a etapa "${currentTitle}" de ${serviceMeta?.title ?? proc.service_slug} e aguarda sua revisao.`
-          : `O cliente concluiu uma etapa de ${serviceMeta?.title ?? proc.service_slug} e aguarda sua revisao.`,
+          ? `Client completed step "${currentTitle}" in ${serviceMeta?.title ?? proc.service_slug} and is waiting for your review.`
+          : `Client completed a step in ${serviceMeta?.title ?? proc.service_slug} and is waiting for your review.`,
         serviceId: proc.id,
         userId: proc.user_id ?? undefined,
         link: `/master/processes/${proc.id}`,
@@ -107,8 +107,8 @@ export function useProcessDetail(userId: string | undefined) {
       await notifyClient({
         userId: proc.user_id ?? undefined,
         template: "admin_message",
-        title: "Estamos Revisando!",
-        body: "Sua etapa foi enviada com sucesso para nossa equipe de análise. Aguarde a validação.",
+        title: "We are reviewing!",
+        body: "Your step was submitted successfully to our review team. Please wait for validation.",
         serviceId: proc.id,
         link: `/dashboard/processes/${proc.service_slug}`,
       });

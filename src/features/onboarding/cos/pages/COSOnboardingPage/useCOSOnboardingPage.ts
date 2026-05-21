@@ -17,10 +17,10 @@ import * as workflowOps from "@features/workflow/services/workflowOps";
 import type { UserProductInstance, UserStep, StepReview } from "@features/workflow/types";
 import type { UserService } from "@features/process/types";
 import type { USCISOutcome, MotionOutcome, RFEOutcome } from '@shared/types/process.model'
-import * as processService from "@features/process/services/processOps";
 import { cosNotificationService } from "@features/onboarding/cos/lib/cos-notifications";
 import type { DocFile } from '@shared/components/molecules/DocUploadCard'
-import { MOTION_STEPS_TEMPLATE } from "@shared/data/workflowTemplates";
+import { COS_MOTION_END_STEP } from '@shared/data/cosWorkflow'
+import { compressImageForUpload } from '@shared/utils/uploadCompression'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,11 +40,6 @@ function deriveCurrentStepIdx(steps: UserStep[]): number {
     (s) => !['approved', 'skipped', 'completed', 'in_review'].includes(s.status),
   )
   return idx === -1 ? Math.max(0, steps.length - 1) : idx
-}
-
-function normalizeCosWorkflowSteps(slug: string, steps: UserStep[]): UserStep[] {
-  if (slug !== 'troca-status' && slug !== 'visa-cos') return steps
-  return steps.slice(0, 12)
 }
 
 function shouldFallbackStorageUpload(error: unknown): boolean {
@@ -160,7 +155,7 @@ export function useCOSOnboardingPage() {
       const inst = await workflowOps.getOrCreateInstance(user.id, productId)
       setInstance(inst)
 
-      const userSteps = normalizeCosWorkflowSteps(slug, await workflowOps.getSteps(inst.id))
+      const userSteps = await workflowOps.getSteps(inst.id)
       setSteps(userSteps)
 
       const allReviews = (await Promise.all(userSteps.map((s) => workflowOps.getReviews(s.id)))).flat()
@@ -199,7 +194,6 @@ export function useCOSOnboardingPage() {
     } finally {
       setIsLoading(false)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, slug, t])
 
   useEffect(() => { void loadWorkflow() }, [loadWorkflow])
@@ -224,7 +218,7 @@ export function useCOSOnboardingPage() {
   const motionReportedResult = String((proc?.step_data as any)?.motion_final_result   ?? '').toLowerCase()
   const isMotionContext    = uscisResult === 'denied' || uscisResult === 'rejected' || rfeResult === 'denied' || stepIdx >= 19
   const isRFEContext       = !isMotionContext && (uscisResult === 'rfe' || rfeResult === 'rfe' || (stepIdx >= 13 && stepIdx <= 18))
-  const isMotionResultStep = stepIdx === 23 || stepIdx === 24
+  const isMotionResultStep = stepIdx === COS_MOTION_END_STEP
 
   // ── Dependents ────────────────────────────────────────────────────────────
   const addDependent    = useCallback(() => setDependents((p) => [...p, { id: crypto.randomUUID(), name: '', relation: '', birthDate: '', marriageDate: '', i94Date: '' }]), [])
@@ -271,12 +265,13 @@ export function useCOSOnboardingPage() {
         for (const slot of slots) {
           const doc = docs[slot.key]
           if (doc?.file) {
-            const ext  = doc.file.name.split('.').pop()
+            const fileToUpload = await compressImageForUpload(doc.file)
+            const ext  = fileToUpload.name.split('.').pop()
             const path = `${user!.id}/cos/${instance.id}/${slot.key}.${ext}`
 
             if (storage) {
               try {
-                const { error } = await storage.upload(path, doc.file, { upsert: true })
+                const { error } = await storage.upload(path, fileToUpload, { upsert: true })
                 if (error) throw new Error(`Upload ${slot.key}: ${error.message}`)
                 refs.push({ name: slot.key, path, url: storage.getPublicUrl(path).data.publicUrl })
                 continue
@@ -288,7 +283,7 @@ export function useCOSOnboardingPage() {
               }
             }
 
-            refs.push(buildMockFileRef(instance.id, slot.key, doc.file))
+            refs.push(buildMockFileRef(instance.id, slot.key, fileToUpload))
           } else if (doc?.path) {
             refs.push({
               name: slot.key,
@@ -317,7 +312,7 @@ export function useCOSOnboardingPage() {
         await workflowOps.completeStep(currentUserStep.id)
       }
 
-      const nextSteps = normalizeCosWorkflowSteps(slug, await workflowOps.getSteps(instance.id))
+      const nextSteps = await workflowOps.getSteps(instance.id)
 
       setSteps(nextSteps)
 
@@ -383,51 +378,34 @@ export function useCOSOnboardingPage() {
     result: USCISOutcome,
     opts: { jumpToStep: (n: number) => void }
   ) => {
-    if (!proc) return
+    if (!proc || !instance) return
     const now = new Date().toISOString()
 
-    await processService.updateStepData(proc.id, {
-      uscis_official_result: result,
-      uscis_reported_at: now,
-    })
+    const currentStep = steps[stepIdx]
+    if (currentStep) {
+      await workflowOps.saveDraft(currentStep.id, {
+        uscis_official_result: result,
+        uscis_reported_at: now,
+      })
+    }
 
     await cosNotificationService.notifyAdmin({
       event: 'uscis_result_reported',
-      processId: proc.id,
+      processId: instance.id,
       userId: proc.user_id,
       metadata: { result },
     })
 
     if (result === 'approved') {
-      await workflowOps.updateInstanceOutcome(proc.id, { type: 'uscis', result: 'approved' })
+      await workflowOps.updateInstanceOutcome(instance.id, { type: 'uscis', result: 'approved' })
       return
     }
 
     if (result === 'denied') {
-      await processService.updateNegativa(proc.id, {
-        negative: {
-          created_at: now,
-          source: 'uscis_official_result',
-          status: 'pending',
-          steps: MOTION_STEPS_TEMPLATE.map((step, index) => ({
-            order: index + 1,
-            id: step.id,
-            title: step.title,
-            description: step.description,
-            type: step.type,
-            status: 'pending',
-          })),
-          payment: {
-            initial: false,
-            proposal: false,
-            proposal_amount: 0,
-          },
-        },
-      })
-      await processService.startAdditionalWorkflow(proc.id, 'motion')
+      await workflowOps.updateInstanceOutcome(instance.id, { type: 'uscis', result: 'denied' })
       await cosNotificationService.notifyAdmin({
         event: 'motion_started',
-        processId: proc.id,
+        processId: instance.id,
         userId: proc.user_id,
       })
       opts.jumpToStep(19)
@@ -435,103 +413,76 @@ export function useCOSOnboardingPage() {
     }
 
     if (result === 'rfe') {
-      await processService.startAdditionalWorkflow(proc.id, 'rfe')
       await cosNotificationService.notifyAdmin({
         event: 'rfe_started',
-        processId: proc.id,
+        processId: instance.id,
         userId: proc.user_id,
       })
       opts.jumpToStep(13)
     }
-  }, [proc])
+  }, [proc, instance, stepIdx, steps])
 
   const handleMotionResult = useCallback(async (result: MotionOutcome) => {
-    if (!proc) return
-    await processService.updateStepData(proc.id, {
-      motion_final_result: result,
-      workflow_status: result,
-      motion_result_reported_at: new Date().toISOString(),
-      motion_result_reported_by: 'customer',
-    })
-    await processService.updateProcessStatus(proc.id, 'completed')
-    await workflowOps.updateInstanceOutcome(proc.id, { type: 'motion', result })
+    if (!proc || !instance) return
+    const currentStep = steps[stepIdx]
+    if (currentStep) {
+      await workflowOps.saveDraft(currentStep.id, {
+        motion_final_result: result,
+        workflow_status: result,
+        motion_result_reported_at: new Date().toISOString(),
+        motion_result_reported_by: 'customer',
+      })
+    }
+    await workflowOps.updateInstanceOutcome(instance.id, { type: 'motion', result })
     await cosNotificationService.notifyAdmin({
       event: 'motion_result_reported',
-      processId: proc.id,
+      processId: instance.id,
       userId: proc.user_id,
       metadata: { result },
     })
     await loadWorkflow()
-  }, [proc, loadWorkflow])
+  }, [proc, instance, steps, stepIdx, loadWorkflow])
 
   const handleRFEResult = useCallback(async (
     result: RFEOutcome,
     opts: { jumpToStep: (n: number) => void }
   ) => {
-    if (!proc) return
-    const data = (proc.step_data || {}) as Record<string, unknown>
-    const history = (data.rfe_history as object[]) || []
-
-    // 1. Salvar histórico do ciclo atual
-    const currentDocs = (data.docs as Record<string, string>) || {}
-    const newHistoryItem = {
-      proposal_text: data.rfe_proposal_text,
-      proposal_amount: Number(data.rfe_proposal_amount) || 0,
-      result,
-      rfe_letter: currentDocs.rfe_letter,
-      rfe_final_package: currentDocs.rfe_final_package,
-      sent_at: (data.rfe_proposal_sent_at as string) || new Date().toISOString(),
-    }
-
-    // 2. Resetar campos do ciclo
-    const { rfe_letter: _l, rfe_final_package: _p, ...remainingDocs } = currentDocs
-    const resetData: Record<string, unknown> = {
-      rfe_history: [...history, newHistoryItem],
-      rfe_proposal_text: null,
-      rfe_proposal_amount: null,
-      rfe_proposal_sent_at: null,
-      rfe_description: null,
-      uscis_rfe_result: result,
+    if (!proc || !instance) return
+    const currentStep = steps[stepIdx]
+    if (currentStep) {
+      await workflowOps.saveDraft(currentStep.id, {
+        uscis_rfe_result: result,
+        rfe_reported_at: new Date().toISOString(),
+      })
     }
 
     await cosNotificationService.notifyAdmin({
       event: 'rfe_result_reported',
-      processId: proc.id,
+      processId: instance.id,
       userId: proc.user_id,
       metadata: { result },
     })
 
     if (result === 'approved') {
-      await processService.updateStepData(proc.id, resetData)
-      await processService.updateProcessStatus(proc.id, 'completed')
-      await workflowOps.updateInstanceOutcome(proc.id, { type: 'rfe', result: 'approved' })
+      await workflowOps.updateInstanceOutcome(instance.id, { type: 'rfe', result: 'approved' })
       return
     }
 
     if (result === 'rfe') {
-      await processService.updateStepData(proc.id, {
-        ...resetData,
-        docs: remainingDocs,
-        uscis_official_result: 'rfe',
-      })
       opts.jumpToStep(13)
       return
     }
 
     if (result === 'denied') {
-      await processService.updateStepData(proc.id, {
-        ...resetData,
-        uscis_official_result: 'denied',
-      })
-      await processService.startAdditionalWorkflow(proc.id, 'motion')
+      await workflowOps.updateInstanceOutcome(instance.id, { type: 'rfe', result: 'denied' })
       await cosNotificationService.notifyAdmin({
         event: 'motion_started',
-        processId: proc.id,
+        processId: instance.id,
         userId: proc.user_id,
       })
       opts.jumpToStep(19)
     }
-  }, [proc])
+  }, [proc, instance, steps, stepIdx])
 
   return {
     t, user, slug, stepIdx,

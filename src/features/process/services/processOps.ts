@@ -12,7 +12,6 @@ import {
   COS_MOTION_END_STEP,
   COS_MOTION_INSTRUCTION_STEP,
   COS_MOTION_PROPOSAL_STEP,
-  COS_MOTION_RESULT_STEP,
   getCosRecoveryTemplate,
   isCosServiceSlug,
 } from "@shared/data/cosWorkflow";
@@ -86,7 +85,7 @@ const COS_RECOVERY_STEPS = {
   motionProposal: COS_MOTION_PROPOSAL_STEP,
   motionAcceptProposal: COS_MOTION_ACCEPT_PROPOSAL_STEP,
   motionEnd: COS_MOTION_END_STEP,
-  motionResult: COS_MOTION_RESULT_STEP,
+  motionResult: COS_MOTION_END_STEP,
 };
 
 function hasPurchase(stepData: Record<string, unknown>, slugs: string[]): boolean {
@@ -352,10 +351,10 @@ export async function requestStepReview(serviceId: string): Promise<void> {
 
   const { serviceName, currentTitle } = getStepTitles(service.service_slug, service.current_step);
   await notifyAdmin({
-    title: "Acao necessaria: revisar etapa",
+    title: "Action required: review step",
     body: currentTitle
-      ? `O cliente concluiu a etapa "${currentTitle}" de ${serviceName} e aguarda sua revisao.`
-      : `O cliente concluiu uma etapa de ${serviceName} e aguarda sua revisao.`,
+      ? `Client completed step "${currentTitle}" in ${serviceName} and is waiting for your review.`
+      : `Client completed a step in ${serviceName} and is waiting for your review.`,
     serviceId,
     userId: service.user_id ?? undefined,
     link: `/master/processes/${serviceId}`,
@@ -364,8 +363,8 @@ export async function requestStepReview(serviceId: string): Promise<void> {
   await notifyClient({
     userId: service.user_id ?? undefined,
     template: "admin_message",
-    title: "Estamos Revisando!",
-    body: "Sua etapa foi enviada com sucesso para nossa equipe de análise. Aguarde a validação.",
+    title: "We are reviewing!",
+    body: "Your step was submitted successfully to our review team. Please wait for validation.",
     serviceId,
     link: getProcessLink(service.service_slug),
   });

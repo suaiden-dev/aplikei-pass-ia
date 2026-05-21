@@ -124,8 +124,8 @@ export function useB1B2Onboarding({
           await approveStep(procId, 1, false);
           await requestStepReview(procId);
           await notifyAdmin({
-            title: "DS-160 Preenchida",
-            body: `O cliente finalizou a DS-160 para ${slug}.`,
+            title: "DS-160 completed",
+            body: `Client completed the DS-160 for ${slug}.`,
             serviceId: procId,
             userId,
             link: `/admin/processes/${procId}`,
@@ -148,8 +148,8 @@ export function useB1B2Onboarding({
         await requestStepReview(procId);
 
         await notifyAdmin({
-          title: "DS-160 Preenchida",
-          body: `O cliente finalizou a DS-160 para ${slug}.`,
+          title: "DS-160 completed",
+          body: `Client completed the DS-160 for ${slug}.`,
           serviceId: procId,
           userId,
           link: `/master/processes/${procId}`,

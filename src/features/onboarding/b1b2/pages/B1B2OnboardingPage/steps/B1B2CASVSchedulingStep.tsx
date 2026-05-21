@@ -80,8 +80,8 @@ export function B1B2CASVSchedulingStep({ procId, stepData, nextStepIdx = 6, onCo
       
       // Notifica Admin
       await notificationService.notifyAdmin({
-        title: "📅 Preferência de Agendamento",
-        body: `O cliente enviou a data preferencial para o agendamento CASV.`,
+        title: "CASV scheduling preference submitted",
+        body: "Client submitted preferred date for CASV scheduling.",
         serviceId: procId,
         link: `/master/processes/${procId}`,
       });

@@ -251,7 +251,7 @@ export function COSStepContent({
       return <RFEInstructionStep proc={proc} onComplete={onComplete} />
     }
 
-    if (isStep('cos_rfe_accept_proposal') && proc) {
+    if (isStep('cos_rfe_accept_proposal', 'cos_rfe_proposal') && proc) {
       return <RFEAcceptProposalStep proc={proc} />
     }
 
@@ -281,7 +281,7 @@ export function COSStepContent({
       return <MotionInstructionStep proc={proc} user={user} onComplete={onComplete} />
     }
 
-    if (isStep('cos_motion_accept_proposal') && proc) {
+    if (isStep('cos_motion_accept_proposal', 'cos_motion_proposal') && proc) {
       return <MotionAcceptProposalStep proc={proc} user={user} onComplete={onComplete} />
     }
 
