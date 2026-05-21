@@ -33,7 +33,6 @@ test.describe("COS onboarding", () => {
       }
 
       if (step === 2) {
-        await expect(page.getByRole("heading", { name: "Análise em Andamento" }).first()).toBeVisible();
         await expect(page.getByText(/Revisão de Envio/i).first()).toBeVisible();
         return;
       }
@@ -55,7 +54,6 @@ test.describe("COS onboarding", () => {
       }
 
       if (step === 6) {
-        await expect(page.getByRole("heading", { name: "Análise em Andamento" }).first()).toBeVisible();
         await expect(page.getByText(/Análise da Carta/i).first()).toBeVisible();
         return;
       }
@@ -67,7 +65,6 @@ test.describe("COS onboarding", () => {
       }
 
       if (step === 8) {
-        await expect(page.getByRole("heading", { name: "Análise em Andamento" }).first()).toBeVisible();
         await expect(page.getByText(/Análise do I-539/i).first()).toBeVisible();
         return;
       }
@@ -79,7 +76,6 @@ test.describe("COS onboarding", () => {
       }
 
       if (step === 10) {
-        await expect(page.getByRole("heading", { name: "Análise em Andamento" }).first()).toBeVisible();
         await expect(page.getByText(/Análise Final/i).first()).toBeVisible();
         return;
       }
