@@ -152,4 +152,88 @@ test.describe("F1 onboarding", () => {
 
     await expect(page.getByRole("heading", { name: "Aguardando Agendamento F-1" })).toBeVisible();
   });
+
+  test("covers all onboarding steps from 0 to 11", async ({ page }) => {
+    const processSlug = "visto-f1";
+    const basePath = `/dashboard/processes/${processSlug}/onboarding`;
+
+    const assertStep = async (step: number) => {
+      await mockF1Supabase(page, {
+        slug: processSlug,
+        currentStep: step,
+        stepData: {
+          homeCountry: "Brasil",
+          securityExceptions: "nao",
+          interviewLocation: "São Paulo",
+          ds160_application_id: "AA00123456",
+          ds160_security_answer: "SILVA",
+          ds160_birth_date: "1990",
+        },
+      });
+
+      await page.goto(`${basePath}?step=${step}`);
+
+      if (step === 0 || step === 4) {
+        await expect(page.getByRole("heading", { name: "Formulário DS-160" })).toBeVisible();
+        return;
+      }
+
+      if (step === 1) {
+        await expect(page.getByText("Upload do I-20")).toBeVisible();
+        return;
+      }
+
+      if (step === 2) {
+        await expect(page.getByText(/Revisando Documentos/i).first()).toBeVisible();
+        return;
+      }
+
+      if (step === 3) {
+        await expect(page.getByText("Assinatura da DS-160")).toBeVisible();
+        return;
+      }
+
+      if (step === 5) {
+        await expect(
+          page.getByText("Nossos especialistas estão revisando suas informações e preparando o formulário DS-160 oficial."),
+        ).toBeVisible();
+        return;
+      }
+
+      if (step === 6) {
+        await expect(page.getByRole("heading", { name: "AGENDAMENTO CASV / CONSULADO" })).toBeVisible();
+        return;
+      }
+
+      if (step === 7) {
+        await expect(
+          page.getByText("UMA CONTA SERÁ CRIADA NO SITE DO CONSULADO PARA SEU VISTO F-1.").first(),
+        ).toBeVisible();
+        return;
+      }
+
+      if (step === 8) {
+        await expect(page.getByRole("heading", { name: "Confirmação de E-mail" })).toBeVisible();
+        return;
+      }
+
+      if (step === 9) {
+        await expect(page.getByRole("heading", { name: "Taxa Consular" })).toBeVisible();
+        return;
+      }
+
+      if (step === 10) {
+        await expect(page.getByRole("heading", { name: "Pagamento da Taxa MRV" })).toBeVisible();
+        return;
+      }
+
+      await expect(page.getByRole("heading", { name: "Aguardando Agendamento F-1" })).toBeVisible();
+    };
+
+    for (let step = 0; step <= 11; step += 1) {
+      await test.step(`step ${step}`, async () => {
+        await assertStep(step);
+      });
+    }
+  });
 });

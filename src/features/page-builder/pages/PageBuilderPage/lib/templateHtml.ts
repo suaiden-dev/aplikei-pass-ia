@@ -55,6 +55,14 @@ function replaceAnchorByText(html: string, text: string, href: string, label?: s
   );
 }
 
+function replaceLoginHeaderButton(html: string, href: string, label: string) {
+  const regex = /<a\s+href="[^"]*"\s+class="btn btn-outline btn-sm">[\s\S]*?<\/a>/i;
+  return html.replace(
+    regex,
+    `<a href="${escapeHtml(href)}" class="btn btn-outline btn-sm">${escapeHtml(label)}</a>`,
+  );
+}
+
 function serviceHref(config: LandingPageConfig, product: string) {
   return `/checkout?office=${encodeURIComponent(config.officeSlug)}&product=${encodeURIComponent(product)}`;
 }
@@ -108,6 +116,7 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
     `<img src="${escapeHtml(config.logoUrl)}" alt="Logo" style="height:40px;width:auto;object-fit:contain" />`,
   );
 
+  html = replaceLoginHeaderButton(html, config.loginUrl, config.loginButtonLabel);
   html = replaceAnchorByText(html, "Entrar", config.loginUrl, config.loginButtonLabel);
   html = replaceAnchorByText(html, "Quero análise do meu caso", config.primaryCtaUrl, config.primaryCtaLabel);
   html = replaceAnchorByText(html, "Falar com especialista", config.secondaryCtaUrl, config.secondaryCtaLabel);
