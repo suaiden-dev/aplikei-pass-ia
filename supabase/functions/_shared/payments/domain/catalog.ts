@@ -1,13 +1,13 @@
 export const DEPENDENT_SERVICE_MAP: Record<string, string> = {
   "visto-b1-b2": "dependente-b1-b2",
   "visa-b1b2": "dependente-b1-b2",
-  "visto-f1": "dependente-estudante",
-  "visa-f1": "dependente-estudante",
-  "visa-f1f2": "dependente-estudante",
-  "extensao-status": "dependente-estudante",
-  "visa-eos": "dependente-estudante",
-  "troca-status": "dependente-estudante",
-  "visa-cos": "dependente-estudante",
+  "visto-f1": "dependent-f1",
+  "visa-f1": "dependent-f1",
+  "visa-f1f2": "dependent-f1",
+  "extensao-status": "dependent-eos",
+  "visa-eos": "dependent-eos",
+  "troca-status": "dependent-cos",
+  "visa-cos": "dependent-cos",
 };
 
 export const SLUG_ALIASES: Record<string, string> = {
@@ -24,8 +24,12 @@ export const SLUG_ALIASES: Record<string, string> = {
 };
 
 export const FALLBACK_PRICES: Record<string, { name: string; price: number }> = {
+  "analysis-rfe-cos": { name: "COS RFE Analysis", price: 50 },
+  "analysis-rfe-eos": { name: "EOS RFE Analysis", price: 50 },
   "analise-especialista-cos": { name: "Análise de Especialista (COS)", price: 50 },
   "analise-especialista-eos": { name: "Análise de Especialista (EOS)", price: 50 },
+  "consultancy-motion-cos": { name: "Motion Consultancy (COS)", price: 500 },
+  "consultancy-motion-eos": { name: "Motion Consultancy (EOS)", price: 500 },
   "motion-reconsideracao-cos": { name: "Motion para Reconsideração (COS)", price: 150 },
   "motion-reconsideracao-eos": { name: "Motion para Reconsideração (EOS)", price: 150 },
   "rfe-support": { name: "Apoio Técnico ao RFE", price: 497 },

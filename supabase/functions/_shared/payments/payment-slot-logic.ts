@@ -40,6 +40,70 @@ function shouldForceStandaloneService(serviceSlug: string): boolean {
   );
 }
 
+const MOTION_NEGATIVE_STEP_IDS = [
+  "cos_motion_acquisition",
+  "cos_motion_instruction",
+  "cos_motion_proposal",
+  "cos_motion_accept_proposal",
+  "cos_motion_end",
+];
+
+const RFE_NEGATIVE_STEP_IDS = [
+  "cos_rfe_explanation",
+  "cos_rfe_instruction",
+  "cos_rfe_proposal",
+  "cos_rfe_accept_proposal",
+  "cos_rfe_final_ship",
+  "cos_rfe_end",
+];
+
+function buildNegativeSteps(type: "motion" | "rfe") {
+  const ids = type === "motion" ? MOTION_NEGATIVE_STEP_IDS : RFE_NEGATIVE_STEP_IDS;
+  return ids.map((id) => ({
+    id,
+    status: "pending",
+  }));
+}
+
+function buildNegativeRoot(type: "motion" | "rfe") {
+  return {
+    type,
+    steps: buildNegativeSteps(type),
+    payment: {
+      initial: false,
+      proposal: false,
+      proposal_amount: 0,
+    },
+  };
+}
+
+function buildNextNegativeState(
+  currentNegativa: Record<string, unknown>,
+  type: "motion" | "rfe",
+  paymentPatch: Record<string, unknown>,
+) {
+  const currentNegative = (currentNegativa.negative as Record<string, unknown>) || buildNegativeRoot(type);
+  const currentPayment = (currentNegative.payment as Record<string, unknown>) || {};
+
+  return {
+    ...currentNegativa,
+    negative: {
+      ...currentNegative,
+      type,
+      steps: Array.isArray(currentNegative.steps) && currentNegative.steps.length
+        ? currentNegative.steps
+        : buildNegativeSteps(type),
+      payment: {
+        initial: false,
+        proposal: false,
+        proposal_amount: 0,
+        ...currentPayment,
+        ...paymentPatch,
+      },
+    },
+  };
+}
+
 export function calculateIncrementedSlots(
   currentCount: number,
   dependentsMetadata: number,
@@ -498,7 +562,7 @@ export async function applySuccessfulPayment(data: {
 
   const { data: currentProc } = await supabase
     .from("user_services")
-    .select("step_data, service_slug, current_step")
+    .select("step_data, service_slug, current_step, negativa")
     .eq("id", targetProcId)
     .single();
 
@@ -526,9 +590,13 @@ export async function applySuccessfulPayment(data: {
   let nextStep = currentProc.current_step;
   const isCOSorEOS = mainServiceSlug === "troca-status" || mainServiceSlug === "extensao-status";
   const extraMetadata: Record<string, unknown> = {};
+  const currentNegativa = (currentProc.negativa as Record<string, unknown>) || {};
+  const negative = (currentNegativa.negative as Record<string, unknown>) || {};
+  const currentNegativePayment = (negative.payment as Record<string, unknown>) || {};
+  let nextNegativa: Record<string, unknown> = currentNegativa;
 
     if (isCOSorEOS) {
-      if (service_slug === "analise-motion") {
+      if (["analise-motion", "analysis-rfe-cos", "analysis-rfe-eos"].includes(service_slug)) {
         const history = Array.isArray(stepData.history) ? [...stepData.history] : [];
         const activeCycleIndex = typeof stepData.active_cycle_index === "number"
           ? stepData.active_cycle_index
@@ -540,8 +608,21 @@ export async function applySuccessfulPayment(data: {
         extraMetadata.workflow_status = "waitingProposal";
         extraMetadata.recover = "waitingProposal";
         extraMetadata.motion_analysis_paid = true;
-        nextStep = (currentProc.current_step ?? 0) + 1;
-      } else if (service_slug === "apoio-rfe-motion-inicio") {
+        const uscisResult = String(stepData.uscis_official_result || "").toLowerCase();
+        const rfeResult = String(stepData.uscis_rfe_result || "").toLowerCase();
+        const isMotionFlow =
+          uscisResult === "denied" ||
+          uscisResult === "rejected" ||
+          rfeResult === "denied" ||
+          rfeResult === "rejected" ||
+          (nextStep ?? 0) >= 19;
+        if (isMotionFlow) nextStep = Math.max(nextStep ?? 0, 20);
+        else if (nextStep === 13) nextStep = 14;
+        else nextStep = (currentProc.current_step ?? 0) + 1;
+        nextNegativa = buildNextNegativeState(currentNegativa, isMotionFlow ? "motion" : "rfe", {
+          initial: true,
+        });
+      } else if (["apoio-rfe-motion-inicio", "analysis-rfe-cos", "analysis-rfe-eos"].includes(service_slug)) {
         extraMetadata.motion_initial_paid = true;
         extraMetadata.rfe_initial_paid = true;
         const uscisResult = String(stepData.uscis_official_result || "").toLowerCase();
@@ -567,7 +648,10 @@ export async function applySuccessfulPayment(data: {
           };
         }
         extraMetadata.rfe_cycles = rfeCycles;
-      } else if (service_slug === "proposta-rfe-motion") {
+        nextNegativa = buildNextNegativeState(currentNegativa, isMotionFlow ? "motion" : "rfe", {
+          initial: true,
+        });
+      } else if (["proposta-rfe-motion", "consultancy-motion-cos", "consultancy-motion-eos"].includes(service_slug)) {
         const uscisResult = String(stepData.uscis_official_result || "").toLowerCase();
         const rfeResult = String(stepData.uscis_rfe_result || "").toLowerCase();
         const isMotionFlow =
@@ -581,6 +665,10 @@ export async function applySuccessfulPayment(data: {
           extraMetadata.motion_proposal_paid = true;
           extraMetadata.motion_payment_completed_at = now;
           extraMetadata.motion_amount_paid = paid_amount ?? null;
+          nextNegativa = buildNextNegativeState(currentNegativa, "motion", {
+            proposal: true,
+            proposal_amount: paid_amount ?? currentNegativePayment.proposal_amount ?? 0,
+          });
         } else {
           extraMetadata.rfe_proposal_paid = true;
           
@@ -595,6 +683,10 @@ export async function applySuccessfulPayment(data: {
             };
           }
           extraMetadata.rfe_cycles = rfeCycles;
+          nextNegativa = buildNextNegativeState(currentNegativa, "rfe", {
+            proposal: true,
+            proposal_amount: paid_amount ?? currentNegativePayment.proposal_amount ?? 0,
+          });
         }
         
         extraMetadata.workflow_status = "in_progress";
@@ -607,6 +699,11 @@ export async function applySuccessfulPayment(data: {
     .update({
       current_step: nextStep,
       office_id: officeIdToUse,
+      negativa: {
+        ...nextNegativa,
+        ...(extraMetadata.rfe_cycles !== undefined ? { rfe_cycles: extraMetadata.rfe_cycles } : {}),
+        ...(extraMetadata.history !== undefined ? { motion_history: extraMetadata.history } : {}),
+      },
       step_data: {
         ...stepData,
         ...extraMetadata,

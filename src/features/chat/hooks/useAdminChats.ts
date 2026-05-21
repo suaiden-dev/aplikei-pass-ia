@@ -206,20 +206,7 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
           service_slug,
           status,
           step_data,
-<<<<<<< HEAD
-          created_at,
-          offices:office_id (
-            name
-          ),
-          user_accounts:user_id (
-            id,
-            full_name,
-            email,
-            avatar_url
-          )
-=======
           created_at
->>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
         `);
 
       const { data: serviceRows, error: serviceError } = await servicesQuery.order("created_at", { ascending: false });
@@ -343,11 +330,6 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
           return;
         }
 
-<<<<<<< HEAD
-        const account = row.user_accounts as Record<string, unknown> | undefined;
-        const office = row.offices as Record<string, unknown> | undefined;
-        if (!account) return;
-=======
         const account = accountsById.get(String(row.user_id)) as Record<string, unknown> | undefined;
         const processOfficeId = String(row.office_id || "").trim();
         const fallbackOfficeId = fallbackOfficeByUserId.get(String(row.user_id)) || "";
@@ -369,14 +351,13 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
           return;
         }
         seenThreads.add(threadProcessId);
->>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
 
         result.push({
           processId: threadProcessId,
           userId: row.user_id as string,
           officeId: (row.office_id as string | null | undefined) ?? null,
           serviceSlug: row.service_slug as string,
-          officeName: (office?.name as string | undefined) || "Office",
+          officeName: "Office",
           chatTitle: getAnalysisChatTitle(row.service_slug as string),
           fullName: (account?.full_name as string | undefined) || "Sem Nome",
           email: (account?.email as string | undefined) || "",

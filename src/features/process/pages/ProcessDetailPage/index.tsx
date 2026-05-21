@@ -19,6 +19,11 @@ import { useAuth } from "@shared/hooks/useAuth";
 import { calculateProcessProgress } from "@features/process/utils";
 import * as processService from "@features/process/services/processOps";
 import { getServiceBySlug, isSameService, getServiceSlugs } from "@shared/data/services";
+import {
+  getCosOnboardingStepTargetFromStepId,
+  getCosVisualStepIndexForProcessStep,
+  isCosInitialAnalysisStep,
+} from "@shared/data/cosWorkflow";
 import { supabase } from "@shared/lib/supabase";
 import { toast } from "sonner";
 import PhotoUploadOverlay from "@shared/components/organisms/PhotoUploadOverlay";
@@ -208,8 +213,8 @@ export default function ProcessDetailPage() {
     );
   }
 
-  const currentStepIndexInFull = proc.current_step ?? 0;
   const isCOS = slug === "troca-status" || slug === "extensao-status";
+  const currentStepIndexInFull = proc.current_step ?? 0;
 
   const stepData = (proc.step_data as any) || {};
   const uscisResult = stepData.uscis_official_result as string;
@@ -233,11 +238,18 @@ export default function ProcessDetailPage() {
   });
 
   // currentStepIndex = position of current_step inside the expanded steps array
-  let currentStepIndex = Math.min(currentStepIndexInFull, steps.length);
+  let currentStepIndex = isCOS
+    ? getCosVisualStepIndexForProcessStep(
+        currentStepIndexInFull,
+        service.steps.length,
+        history,
+        steps.length,
+      )
+    : Math.min(currentStepIndexInFull, Math.max(steps.length - 1, 0));
 
   // Se o processo está marcado como finalizado E com sucesso, forçamos o índice para o fim
   if (proc.status === 'completed') {
-    currentStepIndex = steps.length;
+    currentStepIndex = steps.length - 1;
   }
 
   // --- LOGICA DE RESULTADO FINAL (Sincronizada) ---
@@ -398,6 +410,8 @@ export default function ProcessDetailPage() {
               const isConsular = slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1") || slug.startsWith("visa-b1b2") || slug.startsWith("visa-f1");
               const isB1B2 = slug.includes("b1-b2") || slug.includes("b1b2");
               const baseStepId = step.id.replace(/_cycle_\d+$/, "").replace(/_final_ship$/, "_end");
+              const isCosInitialAnalysisStepCard =
+                isCOS && isCosInitialAnalysisStep(baseStepId);
               // Re-ajuste isCurrent para não fixar no último passo se o processo já estiver COMPLETED (status final de histórico)
               const isCurrent = (idx === currentStepIndex) || (isConsular && idx === (slug.includes("f1") ? 11 : 10) && isFinalized && proc.status !== 'completed');
               // const isLocked = idx > currentStepIndex;
@@ -437,6 +451,19 @@ export default function ProcessDetailPage() {
                       {t.processSteps?.[step.id]?.description || step.description}
                     </p>
 
+                    {isCOS && (isCurrent || isCompleted) && (
+                      <button
+                        onClick={() => {
+                          const targetIdx = getCosOnboardingStepTargetFromStepId(idx, step.id);
+                          navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${targetIdx}`);
+                        }}
+                        className="mt-3 flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-text-muted hover:border-primary hover:text-primary bg-card text-[10px] font-black uppercase tracking-widest transition-all"
+                      >
+                        <RiInformationLine className="text-sm" />
+                        Visualizar Step
+                      </button>
+                    )}
+
                     {/* Botão de Preparação para Vistos Consulares (Sempre visível se for a etapa final) */}
                     {isConsular && idx === (slug.includes("f1") ? 11 : 10) && (
                       <button
@@ -470,7 +497,7 @@ export default function ProcessDetailPage() {
                       >
                         {/* Consular or COS products: specialized onboarding flow */}
                         {isCOS || isConsular ? (
-                          (step as { type?: string }).type === "admin_action" ? (
+                          (step as { type?: string }).type === "admin_action" && !isCosInitialAnalysisStepCard ? (
                             proc.status === 'active' && stepData.admin_feedback ? (
                               <div className="space-y-4">
                                 <div className="flex items-start gap-3">

@@ -1356,8 +1356,13 @@ export default function AdminProcessDetailPage() {
       </div>
     );
   }
+  const isCOS = proc.service_slug.includes("troca-status") || proc.service_slug.includes("extensao-status");
   const history = ((proc.step_data as any)?.history as Array<{ type?: string; steps?: unknown[] }>) || [];
-  const effectiveSteps = service ? buildEffectiveSteps(service.steps, history) : [];
+  
+  let effectiveSteps = service ? buildEffectiveSteps(service.steps, history) : [];
+  if (isCOS && service) {
+    effectiveSteps = [...service.steps, ...RFE_STEPS_TEMPLATE, ...MOTION_STEPS_TEMPLATE] as any;
+  }
   const rawCurrentStep =
     proc.current_step ??
     (typeof (proc.step_data as any)?.current_step === "number"
@@ -1376,7 +1381,6 @@ export default function AdminProcessDetailPage() {
       let nextStep = currentStepIdx + 1;
 
       // --- SKIP LOGIC: Se o visto de destino NÃO for F1, pula I-20 e SEVIS ---
-      const isCOS = proc.service_slug.includes("troca-status") || proc.service_slug.includes("extensao-status");
       if (isCOS) {
         const targetVisa = (proc.step_data as any)?.targetVisa as string;
         if (targetVisa !== "F1") {

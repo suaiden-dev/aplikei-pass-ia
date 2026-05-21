@@ -18,7 +18,6 @@ import { useT } from "@app/app/i18n";
 import { LogoLoader } from "@shared/components/atoms/logo-loader";
 import { useMyProcesses } from "@features/process/hooks/useMyProcesses";
 import type { UserService } from "@features/process/types";
-import { RiBuilding2Line } from "react-icons/ri";
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,
@@ -157,14 +156,6 @@ function ProcessRow({ proc, index, displaySlug, officeName }: { proc: UserServic
           <p className="text-[11px] font-bold text-text-muted tracking-widest uppercase">
             {t.dashboard.products[slugForDisplay]?.category || cfg.category}
           </p>
-<<<<<<< HEAD
-          <div className="flex items-center gap-1 mt-1">
-            <RiBuilding2Line className="text-[11px] text-text-muted" />
-            <p className="text-[10px] font-black text-text-muted tracking-widest uppercase truncate">
-              {officeName || "Office"}
-            </p>
-          </div>
-=======
           {proc.officeName && (
             <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold text-text-muted uppercase tracking-widest bg-bg-subtle px-2.5 py-1.5 rounded-xl border border-border/40 w-fit">
               {proc.officeLogoUrl ? (
@@ -183,7 +174,6 @@ function ProcessRow({ proc, index, displaySlug, officeName }: { proc: UserServic
               <span>{proc.officeName}</span>
             </div>
           )}
->>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
         </div>
       </div>
 

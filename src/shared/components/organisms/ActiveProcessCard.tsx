@@ -6,7 +6,6 @@ import {
   RiBuilding2Line,
   RiFileTextLine,
   RiFlashlightFill,
-  RiBuilding2Line,
 } from "react-icons/ri";
 import type { ServiceMeta } from '@shared/data/services';
 import type { UserService } from '@features/process/types';
@@ -135,18 +134,7 @@ export function ActiveProcessCard({
           {labels.products[slugForDisplay]?.label || cfg.label}
         </h3>
 
-<<<<<<< HEAD
-        <div className="flex items-center gap-2 mb-3">
-          <RiBuilding2Line className="text-text-muted text-sm" />
-          <span className="text-[11px] font-black uppercase tracking-wider text-text-muted">
-            {officeName || "Office"}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 mb-8">
-=======
         <div className="flex items-center gap-2 mb-6">
->>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
           {isApproved ? (
             <RiCheckboxCircleFill className="text-emerald-500 text-base" />
           ) : isDenied ? (

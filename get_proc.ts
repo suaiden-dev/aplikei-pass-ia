@@ -12,32 +12,31 @@ envStr.split("\n").forEach(line => {
 
 const supabaseUrl = env.VITE_SUPABASE_URL;
 const supabaseKey = env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-if (!supabaseUrl || !supabaseKey) throw new Error("No env");
-
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function fix() {
+async function check() {
   const { data, error } = await supabase
     .from("user_services")
-    .select("id, step_data, status, current_step")
+    .select("id, status, current_step, step_data, user_id")
     .in("service_slug", ["troca-status", "extensao-status"])
-    .eq("status", "completed")
-    .order("created_at", { ascending: false });
+    .gte("current_step", 19)
+    .order("created_at", { ascending: false })
+    .limit(5);
     
   if (error) {
     console.error(error);
     return;
   }
   
-  for (const proc of data || []) {
-    const sd = proc.step_data as any || {};
-    if (sd.workflow_status === "awaiting_proposal" || sd.workflow_status === "in_progress" || sd.workflow_status === "not_started" || sd.workflow_status === "waitingProposal") {
-      console.log(`Fixing process ${proc.id} (status: ${sd.workflow_status})`);
-      await supabase.from("user_services").update({ status: "active" }).eq("id", proc.id);
-    }
-  }
-  console.log("Done");
+  data.forEach(p => {
+    console.log(`Process: ${p.id}`);
+    console.log(`Status: ${p.status}`);
+    console.log(`Current Step: ${p.current_step}`);
+    console.log(`Workflow Status: ${(p.step_data as any)?.workflow_status}`);
+    console.log(`Motion Reason: ${(p.step_data as any)?.motion_reason ? 'YES' : 'NO'}`);
+    console.log(`Motion Initial Paid: ${(p.step_data as any)?.motion_initial_paid}`);
+    console.log(`---`);
+  });
 }
 
-fix();
+check();

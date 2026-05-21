@@ -36,6 +36,7 @@ import { cn } from "@shared/utils/cn";
 import { useT } from "@app/app/i18n";
 import { normalizeLegacyFinalShipStep } from "@shared/utils/legacyWorkflow";
 import type { RFEOutcome } from "@shared/types/process.model";
+import { getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -63,6 +64,8 @@ interface RFECheckoutOverlayProps {
   slug: string;
   proc: UserService;
   onClose: () => void;
+  paymentStage?: "initial" | "proposal";
+  workflowType?: "rfe";
 }
 
 const LEGACY_RFE_ANALYSIS_SLUG = "apoio-rfe-motion-inicio";
@@ -85,7 +88,7 @@ const ZELLE_NAME = ZELLE_RECIPIENT.name;
 
 // ─── Checkout Overlay ─────────────────────────────────────────────────────────
 
-function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayProps) {
+function RFECheckoutOverlay({ amount, slug, proc, onClose, paymentStage = "initial", workflowType = "rfe" }: RFECheckoutOverlayProps) {
   const t = useT("checkout").product;
   const t_onboarding = useT("onboarding");
   const { user } = useAuth();
@@ -100,6 +103,26 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayP
   const [zelleProof, setZelleProof] = useState<File | null>(null);
   const [zelleProofPreview, setZelleProofPreview] = useState<string | null>(null);
   const [zelleDone, setZelleDone] = useState(false);
+
+  const savePaymentIntent = (stage: "initial" | "proposal") => {
+    const targetStep = getCosPaymentStageTarget({
+      slug,
+      fromStep: proc.current_step,
+      stage,
+      flow: workflowType,
+    });
+    localStorage.setItem(
+      "pending_payment_advance",
+      JSON.stringify({
+        procId: proc.id,
+        fromStep: proc.current_step,
+        stage,
+        flow: workflowType,
+        targetStep,
+      }),
+    );
+    localStorage.setItem("checkout_slug", slug);
+  };
 
   const handlePay = async () => {
     if (!user) {
@@ -121,6 +144,7 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayP
           userId: user.id
         });
 
+        savePaymentIntent(paymentStage);
         if (res.url) window.location.href = res.url;
       } catch (e: unknown) {
         const err = e as Error;
@@ -177,6 +201,7 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose }: RFECheckoutOverlayP
           proc_id: proc.id,
           userId: user.id
         });
+        savePaymentIntent(paymentStage);
         if (res.url) window.location.href = res.url;
       } catch (e: unknown) {
         const err = e as Error;
@@ -525,6 +550,8 @@ export function RFEExplanationStep({ proc }: StepProps) {
           amount={baseAmount} 
           slug={analysisSlug}
           proc={proc} 
+          paymentStage="initial"
+          workflowType="rfe"
           onClose={() => setShowCheckout(false)} 
         />
         )}
@@ -689,6 +716,8 @@ export function RFEAcceptProposalStep({ proc }: StepProps) {
           amount={Number(data.rfe_proposal_amount || 0)} 
           slug={proposalSlug}
           proc={proc} 
+          paymentStage="proposal"
+          workflowType="rfe"
           onClose={() => setShowCheckout(false)} 
         />
       )}

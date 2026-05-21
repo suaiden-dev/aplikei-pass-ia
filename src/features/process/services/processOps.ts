@@ -1,7 +1,21 @@
 import { supabase } from "@shared/lib/supabase";
 import { notifyAdmin, notifyClient } from "@features/notifications/services/notify";
 import { getServiceBySlug, isSameService, getServiceSlugs } from "@shared/data/services";
-import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "@shared/data/workflowTemplates";
+import {
+  COS_RFE_ACCEPT_PROPOSAL_STEP,
+  COS_RFE_END_STEP,
+  COS_RFE_INSTRUCTION_STEP,
+  COS_RFE_PROPOSAL_STEP,
+  COS_RFE_START_STEP,
+  COS_MOTION_ACQUISITION_STEP,
+  COS_MOTION_ACCEPT_PROPOSAL_STEP,
+  COS_MOTION_END_STEP,
+  COS_MOTION_INSTRUCTION_STEP,
+  COS_MOTION_PROPOSAL_STEP,
+  COS_MOTION_RESULT_STEP,
+  getCosRecoveryTemplate,
+  isCosServiceSlug,
+} from "@shared/data/cosWorkflow";
 import type { UserService, ProcessStatus } from "../types";
 
 export type { UserService };
@@ -48,16 +62,31 @@ async function dbUpdateStepData(
   return !error;
 }
 
+async function dbUpdateNegativa(
+  id: string,
+  negativa: Record<string, unknown>,
+): Promise<boolean> {
+  const { error } = await supabase
+    .from("user_services")
+    .update({ negativa } as never)
+    .eq("id", id);
+  return !error;
+}
+
 // ── COS recovery normalization ────────────────────────────────────────────────
 
 const COS_RECOVERY_STEPS = {
-  rfeStart: 13,
-  rfeInstruction: 14,
-  motionAcquire: 19,
-  motionInstruction: 20,
-  motionProposal: 21,
-  motionAcceptProposal: 22,
-  motionEnd: 23,
+  rfeStart: COS_RFE_START_STEP,
+  rfeInstruction: COS_RFE_INSTRUCTION_STEP,
+  rfeProposal: COS_RFE_PROPOSAL_STEP,
+  rfeAcceptProposal: COS_RFE_ACCEPT_PROPOSAL_STEP,
+  rfeEnd: COS_RFE_END_STEP,
+  motionAcquire: COS_MOTION_ACQUISITION_STEP,
+  motionInstruction: COS_MOTION_INSTRUCTION_STEP,
+  motionProposal: COS_MOTION_PROPOSAL_STEP,
+  motionAcceptProposal: COS_MOTION_ACCEPT_PROPOSAL_STEP,
+  motionEnd: COS_MOTION_END_STEP,
+  motionResult: COS_MOTION_RESULT_STEP,
 };
 
 function hasPurchase(stepData: Record<string, unknown>, slugs: string[]): boolean {
@@ -68,7 +97,7 @@ function hasPurchase(stepData: Record<string, unknown>, slugs: string[]): boolea
 }
 
 function getNormalizedCOSRecoveryStep(service: UserService): number | null {
-  if (!isSameService(service.service_slug, "troca-status") && !isSameService(service.service_slug, "extensao-status")) {
+  if (!isCosServiceSlug(service.service_slug)) {
     return null;
   }
 
@@ -88,10 +117,20 @@ function getNormalizedCOSRecoveryStep(service: UserService): number | null {
 
     const rfeInitialPaid =
       Boolean(stepData.rfe_initial_paid) ||
-      hasPurchase(stepData, ["apoio-rfe-motion-inicio", "analise-rfe-cos", "apoio-rfe-cos"]);
-    const rfeTarget = rfeInitialPaid
-      ? COS_RECOVERY_STEPS.rfeInstruction
-      : COS_RECOVERY_STEPS.rfeStart;
+      Boolean(stepData.rfe_analysis_paid) ||
+      hasPurchase(stepData, ["apoio-rfe-motion-inicio", "analise-rfe-cos", "apoio-rfe-cos", "analysis-rfe-cos", "analysis-rfe-eos"]);
+    const rfeDescriptionSubmitted = Boolean(stepData.rfe_description) || workflowStatus === "awaiting_proposal";
+    const rfeProposalSent = Boolean(stepData.rfe_proposal_sent_at) || workflowStatus === "awaiting_payment";
+    const rfeProposalPaid = Boolean(stepData.rfe_proposal_paid) || Boolean(stepData.rfe_payment_completed_at);
+    const rfeFinished = Boolean(stepData.rfe_final_result);
+
+    let rfeTarget = COS_RECOVERY_STEPS.rfeStart;
+    if (rfeInitialPaid) rfeTarget = COS_RECOVERY_STEPS.rfeInstruction;
+    if (rfeDescriptionSubmitted) rfeTarget = COS_RECOVERY_STEPS.rfeProposal;
+    if (rfeProposalSent) rfeTarget = COS_RECOVERY_STEPS.rfeAcceptProposal;
+    if (rfeProposalPaid) rfeTarget = COS_RECOVERY_STEPS.rfeEnd;
+    if (rfeFinished) rfeTarget = 18;
+
     return currentStep < rfeTarget ? rfeTarget : null;
   }
 
@@ -121,7 +160,7 @@ function getNormalizedCOSRecoveryStep(service: UserService): number | null {
   if (motionReasonSubmitted) targetStep = COS_RECOVERY_STEPS.motionProposal;
   if (motionProposalSent) targetStep = COS_RECOVERY_STEPS.motionAcceptProposal;
   if (motionProposalPaid) targetStep = COS_RECOVERY_STEPS.motionEnd;
-  if (motionFinished) targetStep = 24;
+  if (motionFinished) targetStep = COS_RECOVERY_STEPS.motionResult;
 
   return currentStep < targetStep ? targetStep : null;
 }
@@ -250,8 +289,38 @@ export async function updateStepData(
   if (!service) throw new Error("Serviço não encontrado");
   const currentData = (service.step_data as Record<string, unknown>) || {};
   const mergedData = { ...currentData, ...data };
+  
+  const currentNegativa = (service.negativa as Record<string, unknown>) || {};
+  let updateNegativaAlso = false;
+
+  if (data.rfe_history !== undefined || data.history !== undefined || data.rfe_cycles !== undefined) {
+    if (data.rfe_history !== undefined) currentNegativa.rfe_history = data.rfe_history;
+    if (data.history !== undefined) currentNegativa.motion_history = data.history;
+    if (data.rfe_cycles !== undefined) currentNegativa.rfe_cycles = data.rfe_cycles;
+    updateNegativaAlso = true;
+  }
+
   const ok = await dbUpdateStepData(serviceId, mergedData);
   if (!ok) throw new Error("Falha ao atualizar step_data");
+  
+  if (updateNegativaAlso) {
+    await dbUpdateNegativa(serviceId, currentNegativa);
+  }
+}
+
+export async function updateNegativa(
+  serviceId: string,
+  negativa: Record<string, unknown>,
+): Promise<void> {
+  if (!serviceId) throw new Error("ID do serviço é obrigatório.");
+  const service = await findServiceById(serviceId);
+  if (!service) throw new Error("Serviço não encontrado");
+  const currentNegativa = (service.negativa as Record<string, unknown>) || {};
+  const ok = await dbUpdateNegativa(serviceId, {
+    ...currentNegativa,
+    ...negativa,
+  });
+  if (!ok) throw new Error("Falha ao atualizar negativa");
 }
 
 export async function updateCurrentStep(
@@ -408,7 +477,7 @@ export async function startAdditionalWorkflow(
   const stepData = (service.step_data || {}) as Record<string, unknown>;
   const history = Array.isArray(stepData.history) ? [...stepData.history] : [];
 
-  const steps = type === "motion" ? MOTION_STEPS_TEMPLATE : RFE_STEPS_TEMPLATE;
+  const steps = getCosRecoveryTemplate(type);
 
   const newCycle = {
     type,

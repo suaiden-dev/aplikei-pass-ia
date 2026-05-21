@@ -9,6 +9,7 @@ import {
   RiErrorWarningLine,
 } from "react-icons/ri";
 import { getServiceBySlug } from "@shared/data/services";
+import { getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
 import { supabase } from "@shared/lib/supabase";
 import { useT } from "@app/app/i18n";
 import { LogoLoader } from "@shared/components/atoms/logo-loader";
@@ -55,6 +56,44 @@ export default function CheckoutSuccessPage() {
       }
 
       const markAsDone = () => {
+        const pendingAdvanceRaw = localStorage.getItem("pending_payment_advance");
+
+        if (pendingAdvanceRaw) {
+          try {
+            const pendingAdvance = JSON.parse(pendingAdvanceRaw) as {
+              procId?: string;
+              fromStep?: number;
+              stage?: string;
+              flow?: "motion" | "rfe";
+              targetStep?: number;
+            };
+            if (pendingAdvance?.procId) {
+              const targetStep = pendingAdvance.targetStep ??
+                getCosPaymentStageTarget({
+                  slug,
+                  fromStep: pendingAdvance.fromStep,
+                  stage: pendingAdvance.stage,
+                  flow: pendingAdvance.flow,
+                }) ??
+                0;
+
+              void supabase
+                .from("user_services")
+                .select("service_slug")
+                .eq("id", pendingAdvance.procId)
+                .maybeSingle()
+                .then(({ data }) => {
+                  const parentSlug = data?.service_slug || "troca-status";
+                  window.location.assign(
+                    `/dashboard/processes/${parentSlug}/onboarding?id=${pendingAdvance.procId}&step=${targetStep}`,
+                  );
+                });
+            }
+          } catch {
+            // ignore parse/navigation fallback errors
+          }
+        }
+
         localStorage.removeItem("checkout_slug");
         localStorage.removeItem("checkout_order_id");
         localStorage.removeItem("checkout_dependents");

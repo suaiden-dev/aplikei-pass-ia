@@ -168,16 +168,24 @@ export default function COSOnboardingPage() {
   const currentProcessStep = proc?.current_step ?? 0
   const isRecoveryRangeStep = stepIdx >= 13 && stepIdx <= 24
   const isMotionContext =
-    uscisResult === 'denied' ||
-    uscisResult === 'rejected' ||
-    rfeResult === 'denied' ||
-    rfeResult === 'rejected' ||
-    currentProcessStep >= 19
+    stepIdx >= 19
+      ? true
+      : stepIdx >= 13 && stepIdx <= 18
+      ? false
+      : uscisResult === 'denied' ||
+        uscisResult === 'rejected' ||
+        rfeResult === 'denied' ||
+        rfeResult === 'rejected' ||
+        currentProcessStep >= 19
+
   const isRFEContext =
-    !isMotionContext &&
-    (uscisResult === 'rfe' ||
-      rfeResult === 'rfe' ||
-      (currentProcessStep >= 13 && currentProcessStep <= 18))
+    stepIdx >= 13 && stepIdx <= 18
+      ? true
+      : stepIdx >= 19
+      ? false
+      : uscisResult === 'rfe' ||
+        rfeResult === 'rfe' ||
+        (currentProcessStep >= 13 && currentProcessStep <= 18)
 
   const handleMotionResultReport = async (result: 'approved' | 'rejected') => {
     if (!proc) return
@@ -313,7 +321,6 @@ export default function COSOnboardingPage() {
       } finally {
         setIsLoading(false)
       }
-      // --------------------------------------------------------------------------
 
       if (data.step_data) {
         const stepData = data.step_data as any
@@ -916,25 +923,6 @@ export default function COSOnboardingPage() {
 
               {!isReadOnly &&
                 ![
-<<<<<<< HEAD
-                  'cos_admin_analysis',
-                  'cos_analysis_i20_sevis',
-                  'cos_admin_cover_analysis',
-                  'cos_admin_final_review',
-                  'cos_uscis_fee',
-                  'cos_i20_upload',
-                  'cos_sevis_fee',
-                  'cos_cover_letter',
-                  'cos_presentation_letter',
-                  'cos_official_forms',
-                  'cos_final_review',
-                  'cos_final_forms',
-                  'cos_final_package',
-                  'cos_rfe_explanation',
-                  'cos_rfe_instruction',
-                  'cos_rfe_proposal',
-                  'cos_rfe_accept_proposal',
-=======
                   'cos_analysis_form_docs',
                   'cos_i20_upload',
                   'cos_sevis_fee',
@@ -949,18 +937,12 @@ export default function COSOnboardingPage() {
                   'cos_rfe_instruction',
                   'cos_rfe_accept_proposal',
                   'cos_rfe_proposal',
->>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
                   'cos_rfe_final_ship',
                   'cos_rfe_end',
                   'cos_motion_acquisition',
                   'cos_motion_instruction',
-<<<<<<< HEAD
-                  'cos_motion_proposal',
-                  'cos_motion_accept_proposal',
-=======
                   'cos_motion_accept_proposal',
                   'cos_motion_proposal',
->>>>>>> 8f12b72097710038d6eb94297c64879d634cc8ba
                   'cos_motion_end',
                 ].includes(currentStepId || '') && (
                   <button

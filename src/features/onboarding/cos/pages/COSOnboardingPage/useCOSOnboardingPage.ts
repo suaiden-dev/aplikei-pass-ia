@@ -20,6 +20,7 @@ import type { USCISOutcome, MotionOutcome, RFEOutcome } from '@shared/types/proc
 import * as processService from "@features/process/services/processOps";
 import { cosNotificationService } from "@features/onboarding/cos/lib/cos-notifications";
 import type { DocFile } from '@shared/components/molecules/DocUploadCard'
+import { MOTION_STEPS_TEMPLATE } from "@shared/data/workflowTemplates";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -403,6 +404,26 @@ export function useCOSOnboardingPage() {
     }
 
     if (result === 'denied') {
+      await processService.updateNegativa(proc.id, {
+        negative: {
+          created_at: now,
+          source: 'uscis_official_result',
+          status: 'pending',
+          steps: MOTION_STEPS_TEMPLATE.map((step, index) => ({
+            order: index + 1,
+            id: step.id,
+            title: step.title,
+            description: step.description,
+            type: step.type,
+            status: 'pending',
+          })),
+          payment: {
+            initial: false,
+            proposal: false,
+            proposal_amount: 0,
+          },
+        },
+      })
       await processService.startAdditionalWorkflow(proc.id, 'motion')
       await cosNotificationService.notifyAdmin({
         event: 'motion_started',

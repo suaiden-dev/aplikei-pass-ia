@@ -35,6 +35,7 @@ import { cn } from "@shared/utils/cn";
 import { useT } from "@app/app/i18n";
 import { useNavigate } from 'react-router-dom'
 import type { MotionOutcome } from '@shared/types/process.model'
+import { getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,6 +61,8 @@ interface MotionCheckoutOverlayProps {
   proc: UserService
   user?: StepProps['user']
   onClose: () => void
+  paymentStage?: 'initial' | 'proposal'
+  workflowType?: 'motion'
 }
 
 const LEGACY_MOTION_ANALYSIS_SLUG = 'apoio-rfe-motion-inicio'
@@ -96,6 +99,8 @@ function MotionCheckoutOverlay({
   proc,
   user: propUser,
   onClose,
+  paymentStage = 'initial',
+  workflowType = 'motion',
 }: MotionCheckoutOverlayProps) {
   const t = useT('checkout').product
   const t_onboarding = useT('onboarding')
@@ -130,12 +135,21 @@ function MotionCheckoutOverlay({
     [t],
   )
 
-  const savePaymentIntent = () => {
+  const savePaymentIntent = (stage: 'initial' | 'proposal') => {
+    const targetStep = getCosPaymentStageTarget({
+      slug,
+      fromStep: proc.current_step,
+      stage,
+      flow: workflowType,
+    })
     localStorage.setItem(
       'pending_payment_advance',
       JSON.stringify({
         procId: proc.id,
         fromStep: proc.current_step,
+        stage,
+        flow: workflowType,
+        targetStep,
       }),
     )
     localStorage.setItem('checkout_slug', slug)
@@ -197,7 +211,7 @@ function MotionCheckoutOverlay({
           action: motionAction,
         })
 
-        savePaymentIntent()
+        savePaymentIntent(paymentStage)
         window.location.href = url
       } else if (activeMethod === 'parcelow') {
         if (!parcelowCpf || !validateCPF(parcelowCpf)) {
@@ -217,7 +231,7 @@ function MotionCheckoutOverlay({
           proc_id: proc.id,
         })
 
-        savePaymentIntent()
+        savePaymentIntent(paymentStage)
         window.location.href = url
       } else if (activeMethod === 'zelle') {
         toast.success(
@@ -718,6 +732,8 @@ export function MotionExplanationStep({
           slug={analysisSlug}
           proc={proc}
           user={user}
+          paymentStage="initial"
+          workflowType="motion"
           onClose={() => setShowCheckout(false)}
         />
       )}
@@ -1040,6 +1056,8 @@ export function MotionAcceptProposalStep({
           slug={proposalSlug}
           proc={proc}
           user={user}
+          paymentStage="proposal"
+          workflowType="motion"
           onClose={() => setShowCheckout(false)}
         />
       )}
