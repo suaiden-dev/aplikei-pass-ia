@@ -26,7 +26,7 @@ type CosAdminNotificationParams = {
 };
 
 function getClientLabel(clientName?: string | null, clientEmail?: string | null): string {
-  return clientName?.trim() || clientEmail?.trim() || "Cliente";
+  return clientName?.trim() || clientEmail?.trim() || "Client";
 }
 
 function getCosAdminMessage(
@@ -37,73 +37,73 @@ function getCosAdminMessage(
   switch (event) {
     case "i20_uploaded":
       return {
-        title: "COS: novo I-20 recebido",
-        body: `${clientLabel} enviou o documento I-20 para analise no processo ${processId}.`,
+        title: "COS: new I-20 received",
+        body: `${clientLabel} uploaded the I-20 document for review in process ${processId}.`,
       };
     case "sevis_receipt_uploaded":
       return {
-        title: "COS: comprovante SEVIS recebido",
-        body: `${clientLabel} anexou o comprovante da taxa SEVIS para conferencia no processo ${processId}.`,
+        title: "COS: SEVIS receipt received",
+        body: `${clientLabel} uploaded the SEVIS fee receipt for verification in process ${processId}.`,
       };
     case "cover_letter_completed":
       return {
-        title: "COS: cover letter respondida",
-        body: `${clientLabel} concluiu o questionario da cover letter no processo ${processId}.`,
+        title: "COS: cover letter completed",
+        body: `${clientLabel} completed the cover letter questionnaire in process ${processId}.`,
       };
     case "i539_generated":
       return {
-        title: "COS: formulario I-539 gerado",
-        body: `${clientLabel} concluiu o preenchimento e gerou o PDF do I-539 no processo ${processId}.`,
+        title: "COS: I-539 form generated",
+        body: `${clientLabel} completed and generated the I-539 PDF in process ${processId}.`,
       };
     case "rfe_letter_uploaded":
       return {
-        title: "COS: carta de RFE recebida",
-        body: `${clientLabel} submeteu a carta de RFE no processo ${processId}.`,
+        title: "COS: RFE letter received",
+        body: `${clientLabel} submitted the RFE letter in process ${processId}.`,
       };
     case "rfe_description_submitted":
       return {
-        title: "COS: descricao de RFE enviada",
-        body: `${clientLabel} descreveu os requisitos da RFE no processo ${processId}.`,
+        title: "COS: RFE description submitted",
+        body: `${clientLabel} submitted the RFE requirements description in process ${processId}.`,
       };
     case "motion_reason_submitted":
       return {
-        title: "COS: justificativa de motion enviada",
-        body: `${clientLabel} enviou a justificativa para o motion no processo ${processId}.`,
+        title: "COS: motion reason submitted",
+        body: `${clientLabel} submitted the motion reason in process ${processId}.`,
       };
     case "motion_denial_letter_uploaded":
       return {
-        title: "COS: carta de negativa recebida",
-        body: `${clientLabel} submeteu a carta de negativa para iniciar o motion no processo ${processId}.`,
+        title: "COS: denial letter received",
+        body: `${clientLabel} submitted the denial letter to start motion in process ${processId}.`,
       };
     case "motion_supporting_docs_uploaded":
       return {
-        title: "COS: documentos de apoio enviados",
-        body: `${clientLabel} anexou documentos de apoio para o motion no processo ${processId}.`,
+        title: "COS: supporting docs uploaded",
+        body: `${clientLabel} uploaded supporting motion documents in process ${processId}.`,
       };
     case "uscis_result_reported":
       return {
-        title: "COS: resultado USCIS informado",
-        body: `${clientLabel} informou um novo resultado do USCIS no processo ${processId}.`,
+        title: "COS: USCIS result reported",
+        body: `${clientLabel} reported a new USCIS result in process ${processId}.`,
       };
     case "motion_started":
       return {
-        title: "COS: workflow de Motion iniciado",
-        body: `O workflow de Motion foi iniciado para o cliente ${clientLabel} no processo ${processId}.`,
+        title: "COS: Motion workflow started",
+        body: `Motion workflow started for client ${clientLabel} in process ${processId}.`,
       };
     case "rfe_started":
       return {
-        title: "COS: workflow de RFE iniciado",
-        body: `O workflow de RFE foi iniciado para o cliente ${clientLabel} no processo ${processId}.`,
+        title: "COS: RFE workflow started",
+        body: `RFE workflow started for client ${clientLabel} in process ${processId}.`,
       };
     case "motion_result_reported":
       return {
-        title: "COS: resultado de Motion informado",
-        body: `${clientLabel} informou o resultado do Motion no processo ${processId}.`,
+        title: "COS: Motion result reported",
+        body: `${clientLabel} reported the Motion result in process ${processId}.`,
       };
     case "rfe_result_reported":
       return {
-        title: "COS: resultado de RFE informado",
-        body: `${clientLabel} informou o resultado da RFE no processo ${processId}.`,
+        title: "COS: RFE result reported",
+        body: `${clientLabel} reported the RFE result in process ${processId}.`,
       };
   }
 }

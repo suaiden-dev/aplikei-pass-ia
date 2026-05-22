@@ -3,7 +3,7 @@ const landing = {
     badge: "IA VistasVisados ​​de próxima generación impulsados ​​por IA de Próxima Generación",
     title: "La plataforma completa para la gestión de",
     titleHighlight: "procesos de visa",
-    subtitle: "Automatice tareas, organice documentos y escale su firma con la eficiencia de la Inteligencia Artificial aplicada al derecho migratorio.",
+    subtitle: "Automatice tareas, organice documentos y escale su firma con la eficiencia de la Inteligencia Artificial dedicada a la gestión de visas consulares (B1/B2, F-1, cambio y extensión de estatus).",
     cta: "Agendar demostración",
     statsLabel: "Tiempo de preparación",
     statsValue: "-70%",
@@ -12,7 +12,7 @@ const landing = {
   },
   problem: {
     title: "Problemas que resolvemos",
-    subtitle: "Entendemos las complejidades operativas que impiden el crecimiento de las firmas de inmigración.",
+    subtitle: "Entendemos las complejidades operativas que impiden el crecimiento de las firmas de visas consulares.",
     items: [
       {
         icon: "account_tree",
@@ -49,7 +49,7 @@ const landing = {
         icon: "auto_fix_high",
         title: "Automatización con IA",
         badge: "-70% TIEMPO",
-        description: "Utilice modelos neuronales entrenados en derecho migratorio para completar formularios complejos en segundos."
+        description: "Utilice modelos neuronales entrenados en visas consulares para completar formularios complejos en segundos."
       },
       {
         icon: "verified_user",
@@ -60,31 +60,23 @@ const landing = {
   },
   howItWorks: {
     title: "Cómo Funciona",
+    subtitle: "Comience en minutos",
     steps: [
       {
-        number: "1",
-        title: "Registro",
-        description: "Importe los datos básicos de su cliente."
+        title: "Cree una cuenta",
+        desc: "Regístrese en la plataforma de forma rápida y segura en pocos clics."
       },
       {
-        number: "2",
-        title: "Recopilación automatizada",
-        description: "Portal del cliente inteligente para envío de documentos."
+        title: "Active su plan",
+        desc: "Elija y active el plan ideal con las características que su oficina necesita."
       },
       {
-        number: "3",
-        title: "Organización y validación",
-        description: "La IA valida si los documentos son correctos."
+        title: "Configure su empresa",
+        desc: "Complete la configuración de su empresa en 7 pasos simples y automatizados."
       },
       {
-        number: "4",
-        title: "Generación con IA",
-        description: "Llenado automático de peticiones y formularios."
-      },
-      {
-        number: "5",
-        title: "Entrega final",
-        description: "Protocolo listo para presentación oficial."
+        title: "Venda y gestione",
+        desc: "Comience inmediatamente a vender y gestionar con maestria los procesos de visa de sus clientes."
       }
     ]
   },
@@ -164,7 +156,7 @@ const landing = {
   },
   lex: {
     hero: {
-      title: "Cuidamos de todo su proceso migratorio con seguridad, estrategia y eficiencia.",
+      title: "Cuidamos de todo su proceso de visa consular con seguridad, estrategia y eficiencia.",
       subtitle: "Garantizando que sus objetivos internacionales se alcancen con rigor profesional.",
       badge: "Procesos auditados y revisados por abogados licenciados."
     },
@@ -177,7 +169,7 @@ const landing = {
         },
         {
           title: "Planificación estratégica",
-          description: "Definición de la mejor ruta migratoria buscando el menor tiempo y mayor tasa de aprobación."
+          description: "Definición de la mejor ruta de visa consular buscando el menor tiempo y mayor tasa de aprobación."
         },
         {
           title: "Preparación de documentación",
@@ -190,7 +182,7 @@ const landing = {
       ]
     },
     services: {
-      title: "Soluciones modulares para cada perfil de inmigración.",
+      title: "Soluciones modulares para cada tipo de visa consular (B1/B2, F-1, cambio y extensión de estatus).",
       items: [
         {
           title: "Visas de trabajo",

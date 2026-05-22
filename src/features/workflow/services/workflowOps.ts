@@ -18,7 +18,6 @@ export async function getOrCreateInstance(
 ): Promise<UserProductInstance> {
   // Look for the most recent non-canceled/rejected instance
   const { data: existing, error: existingError } = await supabase
-    .schema("aplikei")
     .from("user_product_instances")
     .select("*")
     .eq("user_id", userId)
@@ -33,7 +32,6 @@ export async function getOrCreateInstance(
 
   // No existing instance — create one via RPC
   const { data: instanceId, error } = await supabase
-    .schema("aplikei")
     .rpc("start_product_instance", {
       p_user_id:    userId,
       p_product_id: productId,
@@ -44,7 +42,6 @@ export async function getOrCreateInstance(
 
   if (instanceId) {
     const { data: created, error: fetchErr } = await supabase
-      .schema("aplikei")
       .from("user_product_instances")
       .select("*")
       .eq("id", instanceId)
@@ -55,7 +52,6 @@ export async function getOrCreateInstance(
 
   // Fallback: fetch the most recent instance
   const { data: fallback, error: fallbackErr } = await supabase
-    .schema("aplikei")
     .from("user_product_instances")
     .select("*")
     .eq("user_id", userId)
@@ -73,7 +69,6 @@ export async function getOrCreateInstance(
 /** Lista instâncias de um usuário com os steps embutidos. */
 export async function listInstances(userId: string): Promise<UserProductInstance[]> {
   const { data, error } = await supabase
-    .schema("aplikei")
     .from("user_product_instances")
     .select("*")
     .eq("user_id", userId)
@@ -88,7 +83,6 @@ export async function listInstances(userId: string): Promise<UserProductInstance
 /** Carrega todos os steps de uma instância, ordenados. */
 export async function getSteps(instanceId: string): Promise<UserStep[]> {
   const { data, error } = await supabase
-    .schema("aplikei")
     .from("user_steps")
     .select("*, product_step:product_steps(*)")
     .eq("user_product_id", instanceId)
@@ -101,7 +95,6 @@ export async function getSteps(instanceId: string): Promise<UserStep[]> {
 /** Carrega um step específico pelo product_step_id. */
 export async function getStep(instanceId: string, productStepId: string): Promise<UserStep | null> {
   const { data, error } = await supabase
-    .schema("aplikei")
     .from("user_steps")
     .select("*, product_step:product_steps(*)")
     .eq("user_product_id", instanceId)
@@ -118,7 +111,6 @@ export async function saveDraft(
   data:       Record<string, unknown>,
 ): Promise<void> {
   const { error } = await supabase
-    .schema("aplikei")
     .from("user_steps")
     .update({ data, status: "in_progress" })
     .eq("id", userStepId);
@@ -132,7 +124,6 @@ export async function submitStep(
   data:       Record<string, unknown>,
 ): Promise<void> {
   const { error } = await supabase
-    .schema("aplikei")
     .from("user_steps")
     .update({
       data,
@@ -149,7 +140,6 @@ export async function submitStepFiles(
   files: FileRef[],
 ): Promise<void> {
   const { error } = await supabase
-    .schema("aplikei")
     .from("user_steps")
     .update({
       files,
@@ -164,7 +154,6 @@ export async function submitStepFiles(
 /** Marca step como completed sem enviar para revisão (steps do tipo info/admin_action). */
 export async function completeStep(userStepId: string): Promise<void> {
   const { error } = await supabase
-    .schema("aplikei")
     .from("user_steps")
     .update({ status: "completed" })
     .eq("id", userStepId);
@@ -184,15 +173,22 @@ export async function updateInstanceOutcome(
     reportedAt?: string
   },
 ): Promise<void> {
-  const isFinal = outcome.result === 'approved' ||
-                  outcome.result === 'denied'   ||
-                  outcome.result === 'rejected'
+  function outcomeToInstanceStatus(
+    result: 'approved' | 'denied' | 'rfe' | 'rejected',
+  ): InstanceStatus {
+    if (result === 'approved') return 'approved'
+    if (result === 'denied' || result === 'rejected') return 'rejected'
+    return 'in_progress'
+  }
 
-  const newStatus: InstanceStatus = isFinal ? 'approved' : 'in_progress'
+  const isFinal =
+    outcome.result === 'approved' ||
+    outcome.result === 'denied' ||
+    outcome.result === 'rejected'
+  const newStatus = outcomeToInstanceStatus(outcome.result)
 
   try {
     const { error } = await supabase
-      .schema("aplikei")
       .from('user_product_instances')
       .update({
         status: newStatus,
@@ -215,12 +211,12 @@ export async function approveStep(
   adminId:    string,
   comment?:   string,
 ): Promise<void> {
-  await supabase.schema("aplikei").from("user_steps").update({
+  await supabase.from("user_steps").update({
     status:      "approved",
     reviewed_at: new Date().toISOString(),
   }).eq("id", userStepId);
 
-  await supabase.schema("aplikei").from("step_reviews").insert({
+  await supabase.from("step_reviews").insert({
     user_step_id: userStepId,
     admin_id:     adminId,
     action:       "approved",
@@ -234,12 +230,12 @@ export async function requestRevision(
   adminId:    string,
   comment:    string,
 ): Promise<void> {
-  await supabase.schema("aplikei").from("user_steps").update({
+  await supabase.from("user_steps").update({
     status:      "revision_requested",
     reviewed_at: new Date().toISOString(),
   }).eq("id", userStepId);
 
-  await supabase.schema("aplikei").from("step_reviews").insert({
+  await supabase.from("step_reviews").insert({
     user_step_id: userStepId,
     admin_id:     adminId,
     action:       "revision_requested",
@@ -250,7 +246,6 @@ export async function requestRevision(
 /** Histórico de revisões de um step. */
 export async function getReviews(userStepId: string): Promise<StepReview[]> {
   const { data, error } = await supabase
-    .schema("aplikei")
     .from("step_reviews")
     .select("*")
     .eq("user_step_id", userStepId)
@@ -268,7 +263,6 @@ export async function getReviews(userStepId: string): Promise<StepReview[]> {
 /** Lista os steps-template de um produto pelo slug. */
 export async function getProductStepsBySlug(productSlug: string): Promise<ProductStep[]> {
   const { data, error } = await supabase
-    .schema("aplikei")
     .from("product_steps")
     .select("*, products!inner(slug)")
     .eq("products.slug", productSlug)
@@ -279,13 +273,54 @@ export async function getProductStepsBySlug(productSlug: string): Promise<Produc
 }
 
 export async function getProductIdBySlug(slug: string): Promise<string | null> {
-  const { data, error } = await supabase
-    .schema("aplikei")
-    .from("products")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
+  const attempts: Array<() => Promise<{ id: string } | null>> = [
+    async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle()
+      if (error) throw error
+      return (data as { id: string } | null) ?? null
+    },
+    async () => {
+      const { data, error } = await supabase
+        .from("active_products")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle()
+      if (error) throw error
+      return (data as { id: string } | null) ?? null
+    },
+    async () => {
+      const { data, error } = await supabase
+        .schema("aplikei")
+        .from("products")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle()
+      if (error) throw error
+      return (data as { id: string } | null) ?? null
+    },
+  ]
 
-  if (error) throw new Error(error.message);
-  return data?.id ?? null;
+  let lastError: unknown = null
+  for (const attempt of attempts) {
+    try {
+      const row = await attempt()
+      if (row?.id) return row.id
+    } catch (error) {
+      lastError = error
+    }
+  }
+
+  if (lastError) {
+    throw new Error(
+      `Não foi possível resolver o produto "${slug}" (products/active_products). ${String(
+        (lastError as { message?: string })?.message ?? lastError,
+      )}`,
+    )
+  }
+
+  return null
 }

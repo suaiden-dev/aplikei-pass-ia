@@ -9,6 +9,8 @@ import {
   RiBuilding2Line,
 } from "react-icons/ri";
 import { useAuth } from "@shared/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@shared/lib/supabase";
 import { getCanonicalSlug, getServiceBySlug, servicesData } from "@shared/data/services";
 import { calculateProcessProgress } from "@features/process/utils";
 import { cn } from "@shared/utils/cn";
@@ -60,7 +62,7 @@ function resolveTotalStepsForProgress(proc: UserService): number {
   return service?.steps.length ?? 1;
 }
 
-function ProcessRow({ proc, index, displaySlug }: { proc: UserService; index: number; displaySlug: string }) {
+function ProcessRow({ proc, index, displaySlug, officeName }: { proc: UserService; index: number; displaySlug: string; officeName: string }) {
   const tVisas = useT("visas");
   const t = useT("dashboard");
   const slugForDisplay = displaySlug || proc.service_slug;
@@ -214,6 +216,30 @@ export default function MyProcessesPage() {
   const { user } = useAuth();
 
   const { activeProcesses, historyProcesses, userServices, isLoading } = useMyProcesses(user?.id);
+  const officeIds = Array.from(
+    new Set(
+      userServices
+        .map((s) => (typeof s.office_id === "string" ? s.office_id : null))
+        .filter((id): id is string => Boolean(id)),
+    ),
+  );
+
+  const { data: officeNameById = {} } = useQuery({
+    queryKey: ["my-processes-office-names", officeIds.join(",")],
+    enabled: officeIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("offices")
+        .select("id, name")
+        .in("id", officeIds);
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      (data ?? []).forEach((row: { id: string; name: string | null }) => {
+        map[row.id] = row.name ?? "Office";
+      });
+      return map;
+    },
+  });
 
   const displaySlugByProcessId = (() => {
     const groups = new Map<string, UserService[]>();
@@ -298,6 +324,7 @@ export default function MyProcessesPage() {
                     key={proc.id}
                     proc={proc}
                     index={i}
+                    officeName={(proc.office_id && officeNameById[proc.office_id]) || "Office"}
                     displaySlug={displaySlugByProcessId.get(proc.id) ?? proc.service_slug}
                   />
                 ))}
@@ -324,6 +351,7 @@ export default function MyProcessesPage() {
                     key={proc.id}
                     proc={proc}
                     index={activeProcesses.length + i}
+                    officeName={(proc.office_id && officeNameById[proc.office_id]) || "Office"}
                     displaySlug={displaySlugByProcessId.get(proc.id) ?? proc.service_slug}
                   />
                 ))}

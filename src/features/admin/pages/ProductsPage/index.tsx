@@ -277,6 +277,7 @@ function ProductRow({
 export default function ProductsPage() {
   const t = useT("admin");
   const { user } = useAuth();
+  const loginUrl = typeof window !== "undefined" ? `${window.location.origin}/login` : "/login";
   const [resolvedOfficeId, setResolvedOfficeId] = useState<string | null>(user?.officeId ?? null);
   const [officeSlug, setOfficeSlug] = useState<string | null>(null);
   const [products, setProducts] = useState<ServicePrice[]>([]);
@@ -388,6 +389,23 @@ export default function ProductsPage() {
         <p className="text-base text-text-muted font-medium mt-1">
           {t.products.subtitle}
         </p>
+      </div>
+
+      <div className="mb-8 p-4 rounded-2xl border border-border bg-bg-subtle/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <p className="text-xs font-black text-text-muted uppercase tracking-widest break-all">
+          Login URL: <span className="text-text normal-case font-bold">{loginUrl}</span>
+        </p>
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(loginUrl);
+            toast.success("Login URL copiada!");
+          }}
+          className="text-[10px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-primary/20 transition-all uppercase tracking-widest self-start sm:self-auto"
+          title="Copiar URL de login"
+        >
+          <RiFileCopyLine className="text-sm" />
+          Copiar Login
+        </button>
       </div>
 
       {/* Stats */}

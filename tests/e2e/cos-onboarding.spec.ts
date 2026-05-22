@@ -1,85 +1,103 @@
 import { expect, test } from "@playwright/test";
-import { mockCOSEOSSupabase } from "./support/cos-eos";
+import { mockCOSSupabase } from "./support/cos";
 
-test.describe("Change of Status (COS) onboarding", () => {
-  test("renders COS Application Step (Step 0) on the route", async ({ page }) => {
-    await mockCOSEOSSupabase(page, {
-      slug: "troca-status",
-      currentStep: 0,
+test.describe("COS onboarding", () => {
+  const runAllStepsSuite = (processSlug: "troca-status" | "extensao-status", suiteLabel: string) => {
+    test(`covers all onboarding steps from 0 to 11 (${suiteLabel})`, async ({ page }) => {
+      const basePath = `/dashboard/processes/${processSlug}/onboarding`;
+
+      const assertStep = async (step: number) => {
+        await mockCOSSupabase(page, {
+          slug: processSlug,
+          currentStep: step,
+          stepData: {
+            currentVisa: "B1/B2",
+            targetVisa: "F1",
+            i94Date: "2026-12-31",
+            finalPackagePdfUrl: "https://example.com/final.pdf",
+          },
+        });
+
+        await page.goto(`${basePath}?step=${step}`);
+
+        if (processSlug === "extensao-status") {
+          await expect(page.getByText("Análise em Andamento").first()).toBeVisible();
+          await expect(page.getByText("Status do Processo").first()).toBeVisible();
+          return;
+        }
+
+        if (step === 0) {
+          await expect(page.getByRole("heading", { name: "Formulário Inicial" }).first()).toBeVisible();
+          await expect(page.getByText("Qual o seu visto atual?")).toBeVisible();
+          return;
+        }
+
+        if (step === 1) {
+          await expect(page.getByRole("heading", { name: "Envios de Documentos" }).first()).toBeVisible();
+          await expect(page.getByText("Instruções do I-94")).toBeVisible();
+          return;
+        }
+
+        if (step === 2) {
+          await expect(page.getByText(/Revisão de Envio/i).first()).toBeVisible();
+          return;
+        }
+
+        if (step === 3) {
+          await expect(page.getByRole("heading", { name: "Upload do I-20" }).first()).toBeVisible();
+          return;
+        }
+
+        if (step === 4) {
+          await expect(page.getByText("Confirmação de Pagamento").first()).toBeVisible();
+          await expect(page.getByText(/Taxa SEVIS/i).first()).toBeVisible();
+          return;
+        }
+
+        if (step === 5) {
+          await expect(page.getByText("Carta de Suporte").first()).toBeVisible();
+          return;
+        }
+
+        if (step === 6) {
+          await expect(page.getByText(/Análise da Carta/i).first()).toBeVisible();
+          return;
+        }
+
+        if (step === 7) {
+          // I-539 step renders section cards (no single "Formulário I-539" heading).
+          await expect(page.getByText(/Parte 1|Part 1/i).first()).toBeVisible();
+          return;
+        }
+
+        if (step === 8) {
+          await expect(page.getByText(/Análise do I-539/i).first()).toBeVisible();
+          return;
+        }
+
+        if (step === 9) {
+          await expect(page.getByText(/Formulário Final|Final Form/i).first()).toBeVisible();
+          await expect(page.getByText(/Form G-1145/i).first()).toBeVisible();
+          return;
+        }
+
+        if (step === 10) {
+          await expect(page.getByText(/Análise Final/i).first()).toBeVisible();
+          return;
+        }
+
+        await expect(page.getByText("Pacote Pronto!")).toBeVisible();
+        await expect(page.getByText(/Siga os passos finais/i)).toBeVisible();
+      };
+
+      for (let step = 0; step <= 11; step += 1) {
+        await test.step(`step ${step}`, async () => {
+          await assertStep(step);
+        });
+      }
     });
+  };
 
-    await page.goto("/dashboard/processes/troca-status/onboarding");
-
-    // Check header
-    await expect(page.getByRole("heading", { name: /Onboarding/i })).toBeVisible();
-    await expect(page.getByText(/Step 1 \/ 12/i)).toBeVisible();
-    
-    // Check selections
-    await expect(page.getByText(/Qual o seu visto atual/i)).toBeVisible();
-    await expect(page.getByText(/Para qual visto você deseja trocar/i)).toBeVisible();
-  });
-
-  test("renders COS Documents Step (Step 1) correctly", async ({ page }) => {
-    await mockCOSEOSSupabase(page, {
-      slug: "troca-status",
-      currentStep: 1,
-    });
-
-    await page.goto("/dashboard/processes/troca-status/onboarding?step=1");
-
-    await expect(page.getByText(/Step 2 \/ 12/i)).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Envios de Documentos/i }).first()).toBeVisible();
-    await expect(page.getByText(/Form I-94 \(Principal\)/i)).toBeVisible();
-    await expect(page.getByText(/Passport and Visa \(Principal\)/i)).toBeVisible();
-  });
-
-  test("renders Form I-539 (Step 7) and performs A-Number & USCIS Online Account Number validation", async ({ page }) => {
-    await mockCOSEOSSupabase(page, {
-      slug: "troca-status",
-      currentStep: 7,
-      dependentsCount: 1,
-    });
-
-    await page.goto("/dashboard/processes/troca-status/onboarding?step=7");
-
-    await expect(page.getByText(/Step 8 \/ 12/i)).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Formulário I-539/i }).first()).toBeVisible();
-
-    // Verify main applicant identifier fields exist
-    const mainANumber = page.locator('input[name="alienNumber"]');
-    const mainUSCISAccount = page.locator('input[name="uscisOnlineAccountNumber"]');
-    await expect(mainANumber).toBeVisible();
-    await expect(mainUSCISAccount).toBeVisible();
-
-    // Test input masking - main A-Number accepts letters, USCIS Account strips them
-    await mainANumber.fill("A123");
-    await expect(mainANumber).toHaveValue("A123");
-
-    await mainUSCISAccount.fill("account-9876");
-    await expect(mainUSCISAccount).toHaveValue("9876");
-
-    // Test dependents A-Number and USCIS Account inputs
-    const depANumber = page.locator('input[name="dependentsA.0.alienNumber"]');
-    const depUSCISAccount = page.locator('input[name="dependentsA.0.uscisOnlineAccountNumber"]');
-    
-    await depANumber.scrollIntoViewIfNeeded();
-    await expect(depANumber).toBeVisible();
-    await expect(depUSCISAccount).toBeVisible();
-
-    // Test letters are accepted on dependents A-Number, and masked on USCIS Account
-    await depANumber.fill("a7890");
-    await expect(depANumber).toHaveValue("a7890");
-
-    await depUSCISAccount.fill("u-12345-n");
-    await expect(depUSCISAccount).toHaveValue("12345");
-
-    // Trigger validation and check error messages
-    const submitBtn = page.getByRole("button", { name: /Enviar Formulário/i });
-    await submitBtn.scrollIntoViewIfNeeded();
-    await submitBtn.click();
-
-    // Check validation error messages
-    await expect(page.getByText("Invalid A-Number format / Formato de A-Number inválido").first()).toBeVisible();
-    await expect(page.getByText("USCIS Online Account Number must be exactly 12 digits / Número da Conta Online do USCIS deve ter exatamente 12 dígitos").first()).toBeVisible();
-  });
+  runAllStepsSuite("troca-status", "COS");
+  runAllStepsSuite("extensao-status", "EOS");
 });

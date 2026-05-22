@@ -5,6 +5,7 @@ function isLegacyFinalShipStep(stepId: string) {
 }
 
 export function normalizeLegacyFinalShipStep(step: StepConfig): StepConfig {
+  if (!step?.id) return step;
   const isMotionStep = step.id.includes("motion");
   const isRFEStep = step.id.includes("rfe");
   const shouldNormalizeMotion = isMotionStep && (isLegacyFinalShipStep(step.id) || step.id.endsWith("_end"));

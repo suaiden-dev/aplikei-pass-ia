@@ -9,6 +9,7 @@ import {
   RiErrorWarningLine,
 } from "react-icons/ri";
 import { getServiceBySlug } from "@shared/data/services";
+import { getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
 import { supabase } from "@shared/lib/supabase";
 import { useT } from "@app/app/i18n";
 import { LogoLoader } from "@shared/components/atoms/logo-loader";
@@ -54,7 +55,79 @@ export default function CheckoutSuccessPage() {
         return;
       }
 
-      const markAsDone = () => {
+      const markAsDone = async () => {
+        const pendingAdvanceRaw = localStorage.getItem("pending_payment_advance");
+
+        if (pendingAdvanceRaw) {
+          try {
+            const pendingAdvance = JSON.parse(pendingAdvanceRaw) as {
+              procId?: string;
+              fromStep?: number;
+              stage?: string;
+              flow?: "motion" | "rfe";
+              targetStep?: number;
+            };
+            if (pendingAdvance?.procId) {
+              const targetStep = pendingAdvance.targetStep ??
+                getCosPaymentStageTarget({
+                  slug,
+                  fromStep: pendingAdvance.fromStep,
+                  stage: pendingAdvance.stage,
+                  flow: pendingAdvance.flow,
+                }) ??
+                0;
+
+              const now = new Date().toISOString();
+              const { data: row } = await supabase
+                .from("user_services")
+                .select("service_slug,current_step,step_data,status")
+                .eq("id", pendingAdvance.procId)
+                .maybeSingle();
+
+              const currentStep = Number(row?.current_step ?? 0);
+              const nextStep = Math.max(currentStep, targetStep);
+              const currentStepData = ((row?.step_data as Record<string, unknown>) ?? {});
+              const paymentStepData: Record<string, unknown> = {};
+
+              if (pendingAdvance.stage === "proposal" && pendingAdvance.flow === "rfe") {
+                paymentStepData.rfe_proposal_paid = true;
+                paymentStepData.rfe_payment_completed_at = now;
+              }
+
+              if (pendingAdvance.stage === "proposal" && pendingAdvance.flow === "motion") {
+                paymentStepData.motion_proposal_paid = true;
+                paymentStepData.motion_payment_completed_at = now;
+              }
+
+              await supabase
+                .from("user_services")
+                .update({
+                  current_step: nextStep,
+                  status: "active",
+                  step_data: {
+                    ...currentStepData,
+                    ...paymentStepData,
+                  },
+                })
+                .eq("id", pendingAdvance.procId);
+
+              localStorage.removeItem("checkout_slug");
+              localStorage.removeItem("checkout_order_id");
+              localStorage.removeItem("checkout_dependents");
+              localStorage.removeItem("checkout_parent_id");
+              localStorage.removeItem("pending_payment_advance");
+
+              const parentSlug = row?.service_slug || "troca-status";
+              window.location.assign(
+                `/dashboard/processes/${parentSlug}/onboarding?id=${pendingAdvance.procId}&step=${nextStep}`,
+              );
+              return;
+            }
+          } catch {
+            // ignore parse/navigation fallback errors
+          }
+        }
+
         localStorage.removeItem("checkout_slug");
         localStorage.removeItem("checkout_order_id");
         localStorage.removeItem("checkout_dependents");
@@ -71,7 +144,7 @@ export default function CheckoutSuccessPage() {
 
         const paid = await paymentService.checkOrderPaymentStatus(slug, 20000, orderId);
         if (paid) {
-          markAsDone();
+          await markAsDone();
         } else {
           setErrorMsg("Pagamento ainda não confirmado.");
           setActivation("error");

@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ActiveProcessCard } from "./ActiveProcessCard";
 import { ServiceCard } from "./ServiceCard";
@@ -5,6 +6,8 @@ import type { ActiveProcess, DashboardLabels } from "@features/process/hooks/use
 import type { ServiceMeta } from "@shared/data/services";
 import { Card } from "../atoms/card";
 import { SectionHeader } from "../molecules/SectionHeader";
+
+const PAGE_SIZE = 4;
 
 interface DashboardViewProps {
   trulyActiveProcesses: ActiveProcess[];
@@ -42,9 +45,17 @@ export function DashboardView({
   labels,
   officeId,
 }: DashboardViewProps) {
+  const [activePage, setActivePage] = useState(1);
+
   if (isLoading) {
     return <LoadingSkeleton />;
   }
+
+  const activeTotalPages = Math.max(1, Math.ceil(trulyActiveProcesses.length / PAGE_SIZE));
+  const pagedActiveProcesses = useMemo(() => {
+    const start = (activePage - 1) * PAGE_SIZE;
+    return trulyActiveProcesses.slice(start, start + PAGE_SIZE);
+  }, [activePage, trulyActiveProcesses]);
 
   return (
     <div className="space-y-16 sm:space-y-20">
@@ -56,11 +67,12 @@ export function DashboardView({
             className="mb-8 sm:mb-12"
           />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {trulyActiveProcesses.map((item, index) => (
+            {pagedActiveProcesses.map((item, index) => (
               <ActiveProcessCard
                 key={item.proc.id}
                 proc={item.proc}
                 displaySlug={item.displaySlug}
+                officeName={item.officeName}
                 service={item.service}
                 progress={item.progress}
                 isApproved={item.isApproved}
@@ -71,6 +83,29 @@ export function DashboardView({
               />
             ))}
           </div>
+          {activeTotalPages > 1 && (
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setActivePage((prev) => Math.max(1, prev - 1))}
+                disabled={activePage === 1}
+                className="px-3 py-1.5 rounded-lg border border-border text-sm font-bold text-text disabled:opacity-40"
+              >
+                Prev
+              </button>
+              <span className="text-xs font-bold text-text-muted uppercase tracking-wider">
+                {activePage}/{activeTotalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setActivePage((prev) => Math.min(activeTotalPages, prev + 1))}
+                disabled={activePage === activeTotalPages}
+                className="px-3 py-1.5 rounded-lg border border-border text-sm font-bold text-text disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </section>
       )}
 

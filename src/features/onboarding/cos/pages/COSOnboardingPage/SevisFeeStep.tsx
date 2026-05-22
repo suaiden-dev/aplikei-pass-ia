@@ -14,6 +14,7 @@ import * as processService from "@features/process/services/processOps";
 import type { UserService } from "@features/process/types";
 import { cosNotificationService } from "@features/onboarding/cos/lib/cos-notifications";
 import { useT } from "@app/app/i18n";
+import { compressImageForUpload } from "@shared/utils/uploadCompression";
 
 interface Props {
   proc: UserService;
@@ -82,12 +83,13 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
+      const fileToUpload = await compressImageForUpload(file);
+      const fileExt = fileToUpload.name.split(".").pop();
       const filePath = `${user.id}/cos/sevis_receipt_${crypto.randomUUID()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from("aplikei-profiles")
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, fileToUpload, { upsert: true, contentType: fileToUpload.type });
 
       if (uploadError) throw uploadError;
       

@@ -15,6 +15,7 @@ import type { UserService } from "../types";
 export interface ActiveProcess {
   proc: UserService;
   displaySlug: string;
+  officeName: string;
   service: ServiceMeta | undefined;
   progress: number;
   isApproved: boolean;
@@ -108,6 +109,35 @@ export function useDashboard(userId: string | undefined) {
     },
   });
 
+  const officeIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          userServices
+            .map((s) => (typeof s.office_id === "string" ? s.office_id : null))
+            .filter((id): id is string => Boolean(id)),
+        ),
+      ),
+    [userServices],
+  );
+
+  const { data: officeNameById = {}, isLoading: isOfficesLoading } = useQuery({
+    queryKey: ["office-names-by-id", officeIds.join(",")],
+    enabled: officeIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("offices")
+        .select("id, name")
+        .in("id", officeIds);
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      (data ?? []).forEach((row: { id: string; name: string | null }) => {
+        map[row.id] = row.name ?? "Office";
+      });
+      return map;
+    },
+  });
+
   const baseProducts = useMemo(() =>
     userServices
       .filter((s) => !isAnalysisSlug(s.service_slug))
@@ -175,6 +205,7 @@ export function useDashboard(userId: string | undefined) {
         return {
           proc,
           displaySlug: displaySlugByProcessId.get(proc.id) ?? proc.service_slug,
+          officeName: (proc.office_id && officeNameById[proc.office_id]) || "Office",
           service,
           progress: isFinalized ? 100 : calculateProcessProgress(proc, service?.steps.length ?? 12),
           isApproved,
@@ -182,7 +213,7 @@ export function useDashboard(userId: string | undefined) {
           isFinalized,
         };
       }),
-    [baseProducts, displaySlugByProcessId, others],
+    [baseProducts, displaySlugByProcessId, officeNameById, others],
   );
 
   const ownedSlugs = useMemo(
@@ -212,7 +243,8 @@ export function useDashboard(userId: string | undefined) {
     ownedSlugs,
     availableServices,
     activeStatuses: ACTIVE_STATUSES,
-    isLoading: isLoadingServices || isPricesLoading,
+    isLoading: isLoadingServices || isPricesLoading || isOfficesLoading,
+    isOfficesLoading,
     isPricesLoading,
     isLoadingServices,
     activeServices,

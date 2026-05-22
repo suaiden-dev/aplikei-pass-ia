@@ -110,7 +110,7 @@ describe("authGuard", () => {
       allowedRoles: ["master"],
     })).toEqual({
       kind: "redirect-role-home",
-      to: "/processes",
+      to: "/manager/processes",
     });
   });
 });

@@ -598,7 +598,7 @@ export const appRoutes: AppRouteDefinition[] = [
   {
     path: "/processes",
     title: "Cases",
-    titleKey: "matters",
+    titleKey: "Cases",
     component: AdminProcessesPage,
     authRequired: true,
     accessLevels: STAFF,

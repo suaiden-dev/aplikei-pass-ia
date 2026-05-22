@@ -3,9 +3,9 @@ import { motion } from "framer-motion";
 import { MdLanguage, MdSchool, MdHistory, MdSyncAlt } from "react-icons/md";
 import {
   RiCheckboxCircleFill,
+  RiBuilding2Line,
   RiFileTextLine,
   RiFlashlightFill,
-  RiBuilding2Line,
 } from "react-icons/ri";
 import type { ServiceMeta } from '@shared/data/services';
 import type { UserService } from '@features/process/types';
@@ -43,6 +43,7 @@ const heroIconNameBySlug: Record<string, string> = {
 interface ActiveProcessCardProps {
   proc: UserService;
   displaySlug?: string;
+  officeName: string;
   service: ServiceMeta | undefined;
   progress: number;
   isApproved: boolean;
@@ -71,6 +72,7 @@ interface ActiveProcessCardProps {
 export function ActiveProcessCard({
   proc,
   displaySlug,
+  officeName,
   progress,
   isApproved,
   isDenied,

@@ -1,9 +1,11 @@
+import type { ReactNode } from 'react'
+
 import I539FormStep from '../I539FormStep'
 import CoverLetterStep from '../CoverLetterStep'
 import FinalFormsStep from '../FinalFormsStep'
 import FinalPackageStep from '../FinalPackageStep'
 import SevisFeeStep from '../SevisFeeStep'
-import { F1I20UploadStep } from "@features/onboarding/f1/pages/F1OnboardingPage/steps/F1I20UploadStep"
+import { F1I20UploadStep } from '@features/onboarding/f1/pages/F1OnboardingPage/steps/F1I20UploadStep'
 import {
   MotionAcceptProposalStep,
   MotionEndStep,
@@ -19,10 +21,10 @@ import {
 import { COSApplicationStep } from './COSApplicationStep'
 import { COSDocumentsStep } from './COSDocumentsStep'
 import COSProcessingFallbackStep from './COSProcessingFallbackStep'
-import { useT } from "@app/app/i18n";
+import { useT } from '@app/app/i18n'
 import type { Dependent } from '../useCOSOnboardingPage'
 import type { DocFile } from '@shared/components/molecules/DocUploadCard'
-import type { UserService } from "@features/process/types";
+import type { UserService } from '@features/process/types'
 import type { UserAccount } from '@shared/types/user.model'
 import type {
   USCISOutcome,
@@ -34,7 +36,6 @@ type OnboardingTranslations = ReturnType<typeof useT>
 
 interface COSStepContentProps {
   t: OnboardingTranslations
-  stepIdx: number
   currentStepId?: string
   proc: UserService | null
   user: UserAccount | null | undefined
@@ -71,9 +72,31 @@ interface COSStepContentProps {
   onRFEResult?: (result: RFEOutcome, opts: { jumpToStep: (n: number) => void }) => Promise<void>
 }
 
+interface StepShellProps {
+  title?: string
+  description?: string
+  children: ReactNode
+  className?: string
+}
+
+function StepShell({ title, description, children, className = 'px-8 py-6' }: StepShellProps) {
+  return (
+    <div className={className}>
+      <div className="mb-6 border-b border-slate-100 pb-6">
+        <h2 className="text-xl font-black text-slate-900 tracking-tight">
+          {title}
+        </h2>
+        <p className="text-sm text-slate-400 font-medium mt-1">
+          {description}
+        </p>
+      </div>
+      {children}
+    </div>
+  )
+}
+
 export function COSStepContent({
   t,
-  stepIdx,
   currentStepId,
   proc,
   user,
@@ -104,9 +127,10 @@ export function COSStepContent({
   onMotionResult,
   onRFEResult,
 }: COSStepContentProps) {
+  const isStep = (...ids: string[]) => ids.includes(currentStepId || '')
   const f1Labels = useT('visas')
 
-  if (currentStepId === 'cos_application_form') {
+  if (isStep('cos_form', 'cos_application_form', 'cos_analysis_form_docs', 'cos_admin_analysis')) {
     return (
       <COSApplicationStep
         t={t}
@@ -129,7 +153,7 @@ export function COSStepContent({
     )
   }
 
-  if (currentStepId === 'cos_documents' || currentStepId === 'eos_documents') {
+  if (isStep('cos_documents')) {
     return (
       <COSDocumentsStep
         t={t}
@@ -142,7 +166,7 @@ export function COSStepContent({
     )
   }
 
-  if ((currentStepId === 'cos_i20_upload' || currentStepId === 'eos_i20_upload') && proc && user) {
+  if (isStep('cos_i20_upload') && proc && user) {
     if (targetVisa !== 'F1') {
       return (
         <COSProcessingFallbackStep
@@ -153,15 +177,7 @@ export function COSStepContent({
     }
 
     return (
-      <div className='px-8 py-6'>
-        <div className='mb-6 border-b border-slate-100 pb-6'>
-          <h2 className='text-xl font-black text-slate-900 tracking-tight'>
-            {serviceTitle}
-          </h2>
-          <p className='text-sm text-slate-400 font-medium mt-1'>
-            {serviceDescription}
-          </p>
-        </div>
+      <StepShell title={serviceTitle} description={serviceDescription}>
         <F1I20UploadStep
           procId={proc.id}
           userId={user.id}
@@ -170,11 +186,11 @@ export function COSStepContent({
           onComplete={onComplete}
           onBack={() => onJumpToStep(2)}
         />
-      </div>
+      </StepShell>
     )
   }
 
-  if ((currentStepId === 'cos_sevis_fee' || currentStepId === 'eos_sevis_fee') && proc && user) {
+  if (isStep('cos_sevis_fee') && proc && user) {
     if (targetVisa !== 'F1') {
       return (
         <COSProcessingFallbackStep
@@ -185,49 +201,37 @@ export function COSStepContent({
     }
 
     return (
-      <div className='px-8 py-6'>
+      <StepShell
+        title={t.cos.sevisFee.title}
+        description={t.cos.sevisFee.desc}
+        className="px-8 py-6 pb-24"
+      >
         <SevisFeeStep proc={proc} user={user} onComplete={onComplete} />
-      </div>
+      </StepShell>
     )
   }
 
-  if ((currentStepId === 'cos_presentation_letter' || currentStepId === 'eos_cover_letter') && proc && user) {
+  if (isStep('cos_cover_letter', 'cos_presentation_letter') && proc && user) {
     return (
-      <div className='px-8 py-6'>
-        <div className='mb-6 border-b border-slate-100 pb-6'>
-          <h2 className='text-xl font-black text-slate-900 tracking-tight'>
-            {serviceTitle}
-          </h2>
-          <p className='text-sm text-slate-400 font-medium mt-1'>
-            {serviceDescription}
-          </p>
-        </div>
+      <StepShell title={serviceTitle} description={serviceDescription}>
         <CoverLetterStep proc={proc} user={user} onComplete={onComplete} />
-      </div>
+      </StepShell>
     )
   }
 
-  if ((currentStepId === 'cos_official_forms' || currentStepId === 'eos_form') && proc && user) {
+  if (isStep('cos_official_forms') && proc && user) {
     return (
-      <div className='px-8 py-6'>
-        <div className='mb-6 border-b border-slate-100 pb-6'>
-          <h2 className='text-xl font-black text-slate-900 tracking-tight'>
-            {serviceTitle}
-          </h2>
-          <p className='text-sm text-slate-400 font-medium mt-1'>
-            {serviceDescription}
-          </p>
-        </div>
+      <StepShell title={serviceTitle} description={serviceDescription}>
         <I539FormStep proc={proc} user={user} onComplete={onComplete} />
-      </div>
+      </StepShell>
     )
   }
 
-  if ((currentStepId === 'cos_final_forms' || currentStepId === 'eos_official_forms') && proc && user) {
+  if (isStep('cos_final_review', 'cos_final_forms') && proc && user) {
     return <FinalFormsStep proc={proc} user={user} onComplete={onComplete} />
   }
 
-  if ((currentStepId === 'cos_final_package' || currentStepId === 'eos_final_package') && proc) {
+  if (isStep('cos_final_package') && proc && !isMotionContext && !isRFEContext) {
     return (
       <FinalPackageStep
         proc={proc}
@@ -239,39 +243,49 @@ export function COSStepContent({
   }
 
   if (isRFEContext) {
-    if (currentStepId === 'cos_rfe_explanation' && proc) {
+    if (isStep('cos_rfe_explanation') && proc) {
       return <RFEExplanationStep proc={proc} />
     }
-    if (currentStepId === 'cos_rfe_instruction' && proc) {
+
+    if (isStep('cos_rfe_instruction') && proc) {
       return <RFEInstructionStep proc={proc} onComplete={onComplete} />
     }
-    if (currentStepId === 'cos_rfe_accept_proposal' && proc) {
+
+    if (isStep('cos_rfe_accept_proposal', 'cos_rfe_proposal') && proc) {
       return <RFEAcceptProposalStep proc={proc} />
     }
-    if (currentStepId === 'cos_rfe_end' && proc) {
+
+    if (isStep('cos_rfe_end') && proc) {
       return (
         <RFEEndStep
           proc={proc}
           onComplete={onComplete}
           onJumpToMotion={() => onJumpToStep(19)}
           onJumpToNewRFE={() => onJumpToStep(13)}
-          onRFEResult={(res) => onRFEResult!(res, { jumpToStep: onJumpToStep })}
+          onRFEResult={
+            onRFEResult
+              ? (res) => onRFEResult(res, { jumpToStep: onJumpToStep })
+              : undefined
+          }
         />
       )
     }
   }
 
   if (isMotionContext) {
-    if (currentStepId === 'cos_motion_acquisition' && proc) {
+    if (isStep('cos_motion_acquisition') && proc) {
       return <MotionExplanationStep proc={proc} user={user} onComplete={onComplete} />
     }
-    if (currentStepId === 'cos_motion_instruction' && proc) {
+
+    if (isStep('cos_motion_instruction') && proc) {
       return <MotionInstructionStep proc={proc} user={user} onComplete={onComplete} />
     }
-    if (currentStepId === 'cos_motion_accept_proposal' && proc) {
+
+    if (isStep('cos_motion_accept_proposal', 'cos_motion_proposal') && proc) {
       return <MotionAcceptProposalStep proc={proc} user={user} onComplete={onComplete} />
     }
-    if (currentStepId === 'cos_motion_end' && proc) {
+
+    if (isStep('cos_motion_end') && proc) {
       return (
         <MotionEndStep
           proc={proc}

@@ -35,6 +35,8 @@ import { cn } from "@shared/utils/cn";
 import { useT } from "@app/app/i18n";
 import { useNavigate } from 'react-router-dom'
 import type { MotionOutcome } from '@shared/types/process.model'
+import { getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
+import { compressImageForUpload } from "@shared/utils/uploadCompression";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,6 +62,23 @@ interface MotionCheckoutOverlayProps {
   proc: UserService
   user?: StepProps['user']
   onClose: () => void
+  paymentStage?: 'initial' | 'proposal'
+  workflowType?: 'motion'
+}
+
+const LEGACY_MOTION_ANALYSIS_SLUG = 'apoio-rfe-motion-inicio'
+const LEGACY_MOTION_PROPOSAL_SLUG = 'proposta-rfe-motion'
+
+function getMotionAnalysisSlug(serviceSlug: string): string {
+  return serviceSlug === 'extensao-status'
+    ? 'analysis-rfe-eos'
+    : 'analysis-rfe-cos'
+}
+
+function getMotionProposalSlug(serviceSlug: string): string {
+  return serviceSlug === 'extensao-status'
+    ? 'consultancy-motion-eos'
+    : 'consultancy-motion-cos'
 }
 
 // ─── Payment method config ────────────────────────────────────────────────────
@@ -81,6 +100,8 @@ function MotionCheckoutOverlay({
   proc,
   user: propUser,
   onClose,
+  paymentStage = 'initial',
+  workflowType = 'motion',
 }: MotionCheckoutOverlayProps) {
   const t = useT('checkout').product
   const t_onboarding = useT('onboarding')
@@ -115,12 +136,21 @@ function MotionCheckoutOverlay({
     [t],
   )
 
-  const savePaymentIntent = () => {
+  const savePaymentIntent = (stage: 'initial' | 'proposal') => {
+    const targetStep = getCosPaymentStageTarget({
+      slug,
+      fromStep: proc.current_step,
+      stage,
+      flow: workflowType,
+    })
     localStorage.setItem(
       'pending_payment_advance',
       JSON.stringify({
         procId: proc.id,
         fromStep: proc.current_step,
+        stage,
+        flow: workflowType,
+        targetStep,
       }),
     )
     localStorage.setItem('checkout_slug', slug)
@@ -182,7 +212,7 @@ function MotionCheckoutOverlay({
           action: motionAction,
         })
 
-        savePaymentIntent()
+        savePaymentIntent(paymentStage)
         window.location.href = url
       } else if (activeMethod === 'parcelow') {
         if (!parcelowCpf || !validateCPF(parcelowCpf)) {
@@ -202,7 +232,7 @@ function MotionCheckoutOverlay({
           proc_id: proc.id,
         })
 
-        savePaymentIntent()
+        savePaymentIntent(paymentStage)
         window.location.href = url
       } else if (activeMethod === 'zelle') {
         toast.success(
@@ -613,6 +643,7 @@ export function MotionExplanationStep({
           'Acesso ao fluxo guiado com suporte da equipe.',
         ]
   const [baseAmount, setBaseAmount] = useState(50)
+  const analysisSlug = getMotionAnalysisSlug(proc.service_slug)
   const analysisFeeTemplate = t?.workflows?.shared?.analysisFee
   const analysisFeeText =
     typeof analysisFeeTemplate === 'string' &&
@@ -624,7 +655,7 @@ export function MotionExplanationStep({
     supabase
       .from('services_prices')
       .select('price')
-      .eq('service_id', 'apoio-rfe-motion-inicio')
+      .in('service_id', [analysisSlug, LEGACY_MOTION_ANALYSIS_SLUG])
       .eq('is_active', true)
       .limit(1)
       .then(({ data, error }) => {
@@ -640,11 +671,11 @@ export function MotionExplanationStep({
         const parsedPrice = Number(firstPrice)
         setBaseAmount(Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 50)
       })
-  }, [])
+  }, [analysisSlug])
 
   return (
     <>
-      <div className='max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700'>
+      <div className='max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700' data-testid='motion-explanation-step'>
         <div className='bg-white rounded-[40px] border border-slate-100 p-12 shadow-sm text-center'>
           <div className='w-20 h-20 rounded-3xl bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-8 shadow-inner'>
             <RiErrorWarningLine className='text-4xl' />
@@ -699,9 +730,11 @@ export function MotionExplanationStep({
       {showCheckout && (
         <MotionCheckoutOverlay
           amount={baseAmount}
-          slug='apoio-rfe-motion-inicio'
+          slug={analysisSlug}
           proc={proc}
           user={user}
+          paymentStage="initial"
+          workflowType="motion"
           onClose={() => setShowCheckout(false)}
         />
       )}
@@ -754,12 +787,13 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
       toast.loading(t?.workflows?.shared?.sendingFile || 'Sending...', {
         id: 'upload',
       })
-      const fileExt = file.name.split('.').pop()
+      const fileToUpload = await compressImageForUpload(file)
+      const fileExt = fileToUpload.name.split('.').pop()
       const filePath = `${proc.user_id}/motion/${docKey}_${crypto.randomUUID()}.${fileExt}`
 
       const { error: uploadError } = await supabase.storage
         .from('aplikei-profiles')
-        .upload(filePath, file)
+        .upload(filePath, fileToUpload)
 
       if (uploadError) throw uploadError
 
@@ -918,6 +952,7 @@ export function MotionAcceptProposalStep({
   const purchases = Array.isArray(data.purchases)
     ? (data.purchases as Array<{ slug?: string }>)
     : []
+  const proposalSlug = getMotionProposalSlug(proc.service_slug)
   const proposalText =
     (data.motion_proposal_text as string) ||
     t?.workflows?.motion?.proposal?.defaultStrategy
@@ -926,11 +961,16 @@ export function MotionAcceptProposalStep({
   const alreadyPaid =
     Boolean(data.motion_payment_completed_at) ||
     Boolean(data.motion_proposal_paid) ||
-    purchases.some((p) => p?.slug === 'proposta-rfe-motion')
+    purchases.some(
+      (p) => p?.slug === proposalSlug || p?.slug === LEGACY_MOTION_PROPOSAL_SLUG,
+    )
 
   return (
     <>
-      <div className='max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700'>
+      <div
+        className='max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700'
+        data-testid='motion-proposal-step'
+      >
         <div className='bg-white rounded-[40px] border border-slate-100 p-12 shadow-sm text-center'>
           <div className='w-20 h-20 rounded-3xl bg-indigo-50 text-indigo-500 flex items-center justify-center mx-auto mb-8 shadow-inner'>
             <RiShieldCheckLine className='text-4xl' />
@@ -947,7 +987,7 @@ export function MotionAcceptProposalStep({
             <div className='h-px w-8 bg-slate-100' />
           </div>
 
-          <div className='bg-slate-50 rounded-3xl p-8 mb-10 border border-slate-100 italic text-slate-600 text-sm leading-relaxed font-serif text-center'>
+          <div className='bg-slate-50 rounded-3xl p-8 mb-10 border border-slate-100 italic text-slate-600 text-sm leading-relaxed font-serif text-center' data-testid='motion-proposal-text'>
             "{proposalText}"
           </div>
 
@@ -956,7 +996,7 @@ export function MotionAcceptProposalStep({
               <p className='text-[10px] font-black text-primary uppercase tracking-widest mb-1'>
                 {t?.workflows?.shared?.serviceCost}
               </p>
-              <h4 className='text-3xl font-black text-slate-800'>
+              <h4 className='text-3xl font-black text-slate-800' data-testid='motion-proposal-amount'>
                 $ {proposalAmount.toFixed(2)}
               </h4>
             </div>
@@ -995,6 +1035,7 @@ export function MotionAcceptProposalStep({
           </div>
 
           <button
+            data-testid='motion-proposal-accept-btn'
             onClick={() => setShowCheckout(true)}
             disabled={proposalAmount <= 0 || alreadyPaid}
             className='w-full bg-primary hover:bg-primary-hover text-white py-6 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50'
@@ -1018,9 +1059,11 @@ export function MotionAcceptProposalStep({
       {showCheckout && (
         <MotionCheckoutOverlay
           amount={proposalAmount}
-          slug='proposta-rfe-motion'
+          slug={proposalSlug}
           proc={proc}
           user={user}
+          paymentStage="proposal"
+          workflowType="motion"
           onClose={() => setShowCheckout(false)}
         />
       )}

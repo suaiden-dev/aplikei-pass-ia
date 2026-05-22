@@ -13,6 +13,7 @@ import type { UserService } from "@features/process/types";
 import { getServiceBySlug } from "@shared/data/services";
 import { toast } from 'sonner'
 import { supabase, getSessionSafe } from "@shared/lib/supabase";
+import { compressImageForUpload } from "@shared/utils/uploadCompression";
 import { useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import I539FormStep from './I539FormStep'
@@ -36,6 +37,8 @@ import {
   RFEAcceptProposalStep,
   RFEEndStep,
 } from './RFEWorkflow'
+import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "@shared/data/workflowTemplates";
+import { COS_MOTION_END_STEP } from '@shared/data/cosWorkflow'
 import { DocUploadCard, type DocFile } from '@shared/components/molecules/DocUploadCard'
 import {
   Dialog,
@@ -97,6 +100,7 @@ export default function COSOnboardingPage() {
     searchParams.get('parentId') ||
     searchParams.get('processId')
   const service = getServiceBySlug(slug)
+  const dependentUpsellSlug = slug === 'extensao-status' ? 'dependent-eos' : 'dependent-cos'
 
   // Safety guard: this component is only for COS products.
   // If somehow the generic :slug route catches a B1/B2 request, redirect immediately.
@@ -144,9 +148,16 @@ export default function COSOnboardingPage() {
   )
   const canSubmit =
     stepIdx === 0 ? canSubmitStep0 : stepIdx === 1 ? canSubmitStep1 : true
-  const currentStepId = service?.steps[stepIdx]?.id
+
+  let currentStepId = service?.steps[stepIdx]?.id
+  if (stepIdx >= 13 && stepIdx <= 18) {
+    currentStepId = RFE_STEPS_TEMPLATE[stepIdx - 13]?.id
+  } else if (stepIdx >= 19 && stepIdx <= COS_MOTION_END_STEP) {
+    currentStepId = MOTION_STEPS_TEMPLATE[stepIdx - 19]?.id || (stepIdx === COS_MOTION_END_STEP ? 'cos_motion_end' : undefined)
+  }
+
   const isMotionResultStep =
-    currentStepId === 'cos_motion_end' || stepIdx === 23 || stepIdx === 24
+    currentStepId === 'cos_motion_end' || stepIdx === COS_MOTION_END_STEP
   const motionReportedResult = String(
     (proc?.step_data as any)?.motion_final_result || '',
   ).toLowerCase()
@@ -157,18 +168,26 @@ export default function COSOnboardingPage() {
     (proc?.step_data as any)?.uscis_rfe_result || '',
   ).toLowerCase()
   const currentProcessStep = proc?.current_step ?? 0
-  const isRecoveryRangeStep = stepIdx >= 13 && stepIdx <= 24
+  const isRecoveryRangeStep = stepIdx >= 13 && stepIdx <= COS_MOTION_END_STEP
   const isMotionContext =
-    uscisResult === 'denied' ||
-    uscisResult === 'rejected' ||
-    rfeResult === 'denied' ||
-    rfeResult === 'rejected' ||
-    currentProcessStep >= 19
+    stepIdx >= 19
+      ? true
+      : stepIdx >= 13 && stepIdx <= 18
+      ? false
+      : uscisResult === 'denied' ||
+        uscisResult === 'rejected' ||
+        rfeResult === 'denied' ||
+        rfeResult === 'rejected' ||
+        currentProcessStep >= 19
+
   const isRFEContext =
-    !isMotionContext &&
-    (uscisResult === 'rfe' ||
-      rfeResult === 'rfe' ||
-      (currentProcessStep >= 13 && currentProcessStep <= 18))
+    stepIdx >= 13 && stepIdx <= 18
+      ? true
+      : stepIdx >= 19
+      ? false
+      : uscisResult === 'rfe' ||
+        rfeResult === 'rfe' ||
+        (currentProcessStep >= 13 && currentProcessStep <= 18)
 
   const handleMotionResultReport = async (result: 'approved' | 'rejected') => {
     if (!proc) return
@@ -217,34 +236,35 @@ export default function COSOnboardingPage() {
   useEffect(() => {
     async function load() {
       if (!user || !slug) return
+      try {
 
-      let data = null
+        let data = null
 
-      if (parentProcessId) {
-        const { data: row } = await supabase
-          .from('user_services')
-          .select('*')
-          .eq('id', parentProcessId)
-          .single()
-        data = row && row.user_id === user.id ? row : null
-      } else {
-        const { data: row } = await supabase
-          .from('user_services')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('service_slug', slug)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle()
-        data = row ?? null
-      }
+        if (parentProcessId) {
+          const { data: row } = await supabase
+            .from('user_services')
+            .select('*')
+            .eq('id', parentProcessId)
+            .single()
+          data = row && row.user_id === user.id ? row : null
+        } else {
+          const { data: row } = await supabase
+            .from('user_services')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('service_slug', slug)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          data = row ?? null
+        }
 
-      if (!data) return
+        if (!data) return
 
-      setProc(data)
+        setProc(data)
 
       // --- AUTO-REPAIR: Sincronizar slots pagos com o histórico de compras (purchases) ---
-      try {
+        try {
         if ((data.step_data as any)?.purchases) {
           const purchases = (data.step_data as any).purchases as Array<{
             dependents?: number | string
@@ -299,38 +319,40 @@ export default function COSOnboardingPage() {
             data = patchedData
           }
         }
+        } catch (err) {
+          console.warn('[AutoRepair] Erro ao sincronizar slots:', err)
+        }
+
+        if (data.step_data) {
+          const stepData = data.step_data as any
+          if (stepData.targetVisa)
+            setTargetVisa(stepData.targetVisa as VisaType)
+          if (stepData.currentVisa)
+            setCurrentVisa(stepData.currentVisa as VisaType)
+          if (stepData.i94Date) setI94Date(stepData.i94Date as string)
+          if (stepData.dependents)
+            setDependents(stepData.dependents as Dependent[])
+
+          // Hydrate docs
+          if (data.step_data.docs) {
+            const savedDocs = data.step_data.docs as Record<string, string>
+            setDocs((prev) => {
+              const next = { ...prev }
+              Object.keys(savedDocs).forEach((key) => {
+                next[key] = {
+                  file: null,
+                  label: key.toUpperCase().replace(/_/g, ' '),
+                  path: savedDocs[key],
+                }
+              })
+              return next
+            })
+          }
+        }
       } catch (err) {
-        console.warn('[AutoRepair] Erro ao sincronizar slots:', err)
+        console.error('[COSOnboardingPage] load error:', err)
       } finally {
         setIsLoading(false)
-      }
-      // --------------------------------------------------------------------------
-
-      if (data.step_data) {
-        const stepData = data.step_data as any
-        if (stepData.targetVisa)
-          setTargetVisa(stepData.targetVisa as VisaType)
-        if (stepData.currentVisa)
-          setCurrentVisa(stepData.currentVisa as VisaType)
-        if (stepData.i94Date) setI94Date(stepData.i94Date as string)
-        if (stepData.dependents)
-          setDependents(stepData.dependents as Dependent[])
-
-        // Hydrate docs
-        if (data.step_data.docs) {
-          const savedDocs = data.step_data.docs as Record<string, string>
-          setDocs((prev) => {
-            const next = { ...prev }
-            Object.keys(savedDocs).forEach((key) => {
-              next[key] = {
-                file: null,
-                label: key.toUpperCase().replace(/_/g, ' '),
-                path: savedDocs[key],
-              }
-            })
-            return next
-          })
-        }
       }
     }
     load()
@@ -338,23 +360,32 @@ export default function COSOnboardingPage() {
 
   useEffect(() => {
     if (!proc) return
-    const isFinalPackage = currentStepId === 'cos_final_package' || currentStepId === 'eos_final_package'
-    if (isFinalPackage) return
+
+    if (!searchParams.has('step')) {
+      const nextParams = new URLSearchParams(searchParams)
+      nextParams.set('step', String(proc.current_step ?? 0))
+      navigate(`/dashboard/processes/${slug}/onboarding?${nextParams.toString()}`, { replace: true })
+      return
+    }
+
+    if (stepIdx < currentProcessStep) {
+      return
+    }
 
     const isInRFERange = stepIdx >= 13 && stepIdx <= 18
-    const isInMotionRange = stepIdx >= 19 && stepIdx <= 24
+    const isInMotionRange = stepIdx >= 19 && stepIdx <= COS_MOTION_END_STEP
 
     if (isMotionContext && !isInMotionRange) {
       const nextParams = new URLSearchParams(searchParams)
       const motionStep =
-        currentProcessStep >= 19 && currentProcessStep <= 24
+        currentProcessStep >= 19 && currentProcessStep <= COS_MOTION_END_STEP
           ? currentProcessStep
           : 19
       nextParams.set('step', String(motionStep))
       navigate(
         `/dashboard/processes/${slug}/onboarding?${nextParams.toString()}`,
         {
-          replace: false,
+          replace: true,
         },
       )
       return
@@ -387,11 +418,36 @@ export default function COSOnboardingPage() {
   ],
   )
 
-  const totalSteps = service?.steps?.length || 0
-  const currentStepTitle = service?.steps?.[stepIdx]?.title || ''
-  const currentStepDescription = service?.steps?.[stepIdx]?.description || ''
+  let totalSteps = service?.steps?.length || 0
+  let currentStepTitle = service?.steps?.[stepIdx]?.title || ''
+  let currentStepDescription = service?.steps?.[stepIdx]?.description || ''
 
-  const goToProcess = () => navigate(`/dashboard/processes/${slug}`)
+  if (stepIdx >= 13 && stepIdx <= 18) {
+    totalSteps = 18
+    const tpl = RFE_STEPS_TEMPLATE[stepIdx - 13]
+    if (tpl) {
+      currentStepTitle = tpl.title
+      currentStepDescription = tpl.description
+    }
+  } else if (stepIdx >= 19) {
+    totalSteps = COS_MOTION_END_STEP
+    const tpl = MOTION_STEPS_TEMPLATE[stepIdx - 19]
+    if (tpl) {
+      currentStepTitle = tpl.title
+      currentStepDescription = tpl.description
+    } else if (stepIdx === COS_MOTION_END_STEP) {
+      currentStepTitle = 'Resultado'
+      currentStepDescription = 'Acompanhe o resultado final do seu Motion.'
+    }
+  }
+
+  const goToProcess = () => {
+    if (proc?.id) {
+      navigate(`/dashboard/processes/${slug}?id=${proc.id}`)
+      return
+    }
+    navigate(`/dashboard/processes/${slug}`)
+  }
 
   const jumpToOnboardingStep = (targetStep: number) => {
     const nextParams = new URLSearchParams(searchParams)
@@ -401,14 +457,39 @@ export default function COSOnboardingPage() {
     )
   }
 
-  const handleUSCISResult = async (result: string) => {
+  const handleUSCISResult = async (
+    result: string,
+    opts?: { jumpToStep?: (step: number) => void },
+  ) => {
     if (!proc) return
     try {
       await processService.updateStepData(proc.id, {
         uscis_official_result: result,
       })
+
+      if (result === 'denied') {
+        await processService.startAdditionalWorkflow(proc.id, 'motion')
+        toast.success(t?.cos?.toasts?.deniedMotion ?? 'Visto negado. Iniciando fluxo de Motion.')
+        if (opts?.jumpToStep) {
+          opts.jumpToStep(19)
+        } else {
+          jumpToOnboardingStep(19)
+        }
+        return
+      }
+
+      if (result === 'rfe') {
+        await processService.startAdditionalWorkflow(proc.id, 'rfe')
+        toast.success(t?.cos?.toasts?.resultReported ?? 'Resultado informado.')
+        if (opts?.jumpToStep) {
+          opts.jumpToStep(13)
+        } else {
+          jumpToOnboardingStep(13)
+        }
+        return
+      }
+
       toast.success(t?.cos?.toasts?.resultReported ?? 'Resultado informado.')
-      window.location.reload()
     } catch (err) {
       toast.error(t?.cos?.toasts?.resultReportError ?? 'Erro ao salvar resultado.')
     }
@@ -421,11 +502,62 @@ export default function COSOnboardingPage() {
   const handleRFEResult = async (result: string) => {
     if (!proc) return
     try {
+      const now = new Date().toISOString()
+      const currentData = ((proc.step_data || {}) as Record<string, unknown>)
+      const currentDocs = (currentData.docs as Record<string, string>) || {}
+      const history = (currentData.rfe_history as Array<Record<string, unknown>>) || []
+      const newHistoryItem = {
+        proposal_text:
+          (currentData.rfe_proposal_text as string) ||
+          (currentData.motion_proposal_text as string) ||
+          '',
+        proposal_amount: Number(
+          currentData.rfe_proposal_amount ??
+          currentData.motion_amount ??
+          currentData.motion_proposal_amount ??
+          0,
+        ) || 0,
+        result,
+        rfe_letter: currentDocs.rfe_letter,
+        rfe_final_package: currentDocs.rfe_final_package,
+        sent_at: (currentData.rfe_proposal_sent_at as string) || now,
+        closed_at: now,
+      }
+
       await processService.updateStepData(proc.id, {
+        rfe_history: [...history, newHistoryItem],
+        rfe_proposal_text: null,
+        rfe_proposal_amount: null,
+        rfe_proposal_sent_at: null,
+        rfe_description: null,
         uscis_rfe_result: result,
       })
+
+      const cycleNumber = history.length + 1
+      await processService.ensureChatThread(
+        proc.id,
+        proc.user_id,
+        `RFE ciclo #${cycleNumber} finalizado com status: ${result.toUpperCase()}.`,
+        true,
+      )
+
+      if (result === 'denied') {
+        await processService.updateStepData(proc.id, {
+          uscis_official_result: 'denied',
+        })
+        await processService.startAdditionalWorkflow(proc.id, 'motion')
+        toast.success(t?.cos?.toasts?.deniedMotion ?? 'Visto negado. Iniciando fluxo de Motion.')
+        jumpToOnboardingStep(19)
+        return
+      }
+
+      if (result === 'rfe') {
+        toast.success(t?.cos?.rfe?.end?.newRfeCycle ?? 'Novo ciclo de RFE iniciado.')
+        jumpToOnboardingStep(13)
+        return
+      }
+
       toast.success(t?.cos?.toasts?.resultReported ?? 'Resultado informado.')
-      window.location.reload()
     } catch (err) {
       toast.error(t?.cos?.toasts?.resultReportError ?? 'Erro ao salvar resultado.')
     }
@@ -609,15 +741,16 @@ export default function COSOnboardingPage() {
         for (const slot of slots) {
           const doc = docs[slot.key]
           if (doc?.file) {
-            const fileExt = doc.file.name.split('.').pop()
+            const fileToUpload = await compressImageForUpload(doc.file)
+            const fileExt = fileToUpload.name.split('.').pop()
             const filePath = `${session.user.id}/cos/${slot.key}.${fileExt}`
             let uploadError = null
 
             const result = await supabase.storage
               .from('profiles')
-              .upload(filePath, doc.file, {
+              .upload(filePath, fileToUpload, {
                 upsert: true,
-                contentType: doc.file.type,
+                contentType: fileToUpload.type,
               })
             uploadError = result.error
 
@@ -690,8 +823,15 @@ export default function COSOnboardingPage() {
           }
         }
 
-        const isFinal = nextStepIdx >= service.steps.length
-        const nextStep = service.steps[nextStepIdx]
+        const isFinal = nextStepIdx >= totalSteps
+        let nextStep: any = service.steps[nextStepIdx]
+        if (!nextStep) {
+          if (nextStepIdx >= 13 && nextStepIdx <= 18) {
+            nextStep = RFE_STEPS_TEMPLATE[nextStepIdx - 13]
+          } else if (nextStepIdx >= 19 && nextStepIdx <= COS_MOTION_END_STEP) {
+            nextStep = MOTION_STEPS_TEMPLATE[nextStepIdx - 19]
+          }
+        }
 
         const currentDBStep = freshProc.current_step ?? 0
         const isCorrection = !!(freshProc.step_data as any)?.admin_feedback
@@ -711,7 +851,15 @@ export default function COSOnboardingPage() {
           await processService.requestStepReview(proc.id)
         }
         toast.success(t.cos?.toasts?.stepSent)
-        navigate(`/dashboard/processes/${slug}`)
+        const isAdminStep = nextStep?.type === 'admin_action'
+        if (isAdminStep || isFinal) {
+          navigate(`/dashboard/processes/${slug}`)
+        } else {
+          const params = new URLSearchParams(searchParams)
+          params.set('step', String(nextStepIdx))
+          if (proc?.id) params.set('id', proc.id)
+          navigate(`/dashboard/processes/${slug}/onboarding?${params.toString()}`)
+        }
       }
     } catch (error: unknown) {
       const message =
@@ -724,32 +872,7 @@ export default function COSOnboardingPage() {
 
   return (
     <div className='min-h-screen bg-bg flex flex-col'>
-      <div className='fixed right-3 bottom-28 z-50 flex flex-col items-stretch gap-2'>
-        <button
-          type='button'
-          onClick={scrollToTop}
-          className='group flex items-center justify-center gap-2 rounded-2xl border border-border bg-card/95 px-4 py-3 shadow-xl shadow-black/5 backdrop-blur-md transition-all hover:border-primary/30 hover:bg-primary hover:text-white'
-          aria-label='Ir para cima'
-          title='Ir para cima'
-        >
-          <RiArrowUpSLine className='text-xl transition-transform group-hover:-translate-y-0.5' />
-          <span className='text-[10px] font-black uppercase tracking-widest'>
-            Cima
-          </span>
-        </button>
-        <button
-          type='button'
-          onClick={scrollToBottom}
-          className='group flex items-center justify-center gap-2 rounded-2xl border border-border bg-card/95 px-4 py-3 shadow-xl shadow-black/5 backdrop-blur-md transition-all hover:border-primary/30 hover:bg-primary hover:text-white'
-          aria-label='Ir para baixo'
-          title='Ir para baixo'
-        >
-          <RiArrowDownSLine className='text-xl transition-transform group-hover:translate-y-0.5' />
-          <span className='text-[10px] font-black uppercase tracking-widest'>
-            Baixo
-          </span>
-        </button>
-      </div>
+
 
       {isSubmitting && (
         <div className='fixed inset-0 z-[120] bg-bg/70 backdrop-blur-sm flex items-center justify-center'>
@@ -808,7 +931,6 @@ export default function COSOnboardingPage() {
           >
             <COSStepContent
               t={t}
-              stepIdx={stepIdx}
               currentStepId={currentStepId}
               proc={proc}
               user={user}
@@ -834,7 +956,7 @@ export default function COSOnboardingPage() {
               onComplete={handleConcluir}
               onBuyDependentSlot={() =>
                 window.location.assign(
-                  `/checkout/slot-dependente-cos?id=${proc?.id}&upgrade=true`,
+                  `/checkout/${dependentUpsellSlug}?proc_id=${proc?.id}&upgrade=true`,
                 )
               }
               onRefreshSlots={() => window.location.reload()}

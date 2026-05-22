@@ -3,7 +3,7 @@ const landing = {
     badge: "Next-Generation Visa AI",
     title: "The complete platform for managing",
     titleHighlight: "visa processes",
-    subtitle: "Automate tasks, organize documents and scale your law firm with the efficiency of Artificial Intelligence applied to immigration law.",
+    subtitle: "Automate tasks, organize documents and scale your law firm with the efficiency of Artificial Intelligence dedicated to managing consular visas (B1/B2, F-1, change and extension of status).",
     cta: "Schedule a demo",
     statsLabel: "Preparation time",
     statsValue: "-70%",
@@ -12,7 +12,7 @@ const landing = {
   },
   problem: {
     title: "Pain points we solve",
-    subtitle: "We understand the operational complexities that prevent immigration firms from growing.",
+    subtitle: "We understand the operational complexities that prevent consular visa firms from growing.",
     items: [
       {
         icon: "account_tree",
@@ -49,7 +49,7 @@ const landing = {
         icon: "auto_fix_high",
         title: "AI Automation",
         badge: "-70% TIME",
-        description: "Use neural models trained in immigration law to fill complex forms in seconds."
+        description: "Use neural models trained in consular visas to fill complex forms in seconds."
       },
       {
         icon: "verified_user",
@@ -60,31 +60,23 @@ const landing = {
   },
   howItWorks: {
     title: "How It Works",
+    subtitle: "Get started in minutes",
     steps: [
       {
-        number: "1",
-        title: "Registration",
-        description: "Import your client's basic data."
+        title: "Create an account",
+        desc: "Sign up on the platform quickly and securely in just a few clicks."
       },
       {
-        number: "2",
-        title: "Automated collection",
-        description: "Intelligent client portal for document submission."
+        title: "Activate your plan",
+        desc: "Choose and activate the ideal plan with the features your office needs."
       },
       {
-        number: "3",
-        title: "Organization and validation",
-        description: "AI validates whether the documents are correct."
+        title: "Configure your company",
+        desc: "Complete your company setup in 7 simple and automated steps."
       },
       {
-        number: "4",
-        title: "AI Generation",
-        description: "Automatic filling of petitions and forms."
-      },
-      {
-        number: "5",
-        title: "Final delivery",
-        description: "Protocol ready for official submission."
+        title: "Sell and manage",
+        desc: "Immediately start selling and masterfully managing your clients' visa processes."
       }
     ]
   },
@@ -164,7 +156,7 @@ const landing = {
   },
   lex: {
     hero: {
-      title: "We handle your entire immigration process with security, strategy, and efficiency.",
+      title: "We handle your entire consular visa process with security, strategy, and efficiency.",
       subtitle: "Ensuring your international goals are achieved with professional rigor.",
       badge: "Processes audited and reviewed by licensed attorneys."
     },
@@ -177,7 +169,7 @@ const landing = {
         },
         {
           title: "Strategic Planning",
-          description: "Definition of the best immigration route aiming for the shortest time and highest approval rate."
+          description: "Definition of the best consular visa route aiming for the shortest time and highest approval rate."
         },
         {
           title: "Document Preparation",
@@ -190,7 +182,7 @@ const landing = {
       ]
     },
     services: {
-      title: "Modular solutions for each immigration profile.",
+      title: "Modular solutions for each type of consular visa (B1/B2, F-1, change and extension of status).",
       items: [
         {
           title: "Work Visas",

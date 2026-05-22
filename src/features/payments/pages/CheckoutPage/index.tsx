@@ -342,11 +342,15 @@ export default function CheckoutPage() {
   };
 
   const baseUSD = dynamicPrice ?? (service ? parsePriceUSD(service.price) : 0);
-  const depUSD = isUpgrade ? baseUSD : (service ? parsePriceUSD(service.dependentPrice) : 0);
+  const supportsDependents = (() => {
+    const current = String(service?.slug || slug || "").toLowerCase();
+    return ["troca-status", "extensao-status", "visa-cos", "visa-eos"].includes(current);
+  })();
+  const depUSD = supportsDependents ? (isUpgrade ? baseUSD : (service ? parsePriceUSD(service.dependentPrice) : 0)) : 0;
   const baseUSDLabel = `US$ ${baseUSD.toFixed(2)}`;
   const depUSDLabel = `US$ ${depUSD.toFixed(2)}`;
-  const checkoutCount = dependents;
-  const subtotalUSD = isUpgrade ? (dependents * baseUSD) : (baseUSD + (dependents * depUSD));
+  const checkoutCount = supportsDependents ? dependents : 0;
+  const subtotalUSD = isUpgrade ? (checkoutCount * baseUSD) : (baseUSD + (checkoutCount * depUSD));
 
   const discountUSD = appliedCoupon?.valid
     ? calculateDiscount(subtotalUSD, appliedCoupon.discount_type!, appliedCoupon.discount_value!)
@@ -453,7 +457,7 @@ export default function CheckoutPage() {
 
           localStorage.setItem("checkout_slug", service!.slug);
           if (orderId) localStorage.setItem("checkout_order_id", orderId);
-          localStorage.setItem("checkout_dependents", dependents.toString());
+          localStorage.setItem("checkout_dependents", checkoutCount.toString());
           window.location.href = url;
 
         } else if (activeMethod === "parcelow") {
@@ -478,7 +482,7 @@ export default function CheckoutPage() {
 
           localStorage.setItem("checkout_slug", service!.slug);
           if (orderId) localStorage.setItem("checkout_order_id", orderId);
-          localStorage.setItem("checkout_dependents", dependents.toString());
+          localStorage.setItem("checkout_dependents", checkoutCount.toString());
           window.location.href = url;
 
         } else if (activeMethod === "zelle") {
@@ -527,7 +531,7 @@ export default function CheckoutPage() {
           event_name: "aba_fechada_abandono",
           email: formik.values.email,
           office_id: officeId,
-          details: `${service?.slug || slug} | Abandono do checkout (Aba fechada). Dependentes: ${dependents} | Método: ${activeMethod}`,
+          details: `${service?.slug || slug} | Abandono do checkout (Aba fechada). Dependentes: ${checkoutCount} | Método: ${activeMethod}`,
         };
         // We use a simple insert and don't await because the page is closing
         supabase.from("checkout_logs").insert(logData).then();
@@ -536,7 +540,7 @@ export default function CheckoutPage() {
 
     window.addEventListener("beforeunload", handleUnload);
     return () => window.removeEventListener("beforeunload", handleUnload);
-  }, [formik.values.email, dependents, activeMethod, officeId]);
+  }, [formik.values.email, checkoutCount, activeMethod, officeId, service?.slug, slug]);
 
   if (!service) return <Navigate to="/dashboard" replace />;
 
@@ -852,46 +856,48 @@ export default function CheckoutPage() {
               </div>
 
               {/* Dependents / Upgrade Slots */}
-              <div className="rounded-2xl bg-card border border-border shadow-sm p-5">
-                <div className="flex items-center justify-between mb-1">
-                  <div>
-                    <p className="text-sm font-semibold text-text">
-                      {isUpgrade ? t.dependents.slotsLabel : t.dependents.label}
-                    </p>
-                    <p className="text-xs text-text-muted">
-                      {isUpgrade
-                        ? t.dependents.perSlot.replace("{{price}}", baseUSDLabel)
-                        : t.dependents.perPerson.replace("{{price}}", depUSDLabel)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = Math.max(isUpgrade ? 1 : 0, dependents - 1);
-                        setDependents(next);
-                        logInteraction("alterar_quantidade", formik.values.email, officeId, `${service?.slug || slug} | Diminuído para: ${next}`);
-                      }}
-                      className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle disabled:opacity-40 transition-colors"
-                      disabled={dependents <= (isUpgrade ? 1 : 0)}
-                    >
-                      <RiSubtractLine className="text-text-muted" />
-                    </button>
-                    <span className="w-4 text-center font-bold text-text">{dependents}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = Math.min(10, dependents + 1);
-                        setDependents(next);
-                        logInteraction("alterar_quantidade", formik.values.email, officeId, `${service?.slug || slug} | Aumentado para: ${next}`);
-                      }}
-                      className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle transition-all font-mono"
-                    >
-                      <RiAddLine className="text-text-muted" />
-                    </button>
+              {supportsDependents && (
+                <div className="rounded-2xl bg-card border border-border shadow-sm p-5">
+                  <div className="flex items-center justify-between mb-1">
+                    <div>
+                      <p className="text-sm font-semibold text-text">
+                        {isUpgrade ? t.dependents.slotsLabel : t.dependents.label}
+                      </p>
+                      <p className="text-xs text-text-muted">
+                        {isUpgrade
+                          ? t.dependents.perSlot.replace("{{price}}", baseUSDLabel)
+                          : t.dependents.perPerson.replace("{{price}}", depUSDLabel)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = Math.max(isUpgrade ? 1 : 0, dependents - 1);
+                          setDependents(next);
+                          logInteraction("alterar_quantidade", formik.values.email, officeId, `${service?.slug || slug} | Diminuído para: ${next}`);
+                        }}
+                        className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle disabled:opacity-40 transition-colors"
+                        disabled={dependents <= (isUpgrade ? 1 : 0)}
+                      >
+                        <RiSubtractLine className="text-text-muted" />
+                      </button>
+                      <span className="w-4 text-center font-bold text-text">{dependents}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = Math.min(10, dependents + 1);
+                          setDependents(next);
+                          logInteraction("alterar_quantidade", formik.values.email, officeId, `${service?.slug || slug} | Aumentado para: ${next}`);
+                        }}
+                        className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-bg-subtle transition-all font-mono"
+                      >
+                        <RiAddLine className="text-text-muted" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Price summary */}
               <PriceSummary

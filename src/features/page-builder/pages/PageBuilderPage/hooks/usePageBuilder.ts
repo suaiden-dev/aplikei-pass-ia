@@ -12,6 +12,24 @@ function toAbsoluteUrl(value: string) {
   return value;
 }
 
+function sanitizeLoginUrl(value: string) {
+  const absolute = toAbsoluteUrl(value);
+  if (typeof window === "undefined" || !absolute) return absolute;
+
+  try {
+    const url = new URL(absolute);
+    // Login URL no longer needs officeId context.
+    url.searchParams.delete("officeId");
+    if (url.pathname !== "/login") {
+      url.pathname = "/login";
+      url.search = "";
+    }
+    return url.toString();
+  } catch {
+    return `${window.location.origin}/login`;
+  }
+}
+
 const initialConfig: LandingPageConfig = {
   pageTitle: "Advocacia Imigratória | Vistos EUA",
   faviconUrl: "https://www.google.com/s2/favicons?domain=aplikei.com&sz=64",
@@ -117,7 +135,6 @@ export function usePageBuilder() {
         const url = new URL(`${window.location.origin}/master`);
         url.searchParams.set("office", office.name);
         const loginUrl = new URL(`${window.location.origin}/login`);
-        loginUrl.searchParams.set("officeId", office.id);
 
         setConfig((prev) => ({
           ...prev,
@@ -125,7 +142,7 @@ export function usePageBuilder() {
             ? (office.landing_page_config as Partial<LandingPageConfig>)
             : {}),
           adminLawyerUrl: url.toString(),
-          loginUrl: loginUrl.toString(),
+          loginUrl: sanitizeLoginUrl(String((office.landing_page_config as Partial<LandingPageConfig> | null)?.loginUrl ?? loginUrl.toString())),
           officeSlug: office.slug,
         }));
       } catch {
@@ -142,7 +159,7 @@ export function usePageBuilder() {
 
   const updateConfig = <K extends keyof LandingPageConfig>(key: K, value: LandingPageConfig[K]) => {
     const normalizedValue = key === "loginUrl"
-      ? (toAbsoluteUrl(String(value)) as LandingPageConfig[K])
+      ? (sanitizeLoginUrl(String(value)) as LandingPageConfig[K])
       : value;
 
     setConfig((prev) => ({

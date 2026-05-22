@@ -34,7 +34,7 @@ const admin = {
     revenue: "Finance",
     finance_analytics: "Finance Analytics",
     dashboard: "Dashboard",
-    matters: "Matters",
+    matters: "Cases",
     lawyers: "Lawyers",
     products: "Products",
     chats: "Messages",

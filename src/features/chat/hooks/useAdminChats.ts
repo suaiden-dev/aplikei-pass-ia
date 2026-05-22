@@ -357,6 +357,7 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
           userId: row.user_id as string,
           officeId: (row.office_id as string | null | undefined) ?? null,
           serviceSlug: row.service_slug as string,
+          officeName: "Office",
           chatTitle: getAnalysisChatTitle(row.service_slug as string),
           fullName: (account?.full_name as string | undefined) || "Sem Nome",
           email: (account?.email as string | undefined) || "",
