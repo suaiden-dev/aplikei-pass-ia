@@ -2293,7 +2293,6 @@ export default function AdminProcessDetailPage() {
           {renderCOSAnalysisI20SevisAdmin()}
           {renderCoverLetterAdmin()}
           {renderFinalFormsAdmin()}
-          {renderFinalPackageAdmin()}
           {renderB1B2CredentialsAdmin()}
           {renderB1B2FinalDocsAdmin()}
           {renderF1DocumentsAdmin()}

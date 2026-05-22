@@ -129,7 +129,7 @@ export function COSStepContent({
     )
   }
 
-  if (currentStepId === 'cos_documents') {
+  if (currentStepId === 'cos_documents' || currentStepId === 'eos_documents') {
     return (
       <COSDocumentsStep
         t={t}
@@ -142,7 +142,7 @@ export function COSStepContent({
     )
   }
 
-  if (currentStepId === 'cos_i20_upload' && proc && user) {
+  if ((currentStepId === 'cos_i20_upload' || currentStepId === 'eos_i20_upload') && proc && user) {
     if (targetVisa !== 'F1') {
       return (
         <COSProcessingFallbackStep
@@ -174,7 +174,7 @@ export function COSStepContent({
     )
   }
 
-  if (currentStepId === 'cos_sevis_fee' && proc && user) {
+  if ((currentStepId === 'cos_sevis_fee' || currentStepId === 'eos_sevis_fee') && proc && user) {
     if (targetVisa !== 'F1') {
       return (
         <COSProcessingFallbackStep
@@ -191,7 +191,7 @@ export function COSStepContent({
     )
   }
 
-  if (currentStepId === 'cos_presentation_letter' && proc && user) {
+  if ((currentStepId === 'cos_presentation_letter' || currentStepId === 'eos_cover_letter') && proc && user) {
     return (
       <div className='px-8 py-6'>
         <div className='mb-6 border-b border-slate-100 pb-6'>
@@ -207,7 +207,7 @@ export function COSStepContent({
     )
   }
 
-  if (currentStepId === 'cos_official_forms' && proc && user) {
+  if ((currentStepId === 'cos_official_forms' || currentStepId === 'eos_form') && proc && user) {
     return (
       <div className='px-8 py-6'>
         <div className='mb-6 border-b border-slate-100 pb-6'>
@@ -223,11 +223,11 @@ export function COSStepContent({
     )
   }
 
-  if (currentStepId === 'cos_final_forms' && proc && user) {
+  if ((currentStepId === 'cos_final_forms' || currentStepId === 'eos_official_forms') && proc && user) {
     return <FinalFormsStep proc={proc} user={user} onComplete={onComplete} />
   }
 
-  if (currentStepId === 'cos_final_package' && proc && !isMotionContext && !isRFEContext) {
+  if ((currentStepId === 'cos_final_package' || currentStepId === 'eos_final_package') && proc) {
     return (
       <FinalPackageStep
         proc={proc}

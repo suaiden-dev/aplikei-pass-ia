@@ -643,8 +643,8 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
 
         <SectionCard title={t.cos.i539.labels.identifiers} subtitle={t.cos.i539.sections.part1} icon={MdBadge}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Field label={t.cos.i539.labels.alienNumber} name="alienNumber" tooltip={I539_TOOLTIPS.alienNumber}><TextInput name="alienNumber" placeholder="9 digits" /></Field>
-            <Field label={t.cos.i539.labels.uscisOnlineAccount} name="uscisOnlineAccountNumber" tooltip={I539_TOOLTIPS.uscisOnlineAccount}><TextInput name="uscisOnlineAccountNumber" placeholder="12 digits" /></Field>
+            <Field label={t.cos.i539.labels.alienNumber} name="alienNumber" tooltip={I539_TOOLTIPS.alienNumber}><TextInput name="alienNumber" placeholder="e.g. A123456789" /></Field>
+            <Field label={t.cos.i539.labels.uscisOnlineAccount} name="uscisOnlineAccountNumber" tooltip={I539_TOOLTIPS.uscisOnlineAccount}><TextInput name="uscisOnlineAccountNumber" placeholder="12 digits" mask="numeric" /></Field>
           </div>
         </SectionCard>
 
@@ -952,9 +952,9 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
                     <Field label="Country of Citizenship" required name={`dependentsA.${idx}.countryOfCitizenship`}><TextInput name={`dependentsA.${idx}.countryOfCitizenship`} /></Field>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
-                    <Field label="A-Number" name={`dependentsA.${idx}.alienNumber`}><TextInput name={`dependentsA.${idx}.alienNumber`} /></Field>
+                    <Field label="A-Number" name={`dependentsA.${idx}.alienNumber`}><TextInput name={`dependentsA.${idx}.alienNumber`} placeholder="e.g. A123456789" /></Field>
                     <Field label="SSN" name={`dependentsA.${idx}.ssn`}><TextInput name={`dependentsA.${idx}.ssn`} /></Field>
-                    <Field label="USCIS Online Account" name={`dependentsA.${idx}.uscisOnlineAccountNumber`}><TextInput name={`dependentsA.${idx}.uscisOnlineAccountNumber`} /></Field>
+                    <Field label="USCIS Online Account" name={`dependentsA.${idx}.uscisOnlineAccountNumber`}><TextInput name={`dependentsA.${idx}.uscisOnlineAccountNumber`} mask="numeric" /></Field>
                   </div>
                   <div className="pt-6 border-t border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Arrival/Departure & Status Info</p>

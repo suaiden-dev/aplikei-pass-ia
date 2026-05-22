@@ -444,6 +444,20 @@ export default function ProcessDetailPage() {
                       </button>
                     )}
 
+                    {/* Sempre permitir acessar a etapa de pacote final/resultado em COS e EOS */}
+                    {!isConsular && (baseStepId === "cos_final_package" || baseStepId === "eos_final_package") && (
+                      <button
+                        onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${idx}`)}
+                        className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${isCurrent
+                            ? "border-primary text-primary hover:bg-primary/5 shadow-sm"
+                            : "border-border text-text-muted hover:border-primary hover:text-primary bg-card"
+                          }`}
+                      >
+                        <RiBookOpenLine className="text-sm" />
+                        {t.processDetail.viewStep || "Visualizar Etapa"}
+                      </button>
+                    )}
+
                     {/* Show View button for COS motion result step (different logic) */}
                     {(isCurrent && isCOS && baseStepId === "cos_motion_end") && (
                         <button

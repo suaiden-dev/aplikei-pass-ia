@@ -6,7 +6,8 @@ import { zodValidate } from "@shared/utils/zodValidate";
  */
 const SSN_REGEX = /^\d{3}-\d{2}-\d{4}$/;
 const DATE_REGEX = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
-const ANUMBER_REGEX = /^A?(\d{7,9})$/; // Match 7-9 digits, optional 'A' prefix
+const ANUMBER_REGEX = /^[a-zA-Z]?\d{7,9}$/; // Match optional letter followed by 7-9 digits
+const USCIS_ACCOUNT_REGEX = /^\d{12}$/; // USCIS Online Account Number is exactly 12 digits
 const I94_REGEX = /^\d{11}$/; // I-94 is exactly 11 digits
 const ZIP_REGEX = /^\d{5}(-\d{4})?$/; // US Zip
 const PHONE_REGEX = /^(\(\d{3}\) \d{3}-\d{4})|(\+\d{2} \(\d{5}\) \d{4})$/;
@@ -37,7 +38,9 @@ export const I539ValidationSchema = z.object({
     .optional()
     .or(z.literal("")),
   uscisOnlineAccountNumber: z.string()
-    .max(15, "USCIS Account number is too long / Conta USCIS longa demais")
+    .refine(val => !val || USCIS_ACCOUNT_REGEX.test(val), {
+      message: "USCIS Online Account Number must be exactly 12 digits / Número da Conta Online do USCIS deve ter exatamente 12 dígitos"
+    })
     .optional()
     .or(z.literal("")),
 
@@ -290,6 +293,26 @@ export const I539ValidationSchema = z.object({
   // 8. Status Expiration: If not D/S, then statusExpirationDate is required
   if (!data.statusExpiresDS && (!data.statusExpirationDate || !DATE_REGEX.test(data.statusExpirationDate))) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Required / Obrigatório (MM/DD/YYYY)", path: ["statusExpirationDate"] });
+  }
+
+  // 9. Dependents A-Number and USCIS Account number validation
+  if (data.dependentsA && Array.isArray(data.dependentsA)) {
+    data.dependentsA.forEach((dep, idx) => {
+      if (dep.alienNumber && !ANUMBER_REGEX.test(dep.alienNumber)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Invalid A-Number format / Formato de A-Number inválido",
+          path: ["dependentsA", idx, "alienNumber"]
+        });
+      }
+      if (dep.uscisOnlineAccountNumber && !USCIS_ACCOUNT_REGEX.test(dep.uscisOnlineAccountNumber)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "USCIS Online Account Number must be exactly 12 digits / Número da Conta Online do USCIS deve ter exatamente 12 dígitos",
+          path: ["dependentsA", idx, "uscisOnlineAccountNumber"]
+        });
+      }
+    });
   }
 });
 

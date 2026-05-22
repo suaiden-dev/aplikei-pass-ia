@@ -338,6 +338,9 @@ export default function COSOnboardingPage() {
 
   useEffect(() => {
     if (!proc) return
+    const isFinalPackage = currentStepId === 'cos_final_package' || currentStepId === 'eos_final_package'
+    if (isFinalPackage) return
+
     const isInRFERange = stepIdx >= 13 && stepIdx <= 18
     const isInMotionRange = stepIdx >= 19 && stepIdx <= 24
 
@@ -376,6 +379,7 @@ export default function COSOnboardingPage() {
     isMotionContext,
     isRFEContext,
     stepIdx,
+    currentStepId,
     navigate,
     searchParams,
     slug,
