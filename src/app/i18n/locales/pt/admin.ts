@@ -61,6 +61,7 @@ const admin = {
         charts: {
             revenueGrowth: "Crescimento de Receita",
             revenueVsProfit: "Receita vs Lucro",
+            salesByProduct: "Vendas por Produto",
             revenueLegend: "Receita",
             profitLegend: "Lucro"
         },

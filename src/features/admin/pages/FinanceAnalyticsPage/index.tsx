@@ -316,12 +316,9 @@ export default function FinanceAnalyticsPage() {
           profitLabel={t.financeAnalytics.charts.profitLegend}
         />
         {currentUser?.role === "admin_lawyer" ? (
-          <AnalyticsChart
-            data={analytics.length ? analytics : []}
-            title={t.financeAnalytics.charts.revenueVsProfit}
-            type="comparison"
-            revenueLabel={t.financeAnalytics.charts.revenueLegend}
-            profitLabel={t.financeAnalytics.charts.profitLegend}
+          <FinanceAnalyticsLawyerChart
+            transactions={filteredTransactions}
+            title={t.financeAnalytics.charts.salesByProduct || "Sales by Product"}
           />
         ) : currentUser?.role === "seller" ? (
           <FinanceAnalyticsLawyerChart
