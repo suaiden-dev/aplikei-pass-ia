@@ -13,7 +13,7 @@ import { FinalCtaSection } from "@shared/components/organisms/LandingFinalCTA";
 import { LandingProductShowcase } from "@shared/components/organisms/LandingProductShowcase";
 import { getDefaultRouteForRole } from "@app/app/router/authRedirect";
 import { RouteGuardLoader } from "@app/app/router/RouteGuardLoader";
-import dashboardPreview from "@app/assets/images/b2b-dashboard-preview.png";
+import heroImage from "@assets/images/dashboard-preview.png";
 
 const avatars = [
   "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
@@ -22,8 +22,6 @@ const avatars = [
   "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop",
   "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop",
 ];
-
-const heroImage = dashboardPreview;
 
 export default function HomePage() {
   const navigate = useNavigate();

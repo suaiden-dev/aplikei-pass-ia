@@ -12,7 +12,8 @@
       "Bash(sed -i 's|from \"@app/data/services.i18n\"|from \"@shared/data/services.i18n\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/pages/ServiceDetailPage/index.tsx)",
       "Bash(sed -i 's|from \"../../core/db/types\"|from \"@shared/types/db\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/notifications/types.ts /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/features/process/types.ts)",
       "Bash(sed -i 's|from \"@app/core/storage/profile-photos\"|from \"@features/auth/services/storage\"|g' /home/vileladev/Desk/aplikei/aplikei-pass-ia/src/shared/components/organisms/PhotoUploadOverlay.tsx)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(rtk grep *)"
     ]
   }
 }

@@ -999,6 +999,16 @@ export default function COSOnboardingPage() {
                   'cos_motion_accept_proposal',
                   'cos_motion_proposal',
                   'cos_motion_end',
+                  'eos_admin_analysis',
+                  'eos_i20_upload',
+                  'eos_sevis_fee',
+                  'eos_uscis_fee',
+                  'eos_cover_letter',
+                  'eos_admin_cover_analysis',
+                  'eos_official_forms',
+                  'eos_admin_final_review',
+                  'eos_final_review',
+                  'eos_final_package',
                 ].includes(currentStepId || '') && (
                   <button
                     onClick={() => void handleConcluir()}

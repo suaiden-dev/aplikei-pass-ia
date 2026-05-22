@@ -127,7 +127,27 @@ export function COSStepContent({
   onMotionResult,
   onRFEResult,
 }: COSStepContentProps) {
-  const isStep = (...ids: string[]) => ids.includes(currentStepId || '')
+  const aliases: Record<string, string[]> = {
+    cos_form: ['eos_form'],
+    cos_application_form: ['eos_form'],
+    cos_documents: ['eos_documents'],
+    cos_i20_upload: ['eos_i20_upload'],
+    cos_sevis_fee: ['eos_sevis_fee', 'eos_uscis_fee'],
+    cos_cover_letter: ['eos_cover_letter'],
+    cos_presentation_letter: ['eos_cover_letter'],
+    cos_official_forms: ['eos_official_forms'],
+    cos_final_review: ['eos_final_review'],
+    cos_final_forms: ['eos_final_review'],
+    cos_final_package: ['eos_final_package'],
+    cos_analysis_presentation_letter: ['eos_admin_cover_analysis'],
+    cos_analysis_official_forms: ['eos_admin_final_review'],
+    cos_analysis_final_forms: ['eos_admin_final_review'],
+  }
+
+  const isStep = (...ids: string[]) => {
+    const current = currentStepId || ''
+    return ids.some((id) => id === current || aliases[id]?.includes(current))
+  }
   const f1Labels = useT('visas')
 
   if (isStep('cos_form', 'cos_application_form', 'cos_analysis_form_docs', 'cos_admin_analysis')) {

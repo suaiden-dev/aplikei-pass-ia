@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
+import { useState, type FormEvent } from "react";
 import { Button } from "../atoms/button";
 import { useT } from "@app/app/i18n";
 import { FiMail, FiPhone, FiMapPin } from "react-icons/fi";
+import { supabase } from "@shared/lib/supabase";
+import { toast } from "sonner";
 
 export function ContactSection() {
   const landing = useT("landing") as any;
@@ -9,6 +12,42 @@ export function ContactSection() {
     title: "Pronto para começar?",
     description: "Entre em contato conosco para uma análise detalhada do seu caso.",
     button: "Enviar Mensagem"
+  };
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!name.trim() || !email.trim() || !subject.trim() || !message.trim()) {
+      toast.error("Preencha todos os campos.");
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const { error } = await supabase.functions.invoke("contact-form", {
+        body: {
+          name: name.trim(),
+          email: email.trim(),
+          subject: subject.trim(),
+          message: message.trim(),
+        },
+      });
+
+      if (error) throw error;
+      toast.success("Mensagem enviada com sucesso.");
+      setName("");
+      setEmail("");
+      setSubject("");
+      setMessage("");
+    } catch {
+      toast.error("Não foi possível enviar sua mensagem agora.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -60,27 +99,51 @@ export function ContactSection() {
             viewport={{ once: true }}
             className="rounded-[2rem] border border-border bg-card p-8 shadow-xl lg:p-12"
           >
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-text-muted uppercase">Nome</label>
-                  <input type="text" className="w-full rounded-xl border border-border bg-bg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20" placeholder="Seu nome" />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-bg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20"
+                    placeholder="Seu nome"
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-text-muted uppercase">Email</label>
-                  <input type="email" className="w-full rounded-xl border border-border bg-bg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20" placeholder="seu@email.com" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-bg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20"
+                    placeholder="seu@email.com"
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-text-muted uppercase">Assunto</label>
-                <input type="text" className="w-full rounded-xl border border-border bg-bg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20" placeholder="Como podemos ajudar?" />
+                <input
+                  type="text"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-bg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="Como podemos ajudar?"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-text-muted uppercase">Mensagem</label>
-                <textarea rows={4} className="w-full rounded-xl border border-border bg-bg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20" placeholder="Descreva seu caso..." />
+                <textarea
+                  rows={4}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-bg px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="Descreva seu caso..."
+                />
               </div>
-              <Button size="lg" className="w-full">
-                {t.button}
+              <Button size="lg" className="w-full" disabled={isSending}>
+                {isSending ? "Enviando..." : t.button}
               </Button>
             </form>
           </motion.div>

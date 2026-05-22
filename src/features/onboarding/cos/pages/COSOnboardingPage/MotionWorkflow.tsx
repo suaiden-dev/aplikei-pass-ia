@@ -35,7 +35,7 @@ import { cn } from "@shared/utils/cn";
 import { useT } from "@app/app/i18n";
 import { useNavigate } from 'react-router-dom'
 import type { MotionOutcome } from '@shared/types/process.model'
-import { getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
+import { COS_MOTION_PROPOSAL_STEP, getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
 import { compressImageForUpload } from "@shared/utils/uploadCompression";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -50,7 +50,7 @@ interface StepProps {
     phone?: string
     phoneNumber?: string
   } | null
-  onComplete?: () => void
+  onComplete?: () => void | Promise<void>
   onMotionResult?: (result: MotionOutcome) => Promise<void>
 }
 
@@ -333,11 +333,10 @@ function MotionCheckoutOverlay({
                 key={m.id}
                 type='button'
                 onClick={() => setActiveMethod(m.id as PaymentTab)}
-                className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-center transition-all duration-150 ${
-                  activeMethod === m.id
+                className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-center transition-all duration-150 ${activeMethod === m.id
                     ? 'border-primary bg-primary/5 text-primary'
                     : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 {m.icon}
                 <span className='text-[11px] font-bold leading-none'>
@@ -631,23 +630,23 @@ export function MotionExplanationStep({
   }
   const translatedFeatures = Array.isArray(copy?.features)
     ? copy.features.filter(
-        (feature: unknown): feature is string =>
-          typeof feature === 'string' && feature.trim().length > 0,
-      )
+      (feature: unknown): feature is string =>
+        typeof feature === 'string' && feature.trim().length > 0,
+    )
     : []
   const features =
     translatedFeatures.length > 0
       ? translatedFeatures
       : [
-          'Revisao completa da negativa recebida.',
-          'Acesso ao fluxo guiado com suporte da equipe.',
-        ]
+        'Revisao completa da negativa recebida.',
+        'Acesso ao fluxo guiado com suporte da equipe.',
+      ]
   const [baseAmount, setBaseAmount] = useState(50)
   const analysisSlug = getMotionAnalysisSlug(proc.service_slug)
   const analysisFeeTemplate = t?.workflows?.shared?.analysisFee
   const analysisFeeText =
     typeof analysisFeeTemplate === 'string' &&
-    analysisFeeTemplate.includes('{amount}')
+      analysisFeeTemplate.includes('{amount}')
       ? analysisFeeTemplate.replace('{amount}', baseAmount.toFixed(2))
       : `Taxa de analise: $${baseAmount.toFixed(2)}`
 
@@ -754,7 +753,7 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
   const [loading, setLoading] = useState(false)
   const instructionCopy = t?.workflows?.motion?.instruction
   const instructionTitle =
-    instructionCopy?.title || 'Motion - Suas Informacoes'
+    instructionCopy?.title || 'coes'
   const instructionDescription =
     instructionCopy?.desc ||
     'Envie a carta de negativa e descreva o que o USCIS alegou para que nossa equipe analise o caso.'
@@ -848,7 +847,18 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
         userId: proc.user_id,
       })
 
-      onComplete?.()
+      try {
+        await onComplete?.()
+      } catch (advanceError) {
+        // Fallback: if the onboarding handler fails (e.g., EOS flow edge cases),
+        // advance to Motion proposal so the client is not blocked.
+        console.error('[MotionInstructionStep] onComplete failed, applying fallback advance:', advanceError)
+        await processService.updateCurrentStep(
+          proc.id,
+          COS_MOTION_PROPOSAL_STEP,
+          'awaiting_review',
+        )
+      }
     } catch (e: unknown) {
       const err = e as Error
       toast.error(err.message)
@@ -1093,7 +1103,7 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
     ?.motion_final_package
   const motionLetterUrl = motionLetterPath
     ? supabase.storage.from('aplikei-profiles').getPublicUrl(motionLetterPath).data
-        .publicUrl
+      .publicUrl
     : null
   const workflowStatus = String(data.workflow_status || '').toLowerCase()
   const motionResult =
@@ -1201,10 +1211,10 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
           <p className='text-sm font-medium leading-relaxed'>
             {normalizedStatus === 'approved'
               ? t?.workflows?.motion?.end?.approvedDesc ||
-                'Seu Motion foi aprovado.'
+              'Seu Motion foi aprovado.'
               : normalizedStatus === 'rejected'
                 ? t?.workflows?.motion?.end?.deniedDesc ||
-                  'Seu Motion foi rejeitado.'
+                'Seu Motion foi rejeitado.'
                 : (t?.workflows?.motion?.end?.selectOptionPrompt ?? 'Selecione uma opcao abaixo para nos informar como foi a Motion.')}
           </p>
         </div>
