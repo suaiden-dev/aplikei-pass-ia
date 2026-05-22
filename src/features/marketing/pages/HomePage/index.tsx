@@ -13,7 +13,7 @@ import { FinalCtaSection } from "@shared/components/organisms/LandingFinalCTA";
 import { LandingProductShowcase } from "@shared/components/organisms/LandingProductShowcase";
 import { getDefaultRouteForRole } from "@app/app/router/authRedirect";
 import { RouteGuardLoader } from "@app/app/router/RouteGuardLoader";
-import heroImage from "@assets/images/dashboard-preview.png";
+import dashboardPreview from "@app/assets/images/b2b-dashboard-preview.png";
 
 const avatars = [
   "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",

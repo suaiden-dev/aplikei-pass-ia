@@ -63,7 +63,11 @@ async function resolveOfficeIdForUser(
   return ownedOffice.id;
 }
 
-async function calculateAvailableBalance(supabase: SupabaseClient, officeId: string) {
+async function calculateAvailableBalance(
+  supabase: SupabaseClient,
+  officeId: string,
+  options?: { excludeWithdrawalId?: string },
+) {
   const { data: orders, error: ordersError } = await supabase
     .from("orders")
     .select("office_net_amount_usd, created_at, payment_status, subscription_available_after_minutes")
@@ -86,11 +90,16 @@ async function calculateAvailableBalance(supabase: SupabaseClient, officeId: str
 
   const { data: withdrawals, error: withdrawalsError } = await supabase
     .from("office_withdrawals")
-    .select("amount, status")
+    .select("id, amount, status")
     .eq("office_id", officeId);
   if (withdrawalsError) throw withdrawalsError;
 
+  const excludeWithdrawalId = options?.excludeWithdrawalId ?? null;
   const reserved = (withdrawals ?? [])
+    .filter((withdrawal: Record<string, unknown>) =>
+      !excludeWithdrawalId ||
+      String(withdrawal.id ?? "") !== excludeWithdrawalId,
+    )
     .filter((withdrawal: Record<string, unknown>) =>
       ["pending", "approved", "processing", "completed", "paid"].includes(
         String(withdrawal.status ?? "").toLowerCase(),
@@ -150,7 +159,9 @@ export async function approveWithdrawal(
   }
 
   if (status === "approved") {
-    const availableBalance = await calculateAvailableBalance(supabase, existing.office_id);
+    const availableBalance = await calculateAvailableBalance(supabase, existing.office_id, {
+      excludeWithdrawalId: existing.id,
+    });
     if ((Number(existing.amount) || 0) > availableBalance) {
       throw new Error(`Withdrawal amount exceeds current available balance (${availableBalance.toFixed(2)}).`);
     }

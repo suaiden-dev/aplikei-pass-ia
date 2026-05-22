@@ -453,8 +453,24 @@ export default function RevenuePage() {
             toast.success(t.payments.messages.updateStatusSuccess.replace("{{status}}", status));
             setSelectedPayment(null);
             await load();
-        } catch {
-            toast.error(t.payments.messages.updateStatusError);
+        } catch (err: unknown) {
+            let detail = "";
+            const context = (err as { context?: unknown })?.context;
+            if (typeof Response !== "undefined" && context instanceof Response) {
+                try {
+                    const body = await context.clone().json() as { error?: string; message?: string };
+                    detail = body?.error || body?.message || "";
+                } catch {
+                    detail = "";
+                }
+            }
+            const fallback = (err as { message?: string })?.message || "";
+            const message = detail || fallback;
+            toast.error(
+                message
+                    ? `${t.payments.messages.updateStatusError} ${message}`
+                    : t.payments.messages.updateStatusError,
+            );
         } finally {
             setBusy(null);
         }
