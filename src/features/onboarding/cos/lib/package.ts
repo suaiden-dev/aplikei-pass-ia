@@ -99,12 +99,12 @@ export const packageService = {
       const filePath = `${userId}/cos/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("profiles")
+        .from("aplikei-profiles")
         .upload(filePath, mergedBytes, { contentType: "application/pdf", upsert: true });
 
       if (uploadError) throw uploadError;
 
-      const publicUrl = supabase.storage.from("profiles").getPublicUrl(filePath).data.publicUrl;
+      const publicUrl = supabase.storage.from("aplikei-profiles").getPublicUrl(filePath).data.publicUrl;
 
       // 4. Update Step Data
       await updateStepData(processId, {
@@ -121,6 +121,6 @@ export const packageService = {
 
   getPublicUrl(path: string): string {
     if (path.startsWith("http")) return path;
-    return supabase.storage.from("profiles").getPublicUrl(path).data.publicUrl;
+    return supabase.storage.from("aplikei-profiles").getPublicUrl(path).data.publicUrl;
   }
 };

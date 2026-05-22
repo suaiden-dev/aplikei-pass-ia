@@ -92,17 +92,17 @@ export const finalFormsService = {
       const g1450Path = `${userId}/cos/g1450_${processId}_${timestamp}.pdf`;
 
       const { error: err1 } = await supabase.storage
-        .from("profiles")
+        .from("aplikei-profiles")
         .upload(g1145Path, g1145PdfBytes, { contentType: "application/pdf", upsert: true });
 
       const { error: err2 } = await supabase.storage
-        .from("profiles")
+        .from("aplikei-profiles")
         .upload(g1450Path, g1450PdfBytes, { contentType: "application/pdf", upsert: true });
 
-      if (err1 || err2) throw new Error("Erro de RLS ao fazer upload para bucket profiles");
+      if (err1 || err2) throw new Error("Erro de RLS ao fazer upload para bucket aplikei-profiles");
 
-      const g1145PublicUrl = supabase.storage.from("profiles").getPublicUrl(g1145Path).data.publicUrl;
-      const g1450PublicUrl = supabase.storage.from("profiles").getPublicUrl(g1450Path).data.publicUrl;
+      const g1145PublicUrl = supabase.storage.from("aplikei-profiles").getPublicUrl(g1145Path).data.publicUrl;
+      const g1450PublicUrl = supabase.storage.from("aplikei-profiles").getPublicUrl(g1450Path).data.publicUrl;
 
       await updateStepData(processId, {
         g1145PdfUrl: g1145PublicUrl,
