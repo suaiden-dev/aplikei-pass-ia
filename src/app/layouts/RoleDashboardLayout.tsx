@@ -22,6 +22,7 @@ import { NotificationBell } from "@features/notifications/components/Notificatio
 import { NotificationToaster } from "@features/notifications/components/NotificationToaster";
 import { NotificationProvider } from "@app/app/providers/NotificationProvider";
 import { RiSunLine, RiMoonLine } from "react-icons/ri";
+import { fetchOfficeForUser } from "@features/offices/services/officeOps";
 
 export interface DashboardNavItem {
   to: string;
@@ -261,6 +262,23 @@ export function RoleDashboardLayout({
   const { user: currentUser, logout, refreshAccount } = useAuth();
   const navigate = useNavigate();
   const routeLocation = useLocation();
+  const [officeName, setOfficeName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (currentUser?.id) {
+      fetchOfficeForUser(currentUser.id)
+        .then((office) => {
+          if (office) {
+            setOfficeName(office.name);
+          }
+        })
+        .catch(() => {
+          // ignore or fallback
+        });
+    }
+  }, [currentUser]);
+
+  const displayedTitle = officeName || consoleTitle;
   const [hasDismissedOnboarding, setHasDismissedOnboarding] = useState(false);
   void spotlightTitle;
   void spotlightDescription;
@@ -460,11 +478,9 @@ export function RoleDashboardLayout({
           {/* Header */}
           <div className={cn("flex items-center justify-between", collapsed && "lg:justify-center")}>
             <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-bg-subtle p-2.5 text-text shrink-0 border border-border">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
+              <img src="/logo.png" alt="Aplikei" className="h-10 w-auto object-contain shrink-0" />
               <div className={cn(collapsed && "lg:hidden")}>
-                <p className="text-sm font-bold text-text uppercase tracking-tight">{consoleTitle}</p>
+                <p className="text-sm font-bold text-text uppercase tracking-tight">{displayedTitle}</p>
                 <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none mt-0.5">{roleLabel}</p>
                 <p className="text-[10px] font-medium text-text-muted mt-1">{consoleSubtitle}</p>
               </div>

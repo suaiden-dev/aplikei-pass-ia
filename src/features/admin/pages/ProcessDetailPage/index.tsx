@@ -2429,9 +2429,18 @@ export default function AdminProcessDetailPage() {
                 className="w-full h-40 rounded-2xl border border-border bg-bg-subtle p-4 text-sm font-medium text-text outline-none mb-6 resize-none"
               />
               <div className="flex gap-4">
-                <button onClick={() => setShowRejectionModal(false)} className="flex-1 h-12 font-black text-[10px] text-text-muted uppercase">{t.shared.cancel}</button>
-                <button onClick={handleRejectStep} disabled={!rejectionReason || isSubmitting} className="flex-[2] h-12 bg-danger text-white rounded-xl font-black text-[10px] uppercase">
-                  {t.cases.actions.reject}
+                <button type="button" onClick={() => setShowRejectionModal(false)} className="flex-1 h-12 font-black text-[10px] text-text-muted uppercase hover:bg-bg-subtle/50 rounded-xl transition-all">{t.shared.cancel}</button>
+                <button
+                  type="button"
+                  onClick={handleRejectStep}
+                  disabled={!rejectionReason.trim() || isSubmitting}
+                  className={`flex-[2] h-12 rounded-xl font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${
+                    !rejectionReason.trim()
+                      ? "bg-danger/40 text-white/50 cursor-not-allowed"
+                      : "bg-danger text-white hover:bg-danger/90 active:scale-[0.98] shadow-lg shadow-danger/20"
+                  }`}
+                >
+                  {isSubmitting ? <RiLoader4Line className="animate-spin text-lg" /> : t.cases.actions.reject}
                 </button>
               </div>
             </motion.div>
