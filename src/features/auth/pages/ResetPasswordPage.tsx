@@ -40,7 +40,7 @@ export default function ResetPasswordPage() {
         setLoading(true);
         await authService.resetPassword(password);
         setSuccess(true);
-      setTimeout(() => navigate("/login"), 3000);
+      setTimeout(() => navigate("/acompanhar-meu-caso"), 3000);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : p.errorGeneric);
     } finally {
@@ -56,7 +56,7 @@ export default function ResetPasswordPage() {
     >
       <div className="mb-6 flex items-center justify-between gap-4">
         <Link
-          to="/login"
+          to="/acompanhar-meu-caso"
           className="flex items-center gap-1.5 text-sm font-medium text-text-muted transition-colors hover:text-text"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -91,7 +91,7 @@ export default function ResetPasswordPage() {
               <p className="font-bold text-green-800">{p.successTitle}</p>
               <p className="mt-1 text-sm text-green-700">{p.successDesc}</p>
             </div>
-            <Button className="h-12 w-full rounded-xl font-bold" onClick={() => navigate("/login")}>
+            <Button className="h-12 w-full rounded-xl font-bold" onClick={() => navigate("/acompanhar-meu-caso")}>
               {p.goToLogin}
             </Button>
           </motion.div>

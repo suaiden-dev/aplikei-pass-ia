@@ -381,7 +381,7 @@ export function RoleDashboardLayout({
 
   async function handleLogout() {
     await logout();
-    navigate("/login", { replace: true });
+    navigate("/login-office", { replace: true });
   }
 
   const handleImageSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -434,7 +434,7 @@ export function RoleDashboardLayout({
   };
 
   if (!currentUser) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/acompanhar-meu-caso" replace />;
   }
 
   if (!allowedRoles.includes(currentUser.role)) {

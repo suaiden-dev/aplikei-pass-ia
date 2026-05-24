@@ -226,15 +226,7 @@ export const appRoutes: AppRouteDefinition[] = [
     layout: "auth",
   },
   {
-    path: "/login",
-    title: "Login",
-    component: Login,
-    authRequired: false,
-    accessLevels: [],
-    layout: "auth",
-  },
-  {
-    path: "/sign-in",
+    path: "/acompanhar-meu-caso",
     title: "Login",
     component: Login,
     authRequired: false,

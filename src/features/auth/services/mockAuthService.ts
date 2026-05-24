@@ -45,7 +45,7 @@ export function getDashboardPathForRole(role: UserAccountRole) {
   if (role === "admin_lawyer") return "/admin";
   if (role === "seller") return "/seller/earnings";
   if (role === "customer") return "/dashboard";
-  return "/login";
+  return "/acompanhar-meu-caso";
 }
 
 function isBrowser() {
