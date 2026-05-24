@@ -488,6 +488,8 @@ const admin = {
       processCompletedMessage: "Your process has been completed.",
       interviewScheduled: "Interview scheduled",
       interviewScheduledMessage: "Your interview is scheduled. Check date and location in your process.",
+      underReview: "We are reviewing!",
+      underReviewMessage: "Your step was submitted successfully to our review team. Please wait for validation.",
     },
   },
   payments: {

@@ -491,6 +491,8 @@ const admin = {
             processCompletedMessage: "Seu processo foi concluído.",
             interviewScheduled: "Entrevista agendada",
             interviewScheduledMessage: "Sua entrevista foi agendada. Confira a data e local no processo.",
+            underReview: "Estamos Revisando!",
+            underReviewMessage: "Sua etapa foi enviada com sucesso para nossa equipe de análise. Aguarde a validação.",
         },
     },
     payments: {

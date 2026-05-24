@@ -25,7 +25,6 @@ function toTemplate(value: unknown): NotifTemplate | null {
     "rfe_received",
     "interview_scheduled",
     "motion_submitted",
-    "admin_message",
   ];
   return allowed.includes(value as NotifTemplate) ? (value as NotifTemplate) : null;
 }
@@ -62,12 +61,13 @@ export function localizeNotificationContent(
     | "changesRequired"
     | "processCompleted"
     | "interviewScheduled"
-    | "actionRequiredReview";
+    | "actionRequiredReview"
+    | "underReview";
 
   const keyByTitle: Record<string, LabelKey> = {
-    "Estamos Revisando!": "stepApproved",
-    "We are reviewing!": "stepApproved",
-    "Estamos revisando!": "stepApproved",
+    "Estamos Revisando!": "underReview",
+    "We are reviewing!": "underReview",
+    "Estamos revisando!": "underReview",
     "Etapa Aprovada": "stepApproved",
     "Step Approved": "stepApproved",
     "Paso Aprobado": "stepApproved",
@@ -94,6 +94,7 @@ export function localizeNotificationContent(
     processCompleted: labels?.processCompleted ?? "Process completed",
     interviewScheduled: labels?.interviewScheduled ?? "Interview scheduled",
     actionRequiredReview: labels?.actionRequiredReview ?? "Action required: review step",
+    underReview: labels?.underReview ?? "We are reviewing!",
   };
 
   const messageByKey = {
@@ -102,6 +103,7 @@ export function localizeNotificationContent(
     processCompleted: labels?.processCompletedMessage ?? message,
     interviewScheduled: labels?.interviewScheduledMessage ?? message,
     actionRequiredReview: labels?.actionRequiredReviewMessage ?? message,
+    underReview: labels?.underReviewMessage ?? message,
   };
 
   const key = keyByTitle[title];
@@ -109,18 +111,37 @@ export function localizeNotificationContent(
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+
   const isReviewMessage =
-    normalizedMessage.includes("sua etapa foi enviada com sucesso") &&
-    (normalizedMessage.includes("equipe de analise") || normalizedMessage.includes("equiepe de analise"));
-  const completedStepRegex = /O cliente concluiu a etapa "(.+)" de (.+) e aguarda sua revisao\./i;
-  const completedGenericRegex = /O cliente concluiu uma etapa de (.+) e aguarda sua revisao\./i;
-  const completedStepMatch = message.match(completedStepRegex);
-  const completedGenericMatch = message.match(completedGenericRegex);
+    (normalizedMessage.includes("sua etapa foi enviada com sucesso") &&
+      (normalizedMessage.includes("equipe de analise") || normalizedMessage.includes("equiepe de analise"))) ||
+    (normalizedMessage.includes("your step was submitted successfully") &&
+      normalizedMessage.includes("review team")) ||
+    (normalizedMessage.includes("tu etapa se envio correctamente") &&
+      normalizedMessage.includes("equipo de analisis"));
+
+  const completedStepRegexPT = /O cliente concluiu a etapa "(.+)" de (.+) e aguarda sua revisao\./i;
+  const completedStepRegexEN = /Client completed step "(.+)" in (.+) and is waiting for your review\./i;
+  const completedStepRegexES = /El cliente completo el paso "(.+)" de (.+) y espera su revision\./i;
+
+  const completedGenericRegexPT = /O cliente concluiu uma etapa de (.+) e aguarda sua revisao\./i;
+  const completedGenericRegexEN = /Client completed a step in (.+) and is waiting for your review\./i;
+  const completedGenericRegexES = /El cliente completo un paso de (.+) y espera su revision\./i;
+
+  const completedStepMatch =
+    message.match(completedStepRegexPT) ||
+    message.match(completedStepRegexEN) ||
+    message.match(completedStepRegexES);
+
+  const completedGenericMatch =
+    message.match(completedGenericRegexPT) ||
+    message.match(completedGenericRegexEN) ||
+    message.match(completedGenericRegexES);
 
   if (!key && isReviewMessage) {
     return {
-      title: titleByKey.stepApproved,
-      message: messageByKey.stepApproved || message,
+      title: titleByKey.underReview,
+      message: messageByKey.underReview || message,
     };
   }
 

@@ -38,7 +38,7 @@ export function NotificationBell({ role, align = "right" }: NotificationBellProp
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const tNotifications = tAdmin?.notificationsCenter ?? {};
-  const notificationLang: "pt" | "en" | "es" = role === "client" ? lang : "en";
+  const notificationLang = lang;
 
   const filteredNotifications = notifications.filter((n) => {
     if (filter === "all") return true;
