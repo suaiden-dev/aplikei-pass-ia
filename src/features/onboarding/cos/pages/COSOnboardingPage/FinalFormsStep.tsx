@@ -299,12 +299,11 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
                  onBlur={handleBlur1145}
                  error={errors1145.email}
               />
-              <Input 
+              <PhoneInput 
                  label={t.cos.finalForms.g1145.labels.mobile} 
                  description={t.cos.finalForms.g1145.tooltips.mobile}
                  value={data.g1145.mobile} onChange={updateG1145("mobile")} 
                  onBlur={handleBlur1145}
-                 mask="phone"
                  error={errors1145.mobile}
               />
            </div>
@@ -478,6 +477,169 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
             <><RiCheckDoubleLine className="text-lg" /> {t.cos.finalForms.btns?.submit || "Enviar Formulários"} <RiArrowRightLine className="text-lg" /></>
           )}
         </button>
+      </div>
+    </div>
+  );
+}
+
+function detectCountry(value: string): "US" | "BR" | "OTHER" {
+  if (!value) return "US";
+  const clean = value.replace(/\D/g, "");
+  if (value.startsWith("+55") || (clean.startsWith("55") && clean.length >= 12)) {
+    return "BR";
+  }
+  if (value.startsWith("+1") || value.startsWith("(") || (clean.length === 10 && !value.startsWith("+"))) {
+    return "US";
+  }
+  if (value.startsWith("+")) {
+    return "OTHER";
+  }
+  return "US";
+}
+
+function formatPhoneNumber(value: string, country: "US" | "BR" | "OTHER"): string {
+  let digits = value.replace(/\D/g, "");
+  
+  if (country === "US") {
+    if (digits.length === 11 && digits.startsWith("1")) {
+      digits = digits.slice(1);
+    }
+    digits = digits.slice(0, 10);
+    if (digits.length === 0) return "";
+    if (digits.length <= 3) return `(${digits}`;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  }
+  
+  if (country === "BR") {
+    if (digits.startsWith("55") && digits.length > 10) {
+      digits = digits.slice(2);
+    }
+    digits = digits.slice(0, 11);
+    if (digits.length === 0) return "+55 ";
+    if (digits.length <= 2) return `+55 (${digits}`;
+    if (digits.length <= 6) return `+55 (${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 10) {
+      return `+55 (${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    }
+    return `+55 (${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+  }
+  
+  if (!digits.startsWith("+") && value.startsWith("+")) {
+    return "+" + digits;
+  }
+  return digits ? "+" + digits : "";
+}
+
+function PhoneInput({ label, value, onChange, onBlur, placeholder, error, description, disabled }: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  onBlur?: () => void;
+  placeholder?: string;
+  error?: string;
+  description?: string;
+  disabled?: boolean;
+}) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [country, setCountry] = useState<"US" | "BR" | "OTHER">(() => detectCountry(value));
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setCountry(detectCountry(value));
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = formatPhoneNumber(e.target.value, country);
+    onChange(val);
+  };
+
+  const handleCountryChange = (c: "US" | "BR" | "OTHER") => {
+    setCountry(c);
+    setIsOpen(false);
+    const val = formatPhoneNumber(value, c);
+    onChange(val);
+  };
+
+  const flagEmoji = {
+    US: "🇺🇸",
+    BR: "🇧🇷",
+    OTHER: "🌐"
+  };
+
+  const countryLabels = {
+    US: "US (+1)",
+    BR: "BR (+55)",
+    OTHER: "Other (+)"
+  };
+
+  return (
+    <div className="relative group/input w-full">
+      <div className="flex justify-between items-center mb-2">
+        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+          {label}
+          {description && (
+            <div className="relative inline-block">
+              <RiInformationLine 
+                className="text-slate-300 hover:text-primary cursor-help transition-colors text-xs" 
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+              />
+              {showTooltip && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-slate-800 text-white text-[9px] p-2 rounded-lg z-50 shadow-xl pointer-events-none animate-in fade-in zoom-in-95">
+                  {description}
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-800" />
+                </div>
+              )}
+            </div>
+          )}
+        </label>
+        {error && <span className="text-[9px] font-bold text-red-500 animate-in fade-in slide-in-from-right-1">{error}</span>}
+      </div>
+
+      <div className="relative flex items-center w-full">
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => setIsOpen(!isOpen)}
+            className={`flex items-center gap-1.5 px-3 py-3 text-sm font-semibold bg-slate-50 border border-slate-200 border-r-0 rounded-l-xl hover:bg-slate-100 transition-all ${disabled ? "cursor-default opacity-70" : "cursor-pointer"}`}
+            style={{ height: "46px" }}
+          >
+            <span className="text-lg leading-none">{flagEmoji[country]}</span>
+            <span className="text-[11px] font-bold text-slate-500">
+              {country === "US" ? "+1" : country === "BR" ? "+55" : "+"}
+            </span>
+            <span className="text-[9px] text-slate-400 font-bold">▼</span>
+          </button>
+
+          {isOpen && (
+            <div className="absolute left-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 w-32 animate-in fade-in slide-in-from-top-1">
+              {(["US", "BR", "OTHER"] as const).map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => handleCountryChange(c)}
+                  className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
+                >
+                  <span className="text-base">{flagEmoji[c]}</span>
+                  <span>{countryLabels[c]}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <input
+          type="text"
+          value={value}
+          onChange={handleChange}
+          onBlur={onBlur}
+          disabled={disabled}
+          placeholder={placeholder || (country === "US" ? "(201) 555-0123" : country === "BR" ? "+55 (11) 98765-4321" : "+1...")}
+          className={`w-full bg-slate-50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-r-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50`}
+          style={{ height: "46px" }}
+        />
       </div>
     </div>
   );

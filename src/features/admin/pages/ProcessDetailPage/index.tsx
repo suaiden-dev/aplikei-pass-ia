@@ -60,7 +60,7 @@ interface ProcessWithUser extends UserService {
   user_accounts: {
     full_name: string;
     email: string;
-    phone?: string;
+    mobilePhone?: string;
   };
 }
 
@@ -1276,17 +1276,21 @@ export default function AdminProcessDetailPage() {
 
       if (error) throw error;
       const processRow = data as ProcessWithUser;
-      let account: { full_name: string; email: string; phone?: string } = { full_name: "Cliente", email: "" };
+      let account: { full_name: string; email: string; mobilePhone?: string } = { full_name: "Cliente", email: "" };
       if (processRow.user_id) {
         const { data: userDataPrimary, error: userErrorPrimary } = await supabase
-          .from("profiles")
-          .select("full_name, email")
+          .from("user_accounts")
+          .select("full_name, email, phone_number")
           .eq("id", processRow.user_id)
           .maybeSingle();
 
         if (userErrorPrimary) throw userErrorPrimary;
         if (userDataPrimary) {
-          account = { full_name: userDataPrimary.full_name || "Cliente", email: userDataPrimary.email || "" };
+          account = { 
+            full_name: userDataPrimary.full_name || "Cliente", 
+            email: userDataPrimary.email || "",
+            mobilePhone: userDataPrimary.phone_number || ""
+          };
         }
       }
 
@@ -1578,6 +1582,22 @@ export default function AdminProcessDetailPage() {
         isActive={isActive}
         isPast={isPast}
       >
+        {/* Client Info Section */}
+        <div className="bg-bg-subtle border border-border rounded-2xl p-6 mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
+          <div className="border-b sm:border-b-0 sm:border-r border-border pb-3 sm:pb-0 sm:pr-6">
+            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Nome Completo</p>
+            <p className="text-sm font-bold text-text">{proc.user_accounts?.full_name || "—"}</p>
+          </div>
+          <div className="border-b sm:border-b-0 sm:border-r border-border pb-3 sm:pb-0 sm:pr-6">
+            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">E-mail</p>
+            <p className="text-sm font-bold text-text break-all">{proc.user_accounts?.email || "—"}</p>
+          </div>
+          <div className="border-b sm:border-b-0 border-border pb-3 sm:pb-0 sm:pr-6">
+            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Telefone</p>
+            <p className="text-sm font-bold text-text">{proc.user_accounts?.mobilePhone || "—"}</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
           {entries.map(([key, value]) => {
             const isArray = Array.isArray(value);
@@ -2291,38 +2311,49 @@ export default function AdminProcessDetailPage() {
 
 
 
-          {renderFormData()}
-          {renderCOSDocumentsAdmin()}
-          {renderOfficialForms()}
-          {renderCOSAnalysisI20SevisAdmin()}
-          {renderCoverLetterAdmin()}
-          {renderFinalFormsAdmin()}
-          {renderB1B2CredentialsAdmin()}
-          {renderB1B2FinalDocsAdmin()}
-          {renderF1DocumentsAdmin()}
-          {renderF1FinalDocsAdmin()}
-          {renderB1B2CASVAdmin()}
-          {renderB1B2AccountCreationAdmin()}
-          {renderB1B2MRVSetupAdmin()}
-          {renderB1B2FinalSchedulingAdmin()}
+          {(() => {
+            const allSteps = [
+              renderFormData(),
+              renderCOSDocumentsAdmin(),
+              renderOfficialForms(),
+              renderCOSAnalysisI20SevisAdmin(),
+              renderCoverLetterAdmin(),
+              renderFinalFormsAdmin(),
+              renderB1B2CredentialsAdmin(),
+              renderB1B2FinalDocsAdmin(),
+              renderF1DocumentsAdmin(),
+              renderF1FinalDocsAdmin(),
+              renderB1B2CASVAdmin(),
+              renderB1B2AccountCreationAdmin(),
+              renderB1B2MRVSetupAdmin(),
+              renderB1B2FinalSchedulingAdmin(),
+              currentStepBaseId === "cos_rfe_proposal" && (
+                <CollapsibleStep key="cos_rfe_proposal" title={t.processDetail.rfe.panelTitle} icon={RiShieldCheckLine} isActive={true} isPast={false} badge={t.shared.administrativeAction}>
+                  <RFEProposalPanel proc={proc} onRefresh={fetchProcessData} isActive={true} />
+                </CollapsibleStep>
+              ),
+              (currentStepBaseId === "cos_motion_proposal" || workflowStatus === "awaiting_proposal") && (
+                <CollapsibleStep key="cos_motion_proposal" title={t.processDetail.motion.panelTitle} icon={RiShieldCheckLine} isActive={true} isPast={false} badge={t.shared.administrativeAction}>
+                  <MotionProposalPanel proc={proc} onRefresh={fetchProcessData} isActive={true} />
+                </CollapsibleStep>
+              ),
+              currentStepBaseId === "cos_rfe_end" && (
+                <CollapsibleStep key="cos_rfe_end" title={t.processDetail.rfe.finalPackageTitle} icon={RiFileUploadLine} isActive={true} isPast={false} badge={t.shared.administrativeAction}>
+                  <RFEFinalShipPanel proc={proc} onApprove={handleApproveStep} onRefresh={fetchProcessData} isActive={true} />
+                </CollapsibleStep>
+              )
+            ].filter(React.isValidElement);
 
-          {currentStepBaseId === "cos_rfe_proposal" && (
-            <CollapsibleStep title={t.processDetail.rfe.panelTitle} icon={RiShieldCheckLine} isActive={true} isPast={false} badge={t.shared.administrativeAction}>
-              <RFEProposalPanel proc={proc} onRefresh={fetchProcessData} isActive={true} />
-            </CollapsibleStep>
-          )}
+            const completedSteps = allSteps.filter((step: any) => step.props.isPast === true);
+            const pendingSteps = allSteps.filter((step: any) => step.props.isPast !== true);
 
-          {(currentStepBaseId === "cos_motion_proposal" || workflowStatus === "awaiting_proposal") && (
-            <CollapsibleStep title={t.processDetail.motion.panelTitle} icon={RiShieldCheckLine} isActive={true} isPast={false} badge={t.shared.administrativeAction}>
-              <MotionProposalPanel proc={proc} onRefresh={fetchProcessData} isActive={true} />
-            </CollapsibleStep>
-          )}
-
-          {currentStepBaseId === "cos_rfe_end" && (
-            <CollapsibleStep title={t.processDetail.rfe.finalPackageTitle} icon={RiFileUploadLine} isActive={true} isPast={false} badge={t.shared.administrativeAction}>
-              <RFEFinalShipPanel proc={proc} onApprove={handleApproveStep} onRefresh={fetchProcessData} isActive={true} />
-            </CollapsibleStep>
-          )}
+            return (
+              <>
+                {completedSteps.map((step, idx) => React.cloneElement(step as React.ReactElement, { key: `completed-${idx}` }))}
+                {pendingSteps.map((step, idx) => React.cloneElement(step as React.ReactElement, { key: `pending-${idx}` }))}
+              </>
+            );
+          })()}
 
           {currentStep?.type === "admin_action" && !["cos_rfe_proposal", "cos_motion_proposal", "cos_rfe_end", "b1b2_admin_credentials", "b1b2_admin_final_analysis", "b1b2_casv_scheduling", "b1b2_admin_account_creation", "b1b2_admin_mrv_setup", "b1b2_final_scheduling"].includes(currentStepBaseId || "") && (
             <div className="flex items-center gap-4 pt-4">

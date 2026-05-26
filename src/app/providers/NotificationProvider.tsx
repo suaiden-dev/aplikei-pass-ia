@@ -148,7 +148,10 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
       createdAt: notif.created_at,
     };
 
-    setActiveToasts((prev) => [...prev, item].slice(0, MAX_TOASTS));
+    setActiveToasts((prev) => {
+      if (prev.some((t) => t.notificationId === notif.id)) return prev;
+      return [...prev, item].slice(0, MAX_TOASTS);
+    });
   }, []);
 
   const dismissToast = useCallback((toastId: string) => {

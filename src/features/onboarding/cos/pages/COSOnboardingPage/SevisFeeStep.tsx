@@ -175,7 +175,7 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
             onClick={() => setAlreadyPaid(false)}
             className={`py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 ${
               alreadyPaid === false 
-                ? "bg-slate-900 border-slate-900 text-white shadow-lg shadow-slate-200" 
+                ? "bg-slate-800 border-slate-800 text-white shadow-md shadow-slate-100" 
                 : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
             }`}
           >
@@ -186,55 +186,55 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
 
       {/* Instructions if NOT paid */}
       {alreadyPaid === false && (
-        <div className="bg-slate-900 rounded-[32px] p-8 text-white space-y-6 animate-in fade-in slide-in-from-bottom-4">
+        <div className="bg-slate-50 border border-slate-200 rounded-[32px] p-8 text-slate-800 space-y-6 animate-in fade-in slide-in-from-bottom-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
               <RiInformationLine className="text-xl" />
             </div>
-            <h3 className="text-[11px] font-black uppercase tracking-widest">{t.cos.sevisFee.instructions.title}</h3>
+            <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-700">{t.cos.sevisFee.instructions.title}</h3>
           </div>
 
           <div className="space-y-4">
-            <p className="text-sm text-slate-300 leading-relaxed font-medium">
+            <p className="text-sm text-slate-600 leading-relaxed font-medium">
               {t.cos.sevisFee.instructions.desc}
             </p>
             
-            <div className="p-5 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+            <div className="p-5 bg-white border border-slate-200/60 rounded-2xl space-y-4 shadow-sm">
               <div className="flex gap-4">
-                <div className="w-6 h-6 rounded-full bg-primary text-[10px] font-black flex items-center justify-center shrink-0">1</div>
-                <div className="text-xs font-medium text-slate-200">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center shrink-0">1</div>
+                <div className="text-xs font-medium text-slate-700">
                   {t.cos.sevisFee.instructions.step1.prefix}
                   <span className="text-primary font-bold">{t.cos.sevisFee.instructions.step1.bold}</span>
                   {t.cos.sevisFee.instructions.step1.suffix}
                 </div>
               </div>
               <div className="flex gap-4">
-                <div className="w-6 h-6 rounded-full bg-primary text-[10px] font-black flex items-center justify-center shrink-0">2</div>
-                <div className="text-xs font-medium text-slate-200">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center shrink-0">2</div>
+                <div className="text-xs font-medium text-slate-700">
                   {t.cos.sevisFee.instructions.step2.prefix}
-                  <a href="https://www.fmjfee.com/i901fee/index.html#" target="_blank" rel="noreferrer" className="text-blue-400 underline inline-flex items-center gap-1">
+                  <a href="https://www.fmjfee.com/i901fee/index.html#" target="_blank" rel="noreferrer" className="text-primary underline inline-flex items-center gap-1 font-bold">
                     {t.cos.sevisFee.instructions.step2.linkText} <RiExternalLinkLine />
                   </a>
                 </div>
               </div>
               <div className="flex gap-4">
-                <div className="w-6 h-6 rounded-full bg-primary text-[10px] font-black flex items-center justify-center shrink-0">3</div>
-                <div className="text-xs font-medium text-slate-200">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center shrink-0">3</div>
+                <div className="text-xs font-medium text-slate-700">
                   {t.cos.sevisFee.instructions.step3.prefix}
-                  <span className="text-white font-bold">{t.cos.sevisFee.instructions.step3.bold}</span>
+                  <span className="text-slate-800 font-bold">{t.cos.sevisFee.instructions.step3.bold}</span>
                   {t.cos.sevisFee.instructions.step3.suffix}
                 </div>
               </div>
               <div className="flex gap-4">
-                <div className="w-6 h-6 rounded-full bg-primary text-[10px] font-black flex items-center justify-center shrink-0">4</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center shrink-0">4</div>
                 <div className="space-y-2">
                   <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">{t.cos.sevisFee.instructions.step4.title}</p>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    <span className="text-white font-bold">{t.cos.sevisFee.instructions.step4.sevisId}</span><br/>
-                    <span className="text-white font-bold">{t.cos.sevisFee.instructions.step4.form}</span><br/>
-                    <span className="text-white font-bold">{t.cos.sevisFee.instructions.step4.schoolCode}</span><br/>
-                    <span className="text-slate-500 italic">{t.cos.sevisFee.instructions.step4.example}</span>
-                  </p>
+                  <div className="text-xs text-slate-500 leading-relaxed">
+                    <span className="text-slate-800 font-bold">{t.cos.sevisFee.instructions.step4.sevisId}</span><br/>
+                    <span className="text-slate-800 font-bold">{t.cos.sevisFee.instructions.step4.form}</span><br/>
+                    <span className="text-slate-800 font-bold">{t.cos.sevisFee.instructions.step4.schoolCode}</span><br/>
+                    <span className="text-slate-400 italic">{t.cos.sevisFee.instructions.step4.example}</span>
+                  </div>
                 </div>
               </div>
             </div>
