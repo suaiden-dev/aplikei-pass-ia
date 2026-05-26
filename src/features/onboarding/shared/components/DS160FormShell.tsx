@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { Formik, Form, type FormikHelpers } from "formik";
 import { motion } from "framer-motion";
 import {
@@ -66,6 +66,21 @@ export function DS160FormShell({
   const [showErrors, setShowErrors] = useState(false)
   const [isValidating, setIsValidating] = useState(false)
   const totalSections = sectionFields.length
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+
+    const containers = document.querySelectorAll(".overflow-y-auto");
+    containers.forEach((container) => {
+      container.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    });
+  }, [currentSection]);
 
   return (
     <Formik<Partial<DS160FormValues>>

@@ -48,7 +48,7 @@ describe("authRedirect", () => {
     expect(getRedirectPathAfterLogin(customerUser, null)).toBe("/dashboard");
     expect(
       getRedirectPathAfterLogin(managerUser, {
-        from: { pathname: "/login", search: "", hash: "" },
+        from: { pathname: "/acompanhar-meu-caso", search: "", hash: "" },
       }),
     ).toBe("/manager/processes");
   });

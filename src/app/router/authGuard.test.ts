@@ -53,10 +53,33 @@ describe("authGuard", () => {
       },
     })).toEqual({
       kind: "redirect-login",
-      to: "/login",
+      to: "/acompanhar-meu-caso",
       state: {
         from: {
           pathname: "/dashboard",
+          search: "",
+          hash: "",
+        },
+      },
+    });
+  });
+
+  it("redirects anonymous professional users to professional login", () => {
+    expect(resolveAuthGuard({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      location: {
+        pathname: "/admin/overview",
+        search: "",
+        hash: "",
+      },
+    })).toEqual({
+      kind: "redirect-login",
+      to: "/login-office",
+      state: {
+        from: {
+          pathname: "/admin/overview",
           search: "",
           hash: "",
         },

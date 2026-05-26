@@ -17,7 +17,7 @@ export type AuthGuardResolution =
   | { kind: "allow" }
   | {
       kind: "redirect-login";
-      to: "/login";
+      to: "/acompanhar-meu-caso" | "/login-office";
       state: {
         from: RedirectLocation;
       };
@@ -49,9 +49,15 @@ export function resolveAuthGuard({
   }
 
   if (!isAuthenticated || !user) {
+    const isProfessionalRoute =
+      location.pathname.startsWith("/admin") ||
+      location.pathname.startsWith("/manager") ||
+      location.pathname.startsWith("/seller") ||
+      location.pathname.startsWith("/master");
+
     return {
       kind: "redirect-login",
-      to: "/login",
+      to: isProfessionalRoute ? "/login-office" : "/acompanhar-meu-caso",
       state: buildLoginRedirectState(location),
     };
   }

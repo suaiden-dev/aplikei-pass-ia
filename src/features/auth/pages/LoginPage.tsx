@@ -28,14 +28,19 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const hideTabs = location.pathname === "/login" || location.pathname === "/login-office";
+  const hideTabs = location.pathname === "/acompanhar-meu-caso" || location.pathname === "/login-office";
 
   const [isWelcoming, setIsWelcoming] = useState(false);
   const [activeTab, setActiveTab] = useState<"login" | "track">(() =>
-    location.pathname === "/login" ? "track" : "login",
+    location.pathname === "/acompanhar-meu-caso" ? "track" : "login",
   );
 
-  const { user, isAuthenticated, isLoading } = useAuth();
+  useEffect(() => {
+    setActiveTab(location.pathname === "/acompanhar-meu-caso" ? "track" : "login");
+    setIsWelcoming(false);
+  }, [location.pathname]);
+
+  const { user, isAuthenticated, isLoading, refreshAccount } = useAuth();
   const { login } = useAuthForm();
   const initialRedirectHandled = useRef(false);
   const loginPortal: LoginPortal = activeTab === "track" ? "tracking" : "professional";
@@ -69,6 +74,7 @@ export default function Login() {
 
         if (result.session) {
           setIsWelcoming(true);
+          await refreshAccount();
           const resolvedAccount = await authService.resolveAccount(result.session.user);
           navigate(getRedirectPathAfterLogin(resolvedAccount, redirectState), {
             replace: true,

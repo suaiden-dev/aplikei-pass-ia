@@ -15,7 +15,7 @@ export function getDefaultRouteForRole(role: UserRole) {
 export function getRedirectPathAfterLogin(user: UserAccount, state?: AuthRedirectState | null) {
   const from = state?.from;
 
-  if (!from?.pathname || from.pathname === "/login") {
+  if (!from?.pathname || from.pathname === "/acompanhar-meu-caso" || from.pathname === "/login") {
     return getDefaultRouteForRole(user.role);
   }
 

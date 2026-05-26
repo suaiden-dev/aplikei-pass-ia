@@ -410,6 +410,7 @@ export default function COSOnboardingPage() {
     isMotionContext,
     isRFEContext,
     stepIdx,
+    currentStepId,
     navigate,
     searchParams,
     slug,
@@ -746,7 +747,7 @@ export default function COSOnboardingPage() {
             let uploadError = null
 
             const result = await supabase.storage
-              .from('profiles')
+              .from('aplikei-profiles')
               .upload(filePath, fileToUpload, {
                 upsert: true,
                 contentType: fileToUpload.type,

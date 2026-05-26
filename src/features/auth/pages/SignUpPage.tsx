@@ -38,7 +38,7 @@ export default function SignUp() {
       try {
         await signUp(values);
         toast.success(t.signup.success);
-        navigate("/login");
+        navigate("/acompanhar-meu-caso");
       } catch (err) {
         toast.error(err instanceof Error ? err.message : t.signup.error);
       } finally {
@@ -140,7 +140,7 @@ export default function SignUp() {
 
       <p className="mt-6 text-center text-sm text-text-muted">
         {t.signup.hasAccount}{" "}
-        <Link to="/login" className="font-medium text-primary hover:underline">
+        <Link to="/acompanhar-meu-caso" className="font-medium text-primary hover:underline">
           {t.signup.loginLink}
         </Link>
       </p>

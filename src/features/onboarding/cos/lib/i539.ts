@@ -260,11 +260,11 @@ export async function uploadFilledI539(filledBytes: Uint8Array, serviceId: strin
   const storagePath = `${userId}/cos/filled_${fileName}`;
 
   const { error } = await supabase.storage
-    .from("profiles")
+    .from("aplikei-profiles")
     .upload(storagePath, filledBytes, { contentType: "application/pdf", upsert: true });
 
   if (error) throw new Error(`Erro ao salvar PDF: ${error.message}`);
 
-  const { data } = supabase.storage.from("profiles").getPublicUrl(storagePath);
+  const { data } = supabase.storage.from("aplikei-profiles").getPublicUrl(storagePath);
   return data.publicUrl;
 }

@@ -277,7 +277,7 @@ function ProductRow({
 export default function ProductsPage() {
   const t = useT("admin");
   const { user } = useAuth();
-  const loginUrl = typeof window !== "undefined" ? `${window.location.origin}/login` : "/login";
+  const loginUrl = typeof window !== "undefined" ? `${window.location.origin}/acompanhar-meu-caso` : "/acompanhar-meu-caso";
   const [resolvedOfficeId, setResolvedOfficeId] = useState<string | null>(user?.officeId ?? null);
   const [officeSlug, setOfficeSlug] = useState<string | null>(null);
   const [products, setProducts] = useState<ServicePrice[]>([]);

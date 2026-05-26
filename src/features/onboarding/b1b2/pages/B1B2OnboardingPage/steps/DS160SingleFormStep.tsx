@@ -414,7 +414,6 @@ export const DS160SingleFormStep = ({
           name="cpf"
           label={t.onboardingPage.form.cpfLabel}
           placeholder={t.onboardingPage.form.cpfPlaceholder}
-          required
           onChange={(e) => setFieldValue("cpf", maskCPF(e.target.value))}
         />
       </div>

@@ -32,6 +32,7 @@ import {
   useContext, 
   useState, 
   useMemo, 
+  useEffect,
   type ReactNode, 
   type ElementType 
 } from "react";
@@ -218,6 +219,142 @@ function TextInput({ name, placeholder, type = "text", disabled, mask }: {
       disabled={disabled}
       className={`w-full bg-slate-50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50`}
     />
+  );
+}
+
+function detectCountry(value: string): "US" | "BR" | "OTHER" {
+  if (!value) return "US";
+  const clean = value.replace(/\D/g, "");
+  if (value.startsWith("+55") || (clean.startsWith("55") && clean.length >= 12)) {
+    return "BR";
+  }
+  if (value.startsWith("+1") || value.startsWith("(") || (clean.length === 10 && !value.startsWith("+"))) {
+    return "US";
+  }
+  if (value.startsWith("+")) {
+    return "OTHER";
+  }
+  return "US";
+}
+
+function formatPhoneNumber(value: string, country: "US" | "BR" | "OTHER"): string {
+  let digits = value.replace(/\D/g, "");
+  
+  if (country === "US") {
+    if (digits.length === 11 && digits.startsWith("1")) {
+      digits = digits.slice(1);
+    }
+    digits = digits.slice(0, 10);
+    if (digits.length === 0) return "";
+    if (digits.length <= 3) return `(${digits}`;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  }
+  
+  if (country === "BR") {
+    if (digits.startsWith("55") && digits.length > 10) {
+      digits = digits.slice(2);
+    }
+    digits = digits.slice(0, 11);
+    if (digits.length === 0) return "+55 ";
+    if (digits.length <= 2) return `+55 (${digits}`;
+    if (digits.length <= 6) return `+55 (${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 10) {
+      return `+55 (${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    }
+    return `+55 (${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+  }
+  
+  if (!digits.startsWith("+") && value.startsWith("+")) {
+    return "+" + digits;
+  }
+  return digits ? "+" + digits : "";
+}
+
+function PhoneInput({ name, disabled }: { name: string; disabled?: boolean }) {
+  const form = useI539FormContext();
+  const field = form.register(name);
+  const error = form.touched[name] ? (form.errors[name] as string | undefined) : undefined;
+  
+  const displayValue = field.value ?? "";
+  const [country, setCountry] = useState<"US" | "BR" | "OTHER">(() => detectCountry(displayValue));
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setCountry(detectCountry(displayValue));
+  }, [displayValue]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = formatPhoneNumber(e.target.value, country);
+    form.setValue(name, val);
+  };
+
+  const handleCountryChange = (c: "US" | "BR" | "OTHER") => {
+    setCountry(c);
+    setIsOpen(false);
+    const val = formatPhoneNumber(displayValue, c);
+    form.setValue(name, val);
+  };
+
+  const flagEmoji = {
+    US: "🇺🇸",
+    BR: "🇧🇷",
+    OTHER: "🌐"
+  };
+
+  const countryLabels = {
+    US: "US (+1)",
+    BR: "BR (+55)",
+    OTHER: "Other (+)"
+  };
+
+  return (
+    <div className="relative flex items-center w-full">
+      <div className="relative shrink-0">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setIsOpen(!isOpen)}
+          className={`flex items-center gap-1.5 px-3 py-3 text-sm font-semibold bg-slate-50 border border-slate-200 border-r-0 rounded-l-xl hover:bg-slate-100 transition-all ${disabled ? "cursor-default opacity-70" : "cursor-pointer"}`}
+          style={{ height: "46px" }}
+        >
+          <span className="text-lg leading-none">{flagEmoji[country]}</span>
+          <span className="text-[11px] font-bold text-slate-500">
+            {country === "US" ? "+1" : country === "BR" ? "+55" : "+"}
+          </span>
+          <span className="text-[9px] text-slate-400 font-bold">▼</span>
+        </button>
+
+        {isOpen && (
+          <div className="absolute left-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 w-32 animate-in fade-in slide-in-from-top-1">
+            {(["US", "BR", "OTHER"] as const).map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => handleCountryChange(c)}
+                className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
+              >
+                <span className="text-base">{flagEmoji[c]}</span>
+                <span>{countryLabels[c]}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <input
+        {...field}
+        id={name}
+        value={displayValue}
+        onChange={handleChange}
+        onBlur={field.onBlur}
+        type="text"
+        disabled={disabled}
+        placeholder={country === "US" ? "(201) 555-0123" : country === "BR" ? "+55 (11) 98765-4321" : "+1..."}
+        className={`w-full bg-slate-50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-r-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50`}
+        style={{ height: "46px" }}
+      />
+    </div>
   );
 }
 
@@ -643,8 +780,8 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
 
         <SectionCard title={t.cos.i539.labels.identifiers} subtitle={t.cos.i539.sections.part1} icon={MdBadge}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Field label={t.cos.i539.labels.alienNumber} name="alienNumber" tooltip={I539_TOOLTIPS.alienNumber}><TextInput name="alienNumber" placeholder="9 digits" /></Field>
-            <Field label={t.cos.i539.labels.uscisOnlineAccount} name="uscisOnlineAccountNumber" tooltip={I539_TOOLTIPS.uscisOnlineAccount}><TextInput name="uscisOnlineAccountNumber" placeholder="12 digits" /></Field>
+            <Field label={t.cos.i539.labels.alienNumber} name="alienNumber" tooltip={I539_TOOLTIPS.alienNumber}><TextInput name="alienNumber" placeholder="e.g. A123456789" /></Field>
+            <Field label={t.cos.i539.labels.uscisOnlineAccount} name="uscisOnlineAccountNumber" tooltip={I539_TOOLTIPS.uscisOnlineAccount}><TextInput name="uscisOnlineAccountNumber" placeholder="12 digits" mask="numeric" /></Field>
           </div>
         </SectionCard>
 
@@ -882,8 +1019,8 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
 
         <SectionCard title={t.cos.i539.labels.contactInfo} subtitle={t.cos.i539.sections.part5} icon={MdContactPhone}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <Field label={t.cos.i539.labels.daytimePhone} required name="daytimePhone" tooltip={I539_TOOLTIPS.daytimePhone}><TextInput name="daytimePhone" mask="phone" /></Field>
-            <Field label={t.cos.i539.labels.mobilePhone} name="mobilePhone" tooltip={I539_TOOLTIPS.mobilePhone}><TextInput name="mobilePhone" mask="phone" /></Field>
+            <Field label={t.cos.i539.labels.daytimePhone} required name="daytimePhone" tooltip={I539_TOOLTIPS.daytimePhone}><PhoneInput name="daytimePhone" /></Field>
+            <Field label={t.cos.i539.labels.mobilePhone} name="mobilePhone" tooltip={I539_TOOLTIPS.mobilePhone}><PhoneInput name="mobilePhone" /></Field>
             <Field label={t.cos.i539.labels.email} required name="email" tooltip={I539_TOOLTIPS.email}><TextInput name="email" type="email" /></Field>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
@@ -898,7 +1035,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
             <Field label={t.cos.i539.labels.givenName} name="interpreterGivenName" tooltip={I539_TOOLTIPS.preparerGivenName}><TextInput name="interpreterGivenName" /></Field>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
-            <Field label={t.cos.i539.labels.daytimePhone} name="interpreterPhone" tooltip={I539_TOOLTIPS.preparerPhone}><TextInput name="interpreterPhone" mask="phone" /></Field>
+            <Field label={t.cos.i539.labels.daytimePhone} name="interpreterPhone" tooltip={I539_TOOLTIPS.preparerPhone}><PhoneInput name="interpreterPhone" /></Field>
             <Field label={t.cos.i539.labels.email} name="interpreterEmail" tooltip={I539_TOOLTIPS.preparerEmail}><TextInput name="interpreterEmail" /></Field>
             <Field label={t.cos.i539.labels.language} name="interpreterLanguage" tooltip={t.cos.i539.labels.language}><TextInput name="interpreterLanguage" /></Field>
           </div>
@@ -915,7 +1052,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mt-5">
             <Field label={t.cos.i539.labels.business} name="preparerBusiness" tooltip={I539_TOOLTIPS.preparerBusiness}><TextInput name="preparerBusiness" /></Field>
-            <Field label={t.cos.i539.labels.daytimePhone} name="preparerPhone" tooltip={I539_TOOLTIPS.preparerPhone}><TextInput name="preparerPhone" mask="phone" /></Field>
+            <Field label={t.cos.i539.labels.daytimePhone} name="preparerPhone" tooltip={I539_TOOLTIPS.preparerPhone}><PhoneInput name="preparerPhone" /></Field>
             <Field label={t.cos.i539.labels.fax} name="preparerFax" tooltip={t.cos.i539.labels.fax}><TextInput name="preparerFax" /></Field>
             <Field label={t.cos.i539.labels.email} name="preparerEmail" tooltip={I539_TOOLTIPS.preparerEmail}><TextInput name="preparerEmail" /></Field>
           </div>
@@ -952,9 +1089,9 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
                     <Field label="Country of Citizenship" required name={`dependentsA.${idx}.countryOfCitizenship`}><TextInput name={`dependentsA.${idx}.countryOfCitizenship`} /></Field>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
-                    <Field label="A-Number" name={`dependentsA.${idx}.alienNumber`}><TextInput name={`dependentsA.${idx}.alienNumber`} /></Field>
+                    <Field label="A-Number" name={`dependentsA.${idx}.alienNumber`}><TextInput name={`dependentsA.${idx}.alienNumber`} placeholder="e.g. A123456789" /></Field>
                     <Field label="SSN" name={`dependentsA.${idx}.ssn`}><TextInput name={`dependentsA.${idx}.ssn`} /></Field>
-                    <Field label="USCIS Online Account" name={`dependentsA.${idx}.uscisOnlineAccountNumber`}><TextInput name={`dependentsA.${idx}.uscisOnlineAccountNumber`} /></Field>
+                    <Field label="USCIS Online Account" name={`dependentsA.${idx}.uscisOnlineAccountNumber`}><TextInput name={`dependentsA.${idx}.uscisOnlineAccountNumber`} mask="numeric" /></Field>
                   </div>
                   <div className="pt-6 border-t border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Arrival/Departure & Status Info</p>
@@ -994,8 +1131,8 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
 
                 <SectionCard title={`Contact & Signature — ${dep.givenName}`} subtitle="Part 4 — Statement & Contact" icon={MdContactPhone}>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <Field label="Phone" name={`dependentsA.${idx}.daytimePhone`}><TextInput name={`dependentsA.${idx}.daytimePhone`} mask="phone" /></Field>
-                    <Field label="Mobile" name={`dependentsA.${idx}.mobilePhone`}><TextInput name={`dependentsA.${idx}.mobilePhone`} mask="phone" /></Field>
+                    <Field label="Phone" name={`dependentsA.${idx}.daytimePhone`}><PhoneInput name={`dependentsA.${idx}.daytimePhone`} /></Field>
+                    <Field label="Mobile" name={`dependentsA.${idx}.mobilePhone`}><PhoneInput name={`dependentsA.${idx}.mobilePhone`} /></Field>
                     <Field label="Email" name={`dependentsA.${idx}.email`}><TextInput name={`dependentsA.${idx}.email`} /></Field>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">

@@ -52,11 +52,11 @@ export function CustomerLayout() {
   ];
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/acompanhar-meu-caso" replace />;
   }
 
   if (user.role !== "customer") {
-    return <Navigate to={getDashboardPathForRole(user.role) ?? "/login"} replace />;
+    return <Navigate to={getDashboardPathForRole(user.role) ?? "/acompanhar-meu-caso"} replace />;
   }
 
   const closeSidebar = () => setSidebarOpenPath(null);
@@ -64,7 +64,7 @@ export function CustomerLayout() {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/login", { replace: true });
+    navigate("/acompanhar-meu-caso", { replace: true });
   };
 
   return (

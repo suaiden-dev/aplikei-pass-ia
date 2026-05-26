@@ -20,13 +20,13 @@ function sanitizeLoginUrl(value: string) {
     const url = new URL(absolute);
     // Login URL no longer needs officeId context.
     url.searchParams.delete("officeId");
-    if (url.pathname !== "/login") {
-      url.pathname = "/login";
+    if (url.pathname !== "/acompanhar-meu-caso" && url.pathname !== "/login") {
+      url.pathname = "/acompanhar-meu-caso";
       url.search = "";
     }
     return url.toString();
   } catch {
-    return `${window.location.origin}/login`;
+    return `${window.location.origin}/acompanhar-meu-caso`;
   }
 }
 
@@ -43,7 +43,7 @@ const initialConfig: LandingPageConfig = {
   expertStat2Value: "4.9/5",
   expertStat2Label: "Satisfação média",
   adminLawyerUrl: typeof window !== "undefined" ? `${window.location.origin}/master` : "/master",
-  loginUrl: typeof window !== "undefined" ? `${window.location.origin}/login` : "/login",
+  loginUrl: typeof window !== "undefined" ? `${window.location.origin}/acompanhar-meu-caso` : "/acompanhar-meu-caso",
   contactUrl: "https://wa.me/15551234567",
   primaryCtaUrl: "/checkout/b1-b2",
   secondaryCtaUrl: "/quem-somos",
@@ -134,7 +134,7 @@ export function usePageBuilder() {
 
         const url = new URL(`${window.location.origin}/master`);
         url.searchParams.set("office", office.name);
-        const loginUrl = new URL(`${window.location.origin}/login`);
+        const loginUrl = new URL(`${window.location.origin}/acompanhar-meu-caso`);
 
         setConfig((prev) => ({
           ...prev,

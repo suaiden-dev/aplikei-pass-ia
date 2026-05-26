@@ -171,7 +171,7 @@ export function DashboardNavbar({
 
   const handleLogout = async () => {
     await logout();
-    navigate("/login", { replace: true });
+    navigate(role === "client" ? "/acompanhar-meu-caso" : "/login-office", { replace: true });
   };
 
   const handleImageSelected = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -49,7 +49,7 @@ export function NotificationToast({
   const { lang } = useLocale();
   const tAdmin = useT("admin");
   const labels = tAdmin?.notificationsCenter?.labels ?? {};
-  const notificationLang: "pt" | "en" | "es" = user?.role === "customer" ? lang : "en";
+  const notificationLang = lang;
 
   const resolveLink = (link: string | null | undefined): string | null => {
     if (!link || !user?.role) return link ?? null;

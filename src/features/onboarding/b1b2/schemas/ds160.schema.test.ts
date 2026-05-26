@@ -18,7 +18,7 @@ describe("DS160Schema", () => {
     birthCountry: "Brasil",
     hasOtherNationality: "nao",
     hasOtherResidence: "nao",
-    cpf: "123.456.789-00",
+    cpf: "123.456.789-09",
     passportNumber: "BR123456",
     passportIssueDate: "2020-01-01",
     passportExpDate: "2030-01-01",
@@ -60,6 +60,27 @@ describe("DS160Schema", () => {
   it("should validate successfully with correct base data", () => {
     const result = DS160Schema.safeParse(validBaseData);
     expect(result.success).toBe(true);
+  });
+
+  it("should validate successfully if cpf is empty", () => {
+    const data = { ...validBaseData, cpf: "" };
+    const result = DS160Schema.safeParse(data);
+    expect(result.success).toBe(true);
+  });
+
+  it("should validate successfully if cpf is undefined", () => {
+    const { cpf, ...rest } = validBaseData;
+    const result = DS160Schema.safeParse(rest);
+    expect(result.success).toBe(true);
+  });
+
+  it("should fail validation if cpf is invalid", () => {
+    const data = { ...validBaseData, cpf: "123.456.789-00" };
+    const result = DS160Schema.safeParse(data);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some(i => i.path.includes("cpf"))).toBe(true);
+    }
   });
 
   it("should fail validation if hasOtherNames is 'sim' but otherNames is empty", () => {
