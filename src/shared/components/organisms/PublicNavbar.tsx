@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
-import { RiMenu3Line, RiCloseLine, RiSunLine, RiMoonLine, RiArrowDownSLine } from "react-icons/ri";
+import {
+  RiMenu3Line,
+  RiCloseLine,
+  RiSunLine,
+  RiMoonLine,
+  RiArrowDownSLine,
+} from "react-icons/ri";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@shared/utils/cn";
 import { useLocale, useT, type Language } from "@app/app/i18n";
@@ -23,7 +29,8 @@ function LangDropdown({ size = "sm" }: { size?: "sm" | "lg" }) {
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -43,10 +50,17 @@ function LangDropdown({ size = "sm" }: { size?: "sm" | "lg" }) {
         )}
         aria-label="Selecionar idioma"
       >
-        <Flag countryCode={LANGUAGE_FLAG_CODE[active.code]} alt={active.label} className={cn(flagH, "w-auto rounded-[3px]")} />
+        <Flag
+          countryCode={LANGUAGE_FLAG_CODE[active.code]}
+          alt={active.label}
+          className={cn(flagH, "w-auto rounded-[3px]")}
+        />
         <RiArrowDownSLine
           size={14}
-          className={cn("text-text-muted transition-transform duration-200", open && "rotate-180")}
+          className={cn(
+            "text-text-muted transition-transform duration-200",
+            open && "rotate-180",
+          )}
         />
       </button>
 
@@ -62,7 +76,10 @@ function LangDropdown({ size = "sm" }: { size?: "sm" | "lg" }) {
             {LANGS.map((l) => (
               <button
                 key={l.code}
-                onClick={() => { setLang(l.code); setOpen(false); }}
+                onClick={() => {
+                  setLang(l.code);
+                  setOpen(false);
+                }}
                 className={cn(
                   "flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors",
                   lang === l.code
@@ -70,7 +87,11 @@ function LangDropdown({ size = "sm" }: { size?: "sm" | "lg" }) {
                     : "text-text-muted hover:bg-bg-subtle hover:text-text",
                 )}
               >
-                <Flag countryCode={LANGUAGE_FLAG_CODE[l.code]} alt={l.label} className={cn(flagHDrop, "w-auto rounded-[3px]")} />
+                <Flag
+                  countryCode={LANGUAGE_FLAG_CODE[l.code]}
+                  alt={l.label}
+                  className={cn(flagHDrop, "w-auto rounded-[3px]")}
+                />
                 {l.label}
                 {lang === l.code && (
                   <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
@@ -92,7 +113,10 @@ export function PublicNavbar() {
   const isMenuOpen = menuOpenPath === location.pathname;
 
   const closeMenu = () => setMenuOpenPath(null);
-  const toggleMenu = () => setMenuOpenPath((cur) => (cur === location.pathname ? null : location.pathname));
+  const toggleMenu = () =>
+    setMenuOpenPath((cur) =>
+      cur === location.pathname ? null : location.pathname,
+    );
 
   useEffect(() => {
     document.body.style.overflow = isMenuOpen ? "hidden" : "";
@@ -127,7 +151,9 @@ export function PublicNavbar() {
                   cn(
                     "font-display relative pb-1 text-[0.98rem] font-semibold tracking-[-0.015em] transition-colors duration-200",
                     "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-primary after:transition-transform after:duration-200 after:origin-left",
-                    isActive ? "text-text after:scale-x-100" : "text-text-muted hover:text-text after:scale-x-0 hover:after:scale-x-100",
+                    isActive
+                      ? "text-text after:scale-x-100"
+                      : "text-text-muted hover:text-text after:scale-x-0 hover:after:scale-x-100",
                   )
                 }
               >
@@ -146,11 +172,19 @@ export function PublicNavbar() {
             className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-card/80 text-text-muted transition-colors hover:border-primary/40 hover:text-text"
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? <RiSunLine size={16} /> : <RiMoonLine size={16} />}
+            {theme === "dark" ? (
+              <RiSunLine size={16} />
+            ) : (
+              <RiMoonLine size={16} />
+            )}
           </button>
 
           <Button asChild>
-            <Link to="/login-office">{t.login}</Link>
+            <Link to="/track-my-case">{t.trackMyCase}</Link>
+          </Button>
+
+          <Button asChild>
+            <Link to="/login">{t.login}</Link>
           </Button>
         </div>
 
@@ -170,7 +204,7 @@ export function PublicNavbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[90] flex flex-col overflow-y-auto bg-bg px-6 pb-6 pt-24"
+            className="fixed inset-0 z-90 flex flex-col overflow-y-auto bg-bg px-6 pb-6 pt-24"
           >
             <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
               {navLinks.map(({ to, label }) => (
@@ -179,7 +213,12 @@ export function PublicNavbar() {
                   to={to}
                   onClick={closeMenu}
                   className={({ isActive }) =>
-                    cn("font-display py-2 text-2xl font-black uppercase tracking-[0.04em] transition-colors", isActive ? "text-primary" : "text-text-muted hover:text-text")
+                    cn(
+                      "font-display py-2 text-2xl font-black uppercase tracking-[0.04em] transition-colors",
+                      isActive
+                        ? "text-primary"
+                        : "text-text-muted hover:text-text",
+                    )
                   }
                 >
                   {label}
@@ -194,19 +233,25 @@ export function PublicNavbar() {
                 onClick={toggleTheme}
                 className="flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:text-text"
               >
-                {theme === "dark" ? <RiSunLine size={16} /> : <RiMoonLine size={16} />}
+                {theme === "dark" ? (
+                  <RiSunLine size={16} />
+                ) : (
+                  <RiMoonLine size={16} />
+                )}
                 {theme === "dark" ? "Light mode" : "Dark mode"}
               </button>
+              <Button asChild className="w-full">
+                <Link to="/track-my-case">{t.trackMyCase}</Link>
+              </Button>
 
               <Button asChild className="w-full">
-                <Link to="/login-office" onClick={closeMenu}>
+                <Link to="/login" onClick={closeMenu}>
                   {t.login}
                 </Link>
               </Button>
             </div>
           </motion.div>
-        )
-}
+        )}
       </AnimatePresence>
     </>
   );

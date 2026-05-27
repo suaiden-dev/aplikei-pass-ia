@@ -1,10 +1,34 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import {
+  NavLink,
+  Navigate,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
-import { ChevronDown, ChevronLeft, ChevronRight, Menu, Moon, Sun, ShieldCheck, X } from "lucide-react";
-import { RiArrowDownSLine, RiLogoutBoxRLine, RiPencilLine, RiUploadLine } from "react-icons/ri";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  Moon,
+  Sun,
+  X,
+} from "lucide-react";
+import {
+  RiArrowDownSLine,
+  RiLogoutBoxRLine,
+  RiPencilLine,
+  RiUploadLine,
+} from "react-icons/ri";
 import { Button } from "@shared/components/atoms/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@shared/components/atoms/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@shared/components/atoms/dialog";
 import { Input } from "@shared/components/atoms/input";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useTheme } from "@shared/hooks/useTheme";
@@ -21,7 +45,6 @@ import { RiLockPasswordLine, RiErrorWarningLine } from "react-icons/ri";
 import { NotificationBell } from "@features/notifications/components/NotificationBell";
 import { NotificationToaster } from "@features/notifications/components/NotificationToaster";
 import { NotificationProvider } from "@app/app/providers/NotificationProvider";
-import { RiSunLine, RiMoonLine } from "react-icons/ri";
 import { fetchOfficeForUser } from "@features/offices/services/officeOps";
 
 export interface DashboardNavItem {
@@ -44,7 +67,10 @@ interface RoleDashboardLayoutProps {
   unauthorizedFallback: string;
 }
 
-const ONBOARDING_ALLOWED_PATHS = ["/admin/settings/company", "/admin/subscription"] as const;
+const ONBOARDING_ALLOWED_PATHS = [
+  "/admin/settings/company",
+  "/admin/subscription",
+] as const;
 
 // ─── Sidebar Nav ─────────────────────────────────────────────────────────────
 
@@ -56,7 +82,11 @@ function NavItem({
   onNavigate,
   collapsed,
   disabled,
-}: DashboardNavItem & { onNavigate: () => void; collapsed?: boolean; disabled?: boolean }) {
+}: DashboardNavItem & {
+  onNavigate: () => void;
+  collapsed?: boolean;
+  disabled?: boolean;
+}) {
   if (disabled) {
     return (
       <div
@@ -135,7 +165,9 @@ function SidebarNav({
           {...item}
           onNavigate={onNavigate}
           collapsed={collapsed}
-          disabled={!!lockedAllowedPaths && !lockedAllowedPaths.includes(item.to)}
+          disabled={
+            !!lockedAllowedPaths && !lockedAllowedPaths.includes(item.to)
+          }
         />
       ))}
 
@@ -156,19 +188,35 @@ function SidebarNav({
             >
               <span>{name}</span>
               <ChevronDown
-                className={cn("h-4 w-4 transition-transform duration-200", isOpen && "rotate-180")}
+                className={cn(
+                  "h-4 w-4 transition-transform duration-200",
+                  isOpen && "rotate-180",
+                )}
               />
             </button>
             {/* Items — always visible on desktop collapsed (icon only), visible when open on mobile */}
-            <div className={cn(!collapsed && !isOpen && "hidden", collapsed && "lg:block")}>
-              <div className={cn(!collapsed && "ml-3 mt-1 space-y-1 border-l border-border pl-3")}>
+            <div
+              className={cn(
+                !collapsed && !isOpen && "hidden",
+                collapsed && "lg:block",
+              )}
+            >
+              <div
+                className={cn(
+                  !collapsed &&
+                    "ml-3 mt-1 space-y-1 border-l border-border pl-3",
+                )}
+              >
                 {items.map((item) => (
                   <NavItem
                     key={item.to}
                     {...item}
                     onNavigate={onNavigate}
                     collapsed={collapsed}
-                    disabled={!!lockedAllowedPaths && !lockedAllowedPaths.includes(item.to)}
+                    disabled={
+                      !!lockedAllowedPaths &&
+                      !lockedAllowedPaths.includes(item.to)
+                    }
                   />
                 ))}
               </div>
@@ -209,7 +257,8 @@ async function cropAvatarToBlob(
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
     image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("Falha ao carregar imagem para recorte."));
+    image.onerror = () =>
+      reject(new Error("Falha ao carregar imagem para recorte."));
     image.src = imageUrl;
   });
 
@@ -220,7 +269,10 @@ async function cropAvatarToBlob(
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Falha ao criar canvas para edição da foto.");
 
-  const coverScale = Math.max(size / img.naturalWidth, size / img.naturalHeight);
+  const coverScale = Math.max(
+    size / img.naturalWidth,
+    size / img.naturalHeight,
+  );
   const appliedScale = coverScale * zoom;
   const drawWidth = img.naturalWidth * appliedScale;
   const drawHeight = img.naturalHeight * appliedScale;
@@ -241,7 +293,9 @@ async function cropAvatarToBlob(
   ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
   ctx.restore();
 
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.94));
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, "image/jpeg", 0.94),
+  );
   if (!blob) throw new Error("Falha ao gerar foto recortada.");
   return blob;
 }
@@ -291,7 +345,9 @@ export function RoleDashboardLayout({
   const handleOnboardingComplete = async () => {
     if (!currentUser) return;
     if (!officeId || !isActive) {
-      toast.error("Complete company setup and activate your subscription before finishing onboarding.");
+      toast.error(
+        "Complete company setup and activate your subscription before finishing onboarding.",
+      );
       return;
     }
 
@@ -301,28 +357,40 @@ export function RoleDashboardLayout({
 
     try {
       await authService.updateAccount(currentUser.id, {
-        has_completed_onboarding: true
+        has_completed_onboarding: true,
       });
       await refreshAccount();
     } catch (error) {
       console.error("Failed to complete onboarding:", error);
     }
   };
-  const { isRestricted, loading: subLoading, officeId, isActive } = useSubscription();
+  const {
+    isRestricted,
+    loading: subLoading,
+    officeId,
+    isActive,
+  } = useSubscription();
   const isAdminLawyerPendingOnboarding =
     currentUser?.role === "admin_lawyer" && !currentUser.hasCompletedOnboarding;
-  const onboardingAccessLocked = isAdminLawyerPendingOnboarding && (!officeId || !isActive);
+  const onboardingAccessLocked =
+    isAdminLawyerPendingOnboarding && (!officeId || !isActive);
 
   useEffect(() => {
     if (!onboardingAccessLocked) return;
-    const isAllowed = ONBOARDING_ALLOWED_PATHS.some((path) => routeLocation.pathname.startsWith(path));
+    const isAllowed = ONBOARDING_ALLOWED_PATHS.some((path) =>
+      routeLocation.pathname.startsWith(path),
+    );
     if (isAllowed) return;
 
-    navigate(officeId ? "/admin/subscription" : "/admin/settings/company", { replace: true });
+    navigate(officeId ? "/admin/subscription" : "/admin/settings/company", {
+      replace: true,
+    });
   }, [navigate, officeId, onboardingAccessLocked, routeLocation.pathname]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(() => localStorage.getItem("sidebar-collapsed") === "true");
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem("sidebar-collapsed") === "true",
+  );
 
   const toggleCollapsed = () => {
     setCollapsed((prev) => {
@@ -340,25 +408,40 @@ export function RoleDashboardLayout({
   const [isSaving, setIsSaving] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const resolvedName = useMemo(() => {
-    const u = currentUser as unknown as { fullName?: string | null; full_name?: string | null; name?: string | null } | null;
+    const u = currentUser as unknown as {
+      fullName?: string | null;
+      full_name?: string | null;
+      name?: string | null;
+    } | null;
     const raw = u?.fullName || u?.full_name || u?.name || "";
     const firstWord = String(raw).trim().split(/\s+/).filter(Boolean)[0];
     return firstWord || tProfile.userNameDefault;
   }, [currentUser, tProfile.userNameDefault]);
 
   const resolvedAvatar = useMemo(() => {
-    const u = currentUser as unknown as { avatarUrl?: string | null; avatar_url?: string | null } | null;
+    const u = currentUser as unknown as {
+      avatarUrl?: string | null;
+      avatar_url?: string | null;
+    } | null;
     const fromUser = u?.avatarUrl || u?.avatar_url || null;
     if (fromUser) return fromUser;
     return buildAvatarDataUri(resolvedName);
   }, [currentUser, resolvedName]);
 
   const activeItem = navItems.find((item) =>
-    item.exact ? routeLocation.pathname === item.to : routeLocation.pathname.startsWith(item.to),
+    item.exact
+      ? routeLocation.pathname === item.to
+      : routeLocation.pathname.startsWith(item.to),
   );
   const isPageBuilderPath = routeLocation.pathname.includes("/page-builder");
-  const subscriptionLockedPaths = ["/page-builder", "/products", "/settings/discount-rules"];
-  const isSubscriptionLockedPath = subscriptionLockedPaths.some((path) => routeLocation.pathname.includes(path));
+  const subscriptionLockedPaths = [
+    "/page-builder",
+    "/products",
+    "/settings/discount-rules",
+  ];
+  const isSubscriptionLockedPath = subscriptionLockedPaths.some((path) =>
+    routeLocation.pathname.includes(path),
+  );
 
   useEffect(() => {
     return () => {
@@ -379,9 +462,7 @@ export function RoleDashboardLayout({
   }, []);
 
   const avatarUrl = useMemo(
-    () =>
-      imagePreviewUrl
-      ?? resolvedAvatar,
+    () => imagePreviewUrl ?? resolvedAvatar,
     [imagePreviewUrl, resolvedAvatar],
   );
 
@@ -399,7 +480,7 @@ export function RoleDashboardLayout({
 
   async function handleLogout() {
     await logout();
-    navigate("/login-office", { replace: true });
+    navigate("/login", { replace: true });
   }
 
   const handleImageSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -428,9 +509,19 @@ export function RoleDashboardLayout({
     try {
       let nextAvatarUrl: string | undefined;
       if (imageFile && imagePreviewUrl) {
-        const croppedBlob = await cropAvatarToBlob(imagePreviewUrl, xOffset, yOffset, zoom);
-        const avatarFile = new File([croppedBlob], "avatar.jpg", { type: "image/jpeg" });
-        nextAvatarUrl = await storageService.uploadProfilePhoto(currentUser.id, avatarFile);
+        const croppedBlob = await cropAvatarToBlob(
+          imagePreviewUrl,
+          xOffset,
+          yOffset,
+          zoom,
+        );
+        const avatarFile = new File([croppedBlob], "avatar.jpg", {
+          type: "image/jpeg",
+        });
+        nextAvatarUrl = await storageService.uploadProfilePhoto(
+          currentUser.id,
+          avatarFile,
+        );
       }
 
       await authService.updateAccount(currentUser.id, {
@@ -456,7 +547,12 @@ export function RoleDashboardLayout({
   }
 
   if (!allowedRoles.includes(currentUser.role)) {
-    return <Navigate to={unauthorizedFallback || getDashboardPathForRole(currentUser.role)} replace />;
+    return (
+      <Navigate
+        to={unauthorizedFallback || getDashboardPathForRole(currentUser.role)}
+        replace
+      />
+    );
   }
 
   return (
@@ -476,19 +572,37 @@ export function RoleDashboardLayout({
           )}
         >
           {/* Header */}
-          <div className={cn("flex items-center justify-between", collapsed && "lg:justify-center")}>
+          <div
+            className={cn(
+              "flex items-center justify-between",
+              collapsed && "lg:justify-center",
+            )}
+          >
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Aplikei" className="h-10 w-auto object-contain shrink-0" />
+              <img
+                src="/logo.png"
+                alt="Aplikei"
+                className="h-10 w-auto object-contain shrink-0"
+              />
               <div className={cn(collapsed && "lg:hidden")}>
-                <p className="text-sm font-bold text-text uppercase tracking-tight">{displayedTitle}</p>
-                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none mt-0.5">{roleLabel}</p>
-                <p className="text-[10px] font-medium text-text-muted mt-1">{consoleSubtitle}</p>
+                <p className="text-sm font-bold text-text uppercase tracking-tight">
+                  {displayedTitle}
+                </p>
+                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none mt-0.5">
+                  {roleLabel}
+                </p>
+                <p className="text-[10px] font-medium text-text-muted mt-1">
+                  {consoleSubtitle}
+                </p>
               </div>
             </div>
 
             <button
               type="button"
-              className={cn("rounded-xl border border-border p-2 text-text-muted lg:hidden", collapsed && "lg:hidden")}
+              className={cn(
+                "rounded-xl border border-border p-2 text-text-muted lg:hidden",
+                collapsed && "lg:hidden",
+              )}
               onClick={() => setMobileMenuOpen(false)}
               aria-label={tProfile.closeMenu}
             >
@@ -503,7 +617,11 @@ export function RoleDashboardLayout({
               location={routeLocation}
               onNavigate={() => setMobileMenuOpen(false)}
               collapsed={collapsed}
-              lockedAllowedPaths={onboardingAccessLocked ? ONBOARDING_ALLOWED_PATHS as unknown as string[] : null}
+              lockedAllowedPaths={
+                onboardingAccessLocked
+                  ? (ONBOARDING_ALLOWED_PATHS as unknown as string[])
+                  : null
+              }
             />
           </div>
 
@@ -516,19 +634,25 @@ export function RoleDashboardLayout({
                 className="h-9 w-9 rounded-full object-cover border border-border"
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-text truncate">{resolvedName}</p>
+                <p className="text-sm font-bold text-text truncate">
+                  {resolvedName}
+                </p>
                 <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none mt-1">
-                  {currentUser.role.replace('_', ' ')}
+                  {currentUser.role.replace("_", " ")}
                 </p>
               </div>
             </div>
-            
+
             <button
               onClick={toggleTheme}
               className="flex w-full items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-text-muted hover:bg-bg-subtle hover:text-text transition-all"
             >
               {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-              <span>{theme === "dark" ? (tProfile.lightMode || "Modo Claro") : (tProfile.darkMode || "Modo Escuro")}</span>
+              <span>
+                {theme === "dark"
+                  ? tProfile.lightMode || "Modo Claro"
+                  : tProfile.darkMode || "Modo Escuro"}
+              </span>
             </button>
 
             <button
@@ -540,49 +664,45 @@ export function RoleDashboardLayout({
             </button>
           </div>
 
-
-
           {/* Footer — collapse toggle */}
-          <div className={cn("mt-4 border-t border-border pt-4", collapsed ? "flex justify-center" : "")}>
+          <div
+            className={cn(
+              "mt-4 border-t border-border pt-4",
+              collapsed ? "flex justify-center" : "",
+            )}
+          >
             <button
               type="button"
               onClick={toggleCollapsed}
-              title={collapsed ? (tProfile.expandSidebar || "Expand") : (tProfile.collapseSidebar || "Collapse")}
+              title={
+                collapsed
+                  ? tProfile.expandSidebar || "Expand"
+                  : tProfile.collapseSidebar || "Collapse"
+              }
               className={cn(
                 "hidden lg:flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text",
                 collapsed && "justify-center px-2",
               )}
             >
-              {collapsed ? <ChevronRight className="h-4 w-4 shrink-0" /> : (
+              {collapsed ? (
+                <ChevronRight className="h-4 w-4 shrink-0" />
+              ) : (
                 <>
                   <ChevronLeft className="h-4 w-4 shrink-0" />
-                  <span>{(tProfile.collapseSidebar || "Collapse").split(' ')[0]}</span>
+                  <span>
+                    {(tProfile.collapseSidebar || "Collapse").split(" ")[0]}
+                  </span>
                 </>
               )}
             </button>
-
-            {/* Mobile-only quick actions */}
-            <div className="mt-3 grid grid-cols-2 gap-2 lg:hidden">
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-bg-subtle px-3 py-3 text-text-muted transition-colors hover:text-text"
-              >
-                {theme === "dark" ? <RiSunLine size={18} /> : <RiMoonLine size={18} />}
-                <span className="text-[10px] font-bold uppercase tracking-tight">
-                  {theme === "dark" ? "Light" : "Dark"}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-red-500/5 px-3 py-3 text-red-500 transition-colors hover:bg-red-500/10"
-              >
-                <RiLogoutBoxRLine size={18} />
-                <span className="text-[10px] font-bold uppercase tracking-tight">{tProfile.logout}</span>
-              </button>
-            </div>
+            <p
+              className={cn(
+                "mt-3 text-center text-[10px] font-semibold uppercase tracking-widest text-text-muted",
+                collapsed && "lg:hidden",
+              )}
+            >
+              Powered by Aplikei
+            </p>
           </div>
         </aside>
 
@@ -595,7 +715,12 @@ export function RoleDashboardLayout({
           />
         ) : null}
 
-        <div className={cn("relative lg:transition-all lg:duration-300", collapsed ? "lg:pl-16" : "lg:pl-72")}>
+        <div
+          className={cn(
+            "relative lg:transition-all lg:duration-300",
+            collapsed ? "lg:pl-16" : "lg:pl-72",
+          )}
+        >
           <header className="sticky top-0 z-30 border-b border-border bg-bg/80 px-4 py-4 backdrop-blur sm:px-6 lg:px-8">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -608,7 +733,9 @@ export function RoleDashboardLayout({
                   <Menu className="h-5 w-5" />
                 </button>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">{headerEyebrow}</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
+                    {headerEyebrow}
+                  </p>
                   <h1 className="font-display text-2xl font-black tracking-[-0.04em] text-text">
                     {activeItem?.label ?? "Overview"}
                   </h1>
@@ -627,7 +754,11 @@ export function RoleDashboardLayout({
                   className="hidden lg:flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-text-muted transition-colors hover:text-text"
                   aria-label={tProfile.toggleTheme}
                 >
-                  {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                  {theme === "dark" ? (
+                    <Sun className="h-5 w-5" />
+                  ) : (
+                    <Moon className="h-5 w-5" />
+                  )}
                 </button>
 
                 {/* Desktop-only Profile Menu */}
@@ -642,7 +773,9 @@ export function RoleDashboardLayout({
                       alt="Avatar"
                       className="h-7 w-7 rounded-full object-cover border border-border"
                     />
-                    <span className="max-w-[120px] truncate">{resolvedName}</span>
+                    <span className="max-w-[120px] truncate">
+                      {resolvedName}
+                    </span>
                     <RiArrowDownSLine className="text-text-muted" size={16} />
                   </button>
                   {menuOpen && (
@@ -670,8 +803,20 @@ export function RoleDashboardLayout({
             </div>
           </header>
 
-          <main className={cn("relative z-10 py-6", isPageBuilderPath ? "px-2 sm:px-3 lg:px-4" : "px-4 sm:px-6 lg:px-8")}>
-            <div className={cn("mx-auto", isPageBuilderPath ? "max-w-none" : "max-w-7xl")}>
+          <main
+            className={cn(
+              "relative z-10 py-6",
+              isPageBuilderPath
+                ? "px-2 sm:px-3 lg:px-4"
+                : "px-4 sm:px-6 lg:px-8",
+            )}
+          >
+            <div
+              className={cn(
+                "mx-auto",
+                isPageBuilderPath ? "max-w-none" : "max-w-7xl",
+              )}
+            >
               {subLoading ? (
                 <div className="flex items-center justify-center min-h-[40vh]">
                   <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -681,9 +826,13 @@ export function RoleDashboardLayout({
                   <div className="w-24 h-24 rounded-[32px] bg-warning/10 flex items-center justify-center text-warning mb-8">
                     <RiLockPasswordLine className="text-5xl" />
                   </div>
-                  <h2 className="text-3xl font-black text-text mb-4 tracking-tighter">Feature Locked</h2>
+                  <h2 className="text-3xl font-black text-text mb-4 tracking-tighter">
+                    Feature Locked
+                  </h2>
                   <p className="text-text-muted max-w-md mx-auto font-medium mb-8">
-                    This feature is part of professional plans. Activate your subscription to manage products, discounts and your custom website.
+                    This feature is part of professional plans. Activate your
+                    subscription to manage products, discounts and your custom
+                    website.
                   </p>
                   <Button
                     onClick={() => navigate("/subscription")}
@@ -694,20 +843,23 @@ export function RoleDashboardLayout({
                 </div>
               ) : (
                 <>
-                  {isRestricted && !routeLocation.pathname.includes("/subscription") && (
-                    <div className="mb-6 flex items-center justify-between p-4 rounded-2xl bg-warning/10 border border-warning/20 animate-in slide-in-from-top duration-500">
-                      <div className="flex items-center gap-3 text-warning">
-                        <RiErrorWarningLine className="text-xl" />
-                        <p className="text-xs font-black uppercase tracking-widest">Your subscription is not active</p>
+                  {isRestricted &&
+                    !routeLocation.pathname.includes("/subscription") && (
+                      <div className="mb-6 flex items-center justify-between p-4 rounded-2xl bg-warning/10 border border-warning/20 animate-in slide-in-from-top duration-500">
+                        <div className="flex items-center gap-3 text-warning">
+                          <RiErrorWarningLine className="text-xl" />
+                          <p className="text-xs font-black uppercase tracking-widest">
+                            Your subscription is not active
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => navigate("/subscription")}
+                          className="text-[10px] font-black uppercase tracking-widest text-warning hover:underline"
+                        >
+                          Activate now
+                        </button>
                       </div>
-                      <button
-                        onClick={() => navigate("/subscription")}
-                        className="text-[10px] font-black uppercase tracking-widest text-warning hover:underline"
-                      >
-                        Activate now
-                      </button>
-                    </div>
-                  )}
+                    )}
                   <Outlet />
                 </>
               )}
@@ -716,10 +868,15 @@ export function RoleDashboardLayout({
         </div>
         <NotificationToaster />
 
-        <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+        <Dialog
+          open={isProfileDialogOpen}
+          onOpenChange={setIsProfileDialogOpen}
+        >
           <DialogContent className="max-w-xl border-border bg-card p-6">
             <DialogHeader>
-              <DialogTitle className="text-lg font-black text-text">{tProfile.title}</DialogTitle>
+              <DialogTitle className="text-lg font-black text-text">
+                {tProfile.title}
+              </DialogTitle>
             </DialogHeader>
 
             <div className="space-y-6">
@@ -729,18 +886,27 @@ export function RoleDashboardLayout({
                     src={avatarUrl}
                     alt={tProfile.previewAlt}
                     className="h-full w-full object-cover"
-                    style={{ transform: avatarTransform(xOffset, yOffset, zoom) }}
+                    style={{
+                      transform: avatarTransform(xOffset, yOffset, zoom),
+                    }}
                   />
                 </div>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm text-text hover:bg-bg-subtle">
                   <RiUploadLine size={16} />
                   {tProfile.uploadBtn}
-                  <input type="file" accept="image/*" className="hidden" onChange={handleImageSelected} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageSelected}
+                  />
                 </label>
               </div>
 
               <div className="space-y-3">
-                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{tProfile.xAxis}</label>
+                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">
+                  {tProfile.xAxis}
+                </label>
                 <input
                   type="range"
                   min={-50}
@@ -749,7 +915,9 @@ export function RoleDashboardLayout({
                   onChange={(e) => setXOffset(Number(e.target.value))}
                   className="w-full"
                 />
-                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{tProfile.yAxis}</label>
+                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">
+                  {tProfile.yAxis}
+                </label>
                 <input
                   type="range"
                   min={-50}
@@ -758,7 +926,9 @@ export function RoleDashboardLayout({
                   onChange={(e) => setYOffset(Number(e.target.value))}
                   className="w-full"
                 />
-                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{tProfile.zoom}</label>
+                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">
+                  {tProfile.zoom}
+                </label>
                 <input
                   type="range"
                   min={0.8}
@@ -771,12 +941,22 @@ export function RoleDashboardLayout({
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">{tProfile.nameLabel}</label>
-                <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={tProfile.namePlaceholder} />
+                <label className="text-xs font-bold uppercase tracking-widest text-text-muted">
+                  {tProfile.nameLabel}
+                </label>
+                <Input
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder={tProfile.namePlaceholder}
+                />
               </div>
 
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsProfileDialogOpen(false)} disabled={isSaving}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsProfileDialogOpen(false)}
+                  disabled={isSaving}
+                >
                   {tProfile.cancelBtn}
                 </Button>
                 <Button onClick={handleSaveProfile} disabled={isSaving}>

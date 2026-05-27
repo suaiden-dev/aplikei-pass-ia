@@ -99,6 +99,9 @@ export default function COSOnboardingPage() {
     searchParams.get('id') ||
     searchParams.get('parentId') ||
     searchParams.get('processId')
+  const childProcessId = searchParams.get('childId')
+  const childWorkflowType = searchParams.get('workflowType')
+  const hasChildRecoveryContext = Boolean(childProcessId && childWorkflowType)
   const service = getServiceBySlug(slug)
   const dependentUpsellSlug = slug === 'extensao-status' ? 'dependent-eos' : 'dependent-cos'
 
@@ -174,20 +177,26 @@ export default function COSOnboardingPage() {
       ? true
       : stepIdx >= 13 && stepIdx <= 18
       ? false
-      : uscisResult === 'denied' ||
-        uscisResult === 'rejected' ||
-        rfeResult === 'denied' ||
-        rfeResult === 'rejected' ||
-        currentProcessStep >= 19
+      : hasChildRecoveryContext
+      ? childWorkflowType === 'motion'
+      : false
 
   const isRFEContext =
     stepIdx >= 13 && stepIdx <= 18
       ? true
       : stepIdx >= 19
       ? false
-      : uscisResult === 'rfe' ||
-        rfeResult === 'rfe' ||
-        (currentProcessStep >= 13 && currentProcessStep <= 18)
+      : hasChildRecoveryContext
+      ? childWorkflowType === 'rfe'
+      : false
+
+  useEffect(() => {
+    const requestedStep = service?.steps?.[stepIdx];
+    if (!requestedStep) return;
+    if (requestedStep.type === 'admin_action') {
+      navigate(`/dashboard/processes/${slug}`, { replace: true });
+    }
+  }, [service, stepIdx, navigate, slug]);
 
   const handleMotionResultReport = async (result: 'approved' | 'rejected') => {
     if (!proc) return
@@ -239,6 +248,7 @@ export default function COSOnboardingPage() {
       try {
 
         let data = null
+        let parentData = null
 
         if (parentProcessId) {
           const { data: row } = await supabase
@@ -246,7 +256,8 @@ export default function COSOnboardingPage() {
             .select('*')
             .eq('id', parentProcessId)
             .single()
-          data = row && row.user_id === user.id ? row : null
+          parentData = row && row.user_id === user.id ? row : null
+          data = parentData
         } else {
           const { data: row } = await supabase
             .from('user_services')
@@ -257,6 +268,24 @@ export default function COSOnboardingPage() {
             .limit(1)
             .maybeSingle()
           data = row ?? null
+        }
+
+        // In child recovery context, operate on child process as source-of-truth
+        if (childProcessId && childWorkflowType) {
+          const { data: childRow } = await supabase
+            .from('user_services')
+            .select('*')
+            .eq('id', childProcessId)
+            .single()
+
+          const isValidChild =
+            childRow &&
+            childRow.user_id === user.id &&
+            String((childRow.step_data as any)?.parent_process_id || '') === String(parentProcessId || parentData?.id || '')
+
+          if (isValidChild) {
+            data = childRow
+          }
         }
 
         if (!data) return
@@ -356,7 +385,7 @@ export default function COSOnboardingPage() {
       }
     }
     load()
-  }, [user, slug, parentProcessId, stepIdx])
+  }, [user, slug, parentProcessId, childProcessId, childWorkflowType, stepIdx])
 
   useEffect(() => {
     if (!proc) return
@@ -442,6 +471,15 @@ export default function COSOnboardingPage() {
   }
 
   const goToProcess = () => {
+    if (hasChildRecoveryContext) {
+      const nextParams = new URLSearchParams()
+      if (parentProcessId) nextParams.set('id', parentProcessId)
+      nextParams.set('childId', childProcessId || proc?.id || '')
+      if (childWorkflowType) nextParams.set('workflowType', childWorkflowType)
+      navigate(`/dashboard/processes/${slug}?${nextParams.toString()}`)
+      return
+    }
+
     if (proc?.id) {
       navigate(`/dashboard/processes/${slug}?id=${proc.id}`)
       return
@@ -468,24 +506,24 @@ export default function COSOnboardingPage() {
       })
 
       if (result === 'denied') {
-        await processService.startAdditionalWorkflow(proc.id, 'motion')
+        const { childProcessId } = await processService.startAdditionalWorkflow(proc.id, 'motion')
         toast.success(t?.cos?.toasts?.deniedMotion ?? 'Visto negado. Iniciando fluxo de Motion.')
-        if (opts?.jumpToStep) {
-          opts.jumpToStep(19)
-        } else {
-          jumpToOnboardingStep(19)
-        }
+        const nextParams = new URLSearchParams()
+        nextParams.set('id', proc.id)
+        if (childProcessId) nextParams.set('childId', childProcessId)
+        nextParams.set('workflowType', 'motion')
+        navigate(`/dashboard/processes/${slug}?${nextParams.toString()}`)
         return
       }
 
       if (result === 'rfe') {
-        await processService.startAdditionalWorkflow(proc.id, 'rfe')
+        const { childProcessId } = await processService.startAdditionalWorkflow(proc.id, 'rfe')
         toast.success(t?.cos?.toasts?.resultReported ?? 'Resultado informado.')
-        if (opts?.jumpToStep) {
-          opts.jumpToStep(13)
-        } else {
-          jumpToOnboardingStep(13)
-        }
+        const nextParams = new URLSearchParams()
+        nextParams.set('id', proc.id)
+        if (childProcessId) nextParams.set('childId', childProcessId)
+        nextParams.set('workflowType', 'rfe')
+        navigate(`/dashboard/processes/${slug}?${nextParams.toString()}`)
         return
       }
 
@@ -502,62 +540,78 @@ export default function COSOnboardingPage() {
   const handleRFEResult = async (result: string) => {
     if (!proc) return
     try {
-      const now = new Date().toISOString()
-      const currentData = ((proc.step_data || {}) as Record<string, unknown>)
-      const currentDocs = (currentData.docs as Record<string, string>) || {}
-      const history = (currentData.rfe_history as Array<Record<string, unknown>>) || []
-      const newHistoryItem = {
-        proposal_text:
-          (currentData.rfe_proposal_text as string) ||
-          (currentData.motion_proposal_text as string) ||
-          '',
-        proposal_amount: Number(
-          currentData.rfe_proposal_amount ??
-          currentData.motion_amount ??
-          currentData.motion_proposal_amount ??
-          0,
-        ) || 0,
-        result,
-        rfe_letter: currentDocs.rfe_letter,
-        rfe_final_package: currentDocs.rfe_final_package,
-        sent_at: (currentData.rfe_proposal_sent_at as string) || now,
-        closed_at: now,
-      }
+      const reportedAt = new Date().toISOString()
+      const parentId = String(
+        parentProcessId || ((proc.step_data as any)?.parent_process_id as string) || '',
+      ).trim()
+      const normalizedResult =
+        result === 'approved' ? 'approved' : result === 'rfe' ? 'rfe' : 'denied'
 
       await processService.updateStepData(proc.id, {
-        rfe_history: [...history, newHistoryItem],
-        rfe_proposal_text: null,
-        rfe_proposal_amount: null,
-        rfe_proposal_sent_at: null,
-        rfe_description: null,
-        uscis_rfe_result: result,
+        uscis_rfe_result: normalizedResult,
+        workflow_status: normalizedResult === 'approved' ? 'approved' : normalizedResult === 'rfe' ? 'in_progress' : 'rejected',
+        rfe_result_reported_at: reportedAt,
+        rfe_result_reported_by: 'customer',
       })
 
-      const cycleNumber = history.length + 1
-      await processService.ensureChatThread(
-        proc.id,
-        proc.user_id,
-        `RFE ciclo #${cycleNumber} finalizado com status: ${result.toUpperCase()}.`,
-        true,
-      )
+      setProc((prev) => {
+        if (!prev) return prev
+        const currentStepData = (prev.step_data || {}) as Record<string, unknown>
+        return {
+          ...prev,
+          step_data: {
+            ...currentStepData,
+            uscis_rfe_result: normalizedResult,
+            workflow_status: normalizedResult === 'approved' ? 'approved' : normalizedResult === 'rfe' ? 'in_progress' : 'rejected',
+            rfe_result_reported_at: reportedAt,
+            rfe_result_reported_by: 'customer',
+          },
+        }
+      })
 
-      if (result === 'denied') {
-        await processService.updateStepData(proc.id, {
-          uscis_official_result: 'denied',
+      if (normalizedResult === 'denied') {
+        if (parentId) {
+          await processService.updateStepData(parentId, {
+            uscis_official_result: 'denied',
+          })
+          const { childProcessId } = await processService.startAdditionalWorkflow(parentId, 'motion')
+          const nextParams = new URLSearchParams()
+          nextParams.set('id', parentId)
+          if (childProcessId) nextParams.set('childId', childProcessId)
+          nextParams.set('workflowType', 'motion')
+          navigate(`/dashboard/processes/${slug}?${nextParams.toString()}`)
+          return
+        }
+      }
+
+      if (normalizedResult === 'rfe') {
+        const cycleBaseId = parentId || proc.id
+        const { childProcessId } = await processService.startAdditionalWorkflow(cycleBaseId, 'rfe')
+        const targetChildId = childProcessId || proc.id
+        await processService.updateCurrentStep(targetChildId, 0, 'active')
+        await processService.updateStepData(targetChildId, {
+          workflow_status: 'in_progress',
+          uscis_rfe_result: null,
+          rfe_final_result: null,
+          rfe_proposal_paid: null,
+          rfe_payment_completed_at: null,
         })
-        await processService.startAdditionalWorkflow(proc.id, 'motion')
-        toast.success(t?.cos?.toasts?.deniedMotion ?? 'Visto negado. Iniciando fluxo de Motion.')
-        jumpToOnboardingStep(19)
+        const nextParams = new URLSearchParams()
+        nextParams.set('id', parentId || proc.id)
+        nextParams.set('childId', targetChildId)
+        nextParams.set('workflowType', 'rfe')
+        nextParams.set('step', '13')
+        navigate(`/dashboard/processes/${slug}/onboarding?${nextParams.toString()}`)
         return
       }
 
-      if (result === 'rfe') {
-        toast.success(t?.cos?.rfe?.end?.newRfeCycle ?? 'Novo ciclo de RFE iniciado.')
-        jumpToOnboardingStep(13)
-        return
-      }
-
-      toast.success(t?.cos?.toasts?.resultReported ?? 'Resultado informado.')
+      toast.success(
+        normalizedResult === 'approved'
+          ? (t?.cos?.toasts?.approvedResultSaved ?? 'Resultado informado como aprovado.')
+          : normalizedResult === 'rfe'
+          ? (t?.cos?.toasts?.resultReported ?? 'Novo ciclo de RFE iniciado.')
+          : (t?.cos?.toasts?.rejectedResultSaved ?? 'Resultado informado como reprovado.'),
+      )
     } catch (err) {
       toast.error(t?.cos?.toasts?.resultReportError ?? 'Erro ao salvar resultado.')
     }
@@ -779,6 +833,53 @@ export default function COSOnboardingPage() {
 
       const service = getServiceBySlug(slug!)
       if (service) {
+        const isChildRecoveryFlow =
+          hasChildRecoveryContext &&
+          (childWorkflowType === 'motion' || childWorkflowType === 'rfe')
+
+        if (isChildRecoveryFlow) {
+          const currentDBStep = freshProc.current_step ?? 0
+          const recoveryTemplate =
+            childWorkflowType === 'motion'
+              ? MOTION_STEPS_TEMPLATE
+              : RFE_STEPS_TEMPLATE
+          const nextStepIdx = currentDBStep + 1
+          const isFinal = nextStepIdx >= recoveryTemplate.length
+          const nextStep = recoveryTemplate[nextStepIdx]
+          const isCorrection = !!(freshProc.step_data as any)?.admin_feedback
+          const shouldRequestReview =
+            isCorrection || nextStep?.type === 'admin_action' || isFinal
+
+          if (nextStepIdx > currentDBStep) {
+            await processService.approveStep(proc.id, nextStepIdx, isFinal, undefined, undefined, {
+              notifyClient: !shouldRequestReview,
+            })
+          }
+
+          if (shouldRequestReview) {
+            await processService.requestStepReview(proc.id)
+          }
+
+          toast.success(t.cos?.toasts?.stepSent)
+
+          const parentId =
+            String(parentProcessId || (freshProc.step_data as any)?.parent_process_id || '').trim() || proc.id
+          const flow = childWorkflowType === 'motion' ? 'motion' : 'rfe'
+          const baseStep = flow === 'motion' ? 19 : 13
+
+          if (isFinal || nextStep?.type === 'admin_action') {
+            navigate(`/dashboard/processes/${slug}?id=${parentId}&childId=${proc.id}&workflowType=${flow}`)
+          } else {
+            const params = new URLSearchParams()
+            params.set('id', parentId)
+            params.set('childId', proc.id)
+            params.set('workflowType', flow)
+            params.set('step', String(baseStep + nextStepIdx))
+            navigate(`/dashboard/processes/${slug}/onboarding?${params.toString()}`)
+          }
+          return
+        }
+
         let nextStepIdx = stepIdx + 1
 
         const freshStepData = (freshProc.step_data || {}) as any
@@ -921,6 +1022,17 @@ export default function COSOnboardingPage() {
               Step {stepIdx + 1} / {totalSteps}
             </div>
           </div>
+
+          {childProcessId && (
+            <div className='mb-4 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3'>
+              <p className='text-[10px] font-black uppercase tracking-[0.16em] text-primary'>
+                Recovery Context
+              </p>
+              <p className='mt-1 text-xs font-bold uppercase tracking-wider text-text'>
+                {(childWorkflowType || 'recovery').toString()} · {childProcessId}
+              </p>
+            </div>
+          )}
 
           <motion.div
             key={stepIdx}

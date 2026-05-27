@@ -12,7 +12,6 @@ import {
   COS_MOTION_END_STEP,
   COS_MOTION_INSTRUCTION_STEP,
   COS_MOTION_PROPOSAL_STEP,
-  getCosRecoveryTemplate,
   isCosServiceSlug,
 } from "@shared/data/cosWorkflow";
 import type { UserService, ProcessStatus } from "../types";
@@ -469,52 +468,58 @@ export async function rejectStep(
 export async function startAdditionalWorkflow(
   processId: string,
   type: "motion" | "rfe",
-): Promise<void> {
+): Promise<{ childProcessId?: string }> {
   const service = await findServiceById(processId);
   if (!service) throw new Error("Serviço não encontrado");
 
-  const stepData = (service.step_data || {}) as Record<string, unknown>;
-  const history = Array.isArray(stepData.history) ? [...stepData.history] : [];
+  const parentStepData = (service.step_data || {}) as Record<string, unknown>;
+  const recoveryChildSlug =
+    type === "motion"
+      ? service.service_slug === "extensao-status"
+        ? "consultancy-motion-eos"
+        : "consultancy-motion-cos"
+      : service.service_slug === "extensao-status"
+      ? "analysis-rfe-eos"
+      : "analysis-rfe-cos";
 
-  const steps = getCosRecoveryTemplate(type);
+  const { data: existingChild } = await supabase
+    .from("user_services")
+    .select("id")
+    .eq("user_id", service.user_id)
+    .eq("service_slug", recoveryChildSlug)
+    .contains("step_data", { parent_process_id: processId })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  const newCycle = {
-    type,
-    id: crypto.randomUUID(),
-    started_at: new Date().toISOString(),
-    current_step: 0,
-    status: type === "motion" ? "not_started" : "rfeInit",
-    steps,
-  };
+  let childProcessId: string | undefined = existingChild?.id;
+  if (!childProcessId) {
+    const { data: insertedChild, error: childInsertError } = await supabase
+      .from("user_services")
+      .insert({
+        user_id: service.user_id,
+        service_slug: recoveryChildSlug,
+        office_id: service.office_id ?? null,
+        status: "active",
+        current_step: 0,
+        step_data: {
+          parent_process_id: processId,
+          parent_service_slug: service.service_slug,
+          workflow_type: type,
+          origin: "recovery_child",
+          created_from: "startAdditionalWorkflow",
+          created_at: new Date().toISOString(),
+        },
+        data: {},
+      })
+      .select("id")
+      .single();
 
-  history.push(newCycle);
-
-  const rfeCycles = Array.isArray(stepData.rfe_cycles) ? [...stepData.rfe_cycles] : [];
-  if (type === "rfe") {
-    rfeCycles.push({
-      cycle: rfeCycles.length + 1,
-      status: "awaiting_payment",
-      started_at: new Date().toISOString(),
-      result: null,
-      paid_at: null,
-      closed_at: null,
-    });
+    if (!childInsertError) {
+      childProcessId = insertedChild?.id;
+    }
   }
-
-  const targetStep =
-    type === "motion" ? COS_RECOVERY_STEPS.motionAcquire : COS_RECOVERY_STEPS.rfeStart;
-
-  await dbUpdateStepData(processId, {
-    ...stepData,
-    recover: type === "motion" ? "not_started" : "rfeInit",
-    workflow_status: type === "motion" ? "not_started" : "rfeInit",
-    history,
-    active_cycle_index: history.length - 1,
-    rfe_cycles: rfeCycles,
-    active_rfe_cycle: type === "rfe" ? rfeCycles.length : stepData.active_rfe_cycle,
-  });
-
-  await dbUpdateStep(processId, targetStep, type === "motion" ? "rejected" : "active");
+  return { childProcessId };
 }
 
 export async function hasChatMessages(processId: string): Promise<boolean> {

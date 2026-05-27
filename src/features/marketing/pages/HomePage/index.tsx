@@ -13,7 +13,6 @@ import { FinalCtaSection } from "@shared/components/organisms/LandingFinalCTA";
 import { LandingProductShowcase } from "@shared/components/organisms/LandingProductShowcase";
 import { getDefaultRouteForRole } from "@app/app/router/authRedirect";
 import { RouteGuardLoader } from "@app/app/router/RouteGuardLoader";
-import dashboardPreview from "@app/assets/images/b2b-dashboard-preview.png";
 
 const avatars = [
   "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
@@ -22,6 +21,8 @@ const avatars = [
   "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop",
   "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop",
 ];
+
+const heroImage = "https://lh3.googleusercontent.com/aida-public/AB6AXuCqxSP3HYuhLlu5a-RpsmtKx6LVC60KQKfOCKjSjJmDIixkkXFZs8Gq4kqYA3q_JVwN4iu2QTSpxno6g22j007RDu_dNzm6ZKIiZCk0pMnUuClKJKygEJEQtqjUdinzTeGdRkeljrg8WvsyskLRVpEst8FTAhVUleIiED-k-1QN9qzmwyjiYovZiAtYNhMx8W6qlpnzeKK2s0xglgbmYKlk4aL1ydjOR8VKoqYqYviGLHwT5gOyQakLC5u8VjTWI6LCI1XW2KN_vqs";
 
 export default function HomePage() {
   const navigate = useNavigate();

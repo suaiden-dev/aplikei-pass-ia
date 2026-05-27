@@ -71,8 +71,8 @@ const LEGACY_MOTION_PROPOSAL_SLUG = 'proposta-rfe-motion'
 
 function getMotionAnalysisSlug(serviceSlug: string): string {
   return serviceSlug === 'extensao-status'
-    ? 'analysis-rfe-eos'
-    : 'analysis-rfe-cos'
+    ? 'analysis-motion-eos'
+    : 'analysis-motion-cos'
 }
 
 function getMotionProposalSlug(serviceSlug: string): string {
@@ -642,7 +642,15 @@ export function MotionExplanationStep({
         'Acesso ao fluxo guiado com suporte da equipe.',
       ]
   const [baseAmount, setBaseAmount] = useState(50)
-  const analysisSlug = getMotionAnalysisSlug(proc.service_slug)
+  const parentServiceSlug = String(
+    ((proc.step_data as Record<string, unknown> | null)?.parent_service_slug as string) ||
+      '',
+  ).toLowerCase()
+  const slugForPricing =
+    parentServiceSlug === 'extensao-status' || proc.service_slug === 'extensao-status'
+      ? 'extensao-status'
+      : 'troca-status'
+  const analysisSlug = getMotionAnalysisSlug(slugForPricing)
   const analysisFeeTemplate = t?.workflows?.shared?.analysisFee
   const analysisFeeText =
     typeof analysisFeeTemplate === 'string' &&
@@ -797,8 +805,19 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
       if (uploadError) throw uploadError
 
       const currentDocs = (data.docs as Record<string, string>) || {}
+      const motionUploadHistory = Array.isArray(data.motion_upload_history)
+        ? (data.motion_upload_history as Array<Record<string, unknown>>)
+        : []
       await processService.updateStepData(proc.id, {
         docs: { ...currentDocs, [docKey]: filePath },
+        motion_upload_history: [
+          ...motionUploadHistory,
+          {
+            uploaded_at: new Date().toISOString(),
+            doc_key: docKey,
+            path: filePath,
+          },
+        ],
       })
 
       if (docKey === 'motion_denial_letter') {
@@ -835,9 +854,22 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
     }
     try {
       setLoading(true)
+      const currentDocs = (data.docs as Record<string, string>) || {}
+      const motionInstructionHistory = Array.isArray(data.motion_instruction_history)
+        ? (data.motion_instruction_history as Array<Record<string, unknown>>)
+        : []
+
       await processService.updateStepData(proc.id, {
         motion_reason: reason,
         motion_submitted_at: new Date().toISOString(),
+        motion_instruction_history: [
+          ...motionInstructionHistory,
+          {
+            submitted_at: new Date().toISOString(),
+            reason,
+            docs: currentDocs,
+          },
+        ],
         workflow_status: 'awaiting_proposal',
       })
 
@@ -955,9 +987,16 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
 export function MotionAcceptProposalStep({
   proc,
   user,
+  onMotionResult,
 }: StepProps) {
   const t = useT('onboarding')
+  const navigate = useNavigate()
   const [showCheckout, setShowCheckout] = useState(false)
+  const [savingResult, setSavingResult] = useState(false)
+  const [reportedResult, setReportedResult] = useState<MotionOutcome | null>(() => {
+    const existing = String((proc.step_data as any)?.motion_final_result || '').toLowerCase()
+    return existing === 'approved' || existing === 'rejected' ? (existing as MotionOutcome) : null
+  })
   const data = (proc.step_data as any || {}) as Record<string, unknown>
   const purchases = Array.isArray(data.purchases)
     ? (data.purchases as Array<{ slug?: string }>)
@@ -974,6 +1013,46 @@ export function MotionAcceptProposalStep({
     purchases.some(
       (p) => p?.slug === proposalSlug || p?.slug === LEGACY_MOTION_PROPOSAL_SLUG,
     )
+
+  const handleOpenMotionChat = async () => {
+    const parentProcessId = String(data.parent_process_id || '').trim()
+    const targetProcessId = parentProcessId || proc.id
+    const senderId = user?.id || proc.user_id
+
+    if (senderId) {
+      try {
+        await processService.ensureChatThread(
+          targetProcessId,
+          senderId,
+          t?.workflows?.motion?.end?.chatSeedText ??
+            'Olá! Quero falar com o especialista sobre a proposta da minha Motion.',
+        )
+      } catch (error) {
+        console.error('[MotionAcceptProposalStep] failed to ensure chat thread:', error)
+      }
+    }
+
+    navigate(`/dashboard/ai-chat?processId=${targetProcessId}`)
+  }
+
+  const handleReportResult = async (result: MotionOutcome) => {
+    if (!onMotionResult) return
+    try {
+      setSavingResult(true)
+      await onMotionResult(result)
+      setReportedResult(result)
+      toast.success(
+        result === 'approved'
+          ? (t?.cos?.toasts?.approvedResultSaved ?? 'Resultado informado como aprovado.')
+          : (t?.cos?.toasts?.rejectedResultSaved ?? 'Resultado informado como reprovado.'),
+      )
+    } catch (error) {
+      console.error('[MotionAcceptProposalStep] failed to report result:', error)
+      toast.error(t?.cos?.toasts?.resultSaveError ?? 'Nao foi possivel salvar o resultado.')
+    } finally {
+      setSavingResult(false)
+    }
+  }
 
   return (
     <>
@@ -1053,6 +1132,54 @@ export function MotionAcceptProposalStep({
             {t?.workflows?.motion?.proposal?.btn}
             <RiArrowRightLine className='text-xl' />
           </button>
+
+          {alreadyPaid && (
+            <div className='mt-4 space-y-3'>
+              <button
+                type='button'
+                onClick={() => void handleOpenMotionChat()}
+                className='w-full border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all'
+              >
+                Ir para o chat
+                <RiArrowRightLine className='inline ml-2 text-base' />
+              </button>
+
+              {reportedResult && (
+                <div
+                  className={`rounded-2xl border p-4 text-sm font-black ${
+                    reportedResult === 'approved'
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                      : 'bg-red-50 border-red-200 text-red-700'
+                  }`}
+                >
+                  {reportedResult === 'approved'
+                    ? 'Motion marcada como APROVADO.'
+                    : 'Motion marcada como REPROVADO.'}
+                </div>
+              )}
+
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                <button
+                  type='button'
+                  disabled={savingResult || reportedResult !== null}
+                  onClick={() => void handleReportResult('approved')}
+                  className='h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-60'
+                >
+                  <RiCheckLine className='inline mr-2 text-base' />
+                  Aprovado
+                </button>
+                <button
+                  type='button'
+                  disabled={savingResult || reportedResult !== null}
+                  onClick={() => void handleReportResult('rejected')}
+                  className='h-12 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all disabled:opacity-60'
+                >
+                  <RiCloseLine className='inline mr-2 text-base' />
+                  Reprovado
+                </button>
+              </div>
+            </div>
+          )}
 
           {proposalAmount > 0 && (
             <p className='mt-4 text-[9px] text-slate-400 font-bold uppercase tracking-widest text-center italic'>

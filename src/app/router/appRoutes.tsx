@@ -39,13 +39,21 @@ const STAFF_AND_SELLER = [...STAFF, AccessLevel.SELLER];
 
 // Public
 const HomePage = lazyPage(() => import("@features/marketing/pages/HomePage"));
-const MaintenancePage = lazyPage(() => import("@features/system/pages/MaintenancePage"));
-const ServiceDetailPage = lazyPage(() => import("@features/marketing/pages/ServiceDetailPage"));
-const ServicosPage = lazyPage(() => import("@features/marketing/pages/ServicosPage"));
-const QuemSomosPage = lazyPage(() => import("@features/marketing/pages/QuemSomosPage"));
-const ContactPage = lazyPage(() => import("@features/marketing/pages/ContactPage"));
-
-
+const MaintenancePage = lazyPage(
+  () => import("@features/system/pages/MaintenancePage"),
+);
+const ServiceDetailPage = lazyPage(
+  () => import("@features/marketing/pages/ServiceDetailPage"),
+);
+const ServicosPage = lazyPage(
+  () => import("@features/marketing/pages/ServicosPage"),
+);
+const QuemSomosPage = lazyPage(
+  () => import("@features/marketing/pages/QuemSomosPage"),
+);
+const ContactPage = lazyPage(
+  () => import("@features/marketing/pages/ContactPage"),
+);
 
 // Auth
 const Login = lazyPage(() => import("@features/auth/pages/LoginPage"));
@@ -53,10 +61,14 @@ const SignUpPage = lazyPage(() => import("@features/auth/pages/SignUpPage"));
 const ForgotPasswordPage = lazyPage(
   () => import("@features/auth/pages/ForgotPasswordPage"),
 );
-const ResetPasswordPage = lazyPage(() => import("@features/auth/pages/ResetPasswordPage"));
+const ResetPasswordPage = lazyPage(
+  () => import("@features/auth/pages/ResetPasswordPage"),
+);
 
 // Standalone
-const CheckoutPage = lazyPage(() => import("@features/payments/pages/CheckoutPage"));
+const CheckoutPage = lazyPage(
+  () => import("@features/payments/pages/CheckoutPage"),
+);
 const CheckoutSuccessPage = lazyPage(
   () => import("@features/payments/pages/CheckoutSuccessPage"),
 );
@@ -67,24 +79,44 @@ const Terms = lazyPage(() => import("@features/legal/pages/Terms"));
 const Privacy = lazyPage(() => import("@features/legal/pages/Privacy"));
 const Refund = lazyPage(() => import("@features/legal/pages/Refund"));
 const Disclaimers = lazyPage(() => import("@features/legal/pages/Disclaimers"));
-const ContractTerms = lazyPage(() => import("@features/legal/pages/ContractTerms"));
+const ContractTerms = lazyPage(
+  () => import("@features/legal/pages/ContractTerms"),
+);
 
 // Staff shared (rendered under admin + master sidebar layouts)
-const OverviewPage = lazyPage(() => import("@features/admin/pages/OverviewPage/index"));
-const CustomersPage = lazyPage(() => import("@features/admin/pages/master/CustomersPage"));
-const RevenuePage = lazyPage(() => import("@features/admin/pages/RevenuePage/index"));
-const FinanceAnalyticsPage = lazyPage(() => import("@features/admin/pages/FinanceAnalyticsPage/index"));
-const PlansPage = lazyPage(() => import("@features/admin/pages/PlansPage/index"));
+const OverviewPage = lazyPage(
+  () => import("@features/admin/pages/OverviewPage/index"),
+);
+const CustomersPage = lazyPage(
+  () => import("@features/admin/pages/master/CustomersPage"),
+);
+const RevenuePage = lazyPage(
+  () => import("@features/admin/pages/RevenuePage/index"),
+);
+const FinanceAnalyticsPage = lazyPage(
+  () => import("@features/admin/pages/FinanceAnalyticsPage/index"),
+);
+const PlansPage = lazyPage(
+  () => import("@features/admin/pages/PlansPage/index"),
+);
 // const ZellePaymentsPage = lazyPage(
 //     () => import("@features/admin/pages/ZellePaymentsPage"),
 // );
-const AdminChatsPage = lazyPage(() => import("@features/admin/pages/ChatsPage"));
-const CouponsPage = lazyPage(() => import("@features/admin/pages/CouponsPage/index"));
-const ProductsPage = lazyPage(() => import("@features/admin/pages/ProductsPage"));
+const AdminChatsPage = lazyPage(
+  () => import("@features/admin/pages/ChatsPage"),
+);
+const CouponsPage = lazyPage(
+  () => import("@features/admin/pages/CouponsPage/index"),
+);
+const ProductsPage = lazyPage(
+  () => import("@features/admin/pages/ProductsPage"),
+);
 const PaymentMethodsSettingsPage = lazyPage(
   () => import("@features/admin/pages/PaymentMethodsSettingsPage"),
 );
-const LawyersPage = lazyPage(() => import("@features/admin/pages/LawyersPage/index"));
+const LawyersPage = lazyPage(
+  () => import("@features/admin/pages/LawyersPage/index"),
+);
 const AdminProcessesPage = lazyPage(
   () => import("@features/admin/pages/ProcessesPage/index"),
 );
@@ -92,19 +124,45 @@ const AdminProcessDetailPage = lazyPage(
   () => import("@features/admin/pages/ProcessDetailPage/index"),
 );
 // const RolesPage = lazyPage(() => import("@features/admin/pages/RolesPage"));
-const TeamsPage = lazyPage(() => import("@features/admin/pages/TeamsPage/index"));
-const PageBuilderPage = lazyPage(() => import("@features/page-builder/pages/PageBuilderPage"));
-const SellerEarningsPage = lazyPage(() => import("@features/seller/pages/EarningsPage"));
-const DiscountRulesPage = lazyPage(() => import("@features/admin/pages/DiscountRulesPage/index"));
-const SubscriptionPage = lazyPage(() => import("@features/admin/pages/SubscriptionPage/index"));
-const OfficesPage = lazyPage(() => import("@features/offices/pages/OfficesPage"));
-const OfficeDetailsPage = lazyPage(() => import("@features/offices/pages/OfficeDetailsPage"));
-const CompanyProfilePage = lazyPage(() => import("@features/admin/pages/CompanyProfilePage/index"));
-const PayoutSettingsPage = lazyPage(() => import("@features/admin/pages/billings/PaymentSettingsPage/index"));
-const WithdrawalsPage = lazyPage(() => import("@features/admin/pages/billings/WithdrawalsPage/index"));
-const MasterOverviewPage = lazyPage(() => import("@features/admin/pages/MasterOverviewPage/index"));
-const InteractionLogsPage = lazyPage(() => import("@features/admin/pages/InteractionLogsPage/index"));
-const ShortLinkPage = lazyPage(() => import("@features/payments/pages/ShortLinkPage"));
+const TeamsPage = lazyPage(
+  () => import("@features/admin/pages/TeamsPage/index"),
+);
+const PageBuilderPage = lazyPage(
+  () => import("@features/page-builder/pages/PageBuilderPage"),
+);
+const SellerEarningsPage = lazyPage(
+  () => import("@features/seller/pages/EarningsPage"),
+);
+const DiscountRulesPage = lazyPage(
+  () => import("@features/admin/pages/DiscountRulesPage/index"),
+);
+const SubscriptionPage = lazyPage(
+  () => import("@features/admin/pages/SubscriptionPage/index"),
+);
+const OfficesPage = lazyPage(
+  () => import("@features/offices/pages/OfficesPage"),
+);
+const OfficeDetailsPage = lazyPage(
+  () => import("@features/offices/pages/OfficeDetailsPage"),
+);
+const CompanyProfilePage = lazyPage(
+  () => import("@features/admin/pages/CompanyProfilePage/index"),
+);
+const PayoutSettingsPage = lazyPage(
+  () => import("@features/admin/pages/billings/PaymentSettingsPage/index"),
+);
+const WithdrawalsPage = lazyPage(
+  () => import("@features/admin/pages/billings/WithdrawalsPage/index"),
+);
+const MasterOverviewPage = lazyPage(
+  () => import("@features/admin/pages/MasterOverviewPage/index"),
+);
+const InteractionLogsPage = lazyPage(
+  () => import("@features/admin/pages/InteractionLogsPage/index"),
+);
+const ShortLinkPage = lazyPage(
+  () => import("@features/payments/pages/ShortLinkPage"),
+);
 
 // Customer
 const CustomerDashboardPage = lazyPage(
@@ -214,20 +272,18 @@ export const appRoutes: AppRouteDefinition[] = [
     layout: "public",
   },
 
-
-
   // ── Auth ───────────────────────────────────────────────────────────────────
   {
-    path: "/login-office",
-    title: "Login Advogado",
+    path: "/login",
+    title: "Login",
     component: Login,
     authRequired: false,
     accessLevels: [],
     layout: "auth",
   },
   {
-    path: "/acompanhar-meu-caso",
-    title: "Login",
+    path: "/track-my-case",
+    title: "Track My Case",
     component: Login,
     authRequired: false,
     accessLevels: [],
@@ -694,6 +750,38 @@ export const appRoutes: AppRouteDefinition[] = [
   {
     path: "/master/processes/:id",
     title: "Process Detail",
+    component: AdminProcessDetailPage,
+    authRequired: true,
+    accessLevels: STAFF,
+    layout: "protected",
+  },
+  {
+    path: "/cases/:id",
+    title: "Case Detail",
+    component: AdminProcessDetailPage,
+    authRequired: true,
+    accessLevels: STAFF,
+    layout: "protected",
+  },
+  {
+    path: "/admin/cases/:id",
+    title: "Case Detail",
+    component: AdminProcessDetailPage,
+    authRequired: true,
+    accessLevels: STAFF,
+    layout: "protected",
+  },
+  {
+    path: "/manager/cases/:id",
+    title: "Case Detail",
+    component: AdminProcessDetailPage,
+    authRequired: true,
+    accessLevels: STAFF,
+    layout: "protected",
+  },
+  {
+    path: "/master/cases/:id",
+    title: "Case Detail",
     component: AdminProcessDetailPage,
     authRequired: true,
     accessLevels: STAFF,

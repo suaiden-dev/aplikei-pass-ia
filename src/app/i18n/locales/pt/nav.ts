@@ -5,6 +5,7 @@ const nav = {
   contact: "Fale Conosco",
 
   login: "Entrar",
+  trackMyCase: "Acompanhar Caso",
   getStarted: "Começar",
   dashboard: "Painel",
   adminPanel: "Painel Admin",

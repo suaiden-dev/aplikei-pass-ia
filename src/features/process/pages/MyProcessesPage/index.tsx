@@ -7,6 +7,7 @@ import {
   RiFlashlightFill,
   RiTimeLine,
   RiBuilding2Line,
+  RiGitBranchLine,
 } from "react-icons/ri";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -211,11 +212,64 @@ function ProcessRow({ proc, index, displaySlug, officeName }: { proc: UserServic
   );
 }
 
+function ChildRecoveryRows({
+  parentProc,
+  children,
+}: {
+  parentProc: UserService;
+  children: UserService[];
+}) {
+  const recoveryChildren = children.filter((child) => {
+    const slug = String(child.service_slug || "").toLowerCase();
+    return slug.startsWith("consultancy-motion-") || slug.startsWith("analysis-rfe-");
+  });
+
+  if (!recoveryChildren.length) return null;
+
+  const labelFromSlug = (slug: string): string => {
+    const lower = slug.toLowerCase();
+    if (lower.includes("motion")) return "Motion";
+    if (lower.includes("rfe")) return "RFE";
+    if (lower.includes("recovery-")) return "Recovery";
+    return slug;
+  };
+
+  const workflowTypeFromChild = (child: UserService): string => {
+    const sd = (child.step_data || {}) as Record<string, unknown>;
+    const workflowType = String(sd.workflow_type || "").toLowerCase();
+    if (workflowType === "motion" || workflowType === "rfe") return workflowType;
+    return child.service_slug.toLowerCase().includes("motion") ? "motion" : "rfe";
+  };
+
+  return (
+    <div className="ml-4 mt-3 space-y-2 border-l border-border/80 pl-4 sm:ml-6 sm:pl-5">
+      {recoveryChildren.map((child) => (
+        <Link
+          key={child.id}
+          to={`/dashboard/processes/${parentProc.service_slug}?id=${parentProc.id}&childId=${child.id}&workflowType=${workflowTypeFromChild(child)}`}
+          className="flex items-center justify-between rounded-2xl border border-border bg-bg-subtle px-4 py-3 transition-colors hover:bg-bg"
+        >
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-text">
+              <RiGitBranchLine className="text-primary" />
+              {labelFromSlug(child.service_slug)}
+            </p>
+            <p className="truncate text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+              {child.service_slug}
+            </p>
+          </div>
+          <RiArrowRightLine className="shrink-0 text-text-muted" />
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export default function MyProcessesPage() {
   const t = useT("dashboard");
   const { user } = useAuth();
 
-  const { activeProcesses, historyProcesses, userServices, isLoading } = useMyProcesses(user?.id);
+  const { activeProcesses, historyProcesses, childrenByParentId, userServices, isLoading } = useMyProcesses(user?.id);
   const officeIds = Array.from(
     new Set(
       userServices
@@ -320,13 +374,18 @@ export default function MyProcessesPage() {
               </div>
               <div className="space-y-3">
                 {activeProcesses.map((proc, i) => (
-                  <ProcessRow
-                    key={proc.id}
-                    proc={proc}
-                    index={i}
-                    officeName={(proc.office_id && officeNameById[proc.office_id]) || "Office"}
-                    displaySlug={displaySlugByProcessId.get(proc.id) ?? proc.service_slug}
-                  />
+                  <div key={proc.id}>
+                    <ProcessRow
+                      proc={proc}
+                      index={i}
+                      officeName={(proc.office_id && officeNameById[proc.office_id]) || "Office"}
+                      displaySlug={displaySlugByProcessId.get(proc.id) ?? proc.service_slug}
+                    />
+                    <ChildRecoveryRows
+                      parentProc={proc}
+                      children={childrenByParentId[proc.id] || []}
+                    />
+                  </div>
                 ))}
               </div>
             </section>
@@ -347,13 +406,18 @@ export default function MyProcessesPage() {
               </div>
               <div className="space-y-3">
                 {historyProcesses.map((proc, i) => (
-                  <ProcessRow
-                    key={proc.id}
-                    proc={proc}
-                    index={activeProcesses.length + i}
-                    officeName={(proc.office_id && officeNameById[proc.office_id]) || "Office"}
-                    displaySlug={displaySlugByProcessId.get(proc.id) ?? proc.service_slug}
-                  />
+                  <div key={proc.id}>
+                    <ProcessRow
+                      proc={proc}
+                      index={activeProcesses.length + i}
+                      officeName={(proc.office_id && officeNameById[proc.office_id]) || "Office"}
+                      displaySlug={displaySlugByProcessId.get(proc.id) ?? proc.service_slug}
+                    />
+                    <ChildRecoveryRows
+                      parentProc={proc}
+                      children={childrenByParentId[proc.id] || []}
+                    />
+                  </div>
                 ))}
               </div>
             </section>

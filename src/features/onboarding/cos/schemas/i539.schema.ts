@@ -10,7 +10,8 @@ const ANUMBER_REGEX = /^[a-zA-Z]?\d{7,9}$/; // Match optional letter followed by
 const USCIS_ACCOUNT_REGEX = /^\d{12}$/; // USCIS Online Account Number is exactly 12 digits
 const I94_REGEX = /^\d{11}$/; // I-94 is exactly 11 digits
 const ZIP_REGEX = /^\d{5}(-\d{4})?$/; // US Zip
-const PHONE_REGEX = /^(\(\d{3}\) \d{3}-\d{4})|(\+\d{2} \(\d{5}\) \d{4})$/;
+const PHONE_REGEX =
+  /^(\(\d{3}\) \d{3}-\d{4}|\+55 \(\d{2}\) \d{4,5}-\d{4}|\+\d{6,15})$/;
 
 /**
  * I-539 Zod Schema - Professional Implementation

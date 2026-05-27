@@ -72,6 +72,23 @@ Deno.serve(async (req: Request) => {
         metadata_for_logs.email = email;
         metadata_for_logs.slug = slug;
 
+        const recoverySlug = String(slug || "").toLowerCase();
+        const isRecoveryChild =
+          recoverySlug.includes("motion") ||
+          recoverySlug.includes("rfe") ||
+          recoverySlug.includes("recovery-") ||
+          recoverySlug.startsWith("analise-") ||
+          recoverySlug.startsWith("analysis-") ||
+          recoverySlug.startsWith("apoio-");
+        if (isRecoveryChild && (!targetProcId || !parentServiceSlug)) {
+          console.warn("[stripe-checkout] Recovery checkout without full parent metadata", {
+            slug,
+            targetProcId: targetProcId || null,
+            parentServiceSlug: parentServiceSlug || null,
+            order_id: order_id || null,
+          });
+        }
+
         let origin_url = body.origin_url || body.originUrl || req.headers.get("origin") || req.headers.get("referer") || "https://aplikei.com";
         if (!origin_url.startsWith("http")) origin_url = `https://${origin_url}`;
 

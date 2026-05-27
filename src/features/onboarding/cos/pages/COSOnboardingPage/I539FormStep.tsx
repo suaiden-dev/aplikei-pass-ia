@@ -252,11 +252,12 @@ function formatPhoneNumber(value: string, country: "US" | "BR" | "OTHER"): strin
   }
   
   if (country === "BR") {
-    if (digits.startsWith("55") && digits.length > 10) {
+    if (digits.length === 0) return "";
+    // Remove country code only when user actually provided it (+55 or extra digits).
+    if ((value.trim().startsWith("+55") || digits.length > 11) && digits.startsWith("55")) {
       digits = digits.slice(2);
     }
     digits = digits.slice(0, 11);
-    if (digits.length === 0) return "+55 ";
     if (digits.length <= 2) return `+55 (${digits}`;
     if (digits.length <= 6) return `+55 (${digits.slice(0, 2)}) ${digits.slice(2)}`;
     if (digits.length <= 10) {
@@ -349,6 +350,11 @@ function PhoneInput({ name, disabled }: { name: string; disabled?: boolean }) {
         onChange={handleChange}
         onBlur={field.onBlur}
         type="text"
+        inputMode="tel"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
         disabled={disabled}
         placeholder={country === "US" ? "(201) 555-0123" : country === "BR" ? "+55 (11) 98765-4321" : "+1..."}
         className={`w-full bg-slate-50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-r-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50`}
