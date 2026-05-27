@@ -17,6 +17,7 @@ import { StepTimeline } from "@shared/components/organisms/StepTimeline";
 import { coverLetterService } from "@features/onboarding/cos/lib/cover-letter";
 import * as processService from "@features/process/services/processOps";
 import type { UserService } from "@features/process/types";
+import { HomologationAutofillButton } from "./components/HomologationAutofillButton";
 
 interface CoverLetterData {
   reasonGoUS?: string;
@@ -116,13 +117,16 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
   };
 
   return (
-    <div className="space-y-6 pb-24">
+    <div id="homologation-form-cover-letter" className="space-y-6 pb-24">
       {/* Intro Box */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50/30 p-6 rounded-2xl border border-blue-100 flex items-start gap-4 shadow-sm">
         <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-500 flex items-center justify-center shrink-0">
           <MdLightbulbOutline className="text-2xl" />
         </div>
         <div>
+          <div className="mb-3">
+            <HomologationAutofillButton rootId="homologation-form-cover-letter" />
+          </div>
           <h3 className="font-black text-blue-900 text-[13px] uppercase tracking-widest mb-1 mt-0.5">
             {t.cos.coverLetter.introTitle}
           </h3>

@@ -41,6 +41,7 @@ import type { FormReturn } from "@shared/lib/form/types";
 import { cosNotificationService } from "@features/onboarding/cos/lib/cos-notifications";
 import * as processService from "@features/process/services/processOps";
 import type { UserService } from "@features/process/types";
+import { HomologationAutofillButton } from "./components/HomologationAutofillButton";
 
 const US_STATES = [
   "", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN",
@@ -529,7 +530,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
     countryOfBirth: saved.countryOfBirth ?? "",
     ssn: saved.ssn ?? "",
     dateOfArrival: saved.dateOfArrival ?? "",
-    i94Number: saved.i94Number ?? ((proc.step_data as any)?.i94Date as string ?? ""),
+    i94Number: saved.i94Number ?? "",
     passportNumber: saved.passportNumber ?? "",
     travelDocCountry: saved.travelDocCountry ?? "",
     countryOfIssuance: saved.countryOfIssuance ?? "",
@@ -609,7 +610,6 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
       const savedDep = ((saved.dependentsA as Array<{ id: string;[key: string]: unknown }>)?.find(d => d.id === dep.id) ?? {}) as Record<string, unknown>;
       const depName = typeof dep.name === 'string' ? dep.name : '';
       const depBirthDate = typeof dep.birthDate === 'string' ? dep.birthDate : '';
-      const depI94Date = typeof dep.i94Date === 'string' ? dep.i94Date : '';
       return {
         id: dep.id,
         familyName: (savedDep.familyName as string) || depName.split(" ").slice(-1)[0] || "",
@@ -622,7 +622,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
         ssn: (savedDep.ssn as string) || "",
         uscisOnlineAccountNumber: (savedDep.uscisOnlineAccountNumber as string) || "",
         dateOfArrival: (savedDep.dateOfArrival as string) || "",
-        i94Number: (savedDep.i94Number as string) || (depI94Date ? depI94Date.split("-").reverse().join("/") : ""),
+        i94Number: (savedDep.i94Number as string) || "",
         passportNumber: (savedDep.passportNumber as string) || "",
         travelDocNumber: (savedDep.travelDocNumber as string) || "",
         countryOfIssuance: (savedDep.countryOfIssuance as string) || "",
@@ -751,7 +751,10 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
 
   return (
     <I539FormContext.Provider value={form}>
-      <form onSubmit={form.handleSubmit} className="space-y-4 pb-20">
+      <form id="homologation-form-i539" onSubmit={form.handleSubmit} className="space-y-4 pb-20">
+        <div className="flex justify-end">
+          <HomologationAutofillButton rootId="homologation-form-i539" />
+        </div>
         {/* ── Part 1: Information About You ── */}
         <SectionCard title={t.cos.i539.labels.fullLegalName} subtitle={t.cos.i539.sections.part1} icon={MdPerson}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

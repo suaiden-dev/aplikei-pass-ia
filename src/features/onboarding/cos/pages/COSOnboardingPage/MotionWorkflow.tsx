@@ -37,6 +37,7 @@ import { useNavigate } from 'react-router-dom'
 import type { MotionOutcome } from '@shared/types/process.model'
 import { COS_MOTION_PROPOSAL_STEP, getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
 import { compressImageForUpload } from "@shared/utils/uploadCompression";
+import { HomologationAutofillButton } from "./components/HomologationAutofillButton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -910,7 +911,10 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
         </p>
 
         <div className='space-y-6'>
-          <div>
+          <div className='flex justify-end'>
+            <HomologationAutofillButton rootId='homologation-form-motion-instruction' />
+          </div>
+          <div id='homologation-form-motion-instruction'>
             <label className='text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block'>
               {reasonLabel}
             </label>

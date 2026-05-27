@@ -441,6 +441,21 @@ async function createRecoveryChildProcess(data: {
     .single();
 
   if (error) throw error;
+
+  if (workflowType === "rfe") {
+    const { error: chatError } = await data.supabase
+      .from("chat_messages")
+      .insert({
+        process_id: data.parent_process_id,
+        office_id: data.office_id || null,
+        sender_id: data.user_id,
+        sender_role: "customer",
+        content: "Olá! Quero falar com o especialista sobre a minha RFE.",
+        created_at: new Date().toISOString(),
+      });
+    if (chatError) throw chatError;
+  }
+
   return inserted?.id as string;
 }
 
@@ -478,6 +493,38 @@ async function ensureLegacyProfileForUser(supabase: SupabaseClient, userId: stri
     }, { onConflict: "id" });
 
   if (insertProfileError) throw insertProfileError;
+}
+
+async function ensureSupportChatThread(data: {
+  supabase: SupabaseClient;
+  processId: string;
+  senderId: string;
+  officeId?: string | null;
+}): Promise<void> {
+  const { supabase, processId, senderId, officeId } = data;
+
+  const { data: existingMessage, error: existingError } = await supabase
+    .from("chat_messages")
+    .select("id")
+    .eq("process_id", processId)
+    .limit(1)
+    .maybeSingle();
+
+  if (existingError) throw existingError;
+  if (existingMessage) return;
+
+  const { error: insertError } = await supabase
+    .from("chat_messages")
+    .insert({
+      process_id: processId,
+      office_id: officeId || null,
+      sender_id: senderId,
+      sender_role: "customer",
+      content: "Chat iniciado automaticamente após confirmação do pagamento da proposta.",
+      created_at: new Date().toISOString(),
+    });
+
+  if (insertError) throw insertError;
 }
 
 export async function applySuccessfulPayment(data: {
@@ -813,6 +860,7 @@ export async function applySuccessfulPayment(data: {
           });
         } else {
           extraMetadata.rfe_proposal_paid = true;
+          extraMetadata.rfe_payment_completed_at = now;
           
           // Update RFE Cycle status
           const rfeCycles = Array.isArray(stepData.rfe_cycles) ? [...stepData.rfe_cycles] : [];
@@ -853,7 +901,17 @@ export async function applySuccessfulPayment(data: {
         purchases,
       },
     })
-    .eq("id", targetProcId);
+    .eq("id", effectiveTargetProcId);
+
+  const isProposalPayment = ["proposta-rfe-motion", "consultancy-motion-cos", "consultancy-motion-eos"].includes(service_slug);
+  if (isProposalPayment && effectiveTargetProcId) {
+    await ensureSupportChatThread({
+      supabase,
+      processId: effectiveTargetProcId,
+      senderId: user_id,
+      officeId: officeIdToUse,
+    });
+  }
 
   if (effectiveParentSlug || currentProc.service_slug) {
     await syncParentOrderMetadata({

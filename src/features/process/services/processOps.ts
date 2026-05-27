@@ -71,6 +71,21 @@ async function dbUpdateNegativa(
   return !error;
 }
 
+function resolveFinalOutcomeField(
+  service: UserService,
+): "uscis_official_result" | "uscis_rfe_result" | "motion_final_result" {
+  const slug = String(service.service_slug || "").toLowerCase();
+  const workflowType = String(((service.step_data as Record<string, unknown> | undefined)?.workflow_type) || "").toLowerCase();
+
+  if (slug.includes("consultancy-motion-") || workflowType === "motion") {
+    return "motion_final_result";
+  }
+  if (slug.includes("analysis-rfe-") || workflowType === "rfe") {
+    return "uscis_rfe_result";
+  }
+  return "uscis_official_result";
+}
+
 // ── COS recovery normalization ────────────────────────────────────────────────
 
 const COS_RECOVERY_STEPS = {
@@ -390,7 +405,9 @@ export async function approveStep(
   delete newStepData["rejected_at"];
 
   if (isFinal && result) {
-    newStepData.motion_final_result = result;
+    const outcomeField = resolveFinalOutcomeField(service);
+    newStepData[outcomeField] = result;
+    newStepData.workflow_status = result === "approved" ? "approved" : "rejected";
   }
 
   await dbUpdateStepData(serviceId, newStepData);
@@ -433,9 +450,11 @@ export async function rejectStep(
   if (!service) throw new Error("Serviço não encontrado");
 
   if (isFinal && result) {
+    const outcomeField = resolveFinalOutcomeField(service);
     await dbUpdateStepData(serviceId, {
       ...((service.step_data as object) || {}),
-      motion_final_result: result,
+      [outcomeField]: result,
+      workflow_status: result === "approved" ? "approved" : "rejected",
     });
   }
 
@@ -482,17 +501,22 @@ export async function startAdditionalWorkflow(
       ? "analysis-rfe-eos"
       : "analysis-rfe-cos";
 
-  const { data: existingChild } = await supabase
-    .from("user_services")
-    .select("id")
-    .eq("user_id", service.user_id)
-    .eq("service_slug", recoveryChildSlug)
-    .contains("step_data", { parent_process_id: processId })
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // RFE must open a new cycle each time.
+  // Motion keeps legacy behavior (reuse latest child when available).
+  let childProcessId: string | undefined;
+  if (type !== "rfe") {
+    const { data: existingChild } = await supabase
+      .from("user_services")
+      .select("id")
+      .eq("user_id", service.user_id)
+      .eq("service_slug", recoveryChildSlug)
+      .contains("step_data", { parent_process_id: processId })
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    childProcessId = existingChild?.id;
+  }
 
-  let childProcessId: string | undefined = existingChild?.id;
   if (!childProcessId) {
     const { data: insertedChild, error: childInsertError } = await supabase
       .from("user_services")
@@ -517,6 +541,18 @@ export async function startAdditionalWorkflow(
 
     if (!childInsertError) {
       childProcessId = insertedChild?.id;
+      if (type === "rfe" && childProcessId) {
+        const { data: authData } = await supabase.auth.getUser();
+        const actorId = authData.user?.id || service.user_id;
+        const actorRole: "admin" | "customer" = actorId === service.user_id ? "customer" : "admin";
+        await ensureChatThread(
+          processId,
+          actorId,
+          "Olá! Quero falar com o especialista sobre a minha RFE.",
+          false,
+          actorRole,
+        );
+      }
     }
   }
   return { childProcessId };
@@ -535,6 +571,7 @@ export async function ensureChatThread(
   senderId: string,
   content: string,
   force = false,
+  senderRole: "admin" | "customer" = "customer",
 ): Promise<boolean> {
   if (!force) {
     const alreadyExists = await hasChatMessages(processId);
@@ -544,7 +581,7 @@ export async function ensureChatThread(
   const { error } = await supabase.from("chat_messages").insert({
     process_id: processId,
     sender_id: senderId,
-    sender_role: "customer",
+    sender_role: senderRole,
     content,
   });
 

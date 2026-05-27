@@ -39,6 +39,7 @@ import { normalizeLegacyFinalShipStep } from "@shared/utils/legacyWorkflow";
 import type { RFEOutcome } from "@shared/types/process.model";
 import { getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
 import { compressImageForUpload } from "@shared/utils/uploadCompression";
+import { HomologationAutofillButton } from "./components/HomologationAutofillButton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -643,6 +644,9 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
       </div>
 
       <div className="space-y-6">
+        <div className="flex justify-end">
+          <HomologationAutofillButton rootId="homologation-form-rfe-instruction" />
+        </div>
         <DocUploadCard 
           docKey="rfe_letter"
           title={textOr(t?.workflows?.rfe?.instruction?.uploadTitle, "Anexar RFE")}
@@ -662,7 +666,7 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
            <div className="flex-grow border-t border-slate-100"></div>
         </div>
 
-        <div className="space-y-2">
+        <div id="homologation-form-rfe-instruction" className="space-y-2">
            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
              {textOr(t?.workflows?.rfe?.instruction?.summaryLabel, "Resumo do caso")}
            </Label>
@@ -728,7 +732,8 @@ export function RFEAcceptProposalStep({ proc, onRFEResult }: StepProps) {
     Boolean(data.rfe_payment_completed_at);
 
   const handleOpenRFEChat = async () => {
-    const targetProcessId = proc.id;
+    const parentProcessId = String(((proc.step_data as Record<string, unknown>)?.parent_process_id || "")).trim();
+    const targetProcessId = parentProcessId || proc.id;
     const senderId = user?.id || proc.user_id;
     if (senderId) {
       try {
@@ -938,8 +943,10 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
       if (outcome === 'approved') {
         await processService.updateStepData(proc.id, updateData);
         await processService.updateProcessStatus(proc.id, 'completed');
+        const parentProcessId = String(((proc.step_data as Record<string, unknown>)?.parent_process_id || "")).trim();
+        const chatProcessId = parentProcessId || proc.id;
         await processService.ensureChatThread(
-          proc.id,
+          chatProcessId,
           proc.user_id,
           `RFE ciclo #${cycleNumber} finalizado com status: APPROVED.`,
           true,
@@ -953,8 +960,10 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
           current_step: 13, // Step 13 is RFE Explanation
           uscis_official_result: 'rfe' 
         });
+        const parentProcessId = String(((proc.step_data as Record<string, unknown>)?.parent_process_id || "")).trim();
+        const chatProcessId = parentProcessId || proc.id;
         await processService.ensureChatThread(
-          proc.id,
+          chatProcessId,
           proc.user_id,
           `RFE ciclo #${cycleNumber} finalizado com status: RFE.`,
           true,
@@ -968,8 +977,10 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
           uscis_official_result: 'denied',
           current_step: 19 // Step 19 is Motion Explanation
         });
+        const parentProcessId = String(((proc.step_data as Record<string, unknown>)?.parent_process_id || "")).trim();
+        const chatProcessId = parentProcessId || proc.id;
         await processService.ensureChatThread(
-          proc.id,
+          chatProcessId,
           proc.user_id,
           `RFE ciclo #${cycleNumber} finalizado com status: DENIED.`,
           true,

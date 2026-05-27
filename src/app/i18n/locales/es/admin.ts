@@ -21,6 +21,7 @@ const admin = {
       customer: "Cliente",
     },
     view: "Ver",
+    select: "Seleccionar",
     remove: "Eliminar",
     locale: "es-ES"
   },

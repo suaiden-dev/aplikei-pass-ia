@@ -1429,7 +1429,7 @@ export default function AdminProcessDetailPage() {
       const isF1FinalScheduling = currentStepBaseId === "f1_final_scheduling";
 
       const additionalData = { ...extraData };
-      if (currentStepBaseId === 'cos_analysis_presentation_letter') {
+      if (currentStepBaseId === 'cos_analysis_presentation_letter' || currentStepBaseId === 'eos_admin_cover_analysis') {
         additionalData.generatedCoverLetterHTML = coverLetterHtml;
       }
       const isFinal = isF1FinalScheduling || (nextStep >= effectiveSteps.length && !isConsular);
@@ -1589,6 +1589,32 @@ export default function AdminProcessDetailPage() {
     }
   };
 
+  const renderCardActions = (
+    approveLabel: string,
+    approveTone: "success" | "primary" = "success",
+    requestLabel = t.analysisPanel.actions.requestMoreInfo,
+  ) => (
+    <div className="flex items-center gap-4 pt-4 border-t border-border">
+      <button
+        onClick={() => setShowRejectionModal(true)}
+        className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
+      >
+        <RiCloseLine className="text-xl" /> {requestLabel}
+      </button>
+      <button
+        onClick={() => handleApproveStep()}
+        disabled={isSubmitting}
+        className={`flex-1 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg ${
+          approveTone === "primary"
+            ? "bg-primary shadow-primary/20"
+            : "bg-success shadow-success/20"
+        }`}
+      >
+        {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {approveLabel}</>}
+      </button>
+    </div>
+  );
+
   const renderFormData = () => {
     const data = proc.step_data || {};
     const entries = Object.entries(data).filter(([key]) =>
@@ -1598,9 +1624,10 @@ export default function AdminProcessDetailPage() {
     if (entries.length === 0) return null;
 
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
+    const analysisStepId = proc.service_slug === "extensao-status" ? "eos_admin_analysis" : `${prefix}analysis_form_docs`;
     const analysisIdx = effectiveSteps.findIndex(s =>
       normalizeLegacyStepId(s.id) === "b1b2_admin_analysis" ||
-      normalizeLegacyStepId(s.id) === `${prefix}analysis_form_docs`
+      normalizeLegacyStepId(s.id) === analysisStepId
     );
     const isActive = analysisIdx !== -1 && currentStepIdx === analysisIdx;
     const isPast = analysisIdx !== -1 && currentStepIdx > analysisIdx;
@@ -1684,6 +1711,11 @@ export default function AdminProcessDetailPage() {
             );
           })}
         </div>
+        {isActive && (
+          <div className="mt-6">
+            {renderCardActions(t.cases.actions.approve)}
+          </div>
+        )}
       </CollapsibleStep>
     );
   };
@@ -1693,8 +1725,10 @@ export default function AdminProcessDetailPage() {
     if (!pdfUrl) return null;
 
     const isSelected = selectedItems.includes('i539PdfUrl');
-    const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const stepId = `${prefix}analysis_official_forms`;
+    const stepId =
+      proc.service_slug === "extensao-status"
+        ? "eos_admin_final_review"
+        : "cos_analysis_official_forms";
     const officialFormsIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
     const isActive = officialFormsIdx !== -1 && currentStepIdx === officialFormsIdx;
     const isPast = officialFormsIdx !== -1 && currentStepIdx > officialFormsIdx;
@@ -1719,20 +1753,39 @@ export default function AdminProcessDetailPage() {
               </a>
               {isActive && (
                 <button onClick={() => toggleItem('i539PdfUrl')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
-                  <RiErrorWarningLine className="text-sm" /> {t.processDetail.officialForms.reject}
+                  <RiErrorWarningLine className="text-sm" /> Select
                 </button>
               )}
             </div>
           </div>
         </div>
+        {isActive && (
+          <div className="flex items-center gap-4 pt-4 border-t border-border mt-4">
+            <button
+              onClick={() => setShowRejectionModal(true)}
+              className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
+            >
+              <RiCloseLine className="text-xl" /> {t.cases.actions.reject}
+            </button>
+            <button
+              onClick={() => handleApproveStep()}
+              disabled={isSubmitting}
+              className="flex-1 bg-success text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-success/20"
+            >
+              {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.cases.actions.approve}</>}
+            </button>
+          </div>
+        )}
       </CollapsibleStep>
     );
   };
 
   const renderCoverLetterAdmin = () => {
     if (!(proc.step_data as any)?.coverLetter) return null;
-    const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const stepId = `${prefix}analysis_presentation_letter`;
+    const stepId =
+      proc.service_slug === "extensao-status"
+        ? "eos_admin_cover_analysis"
+        : "cos_analysis_presentation_letter";
     const coverLetterIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
     const isActive = coverLetterIdx !== -1 && currentStepIdx === coverLetterIdx;
     const isPast = coverLetterIdx !== -1 && currentStepIdx > coverLetterIdx;
@@ -1756,6 +1809,11 @@ export default function AdminProcessDetailPage() {
             className={`w-full min-h-[500px] bg-card border border-border rounded-2xl p-8 overflow-y-auto shadow-sm prose prose-sm dark:prose-invert max-w-none text-text dark:text-white ${isActive ? 'outline-none focus:ring-4 focus:ring-primary/20' : 'opacity-80'}`}
             dangerouslySetInnerHTML={{ __html: coverLetterHtml.replace(/color:\s*#000;?/gi, '').replace(/color:\s*black;?/gi, '') }}
           />
+          {isActive && (
+            <div className="mt-4">
+              {renderCardActions(t.cases.actions.approve)}
+            </div>
+          )}
         </div>
       </CollapsibleStep>
     );
@@ -1763,34 +1821,52 @@ export default function AdminProcessDetailPage() {
 
   const renderFinalFormsAdmin = () => {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
-    const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
+    const isEOS = proc.service_slug === "extensao-status";
     const g1145PdfUrl = (proc.step_data as any)?.g1145PdfUrl as string;
     const g1450PdfUrl = (proc.step_data as any)?.g1450PdfUrl as string;
     if (!g1145PdfUrl && !g1450PdfUrl) return null;
-    const isActive = currentStepBaseId === `${prefix}analysis_final_forms`;
-    const finalFormsIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === `${prefix}analysis_final_forms`);
+    const finalFormsStepId = isEOS ? "eos_admin_final_review" : "cos_analysis_final_forms";
+    const isActive = currentStepBaseId === finalFormsStepId;
+    const finalFormsIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === finalFormsStepId);
     const isPast = finalFormsIdx !== -1 && currentStepIdx > finalFormsIdx;
 
     return (
       <CollapsibleStep title={`${t.processDetail.finalForms?.g1145} / ${t.processDetail.finalForms?.g1450}`} icon={RiBankCardLine} isActive={isActive} isPast={isPast}>
         <div className="space-y-6">
           {g1145PdfUrl && (
-            <div className="flex items-center justify-between p-6 bg-bg-subtle border border-border rounded-2xl">
+            <div className={`flex items-center justify-between p-6 border rounded-2xl transition-all ${selectedItems.includes('g1145PdfUrl') ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
               <div className="flex items-center gap-4">
                 <RiFileTextLine className="text-2xl text-info" />
                 <h4 className="text-sm font-black text-text">G-1145</h4>
               </div>
-              <a href={g1145PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-info text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
+              <div className="flex items-center gap-3">
+                <a href={g1145PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-info text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
+                {isActive && (
+                  <button onClick={() => toggleItem('g1145PdfUrl')} className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedItems.includes('g1145PdfUrl') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                    Select
+                  </button>
+                )}
+              </div>
             </div>
           )}
           {g1450PdfUrl && (
-            <div className="flex items-center justify-between p-6 bg-bg-subtle border border-border rounded-2xl">
+            <div className={`flex items-center justify-between p-6 border rounded-2xl transition-all ${selectedItems.includes('g1450PdfUrl') ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
               <div className="flex items-center gap-4">
                 <RiBankCardLine className="text-2xl text-primary" />
                 <h4 className="text-sm font-black text-text">G-1450</h4>
               </div>
-              <a href={g1450PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-primary text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
+              <div className="flex items-center gap-3">
+                <a href={g1450PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-primary text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
+                {isActive && (
+                  <button onClick={() => toggleItem('g1450PdfUrl')} className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedItems.includes('g1450PdfUrl') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                    Select
+                  </button>
+                )}
+              </div>
             </div>
+          )}
+          {isActive && (
+            renderCardActions(t.cases.actions.approve)
           )}
         </div>
       </CollapsibleStep>
@@ -1800,7 +1876,7 @@ export default function AdminProcessDetailPage() {
   const renderCOSDocumentsAdmin = () => {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const stepId = `${prefix}analysis_form_docs`;
+    const stepId = proc.service_slug === "extensao-status" ? "eos_admin_analysis" : `${prefix}analysis_form_docs`;
     const docsIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
     const isActive = docsIdx !== -1 && currentStepIdx === docsIdx;
     const isPast = docsIdx !== -1 && currentStepIdx > docsIdx;
@@ -1809,31 +1885,36 @@ export default function AdminProcessDetailPage() {
     if (Object.keys(docs).length === 0) return null;
 
     return (
-      <CollapsibleStep title={t.analysisPanel.clientDocuments} icon={RiFileUploadLine} isActive={isActive} isPast={isPast}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Object.entries(docs).map(([key, path]) => {
-            if (key === 'i20_document' || key === 'sevis_receipt') return null; // Handled in a separate step
-            const url = supabase.storage.from("aplikei-profiles").getPublicUrl(path).data.publicUrl;
-            const isSelected = selectedItems.includes(`docs.${key}`);
+      <CollapsibleStep title={t.analysisPanel.clientDocuments} icon={RiFileUploadLine} isActive={isActive} isPast={isPast} badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}>
+        <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Object.entries(docs).map(([key, path]) => {
+              if (key === 'i20_document' || key === 'sevis_receipt') return null;
+              const url = supabase.storage.from("aplikei-profiles").getPublicUrl(path).data.publicUrl;
+              const isSelected = selectedItems.includes(`docs.${key}`);
 
-            return (
-              <div key={key} className={`p-4 rounded-2xl border transition-all ${isSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-[10px] font-black text-text uppercase tracking-tight truncate pr-2">
+              return (
+                <div key={key} className={`p-4 rounded-2xl border flex flex-col transition-all ${isSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+                  <h4 className="text-[10px] font-black text-text uppercase tracking-tight truncate mb-3">
                     {key.replace(/_/g, ' ')}
                   </h4>
-                  {isActive && (
-                    <button onClick={() => toggleItem(`docs.${key}`)} className={`p-1.5 rounded-lg transition-all ${isSelected ? 'bg-danger text-white' : 'text-text-muted hover:bg-bg-subtle'}`}>
-                      <RiErrorWarningLine className="text-sm" />
-                    </button>
-                  )}
+                  <div className="flex gap-2 mt-auto">
+                    <a href={url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
+                      {t.processDetail.officialForms.viewPdf}
+                    </a>
+                    {isActive && (
+                      <button onClick={() => toggleItem(`docs.${key}`)} className={`flex-1 flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${isSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                        <RiErrorWarningLine className="text-sm" /> Select
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <a href={url} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
-                  {t.processDetail.officialForms.viewPdf}
-                </a>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+          {isActive && (
+            renderCardActions(t.cases.actions.approve)
+          )}
         </div>
       </CollapsibleStep>
     );
@@ -1869,7 +1950,7 @@ export default function AdminProcessDetailPage() {
                   </a>
                   {isActive && (
                     <button onClick={() => toggleItem('docs.i20_document')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.i20_document') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
-                      {t.processDetail.i20Sevis.rejectBtn}
+                      Select
                     </button>
                   )}
                 </div>
@@ -1887,7 +1968,7 @@ export default function AdminProcessDetailPage() {
                   </a>
                   {isActive && (
                     <button onClick={() => toggleItem('docs.sevis_receipt')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.sevis_receipt') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
-                      {t.processDetail.i20Sevis.rejectBtn}
+                      Select
                     </button>
                   )}
                 </div>
@@ -1895,14 +1976,7 @@ export default function AdminProcessDetailPage() {
             )}
           </div>
           {isActive && (
-            <div className="flex items-center gap-4 pt-4 border-t border-border">
-              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10">
-                <RiCloseLine className="text-xl" /> {t.processDetail.i20Sevis.requestCorrection}
-              </button>
-              <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-success text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-success/20">
-                {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.i20Sevis.approveBtn}</>}
-              </button>
-            </div>
+            renderCardActions(t.processDetail.i20Sevis.approveBtn, "success", t.processDetail.i20Sevis.requestCorrection)
           )}
         </div>
       </CollapsibleStep>
@@ -1938,7 +2012,7 @@ export default function AdminProcessDetailPage() {
                   </a>
                   {isActive && (
                     <button onClick={() => toggleItem('docs.i20_document')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${isI20Selected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
-                      {t.processDetail.i20Sevis.rejectBtn}
+                      Select
                     </button>
                   )}
                 </div>
@@ -1946,14 +2020,7 @@ export default function AdminProcessDetailPage() {
             )}
           </div>
           {isActive && (
-            <div className="flex items-center gap-4 pt-4 border-t border-border">
-              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10">
-                <RiCloseLine className="text-xl" /> {t.processDetail.i20Sevis.requestCorrection}
-              </button>
-              <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-primary text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/20">
-                {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.f1Documents.approveBtn}</>}
-              </button>
-            </div>
+            renderCardActions(t.processDetail.f1Documents.approveBtn, "primary", t.processDetail.i20Sevis.requestCorrection)
           )}
         </div>
       </CollapsibleStep>
@@ -1985,7 +2052,7 @@ export default function AdminProcessDetailPage() {
                 <h4 className="font-black text-text text-lg mb-1">{t.processDetail.f1FinalDocs.ds160Signed}</h4>
                 <div className="flex gap-3 w-full mt-4">
                   <a href={ds160Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm"><RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}</a>
-                  {isActive && <button onClick={() => toggleItem('docs.ds160_assinada')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}</button>}
+                  {isActive && <button onClick={() => toggleItem('docs.ds160_assinada')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> Select</button>}
                 </div>
               </div>
             )}
@@ -1995,16 +2062,13 @@ export default function AdminProcessDetailPage() {
                 <h4 className="font-black text-text text-lg mb-1">{t.processDetail.f1FinalDocs.finalProof}</h4>
                 <div className="flex gap-3 w-full mt-4">
                   <a href={comprovanteUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm"><RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}</a>
-                  {isActive && <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}</button>}
+                  {isActive && <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> Select</button>}
                 </div>
               </div>
             )}
           </div>
           {isActive && (
-            <div className="flex items-center gap-4 pt-4 border-t border-border">
-              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"><RiCloseLine className="text-xl" /> {t.processDetail.i20Sevis.requestCorrection}</button>
-              <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-primary text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/20">{isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.f1FinalDocs.approveBtn}</>}</button>
-            </div>
+            renderCardActions(t.processDetail.f1FinalDocs.approveBtn, "primary", t.processDetail.i20Sevis.requestCorrection)
           )}
         </div>
       </CollapsibleStep>
@@ -2055,7 +2119,7 @@ export default function AdminProcessDetailPage() {
                   </a>
                   {isActive && (
                     <button onClick={() => toggleItem('docs.ds160_assinada')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
-                      <RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}
+                      <RiErrorWarningLine className="text-sm" /> Select
                     </button>
                   )}
                 </div>
@@ -2074,7 +2138,7 @@ export default function AdminProcessDetailPage() {
                   </a>
                   {isActive && (
                     <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
-                      <RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}
+                      <RiErrorWarningLine className="text-sm" /> Select
                     </button>
                   )}
                 </div>
@@ -2082,23 +2146,7 @@ export default function AdminProcessDetailPage() {
             )}
           </div>
 
-          {isActive && (
-            <div className="flex items-center gap-4 pt-4 border-t border-border">
-              <button
-                onClick={() => setShowRejectionModal(true)}
-                className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
-              >
-                <RiCloseLine className="text-xl" /> {t.processDetail.i20Sevis.requestCorrection}
-              </button>
-              <button
-                onClick={() => handleApproveStep()}
-                disabled={isSubmitting}
-                className="flex-1 bg-success hover:bg-success/90 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-success/20"
-              >
-                {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.b1b2FinalDocs.approveBtn}</>}
-              </button>
-            </div>
-          )}
+          {isActive && renderCardActions(t.processDetail.b1b2FinalDocs.approveBtn, "success", t.processDetail.i20Sevis.requestCorrection)}
         </div>
       </CollapsibleStep>
     );
@@ -2159,23 +2207,7 @@ export default function AdminProcessDetailPage() {
             )}
           </div>
 
-          {isActive && proc.status === "awaiting_review" && casvDate && (
-            <div className="flex items-center gap-4 pt-2 border-t border-border">
-              <button
-                onClick={() => setShowRejectionModal(true)}
-                className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
-              >
-                <RiCloseLine className="text-xl" /> {t.processDetail.casv.requestAdjustment}
-              </button>
-              <button
-                onClick={() => handleApproveStep()}
-                disabled={isSubmitting}
-                className="flex-1 bg-success hover:bg-success/90 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-success/20"
-              >
-                {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.casv.confirmBtn}</>}
-              </button>
-            </div>
-          )}
+          {isActive && proc.status === "awaiting_review" && casvDate && renderCardActions(t.processDetail.casv.confirmBtn, "success", t.processDetail.casv.requestAdjustment)}
         </div>
       </CollapsibleStep>
     );
@@ -2214,13 +2246,7 @@ export default function AdminProcessDetailPage() {
               <p className="text-xs text-text-muted font-medium mb-4 italic">
                 {t.processDetail.accountCreation.instruction}
               </p>
-              <button
-                onClick={() => handleApproveStep()}
-                disabled={isSubmitting}
-                className="w-full bg-primary text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/20"
-              >
-                {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.accountCreation.confirmBtn}</>}
-              </button>
+              {renderCardActions(t.processDetail.accountCreation.confirmBtn, "primary")}
             </div>
           )}
         </div>
@@ -2294,9 +2320,9 @@ export default function AdminProcessDetailPage() {
               </div>
               <div className="flex gap-2">
                 <a href={finalPackageUrl} target="_blank" rel="noreferrer" className="bg-card border border-border text-text px-6 py-2.5 rounded-xl font-black text-[10px] uppercase flex items-center gap-2"><RiDownload2Line /> {t.processDetail.finalPackage.reviewPdf}</a>
-                <button onClick={() => handleApproveStep()} className="px-8 py-2.5 bg-success text-white font-black text-[10px] uppercase rounded-xl transition-all">{t.processDetail.finalPackage.approveBtn}</button>
               </div>
             </div>
+            {isActive && renderCardActions(t.processDetail.finalPackage.approveBtn)}
           </div>
         )}
       </CollapsibleStep>
@@ -2711,9 +2737,9 @@ export default function AdminProcessDetailPage() {
                 !proc.service_slug.includes("analysis-rfe-") &&
                 renderFormData(),
               renderCOSDocumentsAdmin(),
+              renderCoverLetterAdmin(),
               renderOfficialForms(),
               renderCOSAnalysisI20SevisAdmin(),
-              renderCoverLetterAdmin(),
               renderFinalFormsAdmin(),
               renderB1B2CredentialsAdmin(),
               renderB1B2FinalDocsAdmin(),
@@ -2751,20 +2777,6 @@ export default function AdminProcessDetailPage() {
               </>
             );
           })()}
-
-          {currentStep?.type === "admin_action" &&
-            !proc.service_slug.includes("consultancy-motion-") &&
-            !proc.service_slug.includes("analysis-rfe-") &&
-            !["cos_rfe_proposal", "cos_motion_proposal", "cos_rfe_end", "b1b2_admin_credentials", "b1b2_admin_final_analysis", "b1b2_casv_scheduling", "b1b2_admin_account_creation", "b1b2_admin_mrv_setup", "b1b2_final_scheduling"].includes(currentStepBaseId || "") && (
-            <div className="flex items-center gap-4 pt-4">
-              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase transition-all flex items-center justify-center gap-2">
-                <RiCloseLine className="text-xl" /> {t.analysisPanel.actions.requestMoreInfo}
-              </button>
-              <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-success hover:bg-success/90 text-white h-14 rounded-2xl font-black text-xs uppercase transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.cases.actions.approve}</>}
-              </button>
-            </div>
-          )}
 
           {!isRecoveryChildView && recoveryChildren.length > 0 && (
             <div className="bg-card rounded-[32px] border border-border shadow-sm p-6">

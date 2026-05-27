@@ -1034,50 +1034,51 @@ export default function COSOnboardingPage() {
             </div>
           )}
 
-          <motion.div
-            key={stepIdx}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className='bg-card rounded-[32px] border border-border shadow-xl overflow-hidden'
-          >
-            <COSStepContent
-              t={t}
-              currentStepId={currentStepId}
-              proc={proc}
-              user={user}
-              serviceTitle={currentStepTitle}
-              serviceDescription={currentStepDescription}
-              isReadOnly={isReadOnly}
-              isMotionContext={isMotionContext}
-              isRFEContext={isRFEContext}
-              currentVisa={currentVisa}
-              targetVisa={targetVisa}
-              i94Date={i94Date}
-              dependents={dependents}
-              docs={docs}
-              isFieldRejected={isFieldRejected}
-              setCurrentVisa={setCurrentVisa}
-              setTargetVisa={setTargetVisa}
-              setI94Date={setI94Date}
-              addDependent={addDependent}
-              updateDependent={updateDependent}
-              removeDependent={removeDependent}
-              getDocSlots={getDocSlots}
-              onDocChange={handleDocChange}
-              onComplete={handleConcluir}
-              onBuyDependentSlot={() =>
-                window.location.assign(
-                  `/checkout/${dependentUpsellSlug}?proc_id=${proc?.id}&upgrade=true`,
-                )
-              }
-              onRefreshSlots={() => window.location.reload()}
-              onJumpToStep={jumpToOnboardingStep}
-              onUSCISResult={handleUSCISResult}
-              onMotionResult={handleMotionResult}
-              onRFEResult={handleRFEResult}
-            />
-          </motion.div>
+          <div className='bg-card rounded-[32px] border border-border shadow-xl overflow-hidden'>
+            <motion.div
+              key={stepIdx}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+            >
+              <COSStepContent
+                t={t}
+                currentStepId={currentStepId}
+                proc={proc}
+                user={user}
+                serviceTitle={currentStepTitle}
+                serviceDescription={currentStepDescription}
+                isReadOnly={isReadOnly}
+                isMotionContext={isMotionContext}
+                isRFEContext={isRFEContext}
+                currentVisa={currentVisa}
+                targetVisa={targetVisa}
+                i94Date={i94Date}
+                dependents={dependents}
+                docs={docs}
+                isFieldRejected={isFieldRejected}
+                setCurrentVisa={setCurrentVisa}
+                setTargetVisa={setTargetVisa}
+                setI94Date={setI94Date}
+                addDependent={addDependent}
+                updateDependent={updateDependent}
+                removeDependent={removeDependent}
+                getDocSlots={getDocSlots}
+                onDocChange={handleDocChange}
+                onComplete={handleConcluir}
+                onBuyDependentSlot={() =>
+                  window.location.assign(
+                    `/checkout/${dependentUpsellSlug}?proc_id=${proc?.id}&upgrade=true`,
+                  )
+                }
+                onRefreshSlots={() => window.location.reload()}
+                onJumpToStep={jumpToOnboardingStep}
+                onUSCISResult={handleUSCISResult}
+                onMotionResult={handleMotionResult}
+                onRFEResult={handleRFEResult}
+              />
+            </motion.div>
+          </div>
 
           {!isMotionResultStep && (
             <div className='flex items-center justify-between mt-6'>

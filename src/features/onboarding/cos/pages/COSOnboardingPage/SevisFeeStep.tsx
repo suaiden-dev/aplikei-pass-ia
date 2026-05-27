@@ -303,11 +303,11 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
       )}
 
       {/* Action Bar */}
-      <div className="fixed bottom-0 left-0 lg:left-72 right-0 bg-white border-t border-slate-200 p-4 md:p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-40 flex items-center justify-end">
+      <div className="fixed bottom-4 right-4 lg:right-8 z-40">
         <button
           onClick={handleNext}
           disabled={!receiptPath || isSubmitting}
-          className="flex items-center gap-2 px-12 py-4 rounded-2xl bg-primary text-white text-sm font-black uppercase tracking-widest hover:bg-primary-hover shadow-xl shadow-primary/20 transition-all disabled:opacity-50"
+          className="flex items-center justify-center gap-2 px-6 md:px-12 py-4 rounded-2xl bg-primary text-white text-sm font-black uppercase tracking-widest hover:bg-primary-hover shadow-xl shadow-primary/20 transition-all disabled:opacity-50 whitespace-normal text-center leading-tight"
         >
           {isSubmitting ? <RiLoader4Line className="animate-spin text-lg" /> : <RiCheckLine className="text-lg" />}
           {t.cos.sevisFee.nextBtn}

@@ -11,6 +11,7 @@ import imgTutor2 from '@assets/tutorial/fazerupload_ou_usar_a_camera_do_document
 import imgTutor3 from '@assets/tutorial/preencher_campos.png'
 import type { Dependent } from '../useCOSOnboardingPage'
 import { useT } from '@app/app/i18n'
+import { HomologationAutofillButton } from './HomologationAutofillButton'
 
 const CURRENT_VISA_OPTIONS = [
   { label: 'B1/B2', icon: '🌐', color: 'text-sky-500' },
@@ -102,19 +103,22 @@ export function COSApplicationStep({
   const reachedLimit = dependents.length >= paidDependents
 
   return (
-    <>
-      <div className='px-8 py-6 border-b border-slate-100 flex items-center gap-3'>
-        <div className='w-9 h-9 rounded-xl bg-primary/5 flex items-center justify-center text-primary'>
-          <span className='text-lg'>🛂</span>
+    <div id='homologation-form-cos-application'>
+      <div className='px-8 py-6 border-b border-slate-100 flex items-center justify-between gap-3'>
+        <div className='flex items-center gap-3'>
+          <div className='w-9 h-9 rounded-xl bg-primary/5 flex items-center justify-center text-primary'>
+            <span className='text-lg'>🛂</span>
+          </div>
+          <div>
+            <h2 className='text-xl font-black text-slate-900 tracking-tight'>
+              {t.cos.form.title}
+            </h2>
+            <p className='text-sm text-slate-400 font-medium mt-0.5'>
+              {t.cos.form.desc}
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className='text-xl font-black text-slate-900 tracking-tight'>
-            {t.cos.form.title}
-          </h2>
-          <p className='text-sm text-slate-400 font-medium mt-0.5'>
-            {t.cos.form.desc}
-          </p>
-        </div>
+        <HomologationAutofillButton rootId='homologation-form-cos-application' />
       </div>
 
       <div className='px-8 py-6 space-y-10'>
@@ -549,6 +553,6 @@ export function COSApplicationStep({
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
