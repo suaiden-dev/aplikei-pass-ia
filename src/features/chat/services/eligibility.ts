@@ -2,20 +2,34 @@ import { getServiceBySlug } from "@shared/data/services";
 import type { UserService } from "../../process/types";
 
 export function getAnalysisChatTitle(serviceSlug?: string): string {
-  if (!serviceSlug) return "Especialista";
+  if (!serviceSlug) return "Specialist";
 
   const meta = getServiceBySlug(serviceSlug);
   const slug = serviceSlug.toLowerCase();
   const title = (meta?.title || "").toLowerCase();
 
-  if (slug.includes("motion") || title.includes("motion")) return "Especialista Motion";
-  if (slug.includes("rfe") || title.includes("rfe")) return "Especialista RFE";
-  if (slug === "troca-status" || title.includes("(cos)")) return "Especialista COS";
-  if (slug === "extensao-status" || title.includes("(eos)")) return "Especialista EOS";
-  if (slug.includes("cos") || title.includes("cos")) return "Especialista COS";
-  if (title.includes("especialista")) return meta?.title || "Especialista";
+  if (slug.includes("motion") || title.includes("motion")) return "Motion Specialist";
+  if (slug.includes("rfe") || title.includes("rfe")) return "RFE Specialist";
+  if (slug === "troca-status" || title.includes("(cos)")) return "COS Specialist";
+  if (slug === "extensao-status" || title.includes("(eos)")) return "EOS Specialist";
+  if (slug.includes("cos") || title.includes("cos")) return "COS Specialist";
 
-  return meta?.title || "Especialista";
+  let displayTitle = meta?.title || "Specialist";
+  
+  if (displayTitle === "Análise de Recusa" || displayTitle.toLowerCase().includes("recusa") || slug.includes("recusa") || slug.includes("negative")) {
+    return "Refusal Analysis";
+  }
+  if (displayTitle.toLowerCase().startsWith("análise de")) {
+    return displayTitle.replace(/análise de/i, "Analysis of");
+  }
+  if (displayTitle.toLowerCase().startsWith("mentoria")) {
+    return displayTitle.replace(/mentoria/i, "Mentoring");
+  }
+  if (displayTitle.toLowerCase().startsWith("consultoria")) {
+    return displayTitle.replace(/consultoria/i, "Consultancy");
+  }
+
+  return displayTitle;
 }
 
 export function isAnalysisServiceSlug(serviceSlug?: string): boolean {

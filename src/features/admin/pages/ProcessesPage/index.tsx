@@ -198,7 +198,6 @@ export default function AdminProcessesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedService, setSelectedService] = useState("all");
   const [showOnlyPending, setShowOnlyPending] = useState(false);
-  const [logModalProcess, setLogModalProcess] = useState<{ id: string; name: string } | null>(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -534,16 +533,6 @@ export default function AdminProcessesPage() {
 
                           <div className="flex items-center gap-2">
                              <button 
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 setLogModalProcess({ id: p.id, name: p.user_accounts?.full_name || t.cases.table.noName });
-                               }}
-                               className="p-2.5 rounded-xl border border-border text-text-muted hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all"
-                               title="View log history"
-                             >
-                               <RiHistoryLine className="text-xl" />
-                             </button>
-                             <button 
                                onClick={() => navigate(`${processRoutePrefix}/processes/${p.id}`)}
                                className="p-2.5 rounded-xl border border-border text-text-muted hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all"
                              >
@@ -560,48 +549,6 @@ export default function AdminProcessesPage() {
           </div>
         )}
       </div>
-
-      <AnimatePresence>
-        {logModalProcess && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 text-center">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              onClick={() => setLogModalProcess(null)} 
-              className="absolute inset-0 bg-bg/60 backdrop-blur-md" 
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }} 
-              animate={{ opacity: 1, scale: 1, y: 0 }} 
-              exit={{ opacity: 0, scale: 0.95, y: 20 }} 
-              className="relative w-full max-w-2xl bg-card border border-border rounded-[40px] shadow-2xl flex flex-col overflow-hidden"
-            >
-              <div className="p-8 border-b border-border flex items-center justify-between bg-bg-subtle/50">
-                <div className="text-left">
-                  <h3 className="font-display font-black text-text text-2xl uppercase tracking-tight flex items-center gap-3">
-                    <RiHistoryLine className="text-primary" />
-                    Process History
-                  </h3>
-                  <p className="text-xs text-text-muted font-bold uppercase tracking-widest mt-1">
-                    Eventos de {logModalProcess.name}
-                  </p>
-                </div>
-                <button 
-                  onClick={() => setLogModalProcess(null)}
-                  className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-text-muted hover:text-danger transition-all hover:rotate-90"
-                >
-                  <RiCloseLine className="text-2xl" />
-                </button>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto custom-scrollbar">
-                <ProcessLogPanel serviceId={logModalProcess.id} clientName={logModalProcess.name} />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

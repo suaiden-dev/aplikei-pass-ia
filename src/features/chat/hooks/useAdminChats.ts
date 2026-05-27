@@ -79,13 +79,13 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
         const [directServicesRes, customerServicesRes] = await Promise.all([
           supabase
             .from("user_services")
-            .select("id, user_id, office_id, service_slug, status, step_data, created_at")
+            .select("id, user_id, office_id, service_slug, status, step_data, created_at, chat_closed_at")
             .eq("office_id", officeId)
             .order("created_at", { ascending: false }),
           customerUserIds.length > 0
             ? supabase
                 .from("user_services")
-                .select("id, user_id, office_id, service_slug, status, step_data, created_at")
+                .select("id, user_id, office_id, service_slug, status, step_data, created_at, chat_closed_at")
                 .in("user_id", customerUserIds)
                 .order("created_at", { ascending: false })
             : Promise.resolve({ data: [], error: null }),
@@ -185,6 +185,7 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
             email: (account?.email as string | undefined) || "",
             avatarUrl: (account?.avatar_url as string | null | undefined) ?? null,
             createdAt: lastMessageAtByProcess[processId] || String(row.created_at),
+            chatClosedAt: (row.chat_closed_at as string | null | undefined) ?? null,
           });
         });
 
@@ -206,7 +207,8 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
           service_slug,
           status,
           step_data,
-          created_at
+          created_at,
+          chat_closed_at
         `);
 
       const { data: serviceRows, error: serviceError } = await servicesQuery.order("created_at", { ascending: false });
@@ -363,6 +365,7 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
           email: (account?.email as string | undefined) || "",
           avatarUrl: (account?.avatar_url as string | null | undefined) ?? null,
           createdAt: lastMessageAtByProcess[threadProcessId] || (row.created_at as string),
+          chatClosedAt: (row.chat_closed_at as string | null | undefined) ?? null,
         });
       });
 

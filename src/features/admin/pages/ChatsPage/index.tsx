@@ -39,11 +39,12 @@ interface AnalysisChatItem {
 export default function ChatsPage() {
   const t = useT("admin");
   const { user } = useAuth();
-  const { threads, unreadByProcess, isLoading } = useAdminChats({
+  const { threads, unreadByProcess, isLoading, reload } = useAdminChats({
     role: user?.role,
     officeId: user?.officeId,
   });
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<"open" | "closed">("open");
   const [selectedChat, setSelectedChat] = useState<AnalysisChatItem | null>(null);
   const [clearedUnreadProcessIds, setClearedUnreadProcessIds] = useState<Record<string, true>>({});
 
@@ -62,20 +63,27 @@ export default function ChatsPage() {
         avatarUrl: row.avatarUrl || null,
         createdAt: row.createdAt,
         unreadCount: clearedUnreadProcessIds[row.processId] ? 0 : (unreadByProcess[row.processId] || 0),
+        chatClosedAt: row.chatClosedAt || null,
       })),
     [threads, unreadByProcess, clearedUnreadProcessIds],
   );
 
   const filteredChats = useMemo(() => {
-    if (!searchTerm) return chats;
+    let list = chats;
+    if (activeTab === "open") {
+      list = list.filter((c) => !c.chatClosedAt);
+    } else {
+      list = list.filter((c) => !!c.chatClosedAt);
+    }
+    if (!searchTerm) return list;
     const s = searchTerm.toLowerCase();
-    return chats.filter(
+    return list.filter(
       (c) =>
         c.fullName.toLowerCase().includes(s) ||
         c.email.toLowerCase().includes(s) ||
         c.chatTitle.toLowerCase().includes(s)
     );
-  }, [chats, searchTerm]);
+  }, [chats, searchTerm, activeTab]);
 
   const unreadTotal = useMemo(
     () => chats.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0),
@@ -115,7 +123,7 @@ export default function ChatsPage() {
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Chat List */}
         <div className="w-full md:w-96 border-r border-border flex flex-col overflow-hidden shrink-0">
-          <div className="p-4 bg-bg-subtle/30 sticky top-0 z-10 shrink-0">
+          <div className="p-4 bg-bg-subtle/30 sticky top-0 z-10 shrink-0 space-y-3">
             <div className="relative group">
               <RiSearchLine className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" />
               <input
@@ -125,6 +133,36 @@ export default function ChatsPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full h-11 pl-10 pr-4 bg-card border border-border rounded-xl text-sm font-medium text-text outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/30 transition-all"
               />
+            </div>
+
+            {/* Tabs Open / Closed */}
+            <div className="flex bg-slate-100/80 p-1 rounded-xl border border-slate-200/50">
+              <button
+                type="button"
+                onClick={() => setActiveTab("open")}
+                className={cn(
+                  "flex-1 py-1.5 px-3 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-1.5",
+                  activeTab === "open"
+                    ? "bg-white text-primary shadow-sm"
+                    : "text-slate-500 hover:text-slate-800"
+                )}
+              >
+                <RiChat3Line size={13} />
+                Open
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("closed")}
+                className={cn(
+                  "flex-1 py-1.5 px-3 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-1.5",
+                  activeTab === "closed"
+                    ? "bg-white text-primary shadow-sm"
+                    : "text-slate-500 hover:text-slate-800"
+                )}
+              >
+                <RiLockLine size={13} />
+                Closed
+              </button>
             </div>
           </div>
 
@@ -168,7 +206,7 @@ export default function ChatsPage() {
                           <RiUserLine className="text-xl text-text-muted" />
                         )}
                       </div>
-                      <RiCircleFill className="absolute -bottom-1 -right-1 text-success border-4 border-bg text-xs" />
+                      <RiCircleFill className={cn("absolute -bottom-1 -right-1 border-4 border-bg text-xs", chat.chatClosedAt ? "text-slate-400" : "text-success")} />
                     </div>
                     <div className="flex-1 min-w-0 py-0.5">
                       <div className="flex items-center justify-between mb-0.5">
@@ -211,7 +249,7 @@ export default function ChatsPage() {
         {/* Chat Content / Welcome */}
         <div className="hidden md:flex flex-1 bg-bg-subtle/30 flex-col overflow-hidden relative min-w-0">
           {selectedChat ? (
-            <ChatInterface adminId={user?.id || ""} chat={selectedChat} onClose={() => setSelectedChat(null)} />
+            <ChatInterface adminId={user?.id || ""} chat={selectedChat} onClose={() => setSelectedChat(null)} onStatusChange={reload} />
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
               <div className="w-24 h-24 rounded-[32px] bg-card shadow-xl shadow-black/5 flex items-center justify-center mb-8 border border-border">
@@ -229,7 +267,7 @@ export default function ChatsPage() {
       <div className="md:hidden border-t border-border bg-bg-subtle/20 min-h-0">
         {selectedChat ? (
           <div className="h-[70vh]">
-            <ChatInterface adminId={user?.id || ""} chat={selectedChat} onClose={() => setSelectedChat(null)} />
+            <ChatInterface adminId={user?.id || ""} chat={selectedChat} onClose={() => setSelectedChat(null)} onStatusChange={reload} />
           </div>
         ) : (
           <div className="p-6 text-center text-text-muted font-semibold">
@@ -241,7 +279,7 @@ export default function ChatsPage() {
   );
 }
 
-function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: AnalysisChatItem; onClose: () => void }) {
+function ChatInterface({ adminId, chat, onClose, onStatusChange }: { adminId: string; chat: AnalysisChatItem; onClose: () => void; onStatusChange?: () => void }) {
   const t = useT("admin");
   const navigate = useNavigate();
   const { closeChat, reopenChat, getChatClosedAt } = useAdminChats({ disableLoad: true });
@@ -267,6 +305,7 @@ function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: Anal
         setIsClosed(true);
         toast.success(t.chats.settings.closedSuccess);
       }
+      onStatusChange?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       toast.error(t.chats.settings.errorToggle + message);
@@ -296,7 +335,7 @@ function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: Anal
               {chat.fullName}
             </h3>
             <div className="flex items-center gap-1.5">
-              <RiCircleFill className={cn("text-[8px]", isClosed ? "text-text-muted" : "text-success")} />
+              <RiCircleFill className={cn("text-[8px]", isClosed ? "text-slate-400" : "text-success")} />
               <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
                 {chat.chatTitle}
               </span>
@@ -310,67 +349,71 @@ function ChatInterface({ adminId, chat, onClose }: { adminId: string; chat: Anal
           </div>
         </div>
 
-        {/* Settings button */}
-        <div className="relative">
-          <button
-            onClick={() => setShowSettings((v) => !v)}
-            className="w-9 h-9 rounded-xl bg-bg-subtle text-text-muted flex items-center justify-center hover:bg-border/30 hover:text-text transition-all"
-          >
-            <RiSettings3Line size={18} />
-          </button>
+        {/* Action buttons */}
+        <div className="flex items-center gap-3">
 
-          <AnimatePresence>
-            {showSettings && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -4 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -4 }}
-                transition={{ duration: 0.12 }}
-                className="absolute right-0 top-11 z-50 w-52 bg-card rounded-2xl shadow-xl shadow-black/10 border border-border overflow-hidden"
-              >
-                <div className="p-2">
-                  <p className="px-3 py-1.5 text-[9px] font-black text-text-muted uppercase tracking-widest">
-                    {t.chats.settings.title}
-                  </p>
-                  <button
-                    onClick={() => {
-                      const prefix = window.location.pathname.startsWith("/master")
-                        ? "/master/cases"
-                        : "/master/processes";
-                      navigate(`${prefix}/${chat.processId}`);
-                    }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-text hover:bg-bg-subtle transition-all border-b border-border/30 mb-1"
-                  >
-                    <RiExternalLinkLine size={16} />
-                    {t.chats.settings.goToProcess}
-                  </button>
+          {/* Settings button */}
+          <div className="relative">
+            <button
+              onClick={() => setShowSettings((v) => !v)}
+              className="w-9 h-9 rounded-xl bg-bg-subtle text-text-muted flex items-center justify-center hover:bg-border/30 hover:text-text transition-all"
+            >
+              <RiSettings3Line size={18} />
+            </button>
 
-                  <button
-                    onClick={handleToggleClose}
-                    disabled={isUpdating || isClosed === null}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all",
-                      isClosed
-                        ? "text-success hover:bg-success/10"
-                        : "text-danger hover:bg-danger/10"
-                    )}
-                  >
-                    {isClosed ? (
-                      <>
-                        <RiLockUnlockLine size={16} />
-                        {t.chats.settings.reopen}
-                      </>
-                    ) : (
-                      <>
-                        <RiLockLine size={16} />
-                        {t.chats.settings.close}
-                      </>
-                    )}
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            <AnimatePresence>
+              {showSettings && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                  transition={{ duration: 0.12 }}
+                  className="absolute right-0 top-11 z-50 w-52 bg-card rounded-2xl shadow-xl shadow-black/10 border border-border overflow-hidden"
+                >
+                  <div className="p-2">
+                    <p className="px-3 py-1.5 text-[9px] font-black text-text-muted uppercase tracking-widest">
+                      {t.chats.settings.title}
+                    </p>
+                    <button
+                      onClick={() => {
+                        const prefix = window.location.pathname.startsWith("/master")
+                          ? "/master/cases"
+                          : "/master/processes";
+                        navigate(`${prefix}/${chat.processId}`);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-text hover:bg-bg-subtle transition-all border-b border-border/30 mb-1"
+                    >
+                      <RiExternalLinkLine size={16} />
+                      {t.chats.settings.goToProcess}
+                    </button>
+
+                    <button
+                      onClick={handleToggleClose}
+                      disabled={isUpdating || isClosed === null}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all",
+                        isClosed
+                          ? "text-success hover:bg-success/10"
+                          : "text-danger hover:bg-danger/10"
+                      )}
+                    >
+                      {isClosed ? (
+                        <>
+                          <RiLockUnlockLine size={16} />
+                          {t.chats.settings.reopen}
+                        </>
+                      ) : (
+                        <>
+                          <RiLockLine size={16} />
+                          {t.chats.settings.close}
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
