@@ -34,6 +34,7 @@ interface AnalysisChatItem {
   avatarUrl: string | null;
   createdAt: string;
   unreadCount: number;
+  chatClosedAt: string | null;
 }
 
 export default function ChatsPage() {
@@ -48,25 +49,46 @@ export default function ChatsPage() {
   const [selectedChat, setSelectedChat] = useState<AnalysisChatItem | null>(null);
   const [clearedUnreadProcessIds, setClearedUnreadProcessIds] = useState<Record<string, true>>({});
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const chats = useMemo(
-    () =>
-      threads.map((row) => ({
-        id: row.processId,
-        userId: row.userId,
-        processId: row.processId,
-        officeId: row.officeId || null,
-        serviceSlug: row.serviceSlug,
-        officeName: row.officeName || "Office",
-        chatTitle: row.chatTitle,
-        fullName: row.fullName || "Sem Nome",
-        email: row.email || "",
-        avatarUrl: row.avatarUrl || null,
-        createdAt: row.createdAt,
-        unreadCount: clearedUnreadProcessIds[row.processId] ? 0 : (unreadByProcess[row.processId] || 0),
-        chatClosedAt: row.chatClosedAt || null,
-      })),
+    () => {
+      const seen = new Set<string>();
+      const list: AnalysisChatItem[] = [];
+      
+      threads.forEach((row) => {
+        if (!row.conversationId || seen.has(row.conversationId)) return;
+        seen.add(row.conversationId);
+        list.push({
+          id: row.conversationId,
+          userId: row.userId,
+          processId: row.processId,
+          officeId: row.officeId || null,
+          serviceSlug: row.serviceSlug,
+          officeName: row.officeName || "Office",
+          chatTitle: row.chatTitle,
+          fullName: row.fullName || "Sem Nome",
+          email: row.email || "",
+          avatarUrl: row.avatarUrl || null,
+          createdAt: row.createdAt,
+          unreadCount: clearedUnreadProcessIds[row.conversationId] ? 0 : (unreadByProcess[row.conversationId] || 0),
+          chatClosedAt: row.isClosed ? row.createdAt : null,
+        });
+      });
+      
+      return list;
+    },
     [threads, unreadByProcess, clearedUnreadProcessIds],
   );
+
+
 
   const filteredChats = useMemo(() => {
     let list = chats;
@@ -89,6 +111,31 @@ export default function ChatsPage() {
     () => chats.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0),
     [chats],
   );
+
+  const [prevUnread, setPrevUnread] = useState<Record<string, number>>({});
+
+  // Monitora novas mensagens para reativar as notificações caso cheguem novas mensagens
+  useEffect(() => {
+    const updatedCleared = { ...clearedUnreadProcessIds };
+    let changed = false;
+
+    Object.entries(unreadByProcess).forEach(([convId, count]) => {
+      const prevCount = prevUnread[convId] || 0;
+      // Se o contador atual do banco é maior que o anterior, significa que chegou mensagem nova!
+      // Se essa conversa estava com notificações limpas, limpamos o bloqueio para que o badge apareça.
+      if (count > prevCount) {
+        if (updatedCleared[convId]) {
+          delete updatedCleared[convId];
+          changed = true;
+        }
+      }
+    });
+
+    if (changed) {
+      setClearedUnreadProcessIds(updatedCleared);
+    }
+    setPrevUnread(unreadByProcess);
+  }, [unreadByProcess, clearedUnreadProcessIds, prevUnread]);
 
   useEffect(() => {
     if (!filteredChats.length) {
@@ -191,7 +238,7 @@ export default function ChatsPage() {
                     key={chat.id}
                     onClick={() => {
                       setSelectedChat(chat);
-                      setClearedUnreadProcessIds((prev) => ({ ...prev, [chat.processId]: true }));
+                      setClearedUnreadProcessIds((prev) => ({ ...prev, [chat.id]: true }));
                     }}
                     className={cn(
                       "w-full p-4 flex gap-3 text-left transition-all hover:bg-bg-subtle/50",
@@ -248,7 +295,7 @@ export default function ChatsPage() {
 
         {/* Chat Content / Welcome */}
         <div className="hidden md:flex flex-1 bg-bg-subtle/30 flex-col overflow-hidden relative min-w-0">
-          {selectedChat ? (
+          {selectedChat && !isMobile ? (
             <ChatInterface adminId={user?.id || ""} chat={selectedChat} onClose={() => setSelectedChat(null)} onStatusChange={reload} />
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
@@ -265,7 +312,7 @@ export default function ChatsPage() {
       </div>
 
       <div className="md:hidden border-t border-border bg-bg-subtle/20 min-h-0">
-        {selectedChat ? (
+        {selectedChat && isMobile ? (
           <div className="h-[70vh]">
             <ChatInterface adminId={user?.id || ""} chat={selectedChat} onClose={() => setSelectedChat(null)} onStatusChange={reload} />
           </div>
@@ -288,20 +335,20 @@ function ChatInterface({ adminId, chat, onClose, onStatusChange }: { adminId: st
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    getChatClosedAt(chat.processId)
+    getChatClosedAt(chat.id)
       .then((val) => setIsClosed(val !== null))
       .catch(() => setIsClosed(false));
-  }, [chat.processId, getChatClosedAt]);
+  }, [chat.id, getChatClosedAt]);
 
   const handleToggleClose = async () => {
     setIsUpdating(true);
     try {
       if (isClosed) {
-        await reopenChat(chat.processId);
+        await reopenChat(chat.id);
         setIsClosed(false);
         toast.success(t.chats.settings.reopenedSuccess);
       } else {
-        await closeChat(chat.processId);
+        await closeChat(chat.id);
         setIsClosed(true);
         toast.success(t.chats.settings.closedSuccess);
       }
@@ -420,6 +467,7 @@ function ChatInterface({ adminId, chat, onClose, onStatusChange }: { adminId: st
       {isClosed !== null && (
         <SupportChat
           processId={chat.processId}
+          conversationId={chat.id}
           userId={adminId}
           officeId={chat.officeId}
           role="admin"
@@ -429,6 +477,7 @@ function ChatInterface({ adminId, chat, onClose, onStatusChange }: { adminId: st
           serviceSlug={chat.serviceSlug}
         />
       )}
+
     </div>
   );
 }

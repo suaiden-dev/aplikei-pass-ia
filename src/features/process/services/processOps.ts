@@ -518,10 +518,18 @@ export async function startAdditionalWorkflow(
 }
 
 export async function hasChatMessages(processId: string): Promise<boolean> {
-  const { count } = await supabase
-    .from("chat_messages")
-    .select("id", { count: "exact", head: true })
+  const { data: convs } = await supabase
+    .from("conversations")
+    .select("id")
     .eq("process_id", processId);
+  
+  if (!convs || convs.length === 0) return false;
+  
+  const convIds = convs.map((c) => c.id);
+  const { count } = await supabase
+    .from("conversation_messages")
+    .select("id", { count: "exact", head: true })
+    .in("conversation_id", convIds);
   return (count ?? 0) > 0;
 }
 
@@ -536,12 +544,54 @@ export async function ensureChatThread(
     if (alreadyExists) return false;
   }
 
-  const { error } = await supabase.from("chat_messages").insert({
-    process_id: processId,
-    sender_id: senderId,
-    sender_role: "customer",
-    content,
-  });
+  try {
+    // 1. Tenta obter a conversa ativa
+    const { data: active } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("process_id", processId)
+      .eq("is_closed", false)
+      .maybeSingle();
 
-  return !error;
+    let conversationId = active?.id;
+
+    // 2. Se não existir, cria a nova conversa
+    if (!conversationId) {
+      const { data: service } = await supabase
+        .from("user_services")
+        .select("user_id, office_id")
+        .eq("id", processId)
+        .maybeSingle();
+
+      if (!service) return false;
+
+      const { data: created, error: createError } = await supabase
+        .from("conversations")
+        .insert({
+          process_id: processId,
+          customer_id: service.user_id,
+          office_id: service.office_id ?? null,
+          is_closed: false,
+        })
+        .select("id")
+        .single();
+
+      if (createError || !created) return false;
+      conversationId = created.id;
+    }
+
+    // 3. Insere a mensagem inicial vinculada à conversa
+    const { error } = await supabase.from("conversation_messages").insert({
+      conversation_id: conversationId,
+      sender_id: senderId,
+      sender_role: "customer",
+      content,
+    });
+
+    return !error;
+  } catch (err) {
+    console.error("[processOps] ensureChatThread error:", err);
+    return false;
+  }
 }
+

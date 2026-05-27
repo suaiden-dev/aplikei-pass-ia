@@ -18,6 +18,7 @@ import { useT } from "@app/app/i18n";
 
 interface SupportChatProps {
   processId: string;
+  conversationId?: string;
   officeId?: string | null;
   userId: string;
   role: "admin" | "customer";
@@ -30,6 +31,7 @@ interface SupportChatProps {
 
 export function SupportChat({
   processId,
+  conversationId,
   officeId,
   userId,
   role,
@@ -43,8 +45,10 @@ export function SupportChat({
   const roleCustomerLabel = t?.roles?.customer ?? "Customer";
   const roleAdminLabel = t?.roles?.admin ?? "Admin";
   const navigate = useNavigate();
-  const { messages, isLoading, isSending, sendMessage } = useChat(processId, officeId);
+  const { messages, isLoading, isSending, sendMessage } = useChat(processId, officeId, userId, role, conversationId);
   const [newMessage, setNewMessage] = useState("");
+
+
   const [isUploading, setIsUploading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,7 +57,13 @@ export function SupportChat({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+    // Toda vez que novas mensagens são carregadas ou chegam, salvamos o ID da última no localStorage
+    // para indicar ao sistema de badges que essa conversa foi visualizada e lida
+    if (messages.length > 0 && conversationId) {
+      const lastMsg = messages[messages.length - 1];
+      localStorage.setItem(`chat_last_read:${conversationId}`, lastMsg.id);
+    }
+  }, [messages, conversationId]);
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -73,15 +83,15 @@ export function SupportChat({
     setIsUploading(true);
     try {
       await sendMessage({
-        content: t.messages.fileSent.replace("{{name}}", file.name),
+        content: (t?.messages?.fileSent ?? "Arquivo enviado: {{name}}").replace("{{name}}", file.name),
         senderId: userId,
         senderRole: role,
         file,
       });
-      toast.success(t.messages.uploadSuccess);
+      toast.success(t?.messages?.uploadSuccess ?? "Arquivo enviado com sucesso!");
     } catch (err) {
       console.error("Error uploading file:", err);
-      toast.error(t.messages.uploadError);
+      toast.error(t?.messages?.uploadError ?? "Erro ao enviar arquivo.");
     } finally {
       setIsUploading(false);
     }
@@ -97,7 +107,7 @@ export function SupportChat({
           </div>
           <div className="text-left">
             <h4 className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none mb-1">
-              {title || t.title}
+              {title || (t?.title ?? "Suporte")}
             </h4>
             <p className="text-[11px] font-bold text-text leading-none truncate max-w-[150px]">
               {userName || (role === "admin" ? roleCustomerLabel : roleAdminLabel)}
@@ -107,12 +117,12 @@ export function SupportChat({
         {isClosed ? (
           <div className="flex items-center gap-1.5 px-2 py-1 bg-bg-subtle rounded-lg border border-border">
             <div className="w-1.5 h-1.5 rounded-full bg-text-muted" />
-            <span className="text-[9px] font-black text-text-muted uppercase tracking-widest">{t.statusClosed}</span>
+            <span className="text-[9px] font-black text-text-muted uppercase tracking-widest">{t?.statusClosed ?? "Encerrado"}</span>
           </div>
         ) : (
           <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{t.statusActive}</span>
+            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{t?.statusActive ?? "Ativo"}</span>
           </div>
         )}
       </div>
@@ -129,7 +139,7 @@ export function SupportChat({
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <RiChat3Line className="text-4xl text-bg-subtle mb-2" />
-            <p className="text-xs font-bold text-text-muted uppercase tracking-widest">{t.noMessages}</p>
+            <p className="text-xs font-bold text-text-muted uppercase tracking-widest">{t?.noMessages ?? "Nenhuma mensagem encontrada"}</p>
           </div>
         ) : (
           messages.map((msg) => (
@@ -144,15 +154,15 @@ export function SupportChat({
           <RiChat3Line className="text-text-muted/50 text-lg" />
           <div className="text-xs font-bold text-text-muted text-center max-w-[300px]">
             {role === "admin"
-              ? t.messages.closedAdmin
+              ? (t?.messages?.closedAdmin ?? "Este chat está fechado. Você não pode enviar novas mensagens.")
               : (
                 <div className="flex flex-col items-center gap-3">
-                  <p>{t.messages.closedCustomer}</p>
+                  <p>{t?.messages?.closedCustomer ?? "Este chat foi encerrado. O especialista enviou a resposta no seu painel."}</p>
                   <button
                     onClick={() => navigate(`/dashboard/processes/${serviceSlug}?id=${processId}`)}
                     className="px-6 py-2 bg-primary text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-primary-hover transition-all flex items-center gap-2"
                   >
-                    {t.actions.viewResult}
+                    {t?.actions?.viewResult ?? "Ver Resultado"}
                     <RiExternalLinkLine size={14} />
                   </button>
                 </div>
@@ -176,7 +186,7 @@ export function SupportChat({
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                placeholder={t.inputPlaceholder}
+                placeholder={t?.inputPlaceholder ?? "Escreva uma mensagem..."}
                 className="w-full h-11 pl-4 pr-4 bg-bg-subtle border-none rounded-xl text-sm font-medium outline-none text-text focus:ring-2 focus:ring-primary/10 transition-all"
               />
             </div>
@@ -204,6 +214,7 @@ export function SupportChat({
     </div>
   );
 }
+
 
 function MessageItem({ msg, isMine }: { msg: ChatMessage; isMine: boolean }) {
   const isImage = msg.file_type?.startsWith("image/");

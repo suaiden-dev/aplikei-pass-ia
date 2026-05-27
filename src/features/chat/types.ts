@@ -1,8 +1,16 @@
-// chat_messages table não está no schema gerado — definido manualmente conforme migration
+export interface Conversation {
+  id: string;
+  office_id: string | null;
+  customer_id: string;
+  process_id: string;
+  is_closed: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ChatMessage {
   id: string;
-  process_id: string;
-  office_id?: string | null;
+  conversation_id: string;
   sender_id: string;
   sender_role: "admin" | "customer";
   content: string;
@@ -13,6 +21,7 @@ export interface ChatMessage {
 }
 
 export interface SpecialistChatThread {
+  conversationId: string;
   processId: string;
   userId: string;
   officeId?: string | null;
@@ -25,6 +34,12 @@ export interface SpecialistChatThread {
   email?: string;
   avatarUrl?: string | null;
   createdAt: string;
+  isClosed: boolean;
   chatClosedAt?: string | null;
   lastMessage?: string | null;
+  unreadCount?: number;
 }
+
+
+
+

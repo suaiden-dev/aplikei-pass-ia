@@ -1,62 +1,151 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@shared/lib/supabase";
-import type { ChatMessage } from "../types";
+import { chatService } from "../services/chatService";
+import type { ChatMessage, Conversation } from "../types";
 
-export function useChat(processId: string, officeId?: string | null) {
+export function useChat(
+  processId: string,
+  officeId?: string | null,
+  loggedInUserId?: string,
+  role?: "admin" | "customer",
+  conversationId?: string
+) {
+  const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  const loadMessages = useCallback(async (): Promise<boolean> => {
+  const loadMessages = useCallback(async (conversationId: string): Promise<boolean> => {
     try {
-      const { data, error } = await supabase
-        .from("chat_messages")
-        .select("*")
-        .eq("process_id", processId)
-        .order("created_at", { ascending: true });
-
-      if (error) throw error;
-      setMessages((data as ChatMessage[]) ?? []);
+      const msgs = await chatService.getMessages(conversationId);
+      setMessages(msgs);
       return true;
     } catch (err) {
       console.error("[useChat] loadMessages error:", err);
       return false;
-    } finally {
-      setIsLoading(false);
     }
-  }, [processId]);
+  }, []);
 
+  // Inicializa/Resolve a conversa ativa
   useEffect(() => {
     let active = true;
     setIsLoading(true);
 
-    const start = async () => {
-      const canSubscribe = await loadMessages();
+    const resolveConversation = async () => {
+      try {
+        // 0. Se conversationId foi passado, tenta carregar diretamente
+        if (conversationId) {
+          const { data: directConv } = await supabase
+            .from("conversations")
+            .select("*")
+            .eq("id", conversationId)
+            .maybeSingle();
+
+          if (directConv) {
+            if (active) setConversation(directConv as Conversation);
+            return;
+          }
+        }
+
+        // 1. Tenta buscar conversa ativa existente
+        const { data: activeConv } = await supabase
+          .from("conversations")
+          .select("*")
+          .eq("process_id", processId)
+          .eq("is_closed", false)
+          .maybeSingle();
+
+        if (activeConv) {
+          if (active) setConversation(activeConv as Conversation);
+          return;
+        }
+
+        // 2. Se não houver ativa, busca a conversa encerrada mais recente
+        const { data: closedConv } = await supabase
+          .from("conversations")
+          .select("*")
+          .eq("process_id", processId)
+          .eq("is_closed", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (closedConv) {
+          if (active) setConversation(closedConv as Conversation);
+          return;
+        }
+
+        // 3. Se não existir nenhuma, precisamos criar uma nova ativa
+        let targetCustomerId = loggedInUserId;
+
+        // Se quem está abrindo é admin, precisamos descobrir o customerId a partir de user_services
+        if (role === "admin" || !targetCustomerId) {
+          const { data: service } = await supabase
+            .from("user_services")
+            .select("user_id")
+            .eq("id", processId)
+            .maybeSingle();
+          
+          if (service?.user_id) {
+            targetCustomerId = service.user_id;
+          }
+        }
+
+        if (targetCustomerId) {
+          const newConv = await chatService.getOrCreateConversation(
+            processId,
+            targetCustomerId,
+            officeId
+          );
+          if (active) setConversation(newConv);
+        } else {
+          throw new Error("Could not resolve customer ID to create conversation");
+        }
+      } catch (err) {
+        console.error("[useChat] resolveConversation error:", err);
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+
+    void resolveConversation();
+
+    return () => {
+      active = false;
+    };
+  }, [processId, officeId, loggedInUserId, role, conversationId]);
+
+  // Carrega mensagens e se inscreve no Realtime após a conversa ser estabelecida
+  useEffect(() => {
+    if (!conversation) return;
+
+    let active = true;
+    const conversationId = conversation.id;
+
+    const startChat = async () => {
+      const canSubscribe = await loadMessages(conversationId);
       if (!active || !canSubscribe) return;
 
       if (channelRef.current) {
         await supabase.removeChannel(channelRef.current);
       }
 
-      channelRef.current = supabase
-        .channel(`chat:${processId}:${crypto.randomUUID()}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "chat_messages",
-            filter: `process_id=eq.${processId}`,
-          },
-          (payload) => {
-            setMessages((prev) => [...prev, payload.new as ChatMessage]);
-          },
-        )
-        .subscribe();
+      channelRef.current = chatService.subscribeToMessages(
+        conversationId,
+        (payload) => {
+          if (active) {
+            setMessages((prev) => {
+              // Evita duplicados em inserções rápidas
+              if (prev.some((m) => m.id === payload.new.id)) return prev;
+              return [...prev, payload.new];
+            });
+          }
+        }
+      );
     };
 
-    void start();
+    void startChat();
 
     return () => {
       active = false;
@@ -65,7 +154,7 @@ export function useChat(processId: string, officeId?: string | null) {
         channelRef.current = null;
       }
     };
-  }, [processId, loadMessages]);
+  }, [conversation, loadMessages]);
 
   const sendMessage = useCallback(
     async (params: {
@@ -74,47 +163,31 @@ export function useChat(processId: string, officeId?: string | null) {
       senderRole: "admin" | "customer";
       file?: File;
     }): Promise<void> => {
+      if (!conversation) {
+        throw new Error("No active conversation found to send message");
+      }
       setIsSending(true);
       try {
-        let fileUrl: string | null = null;
-        let fileName: string | null = null;
-        let fileType: string | null = null;
-
-        if (params.file) {
-          const ext = params.file.name.split(".").pop();
-          const path = `chat/${processId}/${Date.now()}_${crypto.randomUUID()}.${ext}`;
-
-          const { error: uploadError } = await supabase.storage
-            .from("profiles")
-            .upload(path, params.file);
-
-          if (uploadError) throw uploadError;
-
-          const { data } = supabase.storage.from("profiles").getPublicUrl(path);
-          fileUrl = data.publicUrl;
-          fileName = params.file.name;
-          fileType = params.file.type;
-        }
-
-        const { error } = await supabase.from("chat_messages").insert({
-          process_id: processId,
-          office_id: officeId ?? null,
+        await chatService.sendMessage({
+          conversationId: conversation.id,
+          senderId: params.senderId,
+          senderRole: params.senderRole,
           content: params.content,
-          sender_id: params.senderId,
-          sender_role: params.senderRole,
-          file_url: fileUrl,
-          file_name: fileName,
-          file_type: fileType,
-          created_at: new Date().toISOString(),
+          file: params.file,
         });
-
-        if (error) throw new Error(error.message);
       } finally {
         setIsSending(false);
       }
     },
-    [officeId, processId],
+    [conversation],
   );
 
-  return { messages, isLoading, isSending, sendMessage, reload: loadMessages };
+  const reload = useCallback(async () => {
+    if (conversation) {
+      await loadMessages(conversation.id);
+    }
+  }, [conversation, loadMessages]);
+
+  return { messages, isLoading: isLoading || !conversation, isSending, sendMessage, reload };
 }
+

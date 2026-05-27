@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -22,6 +22,16 @@ export default function AIChatPage() {
   const processIdFromQuery = searchParams.get('processId')
   const { threads, isLoading } = useCustomerChats(user?.id ?? '')
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(processIdFromQuery)
+  
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
   const selected = useMemo(
     () =>
       threads.find(
@@ -91,15 +101,27 @@ export default function AIChatPage() {
                           )}>
                             {thread.chatTitle}
                           </h4>
-                          {isClosed && (
-                            <span className="flex items-center gap-1 text-[9px] font-black text-text-muted uppercase tracking-widest shrink-0 ml-2">
-                              <RiLockLine size={10} />
-                              Encerrado
-                            </span>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {thread.unreadCount !== undefined && thread.unreadCount > 0 && !isActive && (
+                              <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-danger text-white text-[10px] font-black shrink-0">
+                                {thread.unreadCount}
+                              </span>
+                            )}
+                            {isClosed && (
+                              <span className="flex items-center gap-1 text-[9px] font-black text-text-muted uppercase tracking-widest shrink-0 ml-2">
+                                <RiLockLine size={10} />
+                                Encerrado
+                              </span>
+                            )}
+                          </div>
                         </div>
                         {thread.lastMessage ? (
-                          <p className="text-[11px] text-text-muted font-medium truncate">
+                          <p className={cn(
+                            "text-[11px] font-medium truncate",
+                            thread.unreadCount !== undefined && thread.unreadCount > 0 && !isActive 
+                              ? "text-text font-black" 
+                              : "text-text-muted"
+                          )}>
                             {thread.lastMessage}
                           </p>
                         ) : (
@@ -118,7 +140,7 @@ export default function AIChatPage() {
 
         {/* Chat area — desktop */}
         <div className="hidden md:flex flex-1 bg-bg-subtle/20 flex-col overflow-hidden">
-          {selected ? (
+          {selected && !isMobile ? (
             <ThreadView thread={selected} userId={user?.id || ''} />
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
@@ -138,7 +160,7 @@ export default function AIChatPage() {
 
       {/* Thread view — mobile modal */}
       <AnimatePresence>
-        {selected && (
+        {selected && isMobile && (
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -213,6 +235,7 @@ function ThreadView({
 
       <SupportChat
         processId={thread.processRouteId || thread.processId}
+        conversationId={thread.conversationId}
         officeId={thread.officeId}
         userId={userId}
         role="customer"

@@ -298,26 +298,56 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
     navigate(`/checkout/${plan.id}${query.toString() ? `?${query.toString()}` : ""}`);
   };
 
+  const [isLoadingChat, setIsLoadingChat] = useState(false);
+
   const handleOpenSpecialistSupport = async () => {
+    if (isLoadingChat) return;
     if (!user?.id || !purchasedMentorship?.id) {
       navigate("/dashboard/support");
       return;
     }
 
+    setIsLoadingChat(true);
     try {
       const processId = String(purchasedMentorship.id);
-      const { data: lastMessage } = await supabase
-        .from("chat_messages")
+
+      // 1. Tenta buscar conversa ativa existente
+      const { data: active } = await supabase
+        .from("conversations")
         .select("id")
         .eq("process_id", processId)
-        .order("created_at", { ascending: false })
-        .limit(1)
+        .eq("is_closed", false)
         .maybeSingle();
 
-      if (!lastMessage) {
-        await supabase.from("chat_messages").insert({
-          process_id: processId,
-          office_id: purchasedMentorship?.office_id ?? user.officeId ?? null,
+      let conversationId = active?.id;
+
+      // 2. Se não existir, cria a nova conversa
+      if (!conversationId) {
+        const { data: created, error: createError } = await supabase
+          .from("conversations")
+          .insert({
+            process_id: processId,
+            customer_id: user.id,
+            office_id: purchasedMentorship?.office_id ?? user.officeId ?? null,
+            is_closed: false,
+          })
+          .select("id")
+          .single();
+
+        if (createError) throw createError;
+        conversationId = created?.id;
+      }
+
+      // 3. Verifica se já existem mensagens na conversa
+      const { count } = await supabase
+        .from("conversation_messages")
+        .select("id", { count: "exact", head: true })
+        .eq("conversation_id", conversationId);
+
+      // 4. Insere a mensagem inicial caso não haja histórico
+      if ((count ?? 0) === 0) {
+        await supabase.from("conversation_messages").insert({
+          conversation_id: conversationId,
           content: "Olá, comprei o pacote Specialist Mentoring e quero iniciar meu atendimento com o manager.",
           sender_id: user.id,
           sender_role: "customer",
@@ -329,29 +359,59 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
     } catch (err) {
       console.error("[B1B2] open support chat failed:", err);
       navigate("/dashboard/support");
+    } finally {
+      setIsLoadingChat(false);
     }
   };
 
   const handleOpenConsultationSupport = async () => {
+    if (isLoadingChat) return;
     if (!user?.id) {
       navigate("/dashboard/support");
       return;
     }
 
+    setIsLoadingChat(true);
     try {
       const processId = String(purchasedConsultation?.id ?? procId);
-      const { data: lastMessage } = await supabase
-        .from("chat_messages")
+
+      // 1. Tenta buscar conversa ativa existente
+      const { data: active } = await supabase
+        .from("conversations")
         .select("id")
         .eq("process_id", processId)
-        .order("created_at", { ascending: false })
-        .limit(1)
+        .eq("is_closed", false)
         .maybeSingle();
 
-      if (!lastMessage) {
-        await supabase.from("chat_messages").insert({
-          process_id: processId,
-          office_id: purchasedConsultation?.office_id ?? user.officeId ?? null,
+      let conversationId = active?.id;
+
+      // 2. Se não existir, cria a nova conversa
+      if (!conversationId) {
+        const { data: created, error: createError } = await supabase
+          .from("conversations")
+          .insert({
+            process_id: processId,
+            customer_id: user.id,
+            office_id: purchasedConsultation?.office_id ?? user.officeId ?? null,
+            is_closed: false,
+          })
+          .select("id")
+          .single();
+
+        if (createError) throw createError;
+        conversationId = created?.id;
+      }
+
+      // 3. Verifica se já existem mensagens na conversa
+      const { count } = await supabase
+        .from("conversation_messages")
+        .select("id", { count: "exact", head: true })
+        .eq("conversation_id", conversationId);
+
+      // 4. Insere a mensagem inicial caso não haja histórico
+      if ((count ?? 0) === 0) {
+        await supabase.from("conversation_messages").insert({
+          conversation_id: conversationId,
           content: "Olá, comprei a consultoria pós-negativa e quero iniciar meu atendimento com o manager.",
           sender_id: user.id,
           sender_role: "customer",
@@ -363,8 +423,11 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
     } catch (err) {
       console.error("[B1B2] open consultation support chat failed:", err);
       navigate("/dashboard/support");
+    } finally {
+      setIsLoadingChat(false);
     }
   };
+
 
   const scheduledCount = ((purchasedMentorship?.step_data as Record<string, unknown>)?.scheduled_count as number | undefined) || 0;
   const totalInterviews =
