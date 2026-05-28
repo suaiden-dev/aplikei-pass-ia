@@ -21,6 +21,7 @@ const admin = {
       customer: "Cliente",
     },
     view: "Ver",
+    select: "Seleccionar",
     remove: "Eliminar",
     locale: "es-ES"
   },
@@ -45,6 +46,7 @@ const admin = {
     charts: {
       revenueGrowth: "Crecimiento de Ingresos",
       revenueVsProfit: "Ingresos vs Ganancia",
+      salesByProduct: "Ventas por Producto",
       revenueLegend: "Ingresos",
       profitLegend: "Ganancia",
     },

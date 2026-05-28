@@ -90,4 +90,63 @@ test.describe("COS recovery flows", () => {
 
     await expect(page.getByTestId("motion-explanation-step")).toBeVisible();
   });
+
+  const recoverySlugs: Array<"troca-status" | "extensao-status"> = [
+    "troca-status",
+    "extensao-status",
+  ];
+
+  for (const processSlug of recoverySlugs) {
+    test(`renders RFE pay-and-accept step with fallback texts and 3 outcome buttons (${processSlug})`, async ({
+      page,
+    }) => {
+      const basePath = `/dashboard/processes/${processSlug}/onboarding`;
+
+      await mockCOSSupabase(page, {
+        slug: processSlug,
+        currentStep: 16,
+        stepData: {
+          uscis_official_result: "rfe",
+          rfe_proposal_text: "Estratégia de resposta RFE com checklist documental.",
+          rfe_proposal_amount: 950,
+        },
+      });
+
+      await page.goto(`${basePath}?step=16`);
+
+      await expect(page.getByText(/RFE - Aceitar e Pagar/i)).toBeVisible();
+      await expect(page.getByText(/Plano de ação/i)).toBeVisible();
+      await expect(page.getByTestId("rfe-proposal-text")).toContainText(
+        "Estratégia de resposta RFE",
+      );
+      await expect(page.getByTestId("rfe-proposal-amount")).toContainText("950.00");
+      await expect(page.getByRole("button", { name: /Aceitar e pagar/i })).toBeVisible();
+      await expect(page.getByRole("button", { name: /^Aprovado$/i })).toBeVisible();
+      await expect(page.getByRole("button", { name: /^RFE$/i })).toBeVisible();
+      await expect(page.getByRole("button", { name: /^Reprovado$/i })).toBeVisible();
+    });
+
+    test(`renders Motion final step with only approved/rejected actions (no RFE button) (${processSlug})`, async ({
+      page,
+    }) => {
+      const basePath = `/dashboard/processes/${processSlug}/onboarding`;
+
+      await mockCOSSupabase(page, {
+        slug: processSlug,
+        currentStep: 23,
+        stepData: {
+          uscis_official_result: "denied",
+          motion_proposal_text: "Plano técnico Motion",
+          motion_proposal_amount: 1800,
+        },
+      });
+
+      await page.goto(`${basePath}?step=23`);
+
+      await expect(page.getByText(/Como foi o resultado da Motion\?/i)).toBeVisible();
+      await expect(page.getByRole("button", { name: /^Aprovado$/i })).toBeVisible();
+      await expect(page.getByRole("button", { name: /^Reprovado$/i })).toBeVisible();
+      await expect(page.getByRole("button", { name: /^RFE$/i })).toHaveCount(0);
+    });
+  }
 });

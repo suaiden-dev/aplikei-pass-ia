@@ -14,6 +14,7 @@ import { supabase } from "@shared/lib/supabase";
 import { useT } from "@app/app/i18n";
 import { LogoLoader } from "@shared/components/atoms/logo-loader";
 import * as paymentService from "@features/payments/lib/paymentOps";
+import * as processService from "@features/process/services/processOps";
 
 type ActivationState = "loading" | "done" | "error";
 
@@ -85,13 +86,29 @@ export default function CheckoutSuccessPage() {
                 .maybeSingle();
 
               const currentStep = Number(row?.current_step ?? 0);
-              const nextStep = Math.max(currentStep, targetStep);
+              const rowSlug = String(row?.service_slug || "").toLowerCase();
+              const stepDataFromRow = ((row?.step_data as Record<string, unknown>) ?? {});
+              const isRecoveryChild =
+                rowSlug.includes("motion") ||
+                rowSlug.includes("rfe") ||
+                String(stepDataFromRow.parent_process_id || "").trim().length > 0;
+              const normalizedTargetStep = isRecoveryChild
+                ? (targetStep >= 19 ? targetStep - 19 : targetStep >= 13 ? targetStep - 13 : targetStep)
+                : targetStep;
+              const nextStep = Math.max(currentStep, normalizedTargetStep);
               const currentStepData = ((row?.step_data as Record<string, unknown>) ?? {});
               const paymentStepData: Record<string, unknown> = {};
 
               if (pendingAdvance.stage === "proposal" && pendingAdvance.flow === "rfe") {
                 paymentStepData.rfe_proposal_paid = true;
                 paymentStepData.rfe_payment_completed_at = now;
+                if (user?.id) {
+                  await processService.ensureChatThread(
+                    pendingAdvance.procId,
+                    user.id,
+                    "Olá! Quero falar com o especialista sobre a proposta da minha RFE.",
+                  );
+                }
               }
 
               if (pendingAdvance.stage === "proposal" && pendingAdvance.flow === "motion") {
@@ -117,10 +134,21 @@ export default function CheckoutSuccessPage() {
               localStorage.removeItem("checkout_parent_id");
               localStorage.removeItem("pending_payment_advance");
 
-              const parentSlug = row?.service_slug || "troca-status";
-              window.location.assign(
-                `/dashboard/processes/${parentSlug}/onboarding?id=${pendingAdvance.procId}&step=${nextStep}`,
-              );
+              const parentProcessId = String(stepDataFromRow.parent_process_id || "").trim();
+              const parentServiceSlug = String(stepDataFromRow.parent_service_slug || "").trim() || "troca-status";
+              const flow = pendingAdvance.flow || (rowSlug.includes("motion") ? "motion" : "rfe");
+
+              if (isRecoveryChild && parentProcessId) {
+                const absoluteStep = flow === "motion" ? 19 + nextStep : 13 + nextStep;
+                window.location.assign(
+                  `/dashboard/processes/${parentServiceSlug}/onboarding?id=${parentProcessId}&childId=${pendingAdvance.procId}&workflowType=${flow}&step=${absoluteStep}`,
+                );
+              } else {
+                const targetSlug = row?.service_slug || "troca-status";
+                window.location.assign(
+                  `/dashboard/processes/${targetSlug}/onboarding?id=${pendingAdvance.procId}&step=${nextStep}`,
+                );
+              }
               return;
             }
           } catch {

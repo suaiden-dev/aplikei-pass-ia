@@ -97,6 +97,18 @@ async function preRegisterOrder(params: {
   seller_id?: string;
 }): Promise<string | undefined> {
   try {
+    const isRecoveryChildSlug = (slug: string): boolean => {
+      const lower = String(slug || "").toLowerCase();
+      return (
+        lower.includes("motion") ||
+        lower.includes("rfe") ||
+        lower.includes("recovery-") ||
+        lower.startsWith("analise-") ||
+        lower.startsWith("analysis-") ||
+        lower.startsWith("apoio-")
+      );
+    };
+
     let parentServiceSlug: string | null = null;
 
     if (params.procId) {
@@ -116,6 +128,14 @@ async function preRegisterOrder(params: {
       phone: params.phone?.replace(/\D/g, ""),
       service_id: params.serviceId,
     };
+
+    if (isRecoveryChildSlug(params.slug) && (!params.procId || !parentServiceSlug)) {
+      console.warn("[paymentOps] Recovery checkout missing parent metadata", {
+        slug: params.slug,
+        procId: params.procId || null,
+        parentServiceSlug,
+      });
+    }
 
     if (params.userId) {
       const { data: existingOrder } = await supabase
@@ -349,7 +369,7 @@ export async function createZellePayment(params: {
   }
 
   const paymentId = data.payment_id;
-  let autoApproved = data.auto_approved === true;
+  let autoApproved: boolean;
   const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/zelle_comprovantes/${params.proofPath}`;
 
   const botPayload = {

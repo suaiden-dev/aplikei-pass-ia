@@ -25,6 +25,7 @@ const admin = {
             customer: "Cliente"
         },
         view: "Ver",
+        select: "Selecionar",
         remove: "Remover",
         locale: "pt-BR"
     },
@@ -61,6 +62,7 @@ const admin = {
         charts: {
             revenueGrowth: "Crescimento de Receita",
             revenueVsProfit: "Receita vs Lucro",
+            salesByProduct: "Vendas por Produto",
             revenueLegend: "Receita",
             profitLegend: "Lucro"
         },
@@ -339,7 +341,7 @@ const admin = {
             corrections: "Correções Necessárias",
         },
         officialForms: {
-            title: "Formulários Oficiais",
+            title: "Formulário I-539",
             i539Form: "Formulário I-539",
             digitalDocDesc: "Documento preenchido digitalmente.",
             viewPdf: "Ver PDF",

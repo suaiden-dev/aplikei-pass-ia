@@ -8,6 +8,12 @@ import type {
   StepReview
 } from "../types";
 
+function sortStepsByProductOrder<T extends { product_step?: { order?: number | null } | null }>(steps: T[]): T[] {
+  return [...steps].sort(
+    (a, b) => (a.product_step?.order ?? Number.MAX_SAFE_INTEGER) - (b.product_step?.order ?? Number.MAX_SAFE_INTEGER),
+  );
+}
+
 // ── Instances ───────────────────────────────────────────────────────────────
 
 /** Retorna a instância ativa do usuário para um produto (cria se não existir). */
@@ -89,7 +95,7 @@ export async function getSteps(instanceId: string): Promise<UserStep[]> {
     .order("product_step(order)", { ascending: true });
 
   if (error) throw new Error(error.message);
-  return (data ?? []) as UserStep[];
+  return sortStepsByProductOrder((data ?? []) as UserStep[]);
 }
 
 /** Carrega um step específico pelo product_step_id. */

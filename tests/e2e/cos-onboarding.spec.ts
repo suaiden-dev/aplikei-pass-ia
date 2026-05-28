@@ -20,12 +20,6 @@ test.describe("COS onboarding", () => {
 
         await page.goto(`${basePath}?step=${step}`);
 
-        if (processSlug === "extensao-status") {
-          await expect(page.getByText("Análise em Andamento").first()).toBeVisible();
-          await expect(page.getByText("Status do Processo").first()).toBeVisible();
-          return;
-        }
-
         if (step === 0) {
           await expect(page.getByRole("heading", { name: "Formulário Inicial" }).first()).toBeVisible();
           await expect(page.getByText("Qual o seu visto atual?")).toBeVisible();
@@ -39,38 +33,66 @@ test.describe("COS onboarding", () => {
         }
 
         if (step === 2) {
+          if (processSlug === "extensao-status") {
+            await expect(page.getByText(/Análise em Andamento/i).first()).toBeVisible();
+            return;
+          }
           await expect(page.getByText(/Revisão de Envio/i).first()).toBeVisible();
           return;
         }
 
         if (step === 3) {
+          if (processSlug === "extensao-status") {
+            await expect(page.getByText("Confirmação de Pagamento").first()).toBeVisible();
+            return;
+          }
           await expect(page.getByRole("heading", { name: "Upload do I-20" }).first()).toBeVisible();
           return;
         }
 
         if (step === 4) {
+          if (processSlug === "extensao-status") {
+            await expect(page.getByRole("heading", { name: "Upload do I-20" }).first()).toBeVisible();
+            return;
+          }
           await expect(page.getByText("Confirmação de Pagamento").first()).toBeVisible();
           await expect(page.getByText(/Taxa SEVIS/i).first()).toBeVisible();
           return;
         }
 
         if (step === 5) {
+          if (processSlug === "extensao-status") {
+            await expect(page.getByText("Confirmação de Pagamento").first()).toBeVisible();
+            return;
+          }
           await expect(page.getByText("Carta de Suporte").first()).toBeVisible();
           return;
         }
 
         if (step === 6) {
+          if (processSlug === "extensao-status") {
+            await expect(page.getByText(/Análise em Andamento/i).first()).toBeVisible();
+            return;
+          }
           await expect(page.getByText(/Análise da Carta/i).first()).toBeVisible();
           return;
         }
 
         if (step === 7) {
+          if (processSlug === "extensao-status") {
+            await expect(page.getByText("Carta de Suporte").first()).toBeVisible();
+            return;
+          }
           // I-539 step renders section cards (no single "Formulário I-539" heading).
           await expect(page.getByText(/Parte 1|Part 1/i).first()).toBeVisible();
           return;
         }
 
         if (step === 8) {
+          if (processSlug === "extensao-status") {
+            await expect(page.getByText(/Análise em Andamento/i).first()).toBeVisible();
+            return;
+          }
           await expect(page.getByText(/Análise do I-539/i).first()).toBeVisible();
           return;
         }
@@ -82,7 +104,16 @@ test.describe("COS onboarding", () => {
         }
 
         if (step === 10) {
+          if (processSlug === "extensao-status") {
+            await expect(page.getByText(/Parte 1|Part 1/i).first()).toBeVisible();
+            return;
+          }
           await expect(page.getByText(/Análise Final/i).first()).toBeVisible();
+          return;
+        }
+
+        if (step === 11 && processSlug === "extensao-status") {
+          await expect(page.getByText(/Análise em Andamento/i).first()).toBeVisible();
           return;
         }
 

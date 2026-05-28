@@ -79,6 +79,12 @@ type InstanceRow = {
   }[];
 };
 
+function sortStepsByProductOrder<T extends { product_step?: { order?: number | null } | null }>(steps: T[]): T[] {
+  return [...steps].sort(
+    (a, b) => (a.product_step?.order ?? Number.MAX_SAFE_INTEGER) - (b.product_step?.order ?? Number.MAX_SAFE_INTEGER),
+  );
+}
+
 function resolveCurrentStepTitle(
   steps: InstanceRow["steps"],
   fallback?: string,
@@ -205,7 +211,7 @@ async function fetchRealCaseOnboarding(caseId: string): Promise<CaseOnboardingRe
       return null;
     }
 
-    const steps = (stepsData ?? []) as unknown as UserStep[];
+    const steps = sortStepsByProductOrder((stepsData ?? []) as unknown as UserStep[]);
     const totalSteps = steps.length;
     const completedSteps = steps.filter(
       (s) => s.status === "approved" || s.status === "completed" || s.status === "skipped",

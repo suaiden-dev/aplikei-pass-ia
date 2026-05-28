@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   RiMoneyDollarCircleLine, 
   RiArrowRightLine, 
@@ -38,6 +39,7 @@ import { normalizeLegacyFinalShipStep } from "@shared/utils/legacyWorkflow";
 import type { RFEOutcome } from "@shared/types/process.model";
 import { getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
 import { compressImageForUpload } from "@shared/utils/uploadCompression";
+import { HomologationAutofillButton } from "./components/HomologationAutofillButton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -566,6 +568,12 @@ export function RFEExplanationStep({ proc }: StepProps) {
 export function RFEInstructionStep({ proc, onComplete }: StepProps) {
   const t = useT("onboarding");
   const data = (proc.step_data as any || {}) as Record<string, unknown>;
+  const [description, setDescription] = useState<string>(
+    String(data.rfe_description || ""),
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const textOr = (value: unknown, fallback: string) =>
+    typeof value === "string" && value.trim().length > 0 ? value : fallback;
 
   const handleFileUpload = async (file: File) => {
     try {
@@ -589,8 +597,6 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
         processId: proc.id,
         userId: proc.user_id,
       });
-
-      onComplete?.();
     } catch (e: unknown) {
       const err = e as Error;
       toast.error(err.message, { id: "u" });
@@ -598,18 +604,26 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
   };
 
   const handleManualComplete = async () => {
-     const docs = (data.docs as Record<string, string>) || {};
-     if (!docs.rfe_letter && !data.rfe_description) {
+     const normalizedDescription = description.trim();
+     if (!normalizedDescription) {
         toast.error(t?.workflows?.rfe?.instruction?.summaryLabel || "Description required");
         return;
      }
-     await cosNotificationService.notifyAdmin({
-        event: "rfe_description_submitted",
-        processId: proc.id,
-        userId: proc.user_id,
-     });
-     
-     onComplete?.();
+
+     try {
+       setSubmitting(true);
+       await processService.updateStepData(proc.id, {
+         rfe_description: normalizedDescription,
+       });
+       await cosNotificationService.notifyAdmin({
+          event: "rfe_description_submitted",
+          processId: proc.id,
+          userId: proc.user_id,
+       });
+       await onComplete?.();
+     } finally {
+       setSubmitting(false);
+     }
   };
 
   return (
@@ -618,17 +632,27 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
          <div className="w-16 h-16 rounded-2xl bg-primary/5 text-primary flex items-center justify-center mx-auto mb-6">
             <RiDownload2Line className="text-3xl" />
          </div>
-         <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-3">{t?.workflows?.rfe?.instruction?.title}</h3>
-         <p className="text-sm font-medium text-slate-400">{t?.workflows?.rfe?.instruction?.desc}</p>
+         <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-3">
+           {textOr(t?.workflows?.rfe?.instruction?.title, "RFE - Suas Informações")}
+         </h3>
+         <p className="text-sm font-medium text-slate-400">
+           {textOr(
+             t?.workflows?.rfe?.instruction?.desc,
+             "Descreva o que aconteceu no seu caso para nossa equipe analisar a melhor estratégia.",
+           )}
+         </p>
       </div>
 
       <div className="space-y-6">
+        <div className="flex justify-end">
+          <HomologationAutofillButton rootId="homologation-form-rfe-instruction" />
+        </div>
         <DocUploadCard 
           docKey="rfe_letter"
-          title={t?.workflows?.rfe?.instruction?.uploadTitle}
+          title={textOr(t?.workflows?.rfe?.instruction?.uploadTitle, "Anexar RFE")}
           doc={{
             file: null,
-            label: t?.workflows?.rfe?.instruction?.uploadSubtitle,
+            label: textOr(t?.workflows?.rfe?.instruction?.uploadSubtitle, "Anexe a carta recebida"),
             path: (data.docs as Record<string, string>)?.rfe_letter
           }}
           onChange={(_key, file) => handleFileUpload(file)}
@@ -636,26 +660,30 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
 
         <div className="relative py-4 flex items-center">
            <div className="flex-grow border-t border-slate-100"></div>
-           <span className="flex-shrink mx-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">{t?.workflows?.rfe?.instruction?.orDescribe}</span>
+           <span className="flex-shrink mx-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">
+             {textOr(t?.workflows?.rfe?.instruction?.orDescribe, "Ou descreva")}
+           </span>
            <div className="flex-grow border-t border-slate-100"></div>
         </div>
 
-        <div className="space-y-2">
-           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">{t?.workflows?.rfe?.instruction?.summaryLabel}</Label>
+        <div id="homologation-form-rfe-instruction" className="space-y-2">
+           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+             {textOr(t?.workflows?.rfe?.instruction?.summaryLabel, "Resumo do caso")}
+           </Label>
            <textarea
              className="w-full h-32 rounded-2xl border border-slate-100 p-5 text-sm font-medium focus:ring-4 focus:ring-primary/5 transition-all outline-none resize-none bg-slate-50/50"
-             placeholder={t?.workflows?.rfe?.instruction?.summaryPlaceholder}
-             defaultValue={data.rfe_description as string || ""}
-             onBlur={async (e) => {
-               if (e.target.value !== data.rfe_description) {
-                 await processService.updateStepData(proc.id, { rfe_description: e.target.value });
-               }
-             }}
+             placeholder={textOr(
+               t?.workflows?.rfe?.instruction?.summaryPlaceholder,
+               "Descreva os pontos principais da sua RFE...",
+             )}
+             value={description}
+             onChange={(e) => setDescription(e.target.value)}
            />
         </div>
 
         <button 
           onClick={handleManualComplete}
+          disabled={submitting}
           className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-black transition-all flex items-center justify-center gap-3"
         >
           {t?.workflows?.shared?.confirmBtn}
@@ -668,10 +696,19 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
 
 // ─── RFEAcceptProposalStep ───────────────────────────────────────────────────
 
-export function RFEAcceptProposalStep({ proc }: StepProps) {
+export function RFEAcceptProposalStep({ proc, onRFEResult }: StepProps) {
   const t = useT("onboarding");
+  const textOr = (value: unknown, fallback: string) =>
+    typeof value === "string" && value.trim().length > 0 ? value : fallback;
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const data = (proc.step_data as any || {}) as Record<string, unknown>;
   const [showCheckout, setShowCheckout] = useState(false);
+  const [savingResult, setSavingResult] = useState(false);
+  const [reportedResult, setReportedResult] = useState<"approved" | "denied" | "rfe" | null>(() => {
+    const existing = String((proc.step_data as any)?.uscis_rfe_result || "").toLowerCase();
+    return existing === "approved" || existing === "denied" || existing === "rfe" ? existing : null;
+  });
   const proposalSlug = getRFEProposalSlug(proc.service_slug);
   const latestHistory = Array.isArray(data.rfe_history)
     ? (data.rfe_history as Array<Record<string, unknown>>).at(-1)
@@ -690,6 +727,48 @@ export function RFEAcceptProposalStep({ proc }: StepProps) {
       0,
     ) || 0
   const canProceed = proposalText.trim().length > 0 && proposalAmount > 0
+  const alreadyPaid =
+    Boolean(data.rfe_proposal_paid) ||
+    Boolean(data.rfe_payment_completed_at);
+
+  const handleOpenRFEChat = async () => {
+    const parentProcessId = String(((proc.step_data as Record<string, unknown>)?.parent_process_id || "")).trim();
+    const targetProcessId = parentProcessId || proc.id;
+    const senderId = user?.id || proc.user_id;
+    if (senderId) {
+      try {
+        await processService.ensureChatThread(
+          targetProcessId,
+          senderId,
+          "Olá! Quero falar com o especialista sobre a proposta da minha RFE.",
+        );
+      } catch (error) {
+        console.error("[RFEAcceptProposalStep] failed to ensure chat thread:", error);
+      }
+    }
+    navigate(`/dashboard/ai-chat?processId=${targetProcessId}`);
+  };
+
+  const handleReportResult = async (result: "approved" | "denied" | "rfe") => {
+    if (!onRFEResult) return;
+    try {
+      setSavingResult(true);
+      await onRFEResult(result);
+      setReportedResult(result);
+      toast.success(
+        result === "approved"
+          ? (t?.cos?.toasts?.approvedResultSaved ?? "Resultado informado como aprovado.")
+          : result === "rfe"
+          ? (t?.cos?.toasts?.resultReported ?? "Novo ciclo de RFE iniciado.")
+          : (t?.cos?.toasts?.rejectedResultSaved ?? "Resultado informado como reprovado."),
+      );
+    } catch (error) {
+      console.error("[RFEAcceptProposalStep] failed to report result:", error);
+      toast.error(t?.cos?.toasts?.resultSaveError ?? "Nao foi possivel salvar o resultado.");
+    } finally {
+      setSavingResult(false);
+    }
+  };
 
 
   return (
@@ -698,37 +777,109 @@ export function RFEAcceptProposalStep({ proc }: StepProps) {
          <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-6">
             <RiShieldCheckLine className="text-3xl" />
          </div>
-         <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-3">{t?.workflows?.rfe?.proposal?.title}</h3>
-         <p className="text-sm font-medium text-slate-400">{t?.workflows?.rfe?.proposal?.desc}</p>
+         <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-3">
+           {textOr(t?.workflows?.rfe?.proposal?.title, "RFE - Aceitar e Pagar")}
+         </h3>
+         <p className="text-sm font-medium text-slate-400">
+           {textOr(
+             t?.workflows?.rfe?.proposal?.desc,
+             "Revise a estratégia enviada e confirme o pagamento para continuidade do atendimento.",
+           )}
+         </p>
       </div>
 
       <div className="bg-white border border-slate-100 rounded-[40px] p-10 shadow-sm">
         <div className="bg-slate-50 rounded-3xl p-8 mb-8 border border-slate-100/50">
-           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{t?.workflows?.shared?.actionPlan}</h4>
+           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
+             {textOr(t?.workflows?.shared?.actionPlan, "Plano de ação")}
+           </h4>
            <p className="text-sm text-slate-600 leading-relaxed italic whitespace-pre-wrap" data-testid="rfe-proposal-text">
-              "{proposalText || t?.workflows?.shared?.waitingAnalysis}"
+              "{proposalText || textOr(t?.workflows?.shared?.waitingAnalysis, "Aguardando análise do especialista.")}"
            </p>
         </div>
 
         <div className="grid grid-cols-2 gap-6 mb-10">
            <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100/50">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t?.workflows?.shared?.serviceCost}</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                {textOr(t?.workflows?.shared?.serviceCost, "Custo do serviço")}
+              </span>
               <span className="text-2xl font-black text-primary" data-testid="rfe-proposal-amount">${proposalAmount.toFixed(2)}</span>
            </div>
            <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100/50">
               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Status</span>
-              <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">{t?.workflows?.shared?.strategyReady}</span>
+              <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                {textOr(t?.workflows?.shared?.strategyReady, "Estratégia pronta")}
+              </span>
            </div>
         </div>
 
         <button
           data-testid="rfe-proposal-accept-btn"
           onClick={() => setShowCheckout(true)}
-          disabled={!canProceed}
+          disabled={!canProceed || alreadyPaid}
           className="w-full bg-primary hover:bg-primary-hover text-white h-16 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
         >
-          <RiCheckLine className="text-2xl" /> {t?.workflows?.shared?.acceptBtn}
+          <RiCheckLine className="text-2xl" /> {textOr(t?.workflows?.shared?.acceptBtn, "Aceitar e pagar")}
         </button>
+
+        {alreadyPaid && (
+          <div className="mt-4 space-y-3">
+            <button
+              type="button"
+              onClick={() => void handleOpenRFEChat()}
+              className="w-full border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
+            >
+              Ir para o chat
+              <RiArrowRightLine className="inline ml-2 text-base" />
+            </button>
+
+            {reportedResult && (
+              <div className={`rounded-2xl border p-4 text-sm font-black ${
+                reportedResult === "approved"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : reportedResult === "rfe"
+                  ? "bg-amber-50 border-amber-200 text-amber-700"
+                  : "bg-red-50 border-red-200 text-red-700"
+              }`}>
+                {reportedResult === "approved"
+                  ? "RFE marcada como APROVADO."
+                  : reportedResult === "rfe"
+                  ? "Novo ciclo de RFE iniciado."
+                  : "RFE marcada como REPROVADO."}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <button
+                type="button"
+                disabled={savingResult || reportedResult !== null}
+                onClick={() => void handleReportResult("approved")}
+                className="h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-60"
+              >
+                <RiCheckLine className="inline mr-2 text-base" />
+                Aprovado
+              </button>
+              <button
+                type="button"
+                disabled={savingResult || reportedResult !== null}
+                onClick={() => void handleReportResult("rfe")}
+                className="h-12 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-amber-500/20 transition-all disabled:opacity-60"
+              >
+                <RiTimeLine className="inline mr-2 text-base" />
+                RFE
+              </button>
+              <button
+                type="button"
+                disabled={savingResult || reportedResult !== null}
+                onClick={() => void handleReportResult("denied")}
+                className="h-12 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all disabled:opacity-60"
+              >
+                <RiCloseLine className="inline mr-2 text-base" />
+                Reprovado
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showCheckout && (
@@ -792,8 +943,10 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
       if (outcome === 'approved') {
         await processService.updateStepData(proc.id, updateData);
         await processService.updateProcessStatus(proc.id, 'completed');
+        const parentProcessId = String(((proc.step_data as Record<string, unknown>)?.parent_process_id || "")).trim();
+        const chatProcessId = parentProcessId || proc.id;
         await processService.ensureChatThread(
-          proc.id,
+          chatProcessId,
           proc.user_id,
           `RFE ciclo #${cycleNumber} finalizado com status: APPROVED.`,
           true,
@@ -807,8 +960,10 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
           current_step: 13, // Step 13 is RFE Explanation
           uscis_official_result: 'rfe' 
         });
+        const parentProcessId = String(((proc.step_data as Record<string, unknown>)?.parent_process_id || "")).trim();
+        const chatProcessId = parentProcessId || proc.id;
         await processService.ensureChatThread(
-          proc.id,
+          chatProcessId,
           proc.user_id,
           `RFE ciclo #${cycleNumber} finalizado com status: RFE.`,
           true,
@@ -822,8 +977,10 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
           uscis_official_result: 'denied',
           current_step: 19 // Step 19 is Motion Explanation
         });
+        const parentProcessId = String(((proc.step_data as Record<string, unknown>)?.parent_process_id || "")).trim();
+        const chatProcessId = parentProcessId || proc.id;
         await processService.ensureChatThread(
-          proc.id,
+          chatProcessId,
           proc.user_id,
           `RFE ciclo #${cycleNumber} finalizado com status: DENIED.`,
           true,

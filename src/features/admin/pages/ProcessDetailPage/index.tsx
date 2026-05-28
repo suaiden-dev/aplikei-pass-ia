@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   RiArrowLeftLine,
@@ -26,6 +26,7 @@ import {
   RiTimeLine,
   RiPulseLine,
   RiBookOpenLine,
+  RiGitBranchLine,
 } from "react-icons/ri";
 import { getServiceBySlug } from "@shared/data/services";
 import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "@shared/data/workflowTemplates";
@@ -748,7 +749,16 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
   const t = useT("admin");
   const data = (proc.step_data || {}) as Record<string, unknown>;
   const purchases = (data.purchases || []) as Array<{ slug?: string }>;
-  const hasPaidProposal = purchases.some(p => p.slug === "proposta-rfe-motion" || p.slug === "apoio-rfe-motion-inicio" || p.slug === "analise-especialista-cos");
+  const hasPaidProposal =
+    Boolean(data.motion_proposal_paid) ||
+    Boolean(data.motion_payment_completed_at) ||
+    purchases.some((p) =>
+      [
+        "consultancy-motion-cos",
+        "consultancy-motion-eos",
+        "proposta-rfe-motion",
+      ].includes(String(p.slug || "").toLowerCase()),
+    );
 
   const clientReason = data.motion_reason as string;
   const docs = (data.docs as Record<string, string>) || {};
@@ -768,11 +778,23 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
     }
     setLoading(true);
     try {
+      const proposalHistory = Array.isArray(data.motion_proposal_history)
+        ? (data.motion_proposal_history as Array<Record<string, unknown>>)
+        : [];
+      const sentAt = new Date().toISOString();
       await processService.updateStepData(proc.id, {
         motion_proposal_text: text,
         motion_amount: Number(amount),
         motion_proposal_amount: Number(amount),
-        motion_proposal_sent_at: new Date().toISOString(),
+        motion_proposal_sent_at: sentAt,
+        motion_proposal_history: [
+          ...proposalHistory,
+          {
+            sent_at: sentAt,
+            proposal_text: text,
+            proposal_amount: Number(amount),
+          },
+        ],
         workflow_status: "awaiting_payment",
       });
 
@@ -1242,6 +1264,7 @@ function B1B2CredentialsPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
 export default function AdminProcessDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const t = useT("admin");
   const vt = useT("visas");
   const { user } = useAuth();
@@ -1263,6 +1286,9 @@ export default function AdminProcessDetailPage() {
   };
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
   const [coverLetterHtml, setCoverLetterHtml] = useState("");
+  const [recoveryChildren, setRecoveryChildren] = useState<UserService[]>([]);
+  const parentIdFromQuery = searchParams.get("parentId");
+  const isRecoveryChildView = Boolean(parentIdFromQuery);
 
   const fetchProcessData = useCallback(async () => {
     if (!id) return;
@@ -1311,6 +1337,13 @@ export default function AdminProcessDetailPage() {
       }
 
       setProc({ ...processRow, user_accounts: account });
+      const parentProcessId = parentIdFromQuery || processRow.id;
+      const { data: childRows } = await supabase
+        .from("user_services")
+        .select("*")
+        .contains("step_data", { parent_process_id: parentProcessId })
+        .order("created_at", { ascending: false });
+      setRecoveryChildren((childRows || []) as UserService[]);
       const stepData = (data?.step_data as Record<string, unknown> | null) ?? null;
       if (stepData?.generatedCoverLetterHTML) {
         const rawHtml = stepData.generatedCoverLetterHTML as string;
@@ -1323,7 +1356,7 @@ export default function AdminProcessDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [id, navigate, processRoutePrefix, t]);
+  }, [id, navigate, processRoutePrefix, t, parentIdFromQuery]);
 
   useEffect(() => {
     fetchProcessData();
@@ -1363,10 +1396,7 @@ export default function AdminProcessDetailPage() {
   const isCOS = proc.service_slug.includes("troca-status") || proc.service_slug.includes("extensao-status");
   const history = ((proc.step_data as any)?.history as Array<{ type?: string; steps?: unknown[] }>) || [];
   
-  let effectiveSteps = service ? buildEffectiveSteps(service.steps, history) : [];
-  if (isCOS && service) {
-    effectiveSteps = [...service.steps, ...RFE_STEPS_TEMPLATE, ...MOTION_STEPS_TEMPLATE] as any;
-  }
+  const effectiveSteps = service ? buildEffectiveSteps(service.steps, history) : [];
   const rawCurrentStep =
     proc.current_step ??
     (typeof (proc.step_data as any)?.current_step === "number"
@@ -1399,7 +1429,7 @@ export default function AdminProcessDetailPage() {
       const isF1FinalScheduling = currentStepBaseId === "f1_final_scheduling";
 
       const additionalData = { ...extraData };
-      if (currentStepBaseId === 'cos_analysis_presentation_letter') {
+      if (currentStepBaseId === 'cos_analysis_presentation_letter' || currentStepBaseId === 'eos_admin_cover_analysis') {
         additionalData.generatedCoverLetterHTML = coverLetterHtml;
       }
       const isFinal = isF1FinalScheduling || (nextStep >= effectiveSteps.length && !isConsular);
@@ -1559,6 +1589,32 @@ export default function AdminProcessDetailPage() {
     }
   };
 
+  const renderCardActions = (
+    approveLabel: string,
+    approveTone: "success" | "primary" = "success",
+    requestLabel = t.analysisPanel.actions.requestMoreInfo,
+  ) => (
+    <div className="flex items-center gap-4 pt-4 border-t border-border">
+      <button
+        onClick={() => setShowRejectionModal(true)}
+        className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
+      >
+        <RiCloseLine className="text-xl" /> {requestLabel}
+      </button>
+      <button
+        onClick={() => handleApproveStep()}
+        disabled={isSubmitting}
+        className={`flex-1 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg ${
+          approveTone === "primary"
+            ? "bg-primary shadow-primary/20"
+            : "bg-success shadow-success/20"
+        }`}
+      >
+        {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {approveLabel}</>}
+      </button>
+    </div>
+  );
+
   const renderFormData = () => {
     const data = proc.step_data || {};
     const entries = Object.entries(data).filter(([key]) =>
@@ -1568,9 +1624,10 @@ export default function AdminProcessDetailPage() {
     if (entries.length === 0) return null;
 
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
+    const analysisStepId = proc.service_slug === "extensao-status" ? "eos_admin_analysis" : `${prefix}analysis_form_docs`;
     const analysisIdx = effectiveSteps.findIndex(s =>
       normalizeLegacyStepId(s.id) === "b1b2_admin_analysis" ||
-      normalizeLegacyStepId(s.id) === `${prefix}analysis_form_docs`
+      normalizeLegacyStepId(s.id) === analysisStepId
     );
     const isActive = analysisIdx !== -1 && currentStepIdx === analysisIdx;
     const isPast = analysisIdx !== -1 && currentStepIdx > analysisIdx;
@@ -1654,6 +1711,11 @@ export default function AdminProcessDetailPage() {
             );
           })}
         </div>
+        {isActive && (
+          <div className="mt-6">
+            {renderCardActions(t.cases.actions.approve)}
+          </div>
+        )}
       </CollapsibleStep>
     );
   };
@@ -1663,8 +1725,10 @@ export default function AdminProcessDetailPage() {
     if (!pdfUrl) return null;
 
     const isSelected = selectedItems.includes('i539PdfUrl');
-    const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const stepId = `${prefix}analysis_official_forms`;
+    const stepId =
+      proc.service_slug === "extensao-status"
+        ? "eos_admin_final_review"
+        : "cos_analysis_official_forms";
     const officialFormsIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
     const isActive = officialFormsIdx !== -1 && currentStepIdx === officialFormsIdx;
     const isPast = officialFormsIdx !== -1 && currentStepIdx > officialFormsIdx;
@@ -1689,20 +1753,39 @@ export default function AdminProcessDetailPage() {
               </a>
               {isActive && (
                 <button onClick={() => toggleItem('i539PdfUrl')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
-                  <RiErrorWarningLine className="text-sm" /> {t.processDetail.officialForms.reject}
+                  <RiErrorWarningLine className="text-sm" /> Select
                 </button>
               )}
             </div>
           </div>
         </div>
+        {isActive && (
+          <div className="flex items-center gap-4 pt-4 border-t border-border mt-4">
+            <button
+              onClick={() => setShowRejectionModal(true)}
+              className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
+            >
+              <RiCloseLine className="text-xl" /> {t.cases.actions.reject}
+            </button>
+            <button
+              onClick={() => handleApproveStep()}
+              disabled={isSubmitting}
+              className="flex-1 bg-success text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-success/20"
+            >
+              {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.cases.actions.approve}</>}
+            </button>
+          </div>
+        )}
       </CollapsibleStep>
     );
   };
 
   const renderCoverLetterAdmin = () => {
     if (!(proc.step_data as any)?.coverLetter) return null;
-    const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const stepId = `${prefix}analysis_presentation_letter`;
+    const stepId =
+      proc.service_slug === "extensao-status"
+        ? "eos_admin_cover_analysis"
+        : "cos_analysis_presentation_letter";
     const coverLetterIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
     const isActive = coverLetterIdx !== -1 && currentStepIdx === coverLetterIdx;
     const isPast = coverLetterIdx !== -1 && currentStepIdx > coverLetterIdx;
@@ -1726,6 +1809,11 @@ export default function AdminProcessDetailPage() {
             className={`w-full min-h-[500px] bg-card border border-border rounded-2xl p-8 overflow-y-auto shadow-sm prose prose-sm dark:prose-invert max-w-none text-text dark:text-white ${isActive ? 'outline-none focus:ring-4 focus:ring-primary/20' : 'opacity-80'}`}
             dangerouslySetInnerHTML={{ __html: coverLetterHtml.replace(/color:\s*#000;?/gi, '').replace(/color:\s*black;?/gi, '') }}
           />
+          {isActive && (
+            <div className="mt-4">
+              {renderCardActions(t.cases.actions.approve)}
+            </div>
+          )}
         </div>
       </CollapsibleStep>
     );
@@ -1733,34 +1821,52 @@ export default function AdminProcessDetailPage() {
 
   const renderFinalFormsAdmin = () => {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
-    const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
+    const isEOS = proc.service_slug === "extensao-status";
     const g1145PdfUrl = (proc.step_data as any)?.g1145PdfUrl as string;
     const g1450PdfUrl = (proc.step_data as any)?.g1450PdfUrl as string;
     if (!g1145PdfUrl && !g1450PdfUrl) return null;
-    const isActive = currentStepBaseId === `${prefix}analysis_final_forms`;
-    const finalFormsIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === `${prefix}analysis_final_forms`);
+    const finalFormsStepId = isEOS ? "eos_admin_final_review" : "cos_analysis_final_forms";
+    const isActive = currentStepBaseId === finalFormsStepId;
+    const finalFormsIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === finalFormsStepId);
     const isPast = finalFormsIdx !== -1 && currentStepIdx > finalFormsIdx;
 
     return (
       <CollapsibleStep title={`${t.processDetail.finalForms?.g1145} / ${t.processDetail.finalForms?.g1450}`} icon={RiBankCardLine} isActive={isActive} isPast={isPast}>
         <div className="space-y-6">
           {g1145PdfUrl && (
-            <div className="flex items-center justify-between p-6 bg-bg-subtle border border-border rounded-2xl">
+            <div className={`flex items-center justify-between p-6 border rounded-2xl transition-all ${selectedItems.includes('g1145PdfUrl') ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
               <div className="flex items-center gap-4">
                 <RiFileTextLine className="text-2xl text-info" />
                 <h4 className="text-sm font-black text-text">G-1145</h4>
               </div>
-              <a href={g1145PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-info text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
+              <div className="flex items-center gap-3">
+                <a href={g1145PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-info text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
+                {isActive && (
+                  <button onClick={() => toggleItem('g1145PdfUrl')} className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedItems.includes('g1145PdfUrl') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                    Select
+                  </button>
+                )}
+              </div>
             </div>
           )}
           {g1450PdfUrl && (
-            <div className="flex items-center justify-between p-6 bg-bg-subtle border border-border rounded-2xl">
+            <div className={`flex items-center justify-between p-6 border rounded-2xl transition-all ${selectedItems.includes('g1450PdfUrl') ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
               <div className="flex items-center gap-4">
                 <RiBankCardLine className="text-2xl text-primary" />
                 <h4 className="text-sm font-black text-text">G-1450</h4>
               </div>
-              <a href={g1450PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-primary text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
+              <div className="flex items-center gap-3">
+                <a href={g1450PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-primary text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
+                {isActive && (
+                  <button onClick={() => toggleItem('g1450PdfUrl')} className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedItems.includes('g1450PdfUrl') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                    Select
+                  </button>
+                )}
+              </div>
             </div>
+          )}
+          {isActive && (
+            renderCardActions(t.cases.actions.approve)
           )}
         </div>
       </CollapsibleStep>
@@ -1770,7 +1876,7 @@ export default function AdminProcessDetailPage() {
   const renderCOSDocumentsAdmin = () => {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const stepId = `${prefix}analysis_form_docs`;
+    const stepId = proc.service_slug === "extensao-status" ? "eos_admin_analysis" : `${prefix}analysis_form_docs`;
     const docsIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
     const isActive = docsIdx !== -1 && currentStepIdx === docsIdx;
     const isPast = docsIdx !== -1 && currentStepIdx > docsIdx;
@@ -1779,31 +1885,36 @@ export default function AdminProcessDetailPage() {
     if (Object.keys(docs).length === 0) return null;
 
     return (
-      <CollapsibleStep title={t.analysisPanel.clientDocuments} icon={RiFileUploadLine} isActive={isActive} isPast={isPast}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Object.entries(docs).map(([key, path]) => {
-            if (key === 'i20_document' || key === 'sevis_receipt') return null; // Handled in a separate step
-            const url = supabase.storage.from("aplikei-profiles").getPublicUrl(path).data.publicUrl;
-            const isSelected = selectedItems.includes(`docs.${key}`);
+      <CollapsibleStep title={t.analysisPanel.clientDocuments} icon={RiFileUploadLine} isActive={isActive} isPast={isPast} badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}>
+        <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Object.entries(docs).map(([key, path]) => {
+              if (key === 'i20_document' || key === 'sevis_receipt') return null;
+              const url = supabase.storage.from("aplikei-profiles").getPublicUrl(path).data.publicUrl;
+              const isSelected = selectedItems.includes(`docs.${key}`);
 
-            return (
-              <div key={key} className={`p-4 rounded-2xl border transition-all ${isSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-[10px] font-black text-text uppercase tracking-tight truncate pr-2">
+              return (
+                <div key={key} className={`p-4 rounded-2xl border flex flex-col transition-all ${isSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+                  <h4 className="text-[10px] font-black text-text uppercase tracking-tight truncate mb-3">
                     {key.replace(/_/g, ' ')}
                   </h4>
-                  {isActive && (
-                    <button onClick={() => toggleItem(`docs.${key}`)} className={`p-1.5 rounded-lg transition-all ${isSelected ? 'bg-danger text-white' : 'text-text-muted hover:bg-bg-subtle'}`}>
-                      <RiErrorWarningLine className="text-sm" />
-                    </button>
-                  )}
+                  <div className="flex gap-2 mt-auto">
+                    <a href={url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
+                      {t.processDetail.officialForms.viewPdf}
+                    </a>
+                    {isActive && (
+                      <button onClick={() => toggleItem(`docs.${key}`)} className={`flex-1 flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${isSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                        <RiErrorWarningLine className="text-sm" /> Select
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <a href={url} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
-                  {t.processDetail.officialForms.viewPdf}
-                </a>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+          {isActive && (
+            renderCardActions(t.cases.actions.approve)
+          )}
         </div>
       </CollapsibleStep>
     );
@@ -1839,7 +1950,7 @@ export default function AdminProcessDetailPage() {
                   </a>
                   {isActive && (
                     <button onClick={() => toggleItem('docs.i20_document')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.i20_document') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
-                      {t.processDetail.i20Sevis.rejectBtn}
+                      Select
                     </button>
                   )}
                 </div>
@@ -1857,7 +1968,7 @@ export default function AdminProcessDetailPage() {
                   </a>
                   {isActive && (
                     <button onClick={() => toggleItem('docs.sevis_receipt')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.sevis_receipt') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
-                      {t.processDetail.i20Sevis.rejectBtn}
+                      Select
                     </button>
                   )}
                 </div>
@@ -1865,14 +1976,7 @@ export default function AdminProcessDetailPage() {
             )}
           </div>
           {isActive && (
-            <div className="flex items-center gap-4 pt-4 border-t border-border">
-              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10">
-                <RiCloseLine className="text-xl" /> {t.processDetail.i20Sevis.requestCorrection}
-              </button>
-              <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-success text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-success/20">
-                {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.i20Sevis.approveBtn}</>}
-              </button>
-            </div>
+            renderCardActions(t.processDetail.i20Sevis.approveBtn, "success", t.processDetail.i20Sevis.requestCorrection)
           )}
         </div>
       </CollapsibleStep>
@@ -1908,7 +2012,7 @@ export default function AdminProcessDetailPage() {
                   </a>
                   {isActive && (
                     <button onClick={() => toggleItem('docs.i20_document')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${isI20Selected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
-                      {t.processDetail.i20Sevis.rejectBtn}
+                      Select
                     </button>
                   )}
                 </div>
@@ -1916,14 +2020,7 @@ export default function AdminProcessDetailPage() {
             )}
           </div>
           {isActive && (
-            <div className="flex items-center gap-4 pt-4 border-t border-border">
-              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10">
-                <RiCloseLine className="text-xl" /> {t.processDetail.i20Sevis.requestCorrection}
-              </button>
-              <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-primary text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/20">
-                {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.f1Documents.approveBtn}</>}
-              </button>
-            </div>
+            renderCardActions(t.processDetail.f1Documents.approveBtn, "primary", t.processDetail.i20Sevis.requestCorrection)
           )}
         </div>
       </CollapsibleStep>
@@ -1955,7 +2052,7 @@ export default function AdminProcessDetailPage() {
                 <h4 className="font-black text-text text-lg mb-1">{t.processDetail.f1FinalDocs.ds160Signed}</h4>
                 <div className="flex gap-3 w-full mt-4">
                   <a href={ds160Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm"><RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}</a>
-                  {isActive && <button onClick={() => toggleItem('docs.ds160_assinada')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}</button>}
+                  {isActive && <button onClick={() => toggleItem('docs.ds160_assinada')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> Select</button>}
                 </div>
               </div>
             )}
@@ -1965,16 +2062,13 @@ export default function AdminProcessDetailPage() {
                 <h4 className="font-black text-text text-lg mb-1">{t.processDetail.f1FinalDocs.finalProof}</h4>
                 <div className="flex gap-3 w-full mt-4">
                   <a href={comprovanteUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm"><RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}</a>
-                  {isActive && <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}</button>}
+                  {isActive && <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> Select</button>}
                 </div>
               </div>
             )}
           </div>
           {isActive && (
-            <div className="flex items-center gap-4 pt-4 border-t border-border">
-              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"><RiCloseLine className="text-xl" /> {t.processDetail.i20Sevis.requestCorrection}</button>
-              <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-primary text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/20">{isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.f1FinalDocs.approveBtn}</>}</button>
-            </div>
+            renderCardActions(t.processDetail.f1FinalDocs.approveBtn, "primary", t.processDetail.i20Sevis.requestCorrection)
           )}
         </div>
       </CollapsibleStep>
@@ -2025,7 +2119,7 @@ export default function AdminProcessDetailPage() {
                   </a>
                   {isActive && (
                     <button onClick={() => toggleItem('docs.ds160_assinada')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
-                      <RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}
+                      <RiErrorWarningLine className="text-sm" /> Select
                     </button>
                   )}
                 </div>
@@ -2044,7 +2138,7 @@ export default function AdminProcessDetailPage() {
                   </a>
                   {isActive && (
                     <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
-                      <RiErrorWarningLine className="text-sm" /> {t.processDetail.i20Sevis.rejectBtn}
+                      <RiErrorWarningLine className="text-sm" /> Select
                     </button>
                   )}
                 </div>
@@ -2052,23 +2146,7 @@ export default function AdminProcessDetailPage() {
             )}
           </div>
 
-          {isActive && (
-            <div className="flex items-center gap-4 pt-4 border-t border-border">
-              <button
-                onClick={() => setShowRejectionModal(true)}
-                className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
-              >
-                <RiCloseLine className="text-xl" /> {t.processDetail.i20Sevis.requestCorrection}
-              </button>
-              <button
-                onClick={() => handleApproveStep()}
-                disabled={isSubmitting}
-                className="flex-1 bg-success hover:bg-success/90 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-success/20"
-              >
-                {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.b1b2FinalDocs.approveBtn}</>}
-              </button>
-            </div>
-          )}
+          {isActive && renderCardActions(t.processDetail.b1b2FinalDocs.approveBtn, "success", t.processDetail.i20Sevis.requestCorrection)}
         </div>
       </CollapsibleStep>
     );
@@ -2129,23 +2207,7 @@ export default function AdminProcessDetailPage() {
             )}
           </div>
 
-          {isActive && proc.status === "awaiting_review" && casvDate && (
-            <div className="flex items-center gap-4 pt-2 border-t border-border">
-              <button
-                onClick={() => setShowRejectionModal(true)}
-                className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
-              >
-                <RiCloseLine className="text-xl" /> {t.processDetail.casv.requestAdjustment}
-              </button>
-              <button
-                onClick={() => handleApproveStep()}
-                disabled={isSubmitting}
-                className="flex-1 bg-success hover:bg-success/90 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-success/20"
-              >
-                {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.casv.confirmBtn}</>}
-              </button>
-            </div>
-          )}
+          {isActive && proc.status === "awaiting_review" && casvDate && renderCardActions(t.processDetail.casv.confirmBtn, "success", t.processDetail.casv.requestAdjustment)}
         </div>
       </CollapsibleStep>
     );
@@ -2184,13 +2246,7 @@ export default function AdminProcessDetailPage() {
               <p className="text-xs text-text-muted font-medium mb-4 italic">
                 {t.processDetail.accountCreation.instruction}
               </p>
-              <button
-                onClick={() => handleApproveStep()}
-                disabled={isSubmitting}
-                className="w-full bg-primary text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/20"
-              >
-                {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.accountCreation.confirmBtn}</>}
-              </button>
+              {renderCardActions(t.processDetail.accountCreation.confirmBtn, "primary")}
             </div>
           )}
         </div>
@@ -2264,11 +2320,372 @@ export default function AdminProcessDetailPage() {
               </div>
               <div className="flex gap-2">
                 <a href={finalPackageUrl} target="_blank" rel="noreferrer" className="bg-card border border-border text-text px-6 py-2.5 rounded-xl font-black text-[10px] uppercase flex items-center gap-2"><RiDownload2Line /> {t.processDetail.finalPackage.reviewPdf}</a>
-                <button onClick={() => handleApproveStep()} className="px-8 py-2.5 bg-success text-white font-black text-[10px] uppercase rounded-xl transition-all">{t.processDetail.finalPackage.approveBtn}</button>
               </div>
             </div>
+            {isActive && renderCardActions(t.processDetail.finalPackage.approveBtn)}
           </div>
         )}
+      </CollapsibleStep>
+    );
+  };
+
+  const renderMotionAcquisitionAdmin = () => {
+    if (!proc.service_slug.includes("consultancy-motion-")) return null;
+    const acquisitionIdx = effectiveSteps.findIndex((s) => normalizeLegacyStepId(s.id) === "cos_motion_acquisition");
+    if (acquisitionIdx === -1) return null;
+    const isActive = currentStepIdx === acquisitionIdx;
+    const isPast = currentStepIdx > acquisitionIdx;
+    const stepData = (proc.step_data || {}) as Record<string, unknown>;
+    const purchases = Array.isArray(stepData.purchases) ? (stepData.purchases as Array<{ slug?: string; created_at?: string; date?: string }>) : [];
+    const hasPaid = purchases.some((p) =>
+      [
+        "analysis-motion-cos",
+        "analysis-motion-eos",
+        "apoio-rfe-motion-inicio",
+      ].includes(String(p.slug || "").toLowerCase()),
+    );
+    const paidAt = purchases.find((p) => [
+      "analysis-motion-cos",
+      "analysis-motion-eos",
+      "apoio-rfe-motion-inicio",
+    ].includes(String(p.slug || "").toLowerCase()))?.created_at
+      || purchases.find((p) => [
+        "analysis-motion-cos",
+        "analysis-motion-eos",
+        "apoio-rfe-motion-inicio",
+      ].includes(String(p.slug || "").toLowerCase()))?.date;
+
+    return (
+      <CollapsibleStep title="Motion - Adquirir" icon={RiMoneyDollarCircleLine} isActive={isActive} isPast={isPast}>
+        <div className="p-5 rounded-2xl bg-bg-subtle border border-border text-left">
+          <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Pagamento</p>
+          <p className={`text-sm font-black ${hasPaid ? "text-success" : "text-text"}`}>
+            {hasPaid ? "Pago pelo cliente" : "Aguardando pagamento"}
+          </p>
+          {paidAt && (
+            <p className="text-[10px] font-bold text-text-muted mt-2 uppercase tracking-widest">
+              {new Date(paidAt).toLocaleString("pt-BR")}
+            </p>
+          )}
+        </div>
+      </CollapsibleStep>
+    );
+  };
+
+  const renderMotionInstructionAdmin = () => {
+    if (!proc.service_slug.includes("consultancy-motion-")) return null;
+    const instructionIdx = effectiveSteps.findIndex((s) => normalizeLegacyStepId(s.id) === "cos_motion_instruction");
+    if (instructionIdx === -1) return null;
+    const isActive = currentStepIdx === instructionIdx;
+    const isPast = currentStepIdx > instructionIdx;
+    const stepData = (proc.step_data || {}) as Record<string, unknown>;
+    const reason = String(stepData.motion_reason || "").trim();
+    const docs = ((stepData.docs || {}) as Record<string, string>);
+    const denialPath = docs.motion_denial_letter;
+    const supportPath = docs.motion_supporting_docs;
+    const denialUrl = denialPath ? supabase.storage.from("aplikei-profiles").getPublicUrl(denialPath).data.publicUrl : "";
+    const supportUrl = supportPath ? supabase.storage.from("aplikei-profiles").getPublicUrl(supportPath).data.publicUrl : "";
+    const submittedAt = String(stepData.motion_submitted_at || "").trim();
+    const instructionHistory = Array.isArray(stepData.motion_instruction_history)
+      ? (stepData.motion_instruction_history as Array<Record<string, unknown>>)
+      : [];
+    const proposalHistory = Array.isArray(stepData.motion_proposal_history)
+      ? (stepData.motion_proposal_history as Array<Record<string, unknown>>)
+      : [];
+
+    return (
+      <CollapsibleStep title="Motion - Suas Informações" icon={RiFileTextLine} isActive={isActive} isPast={isPast}>
+        <div className="space-y-4 text-left">
+          <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
+            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Motivo enviado pelo cliente</p>
+            <p className="text-sm font-bold text-text whitespace-pre-wrap">{reason || "Cliente ainda não enviou o motivo."}</p>
+            {submittedAt && (
+              <p className="text-[10px] font-bold text-text-muted mt-3 uppercase tracking-widest">
+                Enviado em {new Date(submittedAt).toLocaleString("pt-BR")}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-2xl bg-bg-subtle border border-border">
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Carta de negativa</p>
+              {denialUrl ? (
+                <a href={denialUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
+                  <RiExternalLinkLine /> Visualizar arquivo
+                </a>
+              ) : (
+                <p className="text-xs font-bold text-text-muted">Não enviado.</p>
+              )}
+            </div>
+
+            <div className="p-4 rounded-2xl bg-bg-subtle border border-border">
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Documentos de apoio</p>
+              {supportUrl ? (
+                <a href={supportUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
+                  <RiExternalLinkLine /> Visualizar arquivo
+                </a>
+              ) : (
+                <p className="text-xs font-bold text-text-muted">Não enviado.</p>
+              )}
+            </div>
+          </div>
+
+          {instructionHistory.length > 0 && (
+            <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3">Histórico de envios</p>
+              <div className="space-y-3">
+                {[...instructionHistory].reverse().map((entry, idx) => {
+                  const entryReason = String(entry.reason || "").trim();
+                  const entryAt = String(entry.submitted_at || "").trim();
+                  const entryDocs = (entry.docs || {}) as Record<string, string>;
+                  const entryDenial = entryDocs.motion_denial_letter
+                    ? supabase.storage.from("aplikei-profiles").getPublicUrl(entryDocs.motion_denial_letter).data.publicUrl
+                    : "";
+                  const entrySupport = entryDocs.motion_supporting_docs
+                    ? supabase.storage.from("aplikei-profiles").getPublicUrl(entryDocs.motion_supporting_docs).data.publicUrl
+                    : "";
+
+                  return (
+                    <div key={`motion-history-${idx}`} className="p-4 rounded-xl bg-card border border-border">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
+                        Envio {instructionHistory.length - idx}
+                        {entryAt ? ` • ${new Date(entryAt).toLocaleString("pt-BR")}` : ""}
+                      </p>
+                      <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">
+                        {entryReason || "Sem descrição"}
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        {entryDenial && (
+                          <a href={entryDenial} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
+                            <RiExternalLinkLine /> Carta de negativa
+                          </a>
+                        )}
+                        {entrySupport && (
+                          <a href={entrySupport} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
+                            <RiExternalLinkLine /> Documento de apoio
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {proposalHistory.length > 0 && (
+            <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3">Histórico de propostas</p>
+              <div className="space-y-3">
+                {[...proposalHistory].reverse().map((entry, idx) => {
+                  const entryText = String(entry.proposal_text || "").trim();
+                  const entryAmount = Number(entry.proposal_amount || 0);
+                  const entryAt = String(entry.sent_at || "").trim();
+
+                  return (
+                    <div key={`motion-proposal-history-${idx}`} className="p-4 rounded-xl bg-card border border-border">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
+                        Proposta {proposalHistory.length - idx}
+                        {entryAt ? ` • ${new Date(entryAt).toLocaleString("pt-BR")}` : ""}
+                      </p>
+                      <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">
+                        {entryText || "Sem descrição"}
+                      </p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-primary">
+                        Valor: USD {entryAmount.toFixed(2)}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </CollapsibleStep>
+    );
+  };
+
+  const renderMotionProposalHistoryAdmin = () => {
+    if (!proc.service_slug.includes("consultancy-motion-")) return null;
+    const proposalIdx = effectiveSteps.findIndex((s) => normalizeLegacyStepId(s.id) === "cos_motion_proposal");
+    if (proposalIdx === -1) return null;
+    const isActive = currentStepIdx === proposalIdx;
+    const isPast = currentStepIdx > proposalIdx;
+    if (!isActive && !isPast) return null;
+
+    const stepData = (proc.step_data || {}) as Record<string, unknown>;
+    const purchases = Array.isArray(stepData.purchases)
+      ? (stepData.purchases as Array<{ slug?: string; created_at?: string; date?: string }>)
+      : [];
+    const proposalHistory = Array.isArray(stepData.motion_proposal_history)
+      ? (stepData.motion_proposal_history as Array<Record<string, unknown>>)
+      : [];
+    const latestText = String(stepData.motion_proposal_text || "").trim();
+    const latestAmount = Number(stepData.motion_proposal_amount ?? stepData.motion_amount ?? 0);
+    const latestSentAt = String(stepData.motion_proposal_sent_at || "").trim();
+    const motionFinalResult = String(stepData.motion_final_result || "").toLowerCase();
+    const isMotionRejected = motionFinalResult === "rejected" || motionFinalResult === "denied";
+    const isMotionApproved = motionFinalResult === "approved";
+    const isProposalPaid =
+      Boolean(stepData.motion_proposal_paid) ||
+      Boolean(stepData.motion_payment_completed_at) ||
+      purchases.some((p) =>
+        ["consultancy-motion-cos", "consultancy-motion-eos", "proposta-rfe-motion"].includes(
+          String(p.slug || "").toLowerCase(),
+        ),
+      );
+    const proposalPaidAt = String(stepData.motion_payment_completed_at || "").trim()
+      || purchases.find((p) =>
+        ["consultancy-motion-cos", "consultancy-motion-eos", "proposta-rfe-motion"].includes(
+          String(p.slug || "").toLowerCase(),
+        ),
+      )?.created_at
+      || purchases.find((p) =>
+        ["consultancy-motion-cos", "consultancy-motion-eos", "proposta-rfe-motion"].includes(
+          String(p.slug || "").toLowerCase(),
+        ),
+      )?.date
+      || "";
+
+    return (
+      <CollapsibleStep title="Motion - Proposal" icon={RiShieldCheckLine} isActive={isActive} isPast={isPast}>
+        <div className="space-y-4 text-left">
+          {(isMotionRejected || isMotionApproved) && (
+            <div className={`p-4 rounded-2xl border ${isMotionRejected ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"}`}>
+              <p className={`text-[10px] font-black uppercase tracking-widest ${isMotionRejected ? "text-red-700" : "text-emerald-700"}`}>
+                {isMotionRejected ? "Motion reprovado pelo cliente" : "Motion aprovado pelo cliente"}
+              </p>
+            </div>
+          )}
+
+          <div className={`p-4 rounded-2xl border ${isProposalPaid ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"}`}>
+            <p className={`text-[10px] font-black uppercase tracking-widest ${isProposalPaid ? "text-emerald-700" : "text-amber-700"}`}>
+              {isProposalPaid ? "Motion - Proposal paga pelo cliente" : "Aguardando pagamento da Motion - Proposal"}
+            </p>
+            {isProposalPaid && proposalPaidAt && (
+              <p className="text-[10px] font-bold text-emerald-700/80 mt-1 uppercase tracking-widest">
+                {new Date(proposalPaidAt).toLocaleString("pt-BR")}
+              </p>
+            )}
+          </div>
+
+          {(latestText || latestAmount > 0 || latestSentAt || proposalHistory.length > 0) && (
+            <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Proposta enviada</p>
+              <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">{latestText || "Sem descrição"}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-primary">
+                Valor: USD {latestAmount.toFixed(2)}
+              </p>
+              {latestSentAt && (
+                <p className="text-[10px] font-bold text-text-muted mt-2 uppercase tracking-widest">
+                  {new Date(latestSentAt).toLocaleString("pt-BR")}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </CollapsibleStep>
+    );
+  };
+
+  const renderRFEAcquisitionAdmin = () => {
+    if (!proc.service_slug.includes("analysis-rfe-")) return null;
+    const acquisitionIdx = effectiveSteps.findIndex((s) => normalizeLegacyStepId(s.id) === "cos_rfe_explanation");
+    if (acquisitionIdx === -1) return null;
+    const isActive = currentStepIdx === acquisitionIdx;
+    const isPast = currentStepIdx > acquisitionIdx;
+    const stepData = (proc.step_data || {}) as Record<string, unknown>;
+    const hasPaid = Boolean(stepData.rfe_initial_paid) || Boolean(stepData.rfe_analysis_paid);
+    return (
+      <CollapsibleStep title="RFE - Adquirir" icon={RiMoneyDollarCircleLine} isActive={isActive} isPast={isPast}>
+        <div className="p-5 rounded-2xl bg-bg-subtle border border-border text-left">
+          <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Pagamento</p>
+          <p className={`text-sm font-black ${hasPaid ? "text-success" : "text-text"}`}>
+            {hasPaid ? "Pago pelo cliente" : "Aguardando pagamento"}
+          </p>
+        </div>
+      </CollapsibleStep>
+    );
+  };
+
+  const renderRFEInstructionAdmin = () => {
+    if (!proc.service_slug.includes("analysis-rfe-")) return null;
+    const instructionIdx = effectiveSteps.findIndex((s) => normalizeLegacyStepId(s.id) === "cos_rfe_instruction");
+    if (instructionIdx === -1) return null;
+    const isActive = currentStepIdx === instructionIdx;
+    const isPast = currentStepIdx > instructionIdx;
+    const stepData = (proc.step_data || {}) as Record<string, unknown>;
+    const description = String(stepData.rfe_description || "").trim();
+    const docs = (stepData.docs || {}) as Record<string, string>;
+    const rfePath = docs.rfe_letter;
+    const rfeUrl = rfePath ? supabase.storage.from("aplikei-profiles").getPublicUrl(rfePath).data.publicUrl : "";
+    return (
+      <CollapsibleStep title="RFE - Suas Informações" icon={RiFileTextLine} isActive={isActive} isPast={isPast}>
+        <div className="space-y-4 text-left">
+          <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
+            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Descrição enviada pelo cliente</p>
+            <p className="text-sm font-bold text-text whitespace-pre-wrap">{description || "Cliente ainda não enviou a descrição."}</p>
+          </div>
+          <div className="p-4 rounded-2xl bg-bg-subtle border border-border">
+            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Carta RFE</p>
+            {rfeUrl ? (
+              <a href={rfeUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
+                <RiExternalLinkLine /> Visualizar arquivo
+              </a>
+            ) : (
+              <p className="text-xs font-bold text-text-muted">Não enviado.</p>
+            )}
+          </div>
+        </div>
+      </CollapsibleStep>
+    );
+  };
+
+  const renderRFEProposalHistoryAdmin = () => {
+    if (!proc.service_slug.includes("analysis-rfe-")) return null;
+    const proposalIdx = effectiveSteps.findIndex((s) => normalizeLegacyStepId(s.id) === "cos_rfe_accept_proposal");
+    if (proposalIdx === -1) return null;
+    const isActive = currentStepIdx === proposalIdx;
+    const isPast = currentStepIdx > proposalIdx;
+    if (!isActive && !isPast) return null;
+
+    const stepData = (proc.step_data || {}) as Record<string, unknown>;
+    const latestText = String(stepData.rfe_proposal_text || "").trim();
+    const latestAmount = Number(stepData.rfe_proposal_amount || 0);
+    const latestSentAt = String(stepData.rfe_proposal_sent_at || "").trim();
+    const result = String(stepData.uscis_rfe_result || "").toLowerCase();
+    const isRejected = result === "denied" || result === "rejected";
+    const isApproved = result === "approved";
+    const isPaid = Boolean(stepData.rfe_proposal_paid) || Boolean(stepData.rfe_payment_completed_at);
+
+    return (
+      <CollapsibleStep title="RFE - Proposta" icon={RiShieldCheckLine} isActive={isActive} isPast={isPast}>
+        <div className="space-y-4 text-left">
+          {(isRejected || isApproved) && (
+            <div className={`p-4 rounded-2xl border ${isRejected ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"}`}>
+              <p className={`text-[10px] font-black uppercase tracking-widest ${isRejected ? "text-red-700" : "text-emerald-700"}`}>
+                {isRejected ? "RFE reprovado pelo cliente" : "RFE aprovado pelo cliente"}
+              </p>
+            </div>
+          )}
+          <div className={`p-4 rounded-2xl border ${isPaid ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"}`}>
+            <p className={`text-[10px] font-black uppercase tracking-widest ${isPaid ? "text-emerald-700" : "text-amber-700"}`}>
+              {isPaid ? "RFE - Proposta paga pelo cliente" : "Aguardando pagamento da RFE - Proposta"}
+            </p>
+          </div>
+          {(latestText || latestAmount > 0 || latestSentAt) && (
+            <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Proposta enviada</p>
+              <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">{latestText || "Sem descrição"}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-primary">Valor: USD {latestAmount.toFixed(2)}</p>
+              {latestSentAt && (
+                <p className="text-[10px] font-bold text-text-muted mt-2 uppercase tracking-widest">
+                  {new Date(latestSentAt).toLocaleString("pt-BR")}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </CollapsibleStep>
     );
   };
@@ -2277,7 +2694,7 @@ export default function AdminProcessDetailPage() {
     <div className="p-8 max-w-6xl mx-auto pb-24 bg-bg min-h-screen">
       <div className="flex items-start justify-between mb-12">
         <div className="flex items-center gap-6">
-          <button onClick={() => navigate(`${processRoutePrefix}/processes`)} className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-text-muted hover:text-primary transition-all shadow-sm">
+          <button onClick={() => navigate(isRecoveryChildView ? `${processRoutePrefix}/cases/${parentIdFromQuery}` : `${processRoutePrefix}/processes`)} className="w-12 h-12 rounded-2xl bg-card border border-border flex items-center justify-center text-text-muted hover:text-primary transition-all shadow-sm">
             <RiArrowLeftLine className="text-xl" />
           </button>
           {officeLogoUrl && (
@@ -2308,16 +2725,21 @@ export default function AdminProcessDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-8">
-
-
-
           {(() => {
             const allSteps = [
-              renderFormData(),
+              renderMotionAcquisitionAdmin(),
+              renderMotionInstructionAdmin(),
+              renderMotionProposalHistoryAdmin(),
+              renderRFEAcquisitionAdmin(),
+              renderRFEInstructionAdmin(),
+              renderRFEProposalHistoryAdmin(),
+              !proc.service_slug.includes("consultancy-motion-") &&
+                !proc.service_slug.includes("analysis-rfe-") &&
+                renderFormData(),
               renderCOSDocumentsAdmin(),
+              renderCoverLetterAdmin(),
               renderOfficialForms(),
               renderCOSAnalysisI20SevisAdmin(),
-              renderCoverLetterAdmin(),
               renderFinalFormsAdmin(),
               renderB1B2CredentialsAdmin(),
               renderB1B2FinalDocsAdmin(),
@@ -2337,7 +2759,8 @@ export default function AdminProcessDetailPage() {
                   <MotionProposalPanel proc={proc} onRefresh={fetchProcessData} isActive={true} />
                 </CollapsibleStep>
               ),
-              currentStepBaseId === "cos_rfe_end" && (
+              currentStepBaseId === "cos_rfe_end" &&
+                !proc.service_slug.includes("analysis-rfe-") && (
                 <CollapsibleStep key="cos_rfe_end" title={t.processDetail.rfe.finalPackageTitle} icon={RiFileUploadLine} isActive={true} isPast={false} badge={t.shared.administrativeAction}>
                   <RFEFinalShipPanel proc={proc} onApprove={handleApproveStep} onRefresh={fetchProcessData} isActive={true} />
                 </CollapsibleStep>
@@ -2355,14 +2778,71 @@ export default function AdminProcessDetailPage() {
             );
           })()}
 
-          {currentStep?.type === "admin_action" && !["cos_rfe_proposal", "cos_motion_proposal", "cos_rfe_end", "b1b2_admin_credentials", "b1b2_admin_final_analysis", "b1b2_casv_scheduling", "b1b2_admin_account_creation", "b1b2_admin_mrv_setup", "b1b2_final_scheduling"].includes(currentStepBaseId || "") && (
-            <div className="flex items-center gap-4 pt-4">
-              <button onClick={() => setShowRejectionModal(true)} className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase transition-all flex items-center justify-center gap-2">
-                <RiCloseLine className="text-xl" /> {t.analysisPanel.actions.requestMoreInfo}
-              </button>
-              <button onClick={() => handleApproveStep()} disabled={isSubmitting} className="flex-1 bg-success hover:bg-success/90 text-white h-14 rounded-2xl font-black text-xs uppercase transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.cases.actions.approve}</>}
-              </button>
+          {!isRecoveryChildView && recoveryChildren.length > 0 && (
+            <div className="bg-card rounded-[32px] border border-border shadow-sm p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <RiGitBranchLine className="text-sm" />
+                </div>
+                <h3 className="font-black text-text text-sm uppercase tracking-tight">Recovery Products</h3>
+              </div>
+              <div className="space-y-2">
+                {recoveryChildren.map((child) => {
+                  const sd = (child.step_data || {}) as Record<string, unknown>;
+                  const childFlow = String(
+                    sd.workflow_type ||
+                    (child.service_slug.toLowerCase().includes("motion") ? "motion" : "rfe"),
+                  ).toLowerCase();
+                  const childService = getServiceBySlug(child.service_slug);
+                  const childCurrentStep = Math.max(0, Number(child.current_step ?? 0));
+                  const childStepType = childService?.steps?.[childCurrentStep]?.type;
+                  const needsCustomerAction = child.status === "active" && (childStepType === "form" || childStepType === "upload");
+                  const motionResult = String(sd.motion_final_result || "").toLowerCase();
+                  const rfeResult = String(sd.uscis_rfe_result || sd.rfe_final_result || "").toLowerCase();
+                  const isRejected =
+                    motionResult === "rejected" ||
+                    motionResult === "denied" ||
+                    rfeResult === "rejected" ||
+                    rfeResult === "denied";
+                  const isApproved =
+                    !isRejected &&
+                    (motionResult === "approved" || rfeResult === "approved");
+                  const statusLabel = isApproved ? "Aprovado" : isRejected ? "Reprovado" : "Em andamento";
+                  const statusClass = isApproved
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    : isRejected
+                    ? "bg-red-50 text-red-700 border-red-200"
+                    : "bg-amber-50 text-amber-700 border-amber-200";
+
+                  return (
+                    <button
+                      key={child.id}
+                      onClick={() => navigate(`${processRoutePrefix}/cases/${child.id}?parentId=${proc.id}`)}
+                      className="w-full flex items-center justify-between rounded-xl border border-border bg-bg-subtle px-4 py-3 text-left hover:border-primary/40 hover:bg-primary/5 transition-all"
+                    >
+                      <div>
+                        <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-text">
+                          <RiGitBranchLine className="text-primary" />
+                          {childFlow === "motion" ? "Motion" : "RFE"}
+                        </p>
+                        <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-text-muted">
+                          {child.service_slug}
+                        </p>
+                        <span className={`mt-2 inline-flex rounded-lg border px-2 py-0.5 text-[9px] font-black uppercase tracking-widest ${statusClass}`}>
+                          {statusLabel}
+                        </span>
+                        {needsCustomerAction && (
+                          <span className="ml-2 mt-2 inline-flex items-center gap-1 rounded-lg border border-primary/20 bg-primary/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-primary">
+                            <RiUser3Line className="text-[10px]" />
+                            Customer action
+                          </span>
+                        )}
+                      </div>
+                      <RiArrowRightLine className="text-text-muted" />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

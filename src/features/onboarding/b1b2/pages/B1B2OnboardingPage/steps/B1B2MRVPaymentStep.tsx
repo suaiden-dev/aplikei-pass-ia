@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   RiBankCard2Line,
@@ -26,11 +26,40 @@ interface B1B2MRVPaymentStepProps {
 export function B1B2MRVPaymentStep({ procId, stepData, nextStepIdx = 10, onComplete }: B1B2MRVPaymentStepProps) {
   const [method, setMethod] = useState<"credit_card" | "boleto" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [freshStepData, setFreshStepData] = useState<Record<string, unknown>>(stepData);
   const t = useT("visas");
 
-  const login = (stepData.mrv_login as string) || t.onboardingPage.paymentPending.notInformed;
-  const password = (stepData.mrv_password as string) || t.onboardingPage.paymentPending.notInformed;
-  const boletoPath = stepData.mrv_boleto_path as string;
+  useEffect(() => {
+    let active = true;
+
+    async function loadFreshStepData() {
+      const { data, error } = await supabase
+        .from("user_services")
+        .select("step_data")
+        .eq("id", procId)
+        .maybeSingle();
+
+      if (!active || error) return;
+      if (data?.step_data && typeof data.step_data === "object") {
+        setFreshStepData(data.step_data as Record<string, unknown>);
+      }
+    }
+
+    void loadFreshStepData();
+    return () => {
+      active = false;
+    };
+  }, [procId]);
+
+  const login =
+    (freshStepData.mrv_login as string) ||
+    (freshStepData.consular_login as string) ||
+    t.onboardingPage.paymentPending.notInformed;
+  const password =
+    (freshStepData.mrv_password as string) ||
+    (freshStepData.consular_password as string) ||
+    t.onboardingPage.paymentPending.notInformed;
+  const boletoPath = freshStepData.mrv_boleto_path as string;
   const boletoUrl = boletoPath ? supabase.storage.from("aplikei-profiles").getPublicUrl(boletoPath).data.publicUrl : null;
 
   const handleConfirm = async () => {

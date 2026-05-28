@@ -40,6 +40,7 @@ function isAnalysisSlug(slug: string): boolean {
     lower.startsWith("revisao-") ||
     lower.startsWith("mentoria-") ||
     lower.startsWith("consultoria-") ||
+    lower.startsWith("consultancy-") ||
     lower.startsWith("dependente-") ||
     lower.startsWith("slot-") ||
     lower.includes("rfe") ||
@@ -51,16 +52,42 @@ export function useMyProcesses(userId: string | undefined) {
   const queryClient = useQueryClient();
   const { data: userServices = [], isLoading } = useUserProcesses(userId);
 
-  const baseProducts = useMemo(
-    () =>
-      userServices
-        .filter((s) => !isAnalysisSlug(s.service_slug))
-        .sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()),
-    [userServices],
-  );
+  const grouped = useMemo(() => {
+    const byId = new Map(userServices.map((s) => [s.id, s]));
+    const childrenByParentId: Record<string, UserService[]> = {};
+    const parentCandidates: UserService[] = [];
+
+    for (const service of userServices) {
+      const sd = (service.step_data ?? {}) as Record<string, unknown>;
+      const parentId = String(sd.parent_process_id ?? "").trim();
+
+      if (parentId && byId.has(parentId)) {
+        if (!childrenByParentId[parentId]) childrenByParentId[parentId] = [];
+        childrenByParentId[parentId].push(service);
+        continue;
+      }
+
+      // Keep main products as parents, but also preserve orphan/legacy rows as top-level
+      if (!isAnalysisSlug(service.service_slug) || !parentId) {
+        parentCandidates.push(service);
+      }
+    }
+
+    Object.keys(childrenByParentId).forEach((parentId) => {
+      childrenByParentId[parentId].sort(
+        (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime(),
+      );
+    });
+
+    parentCandidates.sort(
+      (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime(),
+    );
+
+    return { parentCandidates, childrenByParentId };
+  }, [userServices]);
 
   const others = useMemo(() => {
-    return baseProducts.filter((s) => {
+    return grouped.parentCandidates.filter((s) => {
       const sd = (s.step_data ?? {}) as Record<string, unknown>;
       const isConsular = s.service_slug.startsWith("visto-b1-b2") || s.service_slug.startsWith("visto-f1");
       const isCOS = s.service_slug === "troca-status" || s.service_slug === "extensao-status";
@@ -73,18 +100,18 @@ export function useMyProcesses(userId: string | undefined) {
       if (isCOS && (s.current_step ?? 0) >= 19) return true;
       return false;
     });
-  }, [baseProducts]);
+  }, [grouped.parentCandidates]);
 
   const activeProcesses = useMemo(
     () =>
-      baseProducts.filter(
+      grouped.parentCandidates.filter(
         (s) =>
           ACTIVE_STATUSES.includes(s.status ?? "") &&
           !hasApprovedOutcome(s) &&
           !hasDeniedOutcome(s) &&
           !others.find((o) => o.id === s.id),
       ),
-    [baseProducts, others],
+    [grouped.parentCandidates, others],
   );
 
   const refetch = () => queryClient.invalidateQueries({ queryKey: ["user-services", userId] });
@@ -92,6 +119,7 @@ export function useMyProcesses(userId: string | undefined) {
   return {
     activeProcesses,
     historyProcesses: others as UserService[],
+    childrenByParentId: grouped.childrenByParentId,
     userServices,
     isLoading,
     refetch,

@@ -27,6 +27,7 @@ export function isAnalysisSlug(slug: string): boolean {
     lower.startsWith("revisao-") ||
     lower.startsWith("mentoria-") ||
     lower.startsWith("consultoria-") ||
+    lower.startsWith("consultancy-") ||
     lower.startsWith("dependente-") ||
     lower.startsWith("slot-")
   );

@@ -1070,8 +1070,14 @@ export default function CaseOnboardingPage() {
         return null;
       }
 
+      const orderedStepsData = [...stepsData].sort(
+        (a, b) =>
+          ((a as { product_step?: { order?: number | null } }).product_step?.order ?? Number.MAX_SAFE_INTEGER) -
+          ((b as { product_step?: { order?: number | null } }).product_step?.order ?? Number.MAX_SAFE_INTEGER),
+      );
+
       // Fetch reviews for the first two steps (form + docs)
-      const firstTwoIds = (stepsData as {id: string}[]).slice(0, 2).map((s) => s.id);
+      const firstTwoIds = (orderedStepsData as {id: string}[]).slice(0, 2).map((s) => s.id);
       const { data: reviewsData } = await getSupabaseClient()!
         .schema("aplikei")
         .from("step_reviews")
@@ -1080,7 +1086,7 @@ export default function CaseOnboardingPage() {
         .order("created_at", { ascending: false });
 
       return {
-        steps: stepsData,
+        steps: orderedStepsData,
         reviews: reviewsData ?? [],
       };
     },

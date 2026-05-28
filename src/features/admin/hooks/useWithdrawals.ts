@@ -54,8 +54,7 @@ export function useWithdrawals(officeId?: string) {
       await notifyMaster({
         title: "New withdrawal request",
         body: `An office requested a withdrawal of $${Number(created?.amount || 0).toFixed(2)}.`,
-        // Pass withdrawal_id in metadata instead of serviceId to avoid FK violations
-        // if serviceId is strictly for user_services
+
         metadata: {
           office_id: created?.office_id,
           withdrawal_id: created?.id,

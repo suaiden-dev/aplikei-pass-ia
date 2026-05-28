@@ -142,6 +142,22 @@ Deno.serve(async (req: Request) => {
         const existingMetadata = existingOrder?.payment_metadata || {};
         const targetProcId = proc_id || processId || existingMetadata.proc_id || existingMetadata.parent_process_id || "";
         const parentServiceSlug = parent_service_slug || existingMetadata.parent_service_slug || "";
+        const recoverySlug = String(normalizedSlug || "").toLowerCase();
+        const isRecoveryChild =
+            recoverySlug.includes("motion") ||
+            recoverySlug.includes("rfe") ||
+            recoverySlug.includes("recovery-") ||
+            recoverySlug.startsWith("analise-") ||
+            recoverySlug.startsWith("analysis-") ||
+            recoverySlug.startsWith("apoio-");
+        if (isRecoveryChild && (!targetProcId || !parentServiceSlug)) {
+            console.warn("[create-parcelow-checkout] Recovery checkout without full parent metadata", {
+                slug: normalizedSlug,
+                targetProcId: targetProcId || null,
+                parentServiceSlug: parentServiceSlug || null,
+                order_id: orderUuid || null,
+            });
+        }
 
         const { error: orderError } = await supabase
             .from("orders")

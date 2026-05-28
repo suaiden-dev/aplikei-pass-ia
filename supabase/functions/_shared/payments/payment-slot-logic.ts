@@ -27,6 +27,32 @@ export function isAuxiliaryServiceSlug(serviceSlug: string): boolean {
     serviceSlug.includes("-support");
 }
 
+export function isRecoveryChildSlug(serviceSlug: string): boolean {
+  const slug = (serviceSlug || "").toLowerCase();
+  return [
+    "analysis-rfe-cos",
+    "analysis-rfe-eos",
+    "apoio-rfe-motion-inicio",
+    "analise-rfe-cos",
+    "apoio-rfe-cos",
+    "proposta-rfe-motion",
+    "consultancy-motion-cos",
+    "consultancy-motion-eos",
+    "analise-motion",
+    "analise-especialista-cos",
+    "suporte-rfe-cos",
+    "suporte-rfe-eos",
+    "recovery-cos",
+    "recovery-eos",
+  ].includes(slug);
+}
+
+function getRecoveryWorkflowType(serviceSlug: string): "motion" | "rfe" {
+  const slug = (serviceSlug || "").toLowerCase();
+  if (slug.includes("motion") || slug.includes("recovery-")) return "motion";
+  return "rfe";
+}
+
 function shouldForceStandaloneService(serviceSlug: string): boolean {
   const slug = (serviceSlug || "").toLowerCase();
   return (
@@ -314,7 +340,7 @@ async function mirrorPurchaseToParentProcess(data: {
         purchases: [...purchases, purchaseRecord],
       },
     })
-    .eq("id", targetProcId);
+    .eq("id", effectiveTargetProcId);
 }
 
 async function findExistingStandalonePurchaseProcess(data: {
@@ -337,6 +363,180 @@ async function findExistingStandalonePurchaseProcess(data: {
     const stepData = (candidate.step_data as Record<string, unknown>) || {};
     return hasMatchingPurchaseRecord(stepData.purchases, purchaseRecord);
   }) || null;
+}
+
+async function findExistingRecoveryChildByPurchaseRef(data: {
+  supabase: SupabaseClient;
+  user_id: string;
+  service_slug: string;
+  parent_process_id: string;
+  purchaseRecord: ReturnType<typeof buildPurchaseRecord>;
+  order_id?: string | null;
+}) {
+  const { supabase, user_id, service_slug, parent_process_id, purchaseRecord, order_id } = data;
+  const { data: candidates } = await supabase
+    .from("user_services")
+    .select("id, step_data")
+    .eq("user_id", user_id)
+    .eq("service_slug", service_slug)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  return (candidates || []).find((candidate: Record<string, unknown>) => {
+    const sd = (candidate.step_data as Record<string, unknown>) || {};
+    const purchaseRef = (sd.purchase_ref as Record<string, unknown>) || {};
+    const parentId = String(sd.parent_process_id || "").trim();
+    if (parentId !== parent_process_id) return false;
+    if (order_id && String(purchaseRef.order_id || "") === String(order_id)) return true;
+    if (purchaseRecord.id && String(purchaseRef.purchase_id || "") === String(purchaseRecord.id)) return true;
+    return hasMatchingPurchaseRecord(sd.purchases, purchaseRecord);
+  }) || null;
+}
+
+async function ensureConversationMessage(data: {
+  supabase: SupabaseClient;
+  processId: string;
+  senderId: string;
+  customerId: string;
+  officeId?: string | null;
+  content: string;
+}): Promise<void> {
+  const { supabase, processId, senderId, customerId, officeId, content } = data;
+  let finalOfficeId = officeId || null;
+
+  if (!finalOfficeId) {
+    const { data: processRow } = await supabase
+      .from("user_services")
+      .select("office_id")
+      .eq("id", processId)
+      .maybeSingle();
+    finalOfficeId = processRow?.office_id || null;
+  }
+
+  if (!finalOfficeId) {
+    const { data: accountRow } = await supabase
+      .from("user_accounts")
+      .select("office_id")
+      .eq("id", customerId)
+      .maybeSingle();
+    finalOfficeId = accountRow?.office_id || null;
+  }
+
+  const { data: convs, error: convsError } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("process_id", processId);
+  if (convsError) throw convsError;
+
+  const convIds = (convs || []).map((c) => c.id);
+  if (convIds.length > 0) {
+    const { data: existingMessage, error: existingError } = await supabase
+      .from("conversation_messages")
+      .select("id")
+      .in("conversation_id", convIds)
+      .limit(1)
+      .maybeSingle();
+    if (existingError) throw existingError;
+    if (existingMessage) return;
+  }
+
+  const { data: activeConversation, error: activeConversationError } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("process_id", processId)
+    .eq("is_closed", false)
+    .maybeSingle();
+  if (activeConversationError) throw activeConversationError;
+
+  let conversationId = activeConversation?.id as string | undefined;
+  if (!conversationId) {
+    const { data: createdConversation, error: createConversationError } = await supabase
+      .from("conversations")
+      .insert({
+        process_id: processId,
+        customer_id: customerId,
+        office_id: finalOfficeId,
+        is_closed: false,
+      })
+      .select("id")
+      .single();
+    if (createConversationError) throw createConversationError;
+    conversationId = createdConversation.id as string;
+  }
+
+  const { error: insertMessageError } = await supabase
+    .from("conversation_messages")
+    .insert({
+      conversation_id: conversationId,
+      sender_id: senderId,
+      sender_role: "customer",
+      content,
+      created_at: new Date().toISOString(),
+    });
+  if (insertMessageError) throw insertMessageError;
+}
+
+async function createRecoveryChildProcess(data: {
+  supabase: SupabaseClient;
+  user_id: string;
+  service_slug: string;
+  parent_process_id: string;
+  parent_service_slug: string | null;
+  office_id?: string | null;
+  purchaseRecord: ReturnType<typeof buildPurchaseRecord>;
+  order_id?: string | null;
+}) {
+  const existing = await findExistingRecoveryChildByPurchaseRef({
+    supabase: data.supabase,
+    user_id: data.user_id,
+    service_slug: data.service_slug,
+    parent_process_id: data.parent_process_id,
+    purchaseRecord: data.purchaseRecord,
+    order_id: data.order_id,
+  });
+  if (existing) return existing.id as string;
+
+  const workflowType = getRecoveryWorkflowType(data.service_slug);
+  const now = new Date().toISOString();
+  const { data: inserted, error } = await data.supabase
+    .from("user_services")
+    .insert({
+      user_id: data.user_id,
+      service_slug: data.service_slug,
+      office_id: data.office_id || null,
+      status: "active",
+      current_step: 0,
+      step_data: {
+        parent_process_id: data.parent_process_id,
+        parent_service_slug: data.parent_service_slug,
+        origin: "recovery_child",
+        workflow_type: workflowType,
+        purchase_ref: {
+          order_id: data.order_id || null,
+          purchase_id: data.purchaseRecord.id || null,
+          created_at: now,
+        },
+        purchases: [data.purchaseRecord],
+      },
+      data: {},
+    })
+    .select("id")
+    .single();
+
+  if (error) throw error;
+
+  if (workflowType === "rfe") {
+    await ensureConversationMessage({
+      supabase: data.supabase,
+      processId: data.parent_process_id,
+      senderId: data.user_id,
+      customerId: data.user_id,
+      officeId: data.office_id || null,
+      content: "Olá! Quero falar com o especialista sobre a minha RFE.",
+    });
+  }
+
+  return inserted?.id as string;
 }
 
 async function ensureLegacyProfileForUser(supabase: SupabaseClient, userId: string): Promise<void> {
@@ -375,6 +575,24 @@ async function ensureLegacyProfileForUser(supabase: SupabaseClient, userId: stri
   if (insertProfileError) throw insertProfileError;
 }
 
+async function ensureSupportChatThread(data: {
+  supabase: SupabaseClient;
+  processId: string;
+  senderId: string;
+  customerId: string;
+  officeId?: string | null;
+}): Promise<void> {
+  const { supabase, processId, senderId, customerId, officeId } = data;
+  await ensureConversationMessage({
+    supabase,
+    processId,
+    senderId,
+    customerId,
+    officeId,
+    content: "Chat iniciado automaticamente após confirmação do pagamento da proposta.",
+  });
+}
+
 export async function applySuccessfulPayment(data: {
   supabase: SupabaseClient;
   user_id: string;
@@ -400,6 +618,7 @@ export async function applySuccessfulPayment(data: {
     order_update,
     office_id,
   } = data;
+  const isRecoveryPurchase = isRecoveryChildSlug(service_slug);
 
   const now = new Date().toISOString();
   let order: Record<string, unknown> | null = null;
@@ -505,6 +724,28 @@ export async function applySuccessfulPayment(data: {
     parent_service_slug: effectiveParentServiceSlug,
   });
 
+  let effectiveTargetProcId = targetProcId;
+  let effectiveParentSlug = parentServiceSlug;
+
+  // Recovery payments can arrive when parent was still marked as rejected.
+  // In this case, explicitly recover the latest COS/EOS parent for linkage.
+  if (!effectiveTargetProcId && isRecoveryPurchase) {
+    const { data: latestCosParent } = await supabase
+      .from("user_services")
+      .select("id, service_slug")
+      .eq("user_id", user_id)
+      .in("service_slug", ["troca-status", "extensao-status"])
+      .in("status", ["active", "awaiting_review", "awaiting_payment", "paid", "rejected"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (latestCosParent) {
+      effectiveTargetProcId = latestCosParent.id;
+      effectiveParentSlug = latestCosParent.service_slug;
+    }
+  }
+
   const purchaseRecord = buildPurchaseRecord({
     payment_id,
     payment_method,
@@ -516,7 +757,21 @@ export async function applySuccessfulPayment(data: {
 
   const officeIdToUse = office_id || (order as any)?.office_id || null;
 
-  if (!targetProcId) {
+  if (effectiveTargetProcId && isRecoveryPurchase) {
+    await ensureLegacyProfileForUser(supabase, user_id);
+    await createRecoveryChildProcess({
+      supabase,
+      user_id,
+      service_slug,
+      parent_process_id: effectiveTargetProcId,
+      parent_service_slug: effectiveParentSlug || inferredParentServiceSlug,
+      office_id: officeIdToUse,
+      purchaseRecord,
+      order_id: order?.id || order_id || null,
+    });
+  }
+
+  if (!effectiveTargetProcId) {
     await ensureLegacyProfileForUser(supabase, user_id);
 
     const existingByPurchase = await findExistingStandalonePurchaseProcess({
@@ -563,7 +818,7 @@ export async function applySuccessfulPayment(data: {
   const { data: currentProc } = await supabase
     .from("user_services")
     .select("step_data, service_slug, current_step, negativa")
-    .eq("id", targetProcId)
+    .eq("id", effectiveTargetProcId)
     .single();
 
   if (!currentProc) return;
@@ -671,6 +926,7 @@ export async function applySuccessfulPayment(data: {
           });
         } else {
           extraMetadata.rfe_proposal_paid = true;
+          extraMetadata.rfe_payment_completed_at = now;
           
           // Update RFE Cycle status
           const rfeCycles = Array.isArray(stepData.rfe_cycles) ? [...stepData.rfe_cycles] : [];
@@ -711,14 +967,25 @@ export async function applySuccessfulPayment(data: {
         purchases,
       },
     })
-    .eq("id", targetProcId);
+    .eq("id", effectiveTargetProcId);
 
-  if (parentServiceSlug || currentProc.service_slug) {
+  const isProposalPayment = ["proposta-rfe-motion", "consultancy-motion-cos", "consultancy-motion-eos"].includes(service_slug);
+  if (isProposalPayment && effectiveTargetProcId) {
+    await ensureSupportChatThread({
+      supabase,
+      processId: effectiveTargetProcId,
+      senderId: user_id,
+      customerId: user_id,
+      officeId: officeIdToUse,
+    });
+  }
+
+  if (effectiveParentSlug || currentProc.service_slug) {
     await syncParentOrderMetadata({
       supabase,
       user_id,
-      targetProcId,
-      parentServiceSlug: parentServiceSlug || currentProc.service_slug,
+      targetProcId: effectiveTargetProcId,
+      parentServiceSlug: effectiveParentSlug || currentProc.service_slug,
       newCount,
       purchaseRecord,
     });

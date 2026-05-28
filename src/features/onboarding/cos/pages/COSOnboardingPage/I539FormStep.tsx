@@ -41,6 +41,7 @@ import type { FormReturn } from "@shared/lib/form/types";
 import { cosNotificationService } from "@features/onboarding/cos/lib/cos-notifications";
 import * as processService from "@features/process/services/processOps";
 import type { UserService } from "@features/process/types";
+import { HomologationAutofillButton } from "./components/HomologationAutofillButton";
 
 const US_STATES = [
   "", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN",
@@ -252,11 +253,12 @@ function formatPhoneNumber(value: string, country: "US" | "BR" | "OTHER"): strin
   }
   
   if (country === "BR") {
-    if (digits.startsWith("55") && digits.length > 10) {
+    if (digits.length === 0) return "";
+    // Remove country code only when user actually provided it (+55 or extra digits).
+    if ((value.trim().startsWith("+55") || digits.length > 11) && digits.startsWith("55")) {
       digits = digits.slice(2);
     }
     digits = digits.slice(0, 11);
-    if (digits.length === 0) return "+55 ";
     if (digits.length <= 2) return `+55 (${digits}`;
     if (digits.length <= 6) return `+55 (${digits.slice(0, 2)}) ${digits.slice(2)}`;
     if (digits.length <= 10) {
@@ -349,6 +351,11 @@ function PhoneInput({ name, disabled }: { name: string; disabled?: boolean }) {
         onChange={handleChange}
         onBlur={field.onBlur}
         type="text"
+        inputMode="tel"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
         disabled={disabled}
         placeholder={country === "US" ? "(201) 555-0123" : country === "BR" ? "+55 (11) 98765-4321" : "+1..."}
         className={`w-full bg-slate-50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-r-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50`}
@@ -523,7 +530,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
     countryOfBirth: saved.countryOfBirth ?? "",
     ssn: saved.ssn ?? "",
     dateOfArrival: saved.dateOfArrival ?? "",
-    i94Number: saved.i94Number ?? ((proc.step_data as any)?.i94Date as string ?? ""),
+    i94Number: saved.i94Number ?? "",
     passportNumber: saved.passportNumber ?? "",
     travelDocCountry: saved.travelDocCountry ?? "",
     countryOfIssuance: saved.countryOfIssuance ?? "",
@@ -603,7 +610,6 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
       const savedDep = ((saved.dependentsA as Array<{ id: string;[key: string]: unknown }>)?.find(d => d.id === dep.id) ?? {}) as Record<string, unknown>;
       const depName = typeof dep.name === 'string' ? dep.name : '';
       const depBirthDate = typeof dep.birthDate === 'string' ? dep.birthDate : '';
-      const depI94Date = typeof dep.i94Date === 'string' ? dep.i94Date : '';
       return {
         id: dep.id,
         familyName: (savedDep.familyName as string) || depName.split(" ").slice(-1)[0] || "",
@@ -616,7 +622,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
         ssn: (savedDep.ssn as string) || "",
         uscisOnlineAccountNumber: (savedDep.uscisOnlineAccountNumber as string) || "",
         dateOfArrival: (savedDep.dateOfArrival as string) || "",
-        i94Number: (savedDep.i94Number as string) || (depI94Date ? depI94Date.split("-").reverse().join("/") : ""),
+        i94Number: (savedDep.i94Number as string) || "",
         passportNumber: (savedDep.passportNumber as string) || "",
         travelDocNumber: (savedDep.travelDocNumber as string) || "",
         countryOfIssuance: (savedDep.countryOfIssuance as string) || "",
@@ -745,7 +751,10 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
 
   return (
     <I539FormContext.Provider value={form}>
-      <form onSubmit={form.handleSubmit} className="space-y-4 pb-20">
+      <form id="homologation-form-i539" onSubmit={form.handleSubmit} className="space-y-4 pb-20">
+        <div className="flex justify-end">
+          <HomologationAutofillButton rootId="homologation-form-i539" />
+        </div>
         {/* ── Part 1: Information About You ── */}
         <SectionCard title={t.cos.i539.labels.fullLegalName} subtitle={t.cos.i539.sections.part1} icon={MdPerson}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

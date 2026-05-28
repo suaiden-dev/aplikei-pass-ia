@@ -6,14 +6,9 @@ import {
   RiBriefcaseLine,
   RiQuestionLine,
   RiCloseLine,
-  RiSunLine,
-  RiMoonLine,
-  RiLogoutBoxRLine,
 } from "react-icons/ri";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useLocale, useT, type Language } from "@app/app/i18n";
-import { useTheme } from "@shared/hooks/useTheme";
-import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import { getDashboardPathForRole } from "@features/auth/lib/roles";
 import { cn } from "@shared/utils/cn";
@@ -22,12 +17,10 @@ import { NotificationToaster } from "@features/notifications/components/Notifica
 import { DashboardNavbar } from "@shared/components/organisms/DashboardNavbar";
 
 export function CustomerLayout() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { lang, setLang } = useLocale();
-  const { theme, toggleTheme } = useTheme();
   const tDashboard = useT("dashboard");
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   const [sidebarOpenPath, setSidebarOpenPath] = useState<string | null>(null);
   const isSidebarOpen = sidebarOpenPath === pathname;
   const resolvedName = useMemo(() => {
@@ -61,11 +54,6 @@ export function CustomerLayout() {
 
   const closeSidebar = () => setSidebarOpenPath(null);
   const openSidebar = () => setSidebarOpenPath(pathname);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate("/acompanhar-meu-caso", { replace: true });
-  };
 
   return (
     <NotificationProvider role="client">
@@ -148,25 +136,6 @@ export function CustomerLayout() {
               </div>
             </div>
 
-            {/* Theme & Logout */}
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={toggleTheme}
-                className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border border-border bg-card text-text-muted transition-colors hover:text-text"
-              >
-                {theme === "dark" ? <RiSunLine size={18} /> : <RiMoonLine size={18} />}
-                <span className="text-[10px] font-bold uppercase tracking-tight">{theme === "dark" ? "Light" : "Dark"}</span>
-              </button>
-              
-              <button
-                onClick={handleLogout}
-                className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border border-border bg-red-500/5 text-red-500 transition-colors hover:bg-red-500/10"
-              >
-                <RiLogoutBoxRLine size={18} />
-                <span className="text-[10px] font-bold uppercase tracking-tight">Logout</span>
-              </button>
-            </div>
-
             {/* User Info / Profile Link */}
             <div className="flex items-center gap-3 p-3 rounded-2xl border border-border bg-card">
               <img
@@ -179,6 +148,10 @@ export function CustomerLayout() {
                 <p className="text-[10px] text-text-muted truncate">{user?.email}</p>
               </div>
             </div>
+
+            <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+              Powered by Aplikei
+            </p>
           </div>
 
         </aside>

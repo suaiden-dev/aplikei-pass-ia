@@ -18,6 +18,7 @@ import { finalFormsService } from "@features/onboarding/cos/lib/final-forms";
 import { useT } from "@app/app/i18n";
 import { z } from "zod";
 import { zodValidate } from "@shared/utils/zodValidate";
+import { HomologationAutofillButton } from "./components/HomologationAutofillButton";
 
 interface FinalFormsStepUser {
   id: string;
@@ -240,9 +241,12 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
   };
 
   return (
-    <div className="space-y-8 pb-32">
+    <div id="homologation-form-final-review" className="space-y-8 pb-32">
       <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
         <div className="max-w-xl">
+           <div className="mb-4">
+             <HomologationAutofillButton rootId="homologation-form-final-review" />
+           </div>
            <h2 className="text-xl font-black text-slate-800 flex items-center gap-2 mb-2">
               <RiInformationLine className="text-primary" /> {t.cos.finalForms.title}
            </h2>
@@ -456,7 +460,7 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 lg:left-72 right-0 bg-white border-t border-slate-200 p-4 md:p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-40 flex items-center justify-between gap-4">
+      <div className="fixed bottom-4 right-4 lg:right-8 z-40 flex items-center gap-4">
         <button
           onClick={handleSaveDraft}
           disabled={isSavingDraft || isSubmitting}
@@ -469,7 +473,7 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
         <button
           onClick={handleFinalSubmit}
           disabled={isSubmitting || isSavingDraft}
-          className="flex-1 max-w-md flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-primary text-white text-sm font-black hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
+          className="flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-primary text-white text-sm font-black hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
         >
           {isSubmitting ? (
             <><RiLoader4Line className="animate-spin text-lg" /> {t.cos.finalForms.btns?.processing || "Enviando..."}</>

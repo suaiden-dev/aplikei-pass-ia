@@ -26,6 +26,7 @@ const admin = {
     },
     cardPayment: "Card Payment",
     view: "View",
+    select: "Select",
     remove: "Remove",
     locale: "en-US"
   },
@@ -62,6 +63,7 @@ const admin = {
     charts: {
       revenueGrowth: "Revenue Growth",
       revenueVsProfit: "Revenue vs Profit",
+      salesByProduct: "Sales by Product",
       revenueLegend: "Revenue",
       profitLegend: "Profit"
     },
@@ -336,7 +338,7 @@ const admin = {
       corrections: "Corrections Needed",
     },
     officialForms: {
-      title: "Official Forms",
+      title: "Form I-539",
       i539Form: "Form I-539",
       digitalDocDesc: "Digitally filled document.",
       viewPdf: "View PDF",
