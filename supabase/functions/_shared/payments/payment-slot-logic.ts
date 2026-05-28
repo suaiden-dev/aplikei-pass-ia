@@ -393,6 +393,70 @@ async function findExistingRecoveryChildByPurchaseRef(data: {
   }) || null;
 }
 
+async function ensureConversationMessage(data: {
+  supabase: SupabaseClient;
+  processId: string;
+  senderId: string;
+  customerId: string;
+  officeId?: string | null;
+  content: string;
+}): Promise<void> {
+  const { supabase, processId, senderId, customerId, officeId, content } = data;
+
+  const { data: convs, error: convsError } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("process_id", processId);
+  if (convsError) throw convsError;
+
+  const convIds = (convs || []).map((c) => c.id);
+  if (convIds.length > 0) {
+    const { data: existingMessage, error: existingError } = await supabase
+      .from("conversation_messages")
+      .select("id")
+      .in("conversation_id", convIds)
+      .limit(1)
+      .maybeSingle();
+    if (existingError) throw existingError;
+    if (existingMessage) return;
+  }
+
+  const { data: activeConversation, error: activeConversationError } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("process_id", processId)
+    .eq("is_closed", false)
+    .maybeSingle();
+  if (activeConversationError) throw activeConversationError;
+
+  let conversationId = activeConversation?.id as string | undefined;
+  if (!conversationId) {
+    const { data: createdConversation, error: createConversationError } = await supabase
+      .from("conversations")
+      .insert({
+        process_id: processId,
+        customer_id: customerId,
+        office_id: officeId || null,
+        is_closed: false,
+      })
+      .select("id")
+      .single();
+    if (createConversationError) throw createConversationError;
+    conversationId = createdConversation.id as string;
+  }
+
+  const { error: insertMessageError } = await supabase
+    .from("conversation_messages")
+    .insert({
+      conversation_id: conversationId,
+      sender_id: senderId,
+      sender_role: "customer",
+      content,
+      created_at: new Date().toISOString(),
+    });
+  if (insertMessageError) throw insertMessageError;
+}
+
 async function createRecoveryChildProcess(data: {
   supabase: SupabaseClient;
   user_id: string;
@@ -443,17 +507,14 @@ async function createRecoveryChildProcess(data: {
   if (error) throw error;
 
   if (workflowType === "rfe") {
-    const { error: chatError } = await data.supabase
-      .from("chat_messages")
-      .insert({
-        process_id: data.parent_process_id,
-        office_id: data.office_id || null,
-        sender_id: data.user_id,
-        sender_role: "customer",
-        content: "Olá! Quero falar com o especialista sobre a minha RFE.",
-        created_at: new Date().toISOString(),
-      });
-    if (chatError) throw chatError;
+    await ensureConversationMessage({
+      supabase: data.supabase,
+      processId: data.parent_process_id,
+      senderId: data.user_id,
+      customerId: data.user_id,
+      officeId: data.office_id || null,
+      content: "Olá! Quero falar com o especialista sobre a minha RFE.",
+    });
   }
 
   return inserted?.id as string;
@@ -499,32 +560,18 @@ async function ensureSupportChatThread(data: {
   supabase: SupabaseClient;
   processId: string;
   senderId: string;
+  customerId: string;
   officeId?: string | null;
 }): Promise<void> {
-  const { supabase, processId, senderId, officeId } = data;
-
-  const { data: existingMessage, error: existingError } = await supabase
-    .from("chat_messages")
-    .select("id")
-    .eq("process_id", processId)
-    .limit(1)
-    .maybeSingle();
-
-  if (existingError) throw existingError;
-  if (existingMessage) return;
-
-  const { error: insertError } = await supabase
-    .from("chat_messages")
-    .insert({
-      process_id: processId,
-      office_id: officeId || null,
-      sender_id: senderId,
-      sender_role: "customer",
-      content: "Chat iniciado automaticamente após confirmação do pagamento da proposta.",
-      created_at: new Date().toISOString(),
-    });
-
-  if (insertError) throw insertError;
+  const { supabase, processId, senderId, customerId, officeId } = data;
+  await ensureConversationMessage({
+    supabase,
+    processId,
+    senderId,
+    customerId,
+    officeId,
+    content: "Chat iniciado automaticamente após confirmação do pagamento da proposta.",
+  });
 }
 
 export async function applySuccessfulPayment(data: {
@@ -909,6 +956,7 @@ export async function applySuccessfulPayment(data: {
       supabase,
       processId: effectiveTargetProcId,
       senderId: user_id,
+      customerId: user_id,
       officeId: officeIdToUse,
     });
   }
