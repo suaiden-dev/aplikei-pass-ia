@@ -38,11 +38,6 @@ export function useCustomerChats(userId: string) {
         } as UserService),
       );
 
-      if (!eligible.length) {
-        setThreads([]);
-        return;
-      }
-
       const parentProcessIds = Array.from(
         new Set(
           eligible
@@ -64,21 +59,47 @@ export function useCustomerChats(userId: string) {
       );
 
       // 1. Busca conversas físicas para estes processos
-      const { data: convs } = await supabase
+      const { data: convsByProcess } = await supabase
         .from("conversations")
         .select("id, process_id, is_closed")
         .in("process_id", messageProcessIds);
 
+      const { data: convsByCustomer } = await supabase
+        .from("conversations")
+        .select("id, process_id, is_closed")
+        .eq("customer_id", userId);
+
+      const convsMap = new Map<string, { id: string; process_id: string; is_closed: boolean }>();
+      (convsByProcess || []).forEach((c: any) => {
+        convsMap.set(c.id, c);
+      });
+      (convsByCustomer || []).forEach((c: any) => {
+        convsMap.set(c.id, c);
+      });
+      const convs = Array.from(convsMap.values());
+
       const convMap = new Map<string, { id: string; is_closed: boolean }>();
       (convs || []).forEach((c: any) => {
         convMap.set(c.process_id, { id: c.id, is_closed: c.is_closed });
+      });
+      const serviceById = new Map<string, Record<string, unknown>>();
+      services.forEach((row) => serviceById.set(String(row.id), row));
+      const childRecoverySlugByParentId = new Map<string, string>();
+      services.forEach((row) => {
+        const stepData = (row.step_data as Record<string, unknown>) || {};
+        const parentId = String(stepData.parent_process_id || "").trim();
+        if (!parentId) return;
+        const slug = String(row.service_slug || "").toLowerCase();
+        if (slug.includes("rfe") || slug.includes("motion")) {
+          childRecoverySlugByParentId.set(parentId, String(row.service_slug || ""));
+        }
       });
 
       // 2. Busca mensagens das conversas existentes para calcular o último horário, mensagem e as não lidas
       const lastMsgByConv = new Map<string, string>();
       const lastMessageAtByConv = new Map<string, string>();
       const unreadCountByConv = new Map<string, number>();
-      const conversationIds = (convs || []).map((c) => c.id);
+      const conversationIds = convs.map((c) => c.id);
 
       if (conversationIds.length > 0) {
         const { data: msgs } = await supabase
@@ -182,6 +203,36 @@ export function useCustomerChats(userId: string) {
           lastMessage: conv ? (lastMsgByConv.get(conv.id) ?? null) : null,
           unreadCount: conv ? (unreadCountByConv.get(conv.id) ?? 0) : 0,
         };
+      });
+
+      // Fallback: inclui conversas do cliente que não aparecem via elegibilidade de user_services
+      const routeIdsInResult = new Set(result.map((r) => r.processRouteId));
+      convs.forEach((c: any) => {
+        const routeId = String(c.process_id || "").trim();
+        if (!routeId || routeIdsInResult.has(routeId)) return;
+
+        const serviceRow = serviceById.get(routeId);
+        const serviceSlug = String(serviceRow?.service_slug || "support");
+        const chatSlug = childRecoverySlugByParentId.get(routeId) || serviceSlug;
+        const createdAt = convMap.get(routeId)
+          ? (lastMessageAtByConv.get(c.id) || String(serviceRow?.created_at || new Date().toISOString()))
+          : String(serviceRow?.created_at || new Date().toISOString());
+
+        result.push({
+          conversationId: c.id,
+          processId: routeId,
+          userId,
+          officeId: (serviceRow?.office_id as string | null | undefined) ?? null,
+          serviceSlug,
+          processRouteId: routeId,
+          processRouteSlug: serviceSlug,
+          chatTitle: getAnalysisChatTitle(chatSlug),
+          createdAt,
+          isClosed: Boolean(c.is_closed),
+          chatClosedAt: c.is_closed ? createdAt : null,
+          lastMessage: lastMsgByConv.get(c.id) ?? null,
+          unreadCount: unreadCountByConv.get(c.id) ?? 0,
+        });
       });
 
       // Agrupa pelo processo de destino (routeId) para que múltiplos processos Bronze de testes antigos

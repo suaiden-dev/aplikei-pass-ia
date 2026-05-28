@@ -402,6 +402,25 @@ async function ensureConversationMessage(data: {
   content: string;
 }): Promise<void> {
   const { supabase, processId, senderId, customerId, officeId, content } = data;
+  let finalOfficeId = officeId || null;
+
+  if (!finalOfficeId) {
+    const { data: processRow } = await supabase
+      .from("user_services")
+      .select("office_id")
+      .eq("id", processId)
+      .maybeSingle();
+    finalOfficeId = processRow?.office_id || null;
+  }
+
+  if (!finalOfficeId) {
+    const { data: accountRow } = await supabase
+      .from("user_accounts")
+      .select("office_id")
+      .eq("id", customerId)
+      .maybeSingle();
+    finalOfficeId = accountRow?.office_id || null;
+  }
 
   const { data: convs, error: convsError } = await supabase
     .from("conversations")
@@ -436,7 +455,7 @@ async function ensureConversationMessage(data: {
       .insert({
         process_id: processId,
         customer_id: customerId,
-        office_id: officeId || null,
+        office_id: finalOfficeId,
         is_closed: false,
       })
       .select("id")

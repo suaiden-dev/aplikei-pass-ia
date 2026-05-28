@@ -542,6 +542,29 @@ export async function startAdditionalWorkflow(
     if (!childInsertError) {
       childProcessId = insertedChild?.id;
       if (type === "rfe" && childProcessId) {
+        // Garante unicidade de ciclo ativo: RFEs anteriores do mesmo processo ficam fechadas.
+        const { data: siblingRfes } = await supabase
+          .from("user_services")
+          .select("id, step_data")
+          .eq("user_id", service.user_id)
+          .eq("service_slug", recoveryChildSlug)
+          .neq("id", childProcessId);
+
+        const siblingIdsToClose = (siblingRfes || [])
+          .filter((row) => {
+            const rowStepData = (row.step_data || {}) as Record<string, unknown>;
+            return String(rowStepData.parent_process_id || "") === String(processId);
+          })
+          .map((row) => row.id);
+
+        if (siblingIdsToClose.length > 0) {
+          await supabase
+            .from("user_services")
+            .update({ status: "completed" })
+            .in("id", siblingIdsToClose);
+        }
+      }
+      if (type === "rfe" && childProcessId) {
         const { data: authData } = await supabase.auth.getUser();
         const actorId = authData.user?.id || service.user_id;
         const actorRole: "admin" | "customer" = actorId === service.user_id ? "customer" : "admin";
@@ -636,4 +659,3 @@ export async function ensureChatThread(
     return false;
   }
 }
-

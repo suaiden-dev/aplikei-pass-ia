@@ -585,9 +585,15 @@ export default function COSOnboardingPage() {
       }
 
       if (normalizedResult === 'rfe') {
+        // Fecha a RFE atual antes de iniciar um novo ciclo.
+        await processService.updateProcessStatus(proc.id, 'completed')
+
         const cycleBaseId = parentId || proc.id
         const { childProcessId } = await processService.startAdditionalWorkflow(cycleBaseId, 'rfe')
-        const targetChildId = childProcessId || proc.id
+        if (!childProcessId) {
+          throw new Error('Falha ao iniciar novo ciclo de RFE.')
+        }
+        const targetChildId = childProcessId
         await processService.updateCurrentStep(targetChildId, 0, 'active')
         await processService.updateStepData(targetChildId, {
           workflow_status: 'in_progress',
