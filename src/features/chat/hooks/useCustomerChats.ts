@@ -76,6 +76,7 @@ export function useCustomerChats(userId: string) {
 
       // 2. Busca mensagens das conversas existentes para calcular o último horário, mensagem e as não lidas
       const lastMsgByConv = new Map<string, string>();
+      const lastMessageAtByConv = new Map<string, string>();
       const unreadCountByConv = new Map<string, number>();
       const conversationIds = (convs || []).map((c) => c.id);
 
@@ -128,7 +129,9 @@ export function useCustomerChats(userId: string) {
           unreadCountByConv.set(convId, unread);
 
           if (sorted.length > 0) {
-            lastMsgByConv.set(convId, sorted[sorted.length - 1].content);
+            const lastMsg = sorted[sorted.length - 1];
+            lastMsgByConv.set(convId, lastMsg.content);
+            lastMessageAtByConv.set(convId, lastMsg.created_at);
           }
         });
       }
@@ -149,39 +152,60 @@ export function useCustomerChats(userId: string) {
         }
       }
 
-      setThreads(
-        eligible.map((row) => {
-          const processId = row.id as string;
-          const serviceSlug = row.service_slug as string;
-          const stepData = (row.step_data as Record<string, unknown>) || {};
-          const parentProcessId = String(stepData.parent_process_id || "").trim();
-          const parentServiceSlug = String(stepData.parent_service_slug || "").trim();
-          const routeId = parentProcessId || processId;
-          const routeSlug =
-            parentServiceSlug ||
-            parentServiceSlugById.get(routeId) ||
-            serviceSlug;
+      const result = eligible.map((row) => {
+        const processId = row.id as string;
+        const serviceSlug = row.service_slug as string;
+        const stepData = (row.step_data as Record<string, unknown>) || {};
+        const parentProcessId = String(stepData.parent_process_id || "").trim();
+        const parentServiceSlug = String(stepData.parent_service_slug || "").trim();
+        const routeId = parentProcessId || processId;
+        const routeSlug =
+          parentServiceSlug ||
+          parentServiceSlugById.get(routeId) ||
+          serviceSlug;
 
-          const conv = convMap.get(routeId);
+        const conv = convMap.get(routeId);
+        const lastMsgTime = conv ? (lastMessageAtByConv.get(conv.id) || (row.created_at as string)) : (row.created_at as string);
 
-          return {
-            conversationId: conv?.id || "",
-            processId,
-            userId: row.user_id as string,
-            officeId: (row.office_id as string | null | undefined) ?? null,
-            serviceSlug,
-            processRouteId: routeId,
-            processRouteSlug: routeSlug,
-            chatTitle: getAnalysisChatTitle(serviceSlug),
-            createdAt: row.created_at as string,
-            isClosed: conv?.is_closed ?? false,
-            chatClosedAt: conv?.is_closed ? (row.created_at as string) : null,
-            lastMessage: conv ? (lastMsgByConv.get(conv.id) ?? null) : null,
-            unreadCount: conv ? (unreadCountByConv.get(conv.id) ?? 0) : 0,
-          };
+        return {
+          conversationId: conv?.id || "",
+          processId,
+          userId: row.user_id as string,
+          officeId: (row.office_id as string | null | undefined) ?? null,
+          serviceSlug,
+          processRouteId: routeId,
+          processRouteSlug: routeSlug,
+          chatTitle: getAnalysisChatTitle(serviceSlug),
+          createdAt: lastMsgTime,
+          isClosed: conv?.is_closed ?? false,
+          chatClosedAt: conv?.is_closed ? (row.created_at as string) : null,
+          lastMessage: conv ? (lastMsgByConv.get(conv.id) ?? null) : null,
+          unreadCount: conv ? (unreadCountByConv.get(conv.id) ?? 0) : 0,
+        };
+      });
 
-        }),
-      );
+      // Agrupa pelo processo de destino (routeId) para que múltiplos processos Bronze de testes antigos
+      // que mapeiam para a mesma conversa reativa não gerem linhas duplicadas na barra lateral
+      const uniqueResultsMap = new Map<string, typeof result[0]>();
+      result.forEach((item) => {
+        const key = item.processRouteId;
+        // Se ainda não adicionamos, ou se este item tem uma data de mensagem mais recente, mantemos
+        if (!uniqueResultsMap.has(key)) {
+          uniqueResultsMap.set(key, item);
+        } else {
+          const existing = uniqueResultsMap.get(key)!;
+          if (new Date(item.createdAt).getTime() > new Date(existing.createdAt).getTime()) {
+            uniqueResultsMap.set(key, item);
+          }
+        }
+      });
+
+      const finalThreads = Array.from(uniqueResultsMap.values());
+
+      // Ordena por data da última mensagem descendente para garantir que o chat suba ao topo
+      finalThreads.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      setThreads(finalThreads);
     } catch (err) {
       console.error("[useCustomerChats] load error:", err);
     } finally {
