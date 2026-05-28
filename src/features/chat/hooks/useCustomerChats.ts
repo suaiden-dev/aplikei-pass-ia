@@ -63,30 +63,74 @@ export function useCustomerChats(userId: string) {
         ),
       );
 
-      const { data: msgs } = await supabase
-        .from("chat_messages")
-        .select("process_id, content, created_at")
-        .in("process_id", messageProcessIds)
-        .order("created_at", { ascending: false });
+      // 1. Busca conversas físicas para estes processos
+      const { data: convs } = await supabase
+        .from("conversations")
+        .select("id, process_id, is_closed")
+        .in("process_id", messageProcessIds);
 
-      const lastMsgByProcess = new Map<string, string>();
-      (msgs || []).forEach((m: Record<string, unknown>) => {
-        if (!lastMsgByProcess.has(m.process_id as string)) {
-          lastMsgByProcess.set(m.process_id as string, m.content as string);
-        }
+      const convMap = new Map<string, { id: string; is_closed: boolean }>();
+      (convs || []).forEach((c: any) => {
+        convMap.set(c.process_id, { id: c.id, is_closed: c.is_closed });
       });
 
-      const closedMap = new Map<string, string | null>();
-      try {
-        const { data: closedRows } = await supabase
-          .from("user_services")
-          .select("id, chat_closed_at")
-          .in("id", messageProcessIds);
-        (closedRows || []).forEach((r: Record<string, unknown>) =>
-          closedMap.set(r.id as string, (r.chat_closed_at as string | null) ?? null),
-        );
-      } catch {
-        // column not yet migrated — treat all as open
+      // 2. Busca mensagens das conversas existentes para calcular o último horário, mensagem e as não lidas
+      const lastMsgByConv = new Map<string, string>();
+      const unreadCountByConv = new Map<string, number>();
+      const conversationIds = (convs || []).map((c) => c.id);
+
+      if (conversationIds.length > 0) {
+        const { data: msgs } = await supabase
+          .from("conversation_messages")
+          .select("id, conversation_id, content, sender_role, created_at")
+          .in("conversation_id", conversationIds);
+
+        const msgsGrouped = new Map<string, any[]>();
+        (msgs || []).forEach((m: any) => {
+          if (!msgsGrouped.has(m.conversation_id)) {
+            msgsGrouped.set(m.conversation_id, []);
+          }
+          msgsGrouped.get(m.conversation_id)!.push(m);
+        });
+
+        msgsGrouped.forEach((convMsgs, convId) => {
+          // Ordena explicitamente por ordem cronológica (antiga -> nova)
+          const sorted = [...convMsgs].sort(
+            (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+
+          // Recupera o ID da última mensagem que o cliente leu no navegador
+          const lastReadMsgId = typeof window !== "undefined" ? localStorage.getItem(`chat_last_read:${convId}`) : null;
+
+          let unread = 0;
+          sorted.forEach((m) => {
+            if (m.sender_role === "customer") {
+              // Se o próprio cliente mandar mensagem, zera as não lidas dele
+              unread = 0;
+              if (typeof window !== "undefined") {
+                localStorage.setItem(`chat_last_read:${convId}`, m.id);
+              }
+            } else {
+              // Se o ID desta mensagem do admin for menor ou igual ao que o cliente já leu, ignoramos
+              if (lastReadMsgId) {
+                const readIndex = sorted.findIndex((sm) => sm.id === lastReadMsgId);
+                const currentIndex = sorted.findIndex((sm) => sm.id === m.id);
+                if (readIndex !== -1 && currentIndex <= readIndex) {
+                  unread = 0;
+                  return;
+                }
+              }
+              // Se for o admin/outro, incrementa o contador de não lidas do cliente
+              unread++;
+            }
+          });
+
+          unreadCountByConv.set(convId, unread);
+
+          if (sorted.length > 0) {
+            lastMsgByConv.set(convId, sorted[sorted.length - 1].content);
+          }
+        });
       }
 
       const parentServiceSlugById = new Map<string, string>();
@@ -101,7 +145,7 @@ export function useCustomerChats(userId: string) {
             parentServiceSlugById.set(String(row.id), String(row.service_slug));
           });
         } catch {
-          // if parent lookup fails, keep local fallback route
+          // fallback
         }
       }
 
@@ -118,7 +162,10 @@ export function useCustomerChats(userId: string) {
             parentServiceSlugById.get(routeId) ||
             serviceSlug;
 
+          const conv = convMap.get(routeId);
+
           return {
+            conversationId: conv?.id || "",
             processId,
             userId: row.user_id as string,
             officeId: (row.office_id as string | null | undefined) ?? null,
@@ -127,9 +174,12 @@ export function useCustomerChats(userId: string) {
             processRouteSlug: routeSlug,
             chatTitle: getAnalysisChatTitle(serviceSlug),
             createdAt: row.created_at as string,
-            chatClosedAt: closedMap.get(routeId) ?? null,
-            lastMessage: lastMsgByProcess.get(routeId) ?? null,
+            isClosed: conv?.is_closed ?? false,
+            chatClosedAt: conv?.is_closed ? (row.created_at as string) : null,
+            lastMessage: conv ? (lastMsgByConv.get(conv.id) ?? null) : null,
+            unreadCount: conv ? (unreadCountByConv.get(conv.id) ?? 0) : 0,
           };
+
         }),
       );
     } catch (err) {
@@ -141,7 +191,30 @@ export function useCustomerChats(userId: string) {
 
   useEffect(() => {
     void load();
-  }, [load]);
+
+    // Cria canal de escuta em tempo real para re-renderizar caso cheguem novas mensagens
+    const channel = supabase
+      .channel(`chat:customer:${userId}:${crypto.randomUUID()}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "conversation_messages" },
+        () => {
+          void load();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "conversations" },
+        () => {
+          void load();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [userId, load]);
 
   return { threads, isLoading, reload: load };
 }

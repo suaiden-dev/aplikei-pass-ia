@@ -27,11 +27,7 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
     }
     setIsLoading(true);
     try {
-      console.info(`${debugPrefix} load start`, {
-        role,
-        officeId,
-        disableLoad,
-      });
+      console.info(`${debugPrefix} load start`, { role, officeId, disableLoad });
 
       if (role === "manager" && !officeId) {
         console.warn(`${debugPrefix} manager without officeId, returning empty chat list`);
@@ -40,345 +36,148 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
         return;
       }
 
+      // 1. Carrega todas as conversas físicas
+      let convsQuery = supabase.from("conversations").select("*");
       if (role === "manager" && officeId) {
-        const { data: chatRows, error: chatError } = await supabase
-          .from("chat_messages")
-          .select("process_id, sender_role, created_at")
-          .order("created_at", { ascending: true });
-        if (chatError) throw new Error(chatError.message);
-
-        const chatProcessIds = Array.from(
-          new Set((chatRows || []).map((row: Record<string, unknown>) => String(row.process_id || "")).filter(Boolean)),
-        );
-        console.info(`${debugPrefix} manager chat messages loaded`, {
-          total: chatRows?.length ?? 0,
-          processIds: chatProcessIds,
-          officeId,
-        });
-
-        if (!chatProcessIds.length) {
-          setThreads([]);
-          setUnreadByProcess({});
-          return;
-        }
-
-        const { data: officeCustomersRows, error: officeCustomersError } = await supabase
-          .from("office_customers" as any)
-          .select("user_id")
-          .eq("office_id", officeId);
-        if (officeCustomersError) throw new Error(officeCustomersError.message);
-
-        const customerUserIds = Array.from(
-          new Set(
-            ((officeCustomersRows || []) as Array<{ user_id: string }>)
-              .map((row) => String(row.user_id || "").trim())
-              .filter(Boolean),
-          ),
-        );
-
-        const [directServicesRes, customerServicesRes] = await Promise.all([
-          supabase
-            .from("user_services")
-            .select("id, user_id, office_id, service_slug, status, step_data, created_at")
-            .eq("office_id", officeId)
-            .order("created_at", { ascending: false }),
-          customerUserIds.length > 0
-            ? supabase
-                .from("user_services")
-                .select("id, user_id, office_id, service_slug, status, step_data, created_at")
-                .in("user_id", customerUserIds)
-                .order("created_at", { ascending: false })
-            : Promise.resolve({ data: [], error: null }),
-        ]);
-
-        if (directServicesRes.error) throw new Error(directServicesRes.error.message);
-        if (customerServicesRes.error) throw new Error(customerServicesRes.error.message);
-
-        const mergedServicesById = new Map<string, Record<string, unknown>>();
-        ((directServicesRes.data || []) as Array<Record<string, unknown>>).forEach((row) => {
-          mergedServicesById.set(String(row.id), row);
-        });
-        ((customerServicesRes.data || []) as Array<Record<string, unknown>>).forEach((row) => {
-          mergedServicesById.set(String(row.id), row);
-        });
-
-        const officeServices = Array.from(mergedServicesById.values());
-        const services = officeServices.filter((row) => {
-          const stepData = (row.step_data as Record<string, unknown>) || {};
-          const parentProcessId = String(stepData.parent_process_id || "").trim();
-          const ownProcessId = String(row.id || "").trim();
-          return chatProcessIds.includes(ownProcessId) || (parentProcessId && chatProcessIds.includes(parentProcessId));
-        });
-        console.info(`${debugPrefix} manager office services matched`, {
-          officeServicesTotal: officeServices.length,
-          officeCustomersTotal: customerUserIds.length,
-          total: services.length,
-          officeId,
-        });
-
-        if (!services.length) {
-          setThreads([]);
-          setUnreadByProcess({});
-          return;
-        }
-
-        const userIds = Array.from(
-          new Set(services.map((row) => String(row.user_id || "")).filter(Boolean)),
-        );
-        const { data: accountRows, error: accountError } = await supabase
-          .from("user_accounts")
-          .select("id, full_name, email, avatar_url")
-          .in("id", userIds);
-        if (accountError) throw new Error(accountError.message);
-
-        const accountsById = new Map<string, Record<string, unknown>>();
-        (accountRows || []).forEach((row: Record<string, unknown>) => {
-          accountsById.set(String(row.id), row);
-        });
-
-        const unread: Record<string, number> = {};
-        const lastMessageAtByProcess: Record<string, string> = {};
-        const seenThreads = new Set<string>();
-        services.forEach((row) => {
-          const stepData = (row.step_data as Record<string, unknown>) || {};
-          const parentProcessId = String(stepData.parent_process_id || "").trim();
-          const threadProcessId = parentProcessId || String(row.id);
-          if (!seenThreads.has(threadProcessId)) {
-            seenThreads.add(threadProcessId);
-            unread[threadProcessId] = 0;
-          }
-        });
-        (chatRows || []).forEach((row: Record<string, unknown>) => {
-          const processId = String(row.process_id || "");
-          if (!unread.hasOwnProperty(processId)) return;
-          const createdAt = row.created_at as string | undefined;
-          if (createdAt) {
-            const prev = lastMessageAtByProcess[processId];
-            if (!prev || new Date(createdAt).getTime() > new Date(prev).getTime()) {
-              lastMessageAtByProcess[processId] = createdAt;
-            }
-          }
-          if (row.sender_role === "admin") {
-            unread[processId] = 0;
-          } else if (row.sender_role === "customer") {
-            unread[processId] = (unread[processId] || 0) + 1;
-          }
-        });
-        setUnreadByProcess(unread);
-
-        const result: SpecialistChatThread[] = [];
-        const addedThreads = new Set<string>();
-        services.forEach((row) => {
-          const stepData = (row.step_data as Record<string, unknown>) || {};
-          const parentProcessId = String(stepData.parent_process_id || "").trim();
-          const processId = parentProcessId || String(row.id);
-          if (addedThreads.has(processId)) return;
-          addedThreads.add(processId);
-          const account = accountsById.get(String(row.user_id)) as Record<string, unknown> | undefined;
-          result.push({
-            processId,
-            userId: String(row.user_id),
-            officeId: (row.office_id as string | null | undefined) ?? null,
-            serviceSlug: String(row.service_slug),
-            chatTitle: getAnalysisChatTitle(String(row.service_slug)),
-            fullName: (account?.full_name as string | undefined) || "Sem Nome",
-            email: (account?.email as string | undefined) || "",
-            avatarUrl: (account?.avatar_url as string | null | undefined) ?? null,
-            createdAt: lastMessageAtByProcess[processId] || String(row.created_at),
-          });
-        });
-
-        result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        console.info(`${debugPrefix} manager load complete`, {
-          totalThreads: result.length,
-          officeId,
-        });
-        setThreads(result);
-        return;
+        convsQuery = convsQuery.eq("office_id", officeId);
       }
+      const { data: convs, error: convsError } = await convsQuery;
+      if (convsError) throw new Error(convsError.message);
 
-      let servicesQuery = supabase
-        .from("user_services")
-        .select(`
-          id,
-          user_id,
-          office_id,
-          service_slug,
-          status,
-          step_data,
-          created_at
-        `);
-
-      const { data: serviceRows, error: serviceError } = await servicesQuery.order("created_at", { ascending: false });
-      if (serviceError) throw new Error(serviceError.message);
-
-      const services = (serviceRows || []) as Array<Record<string, unknown>>;
-      console.info(`${debugPrefix} services loaded`, {
-        total: services.length,
-        manager: role === "manager",
-        officeId,
-      });
-
-      if (!services.length) {
-        console.info(`${debugPrefix} no services found`);
+      if (!convs || convs.length === 0) {
         setThreads([]);
         setUnreadByProcess({});
         return;
       }
 
-      const resolvedServices = services.map((row) => {
-        const stepData = (row.step_data as Record<string, unknown>) || {};
-        const parentProcessId = String(stepData.parent_process_id || "").trim();
-        return {
-          row,
-          threadProcessId: parentProcessId || (row.id as string),
-        };
+      const processIds = convs.map((c) => c.process_id);
+      const conversationIds = convs.map((c) => c.id);
+
+      // 2. Busca informações dos processos vinculados na user_services
+      const { data: serviceRows, error: serviceError } = await supabase
+        .from("user_services")
+        .select("id, user_id, office_id, service_slug, status, step_data, created_at")
+        .in("id", processIds);
+      if (serviceError) throw new Error(serviceError.message);
+
+      const servicesById = new Map<string, any>();
+      (serviceRows || []).forEach((row) => {
+        servicesById.set(row.id, row);
       });
 
+      // 3. Busca informações de perfis dos clientes (user_accounts)
       const userIds = Array.from(
-        new Set(services.map((row) => String(row.user_id || "")).filter(Boolean)),
+        new Set((serviceRows || []).map((row) => String(row.user_id || "")).filter(Boolean)),
       );
-      console.info(`${debugPrefix} resolved user ids`, {
-        total: userIds.length,
-        userIds,
-      });
-
       const { data: accountRows, error: accountError } = await supabase
         .from("user_accounts")
         .select("id, full_name, email, avatar_url")
         .in("id", userIds);
-
       if (accountError) throw new Error(accountError.message);
 
-      const accountsById = new Map<string, Record<string, unknown>>();
-      (accountRows || []).forEach((row: Record<string, unknown>) => {
-        accountsById.set(String(row.id), row);
+      const accountsById = new Map<string, any>();
+      (accountRows || []).forEach((row) => {
+        accountsById.set(row.id, row);
       });
 
-      const fallbackOfficeByUserId = new Map<string, string>();
-      services.forEach((row) => {
-        const userId = String(row.user_id || "").trim();
-        const serviceOfficeId = String(row.office_id || "").trim();
-        if (userId && serviceOfficeId && !fallbackOfficeByUserId.has(userId)) {
-          fallbackOfficeByUserId.set(userId, serviceOfficeId);
-        }
-      });
-
-      const processIds = Array.from(new Set(resolvedServices.map(({ threadProcessId }) => threadProcessId)));
-      console.info(`${debugPrefix} resolved thread process ids`, {
-        total: processIds.length,
-        processIds,
-      });
-
-      const { data: chatRows, error: chatError } = await supabase
-        .from("chat_messages")
-        .select("process_id, sender_role, created_at")
-        .in("process_id", processIds)
+      // 4. Busca mensagens das novas conversas para calcular o último horário e os não lidos
+      const { data: messageRows, error: messagesError } = await supabase
+        .from("conversation_messages")
+        .select("id, conversation_id, sender_role, created_at, content")
+        .in("conversation_id", conversationIds)
         .order("created_at", { ascending: true });
-      if (chatError) throw new Error(chatError.message);
-
-      console.info(`${debugPrefix} chat messages loaded`, {
-        total: chatRows?.length ?? 0,
-        matchedProcessIds: Array.from(
-          new Set((chatRows || []).map((row: Record<string, unknown>) => String(row.process_id))),
-        ),
-      });
-
-      const activeProcessIds = new Set(
-        (chatRows || []).map((row: Record<string, unknown>) => row.process_id as string),
-      );
+      if (messagesError) throw new Error(messagesError.message);
 
       const unread: Record<string, number> = {};
-      const lastMessageAtByProcess: Record<string, string> = {};
-      processIds.forEach((id) => { unread[id] = 0; });
-      (chatRows || []).forEach((row: Record<string, unknown>) => {
-        const processId = row.process_id as string;
-        const createdAt = row.created_at as string | undefined;
-        if (createdAt) {
-          const prev = lastMessageAtByProcess[processId];
-          if (!prev || new Date(createdAt).getTime() > new Date(prev).getTime()) {
-            lastMessageAtByProcess[processId] = createdAt;
+      const lastMessageAtByConv = new Map<string, string>();
+      const lastMessageContentByConv = new Map<string, string>();
+
+      convs.forEach((c) => {
+        unread[c.id] = 0;
+      });
+
+      const convById = new Map<string, any>();
+      convs.forEach((c) => convById.set(c.id, c));
+
+      // Ordena explicitamente por ordem cronológica (antiga -> nova) para garantir
+      // que a lógica de "zerar" ao encontrar mensagem do admin funcione perfeitamente
+      const sortedMessages = [...(messageRows || [])].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+
+      sortedMessages.forEach((msg) => {
+        const conv = convById.get(msg.conversation_id);
+        if (!conv) return;
+
+        const createdAt = msg.created_at as string;
+
+        lastMessageAtByConv.set(conv.id, createdAt);
+        lastMessageContentByConv.set(conv.id, msg.content);
+
+        // Recupera a última mensagem que o admin visualizou no navegador para esta conversa
+        const lastReadMsgId = typeof window !== "undefined" ? localStorage.getItem(`chat_last_read:${conv.id}`) : null;
+
+        if (msg.sender_role === "admin") {
+          // Quando o admin envia uma mensagem, zera as mensagens não lidas anteriores
+          unread[conv.id] = 0;
+          // E também marca esta do admin como última lida implicitamente
+          if (typeof window !== "undefined") {
+            localStorage.setItem(`chat_last_read:${conv.id}`, msg.id);
           }
-        }
-        if (row.sender_role === "admin") {
-          unread[processId] = 0;
-        } else if (row.sender_role === "customer") {
-          unread[processId] = (unread[processId] || 0) + 1;
+        } else {
+          // Se o ID da mensagem atual for menor ou igual ao que já foi lido pelo admin, ignoramos
+          if (lastReadMsgId) {
+            // Em Javascript, se a mensagem atual tem data anterior ou igual à mensagem lida, não contamos
+            // Mas para ser 100% à prova de falhas: achamos o índice da mensagem lida
+            const readMsgIndex = sortedMessages.findIndex((m) => m.id === lastReadMsgId);
+            const currentMsgIndex = sortedMessages.findIndex((m) => m.id === msg.id);
+            if (readMsgIndex !== -1 && currentMsgIndex <= readMsgIndex) {
+              unread[conv.id] = 0;
+              return;
+            }
+          }
+          // Incrementa as mensagens não lidas apenas se forem do cliente e não estiverem marcadas como lidas
+          unread[conv.id] = (unread[conv.id] || 0) + 1;
         }
       });
+
       setUnreadByProcess(unread);
 
+      // 5. Monta as threads
       const result: SpecialistChatThread[] = [];
-      const seenThreads = new Set<string>();
-      resolvedServices.forEach(({ row, threadProcessId }) => {
-        const eligible = isCustomerChatEligible({
-          id: row.id as string,
-          user_id: row.user_id as string,
-          service_slug: row.service_slug as string,
-          status: row.status as string,
-          step_data: (row.step_data as Record<string, unknown>) || {},
-          current_step: (row.current_step as number | null) ?? null,
-          created_at: row.created_at as string,
-          updated_at: row.created_at as string,
-        } as UserService);
-        if (!activeProcessIds.has(threadProcessId) && !eligible) {
-          console.info(`${debugPrefix} skipped thread: inactive and not eligible`, {
-            threadProcessId,
-            serviceSlug: row.service_slug,
-            status: row.status,
-          });
-          return;
-        }
+      convs.forEach((c) => {
+        const service = servicesById.get(c.process_id);
+        if (!service) return; // Processo não encontrado
 
-        const account = accountsById.get(String(row.user_id)) as Record<string, unknown> | undefined;
-        const processOfficeId = String(row.office_id || "").trim();
-        const fallbackOfficeId = fallbackOfficeByUserId.get(String(row.user_id)) || "";
-        const effectiveOfficeId = processOfficeId || fallbackOfficeId;
-        if (role === "manager" && officeId && effectiveOfficeId !== officeId) {
-          console.info(`${debugPrefix} filtered by officeId`, {
-            threadProcessId,
-            processOfficeId,
-            fallbackOfficeId,
-            effectiveOfficeId,
-            officeId,
-            userId: row.user_id,
-            serviceSlug: row.service_slug,
-          });
-          return;
-        }
-        if (seenThreads.has(threadProcessId)) {
-          console.info(`${debugPrefix} skipped duplicate thread`, { threadProcessId });
-          return;
-        }
-        seenThreads.add(threadProcessId);
+        const account = accountsById.get(service.user_id);
+        const lastMsgTime = lastMessageAtByConv.get(c.id) || c.created_at;
 
         result.push({
-          processId: threadProcessId,
-          userId: row.user_id as string,
-          officeId: (row.office_id as string | null | undefined) ?? null,
-          serviceSlug: row.service_slug as string,
+          conversationId: c.id,
+          processId: c.process_id,
+          userId: service.user_id,
+          officeId: c.office_id,
+          serviceSlug: service.service_slug,
           officeName: "Office",
-          chatTitle: getAnalysisChatTitle(row.service_slug as string),
-          fullName: (account?.full_name as string | undefined) || "Sem Nome",
-          email: (account?.email as string | undefined) || "",
-          avatarUrl: (account?.avatar_url as string | null | undefined) ?? null,
-          createdAt: lastMessageAtByProcess[threadProcessId] || (row.created_at as string),
+          chatTitle: getAnalysisChatTitle(service.service_slug),
+          fullName: account?.full_name || "Sem Nome",
+          email: account?.email || "",
+          avatarUrl: account?.avatar_url || null,
+          createdAt: lastMsgTime,
+          isClosed: c.is_closed,
+          chatClosedAt: c.is_closed ? (c.updated_at || new Date().toISOString()) : null,
+          lastMessage: lastMessageContentByConv.get(c.id) || null,
         });
+
       });
 
+      // Ordena por data da última mensagem descendente
       result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      console.info(`${debugPrefix} load complete`, {
-        totalThreads: result.length,
-        unreadKeys: Object.keys(unread).length,
-        role,
-        officeId,
-      });
+      
+      console.info(`${debugPrefix} load complete`, { totalThreads: result.length });
       setThreads(result);
     } catch (err) {
-      console.error("[useAdminChats] load error:", {
-        message: err instanceof Error ? err.message : String(err),
-        error: err,
-      });
+      console.error("[useAdminChats] load error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -398,10 +197,31 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
       .channel(`chat:all:${crypto.randomUUID()}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "chat_messages" },
-        () => { void load(); },
+        { event: "INSERT", schema: "public", table: "conversation_messages" },
+        (payload) => {
+          console.info("[useAdminChats] Realtime INSERT on conversation_messages:", payload);
+          void load();
+        },
       )
-      .subscribe();
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "conversations" },
+        (payload) => {
+          console.info("[useAdminChats] Realtime INSERT on conversations:", payload);
+          void load();
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "conversations" },
+        (payload) => {
+          console.info("[useAdminChats] Realtime UPDATE on conversations:", payload);
+          void load();
+        },
+      )
+      .subscribe((status) => {
+        console.info("[useAdminChats] Realtime subscription status:", status);
+      });
 
     return () => {
       if (channelRef.current) {
@@ -411,30 +231,31 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
     };
   }, [disableLoad, load]);
 
-  const closeChat = useCallback(async (processId: string) => {
+  const closeChat = useCallback(async (conversationId: string) => {
     const { error } = await supabase
-      .from("user_services")
-      .update({ chat_closed_at: new Date().toISOString() })
-      .eq("id", processId);
+      .from("conversations")
+      .update({ is_closed: true })
+      .eq("id", conversationId);
     if (error) throw new Error(error.message);
   }, []);
 
-  const reopenChat = useCallback(async (processId: string) => {
+  const reopenChat = useCallback(async (conversationId: string) => {
     const { error } = await supabase
-      .from("user_services")
-      .update({ chat_closed_at: null })
-      .eq("id", processId);
+      .from("conversations")
+      .update({ is_closed: false })
+      .eq("id", conversationId);
     if (error) throw new Error(error.message);
   }, []);
 
-  const getChatClosedAt = useCallback(async (processId: string): Promise<string | null> => {
+  const getChatClosedAt = useCallback(async (conversationId: string): Promise<string | null> => {
     const { data, error } = await supabase
-      .from("user_services")
-      .select("chat_closed_at")
-      .eq("id", processId)
-      .single();
-    if (error) return null;
-    return (data as Record<string, unknown> | null)?.chat_closed_at as string | null ?? null;
+      .from("conversations")
+      .select("is_closed, updated_at")
+      .eq("id", conversationId)
+      .maybeSingle();
+    
+    if (error || !data) return null;
+    return data.is_closed ? (data.updated_at || new Date().toISOString()) : null;
   }, []);
 
   return {
