@@ -88,7 +88,7 @@ const visas = {
       desc: "Acompanhe o passo-a-passo no site do consulado para enviar as informações que revisamos.",
       tutorial: {
         step1Title: "Acesse o site do CEAC",
-        step1Desc: "Vá para a página oficial do Governo Americano e utilize as credenciais abaixo para recuperar ou acessar sua aplicação.",
+        step1Desc: "Vá para a página oficial do Governo Americano e utilize as credenciais acima para recuperar ou acessar sua aplicação.",
         step2Title: "Revise Suas Informações",
         step2Desc: "Navegue pelo menu lateral para encontrar a seção principal e clique para expandir.",
         step3Title: "Assinatura Final",
@@ -285,7 +285,7 @@ const visas = {
       tutorialSteps: [
         {
           title: "Acesse o site do CEAC",
-          desc: "Vá para a página oficial do Governo Americano e utilize as credenciais abaixo para recuperar ou acessar sua aplicação.",
+          desc: "Vá para a página oficial do Governo Americano e utilize as credenciais acima para recuperar ou acessar sua aplicação.",
         },
         {
           title: "Revise Suas Informações",

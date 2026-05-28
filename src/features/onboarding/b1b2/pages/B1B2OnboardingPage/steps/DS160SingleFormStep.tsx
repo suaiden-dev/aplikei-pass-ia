@@ -83,34 +83,71 @@ const FormNumericInput = ({
   placeholder?: string;
   required?: boolean;
 }) => {
-  const { errors, touched, setFieldValue } = useFormikContext<Record<string, unknown>>();
+  const { errors, touched, setFieldValue, values } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
+
+  // Lógica local para moeda (Padrão: R$ se não houver indicador de dólar)
+  const isUsdName = `${name}_currency`;
+  const selectedCurrency = (values[isUsdName] as string) || "BRL";
 
   return (
     <div className="space-y-1.5">
       <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
         {label} {required && <span className="text-primary">*</span>}
       </label>
-      <Field name={name}>
-        {({ field, form }: any) => (
-          <input
-            {...field}
-            id={name}
-            type="text"
-            inputMode="numeric"
-            placeholder={placeholder}
-            value={field.value || ""}
-            onChange={(e) => {
-              const val = e.target.value.replace(/\D/g, "");
-              form.setFieldValue(name, val);
-            }}
-            className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
-              ? "border-red-300 bg-red-50/50 focus:border-red-400"
-              : "border-border bg-card focus:border-primary"
-              }`}
-          />
-        )}
-      </Field>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-text-muted/60 select-none">
+            {selectedCurrency === "USD" ? "US$" : "R$"}
+          </span>
+          <Field name={name}>
+            {({ field, form }: any) => (
+              <input
+                {...field}
+                id={name}
+                type="text"
+                inputMode="numeric"
+                placeholder={placeholder}
+                value={field.value || ""}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "");
+                  form.setFieldValue(name, val);
+                }}
+                className={`w-full pl-12 pr-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
+                  ? "border-red-300 bg-red-50/50 focus:border-red-400"
+                  : "border-border bg-card focus:border-primary"
+                  }`}
+              />
+            )}
+          </Field>
+        </div>
+
+        {/* Botão de Toggle de Moeda R$ ou US$ */}
+        <div className="flex bg-slate-100/80 p-1 rounded-xl border border-slate-200/50 shrink-0">
+          <button
+            type="button"
+            onClick={() => setFieldValue(isUsdName, "BRL")}
+            className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${
+              selectedCurrency === "BRL"
+                ? "bg-white text-primary shadow-sm"
+                : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            R$
+          </button>
+          <button
+            type="button"
+            onClick={() => setFieldValue(isUsdName, "USD")}
+            className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${
+              selectedCurrency === "USD"
+                ? "bg-white text-primary shadow-sm"
+                : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            US$
+          </button>
+        </div>
+      </div>
       <FieldError name={name} />
     </div>
   );
