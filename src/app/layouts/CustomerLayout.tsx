@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { NavLink, Outlet, useLocation, Navigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, Navigate, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   RiDashboardLine,
   RiBriefcaseLine,
   RiQuestionLine,
   RiCloseLine,
+  RiLogoutBoxRLine,
 } from "react-icons/ri";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useLocale, useT, type Language } from "@app/app/i18n";
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { getDashboardPathForRole } from "@features/auth/lib/roles";
 import { cn } from "@shared/utils/cn";
 import { NotificationProvider } from "@app/app/providers/NotificationProvider";
@@ -17,12 +17,18 @@ import { NotificationToaster } from "@features/notifications/components/Notifica
 import { DashboardNavbar } from "@shared/components/organisms/DashboardNavbar";
 
 export function CustomerLayout() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const { lang, setLang } = useLocale();
   const tDashboard = useT("dashboard");
   const { pathname } = useLocation();
   const [sidebarOpenPath, setSidebarOpenPath] = useState<string | null>(null);
   const isSidebarOpen = sidebarOpenPath === pathname;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/acompanhar-meu-caso", { replace: true });
+  };
   const resolvedName = useMemo(() => {
     const raw = user?.fullName || "";
     return raw.trim().split(/\s+/)[0] || "User";
@@ -143,11 +149,20 @@ export function CustomerLayout() {
                 alt="Avatar"
                 className="h-9 w-9 rounded-full border border-border object-cover"
               />
-              <div className="text-left overflow-hidden">
+              <div className="text-left overflow-hidden flex-1">
                 <p className="text-xs font-bold text-text truncate">{resolvedName}</p>
                 <p className="text-[10px] text-text-muted truncate">{user?.email}</p>
               </div>
             </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center justify-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all uppercase tracking-wider"
+            >
+              <RiLogoutBoxRLine size={18} />
+              <span>{tDashboard.logout || "Sair"}</span>
+            </button>
 
             <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-text-muted">
               Powered by Aplikei

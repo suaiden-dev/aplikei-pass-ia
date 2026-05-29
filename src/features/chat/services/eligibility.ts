@@ -92,6 +92,8 @@ export function isCustomerChatEligible(proc: UserService): boolean {
   if (
     slug.startsWith("mentoring-") ||
     slug.startsWith("mentoria-") ||
+    slug.startsWith("consultoria-") ||
+    slug.startsWith("consultancy-") ||
     slug === "consultoria-especialista" ||
     slug === "consultancy-negative-b1b2"
   ) {

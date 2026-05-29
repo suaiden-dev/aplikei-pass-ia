@@ -80,55 +80,37 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
         "consultoria-especialista",
       ];
 
-      const { data: currentProcess } = await supabase
-        .from("user_services")
-        .select("step_data")
-        .eq("id", procId)
-        .maybeSingle();
-
-      const processStepData = (currentProcess?.step_data as Record<string, unknown> | null) ?? null;
-      const purchases = Array.isArray(processStepData?.purchases)
-        ? (processStepData?.purchases as Array<{ slug?: string }>)
-        : [];
-      const purchaseSlugs = new Set<string>();
-      purchases.forEach((purchase) => {
-        const raw = String(purchase.slug || "").trim();
-        if (!raw) return;
-        purchaseSlugs.add(raw);
-        purchaseSlugs.add(getCanonicalSlug(raw));
-      });
       const consultationSlugs = ["consultoria-f1-negativa", "consultancy-negative-f1"];
-
-      const hasMentorshipInProcess = mentorshipSlugs.some((slug) => purchaseSlugs.has(slug));
-      const hasConsultationInProcess = consultationSlugs.some((slug) => purchaseSlugs.has(slug) || purchaseSlugs.has(getCanonicalSlug(slug)));
 
       setPurchasedMentorship(null);
       setPurchasedConsultation(null);
 
-      if (hasMentorshipInProcess) {
-        const { data } = await supabase
-          .from("user_services")
-          .select("*")
-          .eq("user_id", user.id)
-          .in("service_slug", mentorshipSlugs)
-          .eq("status", "active")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (data) setPurchasedMentorship(data);
+      // Query active mentorship globally under user
+      const { data: activeMentorship } = await supabase
+        .from("user_services")
+        .select("*")
+        .eq("user_id", user.id)
+        .in("service_slug", mentorshipSlugs)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (activeMentorship) {
+        setPurchasedMentorship(activeMentorship);
       }
 
-      if (hasConsultationInProcess) {
-        const { data: consultationData } = await supabase
-          .from("user_services")
-          .select("*")
-          .eq("user_id", user.id)
-          .in("service_slug", consultationSlugs)
-          .eq("status", "active")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (consultationData) setPurchasedConsultation(consultationData);
+      // Query active consultation globally under user
+      const { data: activeConsultation } = await supabase
+        .from("user_services")
+        .select("*")
+        .eq("user_id", user.id)
+        .in("service_slug", consultationSlugs)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (activeConsultation) {
+        setPurchasedConsultation(activeConsultation);
       }
     }
 

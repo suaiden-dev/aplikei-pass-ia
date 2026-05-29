@@ -128,35 +128,19 @@ export function useB1B2Onboarding({
             body: `Client completed the DS-160 for ${slug}.`,
             serviceId: procId,
             userId,
-            link: `/admin/processes/${procId}`,
+            link: `/master/processes/${procId}`,
           });
           setProcStatus('awaiting_review');
           setCurrentStep(1);
-          toast.success(labels.successSubmit);
-          setTimeout(() => {
-            navigate(`/dashboard/processes/${slug}`);
-          }, 1500);
         } else {
           // For other steps that might use this handleSubmit (if any)
           await requestStepReview(procId);
-          toast.success(labels.successSubmit);
-          setTimeout(() => {
-            navigate(`/dashboard/processes/${slug}`);
-          }, 1500);
         }
 
-        await requestStepReview(procId);
-
-        await notifyAdmin({
-          title: "DS-160 completed",
-          body: `Client completed the DS-160 for ${slug}.`,
-          serviceId: procId,
-          userId,
-          link: `/master/processes/${procId}`,
-        });
-
         toast.success(labels.successSubmit);
-        navigate(`/dashboard/processes/${slug}`);
+        setTimeout(() => {
+          navigate(`/dashboard/processes/${slug}`);
+        }, 1500);
       } catch (err) {
         console.error(err);
         toast.error(labels.errorSave);

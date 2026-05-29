@@ -69,11 +69,52 @@ export function useCustomerChats(userId: string) {
         .select("id, process_id, is_closed")
         .eq("customer_id", userId);
 
+      // --- AUTO-ENSURE CHAT THREADS FOR ELIGIBLE SERVICES ---
+      let neededReload = false;
+      for (const row of eligible) {
+        const processId = row.id as string;
+        const stepData = (row.step_data as Record<string, unknown>) || {};
+        const parentProcessId = String(stepData.parent_process_id || "").trim();
+        const targetProcessId = parentProcessId || processId;
+
+        const hasConv = (convsByProcess || []).some(c => c.process_id === targetProcessId) || 
+                        (convsByCustomer || []).some(c => c.process_id === targetProcessId);
+
+        if (!hasConv) {
+          const { ensureChatThread } = await import("../../process/services/processOps");
+          await ensureChatThread(
+            targetProcessId,
+            userId,
+            "Olá! Fale com o especialista sobre o seu processo.",
+            true
+          );
+          neededReload = true;
+        }
+      }
+
+      let activeConvsByProcess = convsByProcess;
+      let activeConvsByCustomer = convsByCustomer;
+
+      if (neededReload) {
+        const { data: freshConvsByProcess } = await supabase
+          .from("conversations")
+          .select("id, process_id, is_closed")
+          .in("process_id", messageProcessIds);
+
+        const { data: freshConvsByCustomer } = await supabase
+          .from("conversations")
+          .select("id, process_id, is_closed")
+          .eq("customer_id", userId);
+
+        activeConvsByProcess = freshConvsByProcess;
+        activeConvsByCustomer = freshConvsByCustomer;
+      }
+
       const convsMap = new Map<string, { id: string; process_id: string; is_closed: boolean }>();
-      (convsByProcess || []).forEach((c: any) => {
+      (activeConvsByProcess || []).forEach((c: any) => {
         convsMap.set(c.id, c);
       });
-      (convsByCustomer || []).forEach((c: any) => {
+      (activeConvsByCustomer || []).forEach((c: any) => {
         convsMap.set(c.id, c);
       });
       const convs = Array.from(convsMap.values());

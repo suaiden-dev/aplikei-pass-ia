@@ -84,6 +84,10 @@ const checkout = {
             password: "Crie uma senha para sua conta",
             passwordDesc: "Mínimo 6 caracteres",
             passwordAutoNotice: "Sua conta será criada automaticamente ao finalizar o pedido.",
+            termsLabel: "Li e concordo com os",
+            termsLink: "Termos de Uso",
+            termsAnd: "e a",
+            privacyLink: "Política de Privacidade",
             errors: {
                 nameRequired: "Informe seu nome completo",
                 nameShort: "Nome muito curto",
@@ -91,7 +95,8 @@ const checkout = {
                 emailInvalid: "E-mail inválido",
                 phoneRequired: "Informe um telefone válido",
                 passwordShort: "A senha precisa ter pelo menos 6 caracteres.",
-                emailTaken: "Este e-mail já possui uma conta. Por favor, faça login antes de contratar."
+                emailTaken: "Este e-mail já possui uma conta. Por favor, faça login antes de contratar.",
+                termsRequired: "Você precisa aceitar os Termos de Uso e a Política de Privacidade para continuar."
             }
         },
         paymentMethods: {

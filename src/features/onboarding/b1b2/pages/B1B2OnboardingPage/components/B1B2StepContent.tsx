@@ -79,6 +79,7 @@ export function B1B2StepContent({
     return (
       <B1B2UserConfirmEmailStep
         procId={procId}
+        email={savedValues.primaryEmail}
         onComplete={onNavigateToProcess}
         onBack={onNavigateToProcess}
       />

@@ -716,17 +716,6 @@ function FinalSchedulingPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
       </div>
 
       <div className="pt-4 flex flex-col gap-4">
-        {/* Botão de Preparação (Visível para B1B2 e F1) */}
-        {(proc.service_slug.includes("b1b2") || proc.service_slug.includes("b1-b2") || proc.service_slug.includes("f1")) && (
-          <button
-            onClick={() => window.open('/guides/b1b2-interview-guide.pdf', '_blank')}
-            className="w-full h-12 border-2 border-primary/20 text-primary rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-primary/5 transition-all"
-          >
-            <RiBookOpenLine className="text-xl" />
-            {vt.prepareForInterview}
-          </button>
-        )}
-
         {canEdit && (
           <button
             onClick={handleSave}
@@ -1290,6 +1279,9 @@ export default function AdminProcessDetailPage() {
   const parentIdFromQuery = searchParams.get("parentId");
   const isRecoveryChildView = Boolean(parentIdFromQuery);
 
+  const [sellerId, setSellerId] = useState<string | null>(null);
+  const [sellerName, setSellerName] = useState<string | null>(null);
+
   const fetchProcessData = useCallback(async () => {
     if (!id) return;
     setIsLoading(true);
@@ -1336,6 +1328,147 @@ export default function AdminProcessDetailPage() {
         }
       }
 
+      // 1. Direct step_data / metadata checks
+      let resolvedSellerId: string | null = 
+        (processRow.step_data as any)?.seller_id || 
+        (processRow.service_metadata as any)?.seller_id || 
+        (processRow.data as any)?.seller_id || 
+        null;
+      let resolvedSellerName: string | null = null;
+
+      try {
+        // Collect order IDs from this process
+        const orderIds = new Set<string>();
+        const sd = (processRow.step_data as any) || {};
+        if (sd.purchase_ref?.order_id) orderIds.add(sd.purchase_ref.order_id);
+        if (Array.isArray(sd.purchases)) {
+          sd.purchases.forEach((p: any) => {
+            if (p.order_id) orderIds.add(p.order_id);
+          });
+        }
+
+        // Parent process checks
+        const parentId = sd.parent_process_id;
+        if (parentId) {
+          const { data: parentProc } = await supabase
+            .from("user_services")
+            .select("step_data, service_metadata, data")
+            .eq("id", parentId)
+            .maybeSingle();
+          if (parentProc) {
+            if (!resolvedSellerId) {
+              resolvedSellerId = 
+                (parentProc.step_data as any)?.seller_id || 
+                (parentProc.service_metadata as any)?.seller_id || 
+                (parentProc.data as any)?.seller_id || 
+                null;
+            }
+            const psd = (parentProc.step_data as any) || {};
+            if (psd.purchase_ref?.order_id) orderIds.add(psd.purchase_ref.order_id);
+            if (Array.isArray(psd.purchases)) {
+              psd.purchases.forEach((p: any) => {
+                if (p.order_id) orderIds.add(p.order_id);
+              });
+            }
+          }
+        }
+
+        // Try getting seller_id from collected order IDs
+        if (!resolvedSellerId && orderIds.size > 0) {
+          const { data: ordersByPid } = await supabase
+            .from("orders")
+            .select("seller_id")
+            .in("id", Array.from(orderIds))
+            .not("seller_id", "is", null)
+            .limit(1)
+            .maybeSingle();
+          if (ordersByPid?.seller_id) {
+            resolvedSellerId = ordersByPid.seller_id;
+          }
+        }
+
+        // Try getting seller_id from payment_metadata matching current or parent process IDs
+        if (!resolvedSellerId) {
+          const idsToCheck = [processRow.id];
+          if (parentId) idsToCheck.push(parentId);
+
+          for (const targetId of idsToCheck) {
+            const { data: ordersByMeta } = await supabase
+              .from("orders")
+              .select("seller_id")
+              .or(`payment_metadata->>proc_id.eq.${targetId},payment_metadata->>parent_process_id.eq.${targetId}`)
+              .not("seller_id", "is", null)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            if (ordersByMeta?.seller_id) {
+              resolvedSellerId = ordersByMeta.seller_id;
+              break;
+            }
+          }
+        }
+
+        // Try getting seller_id from any of the client's orders
+        if (!resolvedSellerId) {
+          const clientUserId = processRow.user_id || sd.user_id || null;
+          const clientEmail = account.email || sd.email || sd.client_email || null;
+          const filters: string[] = [];
+          if (clientUserId) filters.push(`user_id.eq.${clientUserId}`);
+          if (clientEmail) filters.push(`client_email.eq.${clientEmail}`);
+
+          if (filters.length > 0) {
+            const { data: orderData } = await supabase
+              .from("orders")
+              .select("seller_id")
+              .or(filters.join(","))
+              .not("seller_id", "is", null)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (orderData?.seller_id) {
+              resolvedSellerId = orderData.seller_id;
+            }
+          }
+        }
+
+        // Resolve seller name
+        if (resolvedSellerId) {
+          // 1. Try fetching from user_accounts
+          const { data: sellerAccount } = await supabase
+            .from("user_accounts")
+            .select("full_name, email")
+            .eq("id", resolvedSellerId)
+            .maybeSingle();
+
+          if (sellerAccount?.full_name) {
+            resolvedSellerName = sellerAccount.full_name;
+          } else if (sellerAccount?.email) {
+            resolvedSellerName = sellerAccount.email.split("@")[0];
+          } else {
+            // 2. Try fetching from profiles table as fallback
+            const { data: sellerProfile } = await supabase
+              .from("profiles")
+              .select("full_name, email")
+              .eq("id", resolvedSellerId)
+              .maybeSingle();
+
+            if (sellerProfile?.full_name) {
+              resolvedSellerName = sellerProfile.full_name;
+            } else if (sellerProfile?.email) {
+              resolvedSellerName = sellerProfile.email.split("@")[0];
+            }
+          }
+        }
+      } catch (sellerErr) {
+        console.error("Error fetching seller details:", sellerErr);
+      }
+
+      console.log("Resolved seller ID:", resolvedSellerId);
+      console.log("Resolved seller name:", resolvedSellerName);
+      setSellerId(resolvedSellerId);
+      setSellerName(resolvedSellerName);
+
       setProc({ ...processRow, user_accounts: account });
       const parentProcessId = parentIdFromQuery || processRow.id;
       const { data: childRows } = await supabase
@@ -1356,7 +1489,7 @@ export default function AdminProcessDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [id, navigate, processRoutePrefix, t, parentIdFromQuery]);
+  }, [id, navigate, processRoutePrefix, t, parentIdFromQuery, user?.id]);
 
   useEffect(() => {
     fetchProcessData();
@@ -1449,30 +1582,6 @@ export default function AdminProcessDetailPage() {
 
       if (isAdminTask) {
         await processService.updateProcessStatus(proc.id, "awaiting_review");
-      }
-
-      if (proc.user_id) {
-        const serviceName = service.title ?? proc.service_slug;
-        if (isFinal) {
-          notificationService.notifyClient({
-            userId: proc.user_id,
-            serviceId: proc.id,
-            template: "process_completed_approved",
-            templateData: { service_name: serviceName },
-            link: `/dashboard/processes/${proc.service_slug}`,
-          });
-        } else {
-          notificationService.notifyClient({
-            userId: proc.user_id,
-            serviceId: proc.id,
-            template: "step_approved",
-            templateData: {
-              step_name: currentStep?.title ?? "",
-              next_step_name: service.steps[nextStep]?.title ?? "",
-            },
-            link: `/dashboard/processes/${proc.service_slug}`,
-          });
-        }
       }
 
       toast.success(isFinal ? t.cases.messages.approveFinalSuccess : t.cases.messages.approveSuccess.replace("{name}", proc.user_accounts?.full_name || "Cliente"));
@@ -1639,21 +1748,6 @@ export default function AdminProcessDetailPage() {
         isActive={isActive}
         isPast={isPast}
       >
-        {/* Client Info Section */}
-        <div className="bg-bg-subtle border border-border rounded-2xl p-6 mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
-          <div className="border-b sm:border-b-0 sm:border-r border-border pb-3 sm:pb-0 sm:pr-6">
-            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Nome Completo</p>
-            <p className="text-sm font-bold text-text">{proc.user_accounts?.full_name || "—"}</p>
-          </div>
-          <div className="border-b sm:border-b-0 sm:border-r border-border pb-3 sm:pb-0 sm:pr-6">
-            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">E-mail</p>
-            <p className="text-sm font-bold text-text break-all">{proc.user_accounts?.email || "—"}</p>
-          </div>
-          <div className="border-b sm:border-b-0 border-border pb-3 sm:pb-0 sm:pr-6">
-            <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Telefone</p>
-            <p className="text-sm font-bold text-text">{proc.user_accounts?.mobilePhone || "—"}</p>
-          </div>
-        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
           {entries.map(([key, value]) => {
@@ -2848,6 +2942,48 @@ export default function AdminProcessDetailPage() {
         </div>
 
         <div className="space-y-8">
+          {/* Card de Contato do Cliente & Vendedor */}
+          <div className="bg-card rounded-[32px] border border-border shadow-sm p-8 space-y-6">
+            <div className="flex items-center gap-3 border-b border-border pb-4">
+              <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                <RiUser3Line className="text-xl" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-black text-text text-sm uppercase tracking-tight">Detalhes do Cliente</h3>
+                <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5">Informações de contato e venda</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-left">
+              <div className="flex flex-col gap-1">
+                <span className="text-[9px] font-black text-text-muted uppercase tracking-widest">Nome Completo</span>
+                <span className="text-xs font-bold text-text">{proc.user_accounts?.full_name || "—"}</span>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="text-[9px] font-black text-text-muted uppercase tracking-widest">E-mail</span>
+                <span className="text-xs font-bold text-text break-all">{proc.user_accounts?.email || "—"}</span>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="text-[9px] font-black text-text-muted uppercase tracking-widest">Telefone</span>
+                <span className="text-xs font-bold text-text">{proc.user_accounts?.mobilePhone || "—"}</span>
+              </div>
+
+              <div className="flex flex-col gap-1 pt-4 border-t border-border/50">
+                <span className="text-[9px] font-black text-text-muted uppercase tracking-widest">Vendedor (Seller ID)</span>
+                {sellerId ? (
+                  <div className="mt-1.5 flex flex-col gap-1 bg-bg-subtle p-3 rounded-2xl border border-border">
+                    <span className="text-xs font-bold text-primary">Nome: {sellerName || "Vendedor Identificado"}</span>
+                    <span className="font-mono text-[9px] text-text-muted break-all">ID: {sellerId}</span>
+                  </div>
+                ) : (
+                  <span className="text-xs font-bold text-text-muted italic mt-1 block">Nenhum (Venda Direta / Sem Link)</span>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="bg-card rounded-[32px] border border-border shadow-sm p-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-black text-text text-lg uppercase">{t.cases.table.flowActions}</h3>

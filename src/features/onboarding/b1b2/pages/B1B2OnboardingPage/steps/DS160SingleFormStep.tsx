@@ -77,11 +77,15 @@ const FormNumericInput = ({
   label,
   placeholder = "",
   required = false,
+  allowDecimals = false,
+  isCurrency = false,
 }: {
   name: string;
   label: string;
   placeholder?: string;
   required?: boolean;
+  allowDecimals?: boolean;
+  isCurrency?: boolean;
 }) => {
   const { errors, touched, setFieldValue, values } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
@@ -97,23 +101,37 @@ const FormNumericInput = ({
       </label>
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-text-muted/60 select-none">
-            {selectedCurrency === "USD" ? "US$" : "R$"}
-          </span>
+          {isCurrency && (
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-text-muted/60 select-none">
+              {selectedCurrency === "USD" ? "US$" : "R$"}
+            </span>
+          )}
           <Field name={name}>
             {({ field, form }: any) => (
               <input
                 {...field}
                 id={name}
                 type="text"
-                inputMode="numeric"
+                inputMode={allowDecimals ? "decimal" : "numeric"}
                 placeholder={placeholder}
                 value={field.value || ""}
                 onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, "");
+                  let val = e.target.value;
+                  if (allowDecimals) {
+                    // Allow digits and single dot or comma
+                    val = val.replace(/[^0-9.,]/g, "");
+                    const firstSeparatorIndex = val.search(/[.,]/);
+                    if (firstSeparatorIndex !== -1) {
+                      const before = val.substring(0, firstSeparatorIndex);
+                      const after = val.substring(firstSeparatorIndex + 1).replace(/[.,]/g, "");
+                      val = before + val[firstSeparatorIndex] + after;
+                    }
+                  } else {
+                    val = val.replace(/\D/g, "");
+                  }
                   form.setFieldValue(name, val);
                 }}
-                className={`w-full pl-12 pr-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
+                className={`w-full ${isCurrency ? "pl-12" : "px-4"} pr-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
                   ? "border-red-300 bg-red-50/50 focus:border-red-400"
                   : "border-border bg-card focus:border-primary"
                   }`}
@@ -123,30 +141,32 @@ const FormNumericInput = ({
         </div>
 
         {/* Botão de Toggle de Moeda R$ ou US$ */}
-        <div className="flex bg-slate-100/80 p-1 rounded-xl border border-slate-200/50 shrink-0">
-          <button
-            type="button"
-            onClick={() => setFieldValue(isUsdName, "BRL")}
-            className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${
-              selectedCurrency === "BRL"
-                ? "bg-white text-primary shadow-sm"
-                : "text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            R$
-          </button>
-          <button
-            type="button"
-            onClick={() => setFieldValue(isUsdName, "USD")}
-            className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${
-              selectedCurrency === "USD"
-                ? "bg-white text-primary shadow-sm"
-                : "text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            US$
-          </button>
-        </div>
+        {isCurrency && (
+          <div className="flex bg-slate-100/80 p-1 rounded-xl border border-slate-200/50 shrink-0">
+            <button
+              type="button"
+              onClick={() => setFieldValue(isUsdName, "BRL")}
+              className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                selectedCurrency === "BRL"
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              R$
+            </button>
+            <button
+              type="button"
+              onClick={() => setFieldValue(isUsdName, "USD")}
+              className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                selectedCurrency === "USD"
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              US$
+            </button>
+          </div>
+        )}
       </div>
       <FieldError name={name} />
     </div>
@@ -601,7 +621,7 @@ export const DS160SingleFormStep = ({
         <div className="sm:col-span-2">
           <FormInput name="homeStreet" label={t.onboardingPage.form.homeStreetLabel} required />
         </div>
-        <FormInput name="homeCity" label={t.onboardingPage.form.cityLabel} required />
+        <FormInput name="homeCity" label={t.onboardingPage.form.homeCityLabel || t.onboardingPage.form.cityLabel} required />
         <FormInput name="homeState" label={t.onboardingPage.form.stateProvinceLabel} required />
         <FormNumericInput name="homeZip" label={t.onboardingPage.form.zipCodeLabel} required />
         <FormInput name="homeCountry" label={t.onboardingPage.form.countryLabel} required />
@@ -700,7 +720,7 @@ export const DS160SingleFormStep = ({
             <FormInput name="primaryJobAddress" label={t.onboardingPage.form.fullAddressLabel} />
           </div>
           <FormInput name="primaryJobPhone" label={t.onboardingPage.form.phoneLabel} />
-          <FormNumericInput name="primaryJobSalary" label={t.onboardingPage.form.monthlySalaryLabel} placeholder={t.onboardingPage.form.monthlySalaryPlaceholder} />
+          <FormNumericInput name="primaryJobSalary" label={t.onboardingPage.form.monthlySalaryLabel} placeholder={t.onboardingPage.form.monthlySalaryPlaceholder} allowDecimals={true} isCurrency={true} />
           <div className="sm:col-span-2">
             <FormTextarea name="primaryJobDuties" label={t.onboardingPage.form.jobDutiesLabel} rows={2} />
           </div>
