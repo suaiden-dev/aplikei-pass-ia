@@ -26,6 +26,7 @@ import { MdPix } from "react-icons/md";
 import { Input } from "@shared/components/atoms/input";
 import { Label } from "@shared/components/atoms/label";
 import { Button } from "@shared/components/atoms/button";
+import { Checkbox } from "@shared/components/atoms/checkbox";
 import { zodValidate } from "@shared/utils/zodValidate";
 import { getServiceBySlug, getServiceSlugs } from "@shared/data/services";
 import { useAuth } from "@shared/hooks/useAuth";
@@ -423,6 +424,7 @@ export default function CheckoutPage() {
       phone: user?.phoneNumber ?? "",
       password: "",
       parcelowCpf: "",
+      acceptedTerms: false,
     },
     enableReinitialize: true,
     validate: zodValidate(z.object({
@@ -430,6 +432,10 @@ export default function CheckoutPage() {
       email: z.string().min(1, t.userData.errors.emailRequired).email(t.userData.errors.emailInvalid),
       phone: z.string().min(10, t.userData.errors.phoneRequired),
       password: z.string().optional(),
+      parcelowCpf: z.string().optional(),
+      acceptedTerms: z.boolean().refine((val) => val === true, {
+        message: t.userData.errors.termsRequired || "Você deve aceitar os termos",
+      }),
     })),
     onSubmit: async (values) => {
       try {
@@ -485,6 +491,7 @@ export default function CheckoutPage() {
           localStorage.setItem("checkout_slug", service!.slug);
           if (orderId) localStorage.setItem("checkout_order_id", orderId);
           localStorage.setItem("checkout_dependents", checkoutCount.toString());
+          if (parentId) localStorage.setItem("checkout_parent_id", parentId);
           window.location.href = url;
 
         } else if (activeMethod === "parcelow") {
@@ -510,6 +517,7 @@ export default function CheckoutPage() {
           localStorage.setItem("checkout_slug", service!.slug);
           if (orderId) localStorage.setItem("checkout_order_id", orderId);
           localStorage.setItem("checkout_dependents", checkoutCount.toString());
+          if (parentId) localStorage.setItem("checkout_parent_id", parentId);
           window.location.href = url;
 
         } else if (activeMethod === "zelle") {
@@ -1335,6 +1343,41 @@ export default function CheckoutPage() {
                     )}
                   </AnimatePresence>
                 </div>
+
+                {/* Terms and Conditions Checkbox */}
+                {!zelleDone && (
+                  <Checkbox
+                    id="acceptedTerms"
+                    name="acceptedTerms"
+                    checked={formik.values.acceptedTerms}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.touched.acceptedTerms && formik.errors.acceptedTerms ? String(formik.errors.acceptedTerms) : undefined}
+                    label={
+                      <span className="text-xs text-text-muted leading-snug">
+                        {t.userData.termsLabel || "Li e concordo com os"}{" "}
+                        <a
+                          href="/termos"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline font-bold"
+                        >
+                          {t.userData.termsLink || "Termos de Uso"}
+                        </a>{" "}
+                        {t.userData.termsAnd || "e a"}{" "}
+                        <a
+                          href="/privacidade"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline font-bold"
+                        >
+                          {t.userData.privacyLink || "Política de Privacidade"}
+                        </a>
+                        .
+                      </span>
+                    }
+                  />
+                )}
 
                 {/* Submit */}
                 {!zelleDone && (

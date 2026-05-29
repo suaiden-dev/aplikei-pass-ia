@@ -95,7 +95,6 @@ export function useF1Onboarding(userId: string | undefined) {
       delete payload["rejected_items"];
 
       await updateStepData(procId, payload);
-      await requestStepReview(procId);
 
       const { data: freshProc } = await supabase
         .from("user_services")
@@ -107,6 +106,7 @@ export function useF1Onboarding(userId: string | undefined) {
 
       if (currentDBStep === 0) {
         await approveStep(procId, 1, false);
+        await requestStepReview(procId);
         await notifyAdmin({
           title: "DS-160 completed (F1)",
           body: `Client completed the DS-160 for ${slug}.`,
@@ -119,6 +119,7 @@ export function useF1Onboarding(userId: string | undefined) {
         toast.success("DS-160 enviada com sucesso!");
         navigate(`/dashboard/processes/${slug}`);
       } else {
+        await requestStepReview(procId);
         toast.success("Rascunho salvo!");
         navigate(`/dashboard/processes/${slug}`);
       }

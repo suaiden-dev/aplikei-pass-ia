@@ -23,6 +23,7 @@ import {
 import { MdPix } from "react-icons/md";
 import { Input } from "@shared/components/atoms/input";
 import { Label } from "@shared/components/atoms/label";
+import { Checkbox } from "@shared/components/atoms/checkbox";
 import { zodValidate } from "@shared/utils/zodValidate";
 import { getServiceSlugs } from "@shared/data/services";
 import { useAuth } from "@shared/hooks/useAuth";
@@ -465,6 +466,7 @@ export default function OfficeCheckoutPage() {
             phone: user?.phoneNumber ?? "",
             password: "",
             parcelowCpf: "",
+            acceptedTerms: false,
         },
         enableReinitialize: true,
         validate: zodValidate(z.object({
@@ -472,6 +474,10 @@ export default function OfficeCheckoutPage() {
             email: z.string().min(1, t.userData.errors.emailRequired).email(t.userData.errors.emailInvalid),
             phone: z.string().min(10, t.userData.errors.phoneRequired),
             password: z.string().optional(),
+            parcelowCpf: z.string().optional(),
+            acceptedTerms: z.boolean().refine((val) => val === true, {
+                message: t.userData.errors.termsRequired || "Você deve aceitar os termos",
+            }),
         })),
         onSubmit: async (values) => {
             try {
@@ -1087,6 +1093,43 @@ export default function OfficeCheckoutPage() {
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
+
+                                {/* Terms and Conditions Checkbox */}
+                                {!zelleDone && (
+                                    <div className="mt-6">
+                                        <Checkbox
+                                            id="acceptedTerms"
+                                            name="acceptedTerms"
+                                            checked={formik.values.acceptedTerms}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
+                                            error={formik.touched.acceptedTerms && formik.errors.acceptedTerms ? String(formik.errors.acceptedTerms) : undefined}
+                                            label={
+                                                <span className="text-xs text-text-muted leading-snug">
+                                                    {t.userData.termsLabel || "Li e concordo com os"}{" "}
+                                                    <a
+                                                        href="/termos"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-primary hover:underline font-bold"
+                                                    >
+                                                        {t.userData.termsLink || "Termos de Uso"}
+                                                    </a>{" "}
+                                                    {t.userData.termsAnd || "e a"}{" "}
+                                                    <a
+                                                        href="/privacidade"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-primary hover:underline font-bold"
+                                                    >
+                                                        {t.userData.privacyLink || "Política de Privacidade"}
+                                                    </a>
+                                                    .
+                                                </span>
+                                            }
+                                        />
+                                    </div>
+                                )}
 
                                 {!zelleDone && (
                                     <div className="mt-6">

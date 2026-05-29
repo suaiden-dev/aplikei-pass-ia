@@ -234,7 +234,7 @@ async function createAdminNotificationsForUsers(
     message: body || null,
     link: params.link ?? null,
     email_sent: false,
-    send_email: false,
+    send_email: true,
     metadata: params.metadata || {},
   })));
 }
@@ -275,7 +275,7 @@ export async function notifyAdmin(params: NotifyAdminParams): Promise<void> {
       message: body || null,
       link: params.link ?? null,
       email_sent: false,
-      send_email: false,
+      send_email: true,
       metadata: params.metadata || {},
     });
   } catch (e) {

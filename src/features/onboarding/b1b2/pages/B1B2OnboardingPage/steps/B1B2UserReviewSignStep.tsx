@@ -62,6 +62,7 @@ export function B1B2UserReviewSignStep({
   });
 
   const adminFeedback = (stepData.admin_feedback as string) || null;
+  const rejectedItems = (stepData.rejected_items as string[]) || [];
 
   const appId = (stepData.ds160_application_id as string) || null;
   const motherName = (stepData.ds160_security_answer as string) || null;
@@ -345,6 +346,7 @@ export function B1B2UserReviewSignStep({
           subtitle={t.onboardingPage?.sendFinalFile ?? "Envie o arquivo final da sua aplicação."}
           doc={docs.ds160_assinada}
           onChange={uploadDoc}
+          isRejected={rejectedItems.includes("docs.ds160_assinada")}
         />
         <DocUploadCard
           docKey="ds160_comprovante"
@@ -352,6 +354,7 @@ export function B1B2UserReviewSignStep({
           subtitle={t.onboardingPage?.sendCeacConfirmation ?? "Envie a Confirmação de Submissão do CEAC."}
           doc={docs.ds160_comprovante}
           onChange={uploadDoc}
+          isRejected={rejectedItems.includes("docs.ds160_comprovante")}
         />
       </div>
 

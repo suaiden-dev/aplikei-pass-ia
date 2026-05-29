@@ -108,35 +108,24 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       ];
       const consultationSlugs = ["consultancy-negative-b1b2", "mentoria-negativa-consular"];
 
-      const { data: currentProcess } = await supabase
-        .from("user_services")
-        .select("step_data")
-        .eq("id", procId)
-        .maybeSingle();
-
-      const processStepData = (currentProcess?.step_data as Record<string, unknown> | null) ?? null;
-      const purchaseSlugs = extractProcessPurchaseSlugs(processStepData);
-
-      const hasMentorshipInProcess = mentorshipSlugs.some((slug) => purchaseSlugs.has(slug) || purchaseSlugs.has(getCanonicalSlug(slug)));
-      const hasConsultationInProcess = consultationSlugs.some((slug) => purchaseSlugs.has(slug) || purchaseSlugs.has(getCanonicalSlug(slug)));
-      setHasConsultationInCurrentProcess(hasConsultationInProcess);
-
       setPurchasedMentorship(null);
       setPurchasedConsultation(null);
+      setHasConsultationInCurrentProcess(false);
 
-      let mentorshipData: Record<string, unknown> | null = null;
-      if (hasMentorshipInProcess) {
-        const { data } = await supabase
-          .from("user_services")
-          .select("*")
-          .eq("user_id", user.id)
-          .in("service_slug", mentorshipSlugs)
-          .eq("status", "active")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        mentorshipData = (data as Record<string, unknown> | null) ?? null;
+      // Query active mentorship globally under user
+      const { data: activeMentorship } = await supabase
+        .from("user_services")
+        .select("*")
+        .eq("user_id", user.id)
+        .in("service_slug", mentorshipSlugs)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (activeMentorship) {
+        setPurchasedMentorship(activeMentorship);
       }
+      let mentorshipData = (activeMentorship as Record<string, unknown> | null) ?? null;
       if (!mentorshipData) {
         const { data } = await supabase
           .from("user_services")
@@ -152,17 +141,30 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       }
       if (mentorshipData) setPurchasedMentorship(mentorshipData);
 
-      if (hasConsultationInProcess) {
-        const { data: consultationData } = await supabase
+      // Query active consultation globally under user
+      const { data: activeConsultation } = await supabase
+        .from("user_services")
+        .select("*")
+        .eq("user_id", user.id)
+        .in("service_slug", consultationSlugs)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (activeConsultation) {
+        setPurchasedConsultation(activeConsultation);
+        setHasConsultationInCurrentProcess(true);
+      } else {
+        const { data: currentProcess } = await supabase
           .from("user_services")
-          .select("*")
-          .eq("user_id", user.id)
-          .in("service_slug", consultationSlugs)
-          .eq("status", "active")
-          .order("created_at", { ascending: false })
-          .limit(1)
+          .select("step_data")
+          .eq("id", procId)
           .maybeSingle();
-        if (consultationData) setPurchasedConsultation(consultationData);
+
+        const processStepData = (currentProcess?.step_data as Record<string, unknown> | null) ?? null;
+        const purchaseSlugs = extractProcessPurchaseSlugs(processStepData);
+        const hasConsultationInProcess = consultationSlugs.some((slug) => purchaseSlugs.has(slug) || purchaseSlugs.has(getCanonicalSlug(slug)));
+        setHasConsultationInCurrentProcess(hasConsultationInProcess);
       }
     }
 

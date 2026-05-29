@@ -83,6 +83,10 @@ const checkout = {
             password: "Create a password for your account",
             passwordDesc: "Minimum 6 characters",
             passwordAutoNotice: "Your account will be created automatically upon completing the order.",
+            termsLabel: "I have read and agree to the",
+            termsLink: "Terms of Use",
+            termsAnd: "and the",
+            privacyLink: "Privacy Policy",
             errors: {
                 nameRequired: "Enter your full name",
                 nameShort: "Name too short",
@@ -90,7 +94,8 @@ const checkout = {
                 emailInvalid: "Invalid email",
                 phoneRequired: "Enter a valid phone number",
                 passwordShort: "The password must be at least 6 characters.",
-                emailTaken: "This email already has an account. Please log in before hiring."
+                emailTaken: "This email already has an account. Please log in before hiring.",
+                termsRequired: "You must accept the Terms of Use and Privacy Policy to proceed."
             }
         },
         paymentMethods: {

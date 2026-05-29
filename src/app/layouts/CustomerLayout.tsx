@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { NavLink, Outlet, useLocation, Navigate, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -11,7 +10,7 @@ import {
 import { useAuth } from "@shared/hooks/useAuth";
 import { useTheme } from "@shared/hooks/useTheme";
 import { useLocale, useT, type Language } from "@app/app/i18n";
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { getDashboardPathForRole } from "@features/auth/lib/roles";
 import { cn } from "@shared/utils/cn";
 import { NotificationProvider } from "@app/app/providers/NotificationProvider";
@@ -27,6 +26,11 @@ export function CustomerLayout() {
   const { pathname } = useLocation();
   const [sidebarOpenPath, setSidebarOpenPath] = useState<string | null>(null);
   const isSidebarOpen = sidebarOpenPath === pathname;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/acompanhar-meu-caso", { replace: true });
+  };
   const resolvedName = useMemo(() => {
     const raw = user?.fullName || "";
     return raw.trim().split(/\s+/)[0] || "User";
@@ -58,10 +62,6 @@ export function CustomerLayout() {
 
   const closeSidebar = () => setSidebarOpenPath(null);
   const openSidebar = () => setSidebarOpenPath(pathname);
-  const handleLogout = async () => {
-    await logout();
-    navigate("/track-my-case", { replace: true });
-  };
 
   return (
     <NotificationProvider role="client">
@@ -151,7 +151,7 @@ export function CustomerLayout() {
                 alt="Avatar"
                 className="h-9 w-9 rounded-full border border-border object-cover"
               />
-              <div className="text-left overflow-hidden">
+              <div className="text-left overflow-hidden flex-1">
                 <p className="text-xs font-bold text-text truncate">{resolvedName}</p>
                 <p className="text-[10px] text-text-muted truncate">{user?.email}</p>
               </div>

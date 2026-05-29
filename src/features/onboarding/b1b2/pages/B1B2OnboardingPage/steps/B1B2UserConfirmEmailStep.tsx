@@ -12,12 +12,13 @@ import confirmationEmailImg from "@assets/email/confirmation_email.png";
 
 interface B1B2UserConfirmEmailStepProps {
   procId: string;
+  email?: string;
   nextStepIdx?: number;
   onComplete: () => void;
   onBack: () => void;
 }
 
-export function B1B2UserConfirmEmailStep({ procId, nextStepIdx = 8, onComplete, onBack }: B1B2UserConfirmEmailStepProps) {
+export function B1B2UserConfirmEmailStep({ procId, email, nextStepIdx = 8, onComplete, onBack }: B1B2UserConfirmEmailStepProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const t = useT("visas");
 
@@ -46,7 +47,13 @@ export function B1B2UserConfirmEmailStep({ procId, nextStepIdx = 8, onComplete, 
         <h2 className="text-2xl font-black text-text tracking-tight">
           {t.onboardingPage.emailConfirmation.title}
         </h2>
-        <p className="text-sm font-medium text-text-muted mt-2 max-w-xl mx-auto">
+        {email && (
+          <div className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 font-bold text-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            {email}
+          </div>
+        )}
+        <p className="text-sm font-medium text-text-muted mt-3 max-w-xl mx-auto">
           {t.onboardingPage.emailConfirmation.desc}
         </p>
       </div>
