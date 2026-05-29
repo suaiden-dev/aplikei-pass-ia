@@ -79,6 +79,7 @@ const FormNumericInput = ({
   required = false,
   allowDecimals = false,
   isCurrency = false,
+  onChange,
 }: {
   name: string;
   label: string;
@@ -86,6 +87,7 @@ const FormNumericInput = ({
   required?: boolean;
   allowDecimals?: boolean;
   isCurrency?: boolean;
+  onChange?: (value: string) => void;
 }) => {
   const { errors, touched, setFieldValue, values } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
@@ -130,6 +132,9 @@ const FormNumericInput = ({
                     val = val.replace(/\D/g, "");
                   }
                   form.setFieldValue(name, val);
+                  if (onChange) {
+                    onChange(val);
+                  }
                 }}
                 className={`w-full ${isCurrency ? "pl-12" : "px-4"} pr-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
                   ? "border-red-300 bg-red-50/50 focus:border-red-400"
@@ -623,7 +628,33 @@ export const DS160SingleFormStep = ({
         </div>
         <FormInput name="homeCity" label={t.onboardingPage.form.homeCityLabel || t.onboardingPage.form.cityLabel} required />
         <FormInput name="homeState" label={t.onboardingPage.form.stateProvinceLabel} required />
-        <FormNumericInput name="homeZip" label={t.onboardingPage.form.zipCodeLabel} required />
+        <FormNumericInput
+          name="homeZip"
+          label={t.onboardingPage.form.zipCodeLabel}
+          required
+          onChange={async (val) => {
+            const cleanCep = val.replace(/\D/g, "");
+            if (cleanCep.length === 8) {
+              try {
+                const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+                if (res.ok) {
+                  const data = await res.json();
+                  if (!data.erro) {
+                    const streetValue = data.logradouro 
+                      ? `${data.logradouro}${data.bairro ? `, ${data.bairro}` : ""}`
+                      : "";
+                    setFieldValue("homeStreet", streetValue);
+                    setFieldValue("homeCity", data.localidade || "");
+                    setFieldValue("homeState", data.uf || "");
+                    setFieldValue("homeCountry", "Brasil");
+                  }
+                }
+              } catch (err) {
+                console.error("ViaCEP autofill failed:", err);
+              }
+            }
+          }}
+        />
         <FormInput name="homeCountry" label={t.onboardingPage.form.countryLabel} required />
       </div>
 

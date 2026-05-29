@@ -69,7 +69,7 @@ function matchesNotificationRole(
   if (role === "admin") {
     return row.target_role === "admin" && !!userId && row.user_id === userId;
   }
-  return !!userId && row.user_id === userId;
+  return row.target_role === "client" && !!userId && row.user_id === userId;
 }
 
 async function fetchNotifications(
@@ -82,6 +82,7 @@ async function fetchNotifications(
     const { data } = await supabase
       .from("notifications")
       .select("*")
+      .eq("target_role", "client")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(limit);

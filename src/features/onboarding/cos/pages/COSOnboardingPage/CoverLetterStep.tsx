@@ -117,7 +117,7 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
   };
 
   return (
-    <div id="homologation-form-cover-letter" className="space-y-6 pb-24">
+    <div id="homologation-form-cover-letter" className="space-y-6 pb-6">
       {/* Intro Box */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50/30 p-6 rounded-2xl border border-blue-100 flex items-start gap-4 shadow-sm">
         <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-500 flex items-center justify-center shrink-0">
@@ -264,31 +264,30 @@ export default function CoverLetterStep({ proc, user, onComplete }: Props) {
             />
           </div>
         </div>
+
+        {/* Action Bar */}
+        <div className="bg-slate-50/80 px-8 py-5 border-t border-slate-100 flex items-center gap-4">
+          <button
+            onClick={saveDraft}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-6 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-sm font-black text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50 shadow-sm"
+          >
+            {isSaving ? <RiLoader4Line className="animate-spin text-lg" /> : <RiSave3Line className="text-lg" />}
+            {t.cos.coverLetter.btns.saveDraft}
+          </button>
+
+          <div className="flex-1" />
+
+          <button
+            onClick={handleNext}
+            disabled={isSubmitting}
+            className="flex items-center gap-2 px-12 py-3.5 rounded-xl bg-primary text-white text-sm font-black uppercase tracking-widest hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all flex-1 md:flex-none justify-center cursor-pointer"
+          >
+            {isSubmitting ? <RiLoader4Line className="animate-spin text-lg" /> : <RiCheckDoubleLine className="text-lg" />}
+            {t.cos.coverLetter.btns.send}
+          </button>
         </div>
-
-      {/* Action Bar */}
-      <div className="fixed bottom-0 left-0 lg:left-72 right-0 bg-white border-t border-slate-200 p-4 md:p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-40 flex items-center gap-4">
-        <button
-          onClick={saveDraft}
-          disabled={isSaving}
-          className="flex items-center gap-2 px-6 py-3.5 rounded-xl border-2 border-slate-100 text-sm font-black text-slate-500 hover:bg-slate-50 hover:border-slate-200 transition-all disabled:opacity-50"
-        >
-          {isSaving ? <RiLoader4Line className="animate-spin text-lg" /> : <RiSave3Line className="text-lg" />}
-          {t.cos.coverLetter.btns.saveDraft}
-        </button>
-
-        <div className="flex-1" />
-
-        <button
-          onClick={handleNext}
-          disabled={isSubmitting}
-          className="flex items-center gap-2 px-12 py-3.5 rounded-xl bg-primary text-white text-sm font-black uppercase tracking-widest hover:bg-primary-hover shadow-xl shadow-primary/20 transition-all flex-1 md:flex-none justify-center"
-        >
-          {isSubmitting ? <RiLoader4Line className="animate-spin text-lg" /> : <RiCheckDoubleLine className="text-lg" />}
-          {t.cos.coverLetter.btns.send}
-        </button>
       </div>
-
     </div>
   );
 }
