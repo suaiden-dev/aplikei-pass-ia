@@ -138,7 +138,7 @@ export default function F1OnboardingPage() {
       </div>
 
       <div className='max-w-4xl mx-auto px-4 sm:px-6 mt-8'>
-        {adminFeedback && (
+        {adminFeedback && stepIdx !== 3 && stepIdx !== 4 && (
           <AdminFeedbackBanner
             feedback={adminFeedback}
             label={labels.adjustmentsRequested}

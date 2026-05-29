@@ -9,11 +9,9 @@ import {
     RiExpandUpDownLine,
     RiShoppingBag3Line,
     RiInformationLine,
-    RiCheckDoubleLine,
     RiUser3Line,
     RiBuilding2Line,
     RiMoneyDollarCircleLine,
-    RiCloseCircleLine
 } from "react-icons/ri";
 import { supabase } from "@shared/lib/supabase";
 import * as paymentService from "@features/payments/lib/paymentOps";
@@ -451,7 +449,8 @@ export default function RevenuePage() {
         if (!p.zelleId) return;
         setBusy(p.id);
         try {
-            await paymentService.approveZellePayment(p.zelleId);
+            const approvedByName = user?.fullName || user?.email || "Admin";
+            await paymentService.approveZellePayment(p.zelleId, approvedByName);
             toast.success(t.payments.messages.approveSuccess);
             setSelectedPayment(null);
             await load();
@@ -649,7 +648,7 @@ export default function RevenuePage() {
                             tab === "zelle" ? "text-primary" : "text-text-muted hover:text-text"
                         )}
                     >
-                        {t.payments?.tabs?.pending || "Zelle Verification"}
+                        {t.payments?.tabs?.pending || "Payment Pending"}
                         {tab === "zelle" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
                     </button>
                     {canAccessOfficeRequests && (
@@ -846,24 +845,6 @@ export default function RevenuePage() {
                                         </td>
                                         <td className="px-6 py-5 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                {tab === "zelle" && p.source === "zelle" && String(p.status).toLowerCase() === "pending_verification" && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => handleApproveZelle(p)}
-                                                            className="w-8 h-8 rounded-lg border border-success/20 text-success hover:bg-success/10 flex items-center justify-center transition-all"
-                                                            title="Approve payment"
-                                                        >
-                                                            <RiCheckDoubleLine />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleRejectZelle(p)}
-                                                            className="w-8 h-8 rounded-lg border border-danger/20 text-danger hover:bg-danger/10 flex items-center justify-center transition-all"
-                                                            title="Reject payment"
-                                                        >
-                                                            <RiCloseCircleLine />
-                                                        </button>
-                                                    </>
-                                                )}
                                                 <Button
                                                     variant="outline"
                                                     size="sm"

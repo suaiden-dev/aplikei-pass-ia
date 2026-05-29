@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { useFormikContext, Field, ErrorMessage } from "formik";
 import type { DS160FormValues } from "@features/onboarding/b1b2/schemas/ds160.schema";
 import { useT } from "@app/app/i18n";
@@ -8,6 +9,12 @@ type VisasOnboardingFormText = {
     form: Record<string, string>;
   };
 };
+
+const US_STATE_CODES = [
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
+  "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
+  "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC",
+];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -28,6 +35,8 @@ const FormInput = ({
   type = "text",
   placeholder = "",
   required = false,
+  disabled = false,
+  datalistOptions,
   onChange,
 }: {
   name: string;
@@ -35,6 +44,8 @@ const FormInput = ({
   type?: string;
   placeholder?: string;
   required?: boolean;
+  disabled?: boolean;
+  datalistOptions?: string[];
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
   const { errors, touched } = useFormikContext<Record<string, unknown>>();
@@ -51,6 +62,8 @@ const FormInput = ({
             {...field}
             id={name}
             type={type}
+            disabled={disabled}
+            list={datalistOptions?.length ? `${name}-list` : undefined}
             placeholder={placeholder}
             value={field.value || ""}
             onChange={(e) => {
@@ -60,13 +73,20 @@ const FormInput = ({
                 field.onChange(e);
               }
             }}
-            className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-slate-400 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
+            className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-60 disabled:cursor-not-allowed ${hasError
               ? "border-red-300 bg-red-50/50 focus:border-red-400"
               : "border-border bg-card focus:border-primary"
               }`}
           />
         )}
       </Field>
+      {datalistOptions?.length ? (
+        <datalist id={`${name}-list`}>
+          {datalistOptions.map((opt) => (
+            <option key={opt} value={opt} />
+          ))}
+        </datalist>
+      ) : null}
       <FieldError name={name} />
     </div>
   );
@@ -178,6 +198,132 @@ const FormNumericInput = ({
   );
 };
 
+const FormUSZipLookupInput = ({
+  name,
+  label,
+  placeholder = "",
+  required = false,
+  onLookupStateChange,
+  onZipPlacesResolved,
+}: {
+  name: string;
+  label: string;
+  placeholder?: string;
+  required?: boolean;
+  onLookupStateChange?: (state: "idle" | "searching" | "found" | "not_found" | "error") => void;
+  onZipPlacesResolved?: (places: Array<{ city: string; state: string }>) => void;
+}) => {
+  const { errors, touched, values, setFieldValue } = useFormikContext<Record<string, unknown>>();
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [lookupMessage, setLookupMessage] = useState("");
+  const lastLookupZipRef = useRef("");
+  const hasError = !!(errors[name] && touched[name]);
+  const zip = String(values[name] || "").replace(/\D/g, "").slice(0, 5);
+
+  useEffect(() => {
+    if (zip.length !== 5 || zip === lastLookupZipRef.current) return;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(async () => {
+      setIsLookingUp(true);
+      setLookupMessage("");
+      onLookupStateChange?.("searching");
+      try {
+        const response = await fetch(`https://api.zippopotam.us/us/${zip}`, { signal: controller.signal });
+        if (!response.ok) {
+          setLookupMessage("ZIP code not found.");
+          onZipPlacesResolved?.([]);
+          onLookupStateChange?.("not_found");
+          return;
+        }
+        const data = (await response.json()) as {
+          places?: Array<{ "place name"?: string; "state abbreviation"?: string; state?: string }>;
+        };
+        const place = data.places?.[0];
+        if (!place) {
+          setLookupMessage("ZIP code not found.");
+          onZipPlacesResolved?.([]);
+          onLookupStateChange?.("not_found");
+          return;
+        }
+
+        const normalizedPlaces = (data.places || [])
+          .map((p) => ({
+            city: String(p["place name"] || "").trim(),
+            state: String(p["state abbreviation"] || p.state || "").trim(),
+          }))
+          .filter((p) => p.city || p.state);
+        onZipPlacesResolved?.(normalizedPlaces);
+
+        const city = String(place["place name"] || "").trim();
+        const state = String(place["state abbreviation"] || place.state || "").trim();
+        if (city) setFieldValue("usStayCity", city);
+        if (state) setFieldValue("usStayState", state);
+        setLookupMessage(`Address detected: ${city}${state ? `, ${state}` : ""}`);
+        lastLookupZipRef.current = zip;
+        onLookupStateChange?.("found");
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          setLookupMessage("Could not fetch address for this ZIP code.");
+          onZipPlacesResolved?.([]);
+          onLookupStateChange?.("error");
+        }
+      } finally {
+        setIsLookingUp(false);
+      }
+    }, 450);
+
+    return () => {
+      controller.abort();
+      clearTimeout(timeout);
+    };
+  }, [zip, setFieldValue, onLookupStateChange]);
+
+  useEffect(() => {
+    if (zip.length < 5) onLookupStateChange?.("idle");
+  }, [zip, onLookupStateChange]);
+
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+        {label} {required && <span className="text-primary">*</span>}
+      </label>
+      <Field name={name}>
+        {({ field, form }: any) => (
+          <input
+            {...field}
+            id={name}
+            type="text"
+            inputMode="numeric"
+            maxLength={5}
+            placeholder={placeholder}
+            value={field.value || ""}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, "").slice(0, 5);
+              form.setFieldValue(name, val);
+              if (val.length < 5) {
+                setLookupMessage("");
+                lastLookupZipRef.current = "";
+                onZipPlacesResolved?.([]);
+                onLookupStateChange?.("idle");
+              }
+            }}
+            className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
+              ? "border-red-300 bg-red-50/50 focus:border-red-400"
+              : "border-border bg-card focus:border-primary"
+              }`}
+          />
+        )}
+      </Field>
+      <FieldError name={name} />
+      {isLookingUp && <p className="text-[11px] font-semibold text-text-muted">Searching ZIP code...</p>}
+      {!isLookingUp && lookupMessage && (
+        <p className="text-[11px] font-semibold text-text-muted">{lookupMessage}</p>
+      )}
+    </div>
+  );
+};
+
 const FormTextarea = ({
   name,
   label,
@@ -277,14 +423,14 @@ const YesNo = ({
       <div role="group" className="flex gap-3">
         <label className="flex-1 cursor-pointer">
           <Field type="radio" name={name} value="sim" className="sr-only peer" />
-          <span className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-bold transition-all peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary border-border text-text-muted hover:border-text-muted/50">
+          <span className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-bold transition-all border-border text-text-muted hover:border-text-muted/50 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white peer-checked:shadow-lg peer-checked:shadow-primary/30">
             <span className="w-2 h-2 rounded-full border border-current" />
             {t.onboardingPage.form.yes}
           </span>
         </label>
         <label className="flex-1 cursor-pointer">
           <Field type="radio" name={name} value="nao" className="sr-only peer" />
-          <span className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-bold transition-all peer-checked:border-text peer-checked:bg-bg-subtle peer-checked:text-text border-border text-text-muted hover:border-text-muted/50">
+          <span className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-bold transition-all border-border text-text-muted hover:border-text-muted/50 peer-checked:border-text peer-checked:bg-text peer-checked:text-bg peer-checked:shadow-lg peer-checked:shadow-black/20">
             <span className="w-2 h-2 rounded-full border border-current" />
             {t.onboardingPage.form.no}
           </span>
@@ -361,7 +507,13 @@ export const DS160SingleFormStep = ({
   readOnly?: boolean
 }) => {
   const { values, setFieldValue } = useFormikContext<DS160FormValues>()
+  const [usZipLookupState, setUsZipLookupState] = useState<"idle" | "searching" | "found" | "not_found" | "error">("idle");
+  const [usZipPlaces, setUsZipPlaces] = useState<Array<{ city: string; state: string }>>([]);
   const t = useT('visas') as VisasOnboardingFormText
+  const usZipDigits = String(values.usStayZip || "").replace(/\D/g, "");
+  const shouldDisableUsAddressFields = usZipDigits.length < 5;
+  const usCitySuggestions = Array.from(new Set(usZipPlaces.map((p) => p.city).filter(Boolean)));
+  const usStateSuggestions = Array.from(new Set([...usZipPlaces.map((p) => p.state).filter(Boolean), ...US_STATE_CODES]));
 
   const sections = [
     <Section key="interview" title={t.onboardingPage.form.interviewLocationTitle} subtitle={t.onboardingPage.form.interviewLocationSubtitle}>
@@ -534,37 +686,55 @@ export const DS160SingleFormStep = ({
       <div>
         <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-4">{t.onboardingPage.form.usStayAddressLabel}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <div className="sm:col-span-2">
-            <FormInput name="usStayName" label={t.onboardingPage.form.usStayNameLabel} placeholder={t.onboardingPage.form.usStayNamePlaceholder} required />
-          </div>
-          <div className="sm:col-span-2">
-            <FormInput name="usStayStreet" label={t.onboardingPage.form.streetNumberLabel} required />
-          </div>
-          <FormInput name="usStayCity" label={t.onboardingPage.form.cityLabel} required />
-          <FormInput name="usStayState" label={t.onboardingPage.form.stateLabelShort} placeholder={t.onboardingPage.form.statePlaceholderShort} required />
-          <FormNumericInput 
-            name="usStayZip" 
-            label={t.onboardingPage.form.zipCodeLabel} 
-            placeholder={t.onboardingPage.form.zipCodePlaceholder} 
-            onChange={async (val) => {
-              const cleanZip = val.replace(/\D/g, "");
-              if (cleanZip.length === 5) {
-                try {
-                  const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
-                  if (res.ok) {
-                    const data = await res.json();
-                    const place = data.places?.[0];
-                    if (place) {
-                      setFieldValue("usStayCity", place["place name"] || "");
-                      setFieldValue("usStayState", place["state abbreviation"] || "");
-                    }
-                  }
-                } catch (err) {
-                  console.error("Zippopotam usStayZip failed:", err);
-                }
-              }
-            }}
+          <FormUSZipLookupInput
+            name="usStayZip"
+            label={t.onboardingPage.form.zipCodeLabel}
+            placeholder={t.onboardingPage.form.zipCodePlaceholder}
+            onLookupStateChange={setUsZipLookupState}
+            onZipPlacesResolved={setUsZipPlaces}
           />
+          <div className="sm:col-span-2">
+            <FormInput
+              name="usStayName"
+              label={t.onboardingPage.form.usStayNameLabel}
+              placeholder={t.onboardingPage.form.usStayNamePlaceholder}
+              required
+              disabled={shouldDisableUsAddressFields}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <FormInput
+              name="usStayStreet"
+              label={t.onboardingPage.form.streetNumberLabel}
+              required
+              disabled={shouldDisableUsAddressFields}
+            />
+          </div>
+          <FormInput
+            name="usStayCity"
+            label={t.onboardingPage.form.cityLabel}
+            required
+            disabled={shouldDisableUsAddressFields}
+            datalistOptions={usCitySuggestions}
+          />
+          <FormInput
+            name="usStayState"
+            label={t.onboardingPage.form.stateLabelShort}
+            placeholder={t.onboardingPage.form.statePlaceholderShort}
+            required
+            disabled={shouldDisableUsAddressFields}
+            datalistOptions={usStateSuggestions}
+          />
+          {usZipDigits.length < 5 && (
+            <p className="sm:col-span-2 text-[11px] font-semibold text-text-muted">
+              Enter ZIP code first to unlock the remaining address fields.
+            </p>
+          )}
+          {(usZipLookupState === "not_found" || usZipLookupState === "error") && (
+            <p className="sm:col-span-2 text-[11px] font-semibold text-text-muted">
+              ZIP not found. You can fill the address manually.
+            </p>
+          )}
         </div>
       </div>
 

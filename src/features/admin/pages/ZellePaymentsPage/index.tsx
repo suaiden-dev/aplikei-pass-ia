@@ -523,7 +523,8 @@ export default function ZellePaymentsPage() {
         if (!p.zelleId) return;
         setBusy(p.id);
         try {
-            await paymentService.approveZellePayment(p.zelleId);
+            const approvedByName = user?.fullName || user?.email || "Admin";
+            await paymentService.approveZellePayment(p.zelleId, approvedByName);
 
             await notificationService.notifyClient({
                 clientEmail: p.clientEmail,
@@ -585,7 +586,7 @@ export default function ZellePaymentsPage() {
     });
 
     const TABS: { key: Tab; label: string }[] = [
-        { key: "pending", label: t.payments?.tabs?.pending || "Zelle Verification" },
+        { key: "pending", label: t.payments?.tabs?.pending || "Payment Pending" },
         { key: "approved", label: t.payments?.tabs?.approved || "Approved Payments" },
         { key: "rejected", label: t.payments?.tabs?.rejected || "Rejected" },
     ];
