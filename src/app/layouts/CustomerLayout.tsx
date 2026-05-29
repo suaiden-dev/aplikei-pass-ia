@@ -8,6 +8,7 @@ import {
   RiLogoutBoxRLine,
 } from "react-icons/ri";
 import { useAuth } from "@shared/hooks/useAuth";
+import { useTheme } from "@shared/hooks/useTheme";
 import { useLocale, useT, type Language } from "@app/app/i18n";
 import { useState, useMemo } from "react";
 import { getDashboardPathForRole } from "@features/auth/lib/roles";
@@ -18,6 +19,7 @@ import { DashboardNavbar } from "@shared/components/organisms/DashboardNavbar";
 
 export function CustomerLayout() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const { lang, setLang } = useLocale();
   const tDashboard = useT("dashboard");
@@ -119,8 +121,8 @@ export function CustomerLayout() {
             ))}
           </nav>
 
-          {/* Mobile Actions Footer */}
-          <div className="xl:hidden p-6 mt-auto border-t border-border bg-bg-subtle/30 space-y-6">
+          {/* Sidebar Footer Actions */}
+          <div className="p-6 mt-auto border-t border-border bg-bg-subtle/30 space-y-6">
             {/* Language Selection */}
             <div className="space-y-3">
               <p className="text-[10px] font-black text-text-muted uppercase tracking-widest px-1">Language</p>
@@ -155,13 +157,21 @@ export function CustomerLayout() {
               </div>
             </div>
 
-            {/* Logout Button */}
             <button
+              type="button"
+              onClick={toggleTheme}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-border bg-card text-text hover:bg-bg-subtle transition-all font-semibold text-sm"
+            >
+              {theme === "dark" ? "Tema claro" : "Tema escuro"}
+            </button>
+
+            <button
+              type="button"
               onClick={handleLogout}
-              className="flex w-full items-center justify-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all uppercase tracking-wider"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-all font-semibold text-sm"
             >
               <RiLogoutBoxRLine size={18} />
-              <span>{tDashboard.logout || "Sair"}</span>
+              Sair
             </button>
 
             <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-text-muted">

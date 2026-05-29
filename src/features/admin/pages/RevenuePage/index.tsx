@@ -13,7 +13,6 @@ import {
     RiUser3Line,
     RiBuilding2Line,
     RiMoneyDollarCircleLine,
-    RiExternalLinkLine,
     RiCloseCircleLine
 } from "react-icons/ri";
 import { supabase } from "@shared/lib/supabase";
@@ -37,6 +36,8 @@ interface UnifiedPayment {
     serviceName: string;
     serviceSlug: string;
     amount: number;
+    officeNetAmount?: number;
+    platformFeeAmount?: number;
     method: string;
     createdAt: string;
     officeName?: string;
@@ -48,6 +49,7 @@ interface UnifiedPayment {
     confirmationCode?: string | null;
     adminNotes?: string | null;
     paymentLink?: string | null;
+    reviewedByName?: string | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -78,13 +80,15 @@ function DetailModal({
     onClose,
     onApprove,
     onReject,
-    busy
+    busy,
+    onPay
 }: {
     payment: UnifiedPayment;
     onClose: () => void;
     onApprove?: () => void;
     onReject?: () => void;
     busy?: boolean;
+    onPay?: () => void;
 }) {
     const t = useT("admin");
     return (
@@ -157,15 +161,23 @@ function DetailModal({
                     {payment.source === "withdrawal" && payment.paymentLink && (
                         <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 space-y-2">
                             <p className="text-[10px] font-black text-primary uppercase tracking-widest">Stripe Payment Link</p>
-                            <a
-                                href={normalizeExternalUrl(payment.paymentLink)}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-2 text-xs font-bold text-primary underline break-all"
-                            >
-                                {payment.paymentLink}
-                                <RiExternalLinkLine className="text-sm" />
-                            </a>
+                            <p className="text-xs font-bold text-primary break-all">{payment.paymentLink}</p>
+                            {onPay && (
+                                <Button
+                                    type="button"
+                                    onClick={onPay}
+                                    className="h-10 rounded-xl bg-primary text-white font-bold hover:bg-primary/90"
+                                >
+                                    Pagar
+                                </Button>
+                            )}
+                        </div>
+                    )}
+
+                    {payment.source === "withdrawal" && payment.reviewedByName && (
+                        <div className="p-4 rounded-2xl bg-success/5 border border-success/10 space-y-1">
+                            <p className="text-[10px] font-black text-success uppercase tracking-widest">Aprovado por</p>
+                            <p className="text-sm font-black text-text">{payment.reviewedByName}</p>
                         </div>
                     )}
                 </div>
@@ -228,6 +240,13 @@ export default function RevenuePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [busy, setBusy] = useState<string | null>(null);
     const [selectedPayment, setSelectedPayment] = useState<UnifiedPayment | null>(null);
+    const [confirmPayLink, setConfirmPayLink] = useState<string | null>(null);
+    const ITEMS_PER_PAGE = 10;
+    const [pageByTab, setPageByTab] = useState<Record<Tab, number>>({
+        zelle: 1,
+        office_requests: 1,
+        approved_payments: 1,
+    });
 
     const load = useCallback(async () => {
         setIsLoading(true);
@@ -318,6 +337,7 @@ export default function RevenuePage() {
                     officeId: r.office_id,
                     status: normalizedStatus,
                     paymentLink: r.payment_link ?? null,
+                    reviewedByName: r.reviewed_by_name ?? null,
                 });
             });
         }
@@ -336,9 +356,68 @@ export default function RevenuePage() {
 
             const { data: approvedOrders } = await approvedOrdersQuery;
 
-            await resolveOfficeNames((approvedOrders ?? []) as Array<{ office_id?: string | null }>);
+            const ordersRows = (approvedOrders ?? []) as Array<{
+                id: string;
+                office_id?: string | null;
+                seller_id?: string | null;
+                user_id?: string | null;
+                total_price_usd?: number | string | null;
+                office_net_amount_usd?: number | string | null;
+                client_name?: string | null;
+                client_email?: string | null;
+                product_slug?: string | null;
+                payment_method?: string | null;
+                created_at: string;
+                payment_status?: string | null;
+            }>;
 
-            (approvedOrders ?? []).forEach((r: any) => {
+            const missingOfficeOrders = ordersRows.filter((row) => !row.office_id);
+            const ownerIds = Array.from(new Set(
+                missingOfficeOrders
+                    .flatMap((row) => [row.seller_id, row.user_id])
+                    .filter((id): id is string => Boolean(id)),
+            ));
+
+            const inferredOfficeByOwnerId = new Map<string, string>();
+            if (ownerIds.length > 0) {
+                const { data: ownersData } = await supabase
+                    .from("user_accounts")
+                    .select("id, office_id")
+                    .in("id", ownerIds);
+
+                ((ownersData ?? []) as Array<{ id: string; office_id?: string | null }>)
+                    .forEach((owner) => {
+                        if (owner?.id && owner?.office_id) {
+                            inferredOfficeByOwnerId.set(owner.id, owner.office_id);
+                        }
+                    });
+            }
+
+            const inferredUpdates: Array<{ id: string; office_id: string }> = [];
+            ordersRows.forEach((row) => {
+                if (row.office_id) return;
+                const inferredOfficeId =
+                    (row.seller_id && inferredOfficeByOwnerId.get(row.seller_id)) ||
+                    (row.user_id && inferredOfficeByOwnerId.get(row.user_id));
+                if (inferredOfficeId) {
+                    row.office_id = inferredOfficeId;
+                    inferredUpdates.push({ id: row.id, office_id: inferredOfficeId });
+                }
+            });
+
+            if (inferredUpdates.length > 0) {
+                await Promise.all(
+                    inferredUpdates.map((item) =>
+                        supabase.from("orders").update({ office_id: item.office_id }).eq("id", item.id),
+                    ),
+                );
+            }
+
+            await resolveOfficeNames(ordersRows as Array<{ office_id?: string | null }>);
+
+            ordersRows.forEach((r: any) => {
+                const grossAmount = Number(r.total_price_usd) || 0;
+                const officeNetAmount = Number(r.office_net_amount_usd ?? r.total_price_usd) || 0;
                 results.push({
                     id: r.id,
                     source: "order",
@@ -346,10 +425,12 @@ export default function RevenuePage() {
                     clientEmail: r.client_email ?? "",
                     serviceName: r.product_slug?.replace(/-/g, " ").toUpperCase() || "General",
                     serviceSlug: r.product_slug || "",
-                    amount: Number(r.total_price_usd) || 0,
+                    amount: grossAmount,
+                    officeNetAmount,
+                    platformFeeAmount: Math.max(0, grossAmount - officeNetAmount),
                     method: r.payment_method?.toUpperCase() || "STRIPE",
                     createdAt: r.created_at,
-                    officeName: r.office_id ? officeNameById.get(r.office_id) : undefined,
+                    officeName: r.office_id ? officeNameById.get(r.office_id) : "UNASSIGNED OFFICE",
                     officeId: r.office_id,
                     status: r.payment_status,
                 });
@@ -516,6 +597,19 @@ export default function RevenuePage() {
         );
     });
 
+    const currentPage = pageByTab[tab] ?? 1;
+    const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+    const safeCurrentPage = Math.min(currentPage, totalPages);
+    const pageStart = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
+    const pageEnd = pageStart + ITEMS_PER_PAGE;
+    const paginated = filtered.slice(pageStart, pageEnd);
+
+    useEffect(() => {
+        if (currentPage !== safeCurrentPage) {
+            setPageByTab((prev) => ({ ...prev, [tab]: safeCurrentPage }));
+        }
+    }, [currentPage, safeCurrentPage, tab]);
+
     const officePendingCount = tab === "office_requests"
         ? payments.filter((p) => String(p.status).toLowerCase() === "pending").length
         : 0;
@@ -673,7 +767,7 @@ export default function RevenuePage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
-                                {filtered.map((p) => (
+                                {paginated.map((p) => (
                                     <tr key={p.id} className="hover:bg-bg-subtle/30 transition-colors text-left">
                                         <td className="px-6 py-5">
                                             <div>
@@ -684,7 +778,7 @@ export default function RevenuePage() {
                                         <td className="px-6 py-5">
                                             <div className="flex items-center gap-2">
                                                 <RiBuilding2Line className="text-text-muted" />
-                                                <span className="text-xs font-bold text-text-muted uppercase tracking-tight">{p.officeName || "Direct"}</span>
+                                                <span className="text-xs font-bold text-text-muted uppercase tracking-tight">{p.officeName || "UNASSIGNED OFFICE"}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
@@ -704,13 +798,35 @@ export default function RevenuePage() {
                                                         : "text-warning";
                                                 return (
                                                     <>
-                                            <p className="text-sm font-black text-text">{fmtCurrency(p.amount)}</p>
-                                            <p className={cn(
-                                                "text-[9px] font-black uppercase tracking-tighter",
-                                                statusClass
-                                            )}>
-                                                {p.status}
-                                            </p>
+                                            {isMaster && tab === "approved_payments" ? (
+                                                <>
+                                                    <p className="text-[11px] font-black text-text">
+                                                        Cliente: {fmtCurrency(p.amount)}
+                                                    </p>
+                                                    <p className="text-[10px] font-bold text-primary">
+                                                        Recebido: {fmtCurrency(Number(p.officeNetAmount ?? p.amount))}
+                                                    </p>
+                                                    <p className="text-[10px] font-bold text-success">
+                                                        Taxa/Lucro: {fmtCurrency(Number(p.platformFeeAmount ?? 0))}
+                                                    </p>
+                                                    <p className={cn(
+                                                        "text-[9px] font-black uppercase tracking-tighter",
+                                                        statusClass
+                                                    )}>
+                                                        {p.status}
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <p className="text-sm font-black text-text">{fmtCurrency(p.amount)}</p>
+                                                    <p className={cn(
+                                                        "text-[9px] font-black uppercase tracking-tighter",
+                                                        statusClass
+                                                    )}>
+                                                        {p.status}
+                                                    </p>
+                                                </>
+                                            )}
                                                     </>
                                                 );
                                             })()}
@@ -748,24 +864,6 @@ export default function RevenuePage() {
                                                         </button>
                                                     </>
                                                 )}
-                                                {tab === 'office_requests' && p.status?.toLowerCase() === "pending" && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => handleUpdateWithdrawalStatus(p.id, "approved")}
-                                                            className="w-8 h-8 rounded-lg border border-success/20 text-success hover:bg-success/10 flex items-center justify-center transition-all"
-                                                            title="Approve request"
-                                                        >
-                                                            <RiCheckDoubleLine />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleUpdateWithdrawalStatus(p.id, "rejected")}
-                                                            className="w-8 h-8 rounded-lg border border-danger/20 text-danger hover:bg-danger/10 flex items-center justify-center transition-all"
-                                                            title="Reject request"
-                                                        >
-                                                            <RiCloseCircleLine />
-                                                        </button>
-                                                    </>
-                                                )}
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
@@ -783,6 +881,46 @@ export default function RevenuePage() {
                         </table>
                     )}
                 </div>
+                {!isLoading && filtered.length > 0 && (
+                    <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-border bg-bg-subtle/30">
+                        <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                            {`Mostrando ${pageStart + 1}-${Math.min(pageEnd, filtered.length)} de ${filtered.length}`}
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 px-3 rounded-xl border-border text-[11px] font-bold uppercase tracking-wider"
+                                disabled={safeCurrentPage <= 1}
+                                onClick={() =>
+                                    setPageByTab((prev) => ({
+                                        ...prev,
+                                        [tab]: Math.max(1, safeCurrentPage - 1),
+                                    }))
+                                }
+                            >
+                                Anterior
+                            </Button>
+                            <span className="text-[11px] font-black text-text uppercase tracking-wider px-2">
+                                {`Página ${safeCurrentPage} de ${totalPages}`}
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 px-3 rounded-xl border-border text-[11px] font-bold uppercase tracking-wider"
+                                disabled={safeCurrentPage >= totalPages}
+                                onClick={() =>
+                                    setPageByTab((prev) => ({
+                                        ...prev,
+                                        [tab]: Math.min(totalPages, safeCurrentPage + 1),
+                                    }))
+                                }
+                            >
+                                Próxima
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <AnimatePresence>
@@ -792,22 +930,63 @@ export default function RevenuePage() {
                         onClose={() => setSelectedPayment(null)}
                         onApprove={
                             tab === "zelle" &&
-                            selectedPayment.source === "zelle" &&
-                            String(selectedPayment.status).toLowerCase() === "pending_verification"
+                                selectedPayment.source === "zelle" &&
+                                String(selectedPayment.status).toLowerCase() === "pending_verification"
                                 ? () => void handleApproveZelle(selectedPayment)
-                                : undefined
+                                : tab === "office_requests" &&
+                                    selectedPayment.source === "withdrawal" &&
+                                    String(selectedPayment.status).toLowerCase() === "pending"
+                                    ? () => void handleUpdateWithdrawalStatus(selectedPayment.id, "approved")
+                                    : undefined
                         }
                         onReject={
                             tab === "zelle" &&
-                            selectedPayment.source === "zelle" &&
-                            String(selectedPayment.status).toLowerCase() === "pending_verification"
+                                selectedPayment.source === "zelle" &&
+                                String(selectedPayment.status).toLowerCase() === "pending_verification"
                                 ? () => void handleRejectZelle(selectedPayment)
+                                : tab === "office_requests" &&
+                                    selectedPayment.source === "withdrawal" &&
+                                    String(selectedPayment.status).toLowerCase() === "pending"
+                                    ? () => void handleUpdateWithdrawalStatus(selectedPayment.id, "rejected")
+                                    : undefined
+                        }
+                        onPay={
+                            tab === "office_requests" &&
+                                selectedPayment.source === "withdrawal" &&
+                                !!selectedPayment.paymentLink
+                                ? () => setConfirmPayLink(normalizeExternalUrl(selectedPayment.paymentLink || ""))
                                 : undefined
                         }
                         busy={!!busy}
                     />
                 )}
             </AnimatePresence>
+            <Dialog open={!!confirmPayLink} onOpenChange={(open) => { if (!open) setConfirmPayLink(null); }}>
+                <DialogContent className="max-w-md border-border bg-card">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-black text-text uppercase">
+                            Confirmar pagamento
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-text-muted">
+                            Você está prestes a abrir o link de pagamento. Deseja continuar?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2">
+                        <Button variant="outline" onClick={() => setConfirmPayLink(null)}>
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                if (confirmPayLink) window.open(confirmPayLink, "_blank", "noopener,noreferrer");
+                                setConfirmPayLink(null);
+                            }}
+                            className="bg-primary text-white hover:bg-primary/90"
+                        >
+                            Confirmar e abrir
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

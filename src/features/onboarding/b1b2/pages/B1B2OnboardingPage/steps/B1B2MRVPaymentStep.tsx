@@ -52,13 +52,18 @@ export function B1B2MRVPaymentStep({ procId, stepData, nextStepIdx = 10, onCompl
   }, [procId]);
 
   const login =
-    (freshStepData.mrv_login as string) ||
     (freshStepData.consular_login as string) ||
+    (freshStepData.consular_email as string) ||
+    (freshStepData.mrv_login as string) ||
+    (freshStepData.primaryEmail as string) ||
     t.onboardingPage.paymentPending.notInformed;
   const password =
-    (freshStepData.mrv_password as string) ||
     (freshStepData.consular_password as string) ||
+    (freshStepData.mrv_password as string) ||
     t.onboardingPage.paymentPending.notInformed;
+  const hasCredentials =
+    login !== t.onboardingPage.paymentPending.notInformed &&
+    password !== t.onboardingPage.paymentPending.notInformed;
   const boletoPath = freshStepData.mrv_boleto_path as string;
   const boletoUrl = boletoPath ? supabase.storage.from("aplikei-profiles").getPublicUrl(boletoPath).data.publicUrl : null;
 
@@ -143,6 +148,14 @@ export function B1B2MRVPaymentStep({ procId, stepData, nextStepIdx = 10, onCompl
                 {t.onboardingPage.paymentPending.accessPortalDesc}
              </div>
           </div>
+          {!hasCredentials && (
+            <div className="p-6 bg-sky-50 border border-sky-100 rounded-[28px] flex gap-4">
+              <RiInformationLine className="text-2xl text-sky-600 shrink-0" />
+              <div className="text-xs text-sky-800 font-medium leading-relaxed">
+                Your consulate access credentials are being finalized by our team based on your DS-160 data.
+              </div>
+            </div>
+          )}
 
           <div className="bg-card rounded-[28px] border border-border shadow-xl overflow-hidden">
              <div className="px-8 py-4 border-b border-border bg-bg-subtle/50 flex items-center gap-2">

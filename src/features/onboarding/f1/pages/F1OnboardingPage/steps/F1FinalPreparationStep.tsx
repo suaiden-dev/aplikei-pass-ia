@@ -20,6 +20,7 @@ import { useAuth } from "@shared/hooks/useAuth";
 import { supabase } from "@shared/lib/supabase";
 import { useT, useLocale } from "@app/app/i18n";
 import { getCanonicalSlug } from "@shared/data/services";
+import { interviewTrainingService } from "@features/onboarding/services/interviewTrainingService";
 
 interface F1FinalPreparationStepProps {
   procId: string;
@@ -98,6 +99,21 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
       if (activeMentorship) {
         setPurchasedMentorship(activeMentorship);
       }
+      let mentorshipData = (activeMentorship as Record<string, unknown> | null) ?? null;
+      if (!mentorshipData) {
+        const { data } = await supabase
+          .from("user_services")
+          .select("*")
+          .eq("user_id", user.id)
+          .in("service_slug", mentorshipSlugs)
+          .eq("status", "active")
+          .contains("step_data", { parent_process_id: procId })
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        mentorshipData = (data as Record<string, unknown> | null) ?? null;
+      }
+      if (mentorshipData) setPurchasedMentorship(mentorshipData);
 
       // Query active consultation globally under user
       const { data: activeConsultation } = await supabase
@@ -234,24 +250,24 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
     setIsBotTyping(true);
 
     try {
-      const response = await fetch(import.meta.env.VITE_N8N_BOT_INTERVIEW, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userMessage,
-          userId: user?.id,
-          processId: procId,
-          lang: "pt",
-          sessionId: sessionId,
-          ds160: freshStepData,
-          visaType: "F1"
-        })
+      interviewTrainingService.ensureDailyLimit(user?.id);
+      const response = await interviewTrainingService.sendMessage({
+        message: userMessage,
+        userId: user?.id,
+        processId: procId,
+        lang: lang || "pt",
+        sessionId: sessionId,
+        ds160: freshStepData,
+        visaType: "F1",
       });
-      const data = await response.json();
-      const botResponse = data.output || data.response || "Desculpe, tive um problema.";
+      interviewTrainingService.registerDailyUsage(user?.id);
+      const botResponse = response.text || "Desculpe, tive um problema.";
       setChatMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: "bot", text: botResponse }]);
-    } catch {
-      toast.error(t.onboardingPage.aiInterviewChat.errorConnecting);
+    } catch (error) {
+      const message = error instanceof Error && error.message
+        ? error.message
+        : t.onboardingPage.aiInterviewChat.errorConnecting;
+      toast.error(message);
     } finally {
       setIsBotTyping(false);
     }
@@ -671,7 +687,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
                           <p className="text-xs text-text-muted font-bold uppercase tracking-widest">Converse direto com o manager para iniciar sua mentoria</p>
                         </div>
                         <button onClick={handleOpenSpecialistSupport} className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest">
-                          Abrir chat com manager
+                          Ir para o chat
                         </button>
                       </div>
                     ) : (

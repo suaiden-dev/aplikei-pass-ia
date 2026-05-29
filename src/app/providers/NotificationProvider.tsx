@@ -7,7 +7,7 @@ import type { ToastItem } from "@features/notifications/types";
 export interface AppNotification {
   id: string;
   type: string;
-  target_role: "admin" | "client";
+  target_role: "admin" | "client" | "customer";
   user_id: string | null;
   service_id: string | null;
   title: string;
@@ -42,10 +42,14 @@ interface NotificationProviderProps {
 }
 
 function normalizeRealtimeNotification(row: Record<string, unknown>): AppNotification {
+  const rawTargetRole = String(row.target_role ?? "admin");
+  const normalizedTargetRole: AppNotification["target_role"] =
+    rawTargetRole === "client" || rawTargetRole === "customer" ? rawTargetRole : "admin";
+
   return {
     id: String(row.id ?? ""),
     type: String(row.type ?? "system"),
-    target_role: (String(row.target_role ?? "admin") === "client" ? "client" : "admin"),
+    target_role: normalizedTargetRole,
     user_id: row.user_id ? String(row.user_id) : null,
     service_id: row.service_id ? String(row.service_id) : null,
     title: String(row.title ?? ""),
@@ -84,6 +88,7 @@ async function fetchNotifications(
       .select("*")
       .eq("target_role", "client")
       .eq("user_id", userId)
+      .in("target_role", ["client", "customer"])
       .order("created_at", { ascending: false })
       .limit(limit);
     return ((data as Record<string, unknown>[] | null) ?? []).map(normalizeRealtimeNotification);
@@ -93,7 +98,7 @@ async function fetchNotifications(
     .from("notifications")
     .select("*")
     .eq("target_role", "admin")
-    .eq("user_id", userId)
+    .or(`user_id.eq.${userId},user_id.is.null`)
     .order("created_at", { ascending: false })
     .limit(limit);
   return ((data as Record<string, unknown>[] | null) ?? []).map(normalizeRealtimeNotification);
@@ -214,6 +219,7 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
           .from("notifications")
           .update({ is_read: true })
           .eq("user_id", userId)
+          .in("target_role", ["client", "customer"])
           .eq("is_read", false);
       }
       setNotifications((prev) => prev.map((notification) => ({ ...notification, is_read: true })));

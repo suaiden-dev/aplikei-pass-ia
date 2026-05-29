@@ -11,6 +11,7 @@ import { F1StepContent } from "./components/F1StepContent";
 import { useF1Onboarding } from "@features/onboarding/f1/hooks/useF1Onboarding";
 import { type F1OnboardingLabels } from './types';
 import { type DS160FormValues } from '@features/onboarding/b1b2/schemas/ds160.schema';
+import { HomologationAutofillButton } from '@features/onboarding/cos/pages/COSOnboardingPage/components/HomologationAutofillButton';
 
 function buildLabels(t: any): F1OnboardingLabels {
   return {
@@ -144,19 +145,25 @@ export default function F1OnboardingPage() {
           />
         )}
 
-        <F1StepContent
-          stepIdx={stepIdx}
-          procId={procId}
-          userId={user!.id}
-          savedValues={savedValues}
-          labels={labels}
-          procStatus={procStatus}
-          currentStep={currentStep}
-          isSubmitting={isSubmitting}
-          onSubmit={handleSubmit}
-          onSaveDraft={handleSaveDraft}
-          onNavigateToProcess={handleNavigateToProcess}
-        />
+        <div className="mb-4 flex justify-end">
+          <HomologationAutofillButton rootId="homologation-form-f1" />
+        </div>
+
+        <div id="homologation-form-f1">
+          <F1StepContent
+            stepIdx={stepIdx}
+            procId={procId}
+            userId={user!.id}
+            savedValues={savedValues}
+            labels={labels}
+            procStatus={procStatus}
+            currentStep={currentStep}
+            isSubmitting={isSubmitting}
+            onSubmit={handleSubmit}
+            onSaveDraft={handleSaveDraft}
+            onNavigateToProcess={handleNavigateToProcess}
+          />
+        </div>
       </div>
     </div>
   )

@@ -1,7 +1,12 @@
 import { RiFlaskLine } from "react-icons/ri";
 
+const mode = String(import.meta.env.MODE || "").toLowerCase();
+const isHomologationMode =
+  mode.includes("homolog") || mode.includes("staging") || mode.includes("test") || mode.includes("sandbox");
 const HOMOLOGATION_AUTOFILL_ENABLED =
-  String(import.meta.env.VITE_HOMOLOGATION_AUTOFILL || "").toLowerCase() === "true";
+  String(import.meta.env.VITE_HOMOLOGATION_AUTOFILL || "").toLowerCase() === "true" ||
+  import.meta.env.DEV ||
+  isHomologationMode;
 
 function triggerInputEvent(element: Element, value: string) {
   const input = element as HTMLInputElement | HTMLTextAreaElement;

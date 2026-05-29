@@ -369,6 +369,7 @@ export function RoleDashboardLayout({
     loading: subLoading,
     officeId,
     isActive,
+    refreshSubscription,
   } = useSubscription();
   const isAdminLawyerPendingOnboarding =
     currentUser?.role === "admin_lawyer" && !currentUser.hasCompletedOnboarding;
@@ -977,7 +978,10 @@ export function RoleDashboardLayout({
           onGoOverview={() => navigate("/admin")}
           onGoProcesses={() => navigate("/admin/processes")}
           onGoTeam={() => navigate("/admin/roles")}
-          onRefreshStatus={refreshAccount}
+          onRefreshStatus={async () => {
+            await refreshAccount();
+            await refreshSubscription();
+          }}
           onComplete={handleOnboardingComplete}
         />
       </div>

@@ -16,6 +16,7 @@ import {
   financeAnalyticsService,
   type FinanceMonthlyAnalytics,
   type FinanceTransaction,
+  type OfficeSalesMetric,
   type FinanceRoleAction,
   type FinanceRoleActorMetric,
 } from "@features/admin/services/financeAnalyticsService";
@@ -236,6 +237,9 @@ export default function FinanceAnalyticsPage() {
   const [periodFilter, setPeriodFilter] = useState<"all" | "7d" | "30d" | "90d">("all");
   const [sellerMetrics, setSellerMetrics] = useState<FinanceRoleActorMetric[]>([]);
   const [managerMetrics, setManagerMetrics] = useState<FinanceRoleActorMetric[]>([]);
+  const [masterDateStart, setMasterDateStart] = useState<string>("");
+  const [masterDateEnd, setMasterDateEnd] = useState<string>("");
+  const [officeSalesMetrics, setOfficeSalesMetrics] = useState<OfficeSalesMetric[]>([]);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -260,13 +264,22 @@ export default function FinanceAnalyticsPage() {
       setRoleActions(actionsData);
       setSellerMetrics(sellerData);
       setManagerMetrics(managerData);
+      if (currentUser?.role === "master") {
+        const officeMetrics = await financeAnalyticsService.getOfficeSalesMetricsByDateRange(
+          masterDateStart || undefined,
+          masterDateEnd || undefined,
+        );
+        setOfficeSalesMetrics(officeMetrics);
+      } else {
+        setOfficeSalesMetrics([]);
+      }
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Failed to load analytics data.");
     } finally {
       setIsLoading(false);
     }
-  }, [currentUser]);
+  }, [currentUser, masterDateEnd, masterDateStart]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -290,6 +303,12 @@ export default function FinanceAnalyticsPage() {
       return true;
     });
   }, [methodFilter, periodFilter, statusFilter, transactions]);
+
+  const masterTotals = useMemo(() => {
+    const totalRevenue = officeSalesMetrics.reduce((sum, item) => sum + item.grossRevenue, 0);
+    const totalProfit = officeSalesMetrics.reduce((sum, item) => sum + item.platformFeeRevenue, 0);
+    return { totalRevenue, totalProfit };
+  }, [officeSalesMetrics]);
 
   return (
     <div className="p-4 sm:p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-700">
@@ -341,12 +360,84 @@ export default function FinanceAnalyticsPage() {
         )}
         {currentUser?.role === "admin_lawyer" && (
           <RoleActorChart
-            title="Vendas por Seller"
+            title="Sales by Seller"
             items={sellerMetrics}
             emptyLabel="No seller sales in the period"
           />
         )}
       </div>
+
+      {currentUser?.role === "master" && (
+        <div className="space-y-4">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+            <h2 className="text-lg font-black text-text uppercase tracking-tight">Top Offices by Sales</h2>
+            <div className="flex flex-wrap items-end gap-3">
+              <label className="flex flex-col gap-1 text-[10px] font-black uppercase tracking-widest text-text-muted">
+                Start date
+                <input
+                  type="date"
+                  value={masterDateStart}
+                  onChange={(e) => setMasterDateStart(e.target.value)}
+                  className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold"
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-[10px] font-black uppercase tracking-widest text-text-muted">
+                End date
+                <input
+                  type="date"
+                  value={masterDateEnd}
+                  onChange={(e) => setMasterDateEnd(e.target.value)}
+                  className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold"
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-card rounded-2xl border border-border p-5">
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Total Revenue</p>
+              <p className="text-2xl font-black text-text">{fmtCurrency(masterTotals.totalRevenue)}</p>
+            </div>
+            <div className="bg-card rounded-2xl border border-border p-5">
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Profit (Fees)</p>
+              <p className="text-2xl font-black text-success">{fmtCurrency(masterTotals.totalProfit)}</p>
+            </div>
+          </div>
+
+          <div className="bg-card rounded-[32px] border border-border p-6 shadow-sm">
+            {officeSalesMetrics.length === 0 ? (
+              <div className="py-12 text-center text-xs font-bold text-text-muted uppercase tracking-widest">
+                No sales in the selected period
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {officeSalesMetrics.slice(0, 10).map((office) => {
+                  const maxValue = officeSalesMetrics[0]?.grossRevenue || 1;
+                  const width = Math.max(4, (office.grossRevenue / maxValue) * 100);
+                  return (
+                    <div key={office.officeId} className="space-y-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-black text-text truncate">{office.officeName}</p>
+                        <div className="text-right">
+                          <p className="text-xs font-black text-text">{fmtCurrency(office.grossRevenue)}</p>
+                          <p className="text-[10px] font-bold text-success">Profit: {fmtCurrency(office.platformFeeRevenue)}</p>
+                        </div>
+                      </div>
+                      <div className="h-2 rounded-full bg-bg-subtle overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${width}%` }}
+                          className="h-full rounded-full bg-primary"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Transactions Table */}
       <div className="space-y-4">
@@ -409,7 +500,9 @@ export default function FinanceAnalyticsPage() {
                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.customer}</th>
                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.office}</th>
                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.product}</th>
-                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.amount}</th>
+                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">
+                      {currentUser?.role === "master" ? "Payment (Detailed)" : t.financeAnalytics.table.amount}
+                    </th>
                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.method}</th>
                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted text-right">{t.financeAnalytics.table.action}</th>
                   </tr>
@@ -433,7 +526,21 @@ export default function FinanceAnalyticsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm font-black text-text">{fmtCurrency(tx.amount)}</p>
+                        {currentUser?.role === "master" ? (
+                          <div className="space-y-0.5">
+                            <p className="text-[11px] font-black text-text">
+                              Client Paid: {fmtCurrency(tx.amount)}
+                            </p>
+                            <p className="text-[10px] font-bold text-primary">
+                              Received: {fmtCurrency(tx.officeNetAmount)}
+                            </p>
+                            <p className="text-[10px] font-bold text-success">
+                              Fee/Profit: {fmtCurrency(tx.platformFeeAmount)}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-sm font-black text-text">{fmtCurrency(tx.amount)}</p>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-[10px] font-black text-text-muted uppercase tracking-widest bg-bg-subtle px-2 py-1 rounded-lg">

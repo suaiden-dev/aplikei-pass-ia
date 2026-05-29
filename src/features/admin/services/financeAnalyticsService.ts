@@ -13,6 +13,8 @@ export interface FinanceTransaction {
   officeName: string;
   productName: string;
   amount: number;
+  officeNetAmount: number;
+  platformFeeAmount: number;
   method: string;
   createdAt: string;
   status: string;
@@ -48,13 +50,22 @@ interface FinanceTransactionViewRow {
   payment_status: string;
 }
 
+export interface OfficeSalesMetric {
+  officeId: string;
+  officeName: string;
+  grossRevenue: number;
+  officeNetRevenue: number;
+  platformFeeRevenue: number;
+  salesCount: number;
+}
+
 function normalizeProductName(slug?: string | null) {
   if (!slug) return "General";
   return slug.replace(/-/g, " ").toUpperCase();
 }
 
 function normalizeOfficeName(name?: string | null) {
-  if (!name) return "Direct";
+  if (!name) return "UNASSIGNED OFFICE";
   return name;
 }
 
@@ -102,17 +113,179 @@ export const financeAnalyticsService = {
       throw new Error(`Erro ao carregar transações recentes: ${error.message}`);
     }
 
-    return ((data ?? []) as FinanceTransactionViewRow[]).map((row) => ({
+    const rows = (data ?? []) as FinanceTransactionViewRow[];
+    const ids = rows.map((row) => row.id).filter(Boolean);
+    const orderNetById = new Map<string, { gross: number; net: number }>();
+    const orderOfficeIdById = new Map<string, string>();
+    const officeNameById = new Map<string, string>();
+
+    if (ids.length > 0) {
+      const { data: ordersData } = await supabase
+        .from("orders")
+        .select("id, total_price_usd, office_net_amount_usd, office_id, seller_id, user_id")
+        .in("id", ids);
+
+      const orders = (ordersData ?? []) as Array<{
+        id: string;
+        total_price_usd?: number | string | null;
+        office_net_amount_usd?: number | string | null;
+        office_id?: string | null;
+        seller_id?: string | null;
+        user_id?: string | null;
+      }>;
+
+      const missingOfficeOrders = orders.filter((order) => !order.office_id);
+      const ownerIds = Array.from(new Set(
+        missingOfficeOrders
+          .flatMap((order) => [order.seller_id, order.user_id])
+          .filter((ownerId): ownerId is string => Boolean(ownerId)),
+      ));
+
+      const inferredOfficeByOwnerId = new Map<string, string>();
+      if (ownerIds.length > 0) {
+        const { data: ownersData } = await supabase
+          .from("user_accounts")
+          .select("id, office_id")
+          .in("id", ownerIds);
+
+        ((ownersData ?? []) as Array<{ id: string; office_id?: string | null }>)
+          .forEach((owner) => {
+            if (owner?.id && owner?.office_id) inferredOfficeByOwnerId.set(owner.id, owner.office_id);
+          });
+      }
+
+      const inferredUpdates: Array<{ id: string; office_id: string }> = [];
+      orders.forEach((order) => {
+        if (order.office_id) return;
+        const inferredOfficeId =
+          (order.seller_id && inferredOfficeByOwnerId.get(order.seller_id)) ||
+          (order.user_id && inferredOfficeByOwnerId.get(order.user_id));
+        if (inferredOfficeId) {
+          order.office_id = inferredOfficeId;
+          inferredUpdates.push({ id: order.id, office_id: inferredOfficeId });
+        }
+      });
+
+      if (inferredUpdates.length > 0) {
+        await Promise.all(
+          inferredUpdates.map((item) =>
+            supabase.from("orders").update({ office_id: item.office_id }).eq("id", item.id),
+          ),
+        );
+      }
+
+      const officeIds = Array.from(new Set(
+        orders.map((order) => order.office_id).filter((office): office is string => Boolean(office)),
+      ));
+      if (officeIds.length > 0) {
+        const { data: officesData } = await supabase
+          .from("offices")
+          .select("id, name")
+          .in("id", officeIds);
+        ((officesData ?? []) as Array<{ id: string; name?: string | null }>)
+          .forEach((office) => {
+            if (office?.id) officeNameById.set(office.id, office.name ?? "UNASSIGNED OFFICE");
+          });
+      }
+
+      orders
+        .forEach((order) => {
+          const gross = Number(order.total_price_usd ?? 0);
+          const net = Number(order.office_net_amount_usd ?? gross);
+          orderNetById.set(order.id, { gross, net });
+          if (order.office_id) orderOfficeIdById.set(order.id, order.office_id);
+        });
+    }
+
+    return rows.map((row) => {
+      const fallbackGross = Number(row.total_price_usd ?? 0);
+      const orderAmounts = orderNetById.get(row.id);
+      const gross = orderAmounts?.gross ?? fallbackGross;
+      const net = orderAmounts?.net ?? fallbackGross;
+      const inferredOfficeId = orderOfficeIdById.get(row.id);
+      const normalizedOfficeName =
+        inferredOfficeId
+          ? (officeNameById.get(inferredOfficeId) ?? "UNASSIGNED OFFICE")
+          : normalizeOfficeName(row.office_name);
+      return {
       id: row.id,
       clientName: row.client_name || "Guest",
       clientEmail: row.client_email || "",
-      officeName: normalizeOfficeName(row.office_name),
+      officeName: normalizedOfficeName,
       productName: normalizeProductName(row.product_slug),
-      amount: Number(row.total_price_usd ?? 0),
+      amount: gross,
+      officeNetAmount: net,
+      platformFeeAmount: Math.max(0, gross - net),
       method: normalizeMethod(row.payment_method),
       createdAt: row.created_at || new Date(0).toISOString(),
       status: row.payment_status || "unknown",
-    }));
+    };
+    });
+  },
+
+  async getOfficeSalesMetricsByDateRange(
+    startDate?: string,
+    endDate?: string,
+  ): Promise<OfficeSalesMetric[]> {
+    let query = supabase
+      .from("orders")
+      .select("office_id, total_price_usd, office_net_amount_usd, payment_status, created_at")
+      .in("payment_status", ["paid", "approved", "complete", "completed", "succeeded"]);
+
+    if (startDate) {
+      query = query.gte("created_at", `${startDate}T00:00:00.000Z`);
+    }
+    if (endDate) {
+      query = query.lte("created_at", `${endDate}T23:59:59.999Z`);
+    }
+
+    const { data: orders, error } = await query;
+    if (error) {
+      throw new Error(`Erro ao carregar vendas por office: ${error.message}`);
+    }
+
+    const officeIds = Array.from(
+      new Set(
+        ((orders ?? []) as Array<{ office_id?: string | null }>)
+          .map((row) => row.office_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    );
+
+    const officeNameById = new Map<string, string>();
+    if (officeIds.length > 0) {
+      const { data: offices } = await supabase
+        .from("offices")
+        .select("id, name")
+        .in("id", officeIds);
+      (offices ?? []).forEach((office: any) => {
+        if (office?.id) officeNameById.set(office.id, office.name ?? "Office");
+      });
+    }
+
+    const grouped = new Map<string, OfficeSalesMetric>();
+    ((orders ?? []) as Array<{ office_id?: string | null; total_price_usd?: number | string | null; office_net_amount_usd?: number | string | null }>).forEach((row) => {
+      const officeId = String(row.office_id || "");
+      if (!officeId) return;
+      const gross = Number(row.total_price_usd ?? 0);
+      const net = Number(row.office_net_amount_usd ?? row.total_price_usd ?? 0);
+      const fee = Math.max(0, gross - net);
+      const current = grouped.get(officeId) ?? {
+        officeId,
+        officeName: officeNameById.get(officeId) ?? "Office",
+        grossRevenue: 0,
+        officeNetRevenue: 0,
+        platformFeeRevenue: 0,
+        salesCount: 0,
+      };
+      current.grossRevenue += gross;
+      current.officeNetRevenue += net;
+      current.platformFeeRevenue += fee;
+      current.salesCount += 1;
+      grouped.set(officeId, current);
+    });
+
+    return Array.from(grouped.values()).sort((a, b) => b.grossRevenue - a.grossRevenue);
   },
 
   async getRoleActions(officeId?: string): Promise<FinanceRoleAction[]> {

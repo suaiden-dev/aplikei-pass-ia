@@ -18,36 +18,36 @@ const PRODUCTS: Product[] = [
   {
     enabledKey: "serviceB1B2Enabled",
     serviceSlug: "visa-b1b2",
-    label: "Visto de Turismo",
+    label: "Tourist Visa",
     badge: "B1/B2",
-    description: "Turismo e negócios com preparação de perfil e DS-160.",
+    description: "Tourism and business support with profile preparation and DS-160 guidance.",
     icon: <RiPlaneLine size={18} />,
     color: "text-sky-600 bg-sky-50 border-sky-200",
   },
   {
     enabledKey: "serviceF1Enabled",
     serviceSlug: "visa-f1",
-    label: "Visto de Estudante",
+    label: "Student Visa",
     badge: "F1",
-    description: "Plano completo para estudantes com documentação acadêmica.",
+    description: "Complete plan for students with academic documentation support.",
     icon: <RiGraduationCapLine size={18} />,
     color: "text-indigo-600 bg-indigo-50 border-indigo-200",
   },
   {
     enabledKey: "serviceEOSEnabled",
     serviceSlug: "visa-eos",
-    label: "Extensão de Status",
+    label: "Status Extension",
     badge: "EOS",
-    description: "Solicitação técnica para ampliar permanência regular.",
+    description: "Technical filing to extend lawful stay.",
     icon: <RiFileTextLine size={18} />,
     color: "text-emerald-600 bg-emerald-50 border-emerald-200",
   },
   {
     enabledKey: "serviceCOSEnabled",
     serviceSlug: "visa-cos",
-    label: "Troca de Status",
+    label: "Change of Status",
     badge: "COS",
-    description: "Mudança de categoria com mitigação de riscos.",
+    description: "Category change with risk mitigation strategy.",
     icon: <RiRefreshLine size={18} />,
     color: "text-amber-600 bg-amber-50 border-amber-200",
   },
@@ -71,15 +71,15 @@ export function TemplateCatalog({ config, onUpdateConfig }: TemplateCatalogProps
 
   return (
     <aside className="w-full shrink-0 overflow-y-auto border-b border-border bg-card px-3 py-3 lg:w-72 lg:border-b-0 lg:border-r">
-      <h2 className="text-sm font-black uppercase tracking-wide text-text">Produtos</h2>
+      <h2 className="text-sm font-black uppercase tracking-wide text-text">Products</h2>
       <p className="mt-1 text-xs text-text-muted">
-        Ative os serviços que aparecerão na página para compra.
+        Enable the services that will appear on the page for purchase.
       </p>
 
       {!hasOffice && (
         <div className="mt-3 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2">
           <p className="text-[11px] text-warning font-medium">
-            Cadastre um escritório para que os links de checkout sejam gerados automaticamente.
+            Create an office so checkout links can be generated automatically.
           </p>
         </div>
       )}
@@ -131,7 +131,7 @@ export function TemplateCatalog({ config, onUpdateConfig }: TemplateCatalogProps
                     type="button"
                     onClick={() => copyCheckoutLink(product.serviceSlug, checkoutUrl)}
                     className="shrink-0 rounded border border-border p-1.5 text-text-muted transition-colors hover:text-text"
-                    title="Copiar link do serviço"
+                    title="Copy service link"
                   >
                     {copiedSlug === product.serviceSlug ? (
                       <Check size={12} className="text-success" />

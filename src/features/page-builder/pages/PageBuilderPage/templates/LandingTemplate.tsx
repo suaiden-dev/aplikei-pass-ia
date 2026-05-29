@@ -4,8 +4,8 @@ const landingTemplateHtml = String.raw`
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advocacia Imigratória Estratégica | Assessoria Premium de Vistos</title>
-    <meta name="description" content="Assessoria jurídica premium para vistos B1/B2, F1, extensão e troca de status. Estratégia jurídica do início ao fim do seu processo de visto.">
+    <title>Premium Visa Advisory</title>
+    <meta name="description" content="Premium legal advisory for B1/B2, F1, status extension, and change of status. Legal strategy from start to finish for your visa process.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
@@ -642,20 +642,20 @@ const landingTemplateHtml = String.raw`
         <section class="hero">
             <div class="container">
                 <div class="hero-content">
-                    <div class="badge">ADVOCACIA IMIGRATÓRIA ESTRATÉGICA</div>
-                    <h1 class="hero-title">Pare de perder tempo com dúvida de visto: tenha <span class="highlight">estratégia jurídica</span> do início ao fim</h1>
-                    <p class="hero-description">Assessoria premium para B1/B2, F1, extensão de status e troca de status com acompanhamento humano e plano claro de ação.</p>
+                    <div class="badge">PREMIUM VISA ADVISORY</div>
+                    <h1 class="hero-title">Stop wasting time with visa uncertainty: get <span class="highlight">legal strategy</span> from start to finish</h1>
+                    <p class="hero-description">Premium advisory for B1/B2, F1, status extension, and change of status with human support and a clear action plan.</p>
                     <div class="hero-actions">
-                        <a href="#" class="btn btn-primary">Quero análise do meu caso</a>
+                        <a href="#" class="btn btn-primary">I want my case reviewed</a>
                         <a href="#" class="btn btn-secondary">Falar com especialista</a>
                     </div>
                 </div>
                 <div class="hero-card">
                     <div class="glass-card expert-card">
                         <div class="expert-header">
-                            <span class="expert-tag">Atendimento com advogado responsável</span>
+                            <span class="expert-tag">Direct support from a responsible attorney</span>
                             <h3 class="expert-name">Dra. Carolina Mendes</h3>
-                            <p class="expert-title">Advogada de Imigração com atuação focada em vistos e estratégia de aprovação.</p>
+                            <p class="expert-title">Immigration attorney focused on visas and approval strategy.</p>
                         </div>
                         <div class="expert-stats">
                             <div class="stat-item">
@@ -664,7 +664,7 @@ const landingTemplateHtml = String.raw`
                             </div>
                             <div class="stat-item">
                                 <span class="stat-value">4.9/5</span>
-                                <span class="stat-label">Satisfação média</span>
+                                <span class="stat-label">Average satisfaction</span>
                             </div>
                         </div>
                     </div>
@@ -675,37 +675,37 @@ const landingTemplateHtml = String.raw`
         <section class="services">
             <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">Serviços de vistos com foco em resultado</h2>
-                    <p class="section-subtitle">Soluções jurídicas para cada etapa da sua jornada imigratória, com organização documental e estratégia personalizada.</p>
+                    <h2 class="section-title">Visa services focused on results</h2>
+                    <p class="section-subtitle">Legal solutions for every stage of your immigration journey, with document organization and tailored strategy.</p>
                 </div>
 
                 <div class="services-grid">
                     <div class="service-card">
                         <div class="service-tag">B1/B2</div>
-                        <h3 class="service-name">Visto de Turismo</h3>
-                        <p class="service-desc">Turismo e negócios com preparação de perfil, DS-160 e orientação de entrevista.</p>
-                        <a href="#" class="btn btn-card">Contratar serviço</a>
+                        <h3 class="service-name">Tourist Visa</h3>
+                        <p class="service-desc">Tourism and business support with profile prep, DS-160, and interview guidance.</p>
+                        <a href="#" class="btn btn-card">Hire service</a>
                     </div>
 
                     <div class="service-card">
                         <div class="service-tag">F1</div>
-                        <h3 class="service-name">Visto de Estudante</h3>
-                        <p class="service-desc">Plano completo para estudantes, alinhando documentação acadêmica e narrativa migratória.</p>
-                        <a href="#" class="btn btn-card">Contratar serviço</a>
+                        <h3 class="service-name">Student Visa</h3>
+                        <p class="service-desc">Complete plan for students, aligning academic documentation and immigration narrative.</p>
+                        <a href="#" class="btn btn-card">Hire service</a>
                     </div>
 
                     <div class="service-card">
                         <div class="service-tag">EOS</div>
-                        <h3 class="service-name">Extensão de Status</h3>
-                        <p class="service-desc">Solicitação técnica para ampliar permanência regular sem improviso.</p>
-                        <a href="#" class="btn btn-card">Contratar serviço</a>
+                        <h3 class="service-name">Status Extension</h3>
+                        <p class="service-desc">Technical filing to extend lawful stay without improvisation.</p>
+                        <a href="#" class="btn btn-card">Hire service</a>
                     </div>
 
                     <div class="service-card">
                         <div class="service-tag">COS</div>
-                        <h3 class="service-name">Troca de Status</h3>
-                        <p class="service-desc">Mudança de categoria com estratégia jurídica e mitigação de riscos de negação.</p>
-                        <a href="#" class="btn btn-card">Contratar serviço</a>
+                        <h3 class="service-name">Change of Status</h3>
+                        <p class="service-desc">Category change with legal strategy and denial-risk mitigation.</p>
+                        <a href="#" class="btn btn-card">Hire service</a>
                     </div>
                 </div>
             </div>
@@ -715,23 +715,23 @@ const landingTemplateHtml = String.raw`
             <div class="container">
                 <div class="section-header">
                     <h2 class="section-title">Como funciona nossa assessoria</h2>
-                    <p class="section-subtitle">Um processo claro e estruturado para garantir a maior chance de aprovação do seu visto.</p>
+                    <p class="section-subtitle">A clear, structured process to maximize your visa approval chances.</p>
                 </div>
                 <div class="steps-grid">
                     <div class="step-card">
                         <div class="step-number">01</div>
-                        <h3 class="step-title">Análise de Perfil</h3>
-                        <p class="step-desc">Avaliamos seu histórico e objetivos para definir a melhor estratégia migratória.</p>
+                        <h3 class="step-title">Profile Analysis</h3>
+                        <p class="step-desc">We assess your history and goals to define the best immigration strategy.</p>
                     </div>
                     <div class="step-card">
                         <div class="step-number">02</div>
-                        <h3 class="step-title">Preparação Documental</h3>
-                        <p class="step-desc">Organizamos toda a documentação necessária com rigor técnico e conferência dupla.</p>
+                        <h3 class="step-title">Document Preparation</h3>
+                        <p class="step-desc">We organize all required documents with technical rigor and double-checking.</p>
                     </div>
                     <div class="step-card">
                         <div class="step-number">03</div>
                         <h3 class="step-title">Protocolo e Acompanhamento</h3>
-                        <p class="step-desc">Realizamos o protocolo e acompanhamos cada etapa até a decisão final do consulado.</p>
+                        <p class="step-desc">We file and track every step through the final consular decision.</p>
                     </div>
                 </div>
             </div>
@@ -741,11 +741,11 @@ const landingTemplateHtml = String.raw`
             <div class="container">
                 <div class="section-header">
                     <h2 class="section-title">Quem contrata recomenda</h2>
-                    <p class="section-subtitle">Histórias de sucesso de quem confiou na nossa assessoria estratégica.</p>
+                    <p class="section-subtitle">Success stories from clients who trusted our strategic advisory.</p>
                 </div>
                 <div class="testimonials-grid">
                     <div class="testimonial-card glass-card">
-                        <p class="testimonial-text">"A estratégia da Dra. Carolina foi fundamental para a aprovação do meu visto F1 após uma negação anterior. Recomendo muito!"</p>
+                        <p class="testimonial-text">"Carolina's strategy was essential for my F1 visa approval after a previous denial. Highly recommended!"</p>
                         <div class="testimonial-author">
                             <div class="author-info">
                                 <span class="author-name">Ricardo Silva</span>
@@ -754,20 +754,20 @@ const landingTemplateHtml = String.raw`
                         </div>
                     </div>
                     <div class="testimonial-card glass-card">
-                        <p class="testimonial-text">"Profissionalismo impecável. A extensão do meu status foi feita com total segurança e clareza. Equipe nota 10."</p>
+                        <p class="testimonial-text">"Impeccable professionalism. My status extension was handled with total confidence and clarity. Outstanding team."</p>
                         <div class="testimonial-author">
                             <div class="author-info">
                                 <span class="author-name">Mariana Costa</span>
-                                <span class="author-role">Turismo e Negócios</span>
+                                <span class="author-role">Tourism and Business</span>
                             </div>
                         </div>
                     </div>
                     <div class="testimonial-card glass-card">
-                        <p class="testimonial-text">"O diferencial é o acompanhamento humano. Me senti segura em cada etapa do processo. Aprovação rápida!"</p>
+                        <p class="testimonial-text">"Human support is the key difference. I felt confident at every step. Fast approval!"</p>
                         <div class="testimonial-author">
                             <div class="author-info">
                                 <span class="author-name">Juliana Lins</span>
-                                <span class="author-role">Troca de Status</span>
+                                <span class="author-role">Change of Status</span>
                             </div>
                         </div>
                     </div>
@@ -778,21 +778,21 @@ const landingTemplateHtml = String.raw`
         <section class="faq">
             <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">Perguntas Frequentes</h2>
-                    <p class="section-subtitle">Tire suas dúvidas sobre o processo de visto e nossa assessoria.</p>
+                    <h2 class="section-title">Frequently Asked Questions</h2>
+                    <p class="section-subtitle">Get answers about the visa process and our advisory.</p>
                 </div>
                 <div class="faq-list">
                     <div class="faq-item">
-                        <div class="faq-question">Qual a diferença entre assessoria e advogado?</div>
-                        <div class="faq-answer">Nossa assessoria é liderada por advogados especialistas, garantindo o rigor jurídico que uma assessoria comum não oferece.</div>
+                        <div class="faq-question">What is the difference between advisory services and an attorney?</div>
+                        <div class="faq-answer">Our advisory is led by specialist attorneys, ensuring legal rigor beyond standard advisory services.</div>
                     </div>
                     <div class="faq-item">
                         <div class="faq-question">Quanto tempo demora o processo?</div>
-                        <div class="faq-answer">O tempo varia de acordo com o tipo de visto e a demanda consular, mas nossa preparação leva em média 15 a 30 dias.</div>
+                        <div class="faq-answer">Timing varies by visa type and consular demand, but our preparation usually takes 15 to 30 days.</div>
                     </div>
                     <div class="faq-item">
-                        <div class="faq-question">Vocês garantem a aprovação?</div>
-                        <div class="faq-answer">Nenhum profissional pode garantir a aprovação, mas nossa estratégia jurídica maximiza as chances ao mitigar riscos comuns.</div>
+                        <div class="faq-question">Do you guarantee approval?</div>
+                        <div class="faq-answer">No professional can guarantee approval, but our legal strategy maximizes your chances by mitigating common risks.</div>
                     </div>
                 </div>
             </div>
@@ -804,28 +804,28 @@ const landingTemplateHtml = String.raw`
             <div class="footer-grid">
                 <div class="footer-brand">
                     <span class="logo-text">SEU LOGO</span>
-                    <p class="footer-desc">Assessoria jurídica estratégica para quem busca segurança e clareza no processo de visto americano.</p>
+                    <p class="footer-desc">Strategic legal advisory for those seeking confidence and clarity in the U.S. visa process.</p>
                 </div>
                 <div class="footer-links">
-                    <h4>Links Úteis</h4>
+                    <h4>Useful Links</h4>
                     <ul>
-                        <li><a href="#">Serviços</a></li>
-                        <li><a href="#">Sobre Nós</a></li>
+                        <li><a href="#">Services</a></li>
+                        <li><a href="#">About Us</a></li>
                         <li><a href="#">Depoimentos</a></li>
                         <li><a href="#">FAQ</a></li>
                     </ul>
                 </div>
                 <div class="footer-contact">
-                    <h4>Contato</h4>
+                    <h4>Contact</h4>
                     <ul>
                         <li>contato@seulogo.com.br</li>
                         <li>+55 (11) 99999-9999</li>
-                        <li>São Paulo, SP - Brasil</li>
+                        <li>Sao Paulo, SP - Brazil</li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 Advocacia Imigratória Estratégica. Todos os direitos reservados.</p>
+                <p>Powered by Aplikei</p>
                 <div class="social-links">
                     <a href="#">Instagram</a>
                     <a href="#">LinkedIn</a>

@@ -148,6 +148,8 @@ function MotionCheckoutOverlay({
       'pending_payment_advance',
       JSON.stringify({
         procId: proc.id,
+        slug,
+        createdAt: new Date().toISOString(),
         fromStep: proc.current_step,
         stage,
         flow: workflowType,

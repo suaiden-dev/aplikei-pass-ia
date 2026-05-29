@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -422,8 +422,8 @@ function MRVSetupPanel({ proc, onApprove, onRefresh, isActive }: { proc: Process
 
   useEffect(() => {
     const d = (proc.step_data as Record<string, unknown> | null) ?? {};
-    setLogin((d.mrv_login as string) || "");
-    setPassword((d.mrv_password as string) || "");
+    setLogin(((d.mrv_login as string) || (d.consular_login as string) || (d.consular_email as string) || ""));
+    setPassword(((d.mrv_password as string) || (d.consular_password as string) || ""));
     setBoletoPath((d.mrv_boleto_path as string) || "");
   }, [proc]);
 
@@ -449,15 +449,19 @@ function MRVSetupPanel({ proc, onApprove, onRefresh, isActive }: { proc: Process
   };
 
   const handleSaveAndApprove = async () => {
-    if (!login || !password || !boletoPath) {
+    const d = (proc.step_data as Record<string, unknown> | null) ?? {};
+    const resolvedLogin = login || (d.consular_login as string) || (d.consular_email as string) || "";
+    const resolvedPassword = password || (d.consular_password as string) || "";
+
+    if (!resolvedLogin || !resolvedPassword || !boletoPath) {
       toast.error(t.processDetail.mrv.messages.fillFields);
       return;
     }
     setLoading(true);
     try {
       const payload = {
-        mrv_login: login,
-        mrv_password: password,
+        mrv_login: resolvedLogin,
+        mrv_password: resolvedPassword,
         mrv_boleto_path: boletoPath,
         mrv_generated_at: new Date().toISOString()
       };
@@ -1275,7 +1279,23 @@ export default function AdminProcessDetailPage() {
   };
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
   const [coverLetterHtml, setCoverLetterHtml] = useState("");
+  const [accountCreationPassword, setAccountCreationPassword] = useState("");
   const [recoveryChildren, setRecoveryChildren] = useState<UserService[]>([]);
+  const dedupedRecoveryChildren = useMemo(() => {
+    const seen = new Set<string>();
+    return recoveryChildren.filter((child) => {
+      const sd = (child.step_data || {}) as Record<string, unknown>;
+      const flowRaw = String(sd.workflow_type || "").toLowerCase();
+      const flow =
+        flowRaw === "motion" || flowRaw === "rfe"
+          ? flowRaw
+          : (child.service_slug.toLowerCase().includes("motion") ? "motion" : "rfe");
+      const key = `${child.service_slug.toLowerCase()}::${flow}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [recoveryChildren]);
   const parentIdFromQuery = searchParams.get("parentId");
   const isRecoveryChildView = Boolean(parentIdFromQuery);
 
@@ -1494,6 +1514,15 @@ export default function AdminProcessDetailPage() {
   useEffect(() => {
     fetchProcessData();
   }, [fetchProcessData]);
+
+  useEffect(() => {
+    const stepData = (proc?.step_data as Record<string, unknown> | null) ?? {};
+    const savedPassword =
+      (stepData.consular_password as string) ||
+      (stepData.mrv_password as string) ||
+      "";
+    setAccountCreationPassword(savedPassword);
+  }, [proc]);
 
   if (isLoading) {
     return (
@@ -2313,9 +2342,34 @@ export default function AdminProcessDetailPage() {
     const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 7 : 6);
     if (!isActive && !isPast) return null;
 
-    const email = ((proc.step_data as any)?.primaryEmail || proc.user_accounts?.email || t.processDetail.accountCreation.notInformed) as string;
+    const emailRaw = ((proc.step_data as any)?.primaryEmail || proc.user_accounts?.email || "") as string;
     const name = ((proc.step_data as any)?.fullName || proc.user_accounts?.full_name || t.processDetail.accountCreation.notInformed) as string;
-    const phone = ((proc.step_data as any)?.phone || t.processDetail.accountCreation.notInformed) as string;
+    const phoneRaw = (
+      (proc.step_data as any)?.primaryPhone ||
+      (proc.step_data as any)?.cellPhone ||
+      (proc.step_data as any)?.phone ||
+      ""
+    ) as string;
+    const email = emailRaw || t.processDetail.accountCreation.notInformed;
+    const phone = phoneRaw || t.processDetail.accountCreation.notInformed;
+
+    const handleConfirmAccountCreation = async () => {
+      if (!emailRaw || !phoneRaw) {
+        toast.error("DS-160 email and phone are required to continue.");
+        return;
+      }
+      if (!accountCreationPassword.trim()) {
+        toast.error("Consulate account password is required.");
+        return;
+      }
+
+      await handleApproveStep({
+        consular_login: emailRaw.trim(),
+        consular_email: emailRaw.trim(),
+        consular_phone: phoneRaw.trim(),
+        consular_password: accountCreationPassword.trim(),
+      });
+    };
 
     return (
       <CollapsibleStep title={t.processDetail.accountCreation.title} icon={RiUser3Line} isActive={isActive} isPast={isPast} badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}>
@@ -2340,7 +2394,34 @@ export default function AdminProcessDetailPage() {
               <p className="text-xs text-text-muted font-medium mb-4 italic">
                 {t.processDetail.accountCreation.instruction}
               </p>
-              {renderCardActions(t.processDetail.accountCreation.confirmBtn, "primary")}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Consulate Account Password</label>
+                  <input
+                    type="text"
+                    value={accountCreationPassword}
+                    onChange={(e) => setAccountCreationPassword(e.target.value)}
+                    disabled={!isActive}
+                    className="w-full px-5 py-4 rounded-2xl bg-bg-subtle border border-border text-sm font-bold text-text outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                    placeholder="Enter account password"
+                  />
+                </div>
+                <div className="flex items-center gap-4 pt-4 border-t border-border">
+                  <button
+                    onClick={() => setShowRejectionModal(true)}
+                    className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
+                  >
+                    <RiCloseLine className="text-xl" /> {t.analysisPanel.actions.requestMoreInfo}
+                  </button>
+                  <button
+                    onClick={() => void handleConfirmAccountCreation()}
+                    disabled={isSubmitting}
+                    className="flex-1 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg bg-primary shadow-primary/20"
+                  >
+                    {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.processDetail.accountCreation.confirmBtn}</>}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -2872,7 +2953,7 @@ export default function AdminProcessDetailPage() {
             );
           })()}
 
-          {!isRecoveryChildView && recoveryChildren.length > 0 && (
+          {!isRecoveryChildView && dedupedRecoveryChildren.length > 0 && (
             <div className="bg-card rounded-[32px] border border-border shadow-sm p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
@@ -2881,7 +2962,7 @@ export default function AdminProcessDetailPage() {
                 <h3 className="font-black text-text text-sm uppercase tracking-tight">Recovery Products</h3>
               </div>
               <div className="space-y-2">
-                {recoveryChildren.map((child) => {
+                {dedupedRecoveryChildren.map((child) => {
                   const sd = (child.step_data || {}) as Record<string, unknown>;
                   const childFlow = String(
                     sd.workflow_type ||

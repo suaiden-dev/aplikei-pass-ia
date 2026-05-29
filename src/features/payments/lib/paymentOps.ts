@@ -51,6 +51,46 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const N8N_BOT_CHECKPROOF = import.meta.env.VITE_N8N_BOT_CHECKPROOF as string;
 const ZELLE_BUCKET = "zelle_comprovantes";
 
+function assertOfficeIdForCheckout(officeId?: string): string {
+  const normalized = String(officeId || "").trim();
+  if (!normalized) {
+    throw new Error("Checkout indisponível: é obrigatório ter um office vinculado para realizar compras.");
+  }
+  return normalized;
+}
+
+async function assertProductIsActiveForOffice(officeId: string, slug: string): Promise<void> {
+  const allowedSlugs = getServiceSlugs(slug);
+  const { data: services, error: servicesError } = await supabase
+    .from("services")
+    .select("id, slug")
+    .in("slug", allowedSlugs);
+
+  if (servicesError) {
+    throw new Error("Não foi possível validar a disponibilidade do produto.");
+  }
+
+  if (!services || services.length === 0) {
+    throw new Error("Produto indisponível para venda.");
+  }
+
+  const serviceIds = services.map((service) => service.id);
+  const { data: prices, error: pricesError } = await supabase
+    .from("user_service_prices")
+    .select("is_active")
+    .eq("office_id", officeId)
+    .in("service_id", serviceIds);
+
+  if (pricesError) {
+    throw new Error("Não foi possível validar se o produto está ativo.");
+  }
+
+  const hasActiveProduct = (prices || []).some((row) => row.is_active === true || row.is_active === null);
+  if (!hasActiveProduct) {
+    throw new Error("Produto desativado para este office. Ative o produto antes de iniciar a venda.");
+  }
+}
+
 async function extractFunctionErrorMessage(error: unknown): Promise<string> {
   const fallback =
     (error as { message?: string })?.message ||
@@ -198,7 +238,9 @@ async function preRegisterOrder(params: {
 export async function createStripeCheckout(
   params: StripeCheckoutParams,
 ): Promise<CheckoutResult> {
+  const officeId = assertOfficeIdForCheckout(params.office_id);
   const resolvedSlug = await resolveCheckoutSlugForUser(params.userId, params.slug);
+  await assertProductIsActiveForOffice(officeId, resolvedSlug);
 
   const orderId = await preRegisterOrder({
     userId: params.userId,
@@ -211,7 +253,7 @@ export async function createStripeCheckout(
     procId: params.proc_id,
     phone: params.phone,
     coupon_code: params.coupon_code,
-    office_id: params.office_id,
+    office_id: officeId,
     seller_id: params.seller_id,
   });
 
@@ -230,7 +272,7 @@ export async function createStripeCheckout(
       action: params.action || "",
       serviceId: params.serviceId || "",
       proc_id: params.proc_id,
-      office_id: params.office_id,
+      office_id: officeId,
       seller_id: params.seller_id,
     },
   });
@@ -247,7 +289,9 @@ export async function createStripeCheckout(
 export async function createParcelowCheckout(
   params: ParcelowCheckoutParams,
 ): Promise<CheckoutResult> {
+  const officeId = assertOfficeIdForCheckout(params.office_id);
   const resolvedSlug = await resolveCheckoutSlugForUser(params.userId, params.slug);
+  await assertProductIsActiveForOffice(officeId, resolvedSlug);
 
   const orderId = await preRegisterOrder({
     userId: params.userId,
@@ -260,7 +304,7 @@ export async function createParcelowCheckout(
     procId: params.proc_id,
     phone: params.phone,
     coupon_code: params.coupon_code,
-    office_id: params.office_id,
+    office_id: officeId,
     serviceId: params.serviceId,
     seller_id: params.seller_id,
   });
@@ -278,7 +322,7 @@ export async function createParcelowCheckout(
       coupon_code: params.coupon_code,
       origin_url: window.location.origin,
       proc_id: params.proc_id,
-      office_id: params.office_id,
+      office_id: officeId,
       seller_id: params.seller_id,
     },
   });
@@ -324,7 +368,9 @@ export async function createZellePayment(params: {
   serviceId?: string;
   seller_id?: string;
 }): Promise<{ paymentId: string; autoApproved: boolean }> {
+  const officeId = assertOfficeIdForCheckout(params.office_id);
   const resolvedSlug = await resolveCheckoutSlugForUser(params.userId ?? undefined, params.slug);
+  await assertProductIsActiveForOffice(officeId, resolvedSlug);
 
   const orderId = await preRegisterOrder({
     userId: params.userId || undefined,
@@ -337,7 +383,7 @@ export async function createZellePayment(params: {
     procId: params.proc_id,
     phone: params.phone,
     coupon_code: params.coupon_code,
-    office_id: params.office_id,
+    office_id: officeId,
     serviceId: params.serviceId,
     seller_id: params.seller_id,
   });
@@ -355,7 +401,7 @@ export async function createZellePayment(params: {
       proc_id: params.proc_id,
       coupon_code: params.coupon_code || undefined,
       dependents: params.dependents,
-      office_id: params.office_id,
+      office_id: officeId,
       service_id: params.serviceId,
       seller_id: params.seller_id,
       recipient_name: ZELLE_RECIPIENT.name,
@@ -485,7 +531,7 @@ export async function checkOrderPaymentStatus(
     }
 
     const { data } = await query
-      .in("payment_status", ["paid", "approved"])
+      .in("payment_status", ["paid", "approved", "complete", "completed", "succeeded"])
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();

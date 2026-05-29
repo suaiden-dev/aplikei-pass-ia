@@ -39,7 +39,7 @@ export function PreviewModal({
       >
         <DialogHeader className="flex-row items-center justify-between border-b border-border bg-card px-4 py-3">
           <DialogTitle className="text-base font-black">
-            Preview da Landing
+            Landing Preview
           </DialogTitle>
           <div className="flex items-center gap-2">
             <Button
@@ -64,7 +64,7 @@ export function PreviewModal({
               <Monitor size={14} className="mr-1" /> Desktop
             </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Fechar
+              Close
             </Button>
           </div>
         </DialogHeader>

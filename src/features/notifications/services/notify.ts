@@ -31,6 +31,14 @@ type UserAccountLite = {
   office_id: string | null;
 };
 
+function isCustomerRole(role: string | null | undefined): boolean {
+  return role === "customer" || role === "client";
+}
+
+function isOfficeAdminRole(role: string | null | undefined): boolean {
+  return role === "manager" || role === "admin_lawyer" || role === "admin";
+}
+
 async function insertNotification(payload: NotificationPayload): Promise<void> {
   const cachedSession = await getSessionSafe();
   const accessToken = cachedSession?.access_token ?? null;
@@ -189,7 +197,7 @@ async function getOfficeAdminRecipients(officeId: string): Promise<string[]> {
     .from("user_accounts")
     .select("id")
     .eq("office_id", officeId)
-    .in("role", ["manager", "admin_lawyer"]);
+    .in("role", ["manager", "admin_lawyer", "admin"]);
   return ((data as Array<{ id: string }> | null) ?? []).map((row) => row.id);
 }
 
@@ -199,6 +207,15 @@ async function getMasterRecipients(): Promise<string[]> {
     .select("id")
     .eq("role", "master");
   return ((data as Array<{ id: string }> | null) ?? []).map((row) => row.id);
+}
+
+async function getServiceOwnerUserId(serviceId: string): Promise<string | null> {
+  const { data } = await supabase
+    .from("user_services")
+    .select("user_id")
+    .eq("id", serviceId)
+    .maybeSingle();
+  return (data as { user_id?: string | null } | null)?.user_id ?? null;
 }
 
 async function createAdminNotificationsForUsers(
@@ -226,22 +243,33 @@ export async function notifyAdmin(params: NotifyAdminParams): Promise<void> {
   try {
     const title = normalizeAdminCopyToEnglish(params.title) ?? params.title;
     const body = normalizeAdminCopyToEnglish(params.body);
-    if (params.userId) {
-      const actor = await getUserAccountLite(params.userId);
+    let adminRecipientUserId: string | null = null;
+    let sourceUserId = params.userId ?? null;
 
-      if (actor?.role === "customer" && actor.office_id) {
+    if (!sourceUserId && params.serviceId) {
+      sourceUserId = await getServiceOwnerUserId(params.serviceId);
+    }
+
+    if (sourceUserId) {
+      const actor = await getUserAccountLite(sourceUserId);
+
+      if (isCustomerRole(actor?.role) && actor?.office_id) {
         const officeRecipients = await getOfficeAdminRecipients(actor.office_id);
         if (officeRecipients.length > 0) {
           await createAdminNotificationsForUsers(officeRecipients, params);
           return;
         }
       }
+
+      if (actor && isOfficeAdminRole(actor.role)) {
+        adminRecipientUserId = actor.id;
+      }
     }
 
     await insertNotification({
       type: "admin_action",
       target_role: "admin",
-      user_id: params.userId || null,
+      user_id: adminRecipientUserId,
       service_id: params.serviceId || null,
       title,
       message: body || null,

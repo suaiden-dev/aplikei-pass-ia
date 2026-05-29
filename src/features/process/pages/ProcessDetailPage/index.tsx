@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MdLanguage, MdSchool, MdHistory, MdSyncAlt } from "react-icons/md";
@@ -171,6 +171,21 @@ export default function ProcessDetailPage() {
       return (data ?? []) as UserService[];
     },
   });
+  const dedupedRecoveryChildren = useMemo(() => {
+    const seen = new Set<string>();
+    return recoveryChildren.filter((child) => {
+      const childStepData = (child.step_data || {}) as Record<string, unknown>;
+      const flowRaw = String(childStepData.workflow_type || "").toLowerCase();
+      const flow =
+        flowRaw === "motion" || flowRaw === "rfe"
+          ? flowRaw
+          : (child.service_slug.toLowerCase().includes("motion") ? "motion" : "rfe");
+      const key = `${child.service_slug.toLowerCase()}::${flow}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [recoveryChildren]);
 
   useEffect(() => {
     if (!user || !proc) return;
@@ -722,13 +737,13 @@ export default function ProcessDetailPage() {
                 </motion.div>
               );
             })}
-            {!isChildRecoveryView && recoveryChildren.length > 0 && (
+            {!isChildRecoveryView && dedupedRecoveryChildren.length > 0 && (
               <div className="rounded-2xl border border-border bg-bg-subtle p-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
                   Recovery Products
                 </p>
                 <div className="mt-3 space-y-2">
-                  {recoveryChildren.map((child) => {
+                  {dedupedRecoveryChildren.map((child) => {
                     const childStepData = (child.step_data || {}) as Record<string, unknown>;
                     const childFlow = String(
                       childStepData.workflow_type ||

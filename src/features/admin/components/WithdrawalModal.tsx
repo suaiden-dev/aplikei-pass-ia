@@ -41,9 +41,26 @@ export function WithdrawalModal({
   const [paymentLink, setPaymentLink] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const parseAmount = (rawValue: string): number => {
+    const normalized = String(rawValue || "").replace(/,/g, "").trim();
+    const num = Number(normalized);
+    return Number.isFinite(num) ? num : Number.NaN;
+  };
+
+  const formatAmountInput = (rawValue: string): string => {
+    const digits = String(rawValue || "").replace(/\D/g, "");
+    if (!digits) return "";
+    const cents = Number(digits);
+    const value = cents / 100;
+    return value.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   const validateAmount = (rawValue: string): string | null => {
     if (!rawValue.trim()) return null;
-    const val = Number(rawValue);
+    const val = parseAmount(rawValue);
     if (!Number.isFinite(val)) return "Please enter a valid amount.";
     if (val <= 0) return "Amount must be greater than zero.";
     if (val > availableBalance) return `Amount cannot be greater than available ($${availableBalance.toFixed(2)}).`;
@@ -52,12 +69,20 @@ export function WithdrawalModal({
 
   useEffect(() => {
     if (settings) {
-      setMethod(settings.default_payout_method || 'stripe');
+      const stripeEnabled = settings.stripe_enabled ?? true;
+      const zelleEnabled = settings.zelle_enabled ?? true;
+      if (!stripeEnabled && zelleEnabled) {
+        setMethod("zelle");
+      } else if (stripeEnabled && !zelleEnabled) {
+        setMethod("stripe");
+      } else {
+        setMethod(settings.default_payout_method || "stripe");
+      }
     }
   }, [settings]);
 
   const handleSubmit = async () => {
-    const val = parseFloat(amount);
+    const val = parseAmount(amount);
     const amountError = validateAmount(amount);
     if (amountError) {
       setError(amountError);
@@ -84,7 +109,7 @@ export function WithdrawalModal({
     }
   };
 
-  const canWithdraw = !!settings;
+  const canWithdraw = !!settings && Boolean((settings.stripe_enabled ?? true) || (settings.zelle_enabled ?? true));
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -119,7 +144,7 @@ export function WithdrawalModal({
               <div className="space-y-1">
                 <p className="text-sm font-black uppercase tracking-tight text-text">Payout Configuration Missing</p>
                 <p className="text-xs font-medium text-text-muted leading-relaxed max-w-[280px]">
-                  Please configure your **Payout Method** in your settings to request withdrawals.
+                  Please configure your **Payout Method** in your settings to request withdrawal.
                 </p>
               </div>
             </div>
@@ -137,17 +162,14 @@ export function WithdrawalModal({
                 <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-bold">$</span>
                     <Input
-                        type="number"
+                        type="text"
                         placeholder="0.00"
                         value={amount}
                         onChange={(e) => {
-                            const nextValue = e.target.value;
+                            const nextValue = formatAmountInput(e.target.value);
                             setAmount(nextValue);
                             setError(validateAmount(nextValue));
                         }}
-                        min={0}
-                        max={availableBalance}
-                        step="0.01"
                         className={`pl-8 h-14 text-lg font-bold rounded-2xl bg-bg-subtle border-border focus:ring-primary/20 ${error ? 'border-danger focus:ring-danger/20' : ''}`}
                     />
                 </div>
@@ -231,7 +253,7 @@ export function WithdrawalModal({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={loadingSettings || !canWithdraw || isCreating || !amount || parseFloat(amount) <= 0 || !!error || (method === 'stripe' && !paymentLink)}
+            disabled={loadingSettings || !canWithdraw || isCreating || !amount || parseAmount(amount) <= 0 || !!error || (method === 'stripe' && !paymentLink)}
             className="h-12 px-8 rounded-xl font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20"
           >
             {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}

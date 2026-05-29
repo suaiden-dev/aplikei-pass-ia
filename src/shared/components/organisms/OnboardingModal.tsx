@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { RiAddLine, RiArrowLeftLine, RiArrowRightLine, RiBuilding4Line, RiCheckDoubleLine, RiLoader4Line, RiSubtractLine, RiVipCrown2Line } from "react-icons/ri";
 import { Button } from "../atoms/button";
 import { cn } from "@shared/utils/cn";
+import { toast } from "sonner";
 
 type OnboardingModalProps = {
   isOpen: boolean;
@@ -48,48 +49,48 @@ export function OnboardingModal({
     () => [
       {
         id: "welcome",
-        title: "Onboarding da operação",
+        title: "Operations onboarding",
         description:
-          "Vamos configurar sua conta em etapas rápidas. Você precisa concluir empresa e assinatura para liberar o restante da plataforma.",
+          "Let’s set up your account in quick steps. You must complete company setup and subscription activation to unlock the rest of the platform.",
       },
       {
         id: "company",
-        title: "Etapa 1: Criar empresa",
+        title: "Step 1: Create company",
         description: officeCreated
-          ? "Empresa detectada com sucesso."
-          : "Preencha o Company Profile e salve para criar sua empresa.",
+          ? "Company detected successfully."
+          : "Fill in Company Profile and save to create your company.",
       },
       {
         id: "subscription",
-        title: "Etapa 2: Ativar inscrição",
+        title: "Step 2: Activate subscription",
         description: subscriptionActive
-          ? "Inscrição ativa detectada."
-          : "Ative um plano em Subscription para liberar recursos operacionais.",
+          ? "Active subscription detected."
+          : "Activate a plan in Subscription to unlock operational features.",
       },
       {
         id: "tour-overview",
         title: "Tour: Overview",
         description:
-          "No Overview você acompanha indicadores principais da operação, receita e andamento geral.",
+          "In Overview you track key operational metrics, revenue, and overall progress.",
       },
       {
         id: "tour-processes",
         title: "Tour: Processes",
         description:
-          "Em Processes você gerencia o fluxo dos clientes, aprova etapas e acompanha pendências.",
+          "In Processes you manage client flow, approve steps, and track pending items.",
       },
       {
         id: "tour-team",
         title: "Tour: Team",
         description:
-          "Em Team você adiciona colaboradores, ajusta permissões e organiza sua estrutura.",
+          "In Team you add members, adjust permissions, and organize your structure.",
       },
       {
         id: "finish",
-        title: "Finalizar onboarding",
+        title: "Finish onboarding",
         description: requirementsDone
-          ? "Tudo pronto. Clique em Finish para concluir."
-          : "Finish só será liberado quando empresa e inscrição estiverem concluídas.",
+          ? "Everything is ready. Click Finish to complete."
+          : "Finish will only be enabled when company setup and subscription are completed.",
       },
     ],
     [officeCreated, onGoCompany, onGoOverview, onGoProcesses, onGoSubscription, onGoTeam, requirementsDone, subscriptionActive],
@@ -98,10 +99,26 @@ export function OnboardingModal({
   const step = steps[currentStep];
   const isLast = currentStep === steps.length - 1;
   const finishBlocked = isLast && !requirementsDone;
+  const isCompanyStep = step.id === "company";
+  const isSubscriptionStep = step.id === "subscription";
+  const isRequiredStepBlocked =
+    (isCompanyStep && !officeCreated) ||
+    (isSubscriptionStep && !subscriptionActive);
+  const nextDisabled = finishBlocked || isRequiredStepBlocked;
 
   const handleNext = () => {
     if (step.id === "company" || step.id === "subscription") {
       void handleRefresh();
+    }
+
+    if (isCompanyStep && !officeCreated) {
+      toast.error("You need to create a company before continuing.");
+      return;
+    }
+
+    if (isSubscriptionStep && !subscriptionActive) {
+      toast.error("You need to activate the subscription before continuing.");
+      return;
     }
 
     if (!isLast) {
@@ -168,10 +185,10 @@ export function OnboardingModal({
       <div className="fixed right-6 top-6 z-[120] flex max-w-[calc(100vw-24px)] items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-2xl">
         <div className="min-w-0">
           <p className="text-[10px] font-black uppercase tracking-widest text-text-muted">
-            Onboarding da operação
+            Operations onboarding
           </p>
           <p className="truncate text-sm font-black text-text">
-            Etapa {currentStep + 1}/{steps.length} - {step.title}
+            Step {currentStep + 1}/{steps.length} - {step.title}
           </p>
         </div>
         <Button
@@ -179,11 +196,11 @@ export function OnboardingModal({
           variant="ghost"
           onClick={() => setIsMinimized(false)}
           className="rounded-xl"
-          aria-label="Expandir onboarding"
-          title="Expandir onboarding"
+          aria-label="Expand onboarding"
+          title="Expand onboarding"
         >
           <RiAddLine className="mr-1" />
-          Abrir
+          Open
         </Button>
       </div>
     );
@@ -197,7 +214,7 @@ export function OnboardingModal({
             {step.id === "company" ? <RiBuilding4Line /> : step.id === "subscription" ? <RiVipCrown2Line /> : <RiCheckDoubleLine />}
           </div>
           <div>
-            <p className="text-xs font-black uppercase tracking-widest text-text-muted">Etapa {currentStep + 1}/{steps.length}</p>
+            <p className="text-xs font-black uppercase tracking-widest text-text-muted">Step {currentStep + 1}/{steps.length}</p>
             <h3 className="text-base font-black text-text tracking-tight">{step.title}</h3>
           </div>
         </div>
@@ -206,8 +223,8 @@ export function OnboardingModal({
           type="button"
           onClick={() => setIsMinimized(true)}
           className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-bg-subtle text-text-muted transition-colors hover:bg-bg hover:text-text"
-          aria-label="Minimizar onboarding"
-          title="Minimizar onboarding"
+          aria-label="Minimize onboarding"
+          title="Minimize onboarding"
         >
           <RiSubtractLine className="text-lg" />
         </button>
@@ -225,10 +242,10 @@ export function OnboardingModal({
 
         <div className="grid grid-cols-2 gap-2">
           <div className={cn("rounded-xl border px-3 py-2 text-xs font-bold", officeCreated ? "border-green-200 bg-green-500/5 text-green-700" : "border-amber-200 bg-amber-500/5 text-amber-700")}>
-            Empresa: {officeCreated ? "OK" : "Pendente"}
+            Company: {officeCreated ? "OK" : "Pending"}
           </div>
           <div className={cn("rounded-xl border px-3 py-2 text-xs font-bold", subscriptionActive ? "border-green-200 bg-green-500/5 text-green-700" : "border-amber-200 bg-amber-500/5 text-amber-700")}>
-            Inscrição: {subscriptionActive ? "Ativa" : "Pendente"}
+            Subscription: {subscriptionActive ? "Active" : "Pending"}
           </div>
         </div>
       </div>
@@ -240,12 +257,12 @@ export function OnboardingModal({
           disabled={currentStep === 0}
           className="rounded-xl"
         >
-          <RiArrowLeftLine className="mr-1" /> Voltar
+          <RiArrowLeftLine className="mr-1" /> Back
         </Button>
-        <Button onClick={handleNext} disabled={finishBlocked} className="rounded-xl">
+        <Button onClick={handleNext} disabled={nextDisabled} className="rounded-xl">
           {isRefreshing ? (
-            <><RiLoader4Line className="animate-spin mr-1" /> Verificando...</>
-          ) : isLast ? "Finish" : <>Continuar <RiArrowRightLine className="ml-1" /></>}
+            <><RiLoader4Line className="animate-spin mr-1" /> Checking...</>
+          ) : isLast ? "Finish" : <>Continue <RiArrowRightLine className="ml-1" /></>}
         </Button>
       </div>
     </div>

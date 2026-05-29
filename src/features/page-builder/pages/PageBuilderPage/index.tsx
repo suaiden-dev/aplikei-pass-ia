@@ -59,9 +59,9 @@ export default function PageBuilderPage() {
     const handleSave = async () => {
         try {
             await saveConfig();
-            toast.success("Landing salva com sucesso.");
+            toast.success("Landing page saved successfully.");
         } catch (error) {
-            const message = error instanceof Error ? error.message : "Erro ao salvar landing.";
+            const message = error instanceof Error ? error.message : "Failed to save landing page.";
             toast.error(message);
         }
     };
@@ -69,9 +69,9 @@ export default function PageBuilderPage() {
     const handleUploadLogo = async (file: File) => {
         try {
             await uploadLogo(file);
-            toast.success("Logo enviada com sucesso.");
+            toast.success("Logo uploaded successfully.");
         } catch (error) {
-            const message = error instanceof Error ? error.message : "Erro ao enviar logo.";
+            const message = error instanceof Error ? error.message : "Failed to upload logo.";
             toast.error(message);
         }
     };
@@ -79,9 +79,9 @@ export default function PageBuilderPage() {
     const handleUploadFavicon = async (file: File) => {
         try {
             await uploadFavicon(file);
-            toast.success("Favicon enviado com sucesso.");
+            toast.success("Favicon uploaded successfully.");
         } catch (error) {
-            const message = error instanceof Error ? error.message : "Erro ao enviar favicon.";
+            const message = error instanceof Error ? error.message : "Failed to upload favicon.";
             toast.error(message);
         }
     };
@@ -103,7 +103,7 @@ export default function PageBuilderPage() {
                         <button
                             type="button"
                             onClick={() => handleCopyUrl("login", config.loginUrl)}
-                            title="Copiar URL login"
+                            title="Copy login URL"
                             className="shrink-0 rounded p-0.5 text-text-muted transition-colors hover:text-text"
                         >
                             {copiedKey === "login" ? <Check size={13} className="text-success" /> : <Copy size={13} />}
@@ -116,7 +116,7 @@ export default function PageBuilderPage() {
                         onClick={() => setShowCatalog((v) => !v)}
                     >
                         <RiLayoutGridLine size={16} className="mr-2" />
-                        Produtos
+                        Products
                     </Button>
                     <div className="h-5 w-px bg-border" />
                     <Button
@@ -135,7 +135,7 @@ export default function PageBuilderPage() {
                     </Button>
                     <Button variant="outline" onClick={openPreview}>
                         <Eye size={16} className="mr-2" />
-                        Visualizar
+                        Preview
                     </Button>
                     <Button variant="outline" onClick={handleDownload}>
                         <Download size={16} className="mr-2" />
@@ -143,7 +143,7 @@ export default function PageBuilderPage() {
                     </Button>
                     <Button onClick={handleSave} disabled={isSaving}>
                         <Save size={16} className="mr-2" />
-                        {isSaving ? "Salvando..." : "Salvar"}
+                        {isSaving ? "Saving..." : "Save"}
                     </Button>
                 </div>
             </header>

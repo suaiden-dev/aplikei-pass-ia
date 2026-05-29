@@ -57,7 +57,7 @@ export function InspectorPanel({
           type="button"
           onClick={() => copyValue(id, value)}
           className="shrink-0 rounded border border-border p-2 text-text-muted transition-colors hover:text-text"
-          title="Copiar link"
+          title="Copy link"
         >
           {copiedKey === id ? <Check size={14} className="text-success" /> : <Copy size={14} />}
         </button>
@@ -68,15 +68,15 @@ export function InspectorPanel({
   return (
     <aside className="w-full shrink-0 overflow-y-auto border-t border-border bg-card px-3 py-3 lg:w-96 lg:border-l lg:border-t-0">
       <h2 className="text-sm font-black uppercase tracking-wide text-text">
-        Configuração da Landing
+        Landing Configuration
       </h2>
       <p className="mt-1 text-xs text-text-muted">
-        Edite links, logo, favicon e textos da página pronta.
+        Edit links, logo, favicon, and page copy.
       </p>
 
       <div className="mt-4 space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="page-title">Título da página</Label>
+          <Label htmlFor="page-title">Page title</Label>
           <Input
             id="page-title"
             value={config.pageTitle}
@@ -84,7 +84,7 @@ export function InspectorPanel({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="favicon-upload">Upload do favicon</Label>
+          <Label htmlFor="favicon-upload">Favicon upload</Label>
           <div className="rounded-xl border border-dashed border-border bg-bg-subtle p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2">
@@ -92,14 +92,14 @@ export function InspectorPanel({
                   <ImageUp size={14} />
                 </span>
                 <p className="truncate text-xs text-text-muted">
-                  {isUploadingFavicon ? "Enviando favicon..." : "PNG, JPG ou SVG (recomendado 64x64)."}
+                  {isUploadingFavicon ? "Uploading favicon..." : "PNG, JPG, or SVG (recommended 64x64)."}
                 </p>
               </div>
               <label
                 htmlFor="favicon-upload"
                 className="cursor-pointer rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-text hover:bg-bg-subtle"
               >
-                Selecionar
+                Select
               </label>
             </div>
             <Input
@@ -125,7 +125,7 @@ export function InspectorPanel({
           ) : null}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="logo-upload">Upload da logo</Label>
+          <Label htmlFor="logo-upload">Logo upload</Label>
           <div className="rounded-xl border border-dashed border-border bg-bg-subtle p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2">
@@ -133,14 +133,14 @@ export function InspectorPanel({
                   <ImageUp size={14} />
                 </span>
                 <p className="truncate text-xs text-text-muted">
-                  {isUploadingLogo ? "Enviando logo..." : "PNG, JPG ou SVG (recomendado fundo transparente)."}
+                  {isUploadingLogo ? "Uploading logo..." : "PNG, JPG, or SVG (transparent background recommended)."}
                 </p>
               </div>
               <label
                 htmlFor="logo-upload"
                 className="cursor-pointer rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-text hover:bg-bg-subtle"
               >
-                Selecionar
+                Select
               </label>
             </div>
             <Input
@@ -166,7 +166,7 @@ export function InspectorPanel({
           ) : null}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="lawyer-name">Nome do advogado</Label>
+          <Label htmlFor="lawyer-name">Lawyer name</Label>
           <Input
             id="lawyer-name"
             value={config.lawyerName}
@@ -174,7 +174,7 @@ export function InspectorPanel({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="hero-badge">Badge do topo</Label>
+          <Label htmlFor="hero-badge">Top badge</Label>
           <Input
             id="hero-badge"
             value={config.heroBadge}
@@ -182,7 +182,7 @@ export function InspectorPanel({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="lawyer-cta">Texto de autoridade do advogado</Label>
+          <Label htmlFor="lawyer-cta">Lawyer authority copy</Label>
           <Textarea
             id="lawyer-cta"
             value={config.lawyerCtaText}
@@ -190,7 +190,7 @@ export function InspectorPanel({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="expert-tag">Tag do card do especialista</Label>
+          <Label htmlFor="expert-tag">Specialist card tag</Label>
           <Input
             id="expert-tag"
             value={config.expertTag}
@@ -199,30 +199,30 @@ export function InspectorPanel({
         </div>
         {linkField(
           "admin-lawyer-url",
-          "URL do painel admin_lawyer",
+          "admin_lawyer panel URL",
           config.adminLawyerUrl,
           (next) => onUpdateConfig("adminLawyerUrl", next),
-          "https://seudominio.com/master",
+          "https://yourdomain.com/master",
         )}
         <div className="space-y-2">
           <p className="text-[11px] text-text-muted">
-            Link que direciona o advogado ao painel de gestão.
+            Link that directs the lawyer to the management dashboard.
           </p>
         </div>
         {linkField(
           "login-url",
-          "Link do botão de login",
+          "Login button link",
           config.loginUrl,
           (next) => onUpdateConfig("loginUrl", next),
         )}
         {linkField(
           "contact-url",
-          "Link de contato (WhatsApp)",
+          "Contact link (WhatsApp)",
           config.contactUrl,
           (next) => onUpdateConfig("contactUrl", next),
         )}
         <div className="space-y-2">
-          <Label htmlFor="hero-title">Título principal</Label>
+          <Label htmlFor="hero-title">Main title</Label>
           <Input
             id="hero-title"
             value={config.heroTitle}
@@ -230,7 +230,7 @@ export function InspectorPanel({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="hero-subtitle">Subtítulo</Label>
+          <Label htmlFor="hero-subtitle">Subtitle</Label>
           <Textarea
             id="hero-subtitle"
             value={config.heroSubtitle}
@@ -238,7 +238,7 @@ export function InspectorPanel({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="login-label">Texto do botão de login</Label>
+          <Label htmlFor="login-label">Login button text</Label>
           <Input
             id="login-label"
             value={config.loginButtonLabel}
@@ -247,12 +247,12 @@ export function InspectorPanel({
         </div>
         {linkField(
           "primary-cta-url",
-          "Link do CTA principal",
+          "Primary CTA link",
           config.primaryCtaUrl,
           (next) => onUpdateConfig("primaryCtaUrl", next),
         )}
         <div className="space-y-2">
-          <Label htmlFor="primary-cta-label">Texto do CTA principal</Label>
+          <Label htmlFor="primary-cta-label">Primary CTA text</Label>
           <Input
             id="primary-cta-label"
             value={config.primaryCtaLabel}
@@ -261,12 +261,12 @@ export function InspectorPanel({
         </div>
         {linkField(
           "secondary-cta-url",
-          "Link do CTA secundário",
+          "Secondary CTA link",
           config.secondaryCtaUrl,
           (next) => onUpdateConfig("secondaryCtaUrl", next),
         )}
         <div className="space-y-2">
-          <Label htmlFor="secondary-cta-label">Texto do CTA secundário</Label>
+          <Label htmlFor="secondary-cta-label">Secondary CTA text</Label>
           <Input
             id="secondary-cta-label"
             value={config.secondaryCtaLabel}
@@ -276,7 +276,7 @@ export function InspectorPanel({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="services-title">Título da seção serviços</Label>
+          <Label htmlFor="services-title">Services section title</Label>
           <Input
             id="services-title"
             value={config.servicesTitle}
@@ -284,7 +284,7 @@ export function InspectorPanel({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="services-subtitle">Subtítulo da seção serviços</Label>
+          <Label htmlFor="services-subtitle">Services section subtitle</Label>
           <Textarea
             id="services-subtitle"
             value={config.servicesSubtitle}
@@ -292,73 +292,73 @@ export function InspectorPanel({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="service-b1-name">Serviço B1/B2 - Nome</Label>
+          <Label htmlFor="service-b1-name">B1/B2 Service - Name</Label>
           <Input id="service-b1-name" value={config.serviceB1B2Name} onChange={(e) => onUpdateConfig("serviceB1B2Name", e.target.value)} />
-          <Label htmlFor="service-b1-desc">Serviço B1/B2 - Descrição</Label>
+          <Label htmlFor="service-b1-desc">B1/B2 Service - Description</Label>
           <Textarea id="service-b1-desc" value={config.serviceB1B2Desc} onChange={(e) => onUpdateConfig("serviceB1B2Desc", e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="service-f1-name">Serviço F1 - Nome</Label>
+          <Label htmlFor="service-f1-name">F1 Service - Name</Label>
           <Input id="service-f1-name" value={config.serviceF1Name} onChange={(e) => onUpdateConfig("serviceF1Name", e.target.value)} />
-          <Label htmlFor="service-f1-desc">Serviço F1 - Descrição</Label>
+          <Label htmlFor="service-f1-desc">F1 Service - Description</Label>
           <Textarea id="service-f1-desc" value={config.serviceF1Desc} onChange={(e) => onUpdateConfig("serviceF1Desc", e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="service-eos-name">Serviço EOS - Nome</Label>
+          <Label htmlFor="service-eos-name">EOS Service - Name</Label>
           <Input id="service-eos-name" value={config.serviceEOSName} onChange={(e) => onUpdateConfig("serviceEOSName", e.target.value)} />
-          <Label htmlFor="service-eos-desc">Serviço EOS - Descrição</Label>
+          <Label htmlFor="service-eos-desc">EOS Service - Description</Label>
           <Textarea id="service-eos-desc" value={config.serviceEOSDesc} onChange={(e) => onUpdateConfig("serviceEOSDesc", e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="service-cos-name">Serviço COS - Nome</Label>
+          <Label htmlFor="service-cos-name">COS Service - Name</Label>
           <Input id="service-cos-name" value={config.serviceCOSName} onChange={(e) => onUpdateConfig("serviceCOSName", e.target.value)} />
-          <Label htmlFor="service-cos-desc">Serviço COS - Descrição</Label>
+          <Label htmlFor="service-cos-desc">COS Service - Description</Label>
           <Textarea id="service-cos-desc" value={config.serviceCOSDesc} onChange={(e) => onUpdateConfig("serviceCOSDesc", e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="how-title">Título do Como Funciona</Label>
+          <Label htmlFor="how-title">How It Works title</Label>
           <Input id="how-title" value={config.howItWorksTitle} onChange={(e) => onUpdateConfig("howItWorksTitle", e.target.value)} />
-          <Label htmlFor="how-subtitle">Subtítulo do Como Funciona</Label>
+          <Label htmlFor="how-subtitle">Subtitle do Como Funciona</Label>
           <Textarea id="how-subtitle" value={config.howItWorksSubtitle} onChange={(e) => onUpdateConfig("howItWorksSubtitle", e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="step-1-title">Etapa 1 - Título</Label>
+          <Label htmlFor="step-1-title">Step 1 - Title</Label>
           <Input id="step-1-title" value={config.step1Title} onChange={(e) => onUpdateConfig("step1Title", e.target.value)} />
-          <Label htmlFor="step-1-desc">Etapa 1 - Descrição</Label>
+          <Label htmlFor="step-1-desc">Step 1 - Description</Label>
           <Textarea id="step-1-desc" value={config.step1Desc} onChange={(e) => onUpdateConfig("step1Desc", e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="step-2-title">Etapa 2 - Título</Label>
+          <Label htmlFor="step-2-title">Step 2 - Title</Label>
           <Input id="step-2-title" value={config.step2Title} onChange={(e) => onUpdateConfig("step2Title", e.target.value)} />
-          <Label htmlFor="step-2-desc">Etapa 2 - Descrição</Label>
+          <Label htmlFor="step-2-desc">Step 2 - Description</Label>
           <Textarea id="step-2-desc" value={config.step2Desc} onChange={(e) => onUpdateConfig("step2Desc", e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="step-3-title">Etapa 3 - Título</Label>
+          <Label htmlFor="step-3-title">Step 3 - Title</Label>
           <Input id="step-3-title" value={config.step3Title} onChange={(e) => onUpdateConfig("step3Title", e.target.value)} />
-          <Label htmlFor="step-3-desc">Etapa 3 - Descrição</Label>
+          <Label htmlFor="step-3-desc">Step 3 - Description</Label>
           <Textarea id="step-3-desc" value={config.step3Desc} onChange={(e) => onUpdateConfig("step3Desc", e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="faq-title">Título do FAQ</Label>
+          <Label htmlFor="faq-title">FAQ title</Label>
           <Input id="faq-title" value={config.faqTitle} onChange={(e) => onUpdateConfig("faqTitle", e.target.value)} />
-          <Label htmlFor="faq-subtitle">Subtítulo do FAQ</Label>
+          <Label htmlFor="faq-subtitle">Subtitle do FAQ</Label>
           <Textarea id="faq-subtitle" value={config.faqSubtitle} onChange={(e) => onUpdateConfig("faqSubtitle", e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="faq-1-q">FAQ 1 - Pergunta</Label>
+          <Label htmlFor="faq-1-q">FAQ 1 - Question</Label>
           <Input id="faq-1-q" value={config.faq1Question} onChange={(e) => onUpdateConfig("faq1Question", e.target.value)} />
-          <Label htmlFor="faq-1-a">FAQ 1 - Resposta</Label>
+          <Label htmlFor="faq-1-a">FAQ 1 - Answer</Label>
           <Textarea id="faq-1-a" value={config.faq1Answer} onChange={(e) => onUpdateConfig("faq1Answer", e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="footer-desc">Descrição do rodapé</Label>
+          <Label htmlFor="footer-desc">Footer description</Label>
           <Textarea id="footer-desc" value={config.footerDescription} onChange={(e) => onUpdateConfig("footerDescription", e.target.value)} />
-          <Label htmlFor="footer-contact-email">Contato - Email</Label>
+          <Label htmlFor="footer-contact-email">Contact - Email</Label>
           <Input id="footer-contact-email" value={config.footerContactEmail} onChange={(e) => onUpdateConfig("footerContactEmail", e.target.value)} />
-          <Label htmlFor="footer-contact-phone">Contato - Telefone</Label>
+          <Label htmlFor="footer-contact-phone">Contact - Phone</Label>
           <Input id="footer-contact-phone" value={config.footerContactPhone} onChange={(e) => onUpdateConfig("footerContactPhone", e.target.value)} />
-          <Label htmlFor="footer-contact-location">Contato - Localização</Label>
+          <Label htmlFor="footer-contact-location">Contact - Location</Label>
           <Input id="footer-contact-location" value={config.footerContactLocation} onChange={(e) => onUpdateConfig("footerContactLocation", e.target.value)} />
         </div>
       </div>
