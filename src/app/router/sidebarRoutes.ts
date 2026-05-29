@@ -9,12 +9,12 @@ export function buildSidebarNavItems(
   role: UserRole,
   labels: NavLabels,
 ): DashboardNavItem[] {
-  const prefix = layout === "seller"
+  const prefix = role === "master"
+    ? "/master"
+    : layout === "seller"
     ? "/seller"
     : layout === "manager"
       ? "/admin"
-    : layout === "master" && role === "master"
-      ? "/master"
       : "";
   const isSharedAbsoluteRoute = (path: string) =>
     layout === "master" && role !== "master" && path === "/payments";

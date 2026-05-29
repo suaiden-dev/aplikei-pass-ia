@@ -49,7 +49,7 @@ function formatTaxId(value: string): string {
 
 export default function CompanyProfilePage() {
   const t = useT("admin");
-  const { user } = useAuth();
+  const { user, refreshAccount } = useAuth();
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [office, setOffice] = React.useState<OfficeData | null>(null);
@@ -295,6 +295,7 @@ export default function CompanyProfilePage() {
       if (officeId && !office.id) {
         setOffice((prev) => (prev ? { ...prev, id: officeId, slug: createdSlug ?? prev.slug ?? null } : prev));
       }
+      await refreshAccount();
       toast.success(t.companyProfile.messages.saveSuccess);
     } catch (err) {
       console.error("Error updating office:", err);
