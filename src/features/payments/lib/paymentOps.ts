@@ -59,6 +59,26 @@ function assertOfficeIdForCheckout(officeId?: string): string {
   return normalized;
 }
 
+async function resolveOfficeIdFromProcess(procId?: string): Promise<string | null> {
+  const normalizedProcId = String(procId || "").trim();
+  if (!normalizedProcId) return null;
+
+  const { data, error } = await supabase
+    .from("user_services")
+    .select("office_id")
+    .eq("id", normalizedProcId)
+    .maybeSingle();
+
+  if (error) return null;
+  return (data?.office_id as string | null | undefined) ?? null;
+}
+
+async function resolveOfficeIdForCheckout(data: { office_id?: string; proc_id?: string }): Promise<string | null> {
+  const directOfficeId = String(data.office_id || "").trim();
+  if (directOfficeId) return directOfficeId;
+  return await resolveOfficeIdFromProcess(data.proc_id);
+}
+
 async function assertProductIsActiveForOffice(officeId: string, slug: string): Promise<void> {
   const allowedSlugs = getServiceSlugs(slug);
   const { data: services, error: servicesError } = await supabase
@@ -238,9 +258,14 @@ async function preRegisterOrder(params: {
 export async function createStripeCheckout(
   params: StripeCheckoutParams,
 ): Promise<CheckoutResult> {
-  const officeId = assertOfficeIdForCheckout(params.office_id);
+  const officeId = await resolveOfficeIdForCheckout({ office_id: params.office_id, proc_id: params.proc_id });
+  if (!officeId && !params.proc_id) {
+    assertOfficeIdForCheckout(params.office_id);
+  }
   const resolvedSlug = await resolveCheckoutSlugForUser(params.userId, params.slug);
-  await assertProductIsActiveForOffice(officeId, resolvedSlug);
+  if (officeId) {
+    await assertProductIsActiveForOffice(officeId, resolvedSlug);
+  }
 
   const orderId = await preRegisterOrder({
     userId: params.userId,
@@ -253,7 +278,7 @@ export async function createStripeCheckout(
     procId: params.proc_id,
     phone: params.phone,
     coupon_code: params.coupon_code,
-    office_id: officeId,
+    office_id: officeId || undefined,
     seller_id: params.seller_id,
   });
 
@@ -272,7 +297,7 @@ export async function createStripeCheckout(
       action: params.action || "",
       serviceId: params.serviceId || "",
       proc_id: params.proc_id,
-      office_id: officeId,
+      office_id: officeId || undefined,
       seller_id: params.seller_id,
     },
   });
@@ -289,9 +314,14 @@ export async function createStripeCheckout(
 export async function createParcelowCheckout(
   params: ParcelowCheckoutParams,
 ): Promise<CheckoutResult> {
-  const officeId = assertOfficeIdForCheckout(params.office_id);
+  const officeId = await resolveOfficeIdForCheckout({ office_id: params.office_id, proc_id: params.proc_id });
+  if (!officeId && !params.proc_id) {
+    assertOfficeIdForCheckout(params.office_id);
+  }
   const resolvedSlug = await resolveCheckoutSlugForUser(params.userId, params.slug);
-  await assertProductIsActiveForOffice(officeId, resolvedSlug);
+  if (officeId) {
+    await assertProductIsActiveForOffice(officeId, resolvedSlug);
+  }
 
   const orderId = await preRegisterOrder({
     userId: params.userId,
@@ -304,7 +334,7 @@ export async function createParcelowCheckout(
     procId: params.proc_id,
     phone: params.phone,
     coupon_code: params.coupon_code,
-    office_id: officeId,
+    office_id: officeId || undefined,
     serviceId: params.serviceId,
     seller_id: params.seller_id,
   });
@@ -322,7 +352,7 @@ export async function createParcelowCheckout(
       coupon_code: params.coupon_code,
       origin_url: window.location.origin,
       proc_id: params.proc_id,
-      office_id: officeId,
+      office_id: officeId || undefined,
       seller_id: params.seller_id,
     },
   });
@@ -368,9 +398,14 @@ export async function createZellePayment(params: {
   serviceId?: string;
   seller_id?: string;
 }): Promise<{ paymentId: string; autoApproved: boolean }> {
-  const officeId = assertOfficeIdForCheckout(params.office_id);
+  const officeId = await resolveOfficeIdForCheckout({ office_id: params.office_id, proc_id: params.proc_id });
+  if (!officeId && !params.proc_id) {
+    assertOfficeIdForCheckout(params.office_id);
+  }
   const resolvedSlug = await resolveCheckoutSlugForUser(params.userId ?? undefined, params.slug);
-  await assertProductIsActiveForOffice(officeId, resolvedSlug);
+  if (officeId) {
+    await assertProductIsActiveForOffice(officeId, resolvedSlug);
+  }
 
   const orderId = await preRegisterOrder({
     userId: params.userId || undefined,
@@ -383,7 +418,7 @@ export async function createZellePayment(params: {
     procId: params.proc_id,
     phone: params.phone,
     coupon_code: params.coupon_code,
-    office_id: officeId,
+    office_id: officeId || undefined,
     serviceId: params.serviceId,
     seller_id: params.seller_id,
   });
@@ -401,7 +436,7 @@ export async function createZellePayment(params: {
       proc_id: params.proc_id,
       coupon_code: params.coupon_code || undefined,
       dependents: params.dependents,
-      office_id: officeId,
+      office_id: officeId || undefined,
       service_id: params.serviceId,
       seller_id: params.seller_id,
       recipient_name: ZELLE_RECIPIENT.name,
@@ -476,12 +511,16 @@ export async function createZellePayment(params: {
   return { paymentId, autoApproved };
 }
 
-export async function approveZellePayment(paymentId: string): Promise<void> {
+export async function approveZellePayment(paymentId: string, approvedByName?: string): Promise<void> {
+  const approver = String(approvedByName || "").trim();
+  const adminNotes = approver
+    ? `Aprovado manualmente via Painel Admin por ${approver}`
+    : "Aprovado manualmente via Painel Admin";
   const { error } = await supabase.functions.invoke("validate-zelle-payment", {
     body: {
       payment_id: paymentId,
       status: "approved",
-      admin_notes: "Aprovado manualmente via Painel Admin",
+      admin_notes: adminNotes,
     },
   });
   if (error) throw new Error(error.message || "Erro ao aprovar pagamento Zelle");

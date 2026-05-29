@@ -25,7 +25,6 @@ import {
   RiUser3Line,
   RiTimeLine,
   RiPulseLine,
-  RiBookOpenLine,
   RiGitBranchLine,
 } from "react-icons/ri";
 import { getServiceBySlug } from "@shared/data/services";
@@ -552,7 +551,7 @@ function MRVSetupPanel({ proc, onApprove, onRefresh, isActive }: { proc: Process
   );
 }
 
-function FinalSchedulingPanel({ proc, onApprove, onRefresh, isActive }: { proc: ProcessWithUser; onApprove: () => void; onRefresh: () => void; isActive: boolean }) {
+function FinalSchedulingPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser; onRefresh: () => void; isActive: boolean }) {
   const [sameLocation, setSameLocation] = useState(true);
   const [casvDate, setCasvDate] = useState("");
   const [casvTime, setCasvTime] = useState("");
@@ -602,11 +601,7 @@ function FinalSchedulingPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
         final_scheduling_notified_at: new Date().toISOString()
       };
       await processService.updateStepData(proc.id, payload);
-
-      // Only approve if not already past
-      if (isActive) {
-        await onApprove();
-      }
+      // Do not auto-approve here. Approval must happen from customer flow.
 
       onRefresh();
       toast.success(isPast ? t.processDetail.scheduling.messages.updateSuccess : t.processDetail.scheduling.messages.notifiedSuccess);
@@ -1593,6 +1588,26 @@ export default function AdminProcessDetailPage() {
       const isConsular = proc.service_slug.includes("b1b2") || proc.service_slug.includes("b1-b2") || proc.service_slug.includes("f1");
       const isF1FinalScheduling = false; // Do not complete F1 at scheduling step, let it advance to final preparation
 
+      // When MRV setup is approved by manager/admin, move customer directly
+      // to process-closure step (final_preparation), skipping intermediate admin scheduling.
+      if (
+        currentStepBaseId === "f1_admin_mrv_setup" ||
+        currentStepBaseId === "b1b2_admin_mrv_setup" ||
+        currentStepBaseId === "f1_user_mrv_payment" ||
+        currentStepBaseId === "b1b2_user_mrv_payment"
+      ) {
+        const finalPreparationIdx = effectiveSteps.findIndex((s) => {
+          const id = normalizeLegacyStepId(s.id);
+          return id === "f1_final_preparation" || id === "b1b2_final_preparation";
+        });
+        if (finalPreparationIdx !== -1) {
+          nextStep = finalPreparationIdx;
+        } else if (effectiveSteps.length > 11) {
+          // Fallback for legacy consular flows where closure is at index 11.
+          nextStep = 11;
+        }
+      }
+
       const additionalData = { ...extraData };
       if (currentStepBaseId === 'cos_analysis_presentation_letter' || currentStepBaseId === 'eos_admin_cover_analysis') {
         additionalData.generatedCoverLetterHTML = coverLetterHtml;
@@ -2171,6 +2186,11 @@ export default function AdminProcessDetailPage() {
     }
 
     const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
+    const rejectedItems = (((proc.step_data as any)?.rejected_items as string[]) || []);
+    const hasAdminFeedback = Boolean((proc.step_data as any)?.admin_feedback);
+    const hasCorrectionsInSection = hasAdminFeedback && rejectedItems.some((item) =>
+      ["docs.i20_document", "docs.sevis_receipt"].includes(item),
+    );
     const i20Url = docs.i20_document ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.i20_document).data.publicUrl : null;
 
     if (!isActive && !isPast && !i20Url) return null;
@@ -2178,7 +2198,13 @@ export default function AdminProcessDetailPage() {
     const isI20Selected = selectedItems.includes('docs.i20_document');
 
     return (
-      <CollapsibleStep title={t.processDetail.f1Documents.title} icon={RiFileTextLine} isActive={isActive} isPast={isPast} badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}>
+      <CollapsibleStep
+        title={t.processDetail.f1Documents.title}
+        icon={RiFileTextLine}
+        isActive={isActive}
+        isPast={isPast}
+        badge={hasCorrectionsInSection ? (t.cases.statusLabel.corrections || "Correções Necessárias") : (isActive ? t.cases.statusLabel.awaitingReview : undefined)}
+      >
         <div className="flex flex-col gap-6">
           <div className="max-w-md">
             {i20Url && (
@@ -2224,6 +2250,11 @@ export default function AdminProcessDetailPage() {
     }
 
     const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
+    const rejectedItems = (((proc.step_data as any)?.rejected_items as string[]) || []);
+    const hasAdminFeedback = Boolean((proc.step_data as any)?.admin_feedback);
+    const hasCorrectionsInSection = hasAdminFeedback && rejectedItems.some((item) =>
+      ["docs.ds160_assinada", "docs.ds160_comprovante"].includes(item),
+    );
     const ds160Url = docs.ds160_assinada ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_assinada).data.publicUrl : null;
     const comprovanteUrl = docs.ds160_comprovante ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_comprovante).data.publicUrl : null;
 
@@ -2233,7 +2264,13 @@ export default function AdminProcessDetailPage() {
     const isComprovanteSelected = selectedItems.includes('docs.ds160_comprovante');
 
     return (
-      <CollapsibleStep title={t.processDetail.f1FinalDocs.title} icon={RiFileTextLine} isActive={isActive} isPast={isPast} badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}>
+      <CollapsibleStep
+        title={t.processDetail.f1FinalDocs.title}
+        icon={RiFileTextLine}
+        isActive={isActive}
+        isPast={isPast}
+        badge={hasCorrectionsInSection ? (t.cases.statusLabel.corrections || "Correções Necessárias") : (isActive ? t.cases.statusLabel.awaitingReview : undefined)}
+      >
         <div className="flex flex-col gap-6">
           <div className="flex flex-col md:flex-row gap-6">
             {ds160Url && (
@@ -2294,6 +2331,11 @@ export default function AdminProcessDetailPage() {
     }
 
     const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
+    const rejectedItems = (((proc.step_data as any)?.rejected_items as string[]) || []);
+    const hasAdminFeedback = Boolean((proc.step_data as any)?.admin_feedback);
+    const hasCorrectionsInSection = hasAdminFeedback && rejectedItems.some((item) =>
+      ["docs.ds160_assinada", "docs.ds160_comprovante"].includes(item),
+    );
     const ds160Url = docs.ds160_assinada ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_assinada).data.publicUrl : null;
     const comprovanteUrl = docs.ds160_comprovante ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_comprovante).data.publicUrl : null;
 
@@ -2303,7 +2345,13 @@ export default function AdminProcessDetailPage() {
     const isComprovanteSelected = selectedItems.includes('docs.ds160_comprovante');
 
     return (
-      <CollapsibleStep title={t.processDetail.b1b2FinalDocs.title} icon={RiFileTextLine} isActive={isActive} isPast={isPast} badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}>
+      <CollapsibleStep
+        title={t.processDetail.b1b2FinalDocs.title}
+        icon={RiFileTextLine}
+        isActive={isActive}
+        isPast={isPast}
+        badge={hasCorrectionsInSection ? (t.cases.statusLabel.corrections || "Correções Necessárias") : (isActive ? t.cases.statusLabel.awaitingReview : undefined)}
+      >
         <div className="flex flex-col gap-6">
           <div className="flex flex-col md:flex-row gap-6">
             {ds160Url && (
@@ -2525,7 +2573,7 @@ export default function AdminProcessDetailPage() {
 
     return (
       <CollapsibleStep title={t.processDetail.scheduling.title} icon={RiCalendarEventLine} isActive={isActive} isPast={isPast} badge={t.shared.administrativeAction}>
-        <FinalSchedulingPanel proc={proc} onApprove={handleApproveStep} onRefresh={fetchProcessData} isActive={isActive} />
+        <FinalSchedulingPanel proc={proc} onRefresh={fetchProcessData} isActive={isActive} />
       </CollapsibleStep>
     );
   };

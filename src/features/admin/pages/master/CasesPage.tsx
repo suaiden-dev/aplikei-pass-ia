@@ -139,7 +139,14 @@ export default function CasesPage() {
                     </td>
                     <td className="py-4 pr-4 text-text-muted">{item.visaType}</td>
                     <td className="py-4 pr-4 text-text-muted">{item.owner}</td>
-                    <td className="py-4 pr-4 text-text-muted">{item.currentStep ?? "—"}</td>
+                    <td className="py-4 pr-4 text-text-muted">
+                      <p>{item.currentStep ?? "—"}</p>
+                      {item.hasPendingRevision && (
+                        <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-warning">
+                          Cliente ainda não resolveu a pendência
+                        </p>
+                      )}
+                    </td>
                     <td className="py-4 pr-4">
                       <StatusBadge
                         label={item.priority}

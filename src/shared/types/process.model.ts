@@ -51,13 +51,16 @@ export function isProcessApproved(proc: UserService): boolean {
   const motionResult = stepData.motion_final_result as string | undefined;
   const interviewResult = stepData.interview_outcome as string | undefined;
 
-  return (
+  const hasApprovedOutcome = (
     uscisResult === 'approved' ||
     rfeResult === 'approved' ||
     motionResult === 'approved' ||
-    interviewResult === 'approved' ||
-    proc.status === 'completed'
+    interviewResult === 'approved'
   );
+
+  // Never consider an active/in-progress process as approved.
+  // "Approved" is only valid after finalization.
+  return proc.status === 'completed' && hasApprovedOutcome;
 }
 
 export function isProcessDenied(proc: UserService): boolean {

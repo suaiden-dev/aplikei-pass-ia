@@ -75,6 +75,8 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   // Consultation State
   const [purchasedConsultation, setPurchasedConsultation] = useState<Record<string, unknown> | null>(null);
   const [hasConsultationInCurrentProcess, setHasConsultationInCurrentProcess] = useState(false);
+  const [processOfficeId, setProcessOfficeId] = useState<string | null>(null);
+  const checkoutOfficeId = user?.officeId || processOfficeId;
 
   const {
     messages: chatMessages,
@@ -94,6 +96,16 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   });
 
   useEffect(() => {
+    async function resolveProcessOfficeId() {
+      if (!procId) return;
+      const { data } = await supabase
+        .from("user_services")
+        .select("office_id")
+        .eq("id", procId)
+        .maybeSingle();
+      setProcessOfficeId((data?.office_id as string | null | undefined) ?? null);
+    }
+
     async function checkMentorship() {
       if (!user || !procId) return;
       const mentorshipSlugs = [
@@ -189,6 +201,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       }
     }
 
+    resolveProcessOfficeId();
     checkMentorship();
     loadFreshData();
   }, [user, procId]);
@@ -686,7 +699,12 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
 
                   <div className="grid grid-cols-1 gap-4 pt-4">
                     <button
-                      onClick={() => navigate(`/checkout/visa-b1b2${user?.officeId ? `?office_id=${user.officeId}` : ""}`)}
+                      onClick={() => {
+                        const query = new URLSearchParams();
+                        query.set("restart", "true");
+                        if (checkoutOfficeId) query.set("office_id", checkoutOfficeId);
+                        navigate(`/checkout/visa-b1b2${query.toString() ? `?${query.toString()}` : ""}`);
+                      }}
                       className="p-6 bg-card border border-border rounded-3xl text-left hover:border-primary transition-all group/opt relative overflow-hidden"
                     >
                       <div className="relative z-10">
