@@ -46,6 +46,65 @@ export default function CheckoutSuccessPage() {
     if (!t || !slug) return;
 
     (async () => {
+      const MENTORSHIP_SLUGS = new Set([
+        "mentoring-bronze",
+        "mentoring-silver",
+        "mentoring-gold",
+        "mentoria-bronze",
+        "mentoria-silver",
+        "mentoria-gold",
+      ]);
+      const normalizeMentorshipSlug = (value: string) => {
+        const lower = String(value || "").trim().toLowerCase();
+        if (lower === "mentoria-bronze") return "mentoring-bronze";
+        if (lower === "mentoria-silver") return "mentoring-silver";
+        if (lower === "mentoria-gold") return "mentoring-gold";
+        return lower;
+      };
+
+      const seedMentorshipChat = async (paidOrderId: string | null, currentUserId: string) => {
+        const normalizedSlug = normalizeMentorshipSlug(slug);
+        if (!MENTORSHIP_SLUGS.has(normalizedSlug)) return;
+
+        let parentProcId: string | null = null;
+        if (paidOrderId) {
+          const { data: orderRow } = await supabase
+            .from("orders")
+            .select("proc_id")
+            .eq("id", paidOrderId)
+            .maybeSingle();
+          parentProcId = String((orderRow as Record<string, unknown> | null)?.proc_id || "").trim() || null;
+        }
+
+        const canonicalCandidates = [normalizedSlug];
+        if (normalizedSlug === "mentoring-bronze") canonicalCandidates.push("mentoria-bronze");
+        if (normalizedSlug === "mentoring-silver") canonicalCandidates.push("mentoria-silver");
+        if (normalizedSlug === "mentoring-gold") canonicalCandidates.push("mentoria-gold");
+
+        let query = supabase
+          .from("user_services")
+          .select("id")
+          .eq("user_id", currentUserId)
+          .in("service_slug", canonicalCandidates)
+          .eq("status", "active");
+        if (parentProcId) {
+          query = query.contains("step_data", { parent_process_id: parentProcId });
+        }
+        const { data: mentorshipProcess } = await query
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const targetProcessId = String((mentorshipProcess as Record<string, unknown> | null)?.id || "").trim();
+        if (!targetProcessId) return;
+
+        await processService.ensureChatThread(
+          targetProcessId,
+          currentUserId,
+          "Olá, comprei o pacote Specialist Mentoring e quero iniciar meu atendimento com o manager.",
+        );
+      };
+
       const hasOrderReference = !!orderId || !!sessionId;
       const { data: { user } } = await supabase.auth.getUser();
       const hasSession = !!user?.id;
@@ -63,12 +122,29 @@ export default function CheckoutSuccessPage() {
           try {
             const pendingAdvance = JSON.parse(pendingAdvanceRaw) as {
               procId?: string;
+              slug?: string;
+              createdAt?: string;
               fromStep?: number;
-              stage?: string;
+              stage?: "initial" | "proposal";
               flow?: "motion" | "rfe";
               targetStep?: number;
             };
             if (pendingAdvance?.procId) {
+              const pendingSlug = String(pendingAdvance.slug || "").trim().toLowerCase();
+              const paidSlug = String(slug || "").trim().toLowerCase();
+              const pendingCreatedAtMs = pendingAdvance.createdAt ? new Date(pendingAdvance.createdAt).getTime() : NaN;
+              const isFreshPending =
+                Number.isFinite(pendingCreatedAtMs) &&
+                Date.now() - pendingCreatedAtMs <= 1000 * 60 * 60 * 2;
+              const isValidPendingMetadata =
+                pendingSlug.length > 0 &&
+                pendingSlug === paidSlug &&
+                (pendingAdvance.flow === "rfe" || pendingAdvance.flow === "motion") &&
+                (pendingAdvance.stage === "initial" || pendingAdvance.stage === "proposal") &&
+                isFreshPending;
+              if (!isValidPendingMetadata) {
+                localStorage.removeItem("pending_payment_advance");
+              } else {
               const targetStep = pendingAdvance.targetStep ??
                 getCosPaymentStageTarget({
                   slug,
@@ -150,6 +226,7 @@ export default function CheckoutSuccessPage() {
                 );
               }
               return;
+              }
             }
           } catch {
             // ignore parse/navigation fallback errors
@@ -166,12 +243,19 @@ export default function CheckoutSuccessPage() {
       };
 
       try {
+        let resolvedOrderId = orderId;
         if (sessionId) {
-          await paymentService.verifyStripeSession(sessionId);
+          const result = await paymentService.verifyStripeSession(sessionId);
+          if (!resolvedOrderId && result?.orderId) {
+            resolvedOrderId = result.orderId;
+          }
         }
 
-        const paid = await paymentService.checkOrderPaymentStatus(slug, 20000, orderId);
+        const paid = await paymentService.checkOrderPaymentStatus(slug, 30000, resolvedOrderId);
         if (paid) {
+          if (user?.id) {
+            await seedMentorshipChat(resolvedOrderId, user.id);
+          }
           await markAsDone();
         } else {
           setErrorMsg("Pagamento ainda não confirmado.");

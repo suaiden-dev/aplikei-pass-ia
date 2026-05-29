@@ -38,6 +38,15 @@ interface OfficeData {
   landing_page_config?: any;
 }
 
+function formatTaxId(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 14);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+  if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+}
+
 export default function CompanyProfilePage() {
   const t = useT("admin");
   const { user } = useAuth();
@@ -186,15 +195,19 @@ export default function CompanyProfilePage() {
           throw error;
         } else {
           if (data) {
-            setOffice(data);
+            setOffice({
+              ...data,
+              email: data.email || user.email || "",
+              phone: data.phone || user.phoneNumber || "",
+            });
           } else {
             setOffice({
               slug: "",
               name: "",
               cnpj: "",
               address: "",
-              phone: "",
-              email: "",
+              phone: user.phoneNumber || "",
+              email: user.email || "",
               website: "",
               instagram_url: "",
               linkedin_url: "",
@@ -212,7 +225,7 @@ export default function CompanyProfilePage() {
     }
 
     fetchOffice();
-  }, [user?.id, t]);
+  }, [user?.id, user?.email, user?.phoneNumber, t]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -398,8 +411,13 @@ export default function CompanyProfilePage() {
                 <Label htmlFor="cnpj">{t.companyProfile.sections.general.cnpj}</Label>
                 <Input
                   id="cnpj"
-                  value={office.cnpj || ""}
-                  onChange={(e) => setOffice({ ...office, cnpj: e.target.value })}
+                  value={formatTaxId(office.cnpj || "")}
+                  onChange={(e) =>
+                    setOffice({
+                      ...office,
+                      cnpj: e.target.value.replace(/\D/g, "").slice(0, 14),
+                    })
+                  }
                   placeholder="00.000.000/0000-00"
                   className={`rounded-xl border-border bg-bg-subtle ${getTourClass("cnpj")}`}
                 />

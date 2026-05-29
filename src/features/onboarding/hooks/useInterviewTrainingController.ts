@@ -58,6 +58,7 @@ export function useInterviewTrainingController({
     setIsSending(true)
 
     try {
+      interviewTrainingService.ensureDailyLimit(userId)
       const response = await interviewTrainingService.sendMessage({
         message: userMessage,
         userId,
@@ -67,6 +68,7 @@ export function useInterviewTrainingController({
         ds160,
         visaType,
       })
+      interviewTrainingService.registerDailyUsage(userId)
 
       setMessages((prev) => [
         ...prev,

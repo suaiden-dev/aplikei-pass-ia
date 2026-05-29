@@ -29,6 +29,8 @@ interface PaymentSettings {
   id?: string;
   office_id: string;
   default_payout_method: string;
+  stripe_enabled: boolean;
+  zelle_enabled: boolean;
   zelle_name: string | null;
   zelle_identifier: string | null;
 }
@@ -47,18 +49,24 @@ export default function PaymentSettingsPage() {
       try {
         const { data, error } = await supabase
           .from("office_payment_settings")
-          .select("id, office_id, default_payout_method, zelle_name, zelle_identifier")
+          .select("id, office_id, default_payout_method, stripe_enabled, zelle_enabled, zelle_name, zelle_identifier")
           .eq("office_id", user.officeId)
           .maybeSingle();
 
         if (error) throw error;
         
         if (data) {
-          setSettings(data);
+          setSettings({
+            ...data,
+            stripe_enabled: Boolean((data as any).stripe_enabled),
+            zelle_enabled: Boolean((data as any).zelle_enabled),
+          });
         } else {
           setSettings({
             office_id: user.officeId,
             default_payout_method: "stripe",
+            stripe_enabled: false,
+            zelle_enabled: false,
             zelle_name: "",
             zelle_identifier: ""
           });
@@ -77,13 +85,25 @@ export default function PaymentSettingsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!settings || !user?.officeId) return;
+    if (!settings.stripe_enabled && !settings.zelle_enabled) {
+      toast.error("Enable at least one withdrawal method before saving.");
+      return;
+    }
 
     setSaving(true);
     try {
+      const defaultPayoutMethod =
+        settings.default_payout_method === "zelle" && settings.zelle_enabled
+          ? "zelle"
+          : settings.stripe_enabled
+          ? "stripe"
+          : "zelle";
+
       const { error } = await supabase
         .from("office_payment_settings")
         .upsert({
           ...settings,
+          default_payout_method: defaultPayoutMethod,
           office_id: user.officeId,
           updated_at: new Date().toISOString()
         }, { onConflict: 'office_id' });
@@ -108,7 +128,9 @@ export default function PaymentSettingsPage() {
 
   if (!settings) return null;
 
-  const isZelle = settings.default_payout_method === "zelle";
+  const isStripeEnabled = Boolean(settings.stripe_enabled);
+  const isZelleEnabled = Boolean(settings.zelle_enabled);
+  const bothDisabled = !isStripeEnabled && !isZelleEnabled;
 
   return (
     <div className="space-y-6 max-w-5xl pb-10">
@@ -133,28 +155,38 @@ export default function PaymentSettingsPage() {
             </div>
           </CardHeader>
           <CardContent className="p-10 flex flex-col items-center justify-center space-y-8">
-            <div className="flex items-center gap-8 bg-bg-subtle/50 p-6 rounded-2xl border border-border">
-              <div className={`flex flex-col items-center gap-2 transition-all duration-300 ${!isZelle ? 'text-[#635BFF] scale-110' : 'text-text-muted opacity-50'}`}>
-                <CreditCard className="h-8 w-8" />
-                <span className="text-sm font-bold">Stripe</span>
-              </div>
-              
-              <div className="flex flex-col items-center gap-2">
-                <Switch 
-                  checked={isZelle}
-                  onCheckedChange={(checked) => setSettings({ ...settings, default_payout_method: checked ? 'zelle' : 'stripe' })}
-                  className="scale-125"
+            <div className="w-full max-w-xl space-y-3 bg-bg-subtle/50 p-6 rounded-2xl border border-border">
+              <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-card">
+                <div className="flex items-center gap-2 text-[#635BFF]">
+                  <CreditCard className="h-5 w-5" />
+                  <span className="text-sm font-bold">Stripe</span>
+                </div>
+                <Switch
+                  checked={isStripeEnabled}
+                  onCheckedChange={(checked) => setSettings({ ...settings, stripe_enabled: checked })}
                 />
               </div>
-
-              <div className={`flex flex-col items-center gap-2 transition-all duration-300 ${isZelle ? 'text-[#6D1ED1] scale-110' : 'text-text-muted opacity-50'}`}>
-                <Zap className="h-8 w-8" />
-                <span className="text-sm font-bold">Zelle</span>
+              <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-card">
+                <div className="flex items-center gap-2 text-[#6D1ED1]">
+                  <Zap className="h-5 w-5" />
+                  <span className="text-sm font-bold">Zelle</span>
+                </div>
+                <Switch
+                  checked={isZelleEnabled}
+                  onCheckedChange={(checked) => setSettings({ ...settings, zelle_enabled: checked })}
+                />
               </div>
             </div>
 
             <div className="max-w-md w-full">
-              {!isZelle ? (
+              {bothDisabled ? (
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-warning/5 border border-warning/20 text-warning animate-in fade-in zoom-in-95 duration-300">
+                  <Info className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-center w-full">
+                    Enable at least one withdrawal method and click save.
+                  </p>
+                </div>
+              ) : isStripeEnabled ? (
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 text-blue-600 animate-in fade-in zoom-in-95 duration-300">
                   <Info className="h-5 w-5 mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-center w-full">
@@ -174,7 +206,7 @@ export default function PaymentSettingsPage() {
         </Card>
 
         {/* Zelle Detailed Configuration - Only if Zelle is selected */}
-        {isZelle && (
+        {isZelleEnabled && (
           <Card className="border-border bg-card shadow-sm overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
             <CardHeader className="border-b border-border/50 bg-[#6D1ED1]/5 px-6 py-4">
               <div className="flex items-center gap-3">
@@ -197,7 +229,7 @@ export default function PaymentSettingsPage() {
                     onChange={(e) => setSettings({ ...settings, zelle_name: e.target.value })}
                     placeholder={t?.payoutSettings?.sections?.zelleConfig?.namePlaceholder || "Full Name on Account"}
                     className="rounded-xl border-border bg-bg-subtle"
-                    required={isZelle}
+                    required={isZelleEnabled}
                   />
                 </div>
 
@@ -211,7 +243,7 @@ export default function PaymentSettingsPage() {
                       onChange={(e) => setSettings({ ...settings, zelle_identifier: e.target.value })}
                       placeholder={t?.payoutSettings?.sections?.zelleConfig?.identifierPlaceholder || "email@example.com or phone"}
                       className="pl-10 rounded-xl border-border bg-bg-subtle"
-                      required={isZelle}
+                      required={isZelleEnabled}
                     />
                   </div>
                 </div>

@@ -167,9 +167,23 @@ export async function approveWithdrawal(
     }
   }
 
+  const { data: reviewerAccount } = await supabase
+    .from("user_accounts")
+    .select("full_name, name, email")
+    .eq("id", user.userId)
+    .maybeSingle();
+
+  const reviewedByName =
+    String(reviewerAccount?.full_name || reviewerAccount?.name || reviewerAccount?.email || user.userId);
+
   const { data, error } = await supabase
     .from("office_withdrawals")
-    .update({ status })
+    .update({
+      status,
+      reviewed_by_id: user.userId,
+      reviewed_by_name: reviewedByName,
+      reviewed_at: new Date().toISOString(),
+    })
     .eq("id", withdrawalId)
     .select("*")
     .single();

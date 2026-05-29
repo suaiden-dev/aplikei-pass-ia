@@ -45,6 +45,8 @@ export interface OfficePaymentSettings {
   id: string;
   office_id: string;
   default_payout_method: "stripe" | "zelle";
+  stripe_enabled?: boolean;
+  zelle_enabled?: boolean;
   zelle_name: string | null;
   zelle_identifier: string | null;
   stripe_payment_link?: string;

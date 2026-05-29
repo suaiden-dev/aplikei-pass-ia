@@ -74,9 +74,24 @@ export function useMyProcesses(userId: string | undefined) {
     }
 
     Object.keys(childrenByParentId).forEach((parentId) => {
-      childrenByParentId[parentId].sort(
+      const sorted = childrenByParentId[parentId].sort(
         (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime(),
       );
+
+      // Deduplicate duplicated recovery rows (same slug/flow under same parent), keeping the most recent.
+      const seen = new Set<string>();
+      childrenByParentId[parentId] = sorted.filter((child) => {
+        const sd = (child.step_data ?? {}) as Record<string, unknown>;
+        const flowRaw = String(sd.workflow_type || "").toLowerCase();
+        const flow =
+          flowRaw === "motion" || flowRaw === "rfe"
+            ? flowRaw
+            : (child.service_slug.toLowerCase().includes("motion") ? "motion" : "rfe");
+        const key = `${child.service_slug.toLowerCase()}::${flow}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
     });
 
     parentCandidates.sort(

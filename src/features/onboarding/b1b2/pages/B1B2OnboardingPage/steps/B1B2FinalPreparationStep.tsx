@@ -124,6 +124,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       setPurchasedMentorship(null);
       setPurchasedConsultation(null);
 
+      let mentorshipData: Record<string, unknown> | null = null;
       if (hasMentorshipInProcess) {
         const { data } = await supabase
           .from("user_services")
@@ -134,8 +135,22 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
-        if (data) setPurchasedMentorship(data);
+        mentorshipData = (data as Record<string, unknown> | null) ?? null;
       }
+      if (!mentorshipData) {
+        const { data } = await supabase
+          .from("user_services")
+          .select("*")
+          .eq("user_id", user.id)
+          .in("service_slug", mentorshipSlugs)
+          .eq("status", "active")
+          .contains("step_data", { parent_process_id: procId })
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        mentorshipData = (data as Record<string, unknown> | null) ?? null;
+      }
+      if (mentorshipData) setPurchasedMentorship(mentorshipData);
 
       if (hasConsultationInProcess) {
         const { data: consultationData } = await supabase
@@ -805,7 +820,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                               <p className="text-xs text-text-muted font-bold uppercase tracking-widest">Converse direto com o manager para iniciar sua mentoria</p>
                             </div>
                             <button onClick={handleOpenSpecialistSupport} className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest">
-                              Abrir chat com manager
+                              Ir para o chat
                             </button>
                           </div>
                         ) : (

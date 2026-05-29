@@ -14,7 +14,6 @@ import {
   Building2,
   Landmark,
   DollarSign,
-  History,
 } from "lucide-react";
 import { AccessLevel } from "./accessLevels";
 import { siteConfig } from "../config/site";
@@ -156,9 +155,6 @@ const WithdrawalsPage = lazyPage(
 );
 const MasterOverviewPage = lazyPage(
   () => import("@features/admin/pages/MasterOverviewPage/index"),
-);
-const InteractionLogsPage = lazyPage(
-  () => import("@features/admin/pages/InteractionLogsPage/index"),
 );
 const ShortLinkPage = lazyPage(
   () => import("@features/payments/pages/ShortLinkPage"),
@@ -603,7 +599,7 @@ export const appRoutes: AppRouteDefinition[] = [
     layout: "protected",
     showInSidebar: true,
     sidebarLayouts: ["admin_lawyer"],
-    sidebarGroupKey: "billings",
+    sidebarGroupKey: "settings",
     icon: Landmark,
   },
   {
@@ -630,19 +626,6 @@ export const appRoutes: AppRouteDefinition[] = [
     showInSidebar: true,
     icon: Users,
   },
-  {
-    path: "/interaction-logs",
-    title: "Logs de Interação",
-    component: InteractionLogsPage,
-    authRequired: true,
-    accessLevels: STAFF,
-    layout: "protected",
-    showInSidebar: true,
-    sidebarLayouts: ["admin_lawyer"],
-    sidebarGroupKey: "settings",
-    icon: History,
-  },
-
   {
     path: "/processes",
     title: "Cases",

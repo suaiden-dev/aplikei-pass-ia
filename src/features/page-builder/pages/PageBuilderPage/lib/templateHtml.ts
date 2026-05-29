@@ -118,8 +118,11 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
 
   html = replaceLoginHeaderButton(html, config.loginUrl, config.loginButtonLabel);
   html = replaceAnchorByText(html, "Entrar", config.loginUrl, config.loginButtonLabel);
+  html = replaceAnchorByText(html, "Log in", config.loginUrl, config.loginButtonLabel);
   html = replaceAnchorByText(html, "Quero análise do meu caso", config.primaryCtaUrl, config.primaryCtaLabel);
+  html = replaceAnchorByText(html, "I want my case reviewed", config.primaryCtaUrl, config.primaryCtaLabel);
   html = replaceAnchorByText(html, "Falar com especialista", config.secondaryCtaUrl, config.secondaryCtaLabel);
+  html = replaceAnchorByText(html, "Talk to a specialist", config.secondaryCtaUrl, config.secondaryCtaLabel);
   html = replaceByClassNth(html, "h2", "section-title", 0, config.servicesTitle);
   html = replaceByClassNth(html, "p", "section-subtitle", 0, config.servicesSubtitle);
   html = replaceByClassNth(html, "div", "service-tag", 0, config.serviceB1B2Tag);
@@ -139,6 +142,8 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
   html = replaceServiceCardLinkByIndex(html, 1, serviceHref(config, "visa-f1"));
   html = replaceServiceCardLinkByIndex(html, 2, serviceHref(config, "visa-eos"));
   html = replaceServiceCardLinkByIndex(html, 3, serviceHref(config, "visa-cos"));
+  html = html.replace(/class="btn btn-card">Contratar serviço<\/a>/gi, 'class="btn btn-card">Hire service</a>');
+  html = html.replace(/class="btn btn-card">Hire service<\/a>/gi, `class="btn btn-card">${escapeHtml(config.primaryCtaLabel || "Hire service")}</a>`);
 
   html = replaceByClassNth(html, "h2", "section-title", 1, config.howItWorksTitle);
   html = replaceByClassNth(html, "p", "section-subtitle", 1, config.howItWorksSubtitle);
@@ -173,8 +178,11 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
   html = replaceFirst(html, /<p class="footer-desc">[\s\S]*?<\/p>/i, `<p class="footer-desc">${escapeHtml(config.footerDescription)}</p>`);
   html = replaceFirst(html, /<div class="footer-links">[\s\S]*?<h4>[\s\S]*?<\/h4>/i, `<div class="footer-links">\n                    <h4>${escapeHtml(config.footerLinksTitle)}</h4>`);
   html = replaceAnchorByText(html, "Serviços", "#", config.footerLink1Label);
+  html = replaceAnchorByText(html, "Services", "#", config.footerLink1Label);
   html = replaceAnchorByText(html, "Sobre Nós", "#", config.footerLink2Label);
+  html = replaceAnchorByText(html, "About Us", "#", config.footerLink2Label);
   html = replaceAnchorByText(html, "Depoimentos", "#", config.footerLink3Label);
+  html = replaceAnchorByText(html, "Testimonials", "#", config.footerLink3Label);
   html = replaceAnchorByText(html, "FAQ", "#", config.footerLink4Label);
   html = replaceFirst(html, /<div class="footer-contact">[\s\S]*?<h4>[\s\S]*?<\/h4>/i, `<div class="footer-contact">\n                    <h4>${escapeHtml(config.footerContactTitle)}</h4>`);
   html = replaceFooterContactItem(html, 0, config.footerContactEmail);

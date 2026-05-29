@@ -218,7 +218,7 @@ export default function CheckoutPage() {
       : "/dashboard";
   const [officeStatus, setOfficeStatus] = useState<string>("active");
   const [checkingOffice, setCheckingOffice] = useState(false);
-  const officeId = searchParams.get("office_id") || searchParams.get("officeId") || searchParams.get("office");
+  const officeIdParam = searchParams.get("office_id") || searchParams.get("officeId") || searchParams.get("office");
   const sellerRef = searchParams.get("ref") || undefined;
 
   const isUpgrade = searchParams.get("upgrade") === "true";
@@ -227,6 +227,10 @@ export default function CheckoutPage() {
     searchParams.get("processId") ||
     searchParams.get("id") ||
     searchParams.get("parentId");
+  const shouldResolveOfficeFromProcess = !officeIdParam && !!parentId;
+  const [officeIdFromProcess, setOfficeIdFromProcess] = useState<string | null>(null);
+  const [resolvingOfficeId, setResolvingOfficeId] = useState<boolean>(shouldResolveOfficeFromProcess);
+  const officeId = officeIdParam || officeIdFromProcess;
 
 
   const service = getServiceBySlug(slug || "");
@@ -275,6 +279,29 @@ export default function CheckoutPage() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    async function resolveOfficeFromProcess() {
+      if (!shouldResolveOfficeFromProcess) {
+        setResolvingOfficeId(false);
+        return;
+      }
+      setResolvingOfficeId(true);
+      try {
+        const { data } = await supabase
+          .from("user_services")
+          .select("office_id")
+          .eq("id", parentId)
+          .maybeSingle();
+        setOfficeIdFromProcess((data?.office_id as string | null) ?? null);
+      } catch {
+        setOfficeIdFromProcess(null);
+      } finally {
+        setResolvingOfficeId(false);
+      }
+    }
+    resolveOfficeFromProcess();
+  }, [parentId, shouldResolveOfficeFromProcess]);
 
   useEffect(() => {
     async function checkOffice() {
@@ -543,6 +570,41 @@ export default function CheckoutPage() {
   }, [formik.values.email, checkoutCount, activeMethod, officeId, service?.slug, slug]);
 
   if (!service) return <Navigate to="/dashboard" replace />;
+
+  if (resolvingOfficeId) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-card border border-border p-8 rounded-[32px] text-center shadow-xl">
+          <div className="w-20 h-20 rounded-2xl bg-info/10 flex items-center justify-center text-info mx-auto mb-6">
+            <RiTimeLine className="text-4xl animate-pulse" />
+          </div>
+          <h2 className="text-2xl font-black text-text mb-4">Carregando checkout</h2>
+          <p className="text-text-muted font-medium">
+            Estamos validando os dados do processo para continuar seu pagamento.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!officeId) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-card border border-border p-8 rounded-[32px] text-center shadow-xl">
+          <div className="w-20 h-20 rounded-2xl bg-danger/10 flex items-center justify-center text-danger mx-auto mb-6">
+            <RiLockLine className="text-4xl" />
+          </div>
+          <h2 className="text-2xl font-black text-text mb-4">Checkout indisponível</h2>
+          <p className="text-text-muted font-medium mb-8">
+            Este checkout exige um office vinculado. Sem office, não é possível concluir a compra.
+          </p>
+          <Button onClick={() => window.history.back()} variant="outline" className="w-full h-12 rounded-2xl">
+            Voltar
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (officeId && officeStatus !== "active" && !checkingOffice) {
     return (

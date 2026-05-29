@@ -475,6 +475,10 @@ export default function OfficeCheckoutPage() {
         })),
         onSubmit: async (values) => {
             try {
+                if (!office?.id) {
+                    throw new Error("Checkout indisponível: este link não possui office válido.");
+                }
+
                 let currentUserId = user?.id;
 
                 if (!currentUserId) {
@@ -610,6 +614,24 @@ export default function OfficeCheckoutPage() {
     }, [formik.values.email, checkoutCount, activeMethod, office, officeSlug, serviceSlug]);
 
     if (isLoading) return <div className="min-h-screen flex items-center justify-center"><LogoLoader officeId={user?.officeId ?? null} /></div>;
+    if (!office) {
+        return (
+            <div className="min-h-screen bg-bg flex items-center justify-center p-4">
+                <div className="max-w-md w-full bg-card border border-border p-8 rounded-[32px] text-center shadow-xl">
+                    <div className="w-20 h-20 rounded-2xl bg-danger/10 flex items-center justify-center text-danger mx-auto mb-6">
+                        <RiLockLine className="text-4xl" />
+                    </div>
+                    <h2 className="text-2xl font-black text-text mb-4">Checkout indisponível</h2>
+                    <p className="text-text-muted font-medium mb-8">
+                        Este checkout exige um office válido. Sem office, não é possível concluir a compra.
+                    </p>
+                    <Button onClick={() => window.history.back()} variant="outline" className="w-full h-12 rounded-2xl">
+                        Voltar
+                    </Button>
+                </div>
+            </div>
+        );
+    }
     if (!officeSlug || !serviceSlug || !dbService) return <div className="min-h-screen flex items-center justify-center text-text-muted text-sm">Serviço não encontrado.</div>;
 
     return (

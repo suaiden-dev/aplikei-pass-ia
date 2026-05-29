@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@shared/lib/supabase";
 import { useAuth } from "@shared/hooks/useAuth";
 
@@ -27,64 +27,71 @@ export function useSubscription() {
     loading: true,
   });
 
-  useEffect(() => {
+  const refreshOfficeId = useCallback(async () => {
     if (user?.officeId) {
       setResolvedOfficeId(user.officeId);
-      return;
+      return user.officeId;
     }
 
     if (!user?.id) {
       setResolvedOfficeId(null);
-      return;
+      return null;
     }
 
-    supabase
+    const { data } = await supabase
       .from("offices")
       .select("id")
       .eq("owner_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        setResolvedOfficeId(data?.id ?? null);
-      });
+      .maybeSingle();
+
+    const nextOfficeId = data?.id ?? null;
+    setResolvedOfficeId(nextOfficeId);
+    return nextOfficeId;
   }, [user?.id, user?.officeId]);
 
   useEffect(() => {
-    async function fetchSubscription() {
-      if (!resolvedOfficeId) {
-        setSubscription(prev => ({ ...prev, loading: false }));
-        return;
-      }
+    void refreshOfficeId();
+  }, [refreshOfficeId]);
 
-      try {
-        const { data, error } = await supabase
-          .from("v_office_current_subscription")
-          .select("*")
-          .eq("office_id", resolvedOfficeId)
-          .maybeSingle();
-
-        if (error) throw error;
-
-        if (data) {
-          setSubscription({
-            status: data.status as SubscriptionStatus,
-            planName: data.plan_name,
-            planType: data.plan_type,
-            fixedFee: data.fixed_fee || 0,
-            percentageFee: data.percentage_fee || 0,
-            currentPeriodEnd: data.current_period_end,
-            loading: false,
-          });
-        } else {
-          setSubscription(prev => ({ ...prev, loading: false, status: "none" }));
-        }
-      } catch (err) {
-        console.error("Error fetching subscription:", err);
-        setSubscription(prev => ({ ...prev, loading: false }));
-      }
+  const refreshSubscription = useCallback(async () => {
+    const nextOfficeId = await refreshOfficeId();
+    if (!nextOfficeId) {
+      setSubscription(prev => ({ ...prev, loading: false, status: "none" }));
+      return;
     }
 
-    fetchSubscription();
-  }, [resolvedOfficeId]);
+    setSubscription(prev => ({ ...prev, loading: true }));
+    try {
+      const { data, error } = await supabase
+        .from("v_office_current_subscription")
+        .select("*")
+        .eq("office_id", nextOfficeId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setSubscription({
+          status: data.status as SubscriptionStatus,
+          planName: data.plan_name,
+          planType: data.plan_type,
+          fixedFee: data.fixed_fee || 0,
+          percentageFee: data.percentage_fee || 0,
+          currentPeriodEnd: data.current_period_end,
+          loading: false,
+        });
+      } else {
+        setSubscription(prev => ({ ...prev, loading: false, status: "none" }));
+      }
+    } catch (err) {
+      console.error("Error fetching subscription:", err);
+      setSubscription(prev => ({ ...prev, loading: false }));
+    }
+  }, [refreshOfficeId]);
+
+  useEffect(() => {
+    void refreshSubscription();
+  }, [refreshSubscription]);
 
   const isActive = subscription.status === "active" || subscription.status === "trialing";
   
@@ -100,5 +107,6 @@ export function useSubscription() {
     isActive,
     isRestricted,
     isStaff,
+    refreshSubscription,
   };
 }

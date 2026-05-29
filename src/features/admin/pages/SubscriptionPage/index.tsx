@@ -51,6 +51,8 @@ export default function SubscriptionPage() {
   const [billingHistory, setBillingHistory] = useState<BillingHistoryItem[]>([]);
   const { status, planName, planType, fixedFee, percentageFee, currentPeriodEnd, loading: subLoading, isActive, officeId } = useSubscription();
   const [loadingPlans, setLoadingPlans] = useState(true);
+  const [isCancelingSubscription, setIsCancelingSubscription] = useState(false);
+  const [isActivatingSubscription, setIsActivatingSubscription] = useState(false);
 
   const fetchPlans = useCallback(async () => {
     setLoadingPlans(true);
@@ -162,6 +164,7 @@ export default function SubscriptionPage() {
       }
       
       try {
+        setIsCancelingSubscription(true);
         const { error } = await supabase
           .from("office_subscriptions")
           .update({ status: "canceled", updated_at: new Date().toISOString() })
@@ -184,6 +187,8 @@ export default function SubscriptionPage() {
       } catch (err) {
         console.error("Error canceling subscription:", err);
         toast.error(t.subscription.modals.cancelError);
+      } finally {
+        setIsCancelingSubscription(false);
       }
    };
 
@@ -199,6 +204,7 @@ export default function SubscriptionPage() {
     }
 
     try {
+      setIsActivatingSubscription(true);
       // Calculate period end (30 days from now)
       const periodEnd = new Date();
       periodEnd.setDate(periodEnd.getDate() + 30);
@@ -235,6 +241,8 @@ export default function SubscriptionPage() {
     } catch (err) {
       console.error("Error activating plan:", err);
       toast.error("Error activating plan. Please try again.");
+    } finally {
+      setIsActivatingSubscription(false);
     }
   };
 
@@ -582,15 +590,17 @@ export default function SubscriptionPage() {
               <div className="grid grid-cols-2 gap-4 pt-4">
                 <button 
                   onClick={() => setShowCancelModal(false)}
+                  disabled={isCancelingSubscription}
                   className="h-12 rounded-2xl border border-border text-text text-[10px] font-black uppercase tracking-widest hover:bg-card transition-all"
                 >
                   {t.subscription.modals.cancelKeep}
                 </button>
                 <button 
                   onClick={handleCancelSubscription}
-                  className="h-12 rounded-2xl bg-danger text-white text-[10px] font-black uppercase tracking-widest hover:bg-danger/90 transition-all shadow-lg shadow-danger/20"
+                  disabled={isCancelingSubscription}
+                  className="h-12 rounded-2xl bg-danger text-white text-[10px] font-black uppercase tracking-widest hover:bg-danger/90 transition-all shadow-lg shadow-danger/20 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {t.subscription.modals.cancelConfirm}
+                  {isCancelingSubscription ? "Registrando..." : t.subscription.modals.cancelConfirm}
                 </button>
               </div>
             </div>
@@ -617,15 +627,17 @@ export default function SubscriptionPage() {
               <div className="grid grid-cols-2 gap-4 pt-4">
                 <button 
                   onClick={() => setPlanToContract(null)}
-                  className="h-12 rounded-2xl border border-border text-text text-[10px] font-black uppercase tracking-widest hover:bg-card transition-all"
+                  disabled={isActivatingSubscription}
+                  className="h-12 rounded-2xl border border-border text-text text-[10px] font-black uppercase tracking-widest hover:bg-card transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={handleConfirmContract}
-                  className="h-12 rounded-2xl bg-primary text-white text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                  disabled={isActivatingSubscription}
+                  className="h-12 rounded-2xl bg-primary text-white text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Confirm & Activate
+                  {isActivatingSubscription ? "Registrando..." : "Confirm & Activate"}
                 </button>
               </div>
             </div>

@@ -145,18 +145,6 @@ export function useB1B2Onboarding({
           }, 1500);
         }
 
-        await requestStepReview(procId);
-
-        await notifyAdmin({
-          title: "DS-160 completed",
-          body: `Client completed the DS-160 for ${slug}.`,
-          serviceId: procId,
-          userId,
-          link: `/master/processes/${procId}`,
-        });
-
-        toast.success(labels.successSubmit);
-        navigate(`/dashboard/processes/${slug}`);
       } catch (err) {
         console.error(err);
         toast.error(labels.errorSave);

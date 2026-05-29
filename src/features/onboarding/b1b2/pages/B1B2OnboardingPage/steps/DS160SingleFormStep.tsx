@@ -2,6 +2,7 @@ import { useFormikContext, Field, ErrorMessage } from "formik";
 import type { DS160FormValues } from "@features/onboarding/b1b2/schemas/ds160.schema";
 import { useT } from "@app/app/i18n";
 import { maskCPF } from "@shared/utils/cpf";
+import { masks } from "@shared/lib/form/masks";
 
 type VisasOnboardingFormText = {
   onboardingPage: {
@@ -77,11 +78,13 @@ const FormNumericInput = ({
   label,
   placeholder = "",
   required = false,
+  maskAsUSD = false,
 }: {
   name: string;
   label: string;
   placeholder?: string;
   required?: boolean;
+  maskAsUSD?: boolean;
 }) => {
   const { errors, touched, setFieldValue } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
@@ -99,7 +102,7 @@ const FormNumericInput = ({
             type="text"
             inputMode="numeric"
             placeholder={placeholder}
-            value={field.value || ""}
+            value={maskAsUSD ? masks.currencyUSD(String(field.value || "")) : (field.value || "")}
             onChange={(e) => {
               const val = e.target.value.replace(/\D/g, "");
               form.setFieldValue(name, val);
@@ -663,7 +666,12 @@ export const DS160SingleFormStep = ({
             <FormInput name="primaryJobAddress" label={t.onboardingPage.form.fullAddressLabel} />
           </div>
           <FormInput name="primaryJobPhone" label={t.onboardingPage.form.phoneLabel} />
-          <FormNumericInput name="primaryJobSalary" label={t.onboardingPage.form.monthlySalaryLabel} placeholder={t.onboardingPage.form.monthlySalaryPlaceholder} />
+          <FormNumericInput
+            name="primaryJobSalary"
+            label={t.onboardingPage.form.monthlySalaryLabel}
+            placeholder={t.onboardingPage.form.monthlySalaryPlaceholder}
+            maskAsUSD
+          />
           <div className="sm:col-span-2">
             <FormTextarea name="primaryJobDuties" label={t.onboardingPage.form.jobDutiesLabel} rows={2} />
           </div>

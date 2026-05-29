@@ -12,6 +12,8 @@ import { useAuthForm } from "../hooks/useAuthForm";
 import { getSignUpSchema } from "../schemas/auth.schema";
 import { useT } from "@app/app/i18n";
 import { useSearchParams } from "react-router-dom";
+import { authService } from "../lib/auth";
+import { getDashboardPathForRole, normalizeRole } from "../lib/roles";
 
 export default function SignUp() {
   const t = useT("auth");
@@ -36,9 +38,21 @@ export default function SignUp() {
     validate: zodValidate(getSignUpSchema(v)),
     onSubmit: async (values, { setSubmitting }) => {
       try {
-        await signUp(values);
+        const result = await signUp(values);
         toast.success(t.signup.success);
-        navigate("/acompanhar-meu-caso");
+
+        if (result?.session?.user) {
+          const account = await authService.resolveAccount(result.session.user);
+          navigate(getDashboardPathForRole(account.role), { replace: true });
+          return;
+        }
+
+        const normalizedRole = normalizeRole(values.role);
+        if (normalizedRole === "customer") {
+          navigate("/acompanhar-meu-caso", { replace: true });
+        } else {
+          navigate("/login", { replace: true });
+        }
       } catch (err) {
         toast.error(err instanceof Error ? err.message : t.signup.error);
       } finally {
