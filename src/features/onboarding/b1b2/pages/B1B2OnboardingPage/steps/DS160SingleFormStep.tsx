@@ -60,7 +60,7 @@ const FormInput = ({
                 field.onChange(e);
               }
             }}
-            className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
+            className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-slate-400 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
               ? "border-red-300 bg-red-50/50 focus:border-red-400"
               : "border-border bg-card focus:border-primary"
               }`}
@@ -136,7 +136,7 @@ const FormNumericInput = ({
                     onChange(val);
                   }
                 }}
-                className={`w-full ${isCurrency ? "pl-12" : "px-4"} pr-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
+                className={`w-full ${isCurrency ? "pl-12" : "px-4"} pr-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-slate-400 transition-all outline-none focus:ring-2 focus:ring-primary/20 ${hasError
                   ? "border-red-300 bg-red-50/50 focus:border-red-400"
                   : "border-border bg-card focus:border-primary"
                   }`}
@@ -205,7 +205,7 @@ const FormTextarea = ({
         name={name}
         placeholder={placeholder}
         rows={rows}
-        className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-text-muted/50 transition-all outline-none focus:ring-2 focus:ring-primary/20 resize-none ${hasError
+        className={`w-full px-4 py-3 rounded-xl border text-sm font-medium text-text placeholder:text-slate-400 transition-all outline-none focus:ring-2 focus:ring-primary/20 resize-none ${hasError
           ? "border-red-300 bg-red-50/50 focus:border-red-400"
           : "border-border bg-card focus:border-primary"
           }`}
@@ -381,22 +381,22 @@ export const DS160SingleFormStep = ({
         </div>
         <FieldError name="interviewLocation" />
       </div>
-
-      <YesNo name="isBrazilian" label={t.onboardingPage.form.isBrazilian} required />
     </Section>,
 
     <Section key="personal" title={t.onboardingPage.form.personalInfoTitle} subtitle={t.onboardingPage.form.personalInfoSubtitle}>
+      <YesNo name="isBrazilian" label={t.onboardingPage.form.isBrazilian} required />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <FormInput
           name="surname"
           label={t.onboardingPage.form.surnameLabel}
-          placeholder="EX: SILVA"
+          placeholder="Ex: Silva"
           required
         />
         <FormInput
           name="givenName"
           label={t.onboardingPage.form.givenNameLabel}
-          placeholder="EX: JOAO"
+          placeholder="Ex: João"
           required
         />
       </div>
@@ -416,11 +416,11 @@ export const DS160SingleFormStep = ({
       <FormInput
         name="maternalGrandmotherName"
         label={t.onboardingPage.form.maternalGrandmotherNameLabel}
-        placeholder="EX: MARIA SILVA"
+        placeholder="Ex: Maria Silva"
         required
       />
 
-      <FormInput name="fullName" label={t.onboardingPage.form.fullNameLabel} placeholder="EX: JOAO DA SILVA" required />
+      <FormInput name="fullName" label={t.onboardingPage.form.fullNameLabel} placeholder="Ex: João da Silva" required />
 
       <YesNo name="hasOtherNames" label={t.onboardingPage.form.hasOtherNames} required />
       {values.hasOtherNames === "sim" && (
