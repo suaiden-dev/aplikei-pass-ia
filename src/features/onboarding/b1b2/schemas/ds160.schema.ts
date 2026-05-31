@@ -125,6 +125,7 @@ export const DS160Schema = z
     motherInUS: yesNoOptional(),
     motherUSStatus: optionalString(),
     otherRelInUS: yesNoOptional(),
+    otherRelativesList: z.any().optional(),
     spouseName: optionalString(),
     spouseBirth: optionalString(),
     spouseCity: optionalString(),

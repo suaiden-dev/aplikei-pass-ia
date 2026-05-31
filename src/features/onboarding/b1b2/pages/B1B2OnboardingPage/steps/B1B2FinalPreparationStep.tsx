@@ -112,13 +112,13 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       setPurchasedConsultation(null);
       setHasConsultationInCurrentProcess(false);
 
-      // Query active mentorship globally under user
+      // Query mentorship globally under user
       const { data: activeMentorship } = await supabase
         .from("user_services")
         .select("*")
         .eq("user_id", user.id)
         .in("service_slug", mentorshipSlugs)
-        .eq("status", "active")
+        .neq("status", "cancelled")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -132,7 +132,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
           .select("*")
           .eq("user_id", user.id)
           .in("service_slug", mentorshipSlugs)
-          .eq("status", "active")
+          .neq("status", "cancelled")
           .contains("step_data", { parent_process_id: procId })
           .order("created_at", { ascending: false })
           .limit(1)
@@ -147,7 +147,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
         .select("*")
         .eq("user_id", user.id)
         .in("service_slug", consultationSlugs)
-        .eq("status", "active")
+        .neq("status", "cancelled")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -446,13 +446,42 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   };
 
 
+  const purchaseSlugs = extractProcessPurchaseSlugs(freshStepData);
+  const hasMentorshipInPurchases = Array.from(purchaseSlugs).some(s =>
+    [
+      "mentoring-bronze",
+      "mentoring-silver",
+      "mentoring-gold",
+      "mentoria-individual",
+      "mentoria-bronze",
+      "mentoria-silver",
+      "mentoria-gold",
+      "consultoria-especialista"
+    ].includes(s)
+  );
+
+  const hasMentorship = !!purchasedMentorship || hasMentorshipInPurchases;
+
+  const purchasedMentorshipSlug = purchasedMentorship?.service_slug as string | undefined || Array.from(purchaseSlugs).find(s =>
+    [
+      "mentoring-bronze",
+      "mentoring-silver",
+      "mentoring-gold",
+      "mentoria-individual",
+      "mentoria-bronze",
+      "mentoria-silver",
+      "mentoria-gold",
+      "consultoria-especialista"
+    ].includes(s)
+  );
+
   const scheduledCount = ((purchasedMentorship?.step_data as Record<string, unknown>)?.scheduled_count as number | undefined) || 0;
   const totalInterviews =
-    purchasedMentorship?.service_slug === "mentoring-gold" || purchasedMentorship?.service_slug === "mentoria-gold"
+    purchasedMentorshipSlug === "mentoring-gold" || purchasedMentorshipSlug === "mentoria-gold"
       ? 3
-      : purchasedMentorship?.service_slug === "mentoring-silver" ||
-        purchasedMentorship?.service_slug === "mentoria-silver" ||
-        purchasedMentorship?.service_slug === "mentoria-bronze"
+      : purchasedMentorshipSlug === "mentoring-silver" ||
+        purchasedMentorshipSlug === "mentoria-silver" ||
+        purchasedMentorshipSlug === "mentoria-bronze"
         ? 2
         : 1;
 
@@ -521,15 +550,15 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
         <span className="text-[10px] font-black uppercase tracking-widest text-text">{t.onboardingPage.awaitingInterview.tools.ai.title}</span>
       </button>
       <button
-        onClick={() => setActiveModule("specialist")}
-        className={`p-6 rounded-3xl border transition-all text-left flex flex-col gap-3 group relative overflow-hidden ${purchasedMentorship ? "bg-emerald-50 border-emerald-100" : "bg-bg-subtle border-border hover:border-primary"
+        onClick={() => hasMentorship ? handleOpenSpecialistSupport() : setActiveModule("specialist")}
+        className={`p-6 rounded-3xl border transition-all text-left flex flex-col gap-3 group relative overflow-hidden ${hasMentorship ? "bg-emerald-50 border-emerald-100 hover:border-emerald-300" : "bg-bg-subtle border-border hover:border-primary"
           }`}
       >
-        {purchasedMentorship ? (
+        {hasMentorship ? (
           <>
-            <RiCalendarCheckLine className="text-2xl text-emerald-500" />
+            <RiCalendarCheckLine className="text-2xl text-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-800">
-              Chat com manager disponível
+              Falar com especialista
             </span>
             <div className="mt-1 flex gap-1">
               {[...Array(totalInterviews)].map((_, i) => (
@@ -814,7 +843,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
                   <div className="space-y-8">
                     {!isScheduling && (
                       <>
-                        {purchasedMentorship ? (
+                        {hasMentorship ? (
                           <div className="text-center space-y-6 py-8">
                             <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto"><RiHistoryLine className="text-4xl" /></div>
                             <div>

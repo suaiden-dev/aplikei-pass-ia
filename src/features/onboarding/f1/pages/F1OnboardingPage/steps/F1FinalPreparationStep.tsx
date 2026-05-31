@@ -22,6 +22,30 @@ import { useT, useLocale } from "@app/app/i18n";
 import { getCanonicalSlug } from "@shared/data/services";
 import { interviewTrainingService } from "@features/onboarding/services/interviewTrainingService";
 
+function extractProcessPurchaseSlugs(stepData: Record<string, unknown> | null): Set<string> {
+  const purchases = Array.isArray(stepData?.purchases)
+    ? (stepData?.purchases as Array<Record<string, unknown>>)
+    : [];
+
+  const slugs = new Set<string>();
+  purchases.forEach((purchase) => {
+    const candidates = [
+      purchase.slug,
+      purchase.service_slug,
+      purchase.product_slug,
+      purchase.productSlug,
+      purchase.serviceSlug,
+    ];
+    candidates.forEach((candidate) => {
+      const raw = String(candidate || "").trim();
+      if (!raw) return;
+      slugs.add(raw);
+      slugs.add(getCanonicalSlug(raw));
+    });
+  });
+  return slugs;
+}
+
 interface F1FinalPreparationStepProps {
   procId: string;
   stepData: Record<string, unknown>;
@@ -92,7 +116,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
         .select("*")
         .eq("user_id", user.id)
         .in("service_slug", mentorshipSlugs)
-        .eq("status", "active")
+        .neq("status", "cancelled")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -106,7 +130,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
           .select("*")
           .eq("user_id", user.id)
           .in("service_slug", mentorshipSlugs)
-          .eq("status", "active")
+          .neq("status", "cancelled")
           .contains("step_data", { parent_process_id: procId })
           .order("created_at", { ascending: false })
           .limit(1)
@@ -121,7 +145,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
         .select("*")
         .eq("user_id", user.id)
         .in("service_slug", consultationSlugs)
-        .eq("status", "active")
+        .neq("status", "cancelled")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -444,11 +468,41 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
   };
 
 
+  const purchaseSlugs = extractProcessPurchaseSlugs(freshStepData);
+  const hasMentorshipInPurchases = Array.from(purchaseSlugs).some(s =>
+    [
+      "mentoring-bronze",
+      "mentoring-silver",
+      "mentoring-gold",
+      "mentoria-individual",
+      "mentoria-bronze",
+      "mentoria-silver",
+      "mentoria-gold",
+      "consultoria-especialista"
+    ].includes(s)
+  );
+
+  const hasMentorship = !!purchasedMentorship || hasMentorshipInPurchases;
+
+  const purchasedMentorshipSlug = purchasedMentorship?.service_slug as string | undefined || Array.from(purchaseSlugs).find(s =>
+    [
+      "mentoring-bronze",
+      "mentoring-silver",
+      "mentoring-gold",
+      "mentoria-individual",
+      "mentoria-bronze",
+      "mentoria-silver",
+      "mentoria-gold",
+      "consultoria-especialista"
+    ].includes(s)
+  );
+
   const scheduledCount = ((purchasedMentorship?.step_data as Record<string, unknown>)?.scheduled_count as number | undefined) || 0;
   const totalInterviews =
-    purchasedMentorship?.service_slug === "mentoring-gold" || purchasedMentorship?.service_slug === "mentoria-gold"
+    purchasedMentorshipSlug === "mentoring-gold" || purchasedMentorshipSlug === "mentoria-gold"
       ? 3
-      : purchasedMentorship?.service_slug === "mentoring-silver" || purchasedMentorship?.service_slug === "mentoria-silver"
+      : purchasedMentorshipSlug === "mentoring-silver" ||
+        purchasedMentorshipSlug === "mentoria-silver"
         ? 2
         : 1;
   const allScheduled = scheduledCount >= totalInterviews;
@@ -472,16 +526,16 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
         <span className="text-[10px] font-black uppercase tracking-widest text-text">{t.onboardingPage.awaitingInterview.tools.ai.title}</span>
       </button>
       <button
-        onClick={() => setActiveModule("specialist")}
+        onClick={() => hasMentorship ? handleOpenSpecialistSupport() : setActiveModule("specialist")}
         className={`p-6 rounded-3xl border transition-all text-left flex flex-col gap-3 group relative overflow-hidden ${
-          purchasedMentorship ? "bg-emerald-50 border-emerald-100" : "bg-bg-subtle border-border hover:border-primary"
+          hasMentorship ? "bg-emerald-50 border-emerald-100 hover:border-emerald-300" : "bg-bg-subtle border-border hover:border-primary"
         }`}
       >
-        {purchasedMentorship ? (
+        {hasMentorship ? (
           <>
-            <RiCalendarCheckLine className="text-2xl text-emerald-500" />
+            <RiCalendarCheckLine className="text-2xl text-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-800">
-              Chat com manager disponível
+              Falar com especialista
             </span>
             <div className="mt-1 flex gap-1">
               {[...Array(totalInterviews)].map((_, i) => (
@@ -679,7 +733,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
                         <button onClick={() => setIsScheduling(false)} className="absolute -top-12 right-0 text-[10px] font-black uppercase text-text-muted flex items-center gap-1"><RiCloseLine /> {t.onboardingPage.backToDashboard}</button>
                         <div className="rounded-3xl overflow-hidden border h-[500px]"><InlineWidget url={calendlyUrl} styles={{ height: '500px' }} prefill={{ email: user?.email, name: user?.fullName }} /></div>
                       </div>
-                    ) : purchasedMentorship ? (
+                    ) : hasMentorship ? (
                       <div className="text-center space-y-6 py-8">
                         <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto"><RiHistoryLine className="text-4xl" /></div>
                         <div>

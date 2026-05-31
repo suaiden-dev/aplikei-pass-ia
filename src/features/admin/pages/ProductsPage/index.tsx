@@ -206,82 +206,90 @@ function MainProductConfigModal({
             <div className="flex flex-wrap items-center gap-2">
               <button onClick={() => setMainPriceMode("keep")} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", mainPriceMode === "keep" && "bg-primary/10 text-primary", mainPriceMode !== "keep" && "bg-bg-subtle text-text-muted")}>Keep current price</button>
               <button onClick={() => setMainPriceMode("custom")} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", mainPriceMode === "custom" && "bg-primary/10 text-primary", mainPriceMode !== "custom" && "bg-bg-subtle text-text-muted")}>Update price</button>
-              {mainPriceMode === "keep" && <span className="text-xs font-black text-text-muted">Current: {formatUsd(mainProduct.price)}</span>}
-              {mainPriceMode === "custom" && (
+              {mainPriceMode === "keep" ? (
+                <span className="text-xs font-black text-text-muted">Current: {formatUsd(mainProduct.price)}</span>
+              ) : (
                 <input type="number" step="0.01" min="0.01" value={mainCustomPrice} onChange={(e) => setMainCustomPrice(e.target.value)} className="px-3 py-2 rounded-xl border border-border bg-bg-subtle w-40 text-sm font-bold" />
               )}
             </div>
           </section>
 
-          {hasB1B2MentorshipQuestion && mentorshipTargets.length > 0 && (
-            <section className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 space-y-3">
-              <p className="text-sm font-black text-amber-700">At the "Awaiting interview" stage, do you want to enable Bronze/Silver/Gold mentoring?</p>
-              <div className="flex items-center gap-2">
-                <button onClick={() => handleMentorshipQuestion(true)} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", enableMentorshipAtInterview === true ? "bg-emerald-100 text-emerald-700" : "bg-white text-text-muted border border-border")}>Yes</button>
-                <button onClick={() => handleMentorshipQuestion(false)} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", enableMentorshipAtInterview === false ? "bg-red-100 text-red-700" : "bg-white text-text-muted border border-border")}>No</button>
-              </div>
-            </section>
-          )}
+          {hasB1B2MentorshipQuestion && mentorshipTargets.length > 0 ? (
+            <div key="b1b2-mentorship-question-container">
+              <section className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 space-y-3">
+                <p className="text-sm font-black text-amber-700">At the "Awaiting interview" stage, do you want to enable Bronze/Silver/Gold mentoring?</p>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => handleMentorshipQuestion(true)} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", enableMentorshipAtInterview === true ? "bg-emerald-100 text-emerald-700" : "bg-white text-text-muted border border-border")}>Yes</button>
+                  <button onClick={() => handleMentorshipQuestion(false)} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", enableMentorshipAtInterview === false ? "bg-red-100 text-red-700" : "bg-white text-text-muted border border-border")}>No</button>
+                </div>
+              </section>
+            </div>
+          ) : null}
 
           <section className="space-y-3">
             <p className="text-sm font-black uppercase tracking-wider flex items-center gap-2"><RiQuestionLine /> Workflow subproducts</p>
-            {relatedProducts.length === 0 ? (
-              <div className="rounded-2xl border border-border p-4 text-xs font-bold text-text-muted uppercase">No related subproducts found.</div>
-            ) : relatedProducts.map((p) => {
-              const cfg = subConfig[p.id];
-              return (
-                <div key={p.id} className="rounded-2xl border border-border p-4 space-y-3">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="text-left">
-                      <p className="text-sm font-black">{p.name}</p>
-                      <p className="text-[11px] text-text-muted font-semibold">{p.slug}</p>
-                      <p className="text-xs text-text-muted mt-1 max-w-2xl">
-                        {englishDescription(
-                          p.description,
-                          "This subproduct adds a complementary service step and can be enabled based on the case strategy.",
+            <div className="space-y-3">
+              {relatedProducts.length === 0 ? (
+                <div className="rounded-2xl border border-border p-4 text-xs font-bold text-text-muted uppercase">No related subproducts found.</div>
+              ) : (
+                relatedProducts.map((p) => {
+                  const cfg = subConfig[p.id];
+                  return (
+                    <div key={p.id} className="rounded-2xl border border-border p-4 space-y-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="text-left">
+                          <p className="text-sm font-black">{p.name}</p>
+                          <p className="text-[11px] text-text-muted font-semibold">{p.slug}</p>
+                          <p className="text-xs text-text-muted mt-1 max-w-2xl">
+                            {englishDescription(
+                              p.description,
+                              "This subproduct adds a complementary service step and can be enabled based on the case strategy.",
+                            )}
+                          </p>
+                          <p className="text-xs text-primary font-semibold mt-1 max-w-2xl">
+                            Once this subproduct is paid, a chat is created so you can interact with the client and resolve pending items or training.
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateSub(p.id, { enabled: true })}
+                            className={cn(
+                              "px-3 py-2 rounded-xl text-xs font-black uppercase",
+                              cfg?.enabled ? "bg-emerald-100 text-emerald-700" : "bg-white text-text-muted border border-border",
+                            )}
+                          >
+                            Yes
+                          </button>
+                          <button
+                            onClick={() => updateSub(p.id, { enabled: false })}
+                            className={cn(
+                              "px-3 py-2 rounded-xl text-xs font-black uppercase",
+                              !cfg?.enabled ? "bg-red-100 text-red-700" : "bg-white text-text-muted border border-border",
+                            )}
+                          >
+                            No
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-xs font-bold text-text-muted">Do you want to make this subproduct available?</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button onClick={() => updateSub(p.id, { priceMode: "keep" })} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", cfg?.priceMode === "keep" ? "bg-primary/10 text-primary" : "bg-bg-subtle text-text-muted")}>Keep current price</button>
+                        <button onClick={() => updateSub(p.id, { priceMode: "custom" })} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", cfg?.priceMode === "custom" ? "bg-primary/10 text-primary" : "bg-bg-subtle text-text-muted")}>Update price</button>
+                        {cfg?.priceMode === "keep" ? (
+                          <span className="text-xs font-black text-text-muted">Current: {formatUsd(p.price)}</span>
+                        ) : (
+                          <input type="number" step="0.01" min="0.01" value={cfg.customPrice} onChange={(e) => updateSub(p.id, { customPrice: e.target.value })} className="px-3 py-2 rounded-xl border border-border bg-bg-subtle w-40 text-sm font-bold" />
                         )}
-                      </p>
-                      <p className="text-xs text-primary font-semibold mt-1 max-w-2xl">
-                        Once this subproduct is paid, a chat is created so you can interact with the client and resolve pending items or training.
-                      </p>
+                      </div>
+                      {mainProduct.slug.toLowerCase().includes("f1") &&
+                        ["mentoria-bronze", "mentoria-prata", "mentoria-silver", "mentoria-gold", "mentoring-bronze", "mentoring-silver", "mentoring-gold"].includes(p.slug.toLowerCase()) ? (
+                          <p className="text-[11px] font-bold text-amber-700">Changes to this subproduct also apply to the B1/B2 flow.</p>
+                        ) : null}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => updateSub(p.id, { enabled: true })}
-                        className={cn(
-                          "px-3 py-2 rounded-xl text-xs font-black uppercase",
-                          cfg?.enabled ? "bg-emerald-100 text-emerald-700" : "bg-white text-text-muted border border-border",
-                        )}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        onClick={() => updateSub(p.id, { enabled: false })}
-                        className={cn(
-                          "px-3 py-2 rounded-xl text-xs font-black uppercase",
-                          !cfg?.enabled ? "bg-red-100 text-red-700" : "bg-white text-text-muted border border-border",
-                        )}
-                      >
-                        No
-                      </button>
-                    </div>
-                  </div>
-                  <p className="text-xs font-bold text-text-muted">Do you want to make this subproduct available?</p>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button onClick={() => updateSub(p.id, { priceMode: "keep" })} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", cfg?.priceMode === "keep" ? "bg-primary/10 text-primary" : "bg-bg-subtle text-text-muted")}>Keep current price</button>
-                    <button onClick={() => updateSub(p.id, { priceMode: "custom" })} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", cfg?.priceMode === "custom" ? "bg-primary/10 text-primary" : "bg-bg-subtle text-text-muted")}>Update price</button>
-                    {cfg?.priceMode === "keep" && <span className="text-xs font-black text-text-muted">Current: {formatUsd(p.price)}</span>}
-                    {cfg?.priceMode === "custom" && (
-                      <input type="number" step="0.01" min="0.01" value={cfg.customPrice} onChange={(e) => updateSub(p.id, { customPrice: e.target.value })} className="px-3 py-2 rounded-xl border border-border bg-bg-subtle w-40 text-sm font-bold" />
-                    )}
-                  </div>
-                  {mainProduct.slug.toLowerCase().includes("f1") &&
-                    ["mentoria-bronze", "mentoria-prata", "mentoria-silver", "mentoria-gold", "mentoring-bronze", "mentoring-silver", "mentoring-gold"].includes(p.slug.toLowerCase()) && (
-                      <p className="text-[11px] font-bold text-amber-700">Changes to this subproduct also apply to the B1/B2 flow.</p>
-                    )}
-                </div>
-              );
-            })}
+                  );
+                })
+              )}
+            </div>
           </section>
         </div>
 
@@ -557,14 +565,16 @@ export default function ProductsPage() {
         </p>
       </div>
 
-      {selectedMainProduct && (
-        <MainProductConfigModal
-          mainProduct={selectedMainProduct}
-          relatedProducts={getRelatedSubProducts(selectedMainProduct)}
-          onClose={() => setSelectedMainProduct(null)}
-          onSaved={load}
-        />
-      )}
+      {selectedMainProduct ? (
+        <div key="product-config-modal-container">
+          <MainProductConfigModal
+            mainProduct={selectedMainProduct}
+            relatedProducts={getRelatedSubProducts(selectedMainProduct)}
+            onClose={() => setSelectedMainProduct(null)}
+            onSaved={load}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

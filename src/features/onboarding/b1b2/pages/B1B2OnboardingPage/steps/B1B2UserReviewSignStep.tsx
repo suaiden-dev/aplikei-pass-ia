@@ -268,7 +268,7 @@ export function B1B2UserReviewSignStep({
         )}
 
         {credentialsReady && (
-          <div className="bg-bg-subtle px-6 md:px-8 pb-8 flex justify-center border-b border-border">
+          <div className="bg-bg-subtle px-6 md:px-8 pt-4 pb-8 flex justify-center border-b border-border">
             <a
               href="https://ceac.state.gov/GenNIV/Default.aspx"
               target="_blank"

@@ -255,7 +255,7 @@ export function DS160FormShell({
               </motion.div>
             )}
 
-            <div className='bg-card rounded-3xl border border-border shadow-xl shadow-border/40 overflow-hidden'>
+            <div className='bg-card rounded-3xl border border-border shadow-xl shadow-border/40 overflow-visible'>
               {showErrors && currentSectionErrors.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
