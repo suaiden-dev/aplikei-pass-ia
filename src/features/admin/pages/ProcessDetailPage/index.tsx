@@ -1588,14 +1588,14 @@ export default function AdminProcessDetailPage() {
       }
 
       const isConsular = proc.service_slug.includes("b1b2") || proc.service_slug.includes("b1-b2") || proc.service_slug.includes("f1");
-      const isF1FinalScheduling = currentStepBaseId === "f1_final_scheduling";
+      const isF1FinalScheduling = false; // Do not complete F1 at scheduling step, let it advance to final preparation
 
       const additionalData = { ...extraData };
       if (currentStepBaseId === 'cos_analysis_presentation_letter' || currentStepBaseId === 'eos_admin_cover_analysis') {
         additionalData.generatedCoverLetterHTML = coverLetterHtml;
       }
-      const isFinal = isF1FinalScheduling || (nextStep >= effectiveSteps.length && !isConsular);
-      const targetStep = isF1FinalScheduling ? currentStepIdx : nextStep;
+      const isFinal = (nextStep >= effectiveSteps.length && !isConsular);
+      const targetStep = nextStep;
 
       await processService.approveStep(proc.id, targetStep, isFinal, isFinal ? 'approved' : undefined, additionalData);
 
@@ -1759,8 +1759,6 @@ export default function AdminProcessDetailPage() {
       !['docs', 'admin_feedback', 'rejected_at', 'review', 'i539', 'i539PdfUrl', 'coverLetter', 'generatedCoverLetterHTML', 'finalForms', 'g1145PdfUrl', 'g1450PdfUrl', 'finalFormsGeneratedAt', 'finalPackagePdfUrl', 'rfe_history'].includes(key)
     );
 
-    if (entries.length === 0) return null;
-
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
     const analysisStepId = proc.service_slug === "extensao-status" ? "eos_admin_analysis" : `${prefix}analysis_form_docs`;
     const analysisIdx = effectiveSteps.findIndex(s =>
@@ -1769,6 +1767,22 @@ export default function AdminProcessDetailPage() {
     );
     const isActive = analysisIdx !== -1 && currentStepIdx === analysisIdx;
     const isPast = analysisIdx !== -1 && currentStepIdx > analysisIdx;
+
+    if (entries.length === 0) {
+      return (
+        <CollapsibleStep
+          title={proc.service_slug === "visto-b1-b2" || proc.service_slug === "visa-b1b2" ? "DS-160 Review" : "Form Data (Review)"}
+          icon={RiFileTextLine}
+          isActive={isActive}
+          isPast={isPast}
+        >
+          <div className="flex flex-col items-center justify-center p-8 text-center text-text-muted">
+            <RiFileTextLine className="text-4xl mb-3 text-text-muted/60" />
+            <p className="text-sm font-medium">Nenhum dado de formulário preenchido até o momento.</p>
+          </div>
+        </CollapsibleStep>
+      );
+    }
 
     return (
       <CollapsibleStep
@@ -2942,13 +2956,9 @@ export default function AdminProcessDetailPage() {
               )
             ].filter(React.isValidElement);
 
-            const completedSteps = allSteps.filter((step: any) => step.props.isPast === true);
-            const pendingSteps = allSteps.filter((step: any) => step.props.isPast !== true);
-
             return (
               <>
-                {completedSteps.map((step, idx) => React.cloneElement(step as React.ReactElement, { key: `completed-${idx}` }))}
-                {pendingSteps.map((step, idx) => React.cloneElement(step as React.ReactElement, { key: `pending-${idx}` }))}
+                {allSteps.map((step, idx) => React.cloneElement(step as React.ReactElement, { key: `step-${idx}` }))}
               </>
             );
           })()}

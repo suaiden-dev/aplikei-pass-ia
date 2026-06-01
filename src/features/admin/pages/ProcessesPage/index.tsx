@@ -169,6 +169,9 @@ function getCurrentStepIndex(process: ProcessWithUser): number {
 }
 
 function isAuxiliarySlug(slug: string) {
+  if (slug.includes("-rfe-") || slug.includes("-motion-")) {
+    return false;
+  }
   return (
     slug.startsWith("dependent-") ||
     slug.startsWith("analysis-") ||
@@ -319,7 +322,12 @@ export default function AdminProcessesPage() {
     const filteredForStats = processes.filter(p => !isAuxiliarySlug(p.service_slug));
     return {
       total: filteredForStats.length,
-      awaiting: filteredForStats.filter(p => p.status === "awaiting_review").length,
+      awaiting: filteredForStats.filter(p => {
+        const service = getServiceBySlug(p.service_slug);
+        const currentStepIdx = getCurrentStepIndex(p);
+        const currentStep = service?.steps[currentStepIdx];
+        return p.status === "awaiting_review" || currentStep?.type === "admin_action";
+      }).length,
       active: filteredForStats.filter(p => p.status === "active").length,
       completed: filteredForStats.filter(p => p.status === "completed").length,
     };
@@ -341,7 +349,12 @@ export default function AdminProcessesPage() {
     }
 
     if (showOnlyPending) {
-      result = result.filter(p => p.status === "awaiting_review");
+      result = result.filter(p => {
+        const service = getServiceBySlug(p.service_slug);
+        const currentStepIdx = getCurrentStepIndex(p);
+        const currentStep = service?.steps[currentStepIdx];
+        return p.status === "awaiting_review" || currentStep?.type === "admin_action";
+      });
     }
 
     return result.filter(p => !isAuxiliarySlug(p.service_slug));

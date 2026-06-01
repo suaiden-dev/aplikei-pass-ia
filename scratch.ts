@@ -20,15 +20,19 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function inspectServices() {
   const { data: services, error } = await supabase
     .from("user_services")
-    .select("id, service_slug, status, current_step, user_id, created_at")
-    .order("created_at", { ascending: false })
-    .limit(20);
+    .select("*")
+    .limit(1);
 
   if (error) {
     console.error("Services Error:", error);
   } else {
-    console.log("=== LATEST 20 SERVICES IN USER_SERVICES ===");
-    console.log(JSON.stringify(services, null, 2));
+    console.log("=== ONE USER_SERVICE ROW ALL FIELDS ===");
+    if (services && services.length > 0) {
+      console.log(Object.keys(services[0]));
+      console.log(services[0]);
+    } else {
+      console.log("No services found");
+    }
   }
 }
 
