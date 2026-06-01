@@ -188,8 +188,8 @@ export function COSStepContent({
 
   if (isStep('cos_i20_upload') && proc && user) {
     const isF1 = 
-      (targetVisa && (targetVisa.includes('F1') || targetVisa.includes('F-1'))) ||
-      (currentVisa && (currentVisa.includes('F1') || currentVisa.includes('F-1')));
+      (targetVisa && (targetVisa.toUpperCase().includes('F1') || targetVisa.toUpperCase().includes('F-1'))) ||
+      (currentVisa && (currentVisa.toUpperCase().includes('F1') || currentVisa.toUpperCase().includes('F-1')));
     if (!isF1) {
       return (
         <COSProcessingFallbackStep
@@ -215,8 +215,8 @@ export function COSStepContent({
 
   if (isStep('cos_sevis_fee') && proc && user) {
     const isF1 = 
-      (targetVisa && (targetVisa.includes('F1') || targetVisa.includes('F-1'))) ||
-      (currentVisa && (currentVisa.includes('F1') || currentVisa.includes('F-1')));
+      (targetVisa && (targetVisa.toUpperCase().includes('F1') || targetVisa.toUpperCase().includes('F-1'))) ||
+      (currentVisa && (currentVisa.toUpperCase().includes('F1') || currentVisa.toUpperCase().includes('F-1')));
     if (!isF1) {
       return (
         <COSProcessingFallbackStep
