@@ -162,7 +162,7 @@ export async function mockAdminSupabase(page: Page, options?: { role?: "master" 
           office_id: "office-1",
           amount: 500,
           status: "pending",
-          payment_method: "stripe",
+          method: "zelle",
           created_at: new Date().toISOString(),
           offices: {
             name: "Playwright Office"
