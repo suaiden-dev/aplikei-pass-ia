@@ -3,7 +3,7 @@ function parseBoolean(value: string | undefined): boolean {
   return ["true", "1", "yes", "on"].includes(value.trim().toLowerCase());
 }
 
-const envIsProd = false;
+const envIsProd = "true";
 
 /**
  * Controls which public experience is shown at the site root.
