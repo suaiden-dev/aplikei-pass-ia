@@ -187,7 +187,10 @@ export function COSStepContent({
   }
 
   if (isStep('cos_i20_upload') && proc && user) {
-    if (targetVisa !== 'F1') {
+    const isF1 = 
+      (targetVisa && (targetVisa.includes('F1') || targetVisa.includes('F-1'))) ||
+      (currentVisa && (currentVisa.includes('F1') || currentVisa.includes('F-1')));
+    if (!isF1) {
       return (
         <COSProcessingFallbackStep
           title={serviceTitle}
@@ -211,7 +214,10 @@ export function COSStepContent({
   }
 
   if (isStep('cos_sevis_fee') && proc && user) {
-    if (targetVisa !== 'F1') {
+    const isF1 = 
+      (targetVisa && (targetVisa.includes('F1') || targetVisa.includes('F-1'))) ||
+      (currentVisa && (currentVisa.includes('F1') || currentVisa.includes('F-1')));
+    if (!isF1) {
       return (
         <COSProcessingFallbackStep
           title={serviceTitle}

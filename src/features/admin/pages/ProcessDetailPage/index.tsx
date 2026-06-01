@@ -1576,10 +1576,13 @@ export default function AdminProcessDetailPage() {
     try {
       let nextStep = currentStepIdx + 1;
 
-      // --- SKIP LOGIC: Se o visto de destino NÃO for F1, pula I-20 e SEVIS ---
+      // --- SKIP LOGIC: Se o visto de destino ou atual NÃO for F1, pula I-20 e SEVIS ---
       if (isCOS) {
-        const targetVisa = (proc.step_data as any)?.targetVisa as string;
-        if (targetVisa !== "F1") {
+        const targetVisa = String((proc.step_data as any)?.targetVisa || "");
+        const currentVisa = String((proc.step_data as any)?.currentVisa || "");
+        const isF1 = targetVisa.includes("F1") || targetVisa.includes("F-1") || currentVisa.includes("F1") || currentVisa.includes("F-1");
+
+        if (!isF1) {
           const stepsToSkipIds = ["cos_i20_upload", "cos_sevis_fee", "eos_i20_upload", "eos_sevis_fee"];
           while (nextStep < service.steps.length && stepsToSkipIds.includes(service.steps[nextStep].id)) {
             nextStep++;
@@ -1848,7 +1851,7 @@ export default function AdminProcessDetailPage() {
             );
           })}
         </div>
-        {isActive && (
+        {isActive && proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status" && (
           <div className="mt-6">
             {renderCardActions(t.cases.actions.approve)}
           </div>
@@ -2010,6 +2013,20 @@ export default function AdminProcessDetailPage() {
     );
   };
 
+  const renderWaitingClientFallback = (message?: string) => (
+    <div className="flex flex-col items-center justify-center p-8 text-center text-text-muted bg-slate-50 border border-slate-100 rounded-3xl py-12">
+      <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+        <RiLoader4Line className="text-3xl animate-spin" />
+      </div>
+      <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-1.5">
+        Aguardando Cliente
+      </h4>
+      <p className="text-xs font-semibold text-slate-400 max-w-sm leading-relaxed">
+        {message || "Esperando o cliente mandar ou corrigir os arquivos solicitados."}
+      </p>
+    </div>
+  );
+
   const renderCOSDocumentsAdmin = () => {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
@@ -2017,6 +2034,15 @@ export default function AdminProcessDetailPage() {
     const docsIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
     const isActive = docsIdx !== -1 && currentStepIdx === docsIdx;
     const isPast = docsIdx !== -1 && currentStepIdx > docsIdx;
+
+    const isWaitingClient = isActive && proc.status === "active";
+    if (isWaitingClient) {
+      return (
+        <CollapsibleStep title={t.analysisPanel.clientDocuments} icon={RiFileUploadLine} isActive={isActive} isPast={isPast} badge="Aguardando Envio">
+          {renderWaitingClientFallback()}
+        </CollapsibleStep>
+      );
+    }
 
     const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
     if (Object.keys(docs).length === 0) return null;
@@ -2065,11 +2091,20 @@ export default function AdminProcessDetailPage() {
     const isActive = i20Idx !== -1 && currentStepIdx === i20Idx;
     const isPast = i20Idx !== -1 && currentStepIdx > i20Idx;
 
+    const isWaitingClient = isActive && proc.status === "active";
+    if (isWaitingClient) {
+      return (
+        <CollapsibleStep title={t.processDetail.i20Sevis.title} icon={RiShieldCheckLine} isActive={isActive} isPast={isPast} badge="Aguardando Envio">
+          {renderWaitingClientFallback()}
+        </CollapsibleStep>
+      );
+    }
+
     const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
     const i20Url = docs.i20_document ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.i20_document).data.publicUrl : null;
     const sevisUrl = docs.sevis_receipt ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.sevis_receipt).data.publicUrl : null;
 
-    if (!isActive && !isPast) return null;
+    if (!isActive && !isPast && !i20Url && !sevisUrl) return null;
 
     return (
       <CollapsibleStep title={t.processDetail.i20Sevis.title} icon={RiShieldCheckLine} isActive={isActive} isPast={isPast} badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}>
@@ -2126,6 +2161,15 @@ export default function AdminProcessDetailPage() {
     const isActive = analysisIdx !== -1 && currentStepIdx === analysisIdx;
     const isPast = analysisIdx !== -1 && currentStepIdx > analysisIdx;
 
+    const isWaitingClient = isActive && proc.status === "active";
+    if (isWaitingClient) {
+      return (
+        <CollapsibleStep title={t.processDetail.f1Documents.title} icon={RiFileTextLine} isActive={isActive} isPast={isPast} badge="Aguardando Envio">
+          {renderWaitingClientFallback()}
+        </CollapsibleStep>
+      );
+    }
+
     const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
     const i20Url = docs.i20_document ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.i20_document).data.publicUrl : null;
 
@@ -2169,6 +2213,15 @@ export default function AdminProcessDetailPage() {
     const finalAnalysisIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === "f1_admin_final_analysis");
     const isActive = finalAnalysisIdx !== -1 && currentStepIdx === finalAnalysisIdx;
     const isPast = finalAnalysisIdx !== -1 && currentStepIdx > finalAnalysisIdx;
+
+    const isWaitingClient = isActive && proc.status === "active";
+    if (isWaitingClient) {
+      return (
+        <CollapsibleStep title={t.processDetail.f1FinalDocs.title} icon={RiFileTextLine} isActive={isActive} isPast={isPast} badge="Aguardando Envio">
+          {renderWaitingClientFallback()}
+        </CollapsibleStep>
+      );
+    }
 
     const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
     const ds160Url = docs.ds160_assinada ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_assinada).data.publicUrl : null;
@@ -2230,6 +2283,15 @@ export default function AdminProcessDetailPage() {
     if (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("b1-b2")) return null;
     const isActive = currentStepBaseId === "b1b2_admin_final_analysis";
     const isPast = currentStepIdx > 4;
+
+    const isWaitingClient = isActive && proc.status === "active";
+    if (isWaitingClient) {
+      return (
+        <CollapsibleStep title={t.processDetail.b1b2FinalDocs.title} icon={RiFileTextLine} isActive={isActive} isPast={isPast} badge="Aguardando Envio">
+          {renderWaitingClientFallback()}
+        </CollapsibleStep>
+      );
+    }
 
     const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
     const ds160Url = docs.ds160_assinada ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.ds160_assinada).data.publicUrl : null;
