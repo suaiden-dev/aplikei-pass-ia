@@ -1,6 +1,7 @@
 export const DS160_SECTION_FIELDS = [
-  ["interviewLocation", "isBrazilian"],
+  ["interviewLocation"],
   [
+    "isBrazilian",
     "surname",
     "givenName",
     "fullNameNativeAlphabet",
@@ -100,6 +101,7 @@ export const DS160_SECTION_FIELDS = [
     "motherInUS",
     "motherUSStatus",
     "otherRelInUS",
+    "otherRelativesList",
     "spouseName",
     "spouseBirth",
     "spouseCity",

@@ -79,26 +79,39 @@ function matchesNotificationRole(
 async function fetchNotifications(
   role: "admin" | "client",
   userId: string,
+  userCreatedAt?: string,
 ): Promise<AppNotification[]> {
   const limit = role === "admin" ? 50 : 30;
 
   if (role === "client") {
-    const { data } = await supabase
+    let query = supabase
       .from("notifications")
       .select("*")
       .eq("target_role", "client")
       .eq("user_id", userId)
-      .in("target_role", ["client", "customer"])
+      .in("target_role", ["client", "customer"]);
+
+    if (userCreatedAt) {
+      query = query.gte("created_at", userCreatedAt);
+    }
+
+    const { data } = await query
       .order("created_at", { ascending: false })
       .limit(limit);
     return ((data as Record<string, unknown>[] | null) ?? []).map(normalizeRealtimeNotification);
   }
 
-  const { data } = await supabase
+  let query = supabase
     .from("notifications")
     .select("*")
     .eq("target_role", "admin")
-    .or(`user_id.eq.${userId},user_id.is.null`)
+    .or(`user_id.eq.${userId},user_id.is.null`);
+
+  if (userCreatedAt) {
+    query = query.gte("created_at", userCreatedAt);
+  }
+
+  const { data } = await query
     .order("created_at", { ascending: false })
     .limit(limit);
   return ((data as Record<string, unknown>[] | null) ?? []).map(normalizeRealtimeNotification);
@@ -126,7 +139,12 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
       if (cached) {
         const parsed = JSON.parse(cached) as { data: AppNotification[]; ts: number };
         if (Date.now() - parsed.ts < 30_000) {
-          setNotifications(parsed.data);
+          // If we have cached notifications, we can use them, but we still ensure they are filtered.
+          // In case user.createdAt changed or cache is somehow outdated.
+          const filtered = user?.createdAt
+            ? parsed.data.filter((n) => new Date(n.created_at) >= new Date(user.createdAt))
+            : parsed.data;
+          setNotifications(filtered);
           return;
         }
       }
@@ -135,12 +153,12 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
     }
 
     try {
-      const data = await fetchNotifications(role, userId);
+      const data = await fetchNotifications(role, userId, user?.createdAt);
       setNotifications(data);
     } catch (error) {
       console.error("[NotificationProvider] Error loading history:", error);
     }
-  }, [cacheKey, role, userId]);
+  }, [cacheKey, role, userId, user?.createdAt]);
 
   const addToToastQueue = useCallback((notif: AppNotification) => {
     const item: ToastItem = {
@@ -167,6 +185,7 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
   const handleInsert = useCallback((payload: RealtimePostgresChangesPayload<AppNotification>) => {
     const newNotif = normalizeRealtimeNotification(payload.new as unknown as Record<string, unknown>);
     if (!matchesNotificationRole(newNotif, role, userId)) return;
+    if (user?.createdAt && new Date(newNotif.created_at) < new Date(user.createdAt)) return;
 
     setNotifications((prev) => {
       if (prev.some((notification) => notification.id === newNotif.id)) return prev;
@@ -178,7 +197,7 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
     }
 
     addToToastQueue(newNotif);
-  }, [addToToastQueue, cacheKey, role, userId]);
+  }, [addToToastQueue, cacheKey, role, userId, user?.createdAt]);
 
   const handleUpdate = useCallback((payload: RealtimePostgresChangesPayload<AppNotification>) => {
     const updated = normalizeRealtimeNotification(payload.new as unknown as Record<string, unknown>);
@@ -277,6 +296,10 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
         return;
       }
 
+      if (user?.createdAt && new Date(notification.created_at) < new Date(user.createdAt)) {
+        return;
+      }
+
       setNotifications((prev) => {
         if (prev.some((entry) => entry.id === notification.id)) return prev;
         return [notification, ...prev];
@@ -287,7 +310,7 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
 
     window.addEventListener("aplikei:notifications:changed", handler);
     return () => window.removeEventListener("aplikei:notifications:changed", handler);
-  }, [addToToastQueue, loadHistory, role, user?.id]);
+  }, [addToToastQueue, loadHistory, role, user?.id, user?.createdAt]);
 
   const value: NotificationContextValue = {
     notifications,

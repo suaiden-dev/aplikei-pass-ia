@@ -342,7 +342,7 @@ const Section = ({
   subtitle?: string;
   children: React.ReactNode;
 }) => (
-  <div className="relative">
+  <div className="relative pb-8">
     <div className="mb-6">
       <h3 className="text-base font-black text-text uppercase tracking-wide">{title}</h3>
       {subtitle && <p className="text-xs text-text-muted font-medium mt-1">{subtitle}</p>}
@@ -542,7 +542,29 @@ export const DS160SingleFormStep = ({
           </div>
           <FormInput name="usStayCity" label={t.onboardingPage.form.cityLabel} required />
           <FormInput name="usStayState" label={t.onboardingPage.form.stateLabelShort} placeholder={t.onboardingPage.form.statePlaceholderShort} required />
-          <FormNumericInput name="usStayZip" label={t.onboardingPage.form.zipCodeLabel} placeholder={t.onboardingPage.form.zipCodePlaceholder} />
+          <FormNumericInput 
+            name="usStayZip" 
+            label={t.onboardingPage.form.zipCodeLabel} 
+            placeholder={t.onboardingPage.form.zipCodePlaceholder} 
+            onChange={async (val) => {
+              const cleanZip = val.replace(/\D/g, "");
+              if (cleanZip.length === 5) {
+                try {
+                  const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
+                  if (res.ok) {
+                    const data = await res.json();
+                    const place = data.places?.[0];
+                    if (place) {
+                      setFieldValue("usStayCity", place["place name"] || "");
+                      setFieldValue("usStayState", place["state abbreviation"] || "");
+                    }
+                  }
+                } catch (err) {
+                  console.error("Zippopotam usStayZip failed:", err);
+                }
+              }
+            }}
+          />
         </div>
       </div>
 
@@ -652,6 +674,21 @@ export const DS160SingleFormStep = ({
               } catch (err) {
                 console.error("ViaCEP autofill failed:", err);
               }
+            } else if (cleanCep.length === 5) {
+              try {
+                const res = await fetch(`https://api.zippopotam.us/us/${cleanCep}`);
+                if (res.ok) {
+                  const data = await res.json();
+                  const place = data.places?.[0];
+                  if (place) {
+                    setFieldValue("homeCity", place["place name"] || "");
+                    setFieldValue("homeState", place["state abbreviation"] || "");
+                    setFieldValue("homeCountry", "United States");
+                  }
+                }
+              } catch (err) {
+                console.error("Zippopotam US homeZip failed:", err);
+              }
             }
           }}
         />
@@ -726,6 +763,114 @@ export const DS160SingleFormStep = ({
       </div>
 
       <YesNo name="otherRelInUS" label={t.onboardingPage.form.otherRelInUS} />
+
+      {values.otherRelInUS === "sim" && (
+        <div className="space-y-6">
+          {(() => {
+            const relatives = Array.isArray(values.otherRelativesList) && values.otherRelativesList.length > 0
+              ? values.otherRelativesList
+              : [{ name: "", relation: "", status: "" }];
+
+            return (
+              <>
+                {relatives.map((rel, idx) => {
+                  return (
+                    <div key={idx} className="relative p-5 bg-bg-subtle rounded-2xl border border-border space-y-4">
+                      {relatives.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newList = relatives.filter((_, rIdx) => rIdx !== idx);
+                            setFieldValue("otherRelativesList", newList);
+                          }}
+                          className="absolute top-4 right-4 text-xs font-bold text-red-500 hover:text-red-750 hover:underline uppercase tracking-widest"
+                        >
+                          Remover
+                        </button>
+                      )}
+                      <p className="text-[11px] font-black text-text-muted uppercase tracking-widest">
+                        Parente {idx + 1}
+                      </p>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div className="space-y-1.5">
+                          <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+                            Nome Completo
+                          </label>
+                          <input
+                            type="text"
+                            value={rel.name || ""}
+                            onChange={(e) => {
+                              const newList = [...relatives];
+                              newList[idx] = { ...newList[idx], name: e.target.value };
+                              setFieldValue("otherRelativesList", newList);
+                            }}
+                            className="w-full px-4 py-3 rounded-xl border border-border bg-card text-sm font-medium text-text placeholder:text-slate-400 transition-all outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                            placeholder="Ex: Pedro da Silva"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+                            Grau de Parentesco
+                          </label>
+                          <select
+                            value={rel.relation || ""}
+                            onChange={(e) => {
+                              const newList = [...relatives];
+                              newList[idx] = { ...newList[idx], relation: e.target.value };
+                              setFieldValue("otherRelativesList", newList);
+                            }}
+                            className="w-full px-4 py-3 rounded-xl border border-border bg-card text-sm font-medium text-text transition-all outline-none focus:ring-2 focus:ring-primary/20 appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%23888\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E')] bg-[length:18px] bg-no-repeat bg-[right_12px_center] pr-10 focus:border-primary"
+                          >
+                            <option value="">Selecione...</option>
+                            <option value="irmao">Irmão/Irmã</option>
+                            <option value="filho">Filho/Filha</option>
+                            <option value="noivo">Noivo/Noiva</option>
+                            <option value="outro">Outro Parente</option>
+                          </select>
+                        </div>
+
+                        <div className="sm:col-span-2 space-y-1.5">
+                          <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+                            Status Imigratório nos EUA
+                          </label>
+                          <select
+                            value={rel.status || ""}
+                            onChange={(e) => {
+                              const newList = [...relatives];
+                              newList[idx] = { ...newList[idx], status: e.target.value };
+                              setFieldValue("otherRelativesList", newList);
+                            }}
+                            className="w-full px-4 py-3 rounded-xl border border-border bg-card text-sm font-medium text-text transition-all outline-none focus:ring-2 focus:ring-primary/20 appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%23888\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E')] bg-[length:18px] bg-no-repeat bg-[right_12px_center] pr-10 focus:border-primary"
+                          >
+                            <option value="">Selecione...</option>
+                            <option value="citizen">Cidadão Americano</option>
+                            <option value="lpr">Residente Permanente Legal (Green Card)</option>
+                            <option value="nonImmigrant">Não Imigrante (Visto de Turismo/Trabalho)</option>
+                            <option value="student">Estudante / Intercâmbio (F/J)</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newList = [...relatives, { name: "", relation: "", status: "" }];
+                    setFieldValue("otherRelativesList", newList);
+                  }}
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-border hover:border-primary hover:text-primary transition-all text-xs font-black uppercase tracking-widest text-text-muted w-full"
+                >
+                  + Adicionar Parente nos EUA
+                </button>
+              </>
+            );
+          })()}
+        </div>
+      )}
 
       <div>
         <p className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-4">{t.onboardingPage.form.spouseLabel}</p>

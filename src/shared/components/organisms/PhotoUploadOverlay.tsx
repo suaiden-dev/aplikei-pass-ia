@@ -10,6 +10,7 @@ import {
 import { storageService } from "@features/auth/services/storage";
 import { authService } from "@features/auth/lib/auth";
 import { toast } from "sonner";
+import { useT } from "@app/app/i18n";
 
 interface PhotoUploadOverlayProps {
   userId: string;
@@ -23,11 +24,32 @@ export default function PhotoUploadOverlay({ userId, onSuccess, onClose }: Photo
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const dashboardT = useT("dashboard");
+  const t = (dashboardT?.dashboard?.passportUploadModal ?? dashboardT?.passportUploadModal) || {
+    title: "Identificação com Passaporte",
+    description: "Segure o passaporte aberto ao lado do seu rosto",
+    closeTitle: "Fechar e voltar",
+    reqHoldingPassport: "Segurando Passaporte",
+    reqLegibleData: "Dados Legíveis",
+    reqWhiteBackground: "Fundo Branco",
+    reqNoGlasses: "Sem Óculos",
+    reqVisibleFaceId: "Rosto e ID Visíveis",
+    reqGoodLighting: "Boa Iluminação",
+    uploadPhoto: "Carregar Foto",
+    changePhoto: "Alterar Foto",
+    supportedFormats: "Formatos suportados: JPG, PNG. Máximo 5MB.",
+    confirmAndProceed: "Confirmar e Prosseguir",
+    sending: "Enviando...",
+    errorMaxSize: "A foto deve ter no máximo 5MB.",
+    successUpload: "Foto enviada com sucesso!",
+    errorUpload: "Erro ao enviar foto: {error}"
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (selected) {
       if (selected.size > 5 * 1024 * 1024) {
-        toast.error("A foto deve ter no máximo 5MB.");
+        toast.error(t.errorMaxSize);
         return;
       }
       setFile(selected);
@@ -41,11 +63,11 @@ export default function PhotoUploadOverlay({ userId, onSuccess, onClose }: Photo
     try {
       const url = await storageService.uploadProfilePhoto(userId, file);
       await authService.updateAccount(userId, { passport_photo_url: url });
-      toast.success("Foto enviada com sucesso!");
+      toast.success(t.successUpload);
       onSuccess(url);
     } catch (error: unknown) {
       const errMsg = error instanceof Error ? error.message : "Erro desconhecido";
-      toast.error(`Erro ao enviar foto: ${errMsg}`);
+      toast.error(t.errorUpload.replace("{error}", errMsg));
     } finally {
       setIsUploading(false);
     }
@@ -80,13 +102,13 @@ export default function PhotoUploadOverlay({ userId, onSuccess, onClose }: Photo
               </div>
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-display font-black text-text leading-tight tracking-tight">Identificação com Passaporte</h2>
-              <p className="text-sm text-text-muted font-medium tracking-tight mt-0.5">Segure o passaporte aberto ao lado do seu rosto</p>
+              <h2 className="text-xl font-display font-black text-text leading-tight tracking-tight">{t.title}</h2>
+              <p className="text-sm text-text-muted font-medium tracking-tight mt-0.5">{t.description}</p>
             </div>
             <button
               onClick={onClose}
               className="w-10 h-10 rounded-xl flex items-center justify-center text-text-muted hover:text-text hover:bg-bg-subtle transition-all"
-              title="Fechar e voltar"
+              title={t.closeTitle}
             >
               <RiCloseLine className="text-2xl" />
             </button>
@@ -97,14 +119,14 @@ export default function PhotoUploadOverlay({ userId, onSuccess, onClose }: Photo
         <div className="p-8">
           <div className="grid grid-cols-2 gap-4 mb-8">
             <div className="space-y-3">
-              <RequirementItem label="Segurando Passaporte" />
-              <RequirementItem label="Dados Legíveis" />
-              <RequirementItem label="Fundo Branco" />
+              <RequirementItem label={t.reqHoldingPassport} />
+              <RequirementItem label={t.reqLegibleData} />
+              <RequirementItem label={t.reqWhiteBackground} />
             </div>
             <div className="space-y-3">
-              <RequirementItem label="Sem Óculos" />
-              <RequirementItem label="Rosto e ID Visíveis" />
-              <RequirementItem label="Boa Iluminação" />
+              <RequirementItem label={t.reqNoGlasses} />
+              <RequirementItem label={t.reqVisibleFaceId} />
+              <RequirementItem label={t.reqGoodLighting} />
             </div>
           </div>
 
@@ -119,13 +141,13 @@ export default function PhotoUploadOverlay({ userId, onSuccess, onClose }: Photo
               <>
                 <img src={preview} alt="Preview" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="text-white text-xs font-bold uppercase tracking-widest">Alterar Foto</span>
+                  <span className="text-white text-xs font-bold uppercase tracking-widest">{t.changePhoto}</span>
                 </div>
               </>
             ) : (
               <>
                 <RiUploadCloud2Line className="text-4xl text-text-muted/30 mb-3 group-hover:text-primary group-hover:scale-110 transition-all" />
-                <span className="text-xs font-black text-text-muted uppercase tracking-widest group-hover:text-primary">Carregar Foto</span>
+                <span className="text-xs font-black text-text-muted uppercase tracking-widest group-hover:text-primary">{t.uploadPhoto}</span>
               </>
             )}
             <input 
@@ -138,7 +160,7 @@ export default function PhotoUploadOverlay({ userId, onSuccess, onClose }: Photo
           </div>
 
           <p className="text-[10px] text-text-muted text-center mt-4 font-medium italic">
-            Formatos suportados: JPG, PNG. Máximo 5MB.
+            {t.supportedFormats}
           </p>
         </div>
 
@@ -155,11 +177,14 @@ export default function PhotoUploadOverlay({ userId, onSuccess, onClose }: Photo
             `}
           >
             {isUploading ? (
-              <RiLoader4Line className="animate-spin text-lg" />
+              <span className="flex items-center gap-2">
+                <RiLoader4Line className="animate-spin text-lg" />
+                {t.sending}
+              </span>
             ) : (
               <>
                 <RiCheckDoubleLine className="text-lg" />
-                Confirmar e Prosseguir
+                {t.confirmAndProceed}
               </>
             )}
           </button>

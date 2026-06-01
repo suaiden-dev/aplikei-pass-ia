@@ -1,4 +1,4 @@
-const checkout = {
+ const checkout = {
     paymentPending: {
         title: "PAGAMENTO DA TAXA CONSULAR",
         desc: "Selecione a forma de pagamento desejada para prosseguir com o agendamento.",

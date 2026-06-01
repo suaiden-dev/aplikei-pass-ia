@@ -332,7 +332,11 @@ export default function ProcessDetailPage() {
 
   const visibleSteps = steps
     .map((step, originalIdx) => ({ step, originalIdx }))
-    .filter(({ step }) => (step as { type?: string }).type !== "admin_action");
+    .filter(
+      ({ step, originalIdx }) =>
+        (step as { type?: string }).type !== 'admin_action' ||
+        originalIdx === steps.length - 1,
+    );
   const currentVisibleStepIdx = visibleSteps.findIndex(
     ({ originalIdx }) => originalIdx === currentStepIndex,
   );
@@ -562,13 +566,24 @@ export default function ProcessDetailPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h3 className={`text-sm font-bold uppercase tracking-tight mb-1 ${isCurrent ? "text-primary" : "text-text"
-                      }`}>
-                      {t.processSteps?.[step.id]?.title || step.title}
-                    </h3>
-                    <p className="text-[13px] text-text-muted font-medium leading-relaxed">
-                      {t.processSteps?.[step.id]?.description || step.description}
-                    </p>
+                    {(() => {
+                      const stepTranslationKey = 
+                        step.id === "b1b2_form" ? "b1b2_ds160_filling" :
+                        step.id === "f1_form" ? "f1_ds160_filling" :
+                        step.id === "eos_form" ? "eos_application_form" :
+                        step.id;
+
+                      return (
+                        <>
+                          <h3 className={`text-sm font-bold uppercase tracking-tight mb-1 ${isCurrent ? "text-primary" : "text-text"}`}>
+                            {t.processSteps?.[stepTranslationKey]?.title || step.title}
+                          </h3>
+                          <p className="text-[13px] text-text-muted font-medium leading-relaxed">
+                            {t.processSteps?.[stepTranslationKey]?.description || step.description}
+                          </p>
+                        </>
+                      );
+                    })()}
 
                     {isCOS &&
                       (isCurrent || isCompleted) &&
@@ -624,10 +639,10 @@ export default function ProcessDetailPage() {
                         })() && (
                           <div className="mb-5 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3">
                             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-warning">
-                              Em análise
+                              {t.processDetail.inReview || "Em análise"}
                             </p>
                             <p className="mt-1 text-xs font-semibold text-text">
-                              Sua etapa foi enviada e está em análise pela equipe responsável.
+                              {t.processDetail.underReviewDesc || "Sua etapa foi enviada e está em análise pela equipe responsável."}
                             </p>
                           </div>
                         )}
