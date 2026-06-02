@@ -510,7 +510,7 @@ export default function ProductsPage() {
           <p className="text-lg font-bold text-text-muted">No main visas found.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           {mainServices.map((main) => (
             <div key={main.id} className="bg-card rounded-3xl border border-border p-6 shadow-sm">
               <div className="text-left mb-4">
@@ -525,33 +525,35 @@ export default function ProductsPage() {
                 <button onClick={() => setSelectedMainProduct(main)} className="w-full h-11 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all">
                   Configure
                 </button>
-                <div className="rounded-xl border border-border bg-bg-subtle/50 p-2.5">
-                  <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Product link</p>
-                  <div className="flex items-center gap-2">
-                    <input
-                      readOnly
-                      value={checkoutUrl(main.slug)}
-                      placeholder="Office slug required to generate the link"
-                      className="flex-1 h-9 px-2.5 rounded-lg border border-border bg-card text-[11px] font-medium text-text"
-                    />
-                    <button
-                      onClick={() => {
-                        const url = checkoutUrl(main.slug);
-                        if (!url) {
-                          toast.error("Unable to generate link. Set office slug first.");
-                          return;
-                        }
-                        navigator.clipboard.writeText(url);
-                        toast.success("Product link copied!");
-                      }}
-                      className="h-9 px-3 rounded-lg bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-all inline-flex items-center gap-1"
-                      title="Copy product link"
-                    >
-                      <RiFileCopyLine className="text-sm" />
-                      Copy
-                    </button>
+                {main.is_active && (
+                  <div className="rounded-xl border border-border bg-bg-subtle/50 p-2.5">
+                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Product link</p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        readOnly
+                        value={checkoutUrl(main.slug)}
+                        placeholder="Office slug required to generate the link"
+                        className="flex-1 h-9 px-2.5 rounded-lg border border-border bg-card text-[11px] font-medium text-text"
+                      />
+                      <button
+                        onClick={() => {
+                          const url = checkoutUrl(main.slug);
+                          if (!url) {
+                            toast.error("Unable to generate link. Set office slug first.");
+                            return;
+                          }
+                          navigator.clipboard.writeText(url);
+                          toast.success("Product link copied!");
+                        }}
+                        className="h-9 px-3 rounded-lg bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-all inline-flex items-center gap-1"
+                        title="Copy product link"
+                      >
+                        <RiFileCopyLine className="text-sm" />
+                        Copy
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           ))}
