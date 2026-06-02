@@ -54,6 +54,24 @@ export default function SubscriptionPage() {
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [isCancelingSubscription, setIsCancelingSubscription] = useState(false);
   const [isActivatingSubscription, setIsActivatingSubscription] = useState(false);
+  const [officeName, setOfficeName] = useState<string>("");
+
+  useEffect(() => {
+    async function fetchOfficeName() {
+      if (!officeId) return;
+      const { data } = await supabase
+        .from("offices")
+        .select("name")
+        .eq("id", officeId)
+        .maybeSingle();
+      if (data?.name) {
+        setOfficeName(data.name);
+      }
+    }
+    fetchOfficeName();
+  }, [officeId]);
+
+  const displayOfficeName = officeName || officeId || "";
 
   const fetchPlans = useCallback(async () => {
     setLoadingPlans(true);
@@ -189,7 +207,7 @@ export default function SubscriptionPage() {
 
         await notifyMaster({
           title: "Subscription canceled",
-          body: `Office ${officeId} canceled the active subscription.`,
+          body: `Office ${displayOfficeName} canceled the active subscription.`,
           link: "/master/offices",
           metadata: { office_id: officeId, action: "cancel_subscription" },
         });
@@ -238,7 +256,7 @@ export default function SubscriptionPage() {
 
       await notifyMaster({
         title: "Subscription updated",
-        body: `Office ${officeId} activated/changed to plan ${planToContract.name}.`,
+        body: `Office ${displayOfficeName} activated/changed to plan ${planToContract.name}.`,
         link: "/master/offices",
         metadata: {
           office_id: officeId,

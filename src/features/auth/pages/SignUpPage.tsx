@@ -11,6 +11,7 @@ import { PhoneInput } from "@shared/components/molecules/PhoneInput";
 import { useAuthForm } from "../hooks/useAuthForm";
 import { getSignUpSchema } from "../schemas/auth.schema";
 import { useT } from "@app/app/i18n";
+import { useLocale } from "@app/app/i18n/lib";
 import { useSearchParams } from "react-router-dom";
 import { authService } from "../lib/auth";
 import { getDashboardPathForRole, normalizeRole } from "../lib/roles";
@@ -18,6 +19,7 @@ import { getDashboardPathForRole, normalizeRole } from "../lib/roles";
 export default function SignUp() {
   const t = useT("auth");
   const v = useT("validation");
+  const { lang } = useLocale();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { signUp } = useAuthForm();
@@ -39,7 +41,19 @@ export default function SignUp() {
     onSubmit: async (values, { setSubmitting }) => {
       try {
         const result = await signUp(values);
-        toast.success(t.signup.success);
+        
+        const normalizedRole = normalizeRole(values.role);
+        if (normalizedRole === "seller" || normalizedRole === "manager") {
+          const successMsg =
+            lang === "pt"
+              ? "Conta criada com sucesso!"
+              : lang === "es"
+              ? "¡Cuenta creada con éxito!"
+              : "Account created successfully!";
+          toast.success(successMsg);
+        } else {
+          toast.success(t.signup.success);
+        }
 
         if (result?.session?.user) {
           const account = await authService.resolveAccount(result.session.user);
