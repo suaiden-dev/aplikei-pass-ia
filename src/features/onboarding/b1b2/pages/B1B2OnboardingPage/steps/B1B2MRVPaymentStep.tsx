@@ -75,14 +75,14 @@ export function B1B2MRVPaymentStep({ procId, stepData, nextStepIdx = 10, onCompl
         mrv_payment_method: method,
         mrv_payment_confirmed_at: new Date().toISOString(),
       });
-      await processService.approveStep(procId, nextStepIdx, false); 
-      // Notifica admin para o agendamento final
-      await processService.updateProcessStatus(procId, "awaiting_review");
-      
-      // Notify Admin
+      await processService.approveStep(procId, nextStepIdx, false);
+      // Ensure process is not stuck in awaiting_review for this non-review step.
+      await processService.updateProcessStatus(procId, "active");
+
+      // Notify admin about payment confirmation (no review lock here).
       await notificationService.notifyAdmin({
         title: "MRV fee payment confirmed",
-        body: `Client confirmed MRV fee payment (${method === "credit_card" ? "Credit card" : "Bank slip"}). Process is awaiting final scheduling in portal.`,
+        body: `Client confirmed MRV fee payment (${method === "credit_card" ? "Credit card" : "Bank slip"}). Process moved to closure step.`,
         serviceId: procId,
         link: `/master/processes/${procId}`,
       });

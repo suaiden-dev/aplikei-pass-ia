@@ -75,6 +75,8 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
   // Consultation State
   const [purchasedConsultation, setPurchasedConsultation] = useState<Record<string, unknown> | null>(null);
   const [isSchedulingConsultation, setIsSchedulingConsultation] = useState(false);
+  const [processOfficeId, setProcessOfficeId] = useState<string | null>(null);
+  const checkoutOfficeId = user?.officeId || processOfficeId;
 
   // Chatbot State
   const [chatMessages, setChatMessages] = useState<{ id: string, role: "user" | "bot", text: string }[]>([
@@ -92,6 +94,16 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
   }, [chatMessages, isBotTyping]);
 
   useEffect(() => {
+    async function resolveProcessOfficeId() {
+      if (!procId) return;
+      const { data } = await supabase
+        .from("user_services")
+        .select("office_id")
+        .eq("id", procId)
+        .maybeSingle();
+      setProcessOfficeId((data?.office_id as string | null | undefined) ?? null);
+    }
+
     async function checkMentorship() {
       if (!user || !procId) return;
       const mentorshipSlugs = [
@@ -175,6 +187,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
       }
     }
 
+    resolveProcessOfficeId();
     checkMentorship();
     loadFreshData();
   }, [user, procId]);
@@ -649,7 +662,17 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
                             {t.onboardingPage.processingStatus.consultationSpecialist}
                           </button>
                         )}
-                        <button onClick={() => navigate(`/checkout/visto-f1-reaplicacao${user?.officeId ? `?office_id=${user.officeId}` : ""}`)} className="py-4 bg-card border border-border rounded-xl font-black uppercase text-xs tracking-widest text-text">{t.onboardingPage.processingStatus.restartProcess}</button>
+                        <button
+                          onClick={() => {
+                            const query = new URLSearchParams();
+                            query.set("restart", "true");
+                            if (checkoutOfficeId) query.set("office_id", checkoutOfficeId);
+                            navigate(`/checkout/visa-f1${query.toString() ? `?${query.toString()}` : ""}`);
+                          }}
+                          className="py-4 bg-card border border-border rounded-xl font-black uppercase text-xs tracking-widest text-text"
+                        >
+                          {t.onboardingPage.processingStatus.restartProcess}
+                        </button>
                      </div>
                    </div>
                  )}

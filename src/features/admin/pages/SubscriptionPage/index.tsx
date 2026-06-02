@@ -14,7 +14,7 @@ import {
 } from "react-icons/ri";
 import { toast } from "sonner";
 import { useSubscription } from "@features/admin/hooks/useSubscription";
-import { useT } from "@app/app/i18n";
+import { useLocale, useT } from "@app/app/i18n";
 import { supabase } from "@shared/lib/supabase";
 import { useAuth } from "@shared/hooks/useAuth";
 import { notifyMaster } from "@features/notifications/services/notify";
@@ -40,6 +40,7 @@ interface BillingHistoryItem {
 
 export default function SubscriptionPage() {
   const t = useT("admin");
+  const { lang } = useLocale();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const urlPlanId = searchParams.get("planId");
@@ -157,6 +158,19 @@ export default function SubscriptionPage() {
     return name;
   }, []);
 
+  const normalizePlanDescription = useCallback((description: string, type: DBPlan["type"]) => {
+    const raw = String(description || "").trim();
+    if (lang === "en") {
+      if (raw.toLowerCase() === "pague apenas uma porcentagem do que faturar.") {
+        return "Pay only a percentage of what you bill.";
+      }
+      if (type === "PERCENTAGE" && raw) {
+        return raw;
+      }
+    }
+    return raw;
+  }, [lang]);
+
    const handleCancelSubscription = async () => {
       if (!officeId) {
         toast.error("Your user has no linked office to cancel subscription.");
@@ -257,12 +271,12 @@ export default function SubscriptionPage() {
   const renderContent = () => {
     if (status === 'none' || (urlPlanId && !isActive)) {
       return (
-        <div className="p-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-1000">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20 mb-6">
               <RiVipCrown2Line /> {t.subscription.onboarding.eyebrow}
             </div>
-            <h1 className="text-5xl font-black tracking-tighter text-text mb-4 uppercase">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tighter text-text mb-4 uppercase">
               {urlPlanId ? "Exclusive Offer Unlocked" : t.subscription.onboarding.title}
             </h1>
             <p className="text-text-muted max-w-2xl mx-auto font-medium">
@@ -270,13 +284,13 @@ export default function SubscriptionPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8 text-left">
             {availablePlans.map((plan) => {
               const color = getPlanColor(plan.type);
               return (
                 <div 
                   key={plan.id}
-                  className={`relative p-10 rounded-[40px] border-2 bg-card transition-all hover:-translate-y-2 flex flex-col shadow-xl shadow-bg-subtle ${
+                  className={`relative p-6 sm:p-8 lg:p-10 rounded-[32px] lg:rounded-[40px] border-2 bg-card transition-all hover:-translate-y-2 flex flex-col shadow-xl shadow-bg-subtle ${
                     color === 'primary' ? 'border-primary/20 hover:border-primary' :
                     color === 'secondary' ? 'border-secondary/20 hover:border-secondary' :
                     'border-warning/20 hover:border-warning'
@@ -298,7 +312,7 @@ export default function SubscriptionPage() {
                     {normalizePlanName(plan.name)}
                   </h3>
                   <div className="mb-6">
-                    <span className="text-4xl font-black tracking-tighter">
+                    <span className="text-3xl lg:text-4xl font-black tracking-tighter">
                       {plan.fixed_fee > 0 ? `$${plan.fixed_fee}` : `${plan.percentage_fee}%`}
                     </span>
                     <span className="text-xs text-text-muted font-bold block mt-1 uppercase">
@@ -307,7 +321,7 @@ export default function SubscriptionPage() {
                   </div>
 
                   <p className="text-sm text-text-muted font-medium mb-8 flex-grow leading-relaxed">
-                    {plan.description}
+                    {normalizePlanDescription(plan.description, plan.type)}
                   </p>
 
                   <div className="space-y-4 mb-10">
@@ -342,7 +356,7 @@ export default function SubscriptionPage() {
     }
 
     return (
-      <div className="p-4 sm:p-8 pb-20 max-w-[1000px] mx-auto animate-in fade-in duration-700">
+      <div className="p-4 sm:p-6 lg:p-8 pb-20 max-w-7xl mx-auto animate-in fade-in duration-700">
         {/* Header Section */}
         <div className="mb-10 text-left">
           <h1 className="text-4xl font-black tracking-tight text-text mb-2 uppercase">{t.subscription.title}</h1>
@@ -351,15 +365,15 @@ export default function SubscriptionPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-left">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8 text-left">
           {/* Main Subscription Card */}
-          <div className="lg:col-span-2 space-y-8">
-            <div className="relative overflow-hidden rounded-[32px] border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card p-10 shadow-2xl shadow-primary/5">
+          <div className="xl:col-span-2 space-y-8">
+            <div className="relative overflow-hidden rounded-[28px] sm:rounded-[32px] border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card p-6 sm:p-8 lg:p-10 shadow-2xl shadow-primary/5">
               {/* Background Accent */}
               <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
               
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/30">
                       <RiVipCrown2Line className="text-3xl" />
@@ -379,7 +393,7 @@ export default function SubscriptionPage() {
                       )}
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <p className="text-3xl font-black text-text tracking-tighter">{currentPlan.price}</p>
                     <p className="text-xs text-text-muted font-bold uppercase">{currentPlan.period}</p>
                   </div>
@@ -420,7 +434,7 @@ export default function SubscriptionPage() {
             </div>
 
             {/* Billing History Placeholder */}
-            <div className="rounded-[32px] border border-border bg-card p-8 shadow-sm">
+            <div className="rounded-[28px] sm:rounded-[32px] border border-border bg-card p-6 sm:p-8 shadow-sm">
               <div className="flex items-center gap-3 mb-6">
                 <RiBillLine className="text-2xl text-text-muted" />
                 <h3 className="text-lg font-black text-text uppercase tracking-tight">{t.subscription.billingHistory}</h3>
@@ -452,7 +466,7 @@ export default function SubscriptionPage() {
           </div>
 
           {/* Upgrade Sidebar */}
-          <div className="space-y-6 text-left">
+          <div className="space-y-6 text-left xl:sticky xl:top-24 h-fit">
             <div className="rounded-[32px] border border-border bg-card p-8 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-secondary/5 rounded-full blur-2xl group-hover:bg-secondary/10 transition-all" />
               
@@ -535,7 +549,7 @@ export default function SubscriptionPage() {
                     </div>
 
                     <p className="text-sm text-text-muted font-medium mb-8 flex-grow leading-relaxed">
-                      {plan.description}
+                      {normalizePlanDescription(plan.description, plan.type)}
                     </p>
 
                     <div className="space-y-3 mb-8">

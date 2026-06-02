@@ -9,11 +9,9 @@ import {
     RiExpandUpDownLine,
     RiShoppingBag3Line,
     RiInformationLine,
-    RiCheckDoubleLine,
     RiUser3Line,
     RiBuilding2Line,
     RiMoneyDollarCircleLine,
-    RiCloseCircleLine
 } from "react-icons/ri";
 import { supabase } from "@shared/lib/supabase";
 import * as paymentService from "@features/payments/lib/paymentOps";
@@ -50,6 +48,8 @@ interface UnifiedPayment {
     adminNotes?: string | null;
     paymentLink?: string | null;
     reviewedByName?: string | null;
+    zelleName?: string | null;
+    zelleIdentifier?: string | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -171,6 +171,22 @@ function DetailModal({
                                     Pagar
                                 </Button>
                             )}
+                        </div>
+                    )}
+
+                    {payment.source === "withdrawal" && payment.method.toLowerCase() === "zelle" && (
+                        <div className="p-4 rounded-2xl bg-info/5 border border-info/10 space-y-2">
+                            <p className="text-[10px] font-black text-info uppercase tracking-widest">Zelle do advogado</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Nome</p>
+                                    <p className="text-sm font-black text-text">{payment.zelleName || "Não configurado"}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Identificador</p>
+                                    <p className="text-sm font-black text-text break-all">{payment.zelleIdentifier || "Não configurado"}</p>
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -315,13 +331,51 @@ export default function RevenuePage() {
             }
 
             const { data: withdrawalsData } = await withdrawalsQuery;
+            const withdrawalRows = (withdrawalsData ?? []) as Array<{
+                id: string;
+                office_id?: string | null;
+                amount?: number | string | null;
+                status?: string | null;
+                method?: string | null;
+                payment_method?: string | null;
+                payment_link?: string | null;
+                reviewed_by_name?: string | null;
+                created_at: string;
+                offices?: { name?: string | null } | null;
+            }>;
+            const withdrawalOfficeIds = Array.from(
+                new Set(withdrawalRows.map((row) => row.office_id).filter((id): id is string => Boolean(id))),
+            );
+            const payoutSettingsByOfficeId = new Map<string, { zelle_name?: string | null; zelle_identifier?: string | null }>();
 
-            (withdrawalsData ?? []).forEach((r: any) => {
+            if (withdrawalOfficeIds.length > 0) {
+                const { data: payoutSettingsData, error: payoutSettingsError } = await supabase
+                    .from("office_payment_settings")
+                    .select("office_id, zelle_name, zelle_identifier")
+                    .in("office_id", withdrawalOfficeIds);
+
+                if (payoutSettingsError) {
+                    console.error("[RevenuePage] Failed to load withdrawal payout settings:", payoutSettingsError);
+                }
+
+                (payoutSettingsData ?? []).forEach((settings: any) => {
+                    if (settings?.office_id) {
+                        payoutSettingsByOfficeId.set(settings.office_id, {
+                            zelle_name: settings.zelle_name ?? null,
+                            zelle_identifier: settings.zelle_identifier ?? null,
+                        });
+                    }
+                });
+            }
+
+            withdrawalRows.forEach((r) => {
                 const rawStatus = String(r.status || "").toLowerCase();
                 const normalizedStatus =
                     rawStatus === "completed" ? "approved" :
                         rawStatus === "cancelled" ? "rejected" :
                             rawStatus;
+                const method = String(r.method || r.payment_method || "manual").toUpperCase();
+                const payoutSettings = r.office_id ? payoutSettingsByOfficeId.get(r.office_id) : undefined;
 
                 results.push({
                     id: r.id,
@@ -331,13 +385,15 @@ export default function RevenuePage() {
                     serviceName: "WITHDRAWAL REQUEST",
                     serviceSlug: "withdrawal_request",
                     amount: Number(r.amount) || 0,
-                    method: r.method?.toUpperCase() || "MANUAL",
+                    method,
                     createdAt: r.created_at,
-                    officeName: r.offices?.name,
-                    officeId: r.office_id,
+                    officeName: r.offices?.name ?? undefined,
+                    officeId: r.office_id ?? undefined,
                     status: normalizedStatus,
                     paymentLink: r.payment_link ?? null,
                     reviewedByName: r.reviewed_by_name ?? null,
+                    zelleName: payoutSettings?.zelle_name ?? null,
+                    zelleIdentifier: payoutSettings?.zelle_identifier ?? null,
                 });
             });
         }
@@ -451,7 +507,8 @@ export default function RevenuePage() {
         if (!p.zelleId) return;
         setBusy(p.id);
         try {
-            await paymentService.approveZellePayment(p.zelleId);
+            const approvedByName = user?.fullName || user?.email || "Admin";
+            await paymentService.approveZellePayment(p.zelleId, approvedByName);
             toast.success(t.payments.messages.approveSuccess);
             setSelectedPayment(null);
             await load();
@@ -649,7 +706,7 @@ export default function RevenuePage() {
                             tab === "zelle" ? "text-primary" : "text-text-muted hover:text-text"
                         )}
                     >
-                        {t.payments?.tabs?.pending || "Zelle Verification"}
+                        {t.payments?.tabs?.pending || "Payment Pending"}
                         {tab === "zelle" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
                     </button>
                     {canAccessOfficeRequests && (
@@ -846,24 +903,6 @@ export default function RevenuePage() {
                                         </td>
                                         <td className="px-6 py-5 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                {tab === "zelle" && p.source === "zelle" && String(p.status).toLowerCase() === "pending_verification" && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => handleApproveZelle(p)}
-                                                            className="w-8 h-8 rounded-lg border border-success/20 text-success hover:bg-success/10 flex items-center justify-center transition-all"
-                                                            title="Approve payment"
-                                                        >
-                                                            <RiCheckDoubleLine />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleRejectZelle(p)}
-                                                            className="w-8 h-8 rounded-lg border border-danger/20 text-danger hover:bg-danger/10 flex items-center justify-center transition-all"
-                                                            title="Reject payment"
-                                                        >
-                                                            <RiCloseCircleLine />
-                                                        </button>
-                                                    </>
-                                                )}
                                                 <Button
                                                     variant="outline"
                                                     size="sm"

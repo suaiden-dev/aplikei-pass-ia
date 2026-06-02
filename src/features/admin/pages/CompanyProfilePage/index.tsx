@@ -297,6 +297,7 @@ export default function CompanyProfilePage() {
       }
       await refreshAccount();
       toast.success(t.companyProfile.messages.saveSuccess);
+      window.location.reload();
     } catch (err) {
       console.error("Error updating office:", err);
       toast.error(t.companyProfile.messages.saveError);

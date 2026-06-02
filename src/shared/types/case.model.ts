@@ -16,6 +16,7 @@ export interface CaseRecord {
   visaType: string;
   owner: string;
   currentStep?: string;
+  hasPendingRevision?: boolean;
   priority: CasePriority;
   status: CaseStatus;
   updatedAt: string;

@@ -62,7 +62,9 @@ export function B1B2UserReviewSignStep({
   });
 
   const adminFeedback = (stepData.admin_feedback as string) || null;
-  const rejectedItems = (stepData.rejected_items as string[]) || [];
+  const rejectedItems = ((stepData.rejected_items as string[]) || []).map(String);
+  const isDs160Rejected = rejectedItems.includes("docs.ds160_assinada");
+  const isProofRejected = rejectedItems.includes("docs.ds160_comprovante");
 
   const appId = (stepData.ds160_application_id as string) || null;
   const motherName = (stepData.ds160_security_answer as string) || null;
@@ -338,6 +340,11 @@ export function B1B2UserReviewSignStep({
       <p className="text-sm text-text-muted font-medium text-center mb-6">
         Após assinar a DS-160 no CEAC, faça o upload dos dois comprovantes abaixo.
       </p>
+      {adminFeedback && (isDs160Rejected || isProofRejected) && (
+        <p className="text-xs text-danger font-black text-center mb-6 uppercase tracking-widest">
+          Documentos marcados para correção estão destacados em vermelho.
+        </p>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <DocUploadCard
@@ -346,7 +353,7 @@ export function B1B2UserReviewSignStep({
           subtitle={t.onboardingPage?.sendFinalFile ?? "Envie o arquivo final da sua aplicação."}
           doc={docs.ds160_assinada}
           onChange={uploadDoc}
-          isRejected={rejectedItems.includes("docs.ds160_assinada")}
+          isRejected={isDs160Rejected}
         />
         <DocUploadCard
           docKey="ds160_comprovante"
@@ -354,7 +361,7 @@ export function B1B2UserReviewSignStep({
           subtitle={t.onboardingPage?.sendCeacConfirmation ?? "Envie a Confirmação de Submissão do CEAC."}
           doc={docs.ds160_comprovante}
           onChange={uploadDoc}
-          isRejected={rejectedItems.includes("docs.ds160_comprovante")}
+          isRejected={isProofRejected}
         />
       </div>
 

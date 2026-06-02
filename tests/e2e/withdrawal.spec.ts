@@ -82,10 +82,15 @@ test.describe("Withdrawal Flow", () => {
     await expect(row.getByText("$500.00").first()).toBeVisible();
     await expect(pendingBadge).toBeVisible();
 
-    // Click the approve button (title can vary by locale)
-    const approveBtn = page.locator(
-      "button[title='Approve request'], button[title='Aprovar solicitação'], button[aria-label='Approve request'], button[aria-label='Aprovar solicitação']",
-    ).first();
+    const detailsBtn = row.getByRole("button", { name: /Details|Detalhes|Visualizar/i }).first();
+    await expect(detailsBtn).toBeVisible();
+    await detailsBtn.click();
+
+    await expect(page.getByText(/Zelle do advogado/i)).toBeVisible();
+    await expect(page.getByText("Admin").first()).toBeVisible();
+    await expect(page.getByText("admin@example.com").first()).toBeVisible();
+
+    const approveBtn = page.getByRole("button", { name: /Confirm|Confirmar/i }).last();
     await expect(approveBtn).toBeVisible();
     await approveBtn.click();
 

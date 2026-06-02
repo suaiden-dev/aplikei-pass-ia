@@ -232,6 +232,7 @@ export default function CheckoutPage() {
   const [officeIdFromProcess, setOfficeIdFromProcess] = useState<string | null>(null);
   const [resolvingOfficeId, setResolvingOfficeId] = useState<boolean>(shouldResolveOfficeFromProcess);
   const officeId = officeIdParam || officeIdFromProcess;
+  const isRestartFlow = searchParams.get("restart") === "true";
 
 
   const service = getServiceBySlug(slug || "");
@@ -470,6 +471,8 @@ export default function CheckoutPage() {
 
         const CATALOG_SLUG: Record<string, string> = { "visto-b1-b2-reaplicacao": "visto-b1-b2" };
         const billingSlug = CATALOG_SLUG[service!.slug] || service!.slug;
+        const shouldDetachFromParentOnCheckout = isRestartFlow && ["visa-b1b2", "visa-f1", "visto-b1-b2", "visto-f1"].includes(billingSlug);
+        const checkoutProcId = shouldDetachFromParentOnCheckout ? undefined : (parentId || undefined);
         const totalToCharge = finalSubtotalUSD;
 
         if (activeMethod === "card" || activeMethod === "pix") {
@@ -482,7 +485,7 @@ export default function CheckoutPage() {
             paymentMethod: activeMethod as StripePaymentMethod,
             userId: currentUserId,
             amount: totalToCharge,
-            proc_id: parentId || undefined,
+            proc_id: checkoutProcId,
             coupon_code: appliedCoupon?.valid ? couponInput : undefined,
             office_id: officeId || undefined,
             seller_id: sellerRef,
@@ -508,7 +511,7 @@ export default function CheckoutPage() {
             dependents: checkoutCount,
             userId: currentUserId,
             amount: totalToCharge,
-            proc_id: parentId || undefined,
+            proc_id: checkoutProcId,
             coupon_code: appliedCoupon?.valid ? couponInput : undefined,
             office_id: officeId || undefined,
             seller_id: sellerRef,
@@ -537,7 +540,7 @@ export default function CheckoutPage() {
             phone: values.phone,
             userId: currentUserId || null,
             dependents: checkoutCount,
-            proc_id: parentId || undefined,
+            proc_id: checkoutProcId,
             coupon_code: appliedCoupon?.valid ? couponInput : undefined,
             office_id: officeId || undefined,
             seller_id: sellerRef,
@@ -595,7 +598,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!officeId) {
+  if (!officeId && !parentId) {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-card border border-border p-8 rounded-[32px] text-center shadow-xl">

@@ -66,6 +66,18 @@ function shouldForceStandaloneService(serviceSlug: string): boolean {
   );
 }
 
+function shouldUseChatOnlyPostPayment(serviceSlug: string): boolean {
+  const slug = (serviceSlug || "").toLowerCase();
+  return (
+    slug.startsWith("mentoring-") ||
+    slug.startsWith("mentoria-") ||
+    slug === "consultancy-negative-b1b2" ||
+    slug === "consultancy-negative-f1" ||
+    slug === "consultoria-f1-negativa" ||
+    slug === "mentoria-negativa-consular"
+  );
+}
+
 const MOTION_NEGATIVE_STEP_IDS = [
   "cos_motion_acquisition",
   "cos_motion_instruction",
@@ -81,6 +93,16 @@ const RFE_NEGATIVE_STEP_IDS = [
   "cos_rfe_accept_proposal",
   "cos_rfe_final_ship",
   "cos_rfe_end",
+];
+
+const LINKABLE_PARENT_STATUSES = [
+  "active",
+  "awaiting_review",
+  "awaiting_payment",
+  "paid",
+  "approved",
+  "completed",
+  "rejected",
 ];
 
 function buildNegativeSteps(type: "motion" | "rfe") {
@@ -202,7 +224,7 @@ async function resolveTargetProcessId(data: {
   parent_service_slug?: string | null;
 }) {
   const { supabase, user_id, service_slug } = data;
-  if (shouldForceStandaloneService(service_slug)) {
+  if (shouldForceStandaloneService(service_slug) && !shouldUseChatOnlyPostPayment(service_slug)) {
     return { targetProcId: null, parentServiceSlug: null };
   }
 
@@ -219,7 +241,7 @@ async function resolveTargetProcessId(data: {
       .select("id, service_slug")
       .eq("user_id", user_id)
       .eq("service_slug", parentServiceSlug)
-      .in("status", ["active", "awaiting_review", "awaiting_payment", "paid"])
+      .in("status", LINKABLE_PARENT_STATUSES)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -241,7 +263,7 @@ async function resolveTargetProcessId(data: {
       .select("id, service_slug")
       .eq("user_id", user_id)
       .in("service_slug", mainSlugs)
-      .in("status", ["active", "awaiting_review", "awaiting_payment", "paid"])
+      .in("status", LINKABLE_PARENT_STATUSES)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -340,7 +362,7 @@ async function mirrorPurchaseToParentProcess(data: {
         purchases: [...purchases, purchaseRecord],
       },
     })
-    .eq("id", effectiveTargetProcId);
+    .eq("id", targetProcId);
 }
 
 async function findExistingStandalonePurchaseProcess(data: {
@@ -756,6 +778,36 @@ export async function applySuccessfulPayment(data: {
   });
 
   const officeIdToUse = office_id || (order as any)?.office_id || null;
+
+  // Mentoring/negative-consultancy purchases should not create recovery/standalone processes.
+  // They only need to attach purchase metadata to parent process and open the support chat
+  // in the new chat tables (conversations/conversation_messages).
+  const chatOnlyParentProcessId = effectiveTargetProcId || effectiveProcId;
+  if (shouldUseChatOnlyPostPayment(service_slug) && chatOnlyParentProcessId) {
+    await mirrorPurchaseToParentProcess({
+      supabase,
+      targetProcId: chatOnlyParentProcessId,
+      office_id: officeIdToUse,
+      purchaseRecord,
+    });
+    await ensureSupportChatThread({
+      supabase,
+      processId: chatOnlyParentProcessId,
+      senderId: user_id,
+      customerId: user_id,
+      officeId: officeIdToUse,
+    });
+    return;
+  }
+  if (shouldUseChatOnlyPostPayment(service_slug) && !chatOnlyParentProcessId) {
+    console.warn("[payment-slot-logic] Chat-only purchase without parent process. Skipping standalone process creation.", {
+      user_id,
+      service_slug,
+      order_id: order?.id || order_id || null,
+      payment_id: payment_id || null,
+    });
+    return;
+  }
 
   if (effectiveTargetProcId && isRecoveryPurchase) {
     await ensureLegacyProfileForUser(supabase, user_id);

@@ -46,7 +46,9 @@ function instanceStatusToCaseStatus(
   instanceStatus: string,
   stepsCount: number,
   completedSteps: number,
+  hasRevisionRequested: boolean,
 ): CaseRecord["status"] {
+  if (hasRevisionRequested) return "docs_pending";
   if (instanceStatus === "approved") return "approved";
   if (instanceStatus === "rejected" || instanceStatus === "canceled") return "attention";
   if (instanceStatus === "in_review") return "in_review";
@@ -58,7 +60,9 @@ function instanceStatusToPriority(
   instanceStatus: string,
   stepsCount: number,
   completedSteps: number,
+  hasRevisionRequested: boolean,
 ): CaseRecord["priority"] {
+  if (hasRevisionRequested) return "high";
   if (instanceStatus === "rejected" || instanceStatus === "canceled") return "high";
   if (instanceStatus === "in_review") return "medium";
   return completedSteps / Math.max(1, stepsCount) > 0.5 ? "medium" : "low";
@@ -153,6 +157,7 @@ async function fetchRealCases(): Promise<CaseRecord[]> {
         const slug = row.product!.slug;
         const serviceMeta = getServiceBySlug(slug);
         const totalSteps = row.steps.length;
+        const hasRevisionRequested = row.steps.some((s) => s.status === "revision_requested");
         const completedSteps = row.steps.filter(
           (s) => s.status === "approved" || s.status === "completed" || s.status === "skipped",
         ).length;
@@ -167,8 +172,9 @@ async function fetchRealCases(): Promise<CaseRecord[]> {
           visaType: serviceMeta?.title ?? row.product!.name,
           owner: "Aplikei Ops",
           currentStep,
-          priority: instanceStatusToPriority(row.status, totalSteps, completedSteps),
-          status: instanceStatusToCaseStatus(row.status, totalSteps, completedSteps),
+          hasPendingRevision: hasRevisionRequested,
+          priority: instanceStatusToPriority(row.status, totalSteps, completedSteps, hasRevisionRequested),
+          status: instanceStatusToCaseStatus(row.status, totalSteps, completedSteps, hasRevisionRequested),
           updatedAt: row.updated_at,
         } satisfies CaseRecord;
       });
