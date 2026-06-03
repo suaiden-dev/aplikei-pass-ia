@@ -371,7 +371,7 @@ export function COSApplicationStep({
                       onClick={onRefreshSlots}
                       className='w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all'
                     >
-                      🔄 Atualizar Slots
+                      🔄 {t.cos.form.dependents.refreshSlots || "Atualizar Slots"}
                     </button>
                   </div>
                 </div>

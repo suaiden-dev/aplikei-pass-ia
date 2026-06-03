@@ -81,6 +81,8 @@ export function B1B2MRVPaymentStep({ procId, stepData, nextStepIdx = 10, onCompl
 
       // Notify admin about payment confirmation (no review lock here).
       await notificationService.notifyAdmin({
+        title: "MRV fee payment confirmed",
+        body: `Client confirmed MRV fee payment (${method === "credit_card" ? "Credit card" : "Bank slip"}). Process moved to closure step.`,
         serviceId: procId,
         link: `/master/processes/${procId}`,
         category: "b1b2",

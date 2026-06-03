@@ -36,6 +36,7 @@ const onboarding = {
         needMoreSlots: "¿Necesita más cupos?",
         addFamilyPrompt: "Agregue otro miembro de la familia por US$ 100.",
         buySlot: "Comprar Cupo",
+        refreshSlots: "Actualizar Slots",
         fullName: "Nombre Completo",
         passportPlaceholder: "Como consta en el pasaporte",
         relationship: "Parentesco",

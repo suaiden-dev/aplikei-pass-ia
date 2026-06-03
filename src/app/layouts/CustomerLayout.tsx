@@ -125,7 +125,9 @@ export function CustomerLayout() {
           <div className="p-6 mt-auto border-t border-border bg-bg-subtle/30 space-y-6">
             {/* Language Selection */}
             <div className="space-y-3">
-              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest px-1">Language</p>
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest px-1">
+                {tDashboard.sidebar.language || "Language"}
+              </p>
               <div className="flex items-center gap-2">
                 {(["pt", "en", "es"] as Language[]).map((l) => (
                   <button
@@ -162,7 +164,7 @@ export function CustomerLayout() {
               onClick={toggleTheme}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-border bg-card text-text hover:bg-bg-subtle transition-all font-semibold text-sm"
             >
-              {theme === "dark" ? "Tema claro" : "Tema escuro"}
+              {theme === "dark" ? tDashboard.sidebar.themeLight || "Tema claro" : tDashboard.sidebar.themeDark || "Tema escuro"}
             </button>
 
             <button
@@ -171,7 +173,7 @@ export function CustomerLayout() {
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-all font-semibold text-sm"
             >
               <RiLogoutBoxRLine size={18} />
-              Sair
+              {tDashboard.sidebar.logout || "Sair"}
             </button>
 
             <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-text-muted">

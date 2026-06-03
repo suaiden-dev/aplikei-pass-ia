@@ -1,6 +1,6 @@
 import { PDFDocument } from "pdf-lib"; 
 import { supabase } from "@shared/lib/supabase";
-import { getUserServiceBySlug, updateStepData } from "../../../process/services/processOps";
+import { getUserServiceBySlug, updateStepData, getServiceById } from "../../../process/services/processOps";
 
 /**
  * Service to handle final package generation (PDF merging)
@@ -8,7 +8,7 @@ import { getUserServiceBySlug, updateStepData } from "../../../process/services/
 export const packageService = {
   async mergeAndUploadPackage(processId: string, userId: string): Promise<string> {
     try {
-      const proc = await getUserServiceBySlug(userId, "troca-status");
+      const proc = await getServiceById(processId);
       if (!proc || !proc.step_data) throw new Error("Process data not found");
 
       const data = proc.step_data as Record<string, unknown>;

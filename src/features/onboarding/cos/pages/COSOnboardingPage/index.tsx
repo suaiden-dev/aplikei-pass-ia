@@ -85,6 +85,7 @@ const TARGET_VISA_OPTIONS: { label: string; icon: string; color: string }[] = [
 
 export default function COSOnboardingPage() {
   const t = useT('onboarding')
+  const tVisas = useT('visas')
   const navigate = useNavigate()
   const { slug: urlSlug } = useParams<{ slug: string }>()
   const location = useLocation()
@@ -468,6 +469,11 @@ export default function COSOnboardingPage() {
       currentStepTitle = 'Resultado'
       currentStepDescription = 'Acompanhe o resultado final do seu Motion.'
     }
+  }
+
+  if (currentStepId && tVisas.processSteps?.[currentStepId]) {
+    currentStepTitle = tVisas.processSteps[currentStepId].title || currentStepTitle
+    currentStepDescription = tVisas.processSteps[currentStepId].description || currentStepDescription
   }
 
   const goToProcess = () => {

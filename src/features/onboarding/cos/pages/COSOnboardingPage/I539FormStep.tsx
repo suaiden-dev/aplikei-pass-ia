@@ -166,8 +166,9 @@ function Field({ label, required, name, children, tooltip }: { label: string; re
   );
 }
 
-function TextInput({ name, placeholder, type = "text", disabled, mask }: {
+function TextInput({ name, placeholder, type = "text", disabled, mask, onChange }: {
   name: string; placeholder?: string; type?: string; disabled?: boolean; mask?: "phone" | "date" | "numeric";
+  onChange?: (val: string) => void;
 }) {
   const form = useI539FormContext();
   const field = form.register(name);
@@ -196,6 +197,9 @@ function TextInput({ name, placeholder, type = "text", disabled, mask }: {
       form.setValue(name, val);
     } else {
       form.setValue(name, val);
+    }
+    if (onChange) {
+      onChange(val);
     }
   };
 
@@ -830,7 +834,51 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field label={t.cos.i539.labels.zipCode} required name="zipCode" tooltip={I539_TOOLTIPS.zipCode}><TextInput name="zipCode" mask="numeric" /></Field>
+              <Field label={t.cos.i539.labels.zipCode} required name="zipCode" tooltip={I539_TOOLTIPS.zipCode}>
+                <TextInput 
+                  name="zipCode" 
+                  onChange={async (val) => {
+                    const clean = val.replace(/\D/g, "");
+                    if (clean.length === 8) {
+                      try {
+                        const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+                        if (res.ok) {
+                          const data = await res.json();
+                          if (!data.erro) {
+                            const streetValue = data.logradouro 
+                              ? `${data.logradouro}${data.bairro ? `, ${data.bairro}` : ""}`
+                              : "";
+                            setFieldValue("streetName", streetValue);
+                            setFieldValue("city", data.localidade || "");
+                            if (data.uf && US_STATES.includes(data.uf)) {
+                              setFieldValue("state", data.uf);
+                            }
+                          }
+                        }
+                      } catch (err) {
+                        console.error("ViaCEP zipCode failed:", err);
+                      }
+                    } else if (clean.length === 5) {
+                      try {
+                        const res = await fetch(`https://api.zippopotam.us/us/${clean}`);
+                        if (res.ok) {
+                          const data = await res.json();
+                          const place = data.places?.[0];
+                          if (place) {
+                            setFieldValue("city", place["place name"] || "");
+                            const stateAbbr = place["state abbreviation"] || "";
+                            if (US_STATES.includes(stateAbbr)) {
+                              setFieldValue("state", stateAbbr);
+                            }
+                          }
+                        }
+                      } catch (err) {
+                        console.error("Zippopotam zipCode failed:", err);
+                      }
+                    }
+                  }}
+                />
+              </Field>
             </div>
 
             <div className="pt-3 border-t border-slate-100">
@@ -866,7 +914,51 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
               <Field label={t.cos.i539.labels.unitNumber} name="aptSteFlrForeignNumber"><TextInput name="aptSteFlrForeignNumber" /></Field>
               <Field label={t.cos.i539.labels.city} name="cityForeign"><TextInput name="cityForeign" /></Field>
               <Field label={t.cos.i539.labels.state} name="stateForeign"><SelectInput name="stateForeign" options={US_STATES} /></Field>
-              <Field label={t.cos.i539.labels.zipCode} name="zipCodeForeign"><TextInput name="zipCodeForeign" mask="numeric" /></Field>
+              <Field label={t.cos.i539.labels.zipCode} name="zipCodeForeign">
+                <TextInput 
+                  name="zipCodeForeign" 
+                  onChange={async (val) => {
+                    const clean = val.replace(/\D/g, "");
+                    if (clean.length === 8) {
+                      try {
+                        const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+                        if (res.ok) {
+                          const data = await res.json();
+                          if (!data.erro) {
+                            const streetValue = data.logradouro 
+                              ? `${data.logradouro}${data.bairro ? `, ${data.bairro}` : ""}`
+                              : "";
+                            setFieldValue("streetNameForeign", streetValue);
+                            setFieldValue("cityForeign", data.localidade || "");
+                            if (data.uf && US_STATES.includes(data.uf)) {
+                              setFieldValue("stateForeign", data.uf);
+                            }
+                          }
+                        }
+                      } catch (err) {
+                        console.error("ViaCEP zipCodeForeign failed:", err);
+                      }
+                    } else if (clean.length === 5) {
+                      try {
+                        const res = await fetch(`https://api.zippopotam.us/us/${clean}`);
+                        if (res.ok) {
+                          const data = await res.json();
+                          const place = data.places?.[0];
+                          if (place) {
+                            setFieldValue("cityForeign", place["place name"] || "");
+                            const stateAbbr = place["state abbreviation"] || "";
+                            if (US_STATES.includes(stateAbbr)) {
+                              setFieldValue("stateForeign", stateAbbr);
+                            }
+                          }
+                        }
+                      } catch (err) {
+                        console.error("Zippopotam zipCodeForeign failed:", err);
+                      }
+                    }
+                  }}
+                />
+              </Field>
             </div>
           </SectionCard>
         )}
@@ -987,7 +1079,48 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
                 </div>
                 <Field label={t.cos.i539.labels.city} name="docCity" tooltip={I539_TOOLTIPS.city}><TextInput name="docCity" /></Field>
                 <Field label={t.cos.i539.labels.province} name="docProvince" tooltip={I539_TOOLTIPS.state}><TextInput name="docProvince" /></Field>
-                <Field label={t.cos.i539.labels.postalCode} name="docPostalCode" tooltip={I539_TOOLTIPS.zipCode}><TextInput name="docPostalCode" mask="numeric" /></Field>
+                <Field label={t.cos.i539.labels.postalCode} name="docPostalCode" tooltip={I539_TOOLTIPS.zipCode}>
+                  <TextInput 
+                    name="docPostalCode" 
+                    onChange={async (val) => {
+                      const clean = val.replace(/\D/g, "");
+                      if (clean.length === 8) {
+                        try {
+                          const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+                          if (res.ok) {
+                            const data = await res.json();
+                            if (!data.erro) {
+                              const streetValue = data.logradouro 
+                                ? `${data.logradouro}${data.bairro ? `, ${data.bairro}` : ""}`
+                                : "";
+                              setFieldValue("docStreet", streetValue);
+                              setFieldValue("docCity", data.localidade || "");
+                              setFieldValue("docProvince", data.uf || "");
+                              setFieldValue("docCountry", "Brasil");
+                            }
+                          }
+                        } catch (err) {
+                          console.error("ViaCEP docPostalCode failed:", err);
+                        }
+                      } else if (clean.length === 5) {
+                        try {
+                          const res = await fetch(`https://api.zippopotam.us/us/${clean}`);
+                          if (res.ok) {
+                            const data = await res.json();
+                            const place = data.places?.[0];
+                            if (place) {
+                              setFieldValue("docCity", place["place name"] || "");
+                              setFieldValue("docProvince", place["state abbreviation"] || "");
+                              setFieldValue("docCountry", "United States");
+                            }
+                          }
+                        } catch (err) {
+                          console.error("Zippopotam docPostalCode failed:", err);
+                        }
+                      }
+                    }}
+                  />
+                </Field>
                 <Field label={t.cos.i539.labels.country} name="docCountry" tooltip={I539_TOOLTIPS.countryOfBirth}><TextInput name="docCountry" /></Field>
               </div>
             </div>
