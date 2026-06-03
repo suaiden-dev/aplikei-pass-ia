@@ -1231,15 +1231,15 @@ function B1B2CredentialsPanel({ proc, onApprove, onRefresh, isActive }: { proc: 
       <div className="space-y-4">
         <div>
           <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2 px-1">{t.processDetail.credentials.appId}</label>
-          <input type="text" value={appId} onChange={e => setAppId(e.target.value)} className="w-full bg-bg-subtle border border-border rounded-2xl p-4 text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/5 transition-all uppercase" placeholder="Ex: AA00XXXXXX" />
+          <input type="text" value={appId} onChange={e => setAppId(e.target.value)} className="w-full bg-bg-subtle border border-border rounded-2xl p-4 text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/5 transition-all uppercase" placeholder={`${t.shared?.examplePrefix || "Ex:"} AA00XXXXXX`} />
         </div>
         <div>
           <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2 px-1">{t.processDetail.credentials.motherName}</label>
-          <input type="text" value={motherName} onChange={e => setMotherName(e.target.value)} className="w-full bg-bg-subtle border border-border rounded-2xl p-4 text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/5 transition-all uppercase" placeholder="Ex: SILVA" />
+          <input type="text" value={motherName} onChange={e => setMotherName(e.target.value)} className="w-full bg-bg-subtle border border-border rounded-2xl p-4 text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/5 transition-all uppercase" placeholder={`${t.shared?.examplePrefix || "Ex:"} SILVA`} />
         </div>
         <div>
           <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2 px-1">{t.processDetail.credentials.birthYear}</label>
-          <input type="text" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="w-full bg-bg-subtle border border-border rounded-2xl p-4 text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/5 transition-all" placeholder="Ex: 1990" />
+          <input type="text" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="w-full bg-bg-subtle border border-border rounded-2xl p-4 text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/5 transition-all" placeholder={`${t.shared?.examplePrefix || "Ex:"} 1990`} />
         </div>
         {isActive && (
           <button onClick={handleSaveAndApprove} disabled={loading} className="w-full h-14 bg-success text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-success/90 shadow-xl shadow-success/20 transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50">
@@ -2449,7 +2449,7 @@ export default function AdminProcessDetailPage() {
             <p className="text-[10px] font-black text-info uppercase tracking-widest mb-1">{t.processDetail.casv.preferredDate}</p>
             {casvDate ? (
               <p className="text-lg font-black text-text">
-                {new Date(casvDate + "T12:00:00").toLocaleDateString("pt-BR", {
+                {new Date(casvDate + "T12:00:00").toLocaleDateString(t.shared.locale || "pt-BR", {
                   weekday: "long", day: "2-digit", month: "long", year: "numeric",
                 })}
               </p>
@@ -2661,13 +2661,13 @@ export default function AdminProcessDetailPage() {
     return (
       <CollapsibleStep title="Motion - Adquirir" icon={RiMoneyDollarCircleLine} isActive={isActive} isPast={isPast}>
         <div className="p-5 rounded-2xl bg-bg-subtle border border-border text-left">
-          <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Pagamento</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.shared.payment || "Payment"}</p>
           <p className={`text-sm font-black ${hasPaid ? "text-success" : "text-text"}`}>
-            {hasPaid ? "Pago pelo cliente" : "Aguardando pagamento"}
+            {hasPaid ? (t.shared.paidByClient || "Pago pelo cliente") : (t.shared.awaitingPayment || "Aguardando pagamento")}
           </p>
           {paidAt && (
             <p className="text-[10px] font-bold text-text-muted mt-2 uppercase tracking-widest">
-              {new Date(paidAt).toLocaleString("pt-BR")}
+              {new Date(paidAt).toLocaleString(t.shared.locale || "pt-BR")}
             </p>
           )}
         </div>
@@ -2697,45 +2697,45 @@ export default function AdminProcessDetailPage() {
       : [];
 
     return (
-      <CollapsibleStep title="Motion - Suas Informações" icon={RiFileTextLine} isActive={isActive} isPast={isPast}>
+      <CollapsibleStep title={proc.service_slug.includes("extensao-status") ? "EOS - Info" : "Motion - Info"} icon={RiFileTextLine} isActive={isActive} isPast={isPast}>
         <div className="space-y-4 text-left">
           <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
-            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Motivo enviado pelo cliente</p>
-            <p className="text-sm font-bold text-text whitespace-pre-wrap">{reason || "Cliente ainda não enviou o motivo."}</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.motion.clientReasonLabel || "Motivo enviado pelo cliente"}</p>
+            <p className="text-sm font-bold text-text whitespace-pre-wrap">{reason || (t.motion.clientReasonPlaceholder || "Cliente ainda não enviou o motivo.")}</p>
             {submittedAt && (
               <p className="text-[10px] font-bold text-text-muted mt-3 uppercase tracking-widest">
-                Enviado em {new Date(submittedAt).toLocaleString("pt-BR")}
+                {t.motion.submittedAt || "Enviado em"} {new Date(submittedAt).toLocaleString(t.shared.locale || "pt-BR")}
               </p>
             )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 rounded-2xl bg-bg-subtle border border-border">
-              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Carta de negativa</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.motion.denialLetterLabel || "Carta de negativa"}</p>
               {denialUrl ? (
                 <a href={denialUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                  <RiExternalLinkLine /> Visualizar arquivo
+                  <RiExternalLinkLine /> {t.motion.viewFile || "Visualizar arquivo"}
                 </a>
               ) : (
-                <p className="text-xs font-bold text-text-muted">Não enviado.</p>
+                <p className="text-xs font-bold text-text-muted">{t.motion.notSent || "Não enviado."}</p>
               )}
             </div>
 
             <div className="p-4 rounded-2xl bg-bg-subtle border border-border">
-              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Documentos de apoio</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.motion.supportingDocs || "Documentos de apoio"}</p>
               {supportUrl ? (
                 <a href={supportUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                  <RiExternalLinkLine /> Visualizar arquivo
+                  <RiExternalLinkLine /> {t.motion.viewFile || "Visualizar arquivo"}
                 </a>
               ) : (
-                <p className="text-xs font-bold text-text-muted">Não enviado.</p>
+                <p className="text-xs font-bold text-text-muted">{t.motion.notSent || "Não enviado."}</p>
               )}
             </div>
           </div>
 
           {instructionHistory.length > 0 && (
             <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
-              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3">Histórico de envios</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3">{t.motion.submissionHistory || "Histórico de envios"}</p>
               <div className="space-y-3">
                 {[...instructionHistory].reverse().map((entry, idx) => {
                   const entryReason = String(entry.reason || "").trim();
@@ -2751,21 +2751,21 @@ export default function AdminProcessDetailPage() {
                   return (
                     <div key={`motion-history-${idx}`} className="p-4 rounded-xl bg-card border border-border">
                       <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
-                        Envio {instructionHistory.length - idx}
-                        {entryAt ? ` • ${new Date(entryAt).toLocaleString("pt-BR")}` : ""}
+                        {t.motion.submission || "Envio"} {instructionHistory.length - idx}
+                        {entryAt ? ` • ${new Date(entryAt).toLocaleString(t.shared.locale || "pt-BR")}` : ""}
                       </p>
                       <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">
-                        {entryReason || "Sem descrição"}
+                        {entryReason || (t.motion.noDescription || "Sem descrição")}
                       </p>
                       <div className="flex flex-wrap gap-3">
                         {entryDenial && (
                           <a href={entryDenial} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                            <RiExternalLinkLine /> Carta de negativa
+                            <RiExternalLinkLine /> {t.motion.denialLetterLabel || "Carta de negativa"}
                           </a>
                         )}
                         {entrySupport && (
                           <a href={entrySupport} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                            <RiExternalLinkLine /> Documento de apoio
+                            <RiExternalLinkLine /> {t.motion.supportingDocs || "Documento de apoio"}
                           </a>
                         )}
                       </div>
@@ -2778,7 +2778,7 @@ export default function AdminProcessDetailPage() {
 
           {proposalHistory.length > 0 && (
             <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
-              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3">Histórico de propostas</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3">{t.motion.proposalHistory || "Histórico de propostas"}</p>
               <div className="space-y-3">
                 {[...proposalHistory].reverse().map((entry, idx) => {
                   const entryText = String(entry.proposal_text || "").trim();
@@ -2788,14 +2788,14 @@ export default function AdminProcessDetailPage() {
                   return (
                     <div key={`motion-proposal-history-${idx}`} className="p-4 rounded-xl bg-card border border-border">
                       <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
-                        Proposta {proposalHistory.length - idx}
-                        {entryAt ? ` • ${new Date(entryAt).toLocaleString("pt-BR")}` : ""}
+                        {t.motion.proposal || "Proposta"} {proposalHistory.length - idx}
+                        {entryAt ? ` • ${new Date(entryAt).toLocaleString(t.shared.locale || "pt-BR")}` : ""}
                       </p>
                       <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">
-                        {entryText || "Sem descrição"}
+                        {entryText || (t.motion.noDescription || "Sem descrição")}
                       </p>
                       <p className="text-[10px] font-black uppercase tracking-widest text-primary">
-                        Valor: USD {entryAmount.toFixed(2)}
+                        {t.motion.amountLabelShort || "Valor: USD"} {entryAmount.toFixed(2)}
                       </p>
                     </div>
                   );
@@ -2856,32 +2856,32 @@ export default function AdminProcessDetailPage() {
           {(isMotionRejected || isMotionApproved) && (
             <div className={`p-4 rounded-2xl border ${isMotionRejected ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"}`}>
               <p className={`text-[10px] font-black uppercase tracking-widest ${isMotionRejected ? "text-red-700" : "text-emerald-700"}`}>
-                {isMotionRejected ? "Motion reprovado pelo cliente" : "Motion aprovado pelo cliente"}
+                {isMotionRejected ? (t.motion.motionRejectedByClient || "Motion reprovado pelo cliente") : (t.motion.motionApprovedByClient || "Motion aprovado pelo cliente")}
               </p>
             </div>
           )}
 
           <div className={`p-4 rounded-2xl border ${isProposalPaid ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"}`}>
             <p className={`text-[10px] font-black uppercase tracking-widest ${isProposalPaid ? "text-emerald-700" : "text-amber-700"}`}>
-              {isProposalPaid ? "Motion - Proposal paga pelo cliente" : "Aguardando pagamento da Motion - Proposal"}
+              {isProposalPaid ? (t.motion.proposalPaidByClient || "Motion - Proposal paga pelo cliente") : (t.motion.awaitingProposalPayment || "Aguardando pagamento da Motion - Proposal")}
             </p>
             {isProposalPaid && proposalPaidAt && (
               <p className="text-[10px] font-bold text-emerald-700/80 mt-1 uppercase tracking-widest">
-                {new Date(proposalPaidAt).toLocaleString("pt-BR")}
+                {new Date(proposalPaidAt).toLocaleString(t.shared.locale || "pt-BR")}
               </p>
             )}
           </div>
 
           {(latestText || latestAmount > 0 || latestSentAt || proposalHistory.length > 0) && (
             <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
-              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Proposta enviada</p>
-              <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">{latestText || "Sem descrição"}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.motion.sendProposal || "Proposta enviada"}</p>
+              <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">{latestText || (t.motion.noDescription || "Sem descrição")}</p>
               <p className="text-[10px] font-black uppercase tracking-widest text-primary">
-                Valor: USD {latestAmount.toFixed(2)}
+                {t.motion.amountLabelShort || "Valor: USD"} {latestAmount.toFixed(2)}
               </p>
               {latestSentAt && (
                 <p className="text-[10px] font-bold text-text-muted mt-2 uppercase tracking-widest">
-                  {new Date(latestSentAt).toLocaleString("pt-BR")}
+                  {new Date(latestSentAt).toLocaleString(t.shared.locale || "pt-BR")}
                 </p>
               )}
             </div>
@@ -2902,9 +2902,9 @@ export default function AdminProcessDetailPage() {
     return (
       <CollapsibleStep title="RFE - Adquirir" icon={RiMoneyDollarCircleLine} isActive={isActive} isPast={isPast}>
         <div className="p-5 rounded-2xl bg-bg-subtle border border-border text-left">
-          <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Pagamento</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.shared.payment || "Payment"}</p>
           <p className={`text-sm font-black ${hasPaid ? "text-success" : "text-text"}`}>
-            {hasPaid ? "Pago pelo cliente" : "Aguardando pagamento"}
+            {hasPaid ? (t.shared.paidByClient || "Pago pelo cliente") : (t.shared.awaitingPayment || "Aguardando pagamento")}
           </p>
         </div>
       </CollapsibleStep>
@@ -2923,20 +2923,20 @@ export default function AdminProcessDetailPage() {
     const rfePath = docs.rfe_letter;
     const rfeUrl = rfePath ? supabase.storage.from("aplikei-profiles").getPublicUrl(rfePath).data.publicUrl : "";
     return (
-      <CollapsibleStep title="RFE - Suas Informações" icon={RiFileTextLine} isActive={isActive} isPast={isPast}>
+      <CollapsibleStep title={proc.service_slug.includes("extensao-status") ? "EOS RFE - Info" : "RFE - Info"} icon={RiFileTextLine} isActive={isActive} isPast={isPast}>
         <div className="space-y-4 text-left">
           <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
-            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Descrição enviada pelo cliente</p>
-            <p className="text-sm font-bold text-text whitespace-pre-wrap">{description || "Cliente ainda não enviou a descrição."}</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.rfe.clientDescriptionLabel || "Descrição enviada pelo cliente"}</p>
+            <p className="text-sm font-bold text-text whitespace-pre-wrap">{description || (t.rfe.clientDescriptionPlaceholder || "Cliente ainda não enviou a descrição.")}</p>
           </div>
           <div className="p-4 rounded-2xl bg-bg-subtle border border-border">
-            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Carta RFE</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.rfe.officialLetterLabel || "Carta RFE"}</p>
             {rfeUrl ? (
               <a href={rfeUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                <RiExternalLinkLine /> Visualizar arquivo
+                <RiExternalLinkLine /> {t.motion.viewFile || "Visualizar arquivo"}
               </a>
             ) : (
-              <p className="text-xs font-bold text-text-muted">Não enviado.</p>
+              <p className="text-xs font-bold text-text-muted">{t.motion.notSent || "Não enviado."}</p>
             )}
           </div>
         </div>
@@ -2962,28 +2962,28 @@ export default function AdminProcessDetailPage() {
     const isPaid = Boolean(stepData.rfe_proposal_paid) || Boolean(stepData.rfe_payment_completed_at);
 
     return (
-      <CollapsibleStep title="RFE - Proposta" icon={RiShieldCheckLine} isActive={isActive} isPast={isPast}>
+      <CollapsibleStep title={proc.service_slug.includes("extensao-status") ? "EOS RFE - Proposal" : "RFE - Proposal"} icon={RiShieldCheckLine} isActive={isActive} isPast={isPast}>
         <div className="space-y-4 text-left">
           {(isRejected || isApproved) && (
             <div className={`p-4 rounded-2xl border ${isRejected ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"}`}>
               <p className={`text-[10px] font-black uppercase tracking-widest ${isRejected ? "text-red-700" : "text-emerald-700"}`}>
-                {isRejected ? "RFE reprovado pelo cliente" : "RFE aprovado pelo cliente"}
+                {isRejected ? (t.rfe.rfeRejectedByClient || "RFE reprovado pelo cliente") : (t.rfe.rfeApprovedByClient || "RFE aprovado pelo cliente")}
               </p>
             </div>
           )}
           <div className={`p-4 rounded-2xl border ${isPaid ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"}`}>
             <p className={`text-[10px] font-black uppercase tracking-widest ${isPaid ? "text-emerald-700" : "text-amber-700"}`}>
-              {isPaid ? "RFE - Proposta paga pelo cliente" : "Aguardando pagamento da RFE - Proposta"}
+              {isPaid ? (t.rfe.proposalPaidByClient || "RFE - Proposta paga pelo cliente") : (t.rfe.awaitingProposalPayment || "Aguardando pagamento da RFE - Proposta")}
             </p>
           </div>
           {(latestText || latestAmount > 0 || latestSentAt) && (
             <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
-              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Proposta enviada</p>
-              <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">{latestText || "Sem descrição"}</p>
-              <p className="text-[10px] font-black uppercase tracking-widest text-primary">Valor: USD {latestAmount.toFixed(2)}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.motion.sendProposal || "Proposta enviada"}</p>
+              <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">{latestText || (t.motion.noDescription || "Sem descrição")}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-primary">{t.rfe.amount || "Valor:"} USD {latestAmount.toFixed(2)}</p>
               {latestSentAt && (
                 <p className="text-[10px] font-bold text-text-muted mt-2 uppercase tracking-widest">
-                  {new Date(latestSentAt).toLocaleString("pt-BR")}
+                  {new Date(latestSentAt).toLocaleString(t.shared.locale || "pt-BR")}
                 </p>
               )}
             </div>

@@ -568,7 +568,7 @@ export default function ProductsPage() {
                 <span className={cn("text-[10px] font-black uppercase px-2 py-1 rounded-full border", main.is_active ? "bg-success/10 text-success border-success/20" : "bg-bg-subtle text-text-muted border-border")}>{main.is_active ? "Active" : "Inactive"}</span>
               </div>
               <div className="space-y-3">
-                <button onClick={() => setSelectedMainProduct(main)} className="w-full h-11 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all">
+                <button onClick={() => setSelectedMainId(main.id)} className="w-full h-11 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all">
                   Configure
                 </button>
                 {main.is_active && (
@@ -600,9 +600,15 @@ export default function ProductsPage() {
                     </div>
                   </div>
                 )}
-              </div>
+            </div>
+          </div>
+        ))}
+        </div>
+      )}
 
-              <div className="px-6 py-5 space-y-8">
+        {selectedMain && (
+          <>
+            <div className="px-6 py-5 space-y-8 bg-card rounded-3xl border border-border p-6 shadow-sm mt-8">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-primary">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white text-xs font-black">
@@ -881,8 +887,10 @@ export default function ProductsPage() {
               </div>
             </>
           )}
-        </section>
-      </div>
+        </div>
+      </>
+    )}
+  </div>
 
 
       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">

@@ -61,7 +61,6 @@ export default function SignUp() {
           return;
         }
 
-        const normalizedRole = normalizeRole(values.role);
         if (normalizedRole === "customer") {
           navigate("/acompanhar-meu-caso", { replace: true });
         } else {
