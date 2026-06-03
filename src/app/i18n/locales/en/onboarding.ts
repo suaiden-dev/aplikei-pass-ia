@@ -36,6 +36,7 @@ const onboarding = {
         needMoreSlots: "Need more slots?",
         addFamilyPrompt: "Add another family member for US$ 100.",
         buySlot: "Buy Slot",
+        refreshSlots: "Refresh Slots",
         fullName: "Full Name",
         passportPlaceholder: "As shown in passport",
         relationship: "Relationship",

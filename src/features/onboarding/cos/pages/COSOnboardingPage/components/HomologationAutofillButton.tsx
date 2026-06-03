@@ -1,4 +1,5 @@
 import { RiFlaskLine } from "react-icons/ri";
+import { useLocale } from "@app/app/i18n";
 
 const mode = String(import.meta.env.MODE || "").toLowerCase();
 const isHomologationMode =
@@ -82,6 +83,7 @@ interface HomologationAutofillButtonProps {
 }
 
 export function HomologationAutofillButton({ rootId }: HomologationAutofillButtonProps) {
+  const { lang } = useLocale();
   if (!HOMOLOGATION_AUTOFILL_ENABLED) return null;
 
   const handleClick = () => {
@@ -96,7 +98,7 @@ export function HomologationAutofillButton({ rootId }: HomologationAutofillButto
       className="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] font-black uppercase tracking-wider text-amber-700 transition-colors hover:bg-amber-100"
     >
       <RiFlaskLine className="text-sm" />
-      Preencher Homologação
+      {lang === "en" ? "Autofill Homologation" : lang === "es" ? "Completar Homologación" : "Preencher Homologação"}
     </button>
   );
 }

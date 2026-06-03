@@ -228,6 +228,9 @@ const dashboard = {
     documents: "Documents",
     finalPackage: "Final Package",
     status: "Status",
+    themeLight: "Light mode",
+    themeDark: "Dark mode",
+    language: "Language",
   },
   chat: {
     title: "Specialist Chat",
