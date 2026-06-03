@@ -44,14 +44,6 @@ const heroIconNameBySlug: Record<string, string> = {
   "troca-status": "MdSyncAlt",
 };
 
-function calculatePhaseProgress(proc: UserService, totalSteps: number): number {
-  const step = proc.current_step ?? 0;
-  if (proc.status === 'completed') return 100;
-  const isConsular = proc.service_slug.startsWith("visto-b1-b2") || proc.service_slug.startsWith("visto-f1");
-  const maxProgress = isConsular ? 95 : 99;
-  const stepForProgress = Math.max(0, step) + 1;
-  return Math.min(maxProgress, Math.round((stepForProgress / (totalSteps || 1)) * 100));
-}
 
 function resolveTotalStepsForProgress(proc: UserService): number {
   const canonical = getCanonicalSlug(proc.service_slug);
@@ -104,7 +96,7 @@ function ProcessRow({ proc, index, displaySlug, officeName }: { proc: UserServic
       interviewResult === 'approved');
 
   const isFinalized = proc.status === 'completed' || proc.status === 'rejected' || proc.status === 'denied' || isApproved || isDenied;
-  const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, totalSteps);
+  const progressPercent = isFinalized ? 100 : calculateProcessProgress(proc, totalSteps);
 
   const statusKey = (isFinalized ? 'completed' : (proc.status ?? 'pending')) as string;
   const displayLabel = isApproved ? t.dashboard.myCases.status.approved :

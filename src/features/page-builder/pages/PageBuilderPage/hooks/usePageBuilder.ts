@@ -32,7 +32,7 @@ function sanitizeLoginUrl(value: string) {
 
 const initialConfig: LandingPageConfig = {
   pageTitle: "Premium Visa Advisory",
-  faviconUrl: "https://www.google.com/s2/favicons?domain=aplikei.com&sz=64",
+  faviconUrl: "/logo.png",
   logoUrl: "https://dummyimage.com/180x52/0f172a/ffffff.png&text=SEU+LOGO",
   heroBadge: "PREMIUM VISA ADVISORY",
   lawyerName: "Carolina Mendes, Esq.",

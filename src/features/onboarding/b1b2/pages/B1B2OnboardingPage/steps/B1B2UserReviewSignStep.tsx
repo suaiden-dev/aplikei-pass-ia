@@ -136,11 +136,11 @@ export function B1B2UserReviewSignStep({
       await processService.requestStepReview(procId);
 
       await notificationService.notifyAdmin({
-        title: "DS-160 signed and reviewed",
-        body: "Client completed review and uploaded DS-160 signature confirmation documents.",
         serviceId: procId,
         userId,
         link: `/master/processes/${procId}`,
+        category: "b1b2",
+        action: "ds160_signed",
       });
 
       toast.success(t.onboardingPage?.uploadAllSuccess ?? "Documentos enviados com sucesso!");

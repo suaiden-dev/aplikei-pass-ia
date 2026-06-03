@@ -124,11 +124,11 @@ export function useB1B2Onboarding({
           await approveStep(procId, 1, false);
           await requestStepReview(procId);
           await notifyAdmin({
-            title: "DS-160 completed",
-            body: `Client completed the DS-160 for ${slug}.`,
             serviceId: procId,
             userId,
             link: `/master/processes/${procId}`,
+            category: "b1b2",
+            action: "ds160_completed",
           });
           setProcStatus('awaiting_review');
           setCurrentStep(1);

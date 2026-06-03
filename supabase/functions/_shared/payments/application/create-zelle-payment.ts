@@ -118,19 +118,28 @@ export async function createZellePayment(
   }
 
   try {
-    await supabase.from("notifications").insert({
-      type: "client_action",
-      target_role: "admin",
-      user_id: input.userId || null,
-      service_id: null,
-      title: "💰 Novo pagamento Zelle submetido",
-      message: `Um novo pagamento de $${input.amount} via Zelle foi submetido e aguarda verificação manual no painel.`,
-      send_email: true,
-      metadata: {
-        payment_id: payment.id,
-        amount: input.amount,
-      },
-    });
+    const { data: zelleMsg } = await supabase
+      .from("notifications_messages")
+      .insert({
+        status: "sent",
+        category: "payment",
+        action: "zelle_approved",
+        title: "New Zelle Payment Submitted",
+        body: `A new Zelle payment of $${input.amount} was submitted and is pending manual verification.`,
+        send_email: true,
+        metadata: { payment_id: payment.id, amount: input.amount },
+      })
+      .select("id")
+      .single();
+
+    if (zelleMsg && input.userId) {
+      await supabase.from("notifications_groups").insert({
+        notification_id: zelleMsg.id,
+        user_id: input.userId,
+        viewed: false,
+        email_sent: false,
+      });
+    }
   } catch (error) {
     console.error("Failed to insert admin notification:", error);
   }

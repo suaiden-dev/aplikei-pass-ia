@@ -286,6 +286,14 @@ export const appRoutes: AppRouteDefinition[] = [
     layout: "auth",
   },
   {
+    path: "/track-my-visa",
+    title: "Track My Visa",
+    component: Login,
+    authRequired: false,
+    accessLevels: [],
+    layout: "auth",
+  },
+  {
     path: "/cadastro",
     title: "Sign Up",
     component: SignUpPage,

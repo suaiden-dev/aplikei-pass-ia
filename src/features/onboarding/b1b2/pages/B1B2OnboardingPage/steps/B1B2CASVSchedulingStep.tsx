@@ -80,10 +80,10 @@ export function B1B2CASVSchedulingStep({ procId, stepData, nextStepIdx = 6, onCo
       
       // Notifica Admin
       await notificationService.notifyAdmin({
-        title: "CASV scheduling preference submitted",
-        body: "Client submitted preferred date for CASV scheduling.",
         serviceId: procId,
         link: `/master/processes/${procId}`,
+        category: "b1b2",
+        action: "casv_scheduled",
       });
 
       toast.success(t.onboardingPage.scheduling.successDate);

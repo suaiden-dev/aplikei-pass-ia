@@ -4,20 +4,51 @@ import { supabase } from "@shared/lib/supabase";
 import { useAuth } from "@shared/hooks/useAuth";
 import type { ToastItem } from "@features/notifications/types";
 
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
 export interface AppNotification {
+  /** notifications_groups.id — used for markAsRead */
   id: string;
-  type: string;
-  target_role: "admin" | "client" | "customer";
-  user_id: string | null;
-  service_id: string | null;
-  title: string;
-  message: string | null;
-  link: string | null;
-  is_read: boolean;
-  send_email: boolean;
+  /** notifications_messages.id */
+  notification_id: string;
+  /** notifications_messages.category */
+  category: string;
+  /** notifications_messages.action */
+  action: string;
+  /** notifications_messages.status */
+  status: string;
+  /** notifications_messages.sender_user_id */
+  sender_user_id: string | null;
+  /** notifications_messages.process_id */
+  process_id: string | null;
+  /** notifications_groups.user_id */
+  user_id: string;
+  /** notifications_groups.role */
+  role: string | null;
+  /** notifications_groups.office_id */
+  office_id: string | null;
+  /** notifications_groups.viewed (replaces is_read) */
+  viewed: boolean;
+  /** notifications_groups.email_sent */
   email_sent: boolean;
+  /** Deprecated — no longer stored in DB; kept for backward compat with display code */
+  title: string;
+  /** Deprecated — no longer stored in DB; kept for backward compat */
+  message: string | null;
+  /** notifications_messages.link */
+  link: string | null;
+  /** notifications_messages.send_email */
+  send_email: boolean;
+  /** notifications_messages.metadata */
   metadata: Record<string, unknown>;
+  /** notifications_messages.created_at */
   created_at: string;
+  /** Backward-compat alias so existing components still compile */
+  is_read: boolean;
+  /** Backward-compat alias (derived from category) */
+  type: string;
 }
 
 export type { ToastItem };
@@ -41,40 +72,92 @@ interface NotificationProviderProps {
   role: "admin" | "client";
 }
 
-function normalizeRealtimeNotification(row: Record<string, unknown>): AppNotification {
-  const rawTargetRole = String(row.target_role ?? "admin");
-  const normalizedTargetRole: AppNotification["target_role"] =
-    rawTargetRole === "client" || rawTargetRole === "customer" ? rawTargetRole : "admin";
+// ---------------------------------------------------------------------------
+// DB row normaliser — maps the joined Supabase response to AppNotification
+// ---------------------------------------------------------------------------
+
+type GroupRow = {
+  id: string;
+  notification_id: string;
+  user_id: string;
+  role: string | null;
+  office_id: string | null;
+  viewed: boolean;
+  email_sent: boolean;
+  created_at: string;
+  notifications_messages: {
+    id: string;
+    sender_user_id: string | null;
+    status: string;
+    category: string;
+    action: string;
+    process_id: string | null;
+    link: string | null;
+    send_email: boolean;
+    metadata: Record<string, unknown> | null;
+    created_at: string;
+  } | null;
+};
+
+function normalizeGroupRow(row: GroupRow): AppNotification | null {
+  const msg = row.notifications_messages;
+  if (!msg) return null;
+
+  const category = msg.category ?? "system";
 
   return {
-    id: String(row.id ?? ""),
-    type: String(row.type ?? "system"),
-    target_role: normalizedTargetRole,
-    user_id: row.user_id ? String(row.user_id) : null,
-    service_id: row.service_id ? String(row.service_id) : null,
-    title: String(row.title ?? ""),
-    message: row.message ? String(row.message) : null,
-    link: row.link ? String(row.link) : null,
-    is_read: Boolean(row.is_read),
-    send_email: Boolean(row.send_email),
-    email_sent: Boolean(row.email_sent),
-    metadata: (row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
-      ? (row.metadata as Record<string, unknown>)
-      : {}),
-    created_at: String(row.created_at ?? new Date().toISOString()),
+    id:              row.id,
+    notification_id: row.notification_id,
+    category,
+    action:          msg.action          ?? "message",
+    status:          msg.status          ?? "sent",
+    sender_user_id:  msg.sender_user_id  ?? null,
+    process_id:      msg.process_id      ?? null,
+    user_id:         row.user_id,
+    role:            row.role            ?? null,
+    office_id:       row.office_id       ?? null,
+    viewed:          Boolean(row.viewed),
+    email_sent:      Boolean(row.email_sent),
+    title:           "",
+    message:         null,
+    link:            msg.link            ?? null,
+    send_email:      Boolean(msg.send_email),
+    metadata:        (msg.metadata && typeof msg.metadata === "object" && !Array.isArray(msg.metadata))
+                       ? (msg.metadata as Record<string, unknown>)
+                       : {},
+    created_at:      msg.created_at,
+    // backward-compat aliases
+    is_read: Boolean(row.viewed),
+    type:    category,
   };
 }
 
-function matchesNotificationRole(
-  row: AppNotification,
-  role: "admin" | "client",
-  userId?: string,
-): boolean {
-  if (role === "admin") {
-    return row.target_role === "admin" && !!userId && row.user_id === userId;
-  }
-  return row.target_role === "client" && !!userId && row.user_id === userId;
-}
+// ---------------------------------------------------------------------------
+// Fetch helpers
+// ---------------------------------------------------------------------------
+
+const JOINED_SELECT = `
+  id,
+  notification_id,
+  user_id,
+  role,
+  office_id,
+  viewed,
+  email_sent,
+  created_at,
+  notifications_messages!inner (
+    id,
+    sender_user_id,
+    status,
+    category,
+    action,
+    process_id,
+    link,
+    send_email,
+    metadata,
+    created_at
+  )
+` as const;
 
 async function fetchNotifications(
   role: "admin" | "client",
@@ -83,29 +166,10 @@ async function fetchNotifications(
 ): Promise<AppNotification[]> {
   const limit = role === "admin" ? 50 : 30;
 
-  if (role === "client") {
-    let query = supabase
-      .from("notifications")
-      .select("*")
-      .eq("target_role", "client")
-      .eq("user_id", userId)
-      .in("target_role", ["client", "customer"]);
-
-    if (userCreatedAt) {
-      query = query.gte("created_at", userCreatedAt);
-    }
-
-    const { data } = await query
-      .order("created_at", { ascending: false })
-      .limit(limit);
-    return ((data as Record<string, unknown>[] | null) ?? []).map(normalizeRealtimeNotification);
-  }
-
   let query = supabase
-    .from("notifications")
-    .select("*")
-    .eq("target_role", "admin")
-    .or(`user_id.eq.${userId},user_id.is.null`);
+    .from("notifications_groups")
+    .select(JOINED_SELECT)
+    .eq("user_id", userId);
 
   if (userCreatedAt) {
     query = query.gte("created_at", userCreatedAt);
@@ -114,20 +178,42 @@ async function fetchNotifications(
   const { data } = await query
     .order("created_at", { ascending: false })
     .limit(limit);
-  return ((data as Record<string, unknown>[] | null) ?? []).map(normalizeRealtimeNotification);
+
+  return ((data as GroupRow[] | null) ?? [])
+    .map(normalizeGroupRow)
+    .filter((n): n is AppNotification => n !== null);
 }
+
+// ---------------------------------------------------------------------------
+// Realtime normaliser — INSERT on notifications_groups arrives without the
+// joined message, so we re-fetch the full row by id.
+// ---------------------------------------------------------------------------
+
+async function fetchGroupById(groupId: string): Promise<AppNotification | null> {
+  const { data } = await supabase
+    .from("notifications_groups")
+    .select(JOINED_SELECT)
+    .eq("id", groupId)
+    .maybeSingle();
+
+  if (!data) return null;
+  return normalizeGroupRow(data as GroupRow);
+}
+
+// ---------------------------------------------------------------------------
+// Provider
+// ---------------------------------------------------------------------------
 
 export function NotificationProvider({ children, role }: NotificationProviderProps) {
   const { user } = useAuth();
-  const userId = user?.id;
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [activeToasts, setActiveToasts] = useState<ToastItem[]>([]);
+  const userId   = user?.id;
+  const [notifications, setNotifications]   = useState<AppNotification[]>([]);
+  const [activeToasts,  setActiveToasts]    = useState<ToastItem[]>([]);
   const [realtimeStatus, setRealtimeStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
-  const toastQueueRef = useRef<ToastItem[]>([]);
-  const cacheKey = userId ? `notif_${userId}_${role}` : null;
+  const cacheKey = userId ? `notif2_${userId}_${role}` : null;
 
   const unreadCount = useMemo(
-    () => notifications.filter((notification) => !notification.is_read).length,
+    () => notifications.filter((n) => !n.viewed).length,
     [notifications],
   );
 
@@ -139,8 +225,6 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
       if (cached) {
         const parsed = JSON.parse(cached) as { data: AppNotification[]; ts: number };
         if (Date.now() - parsed.ts < 30_000) {
-          // If we have cached notifications, we can use them, but we still ensure they are filtered.
-          // In case user.createdAt changed or cache is somehow outdated.
           const filtered = user?.createdAt
             ? parsed.data.filter((n) => new Date(n.created_at) >= new Date(user.createdAt))
             : parsed.data;
@@ -148,13 +232,14 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
           return;
         }
       }
-    } catch {
-      // ignore session storage issues
-    }
+    } catch { /* ignore */ }
 
     try {
       const data = await fetchNotifications(role, userId, user?.createdAt);
       setNotifications(data);
+      if (cacheKey) {
+        try { sessionStorage.setItem(cacheKey, JSON.stringify({ data, ts: Date.now() })); } catch { /* ignore */ }
+      }
     } catch (error) {
       console.error("[NotificationProvider] Error loading history:", error);
     }
@@ -162,14 +247,14 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
 
   const addToToastQueue = useCallback((notif: AppNotification) => {
     const item: ToastItem = {
-      id: crypto.randomUUID(),
+      id:             crypto.randomUUID(),
       notificationId: notif.id,
-      title: notif.title,
-      message: notif.message,
-      type: (notif.type as ToastItem["type"]) || "system",
-      link: notif.link ?? null,
-      metadata: notif.metadata,
-      createdAt: notif.created_at,
+      title:          notif.title,
+      message:        notif.message,
+      type:           (notif.category as ToastItem["type"]) || "system",
+      link:           notif.link ?? null,
+      metadata:       notif.metadata,
+      createdAt:      notif.created_at,
     };
 
     setActiveToasts((prev) => {
@@ -179,46 +264,63 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
   }, []);
 
   const dismissToast = useCallback((toastId: string) => {
-    setActiveToasts((prev) => prev.filter((toast) => toast.id !== toastId));
+    setActiveToasts((prev) => prev.filter((t) => t.id !== toastId));
   }, []);
 
-  const handleInsert = useCallback((payload: RealtimePostgresChangesPayload<AppNotification>) => {
-    const newNotif = normalizeRealtimeNotification(payload.new as unknown as Record<string, unknown>);
-    if (!matchesNotificationRole(newNotif, role, userId)) return;
-    if (user?.createdAt && new Date(newNotif.created_at) < new Date(user.createdAt)) return;
+  // Realtime INSERT on notifications_groups for this user
+  const handleInsert = useCallback(async (
+    payload: RealtimePostgresChangesPayload<Record<string, unknown>>,
+  ) => {
+    const raw = payload.new as Record<string, unknown>;
+    if (raw.user_id !== userId) return;
+    if (user?.createdAt) {
+      const rowDate = raw.created_at ? new Date(raw.created_at as string) : null;
+      if (rowDate && rowDate < new Date(user.createdAt)) return;
+    }
+
+    if (cacheKey) { try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ } }
+
+    // Re-fetch the full row with join
+    const groupId = raw.id as string;
+    const notif = await fetchGroupById(groupId).catch(() => null);
+    if (!notif) return;
 
     setNotifications((prev) => {
-      if (prev.some((notification) => notification.id === newNotif.id)) return prev;
-      return [newNotif, ...prev];
+      if (prev.some((n) => n.id === notif.id)) return prev;
+      return [notif, ...prev];
     });
 
-    if (cacheKey) {
-      try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ }
-    }
+    addToToastQueue(notif);
+  }, [addToToastQueue, cacheKey, userId, user?.createdAt]);
 
-    addToToastQueue(newNotif);
-  }, [addToToastQueue, cacheKey, role, userId, user?.createdAt]);
-
-  const handleUpdate = useCallback((payload: RealtimePostgresChangesPayload<AppNotification>) => {
-    const updated = normalizeRealtimeNotification(payload.new as unknown as Record<string, unknown>);
-    if (!matchesNotificationRole(updated, role, userId)) return;
+  // Realtime UPDATE (viewed changed)
+  const handleUpdate = useCallback((
+    payload: RealtimePostgresChangesPayload<Record<string, unknown>>,
+  ) => {
+    const raw = payload.new as Record<string, unknown>;
+    if (raw.user_id !== userId) return;
 
     setNotifications((prev) =>
-      prev.map((notification) => notification.id === updated.id ? { ...notification, ...updated } : notification),
+      prev.map((n) =>
+        n.id === raw.id
+          ? { ...n, viewed: Boolean(raw.viewed), is_read: Boolean(raw.viewed) }
+          : n,
+      ),
     );
 
-    if (cacheKey) {
-      try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ }
-    }
-  }, [cacheKey, role, userId]);
+    if (cacheKey) { try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ } }
+  }, [cacheKey, userId]);
 
   const markAsRead = useCallback(async (id: string) => {
     try {
-      await supabase.from("notifications").update({ is_read: true }).eq("id", id);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-      if (cacheKey) {
-        try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ }
-      }
+      await supabase
+        .from("notifications_groups")
+        .update({ viewed: true })
+        .eq("id", id);
+      setNotifications((prev) =>
+        prev.map((n) => n.id === id ? { ...n, viewed: true, is_read: true } : n),
+      );
+      if (cacheKey) { try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ } }
     } catch (error) {
       console.error("[NotificationProvider] Error marking as read:", error);
     }
@@ -226,26 +328,18 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
 
   const markAllAsRead = useCallback(async () => {
     try {
-      if (role === "admin" && userId) {
-        await supabase
-          .from("notifications")
-          .update({ is_read: true })
-          .eq("target_role", "admin")
-          .eq("user_id", userId)
-          .eq("is_read", false);
-      } else if (userId) {
-        await supabase
-          .from("notifications")
-          .update({ is_read: true })
-          .eq("user_id", userId)
-          .in("target_role", ["client", "customer"])
-          .eq("is_read", false);
-      }
-      setNotifications((prev) => prev.map((notification) => ({ ...notification, is_read: true })));
+      if (!userId) return;
+      await supabase
+        .from("notifications_groups")
+        .update({ viewed: true })
+        .eq("user_id", userId)
+        .eq("viewed", false);
+      setNotifications((prev) => prev.map((n) => ({ ...n, viewed: true, is_read: true })));
+      if (cacheKey) { try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ } }
     } catch (error) {
       console.error("[NotificationProvider] Error marking all as read:", error);
     }
-  }, [role, userId]);
+  }, [cacheKey, userId]);
 
   useEffect(() => {
     if (!user) {
@@ -267,8 +361,16 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
 
     const channel = supabase
       .channel(`notif_realtime_${role}_${userId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, handleInsert)
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "notifications" }, handleUpdate)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications_groups", filter: `user_id=eq.${userId}` },
+        handleInsert,
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "notifications_groups", filter: `user_id=eq.${userId}` },
+        handleUpdate,
+      )
       .subscribe((status, error) => {
         setRealtimeStatus(
           status === "SUBSCRIBED"
@@ -284,24 +386,45 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
       supabase.removeChannel(channel);
       window.clearTimeout(loadTimerId);
     };
-  }, [loadHistory, role, userId]);
+  }, [loadHistory, role, userId, handleInsert, handleUpdate]);
+
+  // Fallback: reload when the tab becomes visible or the window is focused,
+  // and poll every 30 s in case realtime events are missed.
+  useEffect(() => {
+    if (!userId) return;
+
+    const refresh = () => {
+      if (cacheKey) { try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ } }
+      void loadHistory();
+    };
+
+    const onVisibility = () => { if (document.visibilityState === "visible") refresh(); };
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("focus", refresh);
+    const pollId = window.setInterval(refresh, 30_000);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", refresh);
+      window.clearInterval(pollId);
+    };
+  }, [cacheKey, loadHistory, userId]);
 
   useEffect(() => {
     function handler(event: Event) {
       const detail = (event as CustomEvent<{ notification?: AppNotification }>).detail;
       const notification = detail?.notification;
 
-      if (!notification || !matchesNotificationRole(notification, role, user?.id)) {
+      if (!notification || notification.user_id !== user?.id) {
         void loadHistory();
         return;
       }
 
-      if (user?.createdAt && new Date(notification.created_at) < new Date(user.createdAt)) {
-        return;
-      }
+      if (user?.createdAt && new Date(notification.created_at) < new Date(user.createdAt)) return;
 
       setNotifications((prev) => {
-        if (prev.some((entry) => entry.id === notification.id)) return prev;
+        if (prev.some((n) => n.id === notification.id)) return prev;
         return [notification, ...prev];
       });
 
@@ -310,7 +433,7 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
 
     window.addEventListener("aplikei:notifications:changed", handler);
     return () => window.removeEventListener("aplikei:notifications:changed", handler);
-  }, [addToToastQueue, loadHistory, role, user?.id, user?.createdAt]);
+  }, [addToToastQueue, loadHistory, user?.id, user?.createdAt]);
 
   const value: NotificationContextValue = {
     notifications,

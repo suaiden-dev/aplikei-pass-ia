@@ -1,5 +1,5 @@
 import { supabase } from "@shared/lib/supabase";
-import { notifyAdmin, notifyClient } from "@features/notifications/services/notify";
+import { notifyAdmin, notifyClient, notifyMaster } from "@features/notifications/services/notify";
 import { getServiceBySlug, isSameService, getServiceSlugs } from "@shared/data/services";
 import {
   COS_RFE_ACCEPT_PROPOSAL_STEP,
@@ -365,22 +365,23 @@ export async function requestStepReview(serviceId: string): Promise<void> {
 
   const { serviceName, currentTitle } = getStepTitles(service.service_slug, service.current_step);
   await notifyAdmin({
-    title: "Action required: review step",
-    body: currentTitle
-      ? `Client completed step "${currentTitle}" in ${serviceName} and is waiting for your review.`
-      : `Client completed a step in ${serviceName} and is waiting for your review.`,
     serviceId,
     userId: service.user_id ?? undefined,
     link: `/master/processes/${serviceId}`,
+    category: "process",
+    action: currentTitle ? "review_required" : "step_submitted",
+    metadata: {
+      ...(currentTitle ? { step_name: currentTitle } : {}),
+      service_name: serviceName,
+    },
   });
 
   await notifyClient({
     userId: service.user_id ?? undefined,
-    template: "admin_message",
-    title: "We are reviewing!",
-    body: "Your step was submitted successfully to our review team. Please wait for validation.",
     serviceId,
     link: getProcessLink(service.service_slug),
+    category: "process",
+    action: "under_review",
   });
 }
 
@@ -390,7 +391,7 @@ export async function approveStep(
   isFinal: boolean = false,
   result?: "approved" | "denied",
   additionalData?: Record<string, unknown>,
-  options?: { notifyClient?: boolean },
+  options?: { notifyClient?: boolean; actorRole?: string },
 ): Promise<void> {
   if (!serviceId) throw new Error("ID do serviço é obrigatório.");
 
@@ -422,19 +423,31 @@ export async function approveStep(
       );
       await notifyClient({
         userId: service.user_id ?? undefined,
-        template: isFinal ? "process_completed_approved" : "step_approved",
         serviceId,
-        templateData: isFinal
-          ? { service_name: serviceName }
-          : {
-              step_name: currentTitle,
-              next_step_name: nextTitle,
-              service_name: serviceName,
-            },
         link: getProcessLink(service.service_slug),
+        category: "process",
+        action: isFinal ? "completed_approved" : (nextTitle ? "step_approved" : "step_approved_final"),
+        metadata: isFinal
+          ? { service_name: serviceName }
+          : { step_name: currentTitle, next_step_name: nextTitle, service_name: serviceName },
       });
     } catch (e) {
       console.warn("[processOps] Notify client of approval failed:", e);
+    }
+  }
+
+  if (options?.actorRole === "admin_lawyer") {
+    try {
+      const { serviceName, currentTitle } = getStepTitles(service.service_slug, service.current_step);
+      await notifyMaster({
+        serviceId,
+        link: `/master/processes/${serviceId}`,
+        category: "admin",
+        action: isFinal ? "process_approved" : "step_approved_confirmed",
+        metadata: { step_name: currentTitle, service_name: serviceName },
+      });
+    } catch (e) {
+      console.warn("[processOps] Notify master of approval failed:", e);
     }
   }
 }
@@ -443,6 +456,7 @@ export async function rejectStep(
   serviceId: string,
   isFinal: boolean = false,
   result?: "approved" | "denied",
+  options?: { actorRole?: string },
 ): Promise<void> {
   if (!serviceId) throw new Error("ID do serviço é obrigatório.");
 
@@ -472,15 +486,31 @@ export async function rejectStep(
 
     await notifyClient({
       userId: service.user_id ?? undefined,
-      template: isFinal ? "process_completed_denied" : "step_rejected_feedback",
       serviceId,
-      templateData: isFinal
+      link: getProcessLink(service.service_slug),
+      category: "process",
+      action: isFinal ? "completed_denied" : (feedback ? "step_rejected" : "step_rejected_no_feedback"),
+      metadata: isFinal
         ? { service_name: serviceName }
         : { step_name: currentTitle, feedback },
-      link: getProcessLink(service.service_slug),
     });
   } catch (e) {
     console.warn("[processOps] Notify client of rejection failed:", e);
+  }
+
+  if (options?.actorRole === "admin_lawyer") {
+    try {
+      const { serviceName, currentTitle } = getStepTitles(service.service_slug, service.current_step);
+      await notifyMaster({
+        serviceId,
+        link: `/master/processes/${serviceId}`,
+        category: "admin",
+        action: isFinal ? "process_denied" : "step_rejected_confirmed",
+        metadata: { step_name: currentTitle, service_name: serviceName },
+      });
+    } catch (e) {
+      console.warn("[processOps] Notify master of rejection failed:", e);
+    }
   }
 }
 

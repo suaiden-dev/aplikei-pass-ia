@@ -19,13 +19,13 @@ interface DiscountRules {
 }
 
 const DEFAULTS: DiscountRules = {
-  seller_max_pct: 20,
-  seller_max_fixed: 50,
-  seller_allow_percentage: true,
+  seller_max_pct: 0,
+  seller_max_fixed: 0,
+  seller_allow_percentage: false,
   seller_allow_fixed: false,
-  seller_max_coupons: null,
-  seller_max_uses: null,
-  seller_min_purchase_usd: null,
+  seller_max_coupons: 0,
+  seller_max_uses: 0,
+  seller_min_purchase_usd: 0,
 };
 
 function RuleCard({ icon, title, description, children }: {

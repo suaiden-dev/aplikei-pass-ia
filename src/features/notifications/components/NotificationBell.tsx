@@ -32,18 +32,17 @@ export function NotificationBell({ role, align = "right" }: NotificationBellProp
   
   const { user } = useAuth();
   const { lang } = useLocale();
-  const tAdmin = useT("admin");
+  const tNotif = useT("notifications") ?? {};
   const [isOpen, setIsOpen] = useState(false);
-  const [filter, setFilter] = useState<"all" | "unread" | "admin_action" | "client_action" | "system">("all");
+  const [filter, setFilter] = useState<"all" | "unread" | "process" | "payment" | "admin" | "system">("all");
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const tNotifications = tAdmin?.notificationsCenter ?? {};
   const notificationLang = lang;
 
   const filteredNotifications = notifications.filter((n) => {
     if (filter === "all") return true;
-    if (filter === "unread") return !n.is_read;
-    return n.type === filter;
+    if (filter === "unread") return !n.viewed;
+    return n.category === filter;
   });
 
   const resolveLink = (link: string | null) => {
@@ -116,15 +115,15 @@ export function NotificationBell({ role, align = "right" }: NotificationBellProp
             {/* Header */}
             <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-bg-subtle/50">
               <h3 className="text-sm font-black text-text tracking-tight uppercase">
-                {tNotifications.title ?? "Notificações"}
+                {tNotif.bell?.tooltip ?? "Notifications"}
               </h3>
               {unreadCount > 0 && (
-                <button 
+                <button
                   onClick={() => markAllAsRead()}
                   className="text-[10px] font-black text-primary hover:text-primary/70 uppercase tracking-widest transition-colors flex items-center gap-1"
                 >
                   <RiCheckDoubleLine className="text-sm" />
-                  {tNotifications.markAll ?? "Marcar tudo"}
+                  {tNotif.bell?.markAllRead ?? "Mark all"}
                 </button>
               )}
             </div>
@@ -135,11 +134,12 @@ export function NotificationBell({ role, align = "right" }: NotificationBellProp
                 onChange={(e) => setFilter(e.target.value as typeof filter)}
                 className="w-full rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-text"
               >
-                <option value="all">{tNotifications.filters?.all ?? "Todas"}</option>
-                <option value="unread">{tNotifications.filters?.unread ?? "Não lidas"}</option>
-                <option value="admin_action">{tNotifications.filters?.adminAction ?? "Admin"}</option>
-                <option value="client_action">{tNotifications.filters?.clientAction ?? "Cliente"}</option>
-                <option value="system">{tNotifications.filters?.system ?? "Sistema"}</option>
+                <option value="all">{tNotif.filters?.all ?? "All"}</option>
+                <option value="unread">{tNotif.filters?.unread ?? "Unread"}</option>
+                <option value="process">{tNotif.filters?.process ?? "Process"}</option>
+                <option value="payment">{tNotif.filters?.payment ?? "Payment"}</option>
+                <option value="admin">{tNotif.filters?.admin ?? "Admin"}</option>
+                <option value="system">{tNotif.filters?.system ?? "System"}</option>
               </select>
             </div>
 
@@ -151,22 +151,22 @@ export function NotificationBell({ role, align = "right" }: NotificationBellProp
                     <RiNotification3Line size={24} />
                   </div>
                   <p className="text-xs font-bold text-text uppercase tracking-tight">
-                    {tNotifications.emptyTitle ?? "Sem notificações"}
+                    {tNotif.empty?.title ?? "No notifications"}
                   </p>
                   <p className="text-[10px] font-medium text-text-muted mt-1 uppercase tracking-widest">
-                    {tNotifications.emptySubtitle ?? "Tudo em dia!"}
+                    {tNotif.empty?.subtitle ?? "You're all caught up!"}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-1">
                   {filteredNotifications.map(n => (
-                    <NotificationItem 
-                      key={n.id} 
-                      notification={n} 
+                    <NotificationItem
+                      key={n.id}
+                      notification={n}
                       lang={notificationLang}
-                      labels={tNotifications.labels}
+                      content={tNotif.content}
                       onClick={async () => {
-                        if (!n.is_read) {
+                        if (!n.viewed) {
                           await markAsRead(n.id);
                         }
                         setIsOpen(false);
@@ -185,7 +185,7 @@ export function NotificationBell({ role, align = "right" }: NotificationBellProp
             {role === "admin" && (
               <div className="p-3 bg-bg-subtle/50 border-t border-border text-center">
                 <button className="text-[10px] font-black text-text-muted hover:text-text uppercase tracking-widest transition-colors">
-                  {tNotifications.viewFullLog ?? "Ver log completo"}
+                  {tNotif.bell?.viewAll ?? "View all"}
                 </button>
               </div>
             )}
@@ -196,57 +196,49 @@ export function NotificationBell({ role, align = "right" }: NotificationBellProp
   );
 }
 
-function NotificationItem({ 
-  notification, 
+function NotificationItem({
+  notification,
   lang,
-  labels,
-  onClick 
-}: { 
-  notification: AppNotification; 
+  content,
+  onClick,
+}: {
+  notification: AppNotification;
   lang: "pt" | "en" | "es";
-  labels?: Record<string, string | undefined>;
+  content?: Record<string, { title: string; message: string }>;
   onClick: () => void;
 }) {
-  const isEmail = notification.send_email;
-  
   const getIcon = () => {
-    if (isEmail) return <RiMailSendLine size={16} />;
-    
-    switch (notification.type) {
-      case "admin_action":
-        return <RiNotification3Line size={16} />;
-      case "client_action":
-        return <RiUserLine size={16} />;
-      case "system":
-        return <RiAlertLine size={16} />;
-      default:
-        return <RiNotification3Line size={16} />;
-    }
-  };
-  
-  const getIconColor = () => {
-    if (notification.is_read) return "bg-bg-subtle text-text-muted";
-    
-    switch (notification.type) {
-      case "admin_action":
-        return "bg-primary text-white shadow-sm shadow-primary/20";
-      case "client_action":
-        return "bg-success text-white shadow-sm shadow-success/20";
-      case "system":
-        return "bg-warning text-white shadow-sm shadow-warning/20";
-      default:
-        return "bg-primary text-white shadow-sm shadow-primary/20";
+    switch (notification.category) {
+      case "payment":   return <RiMailSendLine size={16} />;
+      case "process":
+      case "uscis":
+      case "rfe":       return <RiUserLine size={16} />;
+      case "admin":     return <RiNotification3Line size={16} />;
+      case "system":    return <RiAlertLine size={16} />;
+      default:          return <RiNotification3Line size={16} />;
     }
   };
 
-  const localized = localizeNotificationContent(notification, lang, labels);
+  const getIconColor = () => {
+    if (notification.viewed) return "bg-bg-subtle text-text-muted";
+    switch (notification.category) {
+      case "payment":   return "bg-success text-white shadow-sm shadow-success/20";
+      case "process":
+      case "uscis":
+      case "rfe":       return "bg-primary text-white shadow-sm shadow-primary/20";
+      case "system":    return "bg-warning text-white shadow-sm shadow-warning/20";
+      default:          return "bg-primary text-white shadow-sm shadow-primary/20";
+    }
+  };
+
+  const localized = localizeNotificationContent(notification, lang, content);
 
   return (
     <button 
       onClick={onClick}
       className={cn(
         "w-full text-left p-3 rounded-2xl transition-all border group",
-        notification.is_read 
+        notification.viewed
           ? "bg-transparent border-transparent hover:bg-bg-subtle"
           : "bg-primary/5 border-primary/10 hover:bg-primary/10",
         notification.link ? "cursor-pointer" : "cursor-default",
@@ -265,13 +257,13 @@ function NotificationItem({
         <div className="flex-1 min-w-0">
           <h4 className={cn(
             "text-xs font-bold truncate tracking-tight uppercase",
-            notification.is_read ? "text-text-muted" : "text-text"
+            notification.viewed ? "text-text-muted" : "text-text"
           )}>
             {localized.title}
           </h4>
           <p className={cn(
             "text-[11px] leading-snug mt-0.5",
-            notification.is_read ? "text-text-muted line-clamp-2" : "text-text font-medium line-clamp-3"
+            notification.viewed ? "text-text-muted line-clamp-2" : "text-text font-medium line-clamp-3"
           )}>
             {localized.message}
           </p>
@@ -284,7 +276,7 @@ function NotificationItem({
         </div>
 
         {/* Status Dot */}
-        {!notification.is_read && (
+        {!notification.viewed && (
           <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-2 animate-pulse" />
         )}
       </div>

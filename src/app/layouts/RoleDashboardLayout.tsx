@@ -317,6 +317,12 @@ export function RoleDashboardLayout({
   const navigate = useNavigate();
   const routeLocation = useLocation();
   const [officeName, setOfficeName] = useState<string | null>(null);
+  const [officeLogoUrl, setOfficeLogoUrl] = useState<string | null>(null);
+
+  const OFFICE_LOGO_ROLES = ["admin_lawyer", "manager", "seller"] as const;
+  const showOfficeLogo =
+    currentUser?.role != null &&
+    (OFFICE_LOGO_ROLES as readonly string[]).includes(currentUser.role);
 
   useEffect(() => {
     if (currentUser?.id) {
@@ -324,6 +330,11 @@ export function RoleDashboardLayout({
         .then((office) => {
           if (office) {
             setOfficeName(office.name);
+            const logo =
+              office.logo_url ||
+              (office.landing_page_config as any)?.logoUrl ||
+              null;
+            setOfficeLogoUrl(logo);
           }
         })
         .catch(() => {
@@ -580,11 +591,19 @@ export function RoleDashboardLayout({
             )}
           >
             <div className="flex items-center gap-3">
-              <img
-                src="/logo.png"
-                alt="Aplikei"
-                className="h-10 w-auto object-contain shrink-0"
-              />
+              {showOfficeLogo && officeLogoUrl ? (
+                <img
+                  src={officeLogoUrl}
+                  alt={officeName ?? "Office"}
+                  className="h-10 w-auto max-w-[120px] object-contain shrink-0"
+                />
+              ) : (
+                <img
+                  src="/logo.png"
+                  alt="Aplikei"
+                  className="h-10 w-auto object-contain shrink-0"
+                />
+              )}
               <div className={cn(collapsed && "lg:hidden")}>
                 <p className="text-sm font-bold text-text uppercase tracking-tight">
                   {displayedTitle}

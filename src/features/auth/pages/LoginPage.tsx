@@ -1,5 +1,6 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import { supabase } from "@shared/lib/supabase";
 import { useFormik } from "formik";
 import { toast } from "sonner";
 import { Button } from "@shared/components/atoms/button";
@@ -27,10 +28,32 @@ export default function Login() {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   const [isWelcoming, setIsWelcoming] = useState(false);
+  const [officeLogo, setOfficeLogo] = useState<{ name: string; src: string } | null>(null);
+
+  useEffect(() => {
+    const officeId = searchParams.get("office_id");
+    if (!officeId) return;
+    supabase
+      .from("offices")
+      .select("name, logo_url, landing_page_config")
+      .eq("id", officeId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        const src =
+          (data as any).logo_url ||
+          ((data as any).landing_page_config as any)?.logoUrl ||
+          null;
+        if (src) setOfficeLogo({ name: data.name, src });
+      });
+  }, [searchParams]);
   const activeTab: "login" | "track" =
-    location.pathname === "/track-my-case" ? "track" : "login";
+    location.pathname === "/track-my-case" || location.pathname === "/track-my-visa"
+      ? "track"
+      : "login";
 
   const { user, isAuthenticated, isLoading, refreshAccount } = useAuth();
   const { login } = useAuthForm();
@@ -135,8 +158,8 @@ export default function Login() {
     <AuthCard
       title={headerInfo.title}
       subtitle={headerInfo.subtitle}
-      logoAlt="Aplikei"
-      logoSrc="/logo.png"
+      logoAlt={officeLogo?.name ?? "Aplikei"}
+      logoSrc={officeLogo?.src ?? "/logo.png"}
       welcome={{
         show: isWelcoming,
         title: t.login.welcomeMessage || "Bem-vindo de volta!",

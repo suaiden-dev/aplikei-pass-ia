@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   ArrowUpCircle, 
   Clock, 
@@ -7,7 +8,8 @@ import {
   Loader2,
   DollarSign,
   Calendar,
-  Filter
+  Filter,
+  Settings
 } from "lucide-react";
 import { supabase } from "@shared/lib/supabase";
 import { useAuth } from "@shared/hooks/useAuth";
@@ -67,9 +69,12 @@ function getWithdrawalStatusMeta(rawStatus: string | null | undefined) {
 export default function WithdrawalsPage() {
   const t = useT("admin");
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = React.useState(true);
+  const [loadingSettings, setLoadingSettings] = React.useState(true);
   const [withdrawals, setWithdrawals] = React.useState<Withdrawal[]>([]);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [hasWithdrawalMethod, setHasWithdrawalMethod] = React.useState(false);
 
   const { data: officeStats } = useOfficeOverview();
 
@@ -108,6 +113,34 @@ export default function WithdrawalsPage() {
     fetchWithdrawals();
   }, [fetchWithdrawals]);
 
+  const fetchPayoutSettings = React.useCallback(async () => {
+    if (!user?.officeId) {
+      setLoadingSettings(false);
+      setHasWithdrawalMethod(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("office_payment_settings")
+        .select("stripe_enabled, zelle_enabled")
+        .eq("office_id", user.officeId)
+        .maybeSingle();
+
+      if (error) throw error;
+      setHasWithdrawalMethod(Boolean(data?.stripe_enabled || data?.zelle_enabled));
+    } catch (err) {
+      console.error("Error fetching payout settings:", err);
+      setHasWithdrawalMethod(false);
+    } finally {
+      setLoadingSettings(false);
+    }
+  }, [user?.officeId]);
+
+  React.useEffect(() => {
+    fetchPayoutSettings();
+  }, [fetchPayoutSettings]);
+
   const fmtCurrency = (val: number) => 
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
 
@@ -128,12 +161,31 @@ export default function WithdrawalsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={() => setIsModalOpen(true)}
+            <Button
+              onClick={() => {
+                if (hasWithdrawalMethod) {
+                  setIsModalOpen(true);
+                } else {
+                  navigate("/admin/settings/payout");
+                }
+              }}
+              disabled={loadingSettings}
               className="w-full rounded-xl bg-primary shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
             >
-              <Plus className="mr-2 h-4 w-4" /> Request Withdrawal
+              {loadingSettings ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : hasWithdrawalMethod ? (
+                <Plus className="mr-2 h-4 w-4" />
+              ) : (
+                <Settings className="mr-2 h-4 w-4" />
+              )}
+              {hasWithdrawalMethod ? "Request Withdrawal" : "Configure Withdrawal"}
             </Button>
+            {!loadingSettings && !hasWithdrawalMethod && (
+              <p className="mt-3 text-xs font-medium text-text-muted">
+                Configure a payout method before requesting withdrawals.
+              </p>
+            )}
           </CardContent>
         </Card>
 

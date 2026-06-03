@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { 
-  RiVipCrown2Line, 
-  RiCalendarCheckLine, 
-  RiArrowUpDoubleLine, 
-  RiShieldCheckLine, 
+import {
+  RiVipCrown2Line,
+  RiCalendarCheckLine,
+  RiArrowUpDoubleLine,
+  RiShieldCheckLine,
   RiBillLine,
   RiCheckDoubleLine,
   RiCloseLine,
@@ -61,7 +61,7 @@ export default function SubscriptionPage() {
       .from("subscription_plans")
       .select("*")
       .eq("is_active", true);
-    
+
     setDbPlans(data || []);
     setLoadingPlans(false);
   }, []);
@@ -113,11 +113,11 @@ export default function SubscriptionPage() {
 
   const currentPlan = {
     name: planName || t.subscription.noPlan,
-    price: planType === 'FIXED' 
-      ? `$ ${fixedFee}` 
-      : (planType === 'PERCENTAGE' 
-          ? `${percentageFee}%` 
-          : `$ ${fixedFee} + ${percentageFee}%`),
+    price: planType === 'FIXED'
+      ? `$ ${fixedFee}`
+      : (planType === 'PERCENTAGE'
+        ? `${percentageFee}%`
+        : `$ ${fixedFee} + ${percentageFee}%`),
     period: planType === 'PERCENTAGE' ? t.subscription.plans.percentage.period : t.subscription.plans.fixed.period,
     nextBilling: t.subscription.nextCycle,
     status: status,
@@ -171,43 +171,43 @@ export default function SubscriptionPage() {
     return raw;
   }, [lang]);
 
-   const handleCancelSubscription = async () => {
-      if (!officeId) {
-        toast.error("Your user has no linked office to cancel subscription.");
-        return;
-      }
-      
-      try {
-        setIsCancelingSubscription(true);
-        const { error } = await supabase
-          .from("office_subscriptions")
-          .update({ status: "canceled", updated_at: new Date().toISOString() })
-          .eq("office_id", officeId)
-          .filter("status", "in", '("active","trialing")');
+  const handleCancelSubscription = async () => {
+    if (!officeId) {
+      toast.error("Your user has no linked office to cancel subscription.");
+      return;
+    }
 
-        if (error) throw error;
+    try {
+      setIsCancelingSubscription(true);
+      const { error } = await supabase
+        .from("office_subscriptions")
+        .update({ status: "canceled", updated_at: new Date().toISOString() })
+        .eq("office_id", officeId)
+        .filter("status", "in", '("active","trialing")');
 
-        await notifyMaster({
-          title: "Subscription canceled",
-          body: `Office ${officeId} canceled the active subscription.`,
-          link: "/master/offices",
-          metadata: { office_id: officeId, action: "cancel_subscription" },
-        });
-        
-        toast.success(t.subscription.modals.cancelSuccess);
-        setShowCancelModal(false);
-        // Refresh data
-        window.location.reload();
-      } catch (err) {
-        console.error("Error canceling subscription:", err);
-        toast.error(t.subscription.modals.cancelError);
-      } finally {
-        setIsCancelingSubscription(false);
-      }
-   };
+      if (error) throw error;
+
+      await notifyMaster({
+        link: "/master/offices",
+        category: "billing",
+        action: "subscription_canceled",
+        metadata: { office_id: officeId },
+      });
+
+      toast.success(t.subscription.modals.cancelSuccess);
+      setShowCancelModal(false);
+      // Refresh data
+      window.location.reload();
+    } catch (err) {
+      console.error("Error canceling subscription:", err);
+      toast.error(t.subscription.modals.cancelError);
+    } finally {
+      setIsCancelingSubscription(false);
+    }
+  };
 
   const handleSelectPlan = async (plan: DBPlan) => {
-     setPlanToContract(plan);
+    setPlanToContract(plan);
   };
 
   const handleConfirmContract = async () => {
@@ -237,15 +237,10 @@ export default function SubscriptionPage() {
       if (error) throw error;
 
       await notifyMaster({
-        title: "Subscription updated",
-        body: `Office ${officeId} activated/changed to plan ${planToContract.name}.`,
         link: "/master/offices",
-        metadata: {
-          office_id: officeId,
-          action: "upsert_subscription",
-          plan_id: planToContract.id,
-          plan_name: planToContract.name,
-        },
+        category: "billing",
+        action: "subscription_updated",
+        metadata: { office_id: officeId, plan_name: planToContract.name, plan_id: planToContract.id },
       });
 
       toast.success(`Plan ${planToContract.name} activated successfully!`);
@@ -271,7 +266,7 @@ export default function SubscriptionPage() {
   const renderContent = () => {
     if (status === 'none' || (urlPlanId && !isActive)) {
       return (
-        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-8xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-1000">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20 mb-6">
               <RiVipCrown2Line /> {t.subscription.onboarding.eyebrow}
@@ -284,27 +279,25 @@ export default function SubscriptionPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8 text-left">
+          <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-6 lg:gap-8 text-left">
             {availablePlans.map((plan) => {
               const color = getPlanColor(plan.type);
               return (
-                <div 
+                <div
                   key={plan.id}
-                  className={`relative p-6 sm:p-8 lg:p-10 rounded-[32px] lg:rounded-[40px] border-2 bg-card transition-all hover:-translate-y-2 flex flex-col shadow-xl shadow-bg-subtle ${
-                    color === 'primary' ? 'border-primary/20 hover:border-primary' :
+                  className={`relative p-6 sm:p-8 lg:p-10 rounded-[32px] lg:rounded-[40px] border-2 bg-card transition-all hover:-translate-y-2 flex flex-col shadow-xl shadow-bg-subtle ${color === 'primary' ? 'border-primary/20 hover:border-primary' :
                     color === 'secondary' ? 'border-secondary/20 hover:border-secondary' :
-                    'border-warning/20 hover:border-warning'
-                  } ${plan.id === urlPlanId ? 'ring-4 ring-amber-500/30' : ''}`}
+                      'border-warning/20 hover:border-warning'
+                    } ${plan.id === urlPlanId ? 'ring-4 ring-amber-500/30' : ''}`}
                 >
                   {plan.is_exclusive && (
-                     <div className="absolute top-6 right-6 px-3 py-1 rounded-full bg-amber-500 text-bg text-[9px] font-black uppercase tracking-widest">Exclusive</div>
+                    <div className="absolute top-6 right-6 px-3 py-1 rounded-full bg-amber-500 text-bg text-[9px] font-black uppercase tracking-widest">Exclusive</div>
                   )}
-                  
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-lg ${
-                    color === 'primary' ? 'bg-primary/10 text-primary' :
+
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-lg ${color === 'primary' ? 'bg-primary/10 text-primary' :
                     color === 'secondary' ? 'bg-secondary/10 text-secondary' :
-                    'bg-warning/10 text-warning'
-                  }`}>
+                      'bg-warning/10 text-warning'
+                    }`}>
                     {getPlanIcon(plan.type)}
                   </div>
 
@@ -320,30 +313,52 @@ export default function SubscriptionPage() {
                     </span>
                   </div>
 
-                  <p className="text-sm text-text-muted font-medium mb-8 flex-grow leading-relaxed">
-                    {normalizePlanDescription(plan.description, plan.type)}
-                  </p>
-
-                  <div className="space-y-4 mb-10">
-                    {(plan.features || []).map((f, i) => (
-                      <div key={i} className="flex items-center gap-3 text-sm font-bold text-text/80">
-                        <RiCheckDoubleLine className={`text-xl ${
-                          color === 'primary' ? 'text-primary' :
-                          color === 'secondary' ? 'text-secondary' :
-                          'text-warning'
-                        }`} />
-                        {f}
+                  {plan.type === 'PERCENTAGE' ? (
+                    <div className="space-y-4 mb-8 flex-grow">
+                      {[
+                        { title: "Unlimited Cases", sub: "Handle as many cases as your business needs." },
+                        { title: "Up to 5 Team Members", sub: "Collaborate with your team in a single workspace." },
+                        { title: "24/7 Priority Support", sub: "Get fast assistance whenever you need it." },
+                        { title: "Custom Sales Page", sub: "Create a fully branded sales experience." },
+                        { title: "Advanced AI Integration", sub: "Automate workflows with powerful AI features." },
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-start gap-3">
+                          <RiCheckDoubleLine className={`text-xl mt-0.5 flex-shrink-0 ${color === 'primary' ? 'text-primary' :
+                            color === 'secondary' ? 'text-secondary' :
+                              'text-warning'
+                            }`} />
+                          <div>
+                            <span className="text-sm font-black text-text">{item.title}</span>
+                            <span className="text-xs text-text-muted font-medium block leading-snug">{item.sub}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm text-text-muted font-medium mb-8 flex-grow leading-relaxed">
+                        {normalizePlanDescription(plan.description, plan.type)}
+                      </p>
+                      <div className="space-y-4 mb-10">
+                        {(plan.features || []).map((f, i) => (
+                          <div key={i} className="flex items-center gap-3 text-sm font-bold text-text/80">
+                            <RiCheckDoubleLine className={`text-xl ${color === 'primary' ? 'text-primary' :
+                              color === 'secondary' ? 'text-secondary' :
+                                'text-warning'
+                              }`} />
+                            {f}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </>
+                  )}
 
-                  <button 
+                  <button
                     onClick={() => handleSelectPlan(plan)}
-                    className={`w-full h-14 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl active:scale-95 ${
-                      color === 'primary' ? 'bg-primary text-white shadow-primary/20' :
+                    className={`w-full h-14 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl active:scale-95 ${color === 'primary' ? 'bg-primary text-white shadow-primary/20' :
                       color === 'secondary' ? 'bg-secondary text-white shadow-secondary/20' :
-                      'bg-warning text-white shadow-warning/20'
-                    }`}
+                        'bg-warning text-white shadow-warning/20'
+                      }`}
                   >
                     {t.subscription.onboarding.btn}
                   </button>
@@ -371,7 +386,7 @@ export default function SubscriptionPage() {
             <div className="relative overflow-hidden rounded-[28px] sm:rounded-[32px] border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card p-6 sm:p-8 lg:p-10 shadow-2xl shadow-primary/5">
               {/* Background Accent */}
               <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-              
+
               <div className="relative z-10">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                   <div className="flex items-center gap-4">
@@ -409,7 +424,7 @@ export default function SubscriptionPage() {
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="mt-8 flex items-center justify-between">
                   {normalizePlanName(currentPlan.name) !== "Scalable Plan" && currentPeriodEnd && (
                     <div className="flex items-center gap-3">
@@ -422,8 +437,8 @@ export default function SubscriptionPage() {
                       </div>
                     </div>
                   )}
-                  
-                  <button 
+
+                  <button
                     onClick={() => setShowCancelModal(true)}
                     className="h-12 px-8 rounded-2xl border-2 border-danger/20 text-danger text-[10px] font-black uppercase tracking-widest hover:bg-danger hover:text-white transition-all active:scale-95 ml-auto"
                   >
@@ -469,13 +484,13 @@ export default function SubscriptionPage() {
           <div className="space-y-6 text-left xl:sticky xl:top-24 h-fit">
             <div className="rounded-[32px] border border-border bg-card p-8 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-secondary/5 rounded-full blur-2xl group-hover:bg-secondary/10 transition-all" />
-              
+
               <RiArrowUpDoubleLine className="text-4xl text-secondary mb-4 group-hover:-translate-y-1 transition-transform duration-500" />
               <h3 className="text-xl font-black text-text mb-2 uppercase tracking-tight">{t.subscription.upgrade.title}</h3>
               <p className="text-sm text-text-muted font-medium mb-6 leading-relaxed">
                 {t.subscription.upgrade.description}
               </p>
-              <button 
+              <button
                 onClick={() => setShowPlansModal(true)}
                 className="w-full h-12 rounded-2xl bg-secondary text-white text-[10px] font-black uppercase tracking-widest hover:bg-secondary/90 transition-all shadow-lg shadow-secondary/20 active:scale-95"
               >
@@ -506,7 +521,7 @@ export default function SubscriptionPage() {
       {showPlansModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
           <div className="w-full max-w-5xl rounded-[40px] border border-border bg-bg p-8 md:p-12 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button 
+            <button
               onClick={() => setShowPlansModal(false)}
               className="absolute top-8 right-8 w-12 h-12 rounded-2xl border border-border flex items-center justify-center text-text-muted hover:text-text hover:bg-card transition-all"
             >
@@ -522,19 +537,17 @@ export default function SubscriptionPage() {
               {availablePlans.map((plan) => {
                 const color = getPlanColor(plan.type);
                 return (
-                  <div 
+                  <div
                     key={plan.id}
-                    className={`relative p-8 rounded-[32px] border-2 bg-card transition-all hover:-translate-y-2 flex flex-col ${
-                      color === 'primary' ? 'border-primary/20 hover:border-primary' :
+                    className={`relative p-8 rounded-[32px] border-2 bg-card transition-all hover:-translate-y-2 flex flex-col ${color === 'primary' ? 'border-primary/20 hover:border-primary' :
                       color === 'secondary' ? 'border-secondary/20 hover:border-secondary' :
-                      'border-warning/20 hover:border-warning'
-                    }`}
+                        'border-warning/20 hover:border-warning'
+                      }`}
                   >
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-lg ${
-                      color === 'primary' ? 'bg-primary/10 text-primary' :
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-lg ${color === 'primary' ? 'bg-primary/10 text-primary' :
                       color === 'secondary' ? 'bg-secondary/10 text-secondary' :
-                      'bg-warning/10 text-warning'
-                    }`}>
+                        'bg-warning/10 text-warning'
+                      }`}>
                       {getPlanIcon(plan.type)}
                     </div>
 
@@ -555,23 +568,21 @@ export default function SubscriptionPage() {
                     <div className="space-y-3 mb-8">
                       {(plan.features || []).map((f, i) => (
                         <div key={i} className="flex items-center gap-2 text-xs font-bold text-text/70">
-                          <RiCheckDoubleLine className={`text-sm ${
-                            color === 'primary' ? 'text-primary' :
+                          <RiCheckDoubleLine className={`text-sm ${color === 'primary' ? 'text-primary' :
                             color === 'secondary' ? 'text-secondary' :
-                            'text-warning'
-                          }`} />
+                              'text-warning'
+                            }`} />
                           {f}
                         </div>
                       ))}
                     </div>
 
-                    <button 
+                    <button
                       onClick={() => handleSelectPlan(plan)}
-                      className={`w-full h-12 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ${
-                        color === 'primary' ? 'bg-primary text-white shadow-primary/20' :
+                      className={`w-full h-12 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ${color === 'primary' ? 'bg-primary text-white shadow-primary/20' :
                         color === 'secondary' ? 'bg-secondary text-white shadow-secondary/20' :
-                        'bg-warning text-white shadow-warning/20'
-                      }`}
+                          'bg-warning text-white shadow-warning/20'
+                        }`}
                     >
                       {t.subscription.modals.changeBtn}
                     </button>
@@ -595,21 +606,21 @@ export default function SubscriptionPage() {
               <div className="w-20 h-20 rounded-3xl bg-danger/10 text-danger flex items-center justify-center mx-auto mb-6">
                 <RiCloseLine className="text-4xl" />
               </div>
-              
+
               <h2 className="text-2xl font-black text-text uppercase tracking-tight">{t.subscription.modals.cancelTitle}</h2>
               <p className="text-sm text-text-muted font-medium leading-relaxed">
                 {t.subscription.modals.cancelDescription}
               </p>
 
               <div className="grid grid-cols-2 gap-4 pt-4">
-                <button 
+                <button
                   onClick={() => setShowCancelModal(false)}
                   disabled={isCancelingSubscription}
                   className="h-12 rounded-2xl border border-border text-text text-[10px] font-black uppercase tracking-widest hover:bg-card transition-all"
                 >
                   {t.subscription.modals.cancelKeep}
                 </button>
-                <button 
+                <button
                   onClick={handleCancelSubscription}
                   disabled={isCancelingSubscription}
                   className="h-12 rounded-2xl bg-danger text-white text-[10px] font-black uppercase tracking-widest hover:bg-danger/90 transition-all shadow-lg shadow-danger/20 disabled:opacity-60 disabled:cursor-not-allowed"
@@ -630,7 +641,7 @@ export default function SubscriptionPage() {
               <div className="w-20 h-20 rounded-3xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6">
                 <RiVipCrown2Line className="text-4xl" />
               </div>
-              
+
               <h2 className="text-2xl font-black text-text uppercase tracking-tight">Confirm Subscription</h2>
               <p className="text-sm text-text-muted font-medium leading-relaxed">
                 You are about to subscribe to the <strong>{planToContract.name}</strong>.
@@ -639,14 +650,14 @@ export default function SubscriptionPage() {
               </p>
 
               <div className="grid grid-cols-2 gap-4 pt-4">
-                <button 
+                <button
                   onClick={() => setPlanToContract(null)}
                   disabled={isActivatingSubscription}
                   className="h-12 rounded-2xl border border-border text-text text-[10px] font-black uppercase tracking-widest hover:bg-card transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleConfirmContract}
                   disabled={isActivatingSubscription}
                   className="h-12 rounded-2xl bg-primary text-white text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed"

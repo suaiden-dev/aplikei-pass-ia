@@ -72,7 +72,7 @@ function replaceServiceCardByIndex(
   index: number,
   updater: (cardHtml: string) => string,
 ) {
-  const cardRegex = /<div class="service-card">[\s\S]*?<a\s+href="[^"]*" class="btn btn-card">Contratar serviço<\/a>[\s\S]*?<\/div>/gi;
+  const cardRegex = /<div class="service-card">[\s\S]*?<a\s+href="[^"]*" class="btn btn-card">[\s\S]*?<\/a>[\s\S]*?<\/div>/gi;
   const matches = html.match(cardRegex);
   if (!matches || !matches[index]) return html;
   return html.replace(matches[index], updater(matches[index]));
@@ -80,25 +80,36 @@ function replaceServiceCardByIndex(
 
 function replaceServiceCardLinkByIndex(html: string, index: number, href: string) {
   return replaceServiceCardByIndex(html, index, (cardHtml) =>
-    cardHtml.replace(/(<a\s+href=")[^"]*(" class="btn btn-card">Contratar serviço<\/a>)/i, `$1${escapeHtml(href)}$2`),
+    cardHtml.replace(/(<a\s+href=")[^"]*(" class="btn btn-card">[\s\S]*?<\/a>)/i, `$1${escapeHtml(href)}$2`),
   );
 }
 
 function removeServiceCardByIndex(html: string, index: number) {
-  const cardRegex = /<div class="service-card">[\s\S]*?<a\s+href="[^"]*" class="btn btn-card">Contratar serviço<\/a>[\s\S]*?<\/div>\s*/gi;
+  const cardRegex = /<div class="service-card">[\s\S]*?<a\s+href="[^"]*" class="btn btn-card">[\s\S]*?<\/a>[\s\S]*?<\/div>\s*/gi;
   const matches = html.match(cardRegex);
   if (!matches || !matches[index]) return html;
   return html.replace(matches[index], "");
 }
 
+function toAbsoluteUrl(value: string) {
+  if (!value) return value;
+  if (/^https?:\/\//i.test(value)) return value;
+  if (typeof window !== "undefined" && value.startsWith("/")) {
+    return `${window.location.origin}${value}`;
+  }
+  return value;
+}
+
 export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig) {
   let html = baseHtml;
 
+  const faviconUrl = toAbsoluteUrl(config.faviconUrl);
+
   html = replaceFirst(html, /<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(config.pageTitle)}</title>`);
   if (/<link\s+rel="icon"/i.test(html)) {
-    html = replaceFirst(html, /<link\s+rel="icon"[^>]*>/i, `<link rel="icon" href="${escapeHtml(config.faviconUrl)}" />`);
+    html = replaceFirst(html, /<link\s+rel="icon"[^>]*>/i, `<link rel="icon" href="${escapeHtml(faviconUrl)}" />`);
   } else {
-    html = replaceFirst(html, /<\/head>/i, `  <link rel="icon" href="${escapeHtml(config.faviconUrl)}" />\n</head>`);
+    html = replaceFirst(html, /<\/head>/i, `  <link rel="icon" href="${escapeHtml(faviconUrl)}" />\n</head>`);
   }
   html = replaceFirst(html, /<h1 class="hero-title">[\s\S]*?<\/h1>/i, `<h1 class="hero-title">${escapeHtml(config.heroTitle)}</h1>`);
   html = replaceFirst(html, /<p class="hero-description">[\s\S]*?<\/p>/i, `<p class="hero-description">${escapeHtml(config.heroSubtitle)}</p>`);

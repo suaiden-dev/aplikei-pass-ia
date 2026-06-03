@@ -118,6 +118,15 @@ export default function PaymentSettingsPage() {
     }
   };
 
+  const selectPayoutMethod = (method: "stripe" | "zelle", checked: boolean) => {
+    setSettings((current) => current ? {
+      ...current,
+      default_payout_method: checked ? method : "",
+      stripe_enabled: method === "stripe" ? checked : false,
+      zelle_enabled: method === "zelle" ? checked : false,
+    } : current);
+  };
+
   if (loading) {
     return (
       <div className="flex h-[400px] items-center justify-center">
@@ -163,7 +172,7 @@ export default function PaymentSettingsPage() {
                 </div>
                 <Switch
                   checked={isStripeEnabled}
-                  onCheckedChange={(checked) => setSettings({ ...settings, stripe_enabled: checked })}
+                  onCheckedChange={(checked) => selectPayoutMethod("stripe", checked)}
                 />
               </div>
               <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-card">
@@ -173,7 +182,7 @@ export default function PaymentSettingsPage() {
                 </div>
                 <Switch
                   checked={isZelleEnabled}
-                  onCheckedChange={(checked) => setSettings({ ...settings, zelle_enabled: checked })}
+                  onCheckedChange={(checked) => selectPayoutMethod("zelle", checked)}
                 />
               </div>
             </div>

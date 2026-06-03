@@ -527,15 +527,11 @@ export default function ZellePaymentsPage() {
             await paymentService.approveZellePayment(p.zelleId, approvedByName);
 
             await notificationService.notifyClient({
-                clientEmail: p.clientEmail,
-                clientName: p.clientName || "Client",
-                template: "zelle_payment_approved",
                 userId: p.userId ?? undefined,
-                templateData: {
-                    amount: fmtCurrency(p.amount),
-                    service_name: p.serviceName,
-                },
                 link: "/dashboard",
+                category: "payment",
+                action: "zelle_approved",
+                metadata: { amount: fmtCurrency(p.amount), service_name: p.serviceName },
             });
 
             toast.success(t.payments.messages.approveSuccess.replace('{{name}}', p.clientName || tShared?.client || "Client"));
@@ -555,15 +551,11 @@ export default function ZellePaymentsPage() {
             await paymentService.rejectZellePayment(p.zelleId, reason);
 
             await notificationService.notifyClient({
-                clientEmail: p.clientEmail,
-                clientName: p.clientName || "Client",
-                template: "zelle_payment_rejected",
                 userId: p.userId ?? undefined,
-                templateData: {
-                    reason: reason || "Payment rejected by administrator.",
-                    service_name: p.serviceName,
-                },
                 link: "/dashboard",
+                category: "payment",
+                action: "zelle_rejected",
+                metadata: { reason: reason || "Payment rejected by administrator.", service_name: p.serviceName },
             });
             toast.success(t.payments.messages.rejectSuccess);
             await load();

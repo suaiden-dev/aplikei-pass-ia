@@ -95,22 +95,23 @@ export function useProcessDetail(userId: string | undefined) {
       const currentTitle = serviceMeta?.steps[proc.current_step ?? 0]?.title ?? "";
 
       await notifyAdmin({
-        title: "Action required: review step",
-        body: currentTitle
-          ? `Client completed step "${currentTitle}" in ${serviceMeta?.title ?? proc.service_slug} and is waiting for your review.`
-          : `Client completed a step in ${serviceMeta?.title ?? proc.service_slug} and is waiting for your review.`,
         serviceId: proc.id,
         userId: proc.user_id ?? undefined,
         link: `/master/processes/${proc.id}`,
+        category: "process",
+        action: currentTitle ? "review_required" : "step_submitted",
+        metadata: {
+          ...(currentTitle ? { step_name: currentTitle } : {}),
+          service_name: serviceMeta?.title ?? proc.service_slug,
+        },
       });
 
       await notifyClient({
         userId: proc.user_id ?? undefined,
-        template: "admin_message",
-        title: "We are reviewing!",
-        body: "Your step was submitted successfully to our review team. Please wait for validation.",
         serviceId: proc.id,
         link: `/dashboard/processes/${proc.service_slug}`,
+        category: "process",
+        action: "under_review",
       });
 
       await refetch();

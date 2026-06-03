@@ -47,8 +47,7 @@ export function NotificationToast({
   const navigate = useNavigate();
   const { user } = useAuth();
   const { lang } = useLocale();
-  const tAdmin = useT("admin");
-  const labels = tAdmin?.notificationsCenter?.labels ?? {};
+  const tNotif = useT("notifications") ?? {};
   const notificationLang = lang;
 
   const resolveLink = (link: string | null | undefined): string | null => {
@@ -68,7 +67,7 @@ export function NotificationToast({
   };
 
   const config = typeConfig[toast.type] || typeConfig.system;
-  const localized = localizeNotificationContent(toast, notificationLang, labels);
+  const localized = localizeNotificationContent(toast, notificationLang, tNotif.content);
 
   return (
     <motion.div

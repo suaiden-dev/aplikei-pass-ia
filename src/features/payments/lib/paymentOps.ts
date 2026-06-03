@@ -485,10 +485,10 @@ export async function createZellePayment(params: {
     } else {
       autoApproved = false;
       await notifyAdmin({
-        title: "Zelle: automatic verification failed",
-        body: `Payment ${paymentId} ($${params.amount}) did not pass automatic bot verification. Reason: ${botData.response}. Manual review is required.`,
         userId: params.userId || undefined,
-        metadata: { payment_id: paymentId, bot_response: botData.response },
+        category: "payment",
+        action: "zelle_bot_failed",
+        metadata: { payment_id: paymentId, amount: String(params.amount), bot_response: botData.response },
       });
       toast.info(
         "O comprovante não passou na verificação automática inicial e precisará ser analisado manualmente.",
@@ -499,9 +499,10 @@ export async function createZellePayment(params: {
     autoApproved = false;
     console.warn("[paymentOps] Bot timeout:", (botErr as Error).message);
     await notifyAdmin({
-      title: "Technical error: Zelle bot offline",
-      body: `Could not contact verification bot for payment ${paymentId}. System will proceed with manual review.`,
       userId: params.userId || undefined,
+      category: "payment",
+      action: "zelle_bot_offline",
+      metadata: { payment_id: paymentId },
     });
     toast.info(
       "Não foi possível verificar seu comprovante agora. Nossa equipe fará a conferência manual em instantes.",

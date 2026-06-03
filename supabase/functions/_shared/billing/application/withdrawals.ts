@@ -126,11 +126,12 @@ export async function requestWithdrawal(
   if (amount > availableBalance) throw new Error(`Amount exceeds available balance (${availableBalance.toFixed(2)}).`);
 
   const { data, error } = await supabase.from("office_withdrawals").insert({
-    office_id: officeId,
+    office_id:    officeId,
     amount,
     method,
     payment_link: method === "stripe" ? paymentLink : null,
-    status: "pending",
+    status:       "pending",
+    requested_by: user.userId,
   }).select("*").single();
   if (error) throw error;
   return { success: true, withdrawal: data, availableBalance };
@@ -149,7 +150,7 @@ export async function approveWithdrawal(
 
   const { data: existing, error: existingError } = await supabase
     .from("office_withdrawals")
-    .select("id, office_id, amount, status, payment_link")
+    .select("id, office_id, amount, status, payment_link, requested_by")
     .eq("id", withdrawalId)
     .maybeSingle();
   if (existingError) throw existingError;

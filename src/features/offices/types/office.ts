@@ -2,6 +2,7 @@ export interface OfficeRow {
   id: string;
   name: string;
   slug: string;
+  logo_url?: string | null;
   landing_page_config?: Record<string, unknown> | null;
   address: string | null;
   phone: string | null;

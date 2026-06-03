@@ -144,53 +144,6 @@ export type Database = {
         }
         Relationships: []
       }
-      notifications: {
-        Row: {
-          created_at: string
-          email_sent: boolean
-          id: string
-          is_read: boolean
-          link: string | null
-          message: string
-          send_email: boolean
-          target_role: string
-          title: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          email_sent?: boolean
-          id?: string
-          is_read?: boolean
-          link?: string | null
-          message: string
-          send_email?: boolean
-          target_role: string
-          title: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          email_sent?: boolean
-          id?: string
-          is_read?: boolean
-          link?: string | null
-          message?: string
-          send_email?: boolean
-          target_role?: string
-          title?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       process_logs: {
         Row: {
           action: string | null

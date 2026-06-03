@@ -735,6 +735,7 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
   const [amount, setAmount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const t = useT("admin");
+  const { user: panelUser } = useAuth();
   const data = (proc.step_data || {}) as Record<string, unknown>;
   const purchases = (data.purchases || []) as Array<{ slug?: string }>;
   const hasPaidProposal =
@@ -789,7 +790,7 @@ function MotionProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithU
       const currentStepIdx = proc.current_step ?? 0;
       const nextStep = currentStepIdx + 1;
 
-      await processService.approveStep(proc.id, nextStep);
+      await processService.approveStep(proc.id, nextStep, false, undefined, undefined, { actorRole: panelUser?.role ?? undefined });
 
       toast.success(t.analysisPanel.messages.proposalSent);
       onRefresh();
@@ -897,6 +898,7 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
   const [amount, setAmount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const t = useT("admin");
+  const { user: panelUser } = useAuth();
   const data = (proc.step_data || {}) as Record<string, unknown>;
   const purchases = (data.purchases || []) as Array<{ slug?: string }>;
   const hasPaidProposal = purchases.some(p => p.slug === "proposta-rfe-motion" || p.slug === "apoio-rfe-motion-inicio" || p.slug === "analise-rfe-cos" || p.slug === "apoio-rfe-cos");
@@ -935,7 +937,7 @@ function RFEProposalPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser
       const currentStepIdx = proc.current_step ?? 0;
       const nextStep = currentStepIdx + 1;
 
-      await processService.approveStep(proc.id, nextStep);
+      await processService.approveStep(proc.id, nextStep, false, undefined, undefined, { actorRole: panelUser?.role ?? undefined });
 
       toast.success(t.analysisPanel.messages.proposalSent);
       onRefresh();
@@ -1612,7 +1614,7 @@ export default function AdminProcessDetailPage() {
       const isFinal = (nextStep >= effectiveSteps.length && !isConsular);
       const targetStep = nextStep;
 
-      await processService.approveStep(proc.id, targetStep, isFinal, isFinal ? 'approved' : undefined, additionalData);
+      await processService.approveStep(proc.id, targetStep, isFinal, isFinal ? 'approved' : undefined, additionalData, { actorRole: user?.role ?? undefined });
 
       // se a próxima etapa para o B1/B2 ou F1 for credenciais ou criação de conta,
       // certifique-se de que o card aparecerá na fila do administrador na página de listagem
@@ -1649,7 +1651,7 @@ export default function AdminProcessDetailPage() {
       const isFinal = currentStepIdx >= effectiveSteps.length - 1;
 
       if (isFinal) {
-        await processService.rejectStep(proc.id, true, 'denied');
+        await processService.rejectStep(proc.id, true, 'denied', { actorRole: user?.role ?? undefined });
         toast.success(t.cases.messages.rejectFinalSuccess);
       } else if ((isB1B2 && currentStepBaseId === "b1b2_admin_final_analysis") || (isF1 && currentStepBaseId === "f1_admin_final_analysis")) {
         // Volta para a etapa de assinatura (idx 3 no B1/B2, idx 4 no F1)
@@ -1668,9 +1670,10 @@ export default function AdminProcessDetailPage() {
         await notificationService.notifyClient({
           userId: proc.user_id!,
           serviceId: proc.id,
-          template: "step_rejected_feedback",
-          templateData: { step_name: currentStep?.title ?? "", feedback: rejectionReason },
           link: `/dashboard/processes/${proc.service_slug}`,
+          category: "process",
+          action: rejectionReason ? "step_rejected" : "step_rejected_no_feedback",
+          metadata: { step_name: currentStep?.title ?? "", feedback: rejectionReason },
         });
         toast.success(t.shared.administrativeAction); // Or better: t.cases.messages.rejectSuccess
       } else if (isF1 && currentStepBaseId === "f1_admin_analysis") {
@@ -1689,9 +1692,10 @@ export default function AdminProcessDetailPage() {
         await notificationService.notifyClient({
           userId: proc.user_id!,
           serviceId: proc.id,
-          template: "step_rejected_feedback",
-          templateData: { step_name: currentStep?.title ?? "", feedback: rejectionReason },
           link: `/dashboard/processes/${proc.service_slug}`,
+          category: "process",
+          action: rejectionReason ? "step_rejected" : "step_rejected_no_feedback",
+          metadata: { step_name: currentStep?.title ?? "", feedback: rejectionReason },
         });
         toast.success("I-20/DS160 correction requested.");
       } else {
@@ -1701,7 +1705,7 @@ export default function AdminProcessDetailPage() {
           rejected_at: new Date().toISOString()
         });
 
-        await processService.rejectStep(proc.id);
+        await processService.rejectStep(proc.id, false, undefined, { actorRole: user?.role ?? undefined });
         toast.success(t.cases.messages.rejectSuccess);
       }
 

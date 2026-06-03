@@ -15,7 +15,8 @@ export type TranslationNamespace =
   | "footer"
   | "legal"
   | "validation"
-  | "onboarding";
+  | "onboarding"
+  | "notifications";
 
 export type LocaleNamespace = Record<string, any>;
 
@@ -37,6 +38,7 @@ export interface LocaleTranslations {
   legal: LocaleNamespace;
   validation: LocaleNamespace;
   onboarding: LocaleNamespace;
+  notifications: LocaleNamespace;
 }
 
 export interface LanguageContextType {

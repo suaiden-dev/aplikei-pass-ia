@@ -12,3 +12,9 @@ export function createAdminClient(options?: ClientOptions) {
 
   return createClient(supabaseUrl, serviceRoleKey, options);
 }
+
+export const supabaseAdmin = createAdminClient({
+  db: {
+    schema: "aplikei",
+  },
+});

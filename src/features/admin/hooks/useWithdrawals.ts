@@ -52,15 +52,15 @@ export function useWithdrawals(officeId?: string) {
     },
     onSuccess: async (created) => {
       await notifyMaster({
-        title: "New withdrawal request",
-        body: `An office requested a withdrawal of $${Number(created?.amount || 0).toFixed(2)}.`,
-
+        link: "/payments?tab=office_requests",
+        category: "billing",
+        action: "withdrawal_requested",
         metadata: {
           office_id: created?.office_id,
+          amount: Number(created?.amount || 0).toFixed(2),
           withdrawal_id: created?.id,
           method: created?.method,
         },
-        link: "/payments?tab=office_requests",
       }).catch(err => console.warn("[withdrawals] Notification failed but request was created:", err));
       queryClient.invalidateQueries({ queryKey: ["office-withdrawals", officeId] });
       queryClient.invalidateQueries({ queryKey: ["office-overview-stats", officeId] });

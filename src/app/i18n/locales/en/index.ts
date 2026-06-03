@@ -14,3 +14,4 @@ export { default as tracking } from './tracking';
 export { default as legal } from './stubs';
 export { default as validation } from './stubs';
 export { default as onboarding } from './onboarding';
+export { default as notifications } from './notifications';

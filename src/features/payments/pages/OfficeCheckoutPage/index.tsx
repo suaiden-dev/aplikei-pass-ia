@@ -683,11 +683,27 @@ export default function OfficeCheckoutPage() {
                 </motion.div>
 
                 <div className="text-center pt-4">
-                    {office && (
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-primary font-bold text-xs uppercase tracking-wider mb-2">
-                            Checkout por: {office.name}
-                        </div>
-                    )}
+                    {office && (() => {
+                        const logoSrc = office.logo_url || (office.landing_page_config as any)?.logoUrl;
+                        return (
+                            <div className="flex flex-col items-center gap-2 mb-4">
+                                {logoSrc ? (
+                                    <img
+                                        src={logoSrc}
+                                        alt={office.name}
+                                        className="h-12 max-w-[180px] object-contain"
+                                    />
+                                ) : (
+                                    <span className="text-base font-black text-text uppercase tracking-tight">
+                                        {office.name}
+                                    </span>
+                                )}
+                                <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
+                                    {office.name}
+                                </span>
+                            </div>
+                        );
+                    })()}
                     <h1 className="text-2xl font-black text-text font-display">
                         Finalize seu Checkout
                     </h1>
@@ -1147,6 +1163,11 @@ export default function OfficeCheckoutPage() {
                         </form>
                     </motion.div>
                 </div>
+            </div>
+            <div className="text-center pt-8 pb-4">
+                <p className="text-[11px] text-text-muted/50 font-semibold uppercase tracking-widest">
+                    Powered by <span className="font-black text-text-muted/70">Aplikei</span>
+                </p>
             </div>
         </div>
     );

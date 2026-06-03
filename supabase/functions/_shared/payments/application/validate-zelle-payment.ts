@@ -68,16 +68,20 @@ export async function validateZellePayment(
       if (payment.service_slug === "proposta-rfe-motion" && payment.user_id) {
         const lang = await getUserLang(supabase, payment.user_id);
         const localized = buildNotifContent("motion_submitted", {}, lang);
-        await supabase.from("notifications").insert({
-          user_id: payment.user_id,
-          target_role: "client",
-          type: "client_action",
-          title: localized.title,
-          message: localized.message,
-          link: "/dashboard",
-          send_email: true,
-          email_sent: false,
-        });
+        const { data: motionMsg } = await supabase
+          .from("notifications_messages")
+          .insert({
+            status: "sent", category: "motion", action: "submitted",
+            title: localized.title, body: localized.message,
+            link: "/dashboard", send_email: true, metadata: { template: "motion_submitted" },
+          })
+          .select("id").single();
+        if (motionMsg) {
+          await supabase.from("notifications_groups").insert({
+            notification_id: motionMsg.id, user_id: payment.user_id,
+            viewed: false, email_sent: false,
+          });
+        }
       }
     } catch (error) {
       console.error("[validate-zelle] Erro ao ativar slots:", error);
@@ -87,29 +91,28 @@ export async function validateZellePayment(
       const lang = await getUserLang(supabase, payment.user_id);
       const { title, message } = buildNotifContent(
         "zelle_payment_approved",
-        {
-          amount: String(payment.amount),
-          service_name: payment.service_slug,
-        },
+        { amount: String(payment.amount), service_name: payment.service_slug },
         lang,
       );
-
-      await supabase.from("notifications").insert({
-        type: "client_action",
-        target_role: "client",
-        user_id: payment.user_id,
-        service_id: null,
-        title,
-        message,
-        link: "/dashboard",
-        send_email: true,
-        email_sent: false,
-        metadata: {
-          payment_id: input.paymentId,
-          service_slug: payment.service_slug,
-          amount: payment.amount,
-        },
-      });
+      const { data: approvedMsg } = await supabase
+        .from("notifications_messages")
+        .insert({
+          status: "sent", category: "payment", action: "zelle_approved",
+          title, body: message, link: "/dashboard", send_email: true,
+          metadata: {
+            template: "zelle_payment_approved",
+            payment_id: input.paymentId,
+            service_slug: payment.service_slug,
+            amount: payment.amount,
+          },
+        })
+        .select("id").single();
+      if (approvedMsg) {
+        await supabase.from("notifications_groups").insert({
+          notification_id: approvedMsg.id, user_id: payment.user_id,
+          viewed: false, email_sent: false,
+        });
+      }
     }
 
     return { kind: "processed" as const, result: "approved" as const };
@@ -136,24 +139,26 @@ export async function validateZellePayment(
       { reason: input.adminNotes || "" },
       lang,
     );
-
-    await supabase.from("notifications").insert({
-      type: "client_action",
-      target_role: "client",
-      user_id: payment.user_id,
-      service_id: null,
-      title,
-      message,
-      link: "/dashboard",
-      send_email: true,
-      email_sent: false,
-      metadata: {
-        payment_id: input.paymentId,
-        service_slug: payment.service_slug,
-        amount: payment.amount,
-        reason: input.adminNotes || "Não especificado",
-      },
-    });
+    const { data: rejectedMsg } = await supabase
+      .from("notifications_messages")
+      .insert({
+        status: "sent", category: "payment", action: "zelle_rejected",
+        title, body: message, link: "/dashboard", send_email: true,
+        metadata: {
+          template: "zelle_payment_rejected",
+          payment_id: input.paymentId,
+          service_slug: payment.service_slug,
+          amount: payment.amount,
+          reason: input.adminNotes || "Não especificado",
+        },
+      })
+      .select("id").single();
+    if (rejectedMsg) {
+      await supabase.from("notifications_groups").insert({
+        notification_id: rejectedMsg.id, user_id: payment.user_id,
+        viewed: false, email_sent: false,
+      });
+    }
   }
 
   return { kind: "processed" as const, result: "rejected" as const };

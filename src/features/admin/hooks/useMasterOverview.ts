@@ -169,20 +169,20 @@ export function useMasterOverview() {
     const recentActivityQuery = useQuery({
         queryKey: ["master-overview-recent-activity-v1", lang],
         queryFn: async () => {
-            const { data: notifs } = await supabase
-                .from("notifications")
-                .select("*")
+            const { data: msgs } = await supabase
+                .from("notifications_messages")
+                .select("title, body, category, created_at")
                 .order("created_at", { ascending: false })
                 .limit(6);
 
-            return (notifs || []).map((n) => ({
-                action: n.title,
-                detail: n.message,
+            return (msgs || []).map((n) => ({
+                action: n.title ?? "",
+                detail: n.body  ?? "",
                 time: new Date(n.created_at).toLocaleDateString(localeCode),
                 dot:
-                    n.type === "payment"
+                    n.category === "payment"
                         ? "bg-green-500"
-                        : n.type === "new_user"
+                        : n.category === "admin"
                             ? "bg-blue-500"
                             : "bg-amber-500",
             })) as MasterRecentActivity[];

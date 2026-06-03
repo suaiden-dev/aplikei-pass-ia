@@ -1,7 +1,3 @@
-import type { NotificationRow } from "@shared/types/db";
-
-export type Notification = NotificationRow;
-
 export interface ToastItem {
   id: string;
   notificationId: string;

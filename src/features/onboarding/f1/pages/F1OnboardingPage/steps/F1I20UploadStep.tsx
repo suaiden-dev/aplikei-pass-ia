@@ -84,11 +84,11 @@ export function F1I20UploadStep({ procId, userId, stepData, labels, onComplete, 
       await processService.requestStepReview(procId);
       
       await notificationService.notifyAdmin({
-        title: "I-20 form uploaded",
-        body: "Client uploaded the I-20 document for review and F1 process continuation.",
         serviceId: procId,
         userId,
         link: `/master/processes/${procId}`,
+        category: "f1",
+        action: "i20_uploaded",
       });
 
       toast.success(labels.onboardingPage.f1.i20AnalysisToast);

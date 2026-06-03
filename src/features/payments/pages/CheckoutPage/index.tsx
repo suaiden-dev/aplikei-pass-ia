@@ -219,6 +219,7 @@ export default function CheckoutPage() {
       : "/dashboard";
   const [officeStatus, setOfficeStatus] = useState<string>("active");
   const [checkingOffice, setCheckingOffice] = useState(false);
+  const [officeLogo, setOfficeLogo] = useState<{ name: string; logoSrc: string | null } | null>(null);
   const officeIdParam = searchParams.get("office_id") || searchParams.get("officeId") || searchParams.get("office");
   const sellerRef = searchParams.get("ref") || undefined;
 
@@ -324,6 +325,22 @@ export default function CheckoutPage() {
       }
     }
     checkOffice();
+  }, [officeId]);
+
+  useEffect(() => {
+    async function fetchOfficeLogo() {
+      if (!officeId) return;
+      const { data } = await supabase
+        .from("offices")
+        .select("name, logo_url, landing_page_config")
+        .eq("id", officeId)
+        .maybeSingle();
+      if (data) {
+        const logoSrc = (data as any).logo_url || (data as any).landing_page_config?.logoUrl || null;
+        setOfficeLogo({ name: data.name, logoSrc });
+      }
+    }
+    fetchOfficeLogo();
   }, [officeId]);
 
   useEffect(() => {
@@ -694,13 +711,28 @@ export default function CheckoutPage() {
         {/* Header content below (adjusted padding) */}
         <div className="pt-2">
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8 text-center"
-          >
-
-          </motion.div>
+          {officeLogo && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-8 text-center flex flex-col items-center gap-2"
+            >
+              {officeLogo.logoSrc ? (
+                <img
+                  src={officeLogo.logoSrc}
+                  alt={officeLogo.name}
+                  className="h-12 max-w-[180px] object-contain"
+                />
+              ) : (
+                <span className="text-base font-black text-text uppercase tracking-tight">
+                  {officeLogo.name}
+                </span>
+              )}
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
+                {officeLogo.name}
+              </span>
+            </motion.div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
 
@@ -1414,6 +1446,11 @@ export default function CheckoutPage() {
               </form>
             </motion.div>
           </div>
+        </div>
+        <div className="text-center pt-8 pb-4">
+          <p className="text-[11px] text-text-muted/50 font-semibold uppercase tracking-widest">
+            Powered by <span className="font-black text-text-muted/70">Aplikei</span>
+          </p>
         </div>
       </div>
     </div>

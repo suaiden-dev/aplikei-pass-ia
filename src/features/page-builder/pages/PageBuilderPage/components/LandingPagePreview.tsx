@@ -10,16 +10,21 @@ interface LandingPagePreviewProps {
 export function LandingPagePreview({ config }: LandingPagePreviewProps) {
   const baseTemplate = getLandingTemplateHtml();
 
-  const renderedHtml = useMemo(
-    () => (baseTemplate ? applyTemplateConfig(baseTemplate, config) : ""),
-    [baseTemplate, config],
-  );
+  const renderedHtml = useMemo(() => {
+    if (!baseTemplate) return "";
+    const html = applyTemplateConfig(baseTemplate, config);
+    const blockScript = `<script>document.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();},true);document.addEventListener('submit',function(e){e.preventDefault();e.stopPropagation();},true);</script>`;
+    return html.includes("</body>")
+      ? html.replace("</body>", blockScript + "</body>")
+      : html + blockScript;
+  }, [baseTemplate, config]);
 
   return (
     <iframe
       title="Landing preview"
       className="h-full min-h-[700px] w-full border-0"
       srcDoc={renderedHtml}
+      sandbox="allow-same-origin allow-scripts"
     />
   );
 }

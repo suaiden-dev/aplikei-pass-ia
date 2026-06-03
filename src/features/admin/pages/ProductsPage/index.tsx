@@ -1,21 +1,24 @@
-import { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
-import { toast } from "sonner";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  RiCheckLine,
-  RiCloseLine,
-  RiMoneyDollarCircleLine,
-  RiPriceTag3Line,
-  RiEyeLine,
-  RiInformationLine,
   RiFileCopyLine,
   RiLoader4Line,
-  RiQuestionLine,
+  RiLockLine,
+  RiSaveLine,
+  RiSettings3Line,
 } from "react-icons/ri";
+import { toast } from "sonner";
 import { supabase } from "@shared/lib/supabase";
-import { useT } from "@app/app/i18n";
 import { useAuth } from "@shared/hooks/useAuth";
 import { encodeCheckoutToken } from "@shared/utils/checkoutToken";
+import { useT } from "@app/app/i18n";
+import { Switch } from "@shared/components/atoms/switch";
+import { Input } from "@shared/components/atoms/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@shared/components/atoms/dialog";
 
 interface ServicePrice {
   id: string;
@@ -30,295 +33,272 @@ interface ServicePrice {
   is_active: boolean;
 }
 
-type PriceMode = "keep" | "custom";
-
-function cn(...classes: Array<string | boolean | undefined>) {
-  return classes.filter(Boolean).join(" ");
+interface DraftState {
+  is_active: boolean;
+  price: string;
 }
 
-function formatUsd(value: number | string) {
-  const amount = typeof value === "string" ? parseFloat(value) : value;
-  if (!Number.isFinite(amount)) return "$0.00";
-  return `$${amount.toFixed(2)}`;
+type DraftMap = Record<string, DraftState>;
+type PhaseName = "addons" | "finalization";
+
+interface FlowConfig {
+  key: "b1b2" | "f1" | "eos" | "cos";
+  matchSlugs: string[];
+  initialItems: Array<{ title: string; description: string }>;
+  phaseMap: Record<PhaseName, string[]>;
 }
 
-function looksPortuguese(text: string) {
-  const sample = text.toLowerCase();
+const INTERVIEW_SPECIALIST_SLUGS = new Set([
+  "mentoria-bronze",
+  "mentoria-prata",
+  "mentoria-silver",
+  "mentoria-gold",
+  "mentoring-bronze",
+  "mentoring-silver",
+  "mentoring-gold",
+]);
+
+type InterviewTier = "Bronze" | "Silver" | "Gold";
+
+const INTERVIEW_TIER_MAP: Record<string, InterviewTier> = {
+  "mentoring-bronze": "Bronze",
+  "mentoria-bronze": "Bronze",
+  "mentoring-silver": "Silver",
+  "mentoria-silver": "Silver",
+  "mentoria-prata": "Silver",
+  "mentoring-gold": "Gold",
+  "mentoria-gold": "Gold",
+};
+
+const INTERVIEW_TIER_INFO: Record<
+  InterviewTier,
+  { description: string; appliedTo: string; onPurchase: string; badgeClass: string; borderClass: string }
+> = {
+  Bronze: {
+    description: "Entry-level consular interview coaching to help clients feel prepared and confident.",
+    appliedTo: "Displayed in the add-ons step of the application flow, after document preparation is confirmed.",
+    onPurchase: "Client schedules a live 1-on-1 session covering the most common consular interview questions and proper response structure.",
+    badgeClass: "bg-amber-100 text-amber-800",
+    borderClass: "border-amber-200",
+  },
+  Silver: {
+    description: "Intermediate coaching with personalized feedback and a complete mock interview.",
+    appliedTo: "Displayed in the add-ons step of the application flow, after document preparation is confirmed.",
+    onPurchase: "Client receives one mock interview session, written feedback on their answers, and guidance on body language and tone.",
+    badgeClass: "bg-slate-200 text-slate-700",
+    borderClass: "border-slate-300",
+  },
+  Gold: {
+    description: "Premium coaching program with multiple sessions and in-depth interview preparation.",
+    appliedTo: "Displayed in the add-ons step of the application flow, after document preparation is confirmed.",
+    onPurchase: "Client receives a full program: initial assessment, two mock interviews, a written debrief, and direct follow-up support before the consular interview date.",
+    badgeClass: "bg-yellow-100 text-yellow-700",
+    borderClass: "border-yellow-200",
+  },
+};
+
+const FLOW_CONFIGS: FlowConfig[] = [
+  {
+    key: "b1b2",
+    matchSlugs: ["b1-b2", "b1b2", "visto-b1-b2", "visa-b1b2"],
+    initialItems: [
+      {
+        title: "Application Review",
+        description: "Comprehensive review of client provided details.",
+      },
+      {
+        title: "Document Preparation",
+        description: "Assembly of required forms and supporting evidence.",
+      },
+    ],
+    phaseMap: {
+      addons: [
+        "mentoria-individual",
+        "mentoria-bronze",
+        "mentoria-prata",
+        "mentoria-silver",
+        "mentoria-gold",
+        "mentoring-bronze",
+        "mentoring-silver",
+        "mentoring-gold",
+        "consultoria-especialista",
+      ],
+      finalization: ["mentoria-negativa-consular", "consultancy-negative-b1b2"],
+    },
+  },
+  {
+    key: "f1",
+    matchSlugs: ["f1", "visto-f1", "visa-f1"],
+    initialItems: [
+      {
+        title: "Application Review",
+        description: "Comprehensive review of client provided details.",
+      },
+      {
+        title: "Document Preparation",
+        description: "Assembly of required forms and supporting evidence.",
+      },
+    ],
+    phaseMap: {
+      addons: [
+        "mentoria-bronze",
+        "mentoria-prata",
+        "mentoria-silver",
+        "mentoria-gold",
+        "mentoring-bronze",
+        "mentoring-silver",
+        "mentoring-gold",
+        "consultoria-especialista",
+      ],
+      finalization: ["consultoria-f1-negativa", "consultancy-negative-f1"],
+    },
+  },
+  {
+    key: "eos",
+    matchSlugs: ["extensao-status", "eos"],
+    initialItems: [
+      {
+        title: "I-539 Petition Preparation",
+        description: "Guided completion of the official USCIS I-539 form for extension of status.",
+      },
+      {
+        title: "Support Cover Letter",
+        description: "Drafted narrative justifying the need for status extension, tailored to the client's situation.",
+      },
+      {
+        title: "Document Review",
+        description: "Verification of I-94, passport, bank statements and all required supporting evidence.",
+      },
+    ],
+    phaseMap: {
+      addons: ["analysis-rfe-eos", "dependent-eos"],
+      finalization: ["consultancy-motion-eos", "analysis-motion-eos"],
+    },
+  },
+  {
+    key: "cos",
+    matchSlugs: ["troca-status", "cos"],
+    initialItems: [
+      {
+        title: "I-539 Petition Preparation",
+        description: "Guided completion of the official USCIS I-539 form for the requested status change.",
+      },
+      {
+        title: "Support Cover Letter",
+        description: "Drafted narrative justifying the change of visa category, tailored to the client's situation.",
+      },
+      {
+        title: "Document Review",
+        description: "Verification of I-94, passport, bank statements and all required supporting evidence.",
+      },
+    ],
+    phaseMap: {
+      addons: ["analysis-rfe-cos", "dependent-cos"],
+      finalization: ["consultancy-motion-cos", "analysis-motion-cos"],
+    },
+  },
+];
+
+const PRICE_OVERRIDDEN_BY_ADMIN = "The price configured here is not used in checkout. The amount charged to the client is set case by case by the admin when sending the Motion proposal in the process detail.";
+
+const SLUG_PRODUCT_INFO: Record<string, { description: string; appliedTo: string; onPurchase: string; priceWarning?: string }> = {
+  "analysis-rfe-eos": {
+    description: "RFE response workflow for Extension of Status — activated when USCIS issues a Request for Evidence on the I-539 petition.",
+    appliedTo: "Offered as an add-on during the application flow when a USCIS RFE is received after the I-539 submission.",
+    onPurchase: "Client is guided through gathering and submitting the specific evidence requested by USCIS to resolve the RFE and keep the petition active.",
+  },
+  "analysis-rfe-cos": {
+    description: "RFE response workflow for Change of Status — activated when USCIS issues a Request for Evidence on the I-539 petition.",
+    appliedTo: "Offered as an add-on during the application flow when a USCIS RFE is received after the I-539 submission.",
+    onPurchase: "Client is guided through gathering and submitting the specific evidence requested by USCIS to resolve the RFE and keep the petition active.",
+  },
+  "dependent-eos": {
+    description: "Adds a co-applicant (spouse or child) to the Extension of Status I-539 petition.",
+    appliedTo: "Offered during the application step when the client declares one or more dependents who also need their status extended.",
+    onPurchase: "An additional slot is added to the I-539 petition, covering the dependent's forms, documents, and USCIS fee guidance.",
+  },
+  "dependent-cos": {
+    description: "Adds a co-applicant (spouse or child) to the Change of Status I-539 petition.",
+    appliedTo: "Offered during the application step when the client declares one or more dependents who also need their status changed.",
+    onPurchase: "An additional slot is added to the I-539 petition, covering the dependent's forms, documents, and USCIS fee guidance.",
+  },
+  "consultancy-motion-eos": {
+    description: "Motion recovery flow for Extension of Status — initial step triggered after a USCIS denial.",
+    appliedTo: "Activated in the finalization phase when the EOS petition is denied and the client opts to pursue a Motion to Reopen or Reconsider.",
+    onPurchase: "Specialist reviews the denial notice, defines the recovery strategy, and drafts the Motion proposal for client approval before proceeding to the full analysis.",
+    priceWarning: PRICE_OVERRIDDEN_BY_ADMIN,
+  },
+  "consultancy-motion-cos": {
+    description: "Motion recovery flow for Change of Status — initial step triggered after a USCIS denial.",
+    appliedTo: "Activated in the finalization phase when the COS petition is denied and the client opts to pursue a Motion to Reopen or Reconsider.",
+    onPurchase: "Specialist reviews the denial notice, defines the recovery strategy, and drafts the Motion proposal for client approval before proceeding to the full analysis.",
+    priceWarning: PRICE_OVERRIDDEN_BY_ADMIN,
+  },
+  "analysis-motion-eos": {
+    description: "In-depth Motion case analysis for Extension of Status — second phase of the Motion recovery flow.",
+    appliedTo: "Activated after the Motion proposal is reviewed and approved by the client in the EOS process.",
+    onPurchase: "Specialist performs a full legal analysis of the denial grounds, builds the argumentation for the Motion, and prepares the final submission package.",
+  },
+  "analysis-motion-cos": {
+    description: "In-depth Motion case analysis for Change of Status — second phase of the Motion recovery flow.",
+    appliedTo: "Activated after the Motion proposal is reviewed and approved by the client in the COS process.",
+    onPurchase: "Specialist performs a full legal analysis of the denial grounds, builds the argumentation for the Motion, and prepares the final submission package.",
+  },
+};
+
+function formatUsd(value: number) {
+  return `$${value.toFixed(2)}`;
+}
+
+function getFlowConfig(mainSlug: string): FlowConfig | null {
+  const normalized = mainSlug.toLowerCase();
   return (
-    /[ãõáàâéêíóôúç]/.test(sample) ||
-    /\b(para|com|você|cliente|etapa|processo|pendência|treinamento|entrevista|serviço)\b/.test(sample)
+    FLOW_CONFIGS.find((cfg) =>
+      cfg.matchSlugs.some((token) => normalized.includes(token)),
+    ) ?? null
   );
 }
 
-function englishDescription(text: string | null | undefined, fallback: string) {
-  const clean = (text || "").trim();
-  if (!clean) return fallback;
-  return looksPortuguese(clean) ? fallback : clean;
-}
-
-function MainProductConfigModal({
-  mainProduct,
-  relatedProducts,
-  onClose,
-  onSaved,
-}: {
-  mainProduct: ServicePrice;
-  relatedProducts: ServicePrice[];
-  onClose: () => void;
-  onSaved: () => void;
-}) {
-  const [mainEnabled, setMainEnabled] = useState(mainProduct.is_active);
-  const [mainPriceMode, setMainPriceMode] = useState<PriceMode>("keep");
-  const [mainCustomPrice, setMainCustomPrice] = useState(mainProduct.price.toFixed(2));
-  const [saving, setSaving] = useState(false);
-
-  const [subConfig, setSubConfig] = useState<Record<string, { enabled: boolean; priceMode: PriceMode; customPrice: string }>>(
-    () =>
-      relatedProducts.reduce((acc, p) => {
-        acc[p.id] = { enabled: p.is_active, priceMode: "keep", customPrice: p.price.toFixed(2) };
-        return acc;
-      }, {} as Record<string, { enabled: boolean; priceMode: PriceMode; customPrice: string }>),
-  );
-
-  const normalizedMainSlug = mainProduct.slug.toLowerCase();
-  const isB1B2Main =
-    normalizedMainSlug.includes("b1-b2") ||
-    normalizedMainSlug.includes("b1b2") ||
-    normalizedMainSlug.includes("visto-b1-b2") ||
-    normalizedMainSlug.includes("visa-b1b2");
-  const hasB1B2MentorshipQuestion = isB1B2Main;
-  const mentorshipSlugs = ["mentoria-individual", "mentoria-bronze", "mentoria-prata", "mentoria-silver", "mentoria-gold"];
-  const mentorshipTargets = relatedProducts.filter((p) => mentorshipSlugs.includes(p.slug));
-  const [enableMentorshipAtInterview, setEnableMentorshipAtInterview] = useState<boolean | null>(() => {
-    if (!hasB1B2MentorshipQuestion || mentorshipTargets.length === 0) return null;
-    return mentorshipTargets.every((p) => p.is_active);
-  });
-
-  const updateSub = (id: string, patch: Partial<{ enabled: boolean; priceMode: PriceMode; customPrice: string }>) => {
-    setSubConfig((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
-  };
-
-  const handleMentorshipQuestion = (enabled: boolean) => {
-    setEnableMentorshipAtInterview(enabled);
-    setSubConfig((prev) => {
-      const next = { ...prev };
-      mentorshipTargets.forEach((p) => {
-        next[p.id] = { ...next[p.id], enabled };
-      });
-      return next;
-    });
-  };
-
-  const parsePrice = (v: string) => {
-    const n = parseFloat(v);
-    return Number.isFinite(n) ? n : NaN;
-  };
-
-  const handleSave = async () => {
-    if (mainPriceMode === "custom") {
-      const p = parsePrice(mainCustomPrice);
-      if (isNaN(p) || p <= 0) {
-        toast.error("Invalid main product price.");
-        return;
-      }
-    }
-
-    for (const p of relatedProducts) {
-      const cfg = subConfig[p.id];
-      if (cfg?.priceMode === "custom") {
-        const val = parsePrice(cfg.customPrice);
-        if (isNaN(val) || val <= 0) {
-          toast.error(`Invalid price for ${p.name}.`);
-          return;
-        }
-      }
-    }
-
-    setSaving(true);
-    try {
-      const updates = [
-        {
-          id: mainProduct.id,
-          is_active: mainEnabled,
-          price: mainPriceMode === "custom" ? parsePrice(mainCustomPrice) : undefined,
-        },
-        ...relatedProducts.map((p) => {
-          const cfg = subConfig[p.id];
-          return {
-            id: p.id,
-            is_active: cfg?.enabled ?? p.is_active,
-            price: cfg?.priceMode === "custom" ? parsePrice(cfg.customPrice) : undefined,
-          };
-        }),
-      ];
-
-      await Promise.all(
-        updates.map((u) =>
-          supabase
-            .from("user_service_prices")
-            .update({
-              is_active: u.is_active,
-              ...(typeof u.price === "number" ? { price: u.price } : {}),
-            })
-            .eq("id", u.id),
-        ),
-      );
-
-      toast.success("Configuration saved successfully.");
-      onSaved();
-      onClose();
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to save configuration.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-card border border-border rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-6 py-5 border-b border-border flex items-center justify-between">
-          <div className="text-left">
-            <h3 className="text-xl font-black uppercase tracking-tight">Configure {mainProduct.name}</h3>
-            <p className="text-xs text-text-muted font-bold">Enable subproducts and define pricing through this form.</p>
-            <p className="text-xs text-text-muted mt-2 max-w-2xl">
-              {englishDescription(
-                mainProduct.description,
-                "This main product defines the case workflow and which steps/subproducts will be available to the customer.",
-              )}
-            </p>
-          </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-xl border border-border flex items-center justify-center">
-            <RiCloseLine />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-6 max-h-[72vh] overflow-y-auto">
-          <section className="rounded-2xl border border-border p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-black uppercase tracking-wider">Do you want to keep the main product active?</p>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setMainEnabled(true)} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", mainEnabled ? "bg-emerald-100 text-emerald-700" : "bg-white text-text-muted border border-border")}>Yes</button>
-                <button onClick={() => setMainEnabled(false)} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", !mainEnabled ? "bg-red-100 text-red-700" : "bg-white text-text-muted border border-border")}>No</button>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button onClick={() => setMainPriceMode("keep")} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", mainPriceMode === "keep" && "bg-primary/10 text-primary", mainPriceMode !== "keep" && "bg-bg-subtle text-text-muted")}>Keep current price</button>
-              <button onClick={() => setMainPriceMode("custom")} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", mainPriceMode === "custom" && "bg-primary/10 text-primary", mainPriceMode !== "custom" && "bg-bg-subtle text-text-muted")}>Update price</button>
-              {mainPriceMode === "keep" ? (
-                <span className="text-xs font-black text-text-muted">Current: {formatUsd(mainProduct.price)}</span>
-              ) : (
-                <input type="number" step="0.01" min="0.01" value={mainCustomPrice} onChange={(e) => setMainCustomPrice(e.target.value)} className="px-3 py-2 rounded-xl border border-border bg-bg-subtle w-40 text-sm font-bold" />
-              )}
-            </div>
-          </section>
-
-          {hasB1B2MentorshipQuestion && mentorshipTargets.length > 0 ? (
-            <div key="b1b2-mentorship-question-container">
-              <section className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 space-y-3">
-                <p className="text-sm font-black text-amber-700">At the "Awaiting interview" stage, do you want to enable Bronze/Silver/Gold mentoring?</p>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => handleMentorshipQuestion(true)} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", enableMentorshipAtInterview === true ? "bg-emerald-100 text-emerald-700" : "bg-white text-text-muted border border-border")}>Yes</button>
-                  <button onClick={() => handleMentorshipQuestion(false)} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", enableMentorshipAtInterview === false ? "bg-red-100 text-red-700" : "bg-white text-text-muted border border-border")}>No</button>
-                </div>
-              </section>
-            </div>
-          ) : null}
-
-          <section className="space-y-3">
-            <p className="text-sm font-black uppercase tracking-wider flex items-center gap-2"><RiQuestionLine /> Workflow subproducts</p>
-            <div className="space-y-3">
-              {relatedProducts.length === 0 ? (
-                <div className="rounded-2xl border border-border p-4 text-xs font-bold text-text-muted uppercase">No related subproducts found.</div>
-              ) : (
-                relatedProducts.map((p) => {
-                  const cfg = subConfig[p.id];
-                  return (
-                    <div key={p.id} className="rounded-2xl border border-border p-4 space-y-3">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="text-left">
-                          <p className="text-sm font-black">{p.name}</p>
-                          <p className="text-[11px] text-text-muted font-semibold">{p.slug}</p>
-                          <p className="text-xs text-text-muted mt-1 max-w-2xl">
-                            {englishDescription(
-                              p.description,
-                              "This subproduct adds a complementary service step and can be enabled based on the case strategy.",
-                            )}
-                          </p>
-                          <p className="text-xs text-primary font-semibold mt-1 max-w-2xl">
-                            Once this subproduct is paid, a chat is created so you can interact with the client and resolve pending items or training.
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => updateSub(p.id, { enabled: true })}
-                            className={cn(
-                              "px-3 py-2 rounded-xl text-xs font-black uppercase",
-                              cfg?.enabled ? "bg-emerald-100 text-emerald-700" : "bg-white text-text-muted border border-border",
-                            )}
-                          >
-                            Yes
-                          </button>
-                          <button
-                            onClick={() => updateSub(p.id, { enabled: false })}
-                            className={cn(
-                              "px-3 py-2 rounded-xl text-xs font-black uppercase",
-                              !cfg?.enabled ? "bg-red-100 text-red-700" : "bg-white text-text-muted border border-border",
-                            )}
-                          >
-                            No
-                          </button>
-                        </div>
-                      </div>
-                      <p className="text-xs font-bold text-text-muted">Do you want to make this subproduct available?</p>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button onClick={() => updateSub(p.id, { priceMode: "keep" })} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", cfg?.priceMode === "keep" ? "bg-primary/10 text-primary" : "bg-bg-subtle text-text-muted")}>Keep current price</button>
-                        <button onClick={() => updateSub(p.id, { priceMode: "custom" })} className={cn("px-3 py-2 rounded-xl text-xs font-black uppercase", cfg?.priceMode === "custom" ? "bg-primary/10 text-primary" : "bg-bg-subtle text-text-muted")}>Update price</button>
-                        {cfg?.priceMode === "keep" ? (
-                          <span className="text-xs font-black text-text-muted">Current: {formatUsd(p.price)}</span>
-                        ) : (
-                          <input type="number" step="0.01" min="0.01" value={cfg.customPrice} onChange={(e) => updateSub(p.id, { customPrice: e.target.value })} className="px-3 py-2 rounded-xl border border-border bg-bg-subtle w-40 text-sm font-bold" />
-                        )}
-                      </div>
-                      {mainProduct.slug.toLowerCase().includes("f1") &&
-                        ["mentoria-bronze", "mentoria-prata", "mentoria-silver", "mentoria-gold", "mentoring-bronze", "mentoring-silver", "mentoring-gold"].includes(p.slug.toLowerCase()) ? (
-                          <p className="text-[11px] font-bold text-amber-700">Changes to this subproduct also apply to the B1/B2 flow.</p>
-                        ) : null}
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </section>
-        </div>
-
-        <div className="px-6 py-4 border-t border-border flex items-center justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2 rounded-xl border border-border text-xs font-black uppercase">Cancel</button>
-          <button onClick={handleSave} disabled={saving} className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-black uppercase disabled:opacity-60 inline-flex items-center gap-2">
-            {saving ? <RiLoader4Line className="animate-spin" /> : <RiCheckLine />}
-            Save configuration
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+function cleanPrice(raw: string) {
+  const value = raw.replace(",", ".");
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : NaN;
 }
 
 export default function ProductsPage() {
   const t = useT("admin");
   const { user } = useAuth();
-  const loginUrl = typeof window !== "undefined" ? `${window.location.origin}/acompanhar-meu-caso` : "/acompanhar-meu-caso";
-  const [resolvedOfficeId, setResolvedOfficeId] = useState<string | null>(user?.officeId ?? null);
+
+  const [resolvedOfficeId, setResolvedOfficeId] = useState<string | null>(
+    user?.officeId ?? null,
+  );
+
+  const loginUrl = useMemo(() => {
+    const base =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/track-my-visa`
+        : "/track-my-visa";
+    if (!resolvedOfficeId) return base;
+    return `${base}?office_id=${resolvedOfficeId}`;
+  }, [resolvedOfficeId]);
   const [officeSlug, setOfficeSlug] = useState<string | null>(null);
   const [products, setProducts] = useState<ServicePrice[]>([]);
+  const [draft, setDraft] = useState<DraftMap>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedMainProduct, setSelectedMainProduct] = useState<ServicePrice | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [selectedMainId, setSelectedMainId] = useState<string | null>(null);
+  const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
+  const [productInfoItem, setProductInfoItem] = useState<ServicePrice | null>(null);
 
   useEffect(() => {
     if (user?.officeId) {
       setResolvedOfficeId(user.officeId);
-      supabase.from("offices").select("slug").eq("id", user.officeId).single().then(({ data }) => setOfficeSlug(data?.slug ?? null));
+      supabase
+        .from("offices")
+        .select("slug")
+        .eq("id", user.officeId)
+        .single()
+        .then(({ data }) => setOfficeSlug(data?.slug ?? null));
       return;
     }
 
@@ -349,232 +329,683 @@ export default function ProductsPage() {
     setIsLoading(true);
     const { data, error } = await supabase
       .from("user_service_prices")
-      .select("id, office_id, service_id, price, currency, is_active, services(name, category, slug, description)")
+      .select(
+        "id, office_id, service_id, price, currency, is_active, services(name, category, slug, description)",
+      )
       .eq("office_id", resolvedOfficeId)
       .order("service_id");
 
     if (error) {
       toast.error(t.cases.messages.errorAction);
-    } else {
-      setProducts(
-        ((data ?? []) as Array<any>).map((p) => ({
-          id: p.id,
-          office_id: p.office_id,
-          service_id: p.service_id,
-          name: p.services?.name ?? p.service_id,
-          description: p.services?.description ?? null,
-          category: p.services?.category ?? "other",
-          slug: p.services?.slug ?? p.service_id,
-          price: p.price,
-          currency: p.currency,
-          is_active: p.is_active ?? true,
-        })),
-      );
+      setIsLoading(false);
+      return;
     }
+
+    const parsed = ((data ?? []) as Array<any>).map((p) => ({
+      id: p.id,
+      office_id: p.office_id,
+      service_id: p.service_id,
+      name: p.services?.name ?? p.service_id,
+      description: p.services?.description ?? null,
+      category: p.services?.category ?? "other",
+      slug: p.services?.slug ?? p.service_id,
+      price: p.price,
+      currency: p.currency,
+      is_active: p.is_active ?? true,
+    })) as ServicePrice[];
+
+    setProducts(parsed);
+    setDraft(
+      parsed.reduce((acc, item) => {
+        acc[item.id] = {
+          is_active: item.is_active,
+          price: item.price.toFixed(2),
+        };
+        return acc;
+      }, {} as DraftMap),
+    );
     setIsLoading(false);
-  }, [resolvedOfficeId, t]);
+  }, [resolvedOfficeId, t.cases.messages.errorAction]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const mainServices = products.filter((p) => p.category === "main_visa");
-  const subServices = products.filter((p) => p.category !== "main_visa");
-  const avgTicket = mainServices.reduce((sum, p) => sum + p.price, 0) / Math.max(mainServices.length, 1);
+  const mainServices = useMemo(
+    () => products.filter((p) => p.category === "main_visa"),
+    [products],
+  );
+  const subServices = useMemo(
+    () => products.filter((p) => p.category !== "main_visa"),
+    [products],
+  );
+
+  useEffect(() => {
+    if (!selectedMainId && mainServices.length > 0) {
+      setSelectedMainId(mainServices[0].id);
+    }
+    if (selectedMainId && !mainServices.some((item) => item.id === selectedMainId)) {
+      setSelectedMainId(mainServices[0]?.id ?? null);
+    }
+  }, [mainServices, selectedMainId]);
+
+  const getRelatedSubProducts = useCallback(
+    (mainProduct: ServicePrice): ServicePrice[] => {
+      const config = getFlowConfig(mainProduct.slug);
+      if (!config) return [];
+
+      const allSlugs = [...config.phaseMap.addons, ...config.phaseMap.finalization];
+      const indexBySlug = new Map(allSlugs.map((slug, idx) => [slug, idx]));
+
+      return subServices
+        .filter((p) => indexBySlug.has(p.slug))
+        .sort(
+          (a, b) =>
+            (indexBySlug.get(a.slug) ?? Number.MAX_SAFE_INTEGER) -
+            (indexBySlug.get(b.slug) ?? Number.MAX_SAFE_INTEGER),
+        );
+    },
+    [subServices],
+  );
+
+  const selectedMain = mainServices.find((p) => p.id === selectedMainId) ?? null;
+  const selectedFlowConfig = selectedMain ? getFlowConfig(selectedMain.slug) : null;
+  const relatedProducts = selectedMain ? getRelatedSubProducts(selectedMain) : [];
+  const addons = relatedProducts.filter((item) =>
+    selectedFlowConfig?.phaseMap.addons.includes(item.slug),
+  );
+  const finalization = relatedProducts.filter((item) =>
+    selectedFlowConfig?.phaseMap.finalization.includes(item.slug),
+  );
+
+  const interviewItems = addons.filter((a) => INTERVIEW_SPECIALIST_SLUGS.has(a.slug));
+  const interviewGroupActive =
+    interviewItems.length > 0 &&
+    interviewItems.every((i) => draft[i.id]?.is_active ?? i.is_active);
+  const interviewPricesDefined = interviewItems.every((i) => {
+    const p = cleanPrice(draft[i.id]?.price ?? String(i.price));
+    return Number.isFinite(p) && p > 0;
+  });
+
   const checkoutBase = typeof window !== "undefined" ? window.location.origin : "";
   const checkoutUrl = (slug: string) => {
     if (!officeSlug || !checkoutBase) return "";
-    const token = encodeCheckoutToken({ office: officeSlug, product: slug, ref: user?.id || "" });
+    const token = encodeCheckoutToken({
+      office: officeSlug,
+      product: slug,
+      ref: user?.id || "",
+    });
     return `${checkoutBase}/l/${token}`;
   };
 
-  const getRelatedSubProducts = (mainProduct: ServicePrice): ServicePrice[] => {
-    const slug = mainProduct.slug.toLowerCase();
-    const isB1B2 =
-      slug.includes("b1-b2") ||
-      slug.includes("b1b2") ||
-      slug.includes("visto-b1-b2") ||
-      slug.includes("visa-b1b2");
-    const isF1 = slug.includes("f1") || slug.includes("visto-f1") || slug.includes("visa-f1");
-    const isEos = slug.includes("extensao-status") || slug.includes("eos");
-    const isCos = slug.includes("troca-status") || slug.includes("cos");
-
-    if (isB1B2) {
-      return subServices.filter((p) =>
-        [
-          "mentoria-individual",
-          "mentoria-bronze",
-          "mentoria-prata",
-          "mentoria-silver",
-          "mentoria-gold",
-          "mentoring-bronze",
-          "mentoring-silver",
-          "mentoring-gold",
-          "mentoria-negativa-consular",
-          "consultancy-negative-b1b2",
-          "consultoria-especialista",
-        ].includes(p.slug),
-      );
-    }
-    if (isF1) {
-      return subServices.filter((p) =>
-        [
-          "mentoria-bronze",
-          "mentoria-prata",
-          "mentoria-silver",
-          "mentoria-gold",
-          "mentoring-bronze",
-          "mentoring-silver",
-          "mentoring-gold",
-          "consultoria-f1-negativa",
-          "consultancy-negative-f1",
-          "consultoria-especialista",
-        ].includes(p.slug),
-      );
-    }
-    if (isEos) {
-      return subServices.filter((p) =>
-        [
-          "consultancy-motion-eos",
-          "analysis-motion-eos",
-          "analysis-rfe-eos",
-          "dependent-eos",
-        ].includes(p.slug),
-      );
-    }
-    if (isCos) {
-      return subServices.filter((p) =>
-        [
-          "consultancy-motion-cos",
-          "analysis-motion-cos",
-          "analysis-rfe-cos",
-          "dependent-cos",
-        ].includes(p.slug),
-      );
-    }
-    return [];
+  const updateDraft = (id: string, patch: Partial<DraftState>) => {
+    setDraft((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
   };
 
+  const saveConfiguration = async () => {
+    if (!selectedMain) return;
+
+    const rowsToSave = [selectedMain, ...relatedProducts];
+    for (const row of rowsToSave) {
+      const item = draft[row.id];
+      const price = cleanPrice(item?.price ?? "");
+      if (!Number.isFinite(price) || price < 0) {
+        toast.error(`Invalid price for ${row.name}.`);
+        return;
+      }
+    }
+
+    setIsSaving(true);
+    try {
+      await Promise.all(
+        rowsToSave.map((row) => {
+          const item = draft[row.id];
+          return supabase
+            .from("user_service_prices")
+            .update({
+              is_active: item.is_active,
+              price: cleanPrice(item.price),
+            })
+            .eq("id", row.id);
+        }),
+      );
+      toast.success("Configuration saved successfully.");
+      await load();
+    } catch {
+      toast.error("Failed to save configuration.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <RiLoader4Line className="animate-spin text-3xl text-primary" />
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8 w-full max-w-[1600px] mx-auto animate-in fade-in duration-500">
-      <div className="mb-8 text-left">
-        <h1 className="font-display text-4xl font-black text-text uppercase tracking-tighter">{t.products.title}</h1>
-        <p className="text-base text-text-muted font-medium mt-1">Form-based setup for main products and subproducts.</p>
+    <div className="px-8 py-8 w-full max-w-[1500px] mx-auto space-y-5 font-['Inter']">
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+        <div className="text-left">
+          <h1 className="text-[56px] leading-[1.02] font-semibold text-slate-900 tracking-[-0.03em]">
+            Products & Offer Builder
+          </h1>
+          <p className="text-[14px] leading-6 text-slate-500 font-[500] mt-2 max-w-3xl">
+            Configure the services, prices and upsells your clients will see during each application flow.
+          </p>
+        </div>
+        <button
+          onClick={() => void saveConfiguration()}
+          disabled={isSaving || !selectedMain}
+          className="h-14 px-7 rounded-xl bg-primary text-white text-sm font-[700] shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all disabled:opacity-60 inline-flex items-center gap-2 self-start"
+        >
+          {isSaving ? <RiLoader4Line className="animate-spin" /> : <RiSaveLine />}
+          Save Configuration
+        </button>
       </div>
 
-      <div className="mb-8 p-4 rounded-2xl border border-border bg-bg-subtle/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <p className="text-xs font-black text-text-muted uppercase tracking-widest break-all">
-          Login URL: <span className="text-text normal-case font-bold">{loginUrl}</span>
+
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <p className="text-xs font-semibold text-text-muted uppercase tracking-widest break-all">
+          Login URL: <span className="text-text normal-case font-medium">{loginUrl}</span>
         </p>
         <button
           onClick={() => {
             navigator.clipboard.writeText(loginUrl);
             toast.success("Login URL copied!");
           }}
-          className="text-[10px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-primary/20 transition-all uppercase tracking-widest self-start sm:self-auto"
-          title="Copy login URL"
+
+          className="text-[10px] font-black text-primary uppercase bg-primary/10 px-3 py-1.5 rounded-lg inline-flex items-center gap-1"
+
         >
           <RiFileCopyLine className="text-sm" />
-          Copy Login URL
-        </button>
+          Copy         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
-        {[
-          { label: "Main Visas", value: mainServices.length, icon: RiPriceTag3Line, bg: "bg-info/10", color: "text-info" },
-          { label: "Active", value: mainServices.filter((p) => p.is_active).length, icon: RiEyeLine, bg: "bg-success/10", color: "text-success" },
-          { label: "Avg. Ticket", value: `$${avgTicket.toFixed(0)}`, icon: RiMoneyDollarCircleLine, bg: "bg-primary/10", color: "text-primary" },
-        ].map((s, i) => {
-          const Icon = s.icon;
-          return (
-            <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="bg-card rounded-3xl border border-border shadow-sm p-6 flex items-center gap-5">
-              <div className={`w-14 h-14 rounded-2xl ${s.bg} flex items-center justify-center shrink-0 shadow-inner`}>
-                <Icon className={`text-2xl ${s.color}`} />
-              </div>
-              <div className="text-left">
-                <p className="text-3xl font-black text-text leading-none tracking-tight">{s.value}</p>
-                <p className="text-sm font-bold text-text-muted mt-1 uppercase tracking-widest">{s.label}</p>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : mainServices.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 bg-card rounded-[32px] border border-border">
-          <RiPriceTag3Line className="text-6xl text-text-muted/20" />
-          <p className="text-lg font-bold text-text-muted">No main visas found.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {mainServices.map((main) => (
-            <div key={main.id} className="bg-card rounded-3xl border border-border p-6 shadow-sm">
-              <div className="text-left mb-4">
-                <p className="text-lg font-black text-text">{main.name}</p>
-                <p className="text-xs font-bold text-text-muted uppercase">{main.slug}</p>
-              </div>
-              <div className="flex items-center justify-between mb-5">
-                <span className="text-2xl font-black text-primary">${main.price.toFixed(2)}</span>
-                <span className={cn("text-[10px] font-black uppercase px-2 py-1 rounded-full border", main.is_active ? "bg-success/10 text-success border-success/20" : "bg-bg-subtle text-text-muted border-border")}>{main.is_active ? "Active" : "Inactive"}</span>
-              </div>
-              <div className="space-y-3">
-                <button onClick={() => setSelectedMainProduct(main)} className="w-full h-11 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all">
-                  Configure
-                </button>
-                <div className="rounded-xl border border-border bg-bg-subtle/50 p-2.5">
-                  <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Product link</p>
-                  <div className="flex items-center gap-2">
-                    <input
-                      readOnly
-                      value={checkoutUrl(main.slug)}
-                      placeholder="Office slug required to generate the link"
-                      className="flex-1 h-9 px-2.5 rounded-lg border border-border bg-card text-[11px] font-medium text-text"
-                    />
-                    <button
-                      onClick={() => {
-                        const url = checkoutUrl(main.slug);
-                        if (!url) {
-                          toast.error("Unable to generate link. Set office slug first.");
-                          return;
-                        }
-                        navigator.clipboard.writeText(url);
-                        toast.success("Product link copied!");
-                      }}
-                      className="h-9 px-3 rounded-lg bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-all inline-flex items-center gap-1"
-                      title="Copy product link"
+      <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6">
+        <aside className="rounded-2xl border border-slate-200 bg-white overflow-hidden h-fit shadow-sm">
+          <div className="px-5 py-4 border-b border-slate-200">
+            <p className="font-semibold text-slate-900 text-[20px] leading-none tracking-[-0.02em]">Flows</p>
+          </div>
+          <div>
+            {mainServices.map((flow) => {
+              const rowDraft = draft[flow.id];
+              const isSelected = flow.id === selectedMain?.id;
+              const upsellCount = getRelatedSubProducts(flow).length;
+              const active = rowDraft?.is_active ?? flow.is_active;
+              const price = cleanPrice(rowDraft?.price ?? String(flow.price));
+              return (
+                <button
+                  key={flow.id}
+                  onClick={() => setSelectedMainId(flow.id)}
+                  className={`w-full text-left px-5 py-4 border-b border-slate-200 transition-colors ${isSelected ? "bg-primary/5" : "bg-white hover:bg-slate-50"
+                    }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium text-slate-800 text-[14px]  tracking-[-0.02em]">{flow.name}</p>
+                    <span
+                      className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-400"
+                        }`}
                     >
-                      <RiFileCopyLine className="text-sm" />
-                      Copy
-                    </button>
+                      {active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-slate-500">
+                    <span className="text-[14px] font-regular">
+                      {upsellCount} {upsellCount === 1 ? "upsell" : "upsells"}
+                    </span>
+                    <span className="text-[14px] font-regular text-slate-700 tracking-[-0.02em]">
+                      {Number.isFinite(price) ? formatUsd(price) : "$0.00"}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+
+        <section className="rounded-2xl border border-slate-200 bg-white overflow-hidden min-h-[800px] shadow-sm">
+          {!selectedMain ? (
+            <div className="h-full min-h-[400px] flex items-center justify-center text-text-muted font-bold">
+              Select a flow to configure.
+            </div>
+          ) : (
+            <>
+              <div className="px-6 py-5 border-b border-slate-200">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="text-left">
+                    <h2 className="text-[24px] font-semibold text-slate-900 leading-[1.04] tracking-[-0.03em]">
+                      {selectedMain.name}
+                    </h2>
+                    <p className="text-[14px] leading-6 text-slate-500 font-[500] mt-1">
+                      Configure the base settings for this journey.
+                    </p>
+                    {selectedMain && (draft[selectedMain.id]?.is_active ?? selectedMain.is_active) ? (
+                      <div className="rounded-2xl border border-slate-200  p-2">
+                        <div className="flex items-center justify-center gap-2">
+                          <p className=" text-xs font-medium ">
+                            {checkoutUrl(selectedMain.slug) || "Office slug required to generate the link."}
+                          </p>
+                          <button
+                            onClick={() => {
+                              const url = checkoutUrl(selectedMain.slug);
+                              if (!url) {
+                                toast.error("Unable to generate link. Set office slug first.");
+                                return;
+                              }
+                              navigator.clipboard.writeText(url);
+                              toast.success("Product link copied!");
+                            }}
+                            className="text-[10px] font-semibold text-primary uppercase bg-primary/10 px-3 py-1.5 rounded-lg inline-flex items-center gap-1"
+                          >
+                            <RiFileCopyLine className="text-sm" />
+                            Copy
+                          </button>
+                        </div>
+
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={draft[selectedMain.id]?.is_active ?? selectedMain.is_active}
+                      onCheckedChange={(checked) =>
+                        updateDraft(selectedMain.id, { is_active: checked })
+                      }
+                    />
+                    <span className="text-sm font-semibold text-slate-700">Active</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-[180px_1fr] gap-3">
+                  <div className="text-left">
+                    <p className="text-xs font-medium uppercase text-slate-500 mb-1">Base Price</p>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={draft[selectedMain.id]?.price ?? selectedMain.price.toFixed(2)}
+                      onChange={(e) =>
+                        updateDraft(selectedMain.id, { price: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-medium uppercase text-slate-500 mb-1">Public Description</p>
+                    <div className="min-h-[40px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
+                      {selectedMain.description || "No description available."}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
 
-      <div className="mt-12 p-6 bg-bg-subtle/50 rounded-3xl border border-border text-center">
-        <p className="text-xs font-black text-text-muted uppercase tracking-widest flex items-center justify-center gap-2">
-          <RiInformationLine className="text-lg text-primary" />
-          Subproducts are enabled through this form, without manual client clicks.
+              <div className="px-6 py-5 space-y-8">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-primary">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white text-xs font-black">
+                      1
+                    </span>
+                    <p className="text-sm font-semibold uppercase tracking-widest">Initial Phase</p>
+                  </div>
+                  {(selectedFlowConfig?.initialItems ?? [
+                    {
+                      title: selectedMain.name,
+                      description: "Core service selected for this flow.",
+                    },
+                  ]).map((item) => (
+                    <div key={item.title} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-left">
+                      <p className="text-sm font-semibold text-slate-800">
+                        {item.title}
+                        <span className="ml-2 text-[10px] px-2 py-0.5 rounded bg-slate-200 text-slate-600">
+                          Included
+                        </span>
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-primary">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white text-xs font-black">
+                      2
+                    </span>
+                    <p className="text-sm font-semibold uppercase tracking-widest">Add-ons & Upsells</p>
+                  </div>
+                  {addons.length === 0 ? (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-bold text-slate-500 text-left">
+                      No add-ons mapped for this flow.
+                    </div>
+                  ) : (() => {
+                    let interviewRendered = false;
+                    return addons.map((item) => {
+                      if (INTERVIEW_SPECIALIST_SLUGS.has(item.slug)) {
+                        if (interviewRendered) return null;
+                        interviewRendered = true;
+                        return (
+                          <div key="interview-specialist" className="rounded-xl border border-slate-200 bg-white p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 text-left">
+                                <p className="text-sm font-semibold text-slate-900">Interview Specialist</p>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                  Bronze, Silver & Gold coaching — all tiers activate together.{" "}
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsInterviewModalOpen(true)}
+                                    className="text-primary font-bold hover:underline leading-none"
+                                  >more info</button>
+                                </p>
+                                {(() => {
+                                  const crossFlow =
+                                    selectedFlowConfig?.key === "b1b2" ? "F1" :
+                                    selectedFlowConfig?.key === "f1" ? "B1/B2" :
+                                    null;
+                                  return crossFlow ? (
+                                    <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 mt-2">
+                                      <p className="text-xs text-amber-800">
+                                        <strong>Important:</strong> Any changes to this product, including activation status or pricing, will be automatically applied to the {crossFlow} product as well.
+                                      </p>
+                                    </div>
+                                  ) : null;
+                                })()}
+                                {!interviewPricesDefined && (
+                                  <p className="text-[11px] text-red-500 font-medium mt-1.5 flex items-center gap-1">
+                                    <RiLockLine />
+                                    Define prices for all tiers before activating.
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setIsInterviewModalOpen(true)}
+                                  className="h-8 w-8 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500 hover:text-primary hover:border-primary transition-colors"
+                                  title="Configure Interview Specialist"
+                                >
+                                  <RiSettings3Line className="text-sm" />
+                                </button>
+                                <Switch
+                                  checked={interviewGroupActive}
+                                  disabled={!interviewPricesDefined}
+                                  onCheckedChange={(checked) => {
+                                    for (const gi of interviewItems) {
+                                      updateDraft(gi.id, { is_active: checked });
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div key={item.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 text-left">
+                              <p className="text-sm font-semibold text-slate-900">{item.name}</p>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                {item.description || SLUG_PRODUCT_INFO[item.slug]?.description || "Complementary offer in this stage."}
+                                {SLUG_PRODUCT_INFO[item.slug] && (
+                                  <>{" "}<button
+                                    type="button"
+                                    onClick={() => setProductInfoItem(item)}
+                                    className="text-primary font-bold hover:underline leading-none"
+                                  >more info</button></>
+                                )}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setProductInfoItem(item)}
+                                className="h-8 w-8 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500 hover:text-primary hover:border-primary transition-colors"
+                                title="View product details"
+                              >
+                                <RiSettings3Line className="text-sm" />
+                              </button>
+                              <Switch
+                                checked={draft[item.id]?.is_active ?? item.is_active}
+                                onCheckedChange={(checked) =>
+                                  updateDraft(item.id, { is_active: checked })
+                                }
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+
+                  <Dialog open={isInterviewModalOpen} onOpenChange={setIsInterviewModalOpen}>
+                    <DialogContent className="max-w-2xl rounded-2xl p-0 overflow-hidden">
+                      <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-200">
+                        <DialogTitle className="text-[20px] font-semibold text-slate-900 tracking-[-0.02em]">
+                          Interview Specialist
+                        </DialogTitle>
+                        <p className="text-sm text-slate-500 mt-1">
+                          Configure prices for each coaching tier. All tiers activate and deactivate together.
+                        </p>
+                      </DialogHeader>
+                      <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
+                        {interviewItems.map((item) => {
+                          const tier = INTERVIEW_TIER_MAP[item.slug];
+                          const info = tier ? INTERVIEW_TIER_INFO[tier] : null;
+                          const priceVal = draft[item.id]?.price ?? item.price.toFixed(2);
+                          const parsedPrice = cleanPrice(priceVal);
+                          const missingPrice = !Number.isFinite(parsedPrice) || parsedPrice <= 0;
+                          return (
+                            <div
+                              key={item.id}
+                              className={`rounded-xl border p-4 ${info?.borderClass ?? "border-slate-200"}`}
+                            >
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    {tier && (
+                                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${info?.badgeClass}`}>
+                                        {tier}
+                                      </span>
+                                    )}
+                                    <p className="text-sm font-semibold text-slate-800">{item.name}</p>
+                                  </div>
+                                  {info && (
+                                    <>
+                                      <p className="text-xs text-slate-600 leading-relaxed">{info.description}</p>
+                                      <div className="space-y-1.5">
+                                        <div>
+                                          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Applied to</span>
+                                          <p className="text-xs text-slate-500 mt-0.5">{info.appliedTo}</p>
+                                        </div>
+                                        <div>
+                                          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">When purchased</span>
+                                          <p className="text-xs text-slate-500 mt-0.5">{info.onPurchase}</p>
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                                <div className="w-[130px] shrink-0">
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Price (USD)</p>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    value={priceVal}
+                                    onChange={(e) => updateDraft(item.id, { price: e.target.value })}
+                                    className={missingPrice ? "border-red-300 focus:border-red-400" : ""}
+                                  />
+                                  {missingPrice && (
+                                    <p className="text-[10px] text-red-500 font-medium mt-1 flex items-center gap-1">
+                                      <RiLockLine className="shrink-0" />
+                                      Required to activate
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setIsInterviewModalOpen(false)}
+                          className="h-10 px-5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
+                        >
+                          Done
+                        </button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-primary">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white text-xs font-black">
+                      3
+                    </span>
+                    <p className="text-sm font-semibold uppercase tracking-widest">Finalization</p>
+                  </div>
+                  {finalization.length === 0 ? (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-bold text-slate-500 text-left">
+                      No finalization offers mapped for this flow.
+                    </div>
+                  ) : (
+                    finalization.map((item) => (
+                      <div key={item.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-semibold text-slate-900">{item.name}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              {item.description || SLUG_PRODUCT_INFO[item.slug]?.description || "Final stage cross-sell opportunity."}
+                              {SLUG_PRODUCT_INFO[item.slug] && (
+                                <>{" "}<button
+                                  type="button"
+                                  onClick={() => setProductInfoItem(item)}
+                                  className="text-primary font-bold hover:underline leading-none"
+                                >more info</button></>
+                              )}
+                            </p>
+                            {SLUG_PRODUCT_INFO[item.slug]?.priceWarning && (
+                              <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 mt-2 leading-relaxed">
+                                ⚠ {SLUG_PRODUCT_INFO[item.slug]!.priceWarning}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setProductInfoItem(item)}
+                              className="h-8 w-8 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500 hover:text-primary hover:border-primary transition-colors"
+                              title="View product details"
+                            >
+                              <RiSettings3Line className="text-sm" />
+                            </button>
+                            <Switch
+                              checked={draft[item.id]?.is_active ?? item.is_active}
+                              onCheckedChange={(checked) =>
+                                updateDraft(item.id, { is_active: checked })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </section>
+      </div>
+
+
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
+        <p className="text-xs font-black text-slate-500 uppercase tracking-widest inline-flex items-center gap-2">
+          <RiSettings3Line className="text-primary" />
+          Subproducts are enabled automatically when configured in this flow.
         </p>
       </div>
 
-      {selectedMainProduct ? (
-        <div key="product-config-modal-container">
-          <MainProductConfigModal
-            mainProduct={selectedMainProduct}
-            relatedProducts={getRelatedSubProducts(selectedMainProduct)}
-            onClose={() => setSelectedMainProduct(null)}
-            onSaved={load}
-          />
-        </div>
-      ) : null}
+      <Dialog open={!!productInfoItem} onOpenChange={(open) => { if (!open) setProductInfoItem(null); }}>
+        <DialogContent className="max-w-xl rounded-2xl p-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-200">
+            <DialogTitle className="text-[20px] font-semibold text-slate-900 tracking-[-0.02em]">
+              {productInfoItem?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {productInfoItem && (() => {
+            const info = SLUG_PRODUCT_INFO[productInfoItem.slug];
+            const priceVal = draft[productInfoItem.id]?.price ?? productInfoItem.price.toFixed(2);
+            const parsedPrice = cleanPrice(priceVal);
+            const missingPrice = !Number.isFinite(parsedPrice) || parsedPrice <= 0;
+            return (
+              <div className="px-6 py-5 space-y-4">
+                {info && (
+                  <>
+                    <p className="text-sm text-slate-600 leading-relaxed">{info.description}</p>
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Applied to</span>
+                        <p className="text-xs text-slate-500 mt-0.5">{info.appliedTo}</p>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">When purchased</span>
+                        <p className="text-xs text-slate-500 mt-0.5">{info.onPurchase}</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+                <div className="pt-2 border-t border-slate-200">
+                  {info?.priceWarning ? (
+                    <div className="rounded-xl border border-amber-300 bg-amber-50 p-3">
+                      <p className="text-xs text-amber-800 leading-relaxed">
+                        <strong>⚠ Price not configurable here.</strong><br />
+                        {info.priceWarning}
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">Price (USD)</p>
+                      <div className="w-[140px]">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={priceVal}
+                          onChange={(e) => updateDraft(productInfoItem.id, { price: e.target.value })}
+                          className={missingPrice ? "border-red-300 focus:border-red-400" : ""}
+                        />
+                      </div>
+                      {missingPrice && (
+                        <p className="text-[10px] text-red-500 font-medium mt-1 flex items-center gap-1">
+                          <RiLockLine className="shrink-0" />
+                          Define a price to enable activation.
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+          <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setProductInfoItem(null)}
+              className="h-10 px-5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

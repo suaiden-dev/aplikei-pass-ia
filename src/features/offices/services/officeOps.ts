@@ -20,7 +20,7 @@ export function generateSlug(name: string) {
 export async function fetchOfficeByOwner(ownerId: string): Promise<OfficeRow | null> {
   const { data, error } = await supabase
     .from("offices")
-    .select("id, name, slug, landing_page_config, address, phone, cnpj, email, website, instagram_url, linkedin_url, facebook_url, owner_id")
+    .select("id, name, slug, logo_url, landing_page_config, address, phone, cnpj, email, website, instagram_url, linkedin_url, facebook_url, owner_id")
     .eq("owner_id", ownerId)
     .maybeSingle();
 
@@ -118,7 +118,7 @@ export async function upsertOffice(payload: UpsertOfficePayload): Promise<Office
 export async function fetchOfficeForUser(userId: string): Promise<OfficeRow | null> {
   const { data, error } = await supabase
     .from("user_accounts")
-    .select("office_id, offices!office_id(id, name, slug, landing_page_config, address, phone, cnpj, email, website, instagram_url, linkedin_url, facebook_url, owner_id)")
+    .select("office_id, offices!office_id(id, name, slug, logo_url, landing_page_config, address, phone, cnpj, email, website, instagram_url, linkedin_url, facebook_url, owner_id)")
     .eq("id", userId)
     .maybeSingle();
 
