@@ -26,6 +26,8 @@ import {
   RiTimeLine,
   RiPulseLine,
   RiGitBranchLine,
+  RiFileCopyLine,
+  RiCheckboxCircleLine,
 } from "react-icons/ri";
 import { getServiceBySlug } from "@shared/data/services";
 import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "@shared/data/workflowTemplates";
@@ -1277,6 +1279,7 @@ export default function AdminProcessDetailPage() {
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
   const [coverLetterHtml, setCoverLetterHtml] = useState("");
   const [accountCreationPassword, setAccountCreationPassword] = useState("");
+  const [copiedAccountEmail, setCopiedAccountEmail] = useState(false);
   const [recoveryChildren, setRecoveryChildren] = useState<UserService[]>([]);
   const dedupedRecoveryChildren = useMemo(() => {
     const seen = new Set<string>();
@@ -2447,7 +2450,27 @@ export default function AdminProcessDetailPage() {
             </div>
             <div className="p-4 rounded-xl bg-bg-subtle border border-border text-left">
               <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">{t.processDetail.accountCreation.email}</p>
-              <p className="text-sm font-bold text-text">{email || t.processDetail.accountCreation.notInformed}</p>
+              <div className="flex items-center gap-2 min-w-0">
+                <p className="text-sm font-bold text-text truncate flex-1" title={email}>{email || t.processDetail.accountCreation.notInformed}</p>
+                {emailRaw && (
+                  <button
+                    type="button"
+                    title="Copiar e-mail"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(emailRaw).then(() => {
+                        setCopiedAccountEmail(true);
+                        setTimeout(() => setCopiedAccountEmail(false), 2000);
+                      });
+                    }}
+                    className="shrink-0 p-1 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-colors"
+                  >
+                    {copiedAccountEmail
+                      ? <RiCheckboxCircleLine className="w-3.5 h-3.5 text-emerald-500" />
+                      : <RiFileCopyLine className="w-3.5 h-3.5" />
+                    }
+                  </button>
+                )}
+              </div>
             </div>
             <div className="p-4 rounded-xl bg-bg-subtle border border-border text-left">
               <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">{t.processDetail.accountCreation.phone}</p>

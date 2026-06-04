@@ -18,7 +18,11 @@
       "Bash(sed -n '168,185p' /home/vileladev/Projects/aplikei/src/features/admin/hooks/useMasterOverview.ts)",
       "Bash(awk -F'|' '$4 >= \"2026-06-02T00:00:00\" && $4 <= \"2026-06-02T23:59:59\" && $3 != \"andersonlucash.al@gmail.com\"')",
       "Bash(supabase migration *)",
-      "Bash(npx supabase *)"
+      "Bash(npx supabase *)",
+      "Bash(git stash *)",
+      "Bash(git checkout *)",
+      "Bash(npx playwright *)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }

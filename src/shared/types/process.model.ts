@@ -83,7 +83,16 @@ export function isAnalysisServiceSlug(serviceSlug?: string): boolean {
   const slug = serviceSlug.toLowerCase();
   return (
     slug.startsWith('analise-') ||
+    slug.startsWith('analysis-') ||
+    slug.startsWith('apoio-') ||
+    slug.startsWith('support-') ||
+    slug.startsWith('revisao-') ||
+    slug.startsWith('review-') ||
     slug.startsWith('mentoria-') ||
-    slug.startsWith('consultoria-')
+    slug.startsWith('mentoring-') ||
+    slug.startsWith('consultoria-') ||
+    slug.startsWith('consultancy-') ||
+    slug.startsWith('dependente-') ||
+    slug.startsWith('slot-')
   );
 }

@@ -172,18 +172,20 @@ function isAuxiliarySlug(slug: string) {
   if (slug.includes("-rfe-") || slug.includes("-motion-")) {
     return false;
   }
+  const normalized = String(slug || "").toLowerCase();
   return (
-    slug.startsWith("dependent-") ||
-    slug.startsWith("analysis-") ||
-    slug.startsWith("mentoring-") ||
-    slug.startsWith("consultancy-") ||
-    slug.startsWith("analise-") ||
-    slug.startsWith("mentoria-") ||
-    slug.startsWith("dependente-") ||
-    slug.startsWith("slot-") ||
-    slug.startsWith("apoio-") ||
-    slug.startsWith("revisao-") ||
-    slug.startsWith("proposta-")
+    normalized.startsWith("dependent-") ||
+    normalized.startsWith("analysis-") ||
+    normalized.startsWith("mentoring-") ||
+    normalized.startsWith("consultancy-") ||
+    normalized.startsWith("consultoria-") ||
+    normalized.startsWith("analise-") ||
+    normalized.startsWith("mentoria-") ||
+    normalized.startsWith("dependente-") ||
+    normalized.startsWith("slot-") ||
+    normalized.startsWith("apoio-") ||
+    normalized.startsWith("revisao-") ||
+    normalized.startsWith("proposta-")
   );
 }
 

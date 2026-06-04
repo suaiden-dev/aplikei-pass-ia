@@ -33,6 +33,8 @@ function shouldIncludeAsCase(slug: string) {
   const s = slug.toLowerCase();
   return (
     !isAnalysisServiceSlug(s) &&
+    !s.startsWith("mentoring-") &&
+    !s.startsWith("consultancy-") &&
     !s.startsWith("apoio-") &&
     !s.startsWith("revisao-") &&
     !s.startsWith("dependente-") &&

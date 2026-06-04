@@ -470,6 +470,7 @@ export function getCanonicalSlug(slug: string): string {
     "mentoring-bronze": "mentoria-individual",
     "mentoring-silver": "mentoria-bronze",
     "mentoring-gold": "mentoria-gold",
+    "mentoria-prata": "mentoria-bronze",
     "consultancy-negative-b1b2": "mentoria-negativa-consular",
     "consultancy-negative-f1": "consultoria-f1-negativa",
   };

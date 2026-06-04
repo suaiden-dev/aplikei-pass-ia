@@ -114,6 +114,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
         "mentoring-gold",
         "mentoria-individual",
         "mentoria-bronze",
+        "mentoria-prata",
         "mentoria-silver",
         "mentoria-gold",
         "consultoria-especialista",
@@ -124,42 +125,27 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       setPurchasedConsultation(null);
       setHasConsultationInCurrentProcess(false);
 
-      // Query mentorship globally under user
-      const { data: activeMentorship } = await supabase
+      // Query mentorship scoped to this process only
+      const { data: mentorshipData } = await supabase
         .from("user_services")
         .select("*")
         .eq("user_id", user.id)
         .in("service_slug", mentorshipSlugs)
         .neq("status", "cancelled")
+        .contains("step_data", { parent_process_id: procId })
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (activeMentorship) {
-        setPurchasedMentorship(activeMentorship);
-      }
-      let mentorshipData = (activeMentorship as Record<string, unknown> | null) ?? null;
-      if (!mentorshipData) {
-        const { data } = await supabase
-          .from("user_services")
-          .select("*")
-          .eq("user_id", user.id)
-          .in("service_slug", mentorshipSlugs)
-          .neq("status", "cancelled")
-          .contains("step_data", { parent_process_id: procId })
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        mentorshipData = (data as Record<string, unknown> | null) ?? null;
-      }
-      if (mentorshipData) setPurchasedMentorship(mentorshipData);
+      if (mentorshipData) setPurchasedMentorship(mentorshipData as Record<string, unknown>);
 
-      // Query active consultation globally under user
+      // Query consultation scoped to this process only
       const { data: activeConsultation } = await supabase
         .from("user_services")
         .select("*")
         .eq("user_id", user.id)
         .in("service_slug", consultationSlugs)
         .neq("status", "cancelled")
+        .contains("step_data", { parent_process_id: procId })
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -332,14 +318,33 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
 
   const handleOpenSpecialistSupport = async () => {
     if (isLoadingChat) return;
-    if (!user?.id || !purchasedMentorship?.id) {
+    if (!user?.id) {
       navigate("/dashboard/support");
       return;
     }
 
     setIsLoadingChat(true);
     try {
-      const processId = String(purchasedMentorship.id);
+      let mentorshipRecord = purchasedMentorship;
+      if (!mentorshipRecord?.id) {
+        const mentorshipSlugs = [
+          "mentoring-bronze", "mentoring-silver", "mentoring-gold",
+          "mentoria-individual", "mentoria-bronze", "mentoria-prata",
+          "mentoria-silver", "mentoria-gold", "consultoria-especialista",
+        ];
+        const { data: fallback } = await supabase
+          .from("user_services")
+          .select("*")
+          .eq("user_id", user.id)
+          .in("service_slug", mentorshipSlugs)
+          .neq("status", "cancelled")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        mentorshipRecord = fallback as Record<string, unknown> | null;
+      }
+
+      const processId = mentorshipRecord?.id ? String(mentorshipRecord.id) : procId;
 
       // 1. Tenta buscar conversa ativa existente
       const { data: active } = await supabase
@@ -358,7 +363,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
           .insert({
             process_id: processId,
             customer_id: user.id,
-            office_id: purchasedMentorship?.office_id ?? user.officeId ?? null,
+            office_id: (mentorshipRecord?.office_id as string | null | undefined) ?? user.officeId ?? null,
             is_closed: false,
           })
           .select("id")
@@ -482,6 +487,7 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       "mentoring-gold",
       "mentoria-individual",
       "mentoria-bronze",
+      "mentoria-prata",
       "mentoria-silver",
       "mentoria-gold",
       "consultoria-especialista"
@@ -494,7 +500,8 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       ? 3
       : purchasedMentorshipSlug === "mentoring-silver" ||
         purchasedMentorshipSlug === "mentoria-silver" ||
-        purchasedMentorshipSlug === "mentoria-bronze"
+        purchasedMentorshipSlug === "mentoria-bronze" ||
+        purchasedMentorshipSlug === "mentoria-prata"
         ? 2
         : 1;
 

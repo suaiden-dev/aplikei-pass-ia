@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@shared/lib/supabase";
-import { isCustomerChatEligible, getAnalysisChatTitle } from "../services/eligibility";
+import { isCustomerChatEligible, getAnalysisChatTitle, isMentoriaService, buildMentoriaChatTitle } from "../services/eligibility";
 import type { SpecialistChatThread } from "../types";
 import type { UserService } from "../../process/types";
 
@@ -152,6 +152,24 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
         const account = accountsById.get(service.user_id);
         const lastMsgTime = lastMessageAtByConv.get(c.id) || c.created_at;
 
+        const stepData = (service.step_data || {}) as Record<string, unknown>;
+        const isMentoria = isMentoriaService(service.service_slug);
+        let chatTitle: string;
+        if (isMentoria) {
+          const parentServiceSlug = String(stepData.parent_service_slug || "").trim();
+          chatTitle = buildMentoriaChatTitle(service.service_slug, parentServiceSlug);
+        } else {
+          const purchases = Array.isArray(stepData.purchases)
+            ? (stepData.purchases as Array<Record<string, unknown>>)
+            : [];
+          const mentoriaPurchaseSlug = purchases
+            .map((p) => String(p?.slug || p?.service_slug || "").toLowerCase())
+            .find((s) => isMentoriaService(s) || s.startsWith("consultoria-") || s.startsWith("consultancy-"));
+          chatTitle = mentoriaPurchaseSlug
+            ? buildMentoriaChatTitle(mentoriaPurchaseSlug, service.service_slug)
+            : getAnalysisChatTitle(service.service_slug);
+        }
+
         result.push({
           conversationId: c.id,
           processId: c.process_id,
@@ -159,7 +177,7 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
           officeId: c.office_id,
           serviceSlug: service.service_slug,
           officeName: "Office",
-          chatTitle: getAnalysisChatTitle(service.service_slug),
+          chatTitle,
           fullName: account?.full_name || "Sem Nome",
           email: account?.email || "",
           avatarUrl: account?.avatar_url || null,

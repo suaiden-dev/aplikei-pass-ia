@@ -50,13 +50,18 @@ export default function CheckoutSuccessPage() {
         "mentoring-bronze",
         "mentoring-silver",
         "mentoring-gold",
+        "mentoria-individual",
         "mentoria-bronze",
+        "mentoria-prata",
         "mentoria-silver",
         "mentoria-gold",
+        "consultoria-especialista",
       ]);
       const normalizeMentorshipSlug = (value: string) => {
         const lower = String(value || "").trim().toLowerCase();
+        if (lower === "mentoria-individual") return "mentoring-bronze";
         if (lower === "mentoria-bronze") return "mentoring-bronze";
+        if (lower === "mentoria-prata") return "mentoring-silver";
         if (lower === "mentoria-silver") return "mentoring-silver";
         if (lower === "mentoria-gold") return "mentoring-gold";
         return lower;
@@ -77,9 +82,13 @@ export default function CheckoutSuccessPage() {
         }
 
         const canonicalCandidates = [normalizedSlug];
-        if (normalizedSlug === "mentoring-bronze") canonicalCandidates.push("mentoria-bronze");
+        if (normalizedSlug === "mentoring-bronze") canonicalCandidates.push("mentoria-bronze", "mentoria-individual");
         if (normalizedSlug === "mentoring-silver") canonicalCandidates.push("mentoria-silver");
         if (normalizedSlug === "mentoring-gold") canonicalCandidates.push("mentoria-gold");
+        // mentoria-prata is its own slug (always include alongside silver candidates)
+        if (normalizedSlug === "mentoria-prata" || normalizedSlug === "mentoring-silver") {
+          if (!canonicalCandidates.includes("mentoria-prata")) canonicalCandidates.push("mentoria-prata");
+        }
 
         let query = supabase
           .from("user_services")
@@ -96,10 +105,12 @@ export default function CheckoutSuccessPage() {
           .maybeSingle();
 
         const targetProcessId = String((mentorshipProcess as Record<string, unknown> | null)?.id || "").trim();
-        if (!targetProcessId) return;
+        // Chat-only flow (no user_services row): attach chat to parent process
+        const chatProcessId = targetProcessId || parentProcId || "";
+        if (!chatProcessId) return;
 
         await processService.ensureChatThread(
-          targetProcessId,
+          chatProcessId,
           currentUserId,
           "Olá, comprei o pacote Specialist Mentoring e quero iniciar meu atendimento com o manager.",
         );

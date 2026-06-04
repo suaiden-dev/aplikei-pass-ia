@@ -109,18 +109,19 @@ test.describe("COS recovery flows", () => {
           uscis_official_result: "rfe",
           rfe_proposal_text: "Estratégia de resposta RFE com checklist documental.",
           rfe_proposal_amount: 950,
+          rfe_proposal_paid: true,
         },
       });
 
       await page.goto(`${basePath}?step=16`);
 
-      await expect(page.getByText(/RFE - Aceitar e Pagar/i)).toBeVisible();
-      await expect(page.getByText(/Plano de ação/i)).toBeVisible();
+      await expect(page.getByText(/RFE — Aceitar e Pagar/i)).toBeVisible();
+      await expect(page.getByText(/Nossa Estratégia de Resposta|Plano de Ação/i).first()).toBeVisible();
       await expect(page.getByTestId("rfe-proposal-text")).toContainText(
         "Estratégia de resposta RFE",
       );
       await expect(page.getByTestId("rfe-proposal-amount")).toContainText("950.00");
-      await expect(page.getByRole("button", { name: /Aceitar e pagar/i })).toBeVisible();
+      await expect(page.getByTestId("rfe-proposal-accept-btn")).toBeVisible();
       await expect(page.getByRole("button", { name: /^Aprovado$/i })).toBeVisible();
       await expect(page.getByRole("button", { name: /^RFE$/i })).toBeVisible();
       await expect(page.getByRole("button", { name: /^Reprovado$/i })).toBeVisible();
@@ -145,7 +146,7 @@ test.describe("COS recovery flows", () => {
 
       await expect(page.getByText(/Como foi o resultado da Motion\?/i)).toBeVisible();
       await expect(page.getByRole("button", { name: /^Aprovado$/i })).toBeVisible();
-      await expect(page.getByRole("button", { name: /^Reprovado$/i })).toBeVisible();
+      await expect(page.getByRole("button", { name: /^Negado$/i })).toBeVisible();
       await expect(page.getByRole("button", { name: /^RFE$/i })).toHaveCount(0);
     });
   }
