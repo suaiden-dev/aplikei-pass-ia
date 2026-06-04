@@ -93,10 +93,12 @@ function hasProposalPaid(stepData: Record<string, unknown>): boolean {
  */
 export function buildMentoriaChatTitle(mentoriaSlug: string, parentSlug?: string): string {
   const s = (mentoriaSlug || "").toLowerCase();
+  const meta = getServiceBySlug(mentoriaSlug);
+  const titleLower = (meta?.title || "").toLowerCase();
 
   let tier: string;
-  if (s.includes("gold") || s.includes("ouro")) tier = "Gold";
-  else if (s.includes("silver") || s.includes("prata")) tier = "Silver";
+  if (s.includes("gold") || s.includes("ouro") || titleLower.includes("gold")) tier = "Gold";
+  else if (s.includes("silver") || s.includes("prata") || titleLower.includes("prata") || titleLower.includes("silver")) tier = "Silver";
   else tier = "Bronze";
 
   if (!parentSlug) return tier;

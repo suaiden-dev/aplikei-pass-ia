@@ -4,6 +4,19 @@ import { isCustomerChatEligible, getAnalysisChatTitle, isMentoriaService, buildM
 import type { SpecialistChatThread } from "../types";
 import type { UserService } from "../../process/types";
 
+// Services that create their own user_services row and own conversation (not routed to parent)
+const STANDALONE_SERVICE_SLUGS = new Set([
+  "consultoria-f1-negativa",
+  "consultancy-negative-f1",
+  "mentoria-negativa-consular",
+  "consultancy-negative-b1b2",
+  "consultoria-especialista",
+]);
+
+function isStandaloneService(slug?: string): boolean {
+  return STANDALONE_SERVICE_SLUGS.has((slug || "").toLowerCase());
+}
+
 export function useCustomerChats(userId: string) {
   const [threads, setThreads] = useState<SpecialistChatThread[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,7 +54,7 @@ export function useCustomerChats(userId: string) {
       const parentProcessIds = Array.from(
         new Set(
           eligible
-            .filter((row) => !isMentoriaService(row.service_slug as string))
+            .filter((row) => !isMentoriaService(row.service_slug as string) && !isStandaloneService(row.service_slug as string))
             .map((row) => {
               const stepData = (row.step_data as Record<string, unknown>) || {};
               return String(stepData.parent_process_id || "").trim();
@@ -52,8 +65,8 @@ export function useCustomerChats(userId: string) {
       const messageProcessIds = Array.from(
         new Set(
           eligible.map((row) => {
-            // Mentoria services always get their own chat — never route to parent
-            if (isMentoriaService(row.service_slug as string)) return row.id as string;
+            // Mentoria and standalone consultoria services always get their own chat
+            if (isMentoriaService(row.service_slug as string) || isStandaloneService(row.service_slug as string)) return row.id as string;
             const stepData = (row.step_data as Record<string, unknown>) || {};
             const parentProcessId = String(stepData.parent_process_id || "").trim();
             return parentProcessId || (row.id as string);
@@ -72,55 +85,11 @@ export function useCustomerChats(userId: string) {
         .select("id, process_id, is_closed")
         .eq("customer_id", userId);
 
-      // --- AUTO-ENSURE CHAT THREADS FOR ELIGIBLE SERVICES ---
-      let neededReload = false;
-      for (const row of eligible) {
-        const processId = row.id as string;
-        const stepData = (row.step_data as Record<string, unknown>) || {};
-        const parentProcessId = String(stepData.parent_process_id || "").trim();
-        // Mentoria services always get their own dedicated chat
-        const targetProcessId = isMentoriaService(row.service_slug as string)
-          ? processId
-          : (parentProcessId || processId);
-
-        const hasConv = (convsByProcess || []).some(c => c.process_id === targetProcessId) || 
-                        (convsByCustomer || []).some(c => c.process_id === targetProcessId);
-
-        if (!hasConv) {
-          const { ensureChatThread } = await import("../../process/services/processOps");
-          await ensureChatThread(
-            targetProcessId,
-            userId,
-            "Olá! Fale com o especialista sobre o seu processo.",
-            true
-          );
-          neededReload = true;
-        }
-      }
-
-      let activeConvsByProcess = convsByProcess;
-      let activeConvsByCustomer = convsByCustomer;
-
-      if (neededReload) {
-        const { data: freshConvsByProcess } = await supabase
-          .from("conversations")
-          .select("id, process_id, is_closed")
-          .in("process_id", messageProcessIds);
-
-        const { data: freshConvsByCustomer } = await supabase
-          .from("conversations")
-          .select("id, process_id, is_closed")
-          .eq("customer_id", userId);
-
-        activeConvsByProcess = freshConvsByProcess;
-        activeConvsByCustomer = freshConvsByCustomer;
-      }
-
       const convsMap = new Map<string, { id: string; process_id: string; is_closed: boolean }>();
-      (activeConvsByProcess || []).forEach((c: any) => {
+      (convsByProcess || []).forEach((c: any) => {
         convsMap.set(c.id, c);
       });
-      (activeConvsByCustomer || []).forEach((c: any) => {
+      (convsByCustomer || []).forEach((c: any) => {
         convsMap.set(c.id, c);
       });
       const convs = Array.from(convsMap.values());
@@ -226,10 +195,11 @@ export function useCustomerChats(userId: string) {
         const stepData = (row.step_data as Record<string, unknown>) || {};
         const parentProcessId = String(stepData.parent_process_id || "").trim();
         const parentServiceSlug = String(stepData.parent_service_slug || "").trim();
-        // Mentoria services always use their own processId and slug
+        // Mentoria and standalone consultoria services always use their own processId and slug
         const isMentoria = isMentoriaService(serviceSlug);
-        const routeId = (isMentoria || !parentProcessId) ? processId : parentProcessId;
-        const routeSlug = isMentoria
+        const isStandalone = isStandaloneService(serviceSlug);
+        const routeId = (isMentoria || isStandalone || !parentProcessId) ? processId : parentProcessId;
+        const routeSlug = (isMentoria || isStandalone)
           ? serviceSlug
           : (parentServiceSlug || parentServiceSlugById.get(routeId) || serviceSlug);
 
@@ -257,10 +227,11 @@ export function useCustomerChats(userId: string) {
 
       // Fallback: inclui conversas do cliente que não aparecem via elegibilidade de user_services
       const routeIdsInResult = new Set(result.map((r) => r.processRouteId));
-      // Para serviços mentoria, também marca o parent_process_id como coberto, evitando que
-      // conversas antigas linkadas ao processo pai (F1/B1B2) apareçam com o nome errado
+      // Para serviços mentoria e consultoria standalone, também marca o parent_process_id como coberto,
+      // evitando que conversas antigas linkadas ao processo pai (F1/B1B2) apareçam com o nome errado
       eligible.forEach((row) => {
-        if (!isMentoriaService(row.service_slug as string)) return;
+        const slug = row.service_slug as string;
+        if (!isMentoriaService(slug) && !isStandaloneService(slug)) return;
         const sd = (row.step_data as Record<string, unknown>) || {};
         const parentId = String(sd.parent_process_id || "").trim();
         if (parentId) routeIdsInResult.add(parentId);

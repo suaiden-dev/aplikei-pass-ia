@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SupabaseClient = any;
+import type { Supabase as SupabaseClient } from "../../core/supabase.ts";
 export type UserRole = "master" | "admin_lawyer" | "manager" | "seller" | "customer";
 
 export interface AuthContext {

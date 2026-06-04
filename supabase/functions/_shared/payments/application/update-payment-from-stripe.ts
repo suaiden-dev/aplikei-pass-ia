@@ -1,5 +1,8 @@
 import { supabaseAdmin } from "../../core/supabase.ts";
 import { registerPaymentEvent } from "./register-payment-event.ts";
+import { createLogger } from "../../core/logger.ts";
+
+const log = createLogger("update-payment-from-stripe");
 
 
 type Params = {
@@ -22,7 +25,7 @@ export async function updatePaymentFromStripe({
     .maybeSingle();
 
   if (!payment) {
-    console.warn(`[stripe-webhook] Payment not found for session: ${sessionId}`);
+    log.warn("payment not found for session", { session_id: sessionId });
     return;
   }
 

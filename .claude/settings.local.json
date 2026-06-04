@@ -22,7 +22,11 @@
       "Bash(git stash *)",
       "Bash(git checkout *)",
       "Bash(npx playwright *)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(awk '{add+=$1; del+=$2} END {print \"+\"add\" / -\"del}')",
+      "Bash(awk '{add+=$1; del+=$2; files++} END {print files\" files, +\"add\" / -\"del}')",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(deno check *)"
     ]
   }
 }
