@@ -1144,7 +1144,62 @@ const admin = {
             customSalesPage: "Página de Vendas Customizada",
             advancedAi: "Integração com IA Avançada"
         }
-    }
+    },
+
+    legalTerms: {
+        title: "Termos Legais",
+        subtitle: "Gerencie os termos de serviço para advogados e clientes.",
+        createNew: "Novo Termo",
+        stats: {
+            total: "Total de Termos",
+            active: "Ativos",
+            lawyer: "Termos para Advogados",
+            customer: "Termos para Clientes",
+        },
+        filter: { all: "Todos", lawyer: "Advogados", customer: "Clientes" },
+        categories: { lawyer: "Advogado", customer: "Cliente" },
+        table: {
+            title: "Título",
+            category: "Categoria",
+            version: "Versão",
+            status: "Status",
+            updated: "Última Atualização",
+            actions: "Ações",
+            noResults: "Nenhum termo legal encontrado.",
+        },
+        form: {
+            titleLabel: "Título",
+            titlePlaceholder: "ex: Termos de Serviço para Advogados",
+            categoryLabel: "Categoria",
+            contentLabel: "Conteúdo",
+            contentPlaceholder: "Digite o conteúdo completo dos termos...",
+            versionLabel: "Versão",
+            versionPlaceholder: "ex: 1.0",
+            activeLabel: "Ativo",
+            activeDescription: "Termos inativos não são exibidos aos usuários.",
+        },
+        modal: {
+            createTitle: "Novo Termo Legal",
+            editTitle: "Editar Termo Legal",
+            viewTitle: "Visualizar Termo Legal",
+            deleteTitle: "Excluir Termo",
+            deleteMessage: "Tem certeza que deseja excluir \"{{title}}\"? Esta ação não pode ser desfeita.",
+            cancel: "Cancelar",
+            save: "Salvar",
+            delete: "Excluir",
+            close: "Fechar",
+        },
+        messages: {
+            createSuccess: "Termo criado com sucesso.",
+            updateSuccess: "Termo atualizado com sucesso.",
+            deleteSuccess: "Termo excluído com sucesso.",
+            createError: "Erro ao criar termo: {{error}}",
+            updateError: "Erro ao atualizar termo: {{error}}",
+            deleteError: "Erro ao excluir termo: {{error}}",
+            missingTitle: "O título é obrigatório.",
+            missingContent: "O conteúdo é obrigatório.",
+        },
+    },
 };
 
 export default admin;

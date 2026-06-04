@@ -1108,7 +1108,62 @@ const admin = {
       customSalesPage: "Custom Sales Page",
       advancedAi: "Advanced AI Integration"
     }
-  }
+  },
+
+  legalTerms: {
+    title: "Legal Terms",
+    subtitle: "Manage terms of service for lawyers and customers.",
+    createNew: "New Term",
+    stats: {
+      total: "Total Terms",
+      active: "Active",
+      lawyer: "Lawyer Terms",
+      customer: "Customer Terms",
+    },
+    filter: { all: "All", lawyer: "Lawyers", customer: "Customers" },
+    categories: { lawyer: "Lawyer", customer: "Customer" },
+    table: {
+      title: "Title",
+      category: "Category",
+      version: "Version",
+      status: "Status",
+      updated: "Last Updated",
+      actions: "Actions",
+      noResults: "No legal terms found.",
+    },
+    form: {
+      titleLabel: "Title",
+      titlePlaceholder: "e.g. Terms of Service for Lawyers",
+      categoryLabel: "Category",
+      contentLabel: "Content",
+      contentPlaceholder: "Enter the full content of the terms...",
+      versionLabel: "Version",
+      versionPlaceholder: "e.g. 1.0",
+      activeLabel: "Active",
+      activeDescription: "Inactive terms are not displayed to users.",
+    },
+    modal: {
+      createTitle: "New Legal Term",
+      editTitle: "Edit Legal Term",
+      viewTitle: "View Legal Term",
+      deleteTitle: "Delete Term",
+      deleteMessage: "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
+      cancel: "Cancel",
+      save: "Save",
+      delete: "Delete",
+      close: "Close",
+    },
+    messages: {
+      createSuccess: "Term created successfully.",
+      updateSuccess: "Term updated successfully.",
+      deleteSuccess: "Term deleted successfully.",
+      createError: "Error creating term: {{error}}",
+      updateError: "Error updating term: {{error}}",
+      deleteError: "Error deleting term: {{error}}",
+      missingTitle: "Title is required.",
+      missingContent: "Content is required.",
+    },
+  },
 };
 
 export default admin;

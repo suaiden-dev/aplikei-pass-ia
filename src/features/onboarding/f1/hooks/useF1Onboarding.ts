@@ -2,9 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@shared/lib/supabase";
-import { updateStepData, approveStep, requestStepReview } from "../../../process/services/processOps";
+import { updateStepData, approveStep } from "../../../process/services/processOps";
 import { getServiceSlugs, isSameService } from "@shared/data/services";
-import { notifyAdmin } from "@features/notifications/services/notify";
 import type { DS160FormValues } from "../../b1b2/schemas/ds160.schema";
 
 const INITIAL_VALUES: Partial<DS160FormValues> = {
@@ -106,20 +105,10 @@ export function useF1Onboarding(userId: string | undefined) {
 
       if (currentDBStep === 0) {
         await approveStep(procId, 1, false);
-        await requestStepReview(procId);
-        await notifyAdmin({
-          serviceId: procId,
-          userId,
-          link: `/master/processes/${procId}`,
-          category: "b1b2",
-          action: "ds160_completed",
-        });
-        setProcStatus('awaiting_review');
         setCurrentStep(1);
         toast.success("DS-160 enviada com sucesso!");
         navigate(`/dashboard/processes/${slug}`);
       } else {
-        await requestStepReview(procId);
         toast.success("Rascunho salvo!");
         navigate(`/dashboard/processes/${slug}`);
       }
