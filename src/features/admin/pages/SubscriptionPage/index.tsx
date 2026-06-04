@@ -189,43 +189,6 @@ export default function SubscriptionPage() {
     return raw;
   }, [lang]);
 
-   const handleCancelSubscription = async () => {
-      if (!officeId) {
-        toast.error("Your user has no linked office to cancel subscription.");
-        return;
-      }
-      
-      try {
-        setIsCancelingSubscription(true);
-        const { error } = await supabase
-          .from("office_subscriptions")
-          .update({ status: "canceled", updated_at: new Date().toISOString() })
-          .eq("office_id", officeId)
-          .filter("status", "in", '("active","trialing")');
-
-        if (error) throw error;
-
-        await notifyMaster({
-          title: "Subscription canceled",
-          body: `Office ${displayOfficeName} canceled the active subscription.`,
-          link: "/master/offices",
-          metadata: { office_id: officeId, action: "cancel_subscription" },
-        });
-        
-        toast.success(t.subscription.modals.cancelSuccess);
-        setShowCancelModal(false);
-        // Refresh data
-        window.location.reload();
-      } catch (err) {
-        console.error("Error canceling subscription:", err);
-        toast.error(t.subscription.modals.cancelError);
-      } finally {
-        setIsCancelingSubscription(false);
-      }
-    }
-    return raw;
-  }, [lang]);
-
   const handleCancelSubscription = async () => {
     if (!officeId) {
       toast.error("Your user has no linked office to cancel subscription.");
@@ -385,8 +348,8 @@ export default function SubscriptionPage() {
                         }`} />
                         {f}
                       </div>
-                    </>
-                  )}
+                    ))}
+                  </div>
 
                   <button
                     onClick={() => handleSelectPlan(plan)}

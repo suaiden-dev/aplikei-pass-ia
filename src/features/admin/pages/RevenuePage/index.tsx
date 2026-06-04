@@ -181,29 +181,13 @@ function DetailModal({
               )}
             </div>
           )}
-
-                    {payment.source === "withdrawal" && payment.method.toLowerCase() === "zelle" && (
-                        <div className="p-4 rounded-2xl bg-info/5 border border-info/10 space-y-2">
-                            <p className="text-[10px] font-black text-info uppercase tracking-widest">Zelle do advogado</p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div>
-                                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Nome</p>
-                                    <p className="text-sm font-black text-text">{payment.zelleName || "Não configurado"}</p>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Identificador</p>
-                                    <p className="text-sm font-black text-text break-all">{payment.zelleIdentifier || "Não configurado"}</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {payment.source === "withdrawal" && payment.reviewedByName && (
-                        <div className="p-4 rounded-2xl bg-success/5 border border-success/10 space-y-1">
-                            <p className="text-[10px] font-black text-success uppercase tracking-widest">Aprovado por</p>
-                            <p className="text-sm font-black text-text">{payment.reviewedByName}</p>
-                        </div>
-                    )}
+          {payment.source === "withdrawal" && payment.method.toLowerCase() === "zelle" && (
+            <div className="p-4 rounded-2xl bg-info/5 border border-info/10 space-y-2">
+              <p className="text-[10px] font-black text-info uppercase tracking-widest">Zelle do advogado</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Nome</p>
+                  <p className="text-sm font-black text-text">{payment.zelleName || "Não configurado"}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Identificador</p>
@@ -616,198 +600,16 @@ export default function RevenuePage() {
         console.error("[withdrawals] approval notification failed:", notificationError);
       }
 
-        if (tab === "office_requests") {
-            let withdrawalsQuery = supabase
-                .from("office_withdrawals")
-                .select("*, offices(name)")
-                .order("created_at", { ascending: false });
-
-            if (!isMaster && officeId) {
-                withdrawalsQuery = withdrawalsQuery.eq("office_id", officeId);
-            }
-
-            const { data: withdrawalsData } = await withdrawalsQuery;
-            const withdrawalRows = (withdrawalsData ?? []) as Array<{
-                id: string;
-                office_id?: string | null;
-                amount?: number | string | null;
-                status?: string | null;
-                method?: string | null;
-                payment_method?: string | null;
-                payment_link?: string | null;
-                reviewed_by_name?: string | null;
-                created_at: string;
-                offices?: { name?: string | null } | null;
-            }>;
-            const withdrawalOfficeIds = Array.from(
-                new Set(withdrawalRows.map((row) => row.office_id).filter((id): id is string => Boolean(id))),
-            );
-            const payoutSettingsByOfficeId = new Map<string, { zelle_name?: string | null; zelle_identifier?: string | null }>();
-
-            if (withdrawalOfficeIds.length > 0) {
-                const { data: payoutSettingsData, error: payoutSettingsError } = await supabase
-                    .from("office_payment_settings")
-                    .select("office_id, zelle_name, zelle_identifier")
-                    .in("office_id", withdrawalOfficeIds);
-
-                if (payoutSettingsError) {
-                    console.error("[RevenuePage] Failed to load withdrawal payout settings:", payoutSettingsError);
-                }
-
-                (payoutSettingsData ?? []).forEach((settings: any) => {
-                    if (settings?.office_id) {
-                        payoutSettingsByOfficeId.set(settings.office_id, {
-                            zelle_name: settings.zelle_name ?? null,
-                            zelle_identifier: settings.zelle_identifier ?? null,
-                        });
-                    }
-                });
-            }
-
-            withdrawalRows.forEach((r) => {
-                const rawStatus = String(r.status || "").toLowerCase();
-                const normalizedStatus =
-                    rawStatus === "completed" ? "approved" :
-                        rawStatus === "cancelled" ? "rejected" :
-                            rawStatus;
-                const method = String(r.method || r.payment_method || "manual").toUpperCase();
-                const payoutSettings = r.office_id ? payoutSettingsByOfficeId.get(r.office_id) : undefined;
-
-                results.push({
-                    id: r.id,
-                    source: "withdrawal",
-                    clientName: r.offices?.name ?? "Office",
-                    clientEmail: "",
-                    serviceName: "WITHDRAWAL REQUEST",
-                    serviceSlug: "withdrawal_request",
-                    amount: Number(r.amount) || 0,
-                    method,
-                    createdAt: r.created_at,
-                    officeName: r.offices?.name ?? undefined,
-                    officeId: r.office_id ?? undefined,
-                    status: normalizedStatus,
-                    paymentLink: r.payment_link ?? null,
-                    reviewedByName: r.reviewed_by_name ?? null,
-                    zelleName: payoutSettings?.zelle_name ?? null,
-                    zelleIdentifier: payoutSettings?.zelle_identifier ?? null,
-                });
-            });
-        }
-
-        if (tab === "approved_payments") {
-            let approvedOrdersQuery = supabase
-                .from("orders")
-                .select("*")
-                .in("payment_status", ["paid", "approved", "complete", "completed", "succeeded", "pending"])
-                .order("created_at", { ascending: false })
-                .limit(100);
-
-            if (!isMaster && officeId) {
-                approvedOrdersQuery = approvedOrdersQuery.eq("office_id", officeId);
-            }
-
-            const { data: approvedOrders } = await approvedOrdersQuery;
-
-            const ordersRows = (approvedOrders ?? []) as Array<{
-                id: string;
-                office_id?: string | null;
-                seller_id?: string | null;
-                user_id?: string | null;
-                total_price_usd?: number | string | null;
-                office_net_amount_usd?: number | string | null;
-                client_name?: string | null;
-                client_email?: string | null;
-                product_slug?: string | null;
-                payment_method?: string | null;
-                created_at: string;
-                payment_status?: string | null;
-            }>;
-
-            const missingOfficeOrders = ordersRows.filter((row) => !row.office_id);
-            const ownerIds = Array.from(new Set(
-                missingOfficeOrders
-                    .flatMap((row) => [row.seller_id, row.user_id])
-                    .filter((id): id is string => Boolean(id)),
-            ));
-
-            const inferredOfficeByOwnerId = new Map<string, string>();
-            if (ownerIds.length > 0) {
-                const { data: ownersData } = await supabase
-                    .from("user_accounts")
-                    .select("id, office_id")
-                    .in("id", ownerIds);
-
-                ((ownersData ?? []) as Array<{ id: string; office_id?: string | null }>)
-                    .forEach((owner) => {
-                        if (owner?.id && owner?.office_id) {
-                            inferredOfficeByOwnerId.set(owner.id, owner.office_id);
-                        }
-                    });
-            }
-
-            const inferredUpdates: Array<{ id: string; office_id: string }> = [];
-            ordersRows.forEach((row) => {
-                if (row.office_id) return;
-                const inferredOfficeId =
-                    (row.seller_id && inferredOfficeByOwnerId.get(row.seller_id)) ||
-                    (row.user_id && inferredOfficeByOwnerId.get(row.user_id));
-                if (inferredOfficeId) {
-                    row.office_id = inferredOfficeId;
-                    inferredUpdates.push({ id: row.id, office_id: inferredOfficeId });
-                }
-            });
-
-            if (inferredUpdates.length > 0) {
-                await Promise.all(
-                    inferredUpdates.map((item) =>
-                        supabase.from("orders").update({ office_id: item.office_id }).eq("id", item.id),
-                    ),
-                );
-            }
-
-            await resolveOfficeNames(ordersRows as Array<{ office_id?: string | null }>);
-
-            ordersRows.forEach((r: any) => {
-                const grossAmount = Number(r.total_price_usd) || 0;
-                const officeNetAmount = Number(r.office_net_amount_usd ?? r.total_price_usd) || 0;
-                results.push({
-                    id: r.id,
-                    source: "order",
-                    clientName: r.client_name ?? "Client",
-                    clientEmail: r.client_email ?? "",
-                    serviceName: r.product_slug?.replace(/-/g, " ").toUpperCase() || "General",
-                    serviceSlug: r.product_slug || "",
-                    amount: grossAmount,
-                    officeNetAmount,
-                    platformFeeAmount: Math.max(0, grossAmount - officeNetAmount),
-                    method: r.payment_method?.toUpperCase() || "STRIPE",
-                    createdAt: r.created_at,
-                    officeName: r.office_id ? officeNameById.get(r.office_id) : "UNASSIGNED OFFICE",
-                    officeId: r.office_id,
-                    status: r.payment_status,
-                });
-            });
-
-            results.sort(
-                (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-            );
-        }
-
-        setPayments(results);
-        setIsLoading(false);
-    }, [tab, isMaster, officeId]);
-
-    useEffect(() => { load(); }, [load]);
-
-    const handleApproveZelle = async (p: UnifiedPayment) => {
-        if (!p.zelleId) return;
-        setBusy(p.id);
+      toast.success(t.payments.messages.updateStatusSuccess.replace("{{status}}", status));
+      setSelectedPayment(null);
+      await load();
+    } catch (err) {
+      console.error(err);
+      let detail = "";
+      if (err instanceof Error) {
         try {
-            const approvedByName = user?.fullName || user?.email || "Admin";
-            await paymentService.approveZellePayment(p.zelleId, approvedByName);
-            toast.success(t.payments.messages.approveSuccess);
-            setSelectedPayment(null);
-            await load();
+          const body = JSON.parse(err.message);
+          detail = body?.error || "";
         } catch {
           detail = "";
         }

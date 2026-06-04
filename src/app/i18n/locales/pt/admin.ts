@@ -27,7 +27,10 @@ const admin = {
         view: "Ver",
         select: "Selecionar",
         remove: "Remover",
-        locale: "pt-BR"
+        locale: "pt-BR",
+        examplePrefix: "Ex:",
+        paidByClient: "Pago pelo cliente",
+        awaitingPayment: "Aguardando pagamento"
     },
     nav: {
         overview: "Visão Geral",
@@ -298,7 +301,7 @@ const admin = {
             clientReason: "Motivo Informado:",
             noReason: "Nenhuma descrição fornecida.",
             denialLetter: "Carta de Negativa / Docs",
-            strategyLabel: "Estratégia / Proposta",
+            strategyLabel: "Etrategia / Proposta",
             strategyPlaceholder: "Descreva a estratégia técnica para o Motion...",
             amountLabel: "Valor do Serviço ($)",
             sendProposal: "Enviar Proposta ao Cliente",
@@ -306,6 +309,23 @@ const admin = {
             packageReady: "Documento de Motion Pronto",
             noPackage: "Nenhum pacote enviado ainda",
             selectPackage: "Selecionar PDF Final",
+            clientReasonLabel: "Motivo enviado pelo cliente",
+            clientReasonPlaceholder: "Cliente ainda não enviou o motivo.",
+            submittedAt: "Enviado em",
+            denialLetterLabel: "Carta de negativa",
+            viewFile: "Visualizar arquivo",
+            notSent: "Não enviado.",
+            supportingDocs: "Documentos de apoio",
+            submissionHistory: "Histórico de envios",
+            submission: "Envio",
+            noDescription: "Sem descrição",
+            proposalHistory: "Histórico de propostas",
+            proposal: "Proposta",
+            amountLabelShort: "Valor: USD",
+            motionRejectedByClient: "Motion reprovado pelo cliente",
+            motionApprovedByClient: "Motion aprovado pelo cliente",
+            proposalPaidByClient: "Motion - Proposal paga pelo cliente",
+            awaitingProposalPayment: "Aguardando pagamento da Motion - Proposal",
         },
         rfe: {
             panelTitle: "Formular Proposta de Resposta RFE",
@@ -327,6 +347,13 @@ const admin = {
             finalPackageReady: "Pacote final RFE pronto",
             selectFinalPdf: "Selecionar PDF Final",
             provideToClient: "Disponibilizar ao Cliente",
+            clientDescriptionLabel: "Descrição enviada pelo cliente",
+            clientDescriptionPlaceholder: "Cliente ainda não enviou a descrição.",
+            officialLetterLabel: "Carta RFE",
+            rfeRejectedByClient: "RFE reprovado pelo cliente",
+            rfeApprovedByClient: "RFE aprovado pelo cliente",
+            proposalPaidByClient: "RFE - Proposta paga pelo cliente",
+            awaitingProposalPayment: "Aguardando pagamento da RFE - Proposta",
         },
         credentials: {
             title: "Credenciais CEAC / ID da Aplicação",
@@ -1044,13 +1071,16 @@ const admin = {
                 description: "Dados principais de identificação do escritório.",
                 companyName: "Nome da Empresa / Escritório",
                 cnpj: "CNPJ",
-                address: "Endereço Completo"
+                cnpjPlaceholder: "Ex: 00.000.000/0000-00",
+                address: "Endereço Completo",
+                addressPlaceholder: "Ex: Rua, Número, Bairro, Cidade - Estado"
             },
             contact: {
                 title: "Contato e Canais",
                 description: "Como os clientes podem encontrar você.",
                 email: "E-mail Corporativo",
                 phone: "Telefone / WhatsApp",
+                phonePlaceholder: "Ex: +55 (00) 00000-0000",
                 website: "Site"
             },
             social: {

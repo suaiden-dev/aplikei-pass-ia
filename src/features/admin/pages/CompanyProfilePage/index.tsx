@@ -420,7 +420,7 @@ export default function CompanyProfilePage() {
                       cnpj: e.target.value.replace(/\D/g, "").slice(0, 14),
                     })
                   }
-                  placeholder="00.000.000/0000-00"
+                  placeholder={t.companyProfile.sections.general.cnpjPlaceholder || "00.000.000/0000-00"}
                   className={`rounded-xl border-border bg-bg-subtle ${getTourClass("cnpj")}`}
                 />
               </div>
@@ -433,7 +433,7 @@ export default function CompanyProfilePage() {
                     id="address"
                     value={office.address || ""}
                     onChange={(e) => setOffice({ ...office, address: e.target.value })}
-                    placeholder="Street, Number, District, City - State"
+                    placeholder={t.companyProfile.sections.general.addressPlaceholder || "Street, Number, District, City - State"}
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("address")}`}
                   />
                 </div>
@@ -480,7 +480,7 @@ export default function CompanyProfilePage() {
                     id="phone"
                     value={office.phone || ""}
                     onChange={(e) => setOffice({ ...office, phone: e.target.value })}
-                    placeholder="+55 (00) 00000-0000"
+                    placeholder={t.companyProfile.sections.contact.phonePlaceholder || "+55 (00) 00000-0000"}
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("phone")}`}
                   />
                 </div>
