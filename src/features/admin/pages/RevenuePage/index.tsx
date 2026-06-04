@@ -832,7 +832,6 @@ export default function RevenuePage() {
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.offices.table.office}</th>
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.payments.table.serviceName}</th>
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">Client</th>
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">Processing Fee</th>
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">Received</th>
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">Fee / Profit</th>
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">Status</th>
@@ -867,7 +866,6 @@ export default function RevenuePage() {
                       const isRejectedStatus = ["rejected", "cancelled", "canceled", "failed"].includes(normalizedStatus);
                       const statusClass = isApprovedStatus ? "text-success" : isRejectedStatus ? "text-danger" : "text-warning";
                       const clientAmt = p.amount;
-                      const processingFee = Number(p.processingFeeAmount ?? 0);
                       const receivedAmt = Number(p.officeNetAmount ?? p.amount);
                       const feeAmt = Number(p.platformFeeAmount ?? 0);
                       return (
@@ -876,19 +874,11 @@ export default function RevenuePage() {
                             <p className="text-sm font-black text-text">{fmtCurrency(clientAmt)}</p>
                           </td>
                           <td className="px-6 py-5">
-                            <p className={`text-sm font-black ${processingFee > 0 ? "text-danger" : "text-text-muted"}`}>
-                              {processingFee > 0 ? `-${fmtCurrency(processingFee)}` : "—"}
-                            </p>
-                            {processingFee > 0 && (
-                              <p className="text-[9px] text-text-muted mt-0.5">est.</p>
-                            )}
-                          </td>
-                          <td className="px-6 py-5">
                             <p className="text-sm font-black text-primary">{fmtCurrency(receivedAmt)}</p>
                           </td>
                           <td className="px-6 py-5">
-                            <p className={`text-sm font-black ${feeAmt > 0 ? "text-success" : "text-text-muted"}`}>
-                              {feeAmt > 0 ? fmtCurrency(feeAmt) : "—"}
+                            <p className={`text-sm font-black ${feeAmt > 0 ? (isAdminLawyer ? "text-danger" : "text-success") : "text-text-muted"}`}>
+                              {feeAmt > 0 ? (isAdminLawyer ? `-${fmtCurrency(feeAmt)}` : fmtCurrency(feeAmt)) : "—"}
                             </p>
                           </td>
                           <td className="px-6 py-5">

@@ -565,8 +565,8 @@ function FinalSchedulingPanel({ proc, onRefresh, isActive }: { proc: ProcessWith
   const t = useT("admin");
   const vt = useT("visas");
 
-  const currentStepIdx = proc.current_step ?? 0;
-  const isPast = currentStepIdx > 10;
+  const hasSchedulingData = !!(proc.step_data as any)?.final_casv_date;
+  const isPast = hasSchedulingData;
   const canEdit = isActive || isPast;
 
   useEffect(() => {
@@ -1500,7 +1500,7 @@ export default function AdminProcessDetailPage() {
       const stepData = (data?.step_data as Record<string, unknown> | null) ?? null;
       if (stepData?.generatedCoverLetterHTML) {
         const rawHtml = stepData.generatedCoverLetterHTML as string;
-        setCoverLetterHtml(rawHtml.replace(/color:\s*#000;?/gi, '').replace(/color:\s*black;?/gi, ''));
+        setCoverLetterHtml(rawHtml.replace(/(?:background-color|background|color)\s*:\s*[^;}"']+;?/gi, ''));
       }
     } catch (err: unknown) {
       console.error("Error loading process:", err);
@@ -1793,7 +1793,7 @@ export default function AdminProcessDetailPage() {
     if (entries.length === 0) {
       return (
         <CollapsibleStep
-          title={proc.service_slug === "visto-b1-b2" || proc.service_slug === "visa-b1b2" ? "DS-160 Review" : "Form Data (Review)"}
+          title={proc.service_slug.includes("b1b2") || proc.service_slug.includes("b1-b2") || proc.service_slug.includes("f1") ? "DS-160" : "Form Data (Review)"}
           icon={RiFileTextLine}
           isActive={isActive}
           isPast={isPast}
@@ -1808,7 +1808,7 @@ export default function AdminProcessDetailPage() {
 
     return (
       <CollapsibleStep
-        title={proc.service_slug === "visto-b1-b2" || proc.service_slug === "visa-b1b2" ? "DS-160 Review" : "Form Data (Review)"}
+        title={proc.service_slug.includes("b1b2") || proc.service_slug.includes("b1-b2") || proc.service_slug.includes("f1") ? "DS-160" : "Form Data (Review)"}
         icon={RiFileTextLine}
         isActive={isActive}
         isPast={isPast}
@@ -1965,8 +1965,8 @@ export default function AdminProcessDetailPage() {
             contentEditable={isActive}
             suppressContentEditableWarning={true}
             onBlur={(e) => isActive && setCoverLetterHtml(e.currentTarget.innerHTML)}
-            className={`w-full min-h-[500px] bg-card border border-border rounded-2xl p-8 overflow-y-auto shadow-sm prose prose-sm dark:prose-invert max-w-none text-text dark:text-white ${isActive ? 'outline-none focus:ring-4 focus:ring-primary/20' : 'opacity-80'}`}
-            dangerouslySetInnerHTML={{ __html: coverLetterHtml.replace(/color:\s*#000;?/gi, '').replace(/color:\s*black;?/gi, '') }}
+            className={`w-full min-h-[500px] bg-card border border-border rounded-2xl p-8 overflow-y-auto shadow-sm prose prose-sm dark:prose-invert max-w-none text-text [&_*]:text-inherit [&_*]:bg-transparent ${isActive ? 'outline-none focus:ring-4 focus:ring-primary/20' : 'opacity-80'}`}
+            dangerouslySetInnerHTML={{ __html: coverLetterHtml.replace(/(?:background-color|background|color)\s*:\s*[^;}"']+;?/gi, '') }}
           />
           {isActive && (
             <div className="mt-4">
@@ -2532,8 +2532,12 @@ export default function AdminProcessDetailPage() {
   };
   const renderB1B2FinalSchedulingAdmin = () => {
     if (!proc || (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("b1-b2") && !proc.service_slug.includes("f1"))) return null;
-    const isActive = currentStepBaseId === "b1b2_final_scheduling" || currentStepBaseId === "f1_final_scheduling";
-    const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 11 : 10);
+    const finalSchedulingStepIdx = proc.service_slug.includes("f1") ? 11 : 10;
+    const hasSchedulingData = !!(proc.step_data as any)?.final_casv_date;
+    const isActiveByStep = currentStepBaseId === "b1b2_final_scheduling" || currentStepBaseId === "f1_final_scheduling";
+    const isActiveByPosition = currentStepIdx >= finalSchedulingStepIdx && !hasSchedulingData;
+    const isActive = isActiveByStep || isActiveByPosition;
+    const isPast = hasSchedulingData;
     if (!isActive && !isPast) return null;
 
     return (

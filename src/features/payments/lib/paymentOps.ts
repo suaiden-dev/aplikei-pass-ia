@@ -105,9 +105,12 @@ async function assertProductIsActiveForOffice(officeId: string, slug: string): P
     throw new Error("Não foi possível validar se o produto está ativo.");
   }
 
-  const hasActiveProduct = (prices || []).some((row) => row.is_active === true || row.is_active === null);
-  if (!hasActiveProduct) {
-    throw new Error("Produto desativado para este office. Ative o produto antes de iniciar a venda.");
+  // No entries = product available via catalog pricing (no custom price configured yet)
+  if (prices && prices.length > 0) {
+    const hasActiveProduct = prices.some((row) => row.is_active === true || row.is_active === null);
+    if (!hasActiveProduct) {
+      throw new Error("Produto desativado para este office. Ative o produto antes de iniciar a venda.");
+    }
   }
 }
 

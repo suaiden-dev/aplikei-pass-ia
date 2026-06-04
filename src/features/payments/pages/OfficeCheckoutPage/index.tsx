@@ -19,10 +19,12 @@ import {
     RiImageLine,
     RiTimeLine,
     RiFlashlightFill,
+    RiLockLine,
 } from "react-icons/ri";
 import { MdPix } from "react-icons/md";
 import { Input } from "@shared/components/atoms/input";
 import { Label } from "@shared/components/atoms/label";
+import { Button } from "@shared/components/atoms/button";
 import { Checkbox } from "@shared/components/atoms/checkbox";
 import { zodValidate } from "@shared/utils/zodValidate";
 import { getServiceSlugs } from "@shared/data/services";
@@ -213,6 +215,7 @@ export default function OfficeCheckoutPage() {
     const [office, setOffice] = useState<any>(null);
     const [dbService, setDbService] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [productUnavailable, setProductUnavailable] = useState(false);
     const [customPrice, setCustomPrice] = useState<{ price: number; dependentPrice: number } | null>(null);
     const [availableMethods, setAvailableMethods] = useState<PaymentMethod[]>([]);
     const [zelleConfig, setZelleConfig] = useState<any>(ZELLE_RECIPIENT);
@@ -340,21 +343,24 @@ export default function OfficeCheckoutPage() {
                     const [{ data: priceData }, { data: depPriceData }] = await Promise.all([
                         supabase
                             .from("user_service_prices")
-                            .select("price")
+                            .select("price, is_active")
                             .eq("office_id", officeData.id)
                             .eq("service_id", serviceData.id)
-                            .eq("is_active", true)
                             .maybeSingle(),
                         serviceData.dependent_service_id
                             ? supabase
                                 .from("user_service_prices")
-                                .select("price")
+                                .select("price, is_active")
                                 .eq("office_id", officeData.id)
                                 .eq("service_id", serviceData.dependent_service_id)
-                                .eq("is_active", true)
                                 .maybeSingle()
                             : Promise.resolve({ data: null }),
                     ]);
+
+                    if (priceData?.is_active === false) {
+                        setProductUnavailable(true);
+                        return;
+                    }
 
                     if (priceData) {
                         setCustomPrice({
@@ -630,6 +636,24 @@ export default function OfficeCheckoutPage() {
                     <h2 className="text-2xl font-black text-text mb-4">Checkout indisponível</h2>
                     <p className="text-text-muted font-medium mb-8">
                         Este checkout exige um office válido. Sem office, não é possível concluir a compra.
+                    </p>
+                    <Button onClick={() => window.history.back()} variant="outline" className="w-full h-12 rounded-2xl">
+                        Voltar
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+    if (productUnavailable) {
+        return (
+            <div className="min-h-screen bg-bg flex items-center justify-center p-4">
+                <div className="max-w-md w-full bg-card border border-border p-8 rounded-[32px] text-center shadow-xl">
+                    <div className="w-20 h-20 rounded-2xl bg-warning/10 flex items-center justify-center text-warning mx-auto mb-6">
+                        <RiLockLine className="text-4xl" />
+                    </div>
+                    <h2 className="text-2xl font-black text-text mb-4">Produto Indisponível</h2>
+                    <p className="text-text-muted font-medium mb-8">
+                        Este produto não está disponível no momento. Entre em contato com seu consultor para mais informações.
                     </p>
                     <Button onClick={() => window.history.back()} variant="outline" className="w-full h-12 rounded-2xl">
                         Voltar

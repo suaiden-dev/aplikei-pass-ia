@@ -238,6 +238,7 @@ export default function CheckoutPage() {
 
   const service = getServiceBySlug(slug || "");
   const [dynamicPrice, setDynamicPrice] = useState<number | null>(null);
+  const [productUnavailable, setProductUnavailable] = useState(false);
   const [activeMethod, setActiveMethod] = useState<PaymentTab>("card");
   const [dependents, setDependents] = useState(searchParams.get("upgrade") === "true" ? 1 : 0);
   const { isProcessing: isRedirecting, stripe: submitStripe, parcelow: submitParcelow, zelle: submitZelle } = useCheckout();
@@ -345,28 +346,40 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     async function fetchOfficePrice() {
-      if (!slug || !officeId) return;
+      if (!slug) return;
 
       try {
         const slugs = getServiceSlugs(slug);
 
         const { data: serviceData, error: serviceError } = await supabase
           .from("services")
-          .select("id")
+          .select("id, is_active")
           .in("slug", slugs)
           .maybeSingle();
 
         if (serviceError || !serviceData) return;
 
+        if (serviceData.is_active === false) {
+          setProductUnavailable(true);
+          return;
+        }
+
+        if (!officeId) return;
+
         const { data: priceData, error: priceError } = await supabase
           .from("user_service_prices")
-          .select("price")
+          .select("price, is_active")
           .eq("office_id", officeId)
           .eq("service_id", serviceData.id)
-          .or("is_active.is.true,is_active.is.null")
           .maybeSingle();
 
         if (priceError) return;
+
+        if (priceData?.is_active === false) {
+          setProductUnavailable(true);
+          return;
+        }
+
         setDynamicPrice(priceData?.price ?? null);
       } catch {
         setDynamicPrice(null);
@@ -391,7 +404,7 @@ export default function CheckoutPage() {
   const baseUSD = dynamicPrice || (service ? parsePriceUSD(service.price) : 0);
   const supportsDependents = (() => {
     const current = String(service?.slug || slug || "").toLowerCase();
-    return ["troca-status", "extensao-status", "visa-cos", "visa-eos"].includes(current);
+    return ["troca-status", "extensao-status", "visa-cos", "visa-eos", "dependent-cos", "dependent-eos"].includes(current);
   })();
   const depUSD = supportsDependents ? (isUpgrade ? baseUSD : (service ? parsePriceUSD(service.dependentPrice) : 0)) : 0;
   const baseUSDLabel = `US$ ${baseUSD.toFixed(2)}`;
@@ -599,6 +612,25 @@ export default function CheckoutPage() {
   }, [formik.values.email, checkoutCount, activeMethod, officeId, service?.slug, slug]);
 
   if (!service) return <Navigate to="/dashboard" replace />;
+
+  if (productUnavailable) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-card border border-border p-8 rounded-[32px] text-center shadow-xl">
+          <div className="w-20 h-20 rounded-2xl bg-warning/10 flex items-center justify-center text-warning mx-auto mb-6">
+            <RiLockLine className="text-4xl" />
+          </div>
+          <h2 className="text-2xl font-black text-text mb-4">Produto Indisponível</h2>
+          <p className="text-text-muted font-medium mb-8">
+            Este produto não está disponível no momento. Entre em contato com seu consultor para mais informações.
+          </p>
+          <Button onClick={() => window.history.back()} variant="outline" className="w-full h-12 rounded-2xl">
+            Voltar
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (resolvingOfficeId) {
     return (

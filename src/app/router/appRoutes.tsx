@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   BriefcaseBusiness,
   CreditCard,
+  FileText,
   LayoutDashboard,
   LayoutTemplate,
   MessageSquare,
@@ -155,6 +156,9 @@ const WithdrawalsPage = lazyPage(
 );
 const MasterOverviewPage = lazyPage(
   () => import("@features/admin/pages/MasterOverviewPage/index"),
+);
+const LegalTermsPage = lazyPage(
+  () => import("@features/admin/pages/LegalTermsPage/index"),
 );
 const ShortLinkPage = lazyPage(
   () => import("@features/payments/pages/ShortLinkPage"),
@@ -702,6 +706,18 @@ export const appRoutes: AppRouteDefinition[] = [
     authRequired: true,
     accessLevels: [AccessLevel.MASTER],
     layout: "master",
+  },
+  {
+    path: "/master/legal-terms",
+    title: "Legal Terms",
+    titleKey: "legalTerms",
+    component: LegalTermsPage,
+    authRequired: true,
+    accessLevels: [AccessLevel.MASTER],
+    layout: "master",
+    showInSidebar: true,
+    sidebarLayouts: ["master"],
+    icon: FileText,
   },
   {
     path: "/subscription",
