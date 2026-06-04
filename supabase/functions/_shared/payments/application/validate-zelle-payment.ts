@@ -1,5 +1,8 @@
 import { buildNotifContent, getUserLang } from "../../notifications/templates.ts";
 import { applySuccessfulPayment } from "../payment-slot-logic.ts";
+import { createLogger } from "../../core/logger.ts";
+
+const log = createLogger("validate-zelle");
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseClient = any;
@@ -84,7 +87,7 @@ export async function validateZellePayment(
         }
       }
     } catch (error) {
-      console.error("[validate-zelle] Erro ao ativar slots:", error);
+      log.error("erro ao ativar slots", error);
     }
 
     if (payment.user_id) {

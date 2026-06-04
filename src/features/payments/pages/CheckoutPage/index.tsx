@@ -387,7 +387,8 @@ export default function CheckoutPage() {
     };
   };
 
-  const baseUSD = dynamicPrice ?? (service ? parsePriceUSD(service.price) : 0);
+  // Use || instead of ?? so that a dynamicPrice of 0 (misconfigured office entry) falls back to catalog price
+  const baseUSD = dynamicPrice || (service ? parsePriceUSD(service.price) : 0);
   const supportsDependents = (() => {
     const current = String(service?.slug || slug || "").toLowerCase();
     return ["troca-status", "extensao-status", "visa-cos", "visa-eos"].includes(current);

@@ -21,6 +21,10 @@ function readBearerToken(req: Request, headerNames: string[]): string | null {
   return null;
 }
 
+import { createLogger } from "./logger.ts";
+
+const log = createLogger("auth");
+
 export async function getOptionalUserId(
   req: Request,
   supabase: SupabaseLikeClient,
@@ -33,7 +37,7 @@ export async function getOptionalUserId(
     const { data, error } = await supabase.auth.getUser(token);
     return error || !data.user ? null : data.user.id;
   } catch (error) {
-    console.warn("[auth] Skip user retrieval due to invalid/expired JWT:", error);
+    log.warn("skip user retrieval due to invalid/expired JWT", { error: String(error) });
     return null;
   }
 }

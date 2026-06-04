@@ -1027,14 +1027,14 @@ export function MotionAcceptProposalStep({
 
     if (senderId) {
       try {
-        await processService.ensureChatThread(
+        await processService.createChatThread(
           targetProcessId,
           senderId,
           t?.workflows?.motion?.end?.chatSeedText ??
             'Olá! Quero falar com o especialista sobre a proposta da minha Motion.',
         )
       } catch (error) {
-        console.error('[MotionAcceptProposalStep] failed to ensure chat thread:', error)
+        console.error('[MotionAcceptProposalStep] failed to create chat thread:', error)
       }
     }
 
@@ -1259,13 +1259,13 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
 
     void (async () => {
       try {
-        const created = await processService.ensureChatThread(
+        const conversationId = await processService.createChatThread(
           proc.id,
           user.id,
           t?.workflows?.motion?.end?.chatSeedText ?? 'Olá! Quero falar com o especialista sobre o resultado da minha Motion.',
         )
 
-        if (created) {
+        if (conversationId) {
           await processService.updateStepData(proc.id, {
             motion_chat_started_at: new Date().toISOString(),
           })

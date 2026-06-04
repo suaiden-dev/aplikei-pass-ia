@@ -598,11 +598,10 @@ export async function startAdditionalWorkflow(
         const { data: authData } = await supabase.auth.getUser();
         const actorId = authData.user?.id || service.user_id;
         const actorRole: "admin" | "customer" = actorId === service.user_id ? "customer" : "admin";
-        await ensureChatThread(
+        await createChatThread(
           processId,
           actorId,
           "Olá! Quero falar com o especialista sobre a minha RFE.",
-          false,
           actorRole,
         );
       }
@@ -611,81 +610,53 @@ export async function startAdditionalWorkflow(
   return { childProcessId };
 }
 
-export async function hasChatMessages(processId: string): Promise<boolean> {
-  const { data: convs } = await supabase
-    .from("conversations")
-    .select("id")
-    .eq("process_id", processId);
-  
-  if (!convs || convs.length === 0) return false;
-  
-  const convIds = convs.map((c) => c.id);
-  const { count } = await supabase
-    .from("conversation_messages")
-    .select("id", { count: "exact", head: true })
-    .in("conversation_id", convIds);
-  return (count ?? 0) > 0;
-}
-
-export async function ensureChatThread(
+export async function createChatThread(
   processId: string,
   senderId: string,
   content: string,
-  force = false,
   senderRole: "admin" | "customer" = "customer",
-): Promise<boolean> {
-  if (!force) {
-    const alreadyExists = await hasChatMessages(processId);
-    if (alreadyExists) return false;
-  }
-
+): Promise<string | null> {
   try {
-    // 1. Tenta obter a conversa ativa
-    const { data: active } = await supabase
+    const { data: service } = await supabase
+      .from("user_services")
+      .select("user_id, office_id")
+      .eq("id", processId)
+      .maybeSingle();
+
+    if (!service) return null;
+
+    // Try to create — unique constraint on process_id handles idempotency at DB level
+    const { data: created, error: insertError } = await supabase
+      .from("conversations")
+      .insert({
+        process_id: processId,
+        customer_id: service.user_id,
+        office_id: service.office_id ?? null,
+        is_closed: false,
+      })
+      .select("id")
+      .single();
+
+    if (!insertError && created) {
+      await supabase.from("conversation_messages").insert({
+        conversation_id: created.id,
+        sender_id: senderId,
+        sender_role: senderRole,
+        content,
+      });
+      return created.id as string;
+    }
+
+    // Conversation already existed — return its id without inserting a duplicate message
+    const { data: existing } = await supabase
       .from("conversations")
       .select("id")
       .eq("process_id", processId)
-      .eq("is_closed", false)
       .maybeSingle();
 
-    let conversationId = active?.id;
-
-    // 2. Se não existir, cria a nova conversa
-    if (!conversationId) {
-      const { data: service } = await supabase
-        .from("user_services")
-        .select("user_id, office_id")
-        .eq("id", processId)
-        .maybeSingle();
-
-      if (!service) return false;
-
-      const { data: created, error: createError } = await supabase
-        .from("conversations")
-        .insert({
-          process_id: processId,
-          customer_id: service.user_id,
-          office_id: service.office_id ?? null,
-          is_closed: false,
-        })
-        .select("id")
-        .single();
-
-      if (createError || !created) return false;
-      conversationId = created.id;
-    }
-
-    // 3. Insere a mensagem inicial vinculada à conversa
-    const { error } = await supabase.from("conversation_messages").insert({
-      conversation_id: conversationId,
-      sender_id: senderId,
-      sender_role: "customer",
-      content,
-    });
-
-    return !error;
+    return (existing?.id as string) ?? null;
   } catch (err) {
-    console.error("[processOps] ensureChatThread error:", err);
-    return false;
+    console.error("[processOps] createChatThread error:", err);
+    return null;
   }
 }

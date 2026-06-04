@@ -50,16 +50,33 @@ export default function CheckoutSuccessPage() {
         "mentoring-bronze",
         "mentoring-silver",
         "mentoring-gold",
+        "mentoria-individual",
         "mentoria-bronze",
+        "mentoria-prata",
         "mentoria-silver",
         "mentoria-gold",
+        "consultoria-especialista",
+        "consultoria-f1-negativa",
+        "consultancy-negative-f1",
+        "mentoria-negativa-consular",
+        "consultancy-negative-b1b2",
       ]);
       const normalizeMentorshipSlug = (value: string) => {
         const lower = String(value || "").trim().toLowerCase();
+        if (lower === "mentoria-individual") return "mentoring-bronze";
         if (lower === "mentoria-bronze") return "mentoring-bronze";
+        if (lower === "mentoria-prata") return "mentoring-silver";
         if (lower === "mentoria-silver") return "mentoring-silver";
         if (lower === "mentoria-gold") return "mentoring-gold";
+        if (lower === "consultancy-negative-f1") return "consultoria-f1-negativa";
+        if (lower === "consultancy-negative-b1b2") return "mentoria-negativa-consular";
         return lower;
+      };
+
+      const CHAT_SEED_MESSAGES: Record<string, string> = {
+        "consultoria-f1-negativa": "Olá! Comprei a Mentoria Pós-Negativa F-1 e quero iniciar meu atendimento.",
+        "mentoria-negativa-consular": "Olá! Comprei a Análise de Recusa e quero iniciar meu atendimento.",
+        "consultoria-especialista": "Olá! Comprei a Consultoria Especialista e quero iniciar meu atendimento.",
       };
 
       const seedMentorshipChat = async (paidOrderId: string | null, currentUserId: string) => {
@@ -77,9 +94,14 @@ export default function CheckoutSuccessPage() {
         }
 
         const canonicalCandidates = [normalizedSlug];
-        if (normalizedSlug === "mentoring-bronze") canonicalCandidates.push("mentoria-bronze");
+        if (normalizedSlug === "mentoring-bronze") canonicalCandidates.push("mentoria-bronze", "mentoria-individual");
         if (normalizedSlug === "mentoring-silver") canonicalCandidates.push("mentoria-silver");
         if (normalizedSlug === "mentoring-gold") canonicalCandidates.push("mentoria-gold");
+        if (normalizedSlug === "mentoria-prata" || normalizedSlug === "mentoring-silver") {
+          if (!canonicalCandidates.includes("mentoria-prata")) canonicalCandidates.push("mentoria-prata");
+        }
+        if (normalizedSlug === "consultoria-f1-negativa") canonicalCandidates.push("consultancy-negative-f1");
+        if (normalizedSlug === "mentoria-negativa-consular") canonicalCandidates.push("consultancy-negative-b1b2");
 
         let query = supabase
           .from("user_services")
@@ -96,13 +118,15 @@ export default function CheckoutSuccessPage() {
           .maybeSingle();
 
         const targetProcessId = String((mentorshipProcess as Record<string, unknown> | null)?.id || "").trim();
-        if (!targetProcessId) return;
+        // Chat-only flow (no user_services row): attach chat to parent process
+        const chatProcessId = targetProcessId || parentProcId || "";
+        if (!chatProcessId) return;
 
-        await processService.ensureChatThread(
-          targetProcessId,
-          currentUserId,
-          "Olá, comprei o pacote Specialist Mentoring e quero iniciar meu atendimento com o manager.",
-        );
+        const seedMessage =
+          CHAT_SEED_MESSAGES[normalizedSlug] ??
+          "Olá, comprei o pacote e quero iniciar meu atendimento com o especialista.";
+
+        await processService.createChatThread(chatProcessId, currentUserId, seedMessage);
       };
 
       const hasOrderReference = !!orderId || !!sessionId;
@@ -179,7 +203,7 @@ export default function CheckoutSuccessPage() {
                 paymentStepData.rfe_proposal_paid = true;
                 paymentStepData.rfe_payment_completed_at = now;
                 if (user?.id) {
-                  await processService.ensureChatThread(
+                  await processService.createChatThread(
                     pendingAdvance.procId,
                     user.id,
                     "Olá! Quero falar com o especialista sobre a proposta da minha RFE.",

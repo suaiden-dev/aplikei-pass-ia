@@ -1,3 +1,7 @@
+import { createLogger } from "../../core/logger.ts";
+
+const log = createLogger("create-notification");
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseClient = any;
 
@@ -102,7 +106,7 @@ export async function createNotification(
           );
         }
       } catch (err) {
-        console.warn("[create-notification] profile sync failed:", err);
+        log.warn("profile sync failed", { error: String(err) });
       }
 
       const { data: account } = await supabase

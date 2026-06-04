@@ -87,6 +87,39 @@ function hasProposalPaid(stepData: Record<string, unknown>): boolean {
   );
 }
 
+/**
+ * Returns a chat title in the format "{ParentProcess} - {Tier}" (e.g. "B1B2 - Gold").
+ * Falls back to just the tier when the parent slug is unknown.
+ */
+export function buildMentoriaChatTitle(mentoriaSlug: string, parentSlug?: string): string {
+  const s = (mentoriaSlug || "").toLowerCase();
+  const meta = getServiceBySlug(mentoriaSlug);
+  const titleLower = (meta?.title || "").toLowerCase();
+
+  let tier: string;
+  if (s.includes("gold") || s.includes("ouro") || titleLower.includes("gold")) tier = "Gold";
+  else if (s.includes("silver") || s.includes("prata") || titleLower.includes("prata") || titleLower.includes("silver")) tier = "Silver";
+  else tier = "Bronze";
+
+  if (!parentSlug) return tier;
+
+  const p = parentSlug.toLowerCase();
+  let processLabel: string;
+  if (p.includes("b1")) processLabel = "B1B2";
+  else if (p.includes("f1")) processLabel = "F1";
+  else if (p.includes("troca") || p.startsWith("cos")) processLabel = "COS";
+  else if (p.includes("extensao") || p.startsWith("eos")) processLabel = "EOS";
+  else return tier;
+
+  return `${processLabel} - ${tier}`;
+}
+
+export function isMentoriaService(serviceSlug?: string): boolean {
+  if (!serviceSlug) return false;
+  const slug = serviceSlug.toLowerCase();
+  return slug.startsWith("mentoria-") || slug.startsWith("mentoring-");
+}
+
 export function isCustomerChatEligible(proc: UserService): boolean {
   const slug = (proc.service_slug || "").toLowerCase();
   if (

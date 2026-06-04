@@ -1,8 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@shared/lib/supabase";
-import { isCustomerChatEligible, getAnalysisChatTitle } from "../services/eligibility";
+import { isCustomerChatEligible, getAnalysisChatTitle, isMentoriaService, buildMentoriaChatTitle } from "../services/eligibility";
 import type { SpecialistChatThread } from "../types";
 import type { UserService } from "../../process/types";
+
+// Services that create their own user_services row and own conversation (not routed to parent)
+const STANDALONE_SERVICE_SLUGS = new Set([
+  "consultoria-f1-negativa",
+  "consultancy-negative-f1",
+  "mentoria-negativa-consular",
+  "consultancy-negative-b1b2",
+  "consultoria-especialista",
+]);
+
+function isStandaloneService(slug?: string): boolean {
+  return STANDALONE_SERVICE_SLUGS.has((slug || "").toLowerCase());
+}
 
 export function useCustomerChats(userId: string) {
   const [threads, setThreads] = useState<SpecialistChatThread[]>([]);
@@ -41,6 +54,7 @@ export function useCustomerChats(userId: string) {
       const parentProcessIds = Array.from(
         new Set(
           eligible
+            .filter((row) => !isMentoriaService(row.service_slug as string) && !isStandaloneService(row.service_slug as string))
             .map((row) => {
               const stepData = (row.step_data as Record<string, unknown>) || {};
               return String(stepData.parent_process_id || "").trim();
@@ -51,6 +65,8 @@ export function useCustomerChats(userId: string) {
       const messageProcessIds = Array.from(
         new Set(
           eligible.map((row) => {
+            // Mentoria and standalone consultoria services always get their own chat
+            if (isMentoriaService(row.service_slug as string) || isStandaloneService(row.service_slug as string)) return row.id as string;
             const stepData = (row.step_data as Record<string, unknown>) || {};
             const parentProcessId = String(stepData.parent_process_id || "").trim();
             return parentProcessId || (row.id as string);
@@ -69,52 +85,11 @@ export function useCustomerChats(userId: string) {
         .select("id, process_id, is_closed")
         .eq("customer_id", userId);
 
-      // --- AUTO-ENSURE CHAT THREADS FOR ELIGIBLE SERVICES ---
-      let neededReload = false;
-      for (const row of eligible) {
-        const processId = row.id as string;
-        const stepData = (row.step_data as Record<string, unknown>) || {};
-        const parentProcessId = String(stepData.parent_process_id || "").trim();
-        const targetProcessId = parentProcessId || processId;
-
-        const hasConv = (convsByProcess || []).some(c => c.process_id === targetProcessId) || 
-                        (convsByCustomer || []).some(c => c.process_id === targetProcessId);
-
-        if (!hasConv) {
-          const { ensureChatThread } = await import("../../process/services/processOps");
-          await ensureChatThread(
-            targetProcessId,
-            userId,
-            "Olá! Fale com o especialista sobre o seu processo.",
-            true
-          );
-          neededReload = true;
-        }
-      }
-
-      let activeConvsByProcess = convsByProcess;
-      let activeConvsByCustomer = convsByCustomer;
-
-      if (neededReload) {
-        const { data: freshConvsByProcess } = await supabase
-          .from("conversations")
-          .select("id, process_id, is_closed")
-          .in("process_id", messageProcessIds);
-
-        const { data: freshConvsByCustomer } = await supabase
-          .from("conversations")
-          .select("id, process_id, is_closed")
-          .eq("customer_id", userId);
-
-        activeConvsByProcess = freshConvsByProcess;
-        activeConvsByCustomer = freshConvsByCustomer;
-      }
-
       const convsMap = new Map<string, { id: string; process_id: string; is_closed: boolean }>();
-      (activeConvsByProcess || []).forEach((c: any) => {
+      (convsByProcess || []).forEach((c: any) => {
         convsMap.set(c.id, c);
       });
-      (activeConvsByCustomer || []).forEach((c: any) => {
+      (convsByCustomer || []).forEach((c: any) => {
         convsMap.set(c.id, c);
       });
       const convs = Array.from(convsMap.values());
@@ -220,11 +195,13 @@ export function useCustomerChats(userId: string) {
         const stepData = (row.step_data as Record<string, unknown>) || {};
         const parentProcessId = String(stepData.parent_process_id || "").trim();
         const parentServiceSlug = String(stepData.parent_service_slug || "").trim();
-        const routeId = parentProcessId || processId;
-        const routeSlug =
-          parentServiceSlug ||
-          parentServiceSlugById.get(routeId) ||
-          serviceSlug;
+        // Mentoria and standalone consultoria services always use their own processId and slug
+        const isMentoria = isMentoriaService(serviceSlug);
+        const isStandalone = isStandaloneService(serviceSlug);
+        const routeId = (isMentoria || isStandalone || !parentProcessId) ? processId : parentProcessId;
+        const routeSlug = (isMentoria || isStandalone)
+          ? serviceSlug
+          : (parentServiceSlug || parentServiceSlugById.get(routeId) || serviceSlug);
 
         const conv = convMap.get(routeId);
         const lastMsgTime = conv ? (lastMessageAtByConv.get(conv.id) || (row.created_at as string)) : (row.created_at as string);
@@ -237,7 +214,9 @@ export function useCustomerChats(userId: string) {
           serviceSlug,
           processRouteId: routeId,
           processRouteSlug: routeSlug,
-          chatTitle: getAnalysisChatTitle(serviceSlug),
+          chatTitle: isMentoria
+            ? buildMentoriaChatTitle(serviceSlug, parentServiceSlug)
+            : getAnalysisChatTitle(serviceSlug),
           createdAt: lastMsgTime,
           isClosed: conv?.is_closed ?? false,
           chatClosedAt: conv?.is_closed ? (row.created_at as string) : null,
@@ -248,13 +227,44 @@ export function useCustomerChats(userId: string) {
 
       // Fallback: inclui conversas do cliente que não aparecem via elegibilidade de user_services
       const routeIdsInResult = new Set(result.map((r) => r.processRouteId));
+      // Para serviços mentoria e consultoria standalone, também marca o parent_process_id como coberto,
+      // evitando que conversas antigas linkadas ao processo pai (F1/B1B2) apareçam com o nome errado
+      eligible.forEach((row) => {
+        const slug = row.service_slug as string;
+        if (!isMentoriaService(slug) && !isStandaloneService(slug)) return;
+        const sd = (row.step_data as Record<string, unknown>) || {};
+        const parentId = String(sd.parent_process_id || "").trim();
+        if (parentId) routeIdsInResult.add(parentId);
+      });
       convs.forEach((c: any) => {
         const routeId = String(c.process_id || "").trim();
         if (!routeId || routeIdsInResult.has(routeId)) return;
 
         const serviceRow = serviceById.get(routeId);
+
+        // Allow parent processes (F1/B1B2) that have mentoria/consultoria purchases — the server
+        // creates mentoria chats with process_id = parent_process_id when shouldUseChatOnlyPostPayment=true
+        const serviceStepData = (serviceRow?.step_data as Record<string, unknown>) || {};
+        const servicePurchases = Array.isArray(serviceStepData.purchases)
+          ? (serviceStepData.purchases as Array<Record<string, unknown>>)
+          : [];
+        const mentoriaPurchaseSlug = servicePurchases
+          .map((p) => String(p?.slug || p?.service_slug || "").toLowerCase())
+          .find((s) => isMentoriaService(s) || s.startsWith("consultoria-") || s.startsWith("consultancy-"));
+
+        if (serviceRow && !isCustomerChatEligible({
+          id: serviceRow.id as string,
+          user_id: serviceRow.user_id as string,
+          service_slug: serviceRow.service_slug as string,
+          status: serviceRow.status as string,
+          step_data: serviceStepData,
+          current_step: (serviceRow.current_step as number | null) ?? null,
+          created_at: serviceRow.created_at as string,
+          updated_at: serviceRow.created_at as string,
+        }) && !mentoriaPurchaseSlug) return;
+
         const serviceSlug = String(serviceRow?.service_slug || "support");
-        const chatSlug = childRecoverySlugByParentId.get(routeId) || serviceSlug;
+        const chatSlug = mentoriaPurchaseSlug || childRecoverySlugByParentId.get(routeId) || serviceSlug;
         const createdAt = convMap.get(routeId)
           ? (lastMessageAtByConv.get(c.id) || String(serviceRow?.created_at || new Date().toISOString()))
           : String(serviceRow?.created_at || new Date().toISOString());
@@ -267,7 +277,9 @@ export function useCustomerChats(userId: string) {
           serviceSlug,
           processRouteId: routeId,
           processRouteSlug: serviceSlug,
-          chatTitle: getAnalysisChatTitle(chatSlug),
+          chatTitle: mentoriaPurchaseSlug
+            ? buildMentoriaChatTitle(mentoriaPurchaseSlug, serviceSlug)
+            : getAnalysisChatTitle(chatSlug),
           createdAt,
           isClosed: Boolean(c.is_closed),
           chatClosedAt: c.is_closed ? createdAt : null,
@@ -321,6 +333,20 @@ export function useCustomerChats(userId: string) {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "conversations" },
+        () => {
+          void load();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "user_services", filter: `user_id=eq.${userId}` },
+        () => {
+          void load();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "user_services", filter: `user_id=eq.${userId}` },
         () => {
           void load();
         }

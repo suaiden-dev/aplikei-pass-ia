@@ -1,6 +1,6 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CheckCircle2, CircleDashed, Clock3, FolderKanban, UserRound } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CircleDashed, Clock3, Copy, FolderKanban, UserRound } from "lucide-react";
 import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@shared/components/atoms/accordion";
@@ -363,10 +363,18 @@ function B1B2AccountCreationPanel({
   onDone: () => Promise<void>;
 }) {
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const email = (stepData.primaryEmail as string) || "Não informado";
   const name = (stepData.fullName as string) || "Não informado";
   const phone = (stepData.primaryPhone as string) || "Não informado";
+
+  const handleCopyEmail = useCallback(() => {
+    void navigator.clipboard.writeText(email).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [email]);
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -391,16 +399,34 @@ function B1B2AccountCreationPanel({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        {[
-          { label: "Nome Completo", value: name },
-          { label: "E-mail", value: email },
-          { label: "Telefone", value: phone },
-        ].map(({ label, value }) => (
-          <div key={label} className="rounded-xl border border-border bg-bg-subtle px-4 py-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">{label}</p>
-            <p className="text-sm font-semibold text-text break-all">{value}</p>
+        <div className="rounded-xl border border-border bg-bg-subtle px-4 py-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Nome Completo</p>
+          <p className="text-sm font-semibold text-text break-all">{name}</p>
+        </div>
+
+        <div className="rounded-xl border border-border bg-bg-subtle px-4 py-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">E-mail</p>
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="text-sm font-semibold text-text truncate flex-1" title={email}>{email}</p>
+            <button
+              type="button"
+              onClick={handleCopyEmail}
+              title="Copiar e-mail"
+              className="shrink-0 p-1 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-colors"
+            >
+              {copied ? (
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
+            </button>
           </div>
-        ))}
+        </div>
+
+        <div className="rounded-xl border border-border bg-bg-subtle px-4 py-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Telefone</p>
+          <p className="text-sm font-semibold text-text break-all">{phone}</p>
+        </div>
       </div>
 
       {!isActive && (

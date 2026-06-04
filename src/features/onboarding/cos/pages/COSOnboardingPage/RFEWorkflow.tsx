@@ -739,7 +739,7 @@ export function RFEAcceptProposalStep({ proc, onRFEResult }: StepProps) {
     const senderId = user?.id || proc.user_id;
     if (senderId) {
       try {
-        await processService.ensureChatThread(
+        await processService.createChatThread(
           targetProcessId,
           senderId,
           "Olá! Quero falar com o especialista sobre a proposta da minha RFE.",
@@ -947,11 +947,10 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
         await processService.updateProcessStatus(proc.id, 'completed');
         const parentProcessId = String(((proc.step_data as Record<string, unknown>)?.parent_process_id || "")).trim();
         const chatProcessId = parentProcessId || proc.id;
-        await processService.ensureChatThread(
+        await processService.createChatThread(
           chatProcessId,
           proc.user_id,
           `RFE ciclo #${cycleNumber} finalizado com status: APPROVED.`,
-          true,
         );
         toast.success(t?.toasts?.finishSuccess || "Finished");
         onComplete?.();
@@ -964,11 +963,10 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
         });
         const parentProcessId = String(((proc.step_data as Record<string, unknown>)?.parent_process_id || "")).trim();
         const chatProcessId = parentProcessId || proc.id;
-        await processService.ensureChatThread(
+        await processService.createChatThread(
           chatProcessId,
           proc.user_id,
           `RFE ciclo #${cycleNumber} finalizado com status: RFE.`,
-          true,
         );
         toast.success(t?.toasts?.resetRfe || "Reset RFE");
         onJumpToNewRFE?.();
@@ -981,11 +979,10 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
         });
         const parentProcessId = String(((proc.step_data as Record<string, unknown>)?.parent_process_id || "")).trim();
         const chatProcessId = parentProcessId || proc.id;
-        await processService.ensureChatThread(
+        await processService.createChatThread(
           chatProcessId,
           proc.user_id,
           `RFE ciclo #${cycleNumber} finalizado com status: DENIED.`,
-          true,
         );
         toast.error(t?.toasts?.deniedMotion || "Denied");
         onJumpToMotion?.();

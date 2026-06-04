@@ -252,6 +252,8 @@ export function NotificationProvider({ children, role }: NotificationProviderPro
       title:          notif.title,
       message:        notif.message,
       type:           (notif.category as ToastItem["type"]) || "system",
+      category:       notif.category,
+      action:         notif.action,
       link:           notif.link ?? null,
       metadata:       notif.metadata,
       createdAt:      notif.created_at,

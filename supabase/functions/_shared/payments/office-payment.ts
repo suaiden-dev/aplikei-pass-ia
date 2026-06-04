@@ -1,4 +1,4 @@
-import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
+import type { Supabase as SupabaseClient } from "../core/supabase.ts";
 
 export interface ZelleConfig {
   recipient_name: string;
@@ -58,7 +58,7 @@ export async function getOfficeStripeConfig(
     .eq("id", office_id)
     .single();
 
-  if (!office) return { accountId: null, secretKey: null };
+  if (!office) return { accountId: null, secretKey: null, webhookSecret: null };
 
   const { data: stripeConfig } = await supabase
     .from("admin_lawyer_payment_methods")
@@ -67,7 +67,7 @@ export async function getOfficeStripeConfig(
     .eq("provider", "stripe")
     .maybeSingle();
 
-  if (!stripeConfig?.is_active) return { accountId: null, secretKey: null };
+  if (!stripeConfig?.is_active) return { accountId: null, secretKey: null, webhookSecret: null };
 
   return {
     accountId: (stripeConfig.config?.account_id as string) || null,

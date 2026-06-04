@@ -1,5 +1,8 @@
 import Stripe from "https://esm.sh/stripe@14.16.0";
 import { applySuccessfulPayment } from "../payment-slot-logic.ts";
+import { createLogger } from "../../core/logger.ts";
+
+const log = createLogger("confirm-stripe-payment");
 
 type SupabaseClient = any;
 
@@ -57,10 +60,7 @@ export async function confirmStripeCheckoutPayment({
   }
 
   if (!eventRegistered) {
-    console.log(
-      `[ConfirmStripePayment] Evento já registrado, evitando duplicidade: ${session.id}`,
-    );
-
+    log.info("duplicate event skipped", { session_id: session.id });
     return {
       success: true,
       already_processed: true,

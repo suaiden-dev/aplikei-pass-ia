@@ -1,10 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 import { err, json, options } from "../_shared/core/http.ts";
+import { requireEnv } from "../_shared/core/env.ts";
+import { createLogger } from "../_shared/core/logger.ts";
 import {
   approveWithdrawal,
   getWithdrawalAuthContext,
   requestWithdrawal,
 } from "../_shared/billing/application/withdrawals.ts";
+
+const log = createLogger("withdrawals");
 
 function asString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
@@ -15,17 +19,15 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return err("Method not allowed", 405);
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    if (!supabaseUrl || !serviceRoleKey) return err("Supabase configuration missing.", 500);
-
     const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) return err("Unauthorized", 401);
 
     const token = authHeader.replace("Bearer ", "").trim();
-    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    // Requires user-scoped client — cannot use createAdminClient here.
+    const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"), {
       global: { headers: { Authorization: authHeader } },
     });
+
     const user = await getWithdrawalAuthContext(supabase, token);
     const payload = await req.json() as Record<string, unknown>;
     const action = asString(payload.action);
@@ -35,13 +37,8 @@ Deno.serve(async (req: Request) => {
     return err("Invalid action. Use 'request' or 'approve'.", 400);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
-    const status = message === "Unauthorized"
-      ? 401
-      : message === "Forbidden"
-      ? 403
-      : message === "Withdrawal not found."
-      ? 404
-      : 400;
+    log.error("request failed", error);
+    const status = message === "Unauthorized" ? 401 : message === "Forbidden" ? 403 : message === "Withdrawal not found." ? 404 : 400;
     return err(message, status);
   }
 });

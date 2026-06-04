@@ -1,4 +1,7 @@
 import { resolveZelleConfig } from "../office-payment.ts";
+import { createLogger } from "../../core/logger.ts";
+
+const log = createLogger("create-zelle-payment");
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseClient = any;
@@ -38,7 +41,7 @@ export async function createZellePayment(
       finalRecipientName = zelleConfig.recipient_name || finalRecipientName;
       finalRecipientEmail = zelleConfig.email || finalRecipientEmail;
     } catch (error) {
-      console.warn("[Zelle] Could not resolve office config, falling back to frontend data:", error);
+      log.warn("could not resolve office config, falling back to frontend data", { error: String(error) });
     }
   }
 
@@ -56,13 +59,13 @@ export async function createZellePayment(
 
     if (!couponError && couponData?.valid) {
       if (couponData.discount_type === "percentage") {
-        console.log(`[Zelle Coupon] Cupom ${input.coupon_code} identificado (Porcentagem).`);
+        log.info("coupon applied (percentage)", { coupon_code: input.coupon_code });
       } else {
         discountAmount = couponData.discount_value;
-        console.log(`[Zelle Coupon] Cupom ${input.coupon_code} identificado (Valor Fixo: $${discountAmount}).`);
+        log.info("coupon applied (fixed)", { coupon_code: input.coupon_code, discount: discountAmount });
       }
     } else {
-      console.warn(`[Zelle Coupon] Cupom ${input.coupon_code} inválido ou não aplicado.`);
+      log.warn("coupon invalid or not applied", { coupon_code: input.coupon_code });
       finalCouponCode = null;
     }
   }
@@ -141,12 +144,8 @@ export async function createZellePayment(
       });
     }
   } catch (error) {
-    console.error("Failed to insert admin notification:", error);
+    log.error("failed to insert admin notification", error);
   }
 
-  return {
-    success: true,
-    payment_id: payment.id,
-    auto_approved: false,
-  };
+  return { success: true, payment_id: payment.id, auto_approved: false };
 }
