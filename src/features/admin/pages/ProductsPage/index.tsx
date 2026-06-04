@@ -5,11 +5,16 @@ import {
   RiLockLine,
   RiSaveLine,
   RiSettings3Line,
+  RiPriceTag3Line,
+  RiEyeLine,
+  RiMoneyDollarCircleLine,
 } from "react-icons/ri";
 import { toast } from "sonner";
 import { supabase } from "@shared/lib/supabase";
 import { useAuth } from "@shared/hooks/useAuth";
 import { encodeCheckoutToken } from "@shared/utils/checkoutToken";
+import { cn } from "@shared/utils/cn";
+import { motion } from "framer-motion";
 import { useT } from "@app/app/i18n";
 import { Switch } from "@shared/components/atoms/switch";
 import { Input } from "@shared/components/atoms/input";
@@ -375,6 +380,12 @@ export default function ProductsPage() {
     () => products.filter((p) => p.category === "main_visa"),
     [products],
   );
+  const avgTicket = useMemo(() => {
+    const activeMain = mainServices.filter((p) => p.is_active);
+    if (activeMain.length === 0) return 0;
+    const sum = activeMain.reduce((acc, p) => acc + p.price, 0);
+    return sum / activeMain.length;
+  }, [mainServices]);
   const subServices = useMemo(
     () => products.filter((p) => p.category !== "main_visa"),
     [products],
@@ -887,10 +898,6 @@ export default function ProductsPage() {
               </div>
             </>
           )}
-        </div>
-      </>
-    )}
-  </div>
 
 
       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">

@@ -171,21 +171,44 @@ export function useMasterOverview() {
         queryFn: async () => {
             const { data: msgs } = await supabase
                 .from("notifications_messages")
-                .select("title, body, category, created_at")
+                .select("action, metadata, category, created_at")
                 .order("created_at", { ascending: false })
                 .limit(6);
 
-            return (msgs || []).map((n) => ({
-                action: n.title ?? "",
-                detail: n.body  ?? "",
-                time: new Date(n.created_at).toLocaleDateString(localeCode),
-                dot:
-                    n.category === "payment"
-                        ? "bg-green-500"
-                        : n.category === "admin"
-                            ? "bg-blue-500"
-                            : "bg-amber-500",
-            })) as MasterRecentActivity[];
+            return (msgs || []).map((n) => {
+                const meta = (n.metadata || {}) as Record<string, any>;
+                let detail = meta.message || meta.description || meta.reason || "";
+                if (!detail) {
+                    if (n.action === "payment_approved") {
+                        detail = `Payment approved for ${meta.service_name || "service"}${meta.amount ? ` (${meta.amount})` : ""}`;
+                    } else if (n.action === "payment_rejected") {
+                        detail = `Payment rejected: ${meta.reason || "No reason provided"}`;
+                    } else if (n.action === "step_approved") {
+                        detail = `Step "${meta.step_name || ""}" approved`;
+                    } else if (n.action === "step_rejected") {
+                        detail = `Step "${meta.step_name || ""}" rejected: ${meta.feedback || ""}`;
+                    } else {
+                        detail = n.action ?? "";
+                    }
+                }
+
+                const actionLabel = (n.action ?? "")
+                    .split("_")
+                    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(" ");
+
+                return {
+                    action: actionLabel,
+                    detail: String(detail),
+                    time: new Date(n.created_at).toLocaleDateString(localeCode),
+                    dot:
+                        n.category === "payment"
+                            ? "bg-green-500"
+                            : n.category === "admin"
+                                ? "bg-blue-500"
+                                : "bg-amber-500",
+                };
+            }) as MasterRecentActivity[];
         },
     });
 
