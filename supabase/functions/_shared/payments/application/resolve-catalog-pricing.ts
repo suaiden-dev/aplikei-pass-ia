@@ -1,8 +1,7 @@
 import { FALLBACK_PRICES, getDependentServiceId, getSlugCandidates } from "../domain/catalog.ts";
 import { resolveServicePrice } from "../office-payment.ts";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SupabaseClient = any;
+import type { Supabase as SupabaseClient } from "../../core/supabase.ts";
 
 export async function resolveCatalogPricing(input: {
   supabase: SupabaseClient;
@@ -77,7 +76,8 @@ export async function resolveCatalogPricing(input: {
     }
   }
 
-  if (!mainPriceInfo) {
+  // Also apply fallback when the DB entry exists but has price = 0 (misconfigured row)
+  if (!mainPriceInfo || Number(mainPriceInfo.price) === 0) {
     const fallbackKey = slugCandidates.find((candidate) =>
       Boolean(FALLBACK_PRICES[candidate])
     );

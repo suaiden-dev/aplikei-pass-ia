@@ -40,7 +40,6 @@ export async function verifyStripeWebhook(req: Request): Promise<Stripe.Event> {
     }
   }
 
-  console.error("[stripe-webhook] Signature verification failed", lastError);
   throw new Error("Invalid Stripe signature");
 }
 

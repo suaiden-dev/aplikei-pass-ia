@@ -5,6 +5,9 @@ import {
 } from "../domain/fees.ts";
 import { resolveCatalogPricing } from "./resolve-catalog-pricing.ts";
 import { NormalizedCheckoutInput } from "./normalize-checkout-input.ts";
+import { createLogger } from "../../core/logger.ts";
+
+const log = createLogger("resolve-checkout-price");
 
 type ResolveCheckoutPriceParams = {
   supabase: any;
@@ -106,10 +109,7 @@ async function resolveDynamicBasePrice({
     .single();
 
   if (error) {
-    console.warn("[stripe-checkout] Process not found for dynamic price", {
-      processId: input.targetProcId,
-      error: error.message,
-    });
+    log.warn("process not found for dynamic price", { processId: input.targetProcId, error: error.message });
   }
 
   const rfeAmount = procData?.step_data?.rfe_proposal_amount;

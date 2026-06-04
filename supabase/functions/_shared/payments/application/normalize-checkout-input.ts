@@ -1,7 +1,13 @@
+import { isRecoveryChild } from "../../domain/catalog/slugs.ts";
+import type { Supabase } from "../../core/supabase.ts";
+import { createLogger } from "../../core/logger.ts";
+
+const log = createLogger("normalize-checkout-input");
+
 type NormalizeCheckoutInputParams = {
   req: Request;
-  body: Record<string, any>;
-  supabase: any;
+  body: Record<string, unknown>;
+  supabase: Supabase;
 };
 
 export type NormalizedCheckoutInput = {
@@ -157,22 +163,7 @@ function validateRecoveryCheckout({
   parentServiceSlug: string;
   orderId: string;
 }) {
-  const recoverySlug = slug.toLowerCase();
-
-  const isRecoveryChild =
-    recoverySlug.includes("motion") ||
-    recoverySlug.includes("rfe") ||
-    recoverySlug.includes("recovery-") ||
-    recoverySlug.startsWith("analise-") ||
-    recoverySlug.startsWith("analysis-") ||
-    recoverySlug.startsWith("apoio-");
-
-  if (isRecoveryChild && (!targetProcId || !parentServiceSlug)) {
-    console.warn("[stripe-checkout] Recovery checkout without full parent metadata", {
-      slug,
-      targetProcId: targetProcId || null,
-      parentServiceSlug: parentServiceSlug || null,
-      order_id: orderId || null,
-    });
+  if (isRecoveryChild(slug) && (!targetProcId || !parentServiceSlug)) {
+    log.warn("recovery checkout without full parent metadata", { slug, targetProcId: targetProcId || null, parentServiceSlug: parentServiceSlug || null, order_id: orderId || null });
   }
 }

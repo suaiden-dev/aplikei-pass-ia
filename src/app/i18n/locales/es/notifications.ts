@@ -326,6 +326,10 @@ const notifications = {
     },
 
     // system ----------------------------------------------------------
+    "system__message": {
+      title: "Aviso del Sistema",
+      message: "Ha recibido un nuevo mensaje del sistema.",
+    },
     "system__update": {
       title: "Actualización de Plataforma",
       message: "Hay nuevas actualizaciones disponibles en la plataforma.",
