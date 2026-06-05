@@ -228,6 +228,8 @@ export default function OfficeCheckoutPage() {
     const [zelleAutoApproved, setZelleAutoApproved] = useState(false);
     const [zelleProof, setZelleProof] = useState<File | null>(null);
     const [zelleProofPreview, setZelleProofPreview] = useState<string | null>(null);
+    const [emailExists, setEmailExists] = useState(false);
+    const [checkingEmail, setCheckingEmail] = useState(false);
 
     const {
         input: couponInput,
@@ -486,6 +488,10 @@ export default function OfficeCheckoutPage() {
             }),
         })),
         onSubmit: async (values) => {
+            if (!user && emailExists) {
+                toast.error(t.userData.errors.emailTaken);
+                return;
+            }
             try {
                 if (!office?.id) {
                     throw new Error("Checkout indisponível: este link não possui office válido.");
@@ -889,16 +895,33 @@ export default function OfficeCheckoutPage() {
                                             placeholder="seu@email.com"
                                             className="mt-1.5"
                                             value={formik.values.email}
-                                            onChange={formik.handleChange}
-                                            onBlur={(e) => {
+                                            onChange={(e) => {
+                                                formik.handleChange(e);
+                                                setEmailExists(false);
+                                            }}
+                                            onBlur={async (e) => {
                                                 formik.handleBlur(e);
                                                 if (formik.errors.email) {
                                                     logInteraction("erro_validacao_campo", e.target.value, office?.id || officeSlug, `${serviceSlug} | Erro e-mail: ${formik.errors.email}`);
                                                 }
+                                                if (!user && e.target.value.trim() && !formik.errors.email) {
+                                                    setCheckingEmail(true);
+                                                    try {
+                                                        const role = await authService.getLoginRoleByEmail(e.target.value.trim());
+                                                        setEmailExists(!!role);
+                                                    } catch {
+                                                        // ignora erros de rede
+                                                    } finally {
+                                                        setCheckingEmail(false);
+                                                    }
+                                                }
                                             }}
                                         />
-                                        {formik.touched.email && formik.errors.email && (
-                                            <p className="text-xs text-red-500 mt-1">{formik.errors.email}</p>
+                                        {formik.touched.email && (emailExists
+                                            ? <p className="text-xs text-red-500 mt-1">{t.userData.errors.emailTaken}</p>
+                                            : formik.errors.email
+                                                ? <p className="text-xs text-red-500 mt-1">{formik.errors.email}</p>
+                                                : null
                                         )}
                                     </div>
                                     <div>
@@ -1134,32 +1157,29 @@ export default function OfficeCheckoutPage() {
                                     )}
                                 </AnimatePresence>
 
-                                {/* Terms and Conditions Checkbox */}
                                 {!zelleDone && (
                                     <div className="mt-6">
                                         <Checkbox
                                             id="acceptedTerms"
                                             name="acceptedTerms"
                                             checked={formik.values.acceptedTerms}
-                                            onChange={formik.handleChange}
-                                            onBlur={formik.handleBlur}
+                                            onCheckedChange={(checked) => {
+                                                formik.setFieldValue("acceptedTerms", checked);
+                                                formik.setFieldTouched("acceptedTerms", true);
+                                            }}
                                             error={formik.touched.acceptedTerms && formik.errors.acceptedTerms ? String(formik.errors.acceptedTerms) : undefined}
                                             label={
                                                 <span className="text-xs text-text-muted leading-snug">
                                                     {t.userData.termsLabel || "Li e concordo com os"}{" "}
                                                     <a
-                                                        href="/termos"
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
+                                                        href="/legal/terms?role=customer"
                                                         className="text-primary hover:underline font-bold"
                                                     >
                                                         {t.userData.termsLink || "Termos de Uso"}
                                                     </a>{" "}
                                                     {t.userData.termsAnd || "e a"}{" "}
                                                     <a
-                                                        href="/privacidade"
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
+                                                        href="/legal/privacy?role=customer"
                                                         className="text-primary hover:underline font-bold"
                                                     >
                                                         {t.userData.privacyLink || "Política de Privacidade"}

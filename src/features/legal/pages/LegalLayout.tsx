@@ -1,50 +1,30 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useLocale, useT } from "@app/app/i18n";
+import { useLocale } from "@app/app/i18n";
 import { cn } from "@shared/utils/cn";
-import { ChevronRight, ShieldCheck, FileText, RefreshCcw, AlertTriangle, Scale } from "lucide-react";
+import { ChevronRight, ShieldCheck, FileText } from "lucide-react";
 
 interface LegalLayoutProps {
   children: React.ReactNode;
 }
 
 export const LegalLayout: React.FC<LegalLayoutProps> = ({ children }) => {
-  const { lang, setLang } = useLocale();
-
-  const footerT = useT("footer");
+  const { lang } = useLocale();
   const location = useLocation();
 
-  const languages = [
-    { code: "pt", label: "Português", flag: "🇧🇷" },
-    { code: "en", label: "English", flag: "🇺🇸" },
-    { code: "es", label: "Español", flag: "🇪🇸" },
-  ] as const;
+  const searchParams = new URLSearchParams(location.search);
+  const role = searchParams.get("role") ?? "customer";
 
   const menuItems = [
     {
-      path: "/legal/terms",
-      label: footerT.terms,
+      path: `/legal/terms?role=${role}`,
+      label: lang === "pt" ? "Termos de Uso" : lang === "es" ? "Términos de Uso" : "Terms of Use",
       icon: FileText,
     },
     {
-      path: "/legal/privacy",
-      label: footerT.privacy,
+      path: `/legal/privacy?role=${role}`,
+      label: lang === "pt" ? "Política de Privacidade" : lang === "es" ? "Política de Privacidad" : "Privacy Policy",
       icon: ShieldCheck,
-    },
-    {
-      path: "/legal/refund",
-      label: footerT.refund,
-      icon: RefreshCcw,
-    },
-    {
-      path: "/legal/disclaimers",
-      label: lang === "pt" ? "Avisos Legais" : lang === "es" ? "Avisos" : "Disclaimers",
-      icon: AlertTriangle,
-    },
-    {
-      path: "/legal/contract-terms",
-      label: lang === "pt" ? "Termos de Contrato" : lang === "es" ? "Contrato" : "Contract Terms",
-      icon: Scale,
     },
   ];
 
@@ -59,27 +39,29 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({ children }) => {
                 {lang === "pt" ? "Documentos Legais" : lang === "es" ? "Documentos Legales" : "Legal Documents"}
               </h3>
               <nav className="space-y-1">
-                {menuItems.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
-                      location.pathname === item.path
-                        ? "bg-primary text-white shadow-lg shadow-primary/20"
-                        : "text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-900 hover:shadow-md"
-                    )}
-                  >
-                    <item.icon className={cn(
-                      "w-5 h-5",
-                      location.pathname === item.path ? "text-white" : "text-slate-400 group-hover:text-primary"
-                    )} />
-                    <span className="font-medium">{item.label}</span>
-                    {location.pathname === item.path && (
-                      <ChevronRight className="w-4 h-4 ml-auto" />
-                    )}
-                  </Link>
-                ))}
+                {menuItems.map((item) => {
+                  const itemPath = item.path.split("?")[0];
+                  const isActive = location.pathname === itemPath;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
+                        isActive
+                          ? "bg-primary text-white shadow-lg shadow-primary/20"
+                          : "text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-900 hover:shadow-md"
+                      )}
+                    >
+                      <item.icon className={cn(
+                        "w-5 h-5",
+                        isActive ? "text-white" : "text-slate-400 group-hover:text-primary"
+                      )} />
+                      <span className="font-medium">{item.label}</span>
+                      {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+                    </Link>
+                  );
+                })}
               </nav>
 
               <div className="mt-12 p-6 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/10">
@@ -106,29 +88,11 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({ children }) => {
           {/* Content */}
           <main className="lg:w-3/4">
             <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
-              {/* Internal Header with Language Toggle */}
+              {/* Internal Header */}
               <div className="flex items-center justify-between px-8 py-4 border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
                   <FileText className="w-4 h-4" />
                   <span>{lang === "pt" ? "Documento Oficial" : lang === "es" ? "Documento Oficial" : "Official Document"}</span>
-                </div>
-                
-                <div className="flex items-center gap-1 p-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
-                  {languages.map((l) => (
-                    <button
-                      key={l.code}
-                      onClick={() => setLang(l.code)}
-                      title={l.label}
-                      className={cn(
-                        "px-2 py-1.5 rounded-lg text-lg transition-all",
-                        lang === l.code
-                          ? "bg-primary shadow-md shadow-primary/20"
-                          : "opacity-40 hover:opacity-80 hover:bg-slate-50 dark:hover:bg-slate-700"
-                      )}
-                    >
-                      {l.flag}
-                    </button>
-                  ))}
                 </div>
               </div>
 

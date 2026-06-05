@@ -19,8 +19,4 @@ export function createAdminClient(options?: ClientOptions) {
   return createClient(supabaseUrl, serviceRoleKey, options);
 }
 
-// Schema "aplikei" is a custom Supabase schema — cast needed because the unparameterized
-// SupabaseClient type restricts `schema` to `undefined` without a Database generic.
-export const supabaseAdmin = createAdminClient({
-  db: { schema: "aplikei" as unknown as undefined },
-});
+export const supabaseAdmin = createAdminClient();

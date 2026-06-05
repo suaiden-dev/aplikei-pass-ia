@@ -108,10 +108,6 @@ function buildEffectiveSteps(baseSteps: StepConfig[], history: Array<{ type?: st
   return effectiveSteps;
 }
 
-// ─── Process Log Panel ────────────────────────────────────────────────────────
-// ─── Purchases History Panel ──────────────────────────────────────────────────
-
-// ————— Process Log Panel ——————————————————————————————————————————————————————————————————————
 function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientName: string }) {
   const [logs, setLogs] = React.useState<ProcessLog[]>([]);
   const [loading, setLoading] = React.useState(true);

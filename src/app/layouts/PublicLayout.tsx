@@ -5,7 +5,7 @@ import { siteConfig } from "@app/app/config/site";
 
 export function PublicLayout() {
   const { pathname } = useLocation();
-  const hideMaintenanceChrome = !siteConfig.isProd && pathname === "/";
+  const hideMaintenanceChrome = pathname === "/";
 
   return (
     <div className="flex flex-col min-h-screen bg-bg antialiased">

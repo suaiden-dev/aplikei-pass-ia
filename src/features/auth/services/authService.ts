@@ -310,13 +310,16 @@ export const authService = {
     });
     if (data.user) {
       const account = await this.ensureAccount(data.user);
-      
-      // If the created account is inactive, keep the auth session from leaking
-      // into the app and force the user to wait for approval.
+
       if (account && account.isActive === false) {
         await supabase.auth.signOut();
         return { user: null, session: null };
       }
+
+      const termsRole = normalizeRole(role || "admin_lawyer") === "customer" ? "customer" : "lawyer";
+      supabase.functions.invoke("accept-terms", {
+        body: { userId: data.user.id, role: termsRole, name: fullName, email },
+      }).catch(() => {});
     }
     return data;
   },
