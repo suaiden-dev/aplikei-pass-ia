@@ -177,6 +177,7 @@ export default function Login() {
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           error={formik.touched.email ? formik.errors.email : undefined}
+          tooltip={(t.login as any).emailTooltip}
         />
 
         <Field
@@ -189,6 +190,7 @@ export default function Login() {
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           error={formik.touched.password ? formik.errors.password : undefined}
+          tooltip={(t.login as any).passwordTooltip}
           endAdornment={
             <Link
               to="/recuperar-senha"

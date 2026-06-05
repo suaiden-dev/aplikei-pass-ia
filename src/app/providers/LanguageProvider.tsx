@@ -34,13 +34,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocale] = useState<LocaleTranslations | null>(() => {
     const saved = localStorage.getItem("aplikei-lang");
     const currentLang = isLanguage(saved) ? saved : "pt";
-    const cached = localeCache.get(currentLang);
+    const cached = import.meta.env.DEV ? null : localeCache.get(currentLang);
     if (cached) return cached;
     const loaderPath = `./locales/${currentLang}/index.ts`;
     const mod = localeLoaders[loaderPath];
     if (mod) {
       const data = unwrapLocaleModule(mod);
-      return { _lang: currentLang, ...data } as LocaleTranslations;
+      const loaded = { _lang: currentLang, ...data } as LocaleTranslations;
+      if (!import.meta.env.DEV) {
+        localeCache.set(currentLang, loaded);
+      }
+      return loaded;
     }
     return null;
   });
@@ -48,7 +52,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [isLanguageLoading, setIsLanguageLoading] = useState(!locale);
 
   const loadLocale = useCallback(async (targetLang: Language) => {
-    const cached = localeCache.get(targetLang);
+    const cached = import.meta.env.DEV ? null : localeCache.get(targetLang);
     if (cached) {
       setLocale(cached);
       setIsLanguageLoading(false);
@@ -63,11 +67,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       if (!localeModule) throw new Error(`Locale not found: ${loaderPath}`);
       const data = unwrapLocaleModule(localeModule);
       const loaded: LocaleTranslations = { _lang: targetLang, ...data };
-      localeCache.set(targetLang, loaded);
+      if (!import.meta.env.DEV) {
+        localeCache.set(targetLang, loaded);
+      }
       setLocale(loaded);
     } catch (error) {
       console.error(`[i18n] Failed to load locale "${targetLang}"`, error);
-      if (!localeCache.has(targetLang))
+      if (!import.meta.env.DEV || !localeCache.has(targetLang))
         setLocale({ _lang: targetLang } as unknown as LocaleTranslations);
     } finally {
       setIsLanguageLoading(false);
