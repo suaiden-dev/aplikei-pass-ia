@@ -900,9 +900,19 @@ export default function COSOnboardingPage() {
           return
         }
 
-        let nextStepIdx = stepIdx + 1
-
         const freshStepData = (freshProc.step_data || {}) as any
+        const clientTargetVisa = String(freshStepData.targetVisa || "");
+        const clientCurrentVisa = String(freshStepData.currentVisa || "");
+        const isF1 = clientTargetVisa.includes("F1") || clientTargetVisa.includes("F-1") || clientCurrentVisa.includes("F1") || clientCurrentVisa.includes("F-1");
+
+        let nextStepIdx = stepIdx + 1;
+        if (!isF1) {
+          const stepsToSkipIds = ["cos_i20_upload", "cos_sevis_fee", "eos_i20_upload", "eos_sevis_fee"];
+          while (nextStepIdx < service.steps.length && stepsToSkipIds.includes(service.steps[nextStepIdx].id)) {
+            nextStepIdx++;
+          }
+        }
+
         const targetVisa = freshStepData.targetVisa as string
         const uscisResult = freshStepData.uscis_official_result as string
         const rfeResult = freshStepData.uscis_rfe_result as string

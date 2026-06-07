@@ -6,7 +6,8 @@ import {
   RiInformationLine,
   RiExternalLinkLine,
   RiMoneyDollarCircleLine,
-  RiShieldCheckLine
+  RiShieldCheckLine,
+  RiBarcodeLine
 } from "react-icons/ri";
 import { toast } from "sonner";
 import { supabase } from "@shared/lib/supabase";
@@ -27,65 +28,78 @@ interface Props {
     phoneNumber?: string;
   };
   onComplete: () => void | Promise<void>;
+  isUSCIS?: boolean;
 }
 
-type OnboardingSevisFeeText = {
+type FeeStepText = {
+  title: string;
+  desc: string;
+  toasts: Record<string, string>;
+  statusCard: Record<string, string>;
+  instructions: {
+    title: string;
+    desc: string;
+    step1: Record<string, string>;
+    step2: Record<string, string>;
+    step3: Record<string, string>;
+    step4: Record<string, string>;
+  };
+  upload: {
+    title: string;
+    receiptSent: string;
+    view: string;
+    replace: string;
+    boxTitle: string;
+    boxDesc: string;
+    uploading: string;
+    btn: string;
+  };
+  nextBtn: string;
+};
+
+type OnboardingTranslations = {
   cos: {
-    sevisFee: {
-      title: string;
-      desc: string;
-      toasts: Record<string, string>;
-      statusCard: Record<string, string>;
-      instructions: {
-        title: string;
-        desc: string;
-        step1: Record<string, string>;
-        step2: Record<string, string>;
-        step3: Record<string, string>;
-        step4: Record<string, string>;
-      };
-      upload: {
-        title: string;
-        receiptSent: string;
-        view: string;
-        replace: string;
-        boxTitle: string;
-        boxDesc: string;
-        uploading: string;
-        btn: string;
-      };
-      nextBtn: string;
-    };
+    sevisFee: FeeStepText;
+    uscisFee: FeeStepText;
   };
 };
 
-export default function SevisFeeStep({ proc, user, onComplete }: Props) {
-  const t = useT("onboarding") as OnboardingSevisFeeText;
+export default function SevisFeeStep({ proc, user, onComplete, isUSCIS = false }: Props) {
+  const onboardingText = useT("onboarding") as unknown as OnboardingTranslations;
+  const tStep = (isUSCIS && onboardingText?.cos?.uscisFee) ? onboardingText.cos.uscisFee : onboardingText?.cos?.sevisFee;
+
   const [alreadyPaid, setAlreadyPaid] = useState<boolean | null>(null);
   const [receiptPath, setReceiptPath] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const docKey = isUSCIS ? "uscis_receipt" : "sevis_receipt";
+  const paidKey = isUSCIS ? "uscis_already_paid" : "sevis_already_paid";
+
+  const uscisBoletoPath = (proc?.step_data as any)?.uscis_boleto_path as string;
+  const uscisBoletoUrl = uscisBoletoPath ? supabase.storage.from("aplikei-profiles").getPublicUrl(uscisBoletoPath).data.publicUrl : null;
+
   useEffect(() => {
     const data = proc.step_data || {};
     const docs = ((data as any).docs as Record<string, string>) || {};
-    if (docs.sevis_receipt) {
-      setReceiptPath(docs.sevis_receipt);
+    if (docs[docKey]) {
+      setReceiptPath(docs[docKey]);
       setAlreadyPaid(true);
     }
-    if ((data as any).sevis_already_paid !== undefined) {
-      setAlreadyPaid((data as any).sevis_already_paid as boolean);
+    if ((data as any)[paidKey] !== undefined) {
+      setAlreadyPaid((data as any)[paidKey] as boolean);
     }
-  }, [proc]);
+  }, [proc, docKey, paidKey]);
 
-  if (!t || !t.cos) return null;
+  if (!onboardingText || !onboardingText.cos || !tStep) return null;
 
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
     try {
       const fileToUpload = await compressImageForUpload(file);
       const fileExt = fileToUpload.name.split(".").pop();
-      const filePath = `${user.id}/cos/sevis_receipt_${crypto.randomUUID()}.${fileExt}`;
+      const prefix = isUSCIS ? "uscis" : "sevis";
+      const filePath = `${user.id}/cos/${prefix}_receipt_${crypto.randomUUID()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from("aplikei-profiles")
@@ -98,8 +112,8 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
       // Update step data
       const currentDocs = ((proc.step_data as any)?.docs as Record<string, string>) || {};
       await processService.updateStepData(proc.id, {
-        docs: { ...currentDocs, sevis_receipt: filePath },
-        sevis_already_paid: true
+        docs: { ...currentDocs, [docKey]: filePath },
+        [paidKey]: true
       });
 
       // Notify Admin
@@ -111,10 +125,10 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
         clientEmail: user.email,
       });
       
-      toast.success(t.cos.sevisFee.toasts.success);
+      toast.success(tStep.toasts.success);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : t.cos.sevisFee.toasts.error;
-      toast.error(`${t.cos.sevisFee.toasts.error}: ${message}`);
+      const message = error instanceof Error ? error.message : tStep.toasts.error;
+      toast.error(`${tStep.toasts.error}: ${message}`);
     } finally {
       setIsUploading(false);
     }
@@ -122,14 +136,14 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
 
   const handleNext = async () => {
     if (!receiptPath) {
-      toast.error(t.cos.sevisFee.toasts.required);
+      toast.error(tStep.toasts.required);
       return;
     }
     setIsSubmitting(true);
     try {
       await onComplete();
     } catch {
-      toast.error(t.cos.sevisFee.toasts.error);
+      toast.error(tStep.toasts.error);
     } finally {
       setIsSubmitting(false);
     }
@@ -144,10 +158,10 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
         </div>
         <div>
           <h3 className="font-black text-emerald-900 text-[13px] uppercase tracking-widest mb-1 mt-0.5">
-            {t.cos.sevisFee.title}
+            {tStep.title}
           </h3>
           <p className="text-sm text-emerald-700/80 font-medium leading-relaxed">
-            {t.cos.sevisFee.desc}
+            {tStep.desc}
           </p>
         </div>
       </div>
@@ -156,9 +170,9 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
         <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
            <RiShieldCheckLine className="text-lg text-primary" />
-           {t.cos.sevisFee.statusCard.title}
+           {tStep.statusCard.title}
         </h4>
-        <p className="text-sm font-bold text-slate-600 mb-6">{t.cos.sevisFee.statusCard.question}</p>
+        <p className="text-sm font-bold text-slate-600 mb-6">{tStep.statusCard.question}</p>
         
         <div className="grid grid-cols-2 gap-4">
           <button
@@ -169,17 +183,17 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
                 : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
             }`}
           >
-            {t.cos.sevisFee.statusCard.yes}
+            {tStep.statusCard.yes}
           </button>
           <button
             onClick={() => setAlreadyPaid(false)}
             className={`py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 ${
               alreadyPaid === false 
-                ? "bg-slate-800 border-slate-800 text-white shadow-md shadow-slate-100" 
+                ? "bg-slate-800 border-slate-800 text-white shadow-md shadow-black/20" 
                 : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
             }`}
           >
-            {t.cos.sevisFee.statusCard.no}
+            {tStep.statusCard.no}
           </button>
         </div>
       </div>
@@ -191,49 +205,71 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
             <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
               <RiInformationLine className="text-xl" />
             </div>
-            <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-700">{t.cos.sevisFee.instructions.title}</h3>
+            <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-700">{tStep.instructions.title}</h3>
           </div>
 
           <div className="space-y-4">
             <p className="text-sm text-slate-600 leading-relaxed font-medium">
-              {t.cos.sevisFee.instructions.desc}
+              {tStep.instructions.desc}
             </p>
+            
+            {uscisBoletoUrl && (
+              <div className="p-5 bg-primary/5 border border-primary/20 rounded-2xl flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <RiBarcodeLine className="text-xl" />
+                  </div>
+                  <div className="text-left">
+                    <h5 className="text-xs font-black text-slate-800 uppercase tracking-widest">Guia de Pagamento</h5>
+                    <p className="text-[11px] text-slate-500 font-medium">Baixe a guia disponibilizada pela nossa equipe.</p>
+                  </div>
+                </div>
+                <a 
+                  href={uscisBoletoUrl} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="px-4 py-2.5 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-primary-hover transition-all shadow-md shadow-primary/10 shrink-0"
+                >
+                  Baixar Guia
+                </a>
+              </div>
+            )}
             
             <div className="p-5 bg-white border border-slate-200/60 rounded-2xl space-y-4 shadow-sm">
               <div className="flex gap-4">
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center shrink-0">1</div>
                 <div className="text-xs font-medium text-slate-700">
-                  {t.cos.sevisFee.instructions.step1.prefix}
-                  <span className="text-primary font-bold">{t.cos.sevisFee.instructions.step1.bold}</span>
-                  {t.cos.sevisFee.instructions.step1.suffix}
+                  {tStep.instructions.step1.prefix}
+                  <span className="text-primary font-bold">{tStep.instructions.step1.bold}</span>
+                  {tStep.instructions.step1.suffix}
                 </div>
               </div>
               <div className="flex gap-4">
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center shrink-0">2</div>
                 <div className="text-xs font-medium text-slate-700">
-                  {t.cos.sevisFee.instructions.step2.prefix}
-                  <a href="https://www.fmjfee.com/i901fee/index.html#" target="_blank" rel="noreferrer" className="text-primary underline inline-flex items-center gap-1 font-bold">
-                    {t.cos.sevisFee.instructions.step2.linkText} <RiExternalLinkLine />
+                  {tStep.instructions.step2.prefix}
+                  <a href={isUSCIS ? "https://my.uscis.gov/" : "https://www.fmjfee.com/i901fee/index.html#"} target="_blank" rel="noreferrer" className="text-primary underline inline-flex items-center gap-1 font-bold">
+                    {tStep.instructions.step2.linkText} <RiExternalLinkLine />
                   </a>
                 </div>
               </div>
               <div className="flex gap-4">
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center shrink-0">3</div>
                 <div className="text-xs font-medium text-slate-700">
-                  {t.cos.sevisFee.instructions.step3.prefix}
-                  <span className="text-slate-800 font-bold">{t.cos.sevisFee.instructions.step3.bold}</span>
-                  {t.cos.sevisFee.instructions.step3.suffix}
+                  {tStep.instructions.step3.prefix}
+                  <span className="text-slate-800 font-bold">{tStep.instructions.step3.bold}</span>
+                  {tStep.instructions.step3.suffix}
                 </div>
               </div>
               <div className="flex gap-4">
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center shrink-0">4</div>
                 <div className="space-y-2">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">{t.cos.sevisFee.instructions.step4.title}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">{tStep.instructions.step4.title}</p>
                   <div className="text-xs text-slate-500 leading-relaxed">
-                    <span className="text-slate-800 font-bold">{t.cos.sevisFee.instructions.step4.sevisId}</span><br/>
-                    <span className="text-slate-800 font-bold">{t.cos.sevisFee.instructions.step4.form}</span><br/>
-                    <span className="text-slate-800 font-bold">{t.cos.sevisFee.instructions.step4.schoolCode}</span><br/>
-                    <span className="text-slate-400 italic">{t.cos.sevisFee.instructions.step4.example}</span>
+                    <span className="text-slate-800 font-bold">{tStep.instructions.step4.sevisId}</span><br/>
+                    <span className="text-slate-800 font-bold">{tStep.instructions.step4.form}</span><br/>
+                    <span className="text-slate-800 font-bold">{tStep.instructions.step4.schoolCode}</span><br/>
+                    <span className="text-slate-400 italic">{tStep.instructions.step4.example}</span>
                   </div>
                 </div>
               </div>
@@ -247,7 +283,7 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 animate-in fade-in slide-in-from-bottom-4">
           <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
              <RiFileUploadLine className="text-lg text-primary" />
-             {t.cos.sevisFee.upload.title}
+             {tStep.upload.title}
           </h4>
           
           <div className="max-w-md mx-auto">
@@ -256,7 +292,7 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
                   <RiCheckLine className="text-3xl text-emerald-500" />
                 </div>
-                <h4 className="text-sm font-black text-emerald-900 uppercase tracking-widest mb-1">{t.cos.sevisFee.upload.receiptSent}</h4>
+                <h4 className="text-sm font-black text-emerald-900 uppercase tracking-widest mb-1">{tStep.upload.receiptSent}</h4>
                 
                 <div className="flex gap-3 mt-6">
                   <a 
@@ -265,11 +301,11 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
                     rel="noreferrer"
                     className="flex-1 px-4 py-3 bg-white border border-emerald-200 rounded-xl text-[10px] font-black text-emerald-700 uppercase tracking-widest hover:bg-emerald-100 transition-all"
                   >
-                    {t.cos.sevisFee.upload.view}
+                    {tStep.upload.view}
                   </a>
-                  <label className="flex-1 px-4 py-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all cursor-pointer shadow-lg shadow-emerald-200 flex items-center justify-center gap-2">
+                  <label className="flex-1 px-4 py-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all cursor-pointer shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
                     <RiFileUploadLine className="text-sm" />
-                    {t.cos.sevisFee.upload.replace}
+                    {tStep.upload.replace}
                     <input 
                       type="file" 
                       accept=".pdf,image/*" 
@@ -282,12 +318,12 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
             ) : (
               <div className="border-2 border-dashed border-slate-200 rounded-3xl p-10 text-center hover:border-emerald-300 hover:bg-emerald-50/10 transition-all group">
                 <RiFileUploadLine className="text-5xl text-slate-200 mx-auto mb-4 group-hover:text-emerald-300 transition-colors" />
-                <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">{t.cos.sevisFee.upload.boxTitle}</h4>
-                <p className="text-xs text-slate-400 font-medium mb-8">{t.cos.sevisFee.upload.boxDesc}</p>
+                <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">{tStep.upload.boxTitle}</h4>
+                <p className="text-xs text-slate-400 font-medium mb-8">{tStep.upload.boxDesc}</p>
                 
-                <label className="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all cursor-pointer shadow-xl shadow-slate-200">
+                <label className="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all cursor-pointer shadow-xl shadow-black/30">
                   {isUploading ? <RiLoader4Line className="animate-spin text-lg" /> : <RiFileUploadLine className="text-lg" />}
-                  {isUploading ? t.cos.sevisFee.upload.uploading : t.cos.sevisFee.upload.btn}
+                  {isUploading ? tStep.upload.uploading : tStep.upload.btn}
                   <input 
                     type="file" 
                     accept=".pdf,image/*" 
@@ -310,7 +346,7 @@ export default function SevisFeeStep({ proc, user, onComplete }: Props) {
           className="flex items-center justify-center gap-2 px-6 md:px-12 py-4 rounded-2xl bg-primary text-white text-sm font-black uppercase tracking-widest hover:bg-primary-hover shadow-xl shadow-primary/20 transition-all disabled:opacity-50 whitespace-normal text-center leading-tight"
         >
           {isSubmitting ? <RiLoader4Line className="animate-spin text-lg" /> : <RiCheckLine className="text-lg" />}
-          {t.cos.sevisFee.nextBtn}
+          {tStep.nextBtn}
         </button>
       </div>
     </div>

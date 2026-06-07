@@ -222,7 +222,7 @@ function TextInput({ name, placeholder, type = "text", disabled, mask, onChange 
       type={type}
       placeholder={placeholder}
       disabled={disabled}
-      className={`w-full bg-slate-50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50`}
+      className={`w-full bg-slate-50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-black/5`}
     />
   );
 }
@@ -362,7 +362,7 @@ function PhoneInput({ name, disabled }: { name: string; disabled?: boolean }) {
         spellCheck={false}
         disabled={disabled}
         placeholder={country === "US" ? "(201) 555-0123" : country === "BR" ? "+55 (11) 98765-4321" : "+1..."}
-        className={`w-full bg-slate-50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-r-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50`}
+        className={`w-full bg-slate-50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-r-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-black/5`}
         style={{ height: "46px" }}
       />
     </div>
@@ -382,7 +382,7 @@ function SelectInput({ name, options, disabled, children }: {
       id={name}
       value={field.value ?? ""}
       disabled={disabled}
-      className={`w-full bg-slate-50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-white transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 shadow-sm shadow-slate-100/50`}
+      className={`w-full bg-slate-50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-white transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 shadow-sm shadow-black/5`}
     >
       {children}
       {!children && options?.map(o => <option key={o} value={o}>{o || "— Select —"}</option>)}
@@ -419,7 +419,7 @@ function YesNoGroup({ yesName, noName, disabled }: {
               ? opt === "Yes"
                 ? "border-amber-400 bg-amber-50 text-amber-700 shadow-sm"
                 : "border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm"
-              : "border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-slate-100/50"
+              : "border-slate-200 text-slate-400 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm shadow-black/5"
               } ${disabled ? "cursor-default opacity-70" : "cursor-pointer"}`}
           >
             {opt}

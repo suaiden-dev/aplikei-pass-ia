@@ -352,6 +352,57 @@ const onboarding = {
         required: "Por favor, envie o comprovante de pagamento da taxa SEVIS.",
       }
     },
+    uscisFee: {
+      title: "Confirmação de Pagamento",
+      desc: "Confirme o pagamento da taxa do USCIS e envie o comprovante para que possamos seguir com a próxima etapa.",
+      statusCard: {
+        title: "Pergunta de Status",
+        question: "Você já realizou o pagamento da Taxa do USCIS?",
+        yes: "Sim, já paguei",
+        no: "Não, ainda não",
+      },
+      instructions: {
+        title: "Instruções para Pagamento",
+        desc: "Para realizar o pagamento da sua taxa do USCIS (Formulário I-539), você precisará fazer o pagamento através do portal do USCIS ou usar a Guia de Pagamento disponibilizada.",
+        step1: {
+          prefix: "Acesse a sua conta no portal do ",
+          bold: "USCIS",
+          suffix: " ou siga as orientações de preenchimento.",
+        },
+        step2: {
+          prefix: "Acesse o Link: ",
+          linkText: "Clique aqui",
+        },
+        step3: {
+          prefix: "Realize o pagamento da taxa do ",
+          bold: "Formulário I-539",
+          suffix: ".",
+        },
+        step4: {
+          title: "Importante",
+          sevisId: "Guarde o comprovante de pagamento gerado pelo USCIS.",
+          form: "O comprovante deve conter o número do caso (Receipt Number).",
+          schoolCode: "Certifique-se de que o pagamento foi processado com sucesso.",
+          example: "Ex: IOE1234567890",
+        }
+      },
+      upload: {
+        title: "Comprovante de Pagamento",
+        receiptSent: "Recibo Enviado",
+        view: "Ver Recibo",
+        replace: "Trocar",
+        boxTitle: "Upload do Recibo",
+        boxDesc: "Envie o comprovante de pagamento da Taxa do USCIS",
+        btn: "Selecionar Arquivo",
+        uploading: "Enviando...",
+      },
+      nextBtn: "Continuar",
+      toasts: {
+        success: "Comprovante do USCIS enviado com sucesso!",
+        error: "Erro ao enviar comprovante",
+        required: "Por favor, envie o comprovante de pagamento da taxa do USCIS.",
+      }
+    },
     finalForms: {
       title: "Formulário Final",
       desc: "Preencha as informações abaixo para gerarmos automaticamente os formulários oficiais G-1145 e G-1450.",

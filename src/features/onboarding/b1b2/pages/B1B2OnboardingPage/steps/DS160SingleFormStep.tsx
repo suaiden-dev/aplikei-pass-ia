@@ -1,13 +1,58 @@
 import { useEffect, useRef, useState } from "react";
 import { useFormikContext, Field, ErrorMessage } from "formik";
 import type { DS160FormValues } from "@features/onboarding/b1b2/schemas/ds160.schema";
-import { useT } from "@app/app/i18n";
+import { useT, useLocale } from "@app/app/i18n";
 import { maskCPF } from "@shared/utils/cpf";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/components/atoms/tooltip";
+import { RiInformationLine } from "react-icons/ri";
 
 type VisasOnboardingFormText = {
   onboardingPage: {
     form: Record<string, string>;
   };
+};
+
+const getTooltipText = (lang: string, label: string, explicitTooltip?: string) => {
+  if (explicitTooltip) return explicitTooltip;
+  if (!label) return undefined;
+  
+  const hasQuestion = label.includes("?");
+  const cleanLabel = label.replace(/[?:*]/g, "").trim();
+  const lowerLabel = cleanLabel.toLowerCase();
+  
+  if (lang === "en") {
+    if (hasQuestion) {
+      return `Inform if ${lowerLabel}`;
+    }
+    return `Enter your ${lowerLabel}`;
+  }
+  if (lang === "es") {
+    if (hasQuestion) {
+      return `Informe si ${lowerLabel}`;
+    }
+    return `Ingrese su ${lowerLabel}`;
+  }
+  
+  // Português (Default)
+  if (hasQuestion) {
+    const questionWords = ["qual", "quem", "como", "quando", "onde", "por que", "porquê", "o que", "quais", "quanto", "quanta", "quantos", "quantas"];
+    const startsWithQuestionWord = questionWords.some(word => lowerLabel.startsWith(word));
+    if (startsWithQuestionWord) {
+      return `Informe ${lowerLabel}`;
+    }
+    return `Informe se ${lowerLabel}`;
+  } else {
+    if (lowerLabel.includes("explique") || lowerLabel.includes("descreva") || lowerLabel.includes("detalhe")) {
+      return `Explique brevemente`;
+    }
+    if (lowerLabel.startsWith("nome")) {
+      return `Insira o ${lowerLabel}`;
+    }
+    const feminineWords = ["data", "cidade", "viagem", "estadia", "profissão", "empresa", "rua", "mídia", "avó", "mãe", "relação", "identificação", "nacionalidade", "origem", "autoridade", "expiração", "emissão", "habilitação", "petição", "filiada", "escola"];
+    const isFeminine = feminineWords.some(word => lowerLabel.includes(word));
+    const pronoun = isFeminine ? "sua" : "seu";
+    return `Insira ${pronoun} ${lowerLabel}`;
+  }
 };
 
 const US_STATE_CODES = [
@@ -38,6 +83,7 @@ const FormInput = ({
   disabled = false,
   datalistOptions,
   onChange,
+  tooltip,
 }: {
   name: string;
   label: string;
@@ -47,14 +93,31 @@ const FormInput = ({
   disabled?: boolean;
   datalistOptions?: string[];
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  tooltip?: string;
 }) => {
   const { errors, touched } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
+  const { lang } = useLocale();
+  const activeTooltip = getTooltipText(lang, label, tooltip);
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
-        {label} {required && <span className="text-primary">*</span>}
+      <label htmlFor={name} className="flex items-center gap-1.5 block text-xs font-bold text-text-muted uppercase tracking-wider">
+        <span>{label} {required && <span className="text-primary">*</span>}</span>
+        {activeTooltip && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
+                  <RiInformationLine className="text-sm" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
+                <p>{activeTooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </label>
       <Field name={name}>
         {({ field }: any) => (
@@ -100,6 +163,7 @@ const FormNumericInput = ({
   allowDecimals = false,
   isCurrency = false,
   onChange,
+  tooltip,
 }: {
   name: string;
   label: string;
@@ -108,9 +172,12 @@ const FormNumericInput = ({
   allowDecimals?: boolean;
   isCurrency?: boolean;
   onChange?: (value: string) => void;
+  tooltip?: string;
 }) => {
   const { errors, touched, setFieldValue, values } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
+  const { lang } = useLocale();
+  const activeTooltip = getTooltipText(lang, label, tooltip);
 
   // Lógica local para moeda (Padrão: R$ se não houver indicador de dólar)
   const isUsdName = `${name}_currency`;
@@ -118,8 +185,22 @@ const FormNumericInput = ({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
-        {label} {required && <span className="text-primary">*</span>}
+      <label htmlFor={name} className="flex items-center gap-1.5 block text-xs font-bold text-text-muted uppercase tracking-wider">
+        <span>{label} {required && <span className="text-primary">*</span>}</span>
+        {activeTooltip && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
+                  <RiInformationLine className="text-sm" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
+                <p>{activeTooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </label>
       <div className="flex gap-2">
         <div className="relative flex-1">
@@ -205,6 +286,7 @@ const FormUSZipLookupInput = ({
   required = false,
   onLookupStateChange,
   onZipPlacesResolved,
+  tooltip,
 }: {
   name: string;
   label: string;
@@ -212,6 +294,7 @@ const FormUSZipLookupInput = ({
   required?: boolean;
   onLookupStateChange?: (state: "idle" | "searching" | "found" | "not_found" | "error") => void;
   onZipPlacesResolved?: (places: Array<{ city: string; state: string }>) => void;
+  tooltip?: string;
 }) => {
   const { errors, touched, values, setFieldValue } = useFormikContext<Record<string, unknown>>();
   const [isLookingUp, setIsLookingUp] = useState(false);
@@ -219,6 +302,8 @@ const FormUSZipLookupInput = ({
   const lastLookupZipRef = useRef("");
   const hasError = !!(errors[name] && touched[name]);
   const zip = String(values[name] || "").replace(/\D/g, "").slice(0, 5);
+  const { lang } = useLocale();
+  const activeTooltip = getTooltipText(lang, label, tooltip);
 
   useEffect(() => {
     if (zip.length !== 5 || zip === lastLookupZipRef.current) return;
@@ -285,8 +370,22 @@ const FormUSZipLookupInput = ({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
-        {label} {required && <span className="text-primary">*</span>}
+      <label htmlFor={name} className="flex items-center gap-1.5 block text-xs font-bold text-text-muted uppercase tracking-wider">
+        <span>{label} {required && <span className="text-primary">*</span>}</span>
+        {activeTooltip && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
+                  <RiInformationLine className="text-sm" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
+                <p>{activeTooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </label>
       <Field name={name}>
         {({ field, form }: any) => (
@@ -330,20 +429,38 @@ const FormTextarea = ({
   placeholder = "",
   required = false,
   rows = 3,
+  tooltip,
 }: {
   name: string;
   label: string;
   placeholder?: string;
   required?: boolean;
   rows?: number;
+  tooltip?: string;
 }) => {
   const { errors, touched } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
+  const { lang } = useLocale();
+  const activeTooltip = getTooltipText(lang, label, tooltip);
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
-        {label} {required && <span className="text-primary">*</span>}
+      <label htmlFor={name} className="flex items-center gap-1.5 block text-xs font-bold text-text-muted uppercase tracking-wider">
+        <span>{label} {required && <span className="text-primary">*</span>}</span>
+        {activeTooltip && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
+                  <RiInformationLine className="text-sm" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
+                <p>{activeTooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </label>
       <Field
         as="textarea"
@@ -366,20 +483,38 @@ const FormSelect = ({
   label,
   options,
   required = false,
+  tooltip,
 }: {
   name: string;
   label: string;
   options: { value: string; label: string }[];
   required?: boolean;
+  tooltip?: string;
 }) => {
   const { errors, touched } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
   const t = useT("visas") as VisasOnboardingFormText;
+  const { lang } = useLocale();
+  const activeTooltip = getTooltipText(lang, label, tooltip);
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
-        {label} {required && <span className="text-primary">*</span>}
+      <label htmlFor={name} className="flex items-center gap-1.5 block text-xs font-bold text-text-muted uppercase tracking-wider">
+        <span>{label} {required && <span className="text-primary">*</span>}</span>
+        {activeTooltip && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
+                  <RiInformationLine className="text-sm" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
+                <p>{activeTooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </label>
       <Field
         as="select"
@@ -406,20 +541,40 @@ const YesNo = ({
   name,
   label,
   required = false,
+  tooltip,
 }: {
   name: string;
   label: string;
   required?: boolean;
+  tooltip?: string;
 }) => {
   const { errors, touched } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
   const t = useT("visas") as VisasOnboardingFormText;
+  const { lang } = useLocale();
+  const activeTooltip = getTooltipText(lang, label, tooltip);
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
-        {label} {required && <span className="text-primary">*</span>}
-      </p>
+      <div className="flex items-center gap-1.5">
+        <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
+          {label} {required && <span className="text-primary">*</span>}
+        </p>
+        {activeTooltip && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
+                  <RiInformationLine className="text-sm" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
+                <p>{activeTooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
       <div role="group" className="flex gap-3">
         <label className="flex-1 cursor-pointer">
           <Field type="radio" name={name} value="sim" className="sr-only peer" />
@@ -447,21 +602,41 @@ const RadioGroup = ({
   label,
   options,
   required = false,
+  tooltip,
 }: {
   name: string;
   label: string;
   options: { value: string; label: string }[];
   required?: boolean;
+  tooltip?: string;
 }) => {
   const { errors, touched } = useFormikContext<Record<string, unknown>>();
   const hasError = !!(errors[name] && touched[name]);
+  const { lang } = useLocale();
+  const activeTooltip = getTooltipText(lang, label, tooltip);
 
   return (
     <div className="space-y-2">
       {label && (
-        <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
-          {label} {required && <span className="text-primary">*</span>}
-        </p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
+            {label} {required && <span className="text-primary">*</span>}
+          </p>
+          {activeTooltip && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
+                    <RiInformationLine className="text-sm" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
+                  <p>{activeTooltip}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
       )}
       <div role="group" className="flex flex-wrap gap-3">
         {options.map((opt) => (
@@ -507,6 +682,7 @@ export const DS160SingleFormStep = ({
   readOnly?: boolean
 }) => {
   const { values, setFieldValue } = useFormikContext<DS160FormValues>()
+  const { lang } = useLocale();
   const [usZipLookupState, setUsZipLookupState] = useState<"idle" | "searching" | "found" | "not_found" | "error">("idle");
   const [usZipPlaces, setUsZipPlaces] = useState<Array<{ city: string; state: string }>>([]);
   const t = useT('visas') as VisasOnboardingFormText
@@ -516,7 +692,7 @@ export const DS160SingleFormStep = ({
   const usStateSuggestions = Array.from(new Set([...usZipPlaces.map((p) => p.state).filter(Boolean), ...US_STATE_CODES]));
 
   const sections = [
-    <Section key="interview" title={t.onboardingPage.form.interviewLocationTitle} subtitle={t.onboardingPage.form.interviewLocationSubtitle}>
+    <Section key="interview" title={`📍 ${t.onboardingPage.form.interviewLocationTitle}`} subtitle={t.onboardingPage.form.interviewLocationSubtitle}>
       <div className="space-y-2">
         <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
           {t.onboardingPage.form.interviewLocationLabel} <span className="text-primary">*</span>
@@ -535,7 +711,7 @@ export const DS160SingleFormStep = ({
       </div>
     </Section>,
 
-    <Section key="personal" title={t.onboardingPage.form.personalInfoTitle} subtitle={t.onboardingPage.form.personalInfoSubtitle}>
+    <Section key="personal" title={`👤 ${t.onboardingPage.form.personalInfoTitle}`} subtitle={t.onboardingPage.form.personalInfoSubtitle}>
       <YesNo name="isBrazilian" label={t.onboardingPage.form.isBrazilian} required />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -572,7 +748,7 @@ export const DS160SingleFormStep = ({
         required
       />
 
-      <FormInput name="fullName" label={t.onboardingPage.form.fullNameLabel} placeholder="Ex: João da Silva" required />
+      <FormInput name="fullName" label={t.onboardingPage.form.fullNameLabel} placeholder="Ex: João da Silva" required tooltip={(t as any).ds160?.personal1?.fullNameHelper} />
 
       <YesNo name="hasOtherNames" label={t.onboardingPage.form.hasOtherNames} required />
       {values.hasOtherNames === "sim" && (
@@ -612,7 +788,7 @@ export const DS160SingleFormStep = ({
       </div>
     </Section>,
 
-    <Section key="nationality" title={t.onboardingPage.form.nationalityIdentificationTitle}>
+    <Section key="nationality" title={`🪪 ${t.onboardingPage.form.nationalityIdentificationTitle}`}>
       <YesNo name="hasOtherNationality" label={t.onboardingPage.form.hasOtherNationality} required />
       {values.hasOtherNationality === "sim" && (
         <FormInput name="otherNationalityDetails" label={t.onboardingPage.form.otherNationalityDetailsLabel} placeholder={t.onboardingPage.form.otherNationalityDetailsPlaceholder} />
@@ -629,13 +805,14 @@ export const DS160SingleFormStep = ({
           label={t.onboardingPage.form.cpfLabel}
           placeholder={t.onboardingPage.form.cpfPlaceholder}
           onChange={(e) => setFieldValue("cpf", maskCPF(e.target.value))}
+          tooltip={lang === "pt" ? "Insira seu CPF (Apenas se brasileiro)" : lang === "es" ? "Ingrese su CPF (Solo si es brasileño)" : "Enter your CPF (Only if Brazilian)"}
         />
       </div>
     </Section>,
 
-    <Section key="passport" title={t.onboardingPage.form.passportDataTitle}>
+    <Section key="passport" title={`🛂 ${t.onboardingPage.form.passportDataTitle}`}>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <FormInput name="passportNumber" label={t.onboardingPage.form.passportNumberLabel} required />
+        <FormInput name="passportNumber" label={t.onboardingPage.form.passportNumberLabel} required tooltip={(t as any).ds160?.passport?.numberHelper} />
         <FormInput name="passportIssueDate" label={t.onboardingPage.form.passportIssueDateLabel} type="date" required />
         <FormInput name="passportExpDate" label={t.onboardingPage.form.passportExpDateLabel} type="date" required />
       </div>
@@ -649,7 +826,7 @@ export const DS160SingleFormStep = ({
       )}
     </Section>,
 
-    <Section key="travel" title={t.onboardingPage.form.travelDetailsTitle}>
+    <Section key="travel" title={`✈️ ${t.onboardingPage.form.travelDetailsTitle}`}>
       <FormSelect
         name="travelPurpose"
         label={t.onboardingPage.form.travelPurposeLabel}
@@ -666,10 +843,10 @@ export const DS160SingleFormStep = ({
 
       {values.specificTravelPlan === "sim" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <FormInput name="arrivalDate" label={t.onboardingPage.form.arrivalDateLabel} type="date" required />
+          <FormInput name="arrivalDate" label={t.onboardingPage.form.arrivalDateLabel} type="date" required tooltip={(t as any).ds160?.travel?.arrivalHelper} />
           <FormInput name="arrivalFlight" label={t.onboardingPage.form.arrivalFlightLabel} placeholder={t.onboardingPage.form.arrivalFlightPlaceholder} />
           <FormInput name="arrivalCity" label={t.onboardingPage.form.arrivalCityLabel} required />
-          <FormInput name="placesToVisit" label={t.onboardingPage.form.placesToVisitLabel} placeholder={t.onboardingPage.form.placesToVisitPlaceholder} />
+          <FormInput name="placesToVisit" label={t.onboardingPage.form.placesToVisitLabel} placeholder={t.onboardingPage.form.placesToVisitPlaceholder} tooltip={(t as any).ds160?.travel?.visitHelper} />
           <FormInput name="departureDate" label={t.onboardingPage.form.departureDateLabel} type="date" />
           <FormInput name="departureFlight" label={t.onboardingPage.form.departureFlightLabel} />
           <FormInput name="departureCity" label={t.onboardingPage.form.departureCityLabel} />
@@ -678,7 +855,7 @@ export const DS160SingleFormStep = ({
 
       {values.specificTravelPlan === "nao" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <FormInput name="estArrivalDate" label={t.onboardingPage.form.estArrivalDateLabel} type="date" required />
+          <FormInput name="estArrivalDate" label={t.onboardingPage.form.estArrivalDateLabel} type="date" required tooltip={(t as any).ds160?.travel?.arrivalHelper} />
           <FormInput name="estStayLength" label={t.onboardingPage.form.estStayLengthLabel} placeholder={t.onboardingPage.form.estStayLengthPlaceholder} />
         </div>
       )}
@@ -700,6 +877,7 @@ export const DS160SingleFormStep = ({
               placeholder={t.onboardingPage.form.usStayNamePlaceholder}
               required
               disabled={shouldDisableUsAddressFields}
+              tooltip={(t as any).ds160?.travel?.stayHelper}
             />
           </div>
           <div className="sm:col-span-2">
@@ -747,6 +925,7 @@ export const DS160SingleFormStep = ({
           { value: "outra_pessoa", label: t.onboardingPage.form.payingOther },
           { value: "empresa", label: t.onboardingPage.form.payingCompany },
         ]}
+        tooltip={(t as any).ds160?.travel?.payerHelper}
       />
 
       {values.payingTrip && values.payingTrip !== "eu" && (
@@ -759,8 +938,8 @@ export const DS160SingleFormStep = ({
       )}
     </Section>,
 
-    <Section key="companions" title={t.onboardingPage.form.companionsTitle}>
-      <YesNo name="travelingWithOthers" label={t.onboardingPage.form.travelingWithOthers} required />
+    <Section key="companions" title={`👥 ${t.onboardingPage.form.companionsTitle}`}>
+      <YesNo name="travelingWithOthers" label={t.onboardingPage.form.travelingWithOthers} required tooltip={(t as any).ds160?.companions?.companionHelper} />
 
       {values.travelingWithOthers === "sim" && (
         <div className="space-y-5 p-5 bg-bg-subtle rounded-2xl border border-border">
@@ -775,7 +954,7 @@ export const DS160SingleFormStep = ({
       )}
     </Section>,
 
-    <Section key="travel-history" title={t.onboardingPage.form.previousTravelTitle}>
+    <Section key="travel-history" title={`🔙 ${t.onboardingPage.form.previousTravelTitle}`}>
       <YesNo name="beenToUS" label={t.onboardingPage.form.beenToUS} required />
       {values.beenToUS === "sim" && (
         <div className="space-y-5 p-5 bg-bg-subtle rounded-2xl border border-border">
@@ -807,13 +986,13 @@ export const DS160SingleFormStep = ({
         <FormTextarea name="refusedExpanation" label={t.onboardingPage.form.explainDetailLabel} required />
       )}
 
-      <YesNo name="immigrationPetition" label={t.onboardingPage.form.immigrationPetition} required />
+      <YesNo name="immigrationPetition" label={t.onboardingPage.form.immigrationPetition} required tooltip={(t as any).ds160?.previousTravel?.petitionHelper} />
       {values.immigrationPetition === "sim" && (
         <FormInput name="petitionExpanation" label={t.onboardingPage.form.explainLabel} required />
       )}
     </Section>,
 
-    <Section key="contact" title={t.onboardingPage.form.contactAddressTitle}>
+    <Section key="contact" title={`🏠 ${t.onboardingPage.form.contactAddressTitle}`}>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="sm:col-span-2">
           <FormInput name="homeStreet" label={t.onboardingPage.form.homeStreetLabel} required />
@@ -899,7 +1078,7 @@ export const DS160SingleFormStep = ({
       />
     </Section>,
 
-    <Section key="family" title={t.onboardingPage.form.familyInfoTitle}>
+    <Section key="family" title={`👨‍👩‍👧‍👦 ${t.onboardingPage.form.familyInfoTitle}`}>
       <div>
         <p className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-4">{t.onboardingPage.form.fatherLabel}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
@@ -1056,17 +1235,17 @@ export const DS160SingleFormStep = ({
       </div>
     </Section>,
 
-    <Section key="work" title={t.onboardingPage.form.workEducationTitle}>
+    <Section key="work" title={`💼 ${t.onboardingPage.form.workEducationTitle}`}>
       <div>
         <p className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-4">{t.onboardingPage.form.currentJobLabel}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <FormInput name="primaryJobSector" label={t.onboardingPage.form.jobSectorLabel} placeholder={t.onboardingPage.form.jobSectorPlaceholder} required />
-          <FormInput name="primaryJobEntity" label={t.onboardingPage.form.jobEntityLabel} required />
+          <FormInput name="primaryJobSector" label={t.onboardingPage.form.jobSectorLabel} placeholder={t.onboardingPage.form.jobSectorPlaceholder} required tooltip={(t as any).ds160?.workEducation?.occHelper} />
+          <FormInput name="primaryJobEntity" label={t.onboardingPage.form.jobEntityLabel} required tooltip={(t as any).ds160?.workEducation?.employerHelper} />
           <div className="sm:col-span-2">
-            <FormInput name="primaryJobAddress" label={t.onboardingPage.form.fullAddressLabel} />
+            <FormInput name="primaryJobAddress" label={t.onboardingPage.form.fullAddressLabel} tooltip={(t as any).ds160?.workEducation?.addressHelper} />
           </div>
           <FormInput name="primaryJobPhone" label={t.onboardingPage.form.phoneLabel} />
-          <FormNumericInput name="primaryJobSalary" label={t.onboardingPage.form.monthlySalaryLabel} placeholder={t.onboardingPage.form.monthlySalaryPlaceholder} allowDecimals={true} isCurrency={true} />
+          <FormNumericInput name="primaryJobSalary" label={t.onboardingPage.form.monthlySalaryLabel} placeholder={t.onboardingPage.form.monthlySalaryPlaceholder} allowDecimals={true} isCurrency={true} tooltip={(t as any).ds160?.workEducation?.incomeHelper} />
           <div className="sm:col-span-2">
             <FormTextarea name="primaryJobDuties" label={t.onboardingPage.form.jobDutiesLabel} rows={2} />
           </div>
@@ -1115,7 +1294,7 @@ export const DS160SingleFormStep = ({
 
     <Section
       key="security"
-      title={t.onboardingPage.form.securityQuestionsTitle}
+      title={`🛡️ ${t.onboardingPage.form.securityQuestionsTitle}`}
       subtitle={t.onboardingPage.form.securityQuestionsSubtitle}
     >
       <div className="p-5 bg-amber-50 border border-amber-100 rounded-2xl space-y-4">

@@ -10,8 +10,107 @@ import imgTutor1 from '@assets/tutorial/arrastar_ate_o_final_para_aceitar.png'
 import imgTutor2 from '@assets/tutorial/fazerupload_ou_usar_a_camera_do_documento.png'
 import imgTutor3 from '@assets/tutorial/preencher_campos.png'
 import type { Dependent } from '../useCOSOnboardingPage'
-import { useT } from '@app/app/i18n'
+import { useT, useLocale } from '@app/app/i18n'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@shared/components/atoms/tooltip'
 import { HomologationAutofillButton } from './HomologationAutofillButton'
+
+const getTooltipText = (lang: string, field: string) => {
+  if (lang === 'en') {
+    switch (field) {
+      case 'currentVisa':
+        return 'Select the visa class under which you are currently admitted to the United States.'
+      case 'targetVisa':
+        return 'Select the visa class you wish to change or extend your status to.'
+      case 'i94Date':
+        return 'Enter the authorized stay expiration date shown on your official I-94 document.'
+      case 'depName':
+        return "Enter the dependent's full name exactly as it appears on their passport."
+      case 'depRelation':
+        return "Select the dependent's family relationship to you."
+      case 'depDob':
+        return "Enter the dependent's date of birth."
+      case 'depI94':
+        return "Enter the dependent's authorized stay expiration date shown on their I-94."
+      case 'depMarriage':
+        return 'Enter the marriage date.'
+      default:
+        return ''
+    }
+  }
+  if (lang === 'es') {
+    switch (field) {
+      case 'currentVisa':
+        return 'Seleccione la clase de visa con la que fue admitido actualmente en los Estados Unidos.'
+      case 'targetVisa':
+        return 'Seleccione la clase de visa a la que desea cambiar o extender su estatus.'
+      case 'i94Date':
+        return 'Ingrese la fecha de vencimiento de su estadía autorizada que figura en su documento oficial I-94.'
+      case 'depName':
+        return 'Ingrese el nombre completo del dependiente exactamente como aparece en su pasaporte.'
+      case 'depRelation':
+        return 'Seleccione la relación familiar del dependiente con usted.'
+      case 'depDob':
+        return 'Ingrese la fecha de nacimiento del dependiente.'
+      case 'depI94':
+        return 'Ingrese la fecha de vencimiento de la estadía autorizada del dependiente según su I-94.'
+      case 'depMarriage':
+        return 'Ingrese la fecha de matrimonio.'
+      default:
+        return ''
+    }
+  }
+  // Português (Default)
+  switch (field) {
+    case 'currentVisa':
+      return 'Selecione a classe de visto sob a qual você foi admitido atualmente nos Estados Unidos.'
+    case 'targetVisa':
+      return 'Selecione a classe de visto para a qual você deseja alterar ou estender o seu status.'
+    case 'i94Date':
+      return 'Insira a data limite de permanência autorizada que consta no seu documento oficial I-94.'
+    case 'depName':
+      return 'Insira o nome completo do dependente exatamente como consta no passaporte.'
+    case 'depRelation':
+      return 'Selecione o grau de parentesco do membro da família com você.'
+    case 'depDob':
+      return 'Insira a data de nascimento do dependente.'
+    case 'depI94':
+      return 'Insira a data limite de permanência autorizada do dependente que consta no I-94.'
+    case 'depMarriage':
+      return 'Insira a data do casamento.'
+    default:
+      return ''
+  }
+}
+
+const FormLabelWithTooltip = ({
+  label,
+  required = false,
+  tooltipText,
+}: {
+  label: string
+  required?: boolean
+  tooltipText?: string
+}) => {
+  return (
+    <span className="flex items-center gap-1.5">
+      <span>{label} {required && <span className="text-red-500">*</span>}</span>
+      {tooltipText && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button type="button" className="text-slate-400 hover:text-primary transition-colors cursor-help">
+                <RiInformationLine className="text-sm" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
+              <p>{tooltipText}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+    </span>
+  )
+}
 
 const CURRENT_VISA_OPTIONS = [
   { label: 'B1/B2', icon: '🌐', color: 'text-sky-500' },
@@ -97,6 +196,7 @@ export function COSApplicationStep({
   onBuyDependentSlot,
   onRefreshSlots,
 }: COSApplicationStepProps) {
+  const { lang } = useLocale()
   const rawPaidValue = procStepData?.paid_dependents
   const paidDependents = parseInt(String(rawPaidValue ?? 0), 10)
   const hasPaidSlots = paidDependents > 0
@@ -124,9 +224,12 @@ export function COSApplicationStep({
       <div className='px-8 py-6 space-y-10'>
         <div className='space-y-8'>
           <div>
-            <label className='text-sm font-bold text-slate-700 mb-3 flex items-center gap-1'>
-              {t.cos.form.currentVisaLabel}{' '}
-              <span className='text-red-500'>*</span>
+            <label className='text-sm font-bold text-slate-700 mb-3 block'>
+              <FormLabelWithTooltip
+                label={t.cos.form.currentVisaLabel}
+                required
+                tooltipText={getTooltipText(lang, 'currentVisa')}
+              />
             </label>
             <div className='grid grid-cols-3 gap-3'>
               {CURRENT_VISA_OPTIONS.map((visa) => {
@@ -160,9 +263,12 @@ export function COSApplicationStep({
           </div>
 
           <div>
-            <label className='text-sm font-bold text-slate-700 mb-3 flex items-center gap-1'>
-              {t.cos.form.targetVisaLabel}{' '}
-              <span className='text-red-500'>*</span>
+            <label className='text-sm font-bold text-slate-700 mb-3 block'>
+              <FormLabelWithTooltip
+                label={t.cos.form.targetVisaLabel}
+                required
+                tooltipText={getTooltipText(lang, 'targetVisa')}
+              />
             </label>
             <div className='grid grid-cols-3 gap-3'>
               {TARGET_VISA_OPTIONS.map((visa) => {
@@ -196,8 +302,12 @@ export function COSApplicationStep({
           </div>
 
           <div>
-            <label className='text-sm font-bold text-slate-700 mb-2 flex items-center gap-1'>
-              {t.cos.form.i94DateLabel} <span className='text-red-500'>*</span>
+            <label className='text-sm font-bold text-slate-700 mb-2 block'>
+              <FormLabelWithTooltip
+                label={t.cos.form.i94DateLabel}
+                required
+                tooltipText={getTooltipText(lang, 'i94Date')}
+              />
             </label>
             <DatePicker
               value={i94Date}
@@ -334,7 +444,7 @@ export function COSApplicationStep({
                     className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-md ${
                       reachedLimit
                         ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-200'
-                        : 'bg-slate-900 text-white hover:bg-slate-800 shadow-slate-200'
+                        : 'bg-slate-900 text-white hover:bg-slate-800 shadow-black/20'
                     }`}
                   >
                     <RiAddLine className='text-base' />
@@ -415,7 +525,10 @@ export function COSApplicationStep({
                     <div className='grid grid-cols-2 gap-x-6 gap-y-5'>
                       <div className='col-span-2 sm:col-span-1'>
                         <label className='block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2'>
-                          {t.cos.form.dependents.fullName}
+                          <FormLabelWithTooltip
+                            label={t.cos.form.dependents.fullName}
+                            tooltipText={getTooltipText(lang, 'depName')}
+                          />
                         </label>
                         <input
                           value={dependent.name}
@@ -434,7 +547,10 @@ export function COSApplicationStep({
 
                       <div className='col-span-2 sm:col-span-1'>
                         <label className='block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2'>
-                          {t.cos.form.dependents.relationship}
+                          <FormLabelWithTooltip
+                            label={t.cos.form.dependents.relationship}
+                            tooltipText={getTooltipText(lang, 'depRelation')}
+                          />
                         </label>
                         <select
                           value={dependent.relation}
@@ -463,7 +579,10 @@ export function COSApplicationStep({
 
                       <div>
                         <label className='block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2'>
-                          {t.cos.form.dependents.dob}
+                          <FormLabelWithTooltip
+                            label={t.cos.form.dependents.dob}
+                            tooltipText={getTooltipText(lang, 'depDob')}
+                          />
                         </label>
                         <input
                           type='date'
@@ -482,7 +601,10 @@ export function COSApplicationStep({
 
                       <div>
                         <label className='block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2'>
-                          {t.cos.form.dependents.i94Exp}
+                          <FormLabelWithTooltip
+                            label={t.cos.form.dependents.i94Exp}
+                            tooltipText={getTooltipText(lang, 'depI94')}
+                          />
                         </label>
                         <input
                           type='date'
@@ -502,7 +624,10 @@ export function COSApplicationStep({
                       {dependent.relation === 'spouse' && (
                         <div className='col-span-2'>
                           <label className='block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-primary'>
-                            {t.cos.form.dependents.marriageDate}
+                            <FormLabelWithTooltip
+                              label={t.cos.form.dependents.marriageDate}
+                              tooltipText={getTooltipText(lang, 'depMarriage')}
+                            />
                           </label>
                           <input
                             type='date'

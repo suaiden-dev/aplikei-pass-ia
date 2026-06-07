@@ -242,15 +242,15 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
 
   return (
     <div id="homologation-form-final-review" className="space-y-8 pb-32">
-      <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
+      <div className="bg-card rounded-[32px] border border-border p-8 shadow-xl">
         <div className="max-w-xl">
            <div className="mb-4">
              <HomologationAutofillButton rootId="homologation-form-final-review" />
            </div>
-           <h2 className="text-xl font-black text-slate-800 flex items-center gap-2 mb-2">
+           <h2 className="text-xl font-black text-text flex items-center gap-2 mb-2">
               <RiInformationLine className="text-primary" /> {t.cos.finalForms.title}
            </h2>
-           <p className="text-sm font-medium text-slate-500">
+           <p className="text-sm font-medium text-text-muted">
              {t.cos.finalForms.desc}
            </p>
         </div>
@@ -258,19 +258,19 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
 
       <div className="space-y-6">
         {/* Form G-1145 */}
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
-           <div className="flex items-center gap-4 mb-6 border-b border-slate-100 pb-6">
-             <div className="w-12 h-12 rounded-full border border-blue-100 bg-blue-50 text-blue-500 flex items-center justify-center">
+        <div className="bg-card p-8 rounded-3xl shadow-xl border border-border">
+           <div className="flex items-center gap-4 mb-6 border-b border-border pb-6">
+             <div className="w-12 h-12 rounded-full border border-primary/10 bg-primary/5 text-primary flex items-center justify-center">
                <RiNotification4Line className="text-xl" />
              </div>
              <div>
-                <h3 className="font-black text-slate-800 text-lg">{t.cos.finalForms.g1145.title}</h3>
-                <p className="text-[9px] uppercase tracking-widest font-bold text-slate-400 mt-0.5">{t.cos.finalForms.g1145.subtitle}</p>
+                <h3 className="font-black text-text text-lg">{t.cos.finalForms.g1145.title}</h3>
+                <p className="text-[9px] uppercase tracking-widest font-bold text-text-muted mt-0.5">{t.cos.finalForms.g1145.subtitle}</p>
              </div>
            </div>
 
-           <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex gap-3 text-sm font-medium text-blue-800 mb-8">
-             <RiInformationLine className="text-blue-500 text-xl shrink-0" />
+           <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex gap-3 text-sm font-medium text-primary mb-8">
+             <RiInformationLine className="text-primary text-xl shrink-0" />
              {t.cos.finalForms.g1145.info}
            </div>
 
@@ -314,19 +314,19 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
         </div>
 
         {/* Form G-1450 */}
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
-           <div className="flex items-center gap-4 mb-6 border-b border-slate-100 pb-6">
-             <div className="w-12 h-12 rounded-full border border-indigo-100 bg-indigo-50 text-indigo-500 flex items-center justify-center">
+        <div className="bg-card p-8 rounded-3xl shadow-xl border border-border">
+           <div className="flex items-center gap-4 mb-6 border-b border-border pb-6">
+             <div className="w-12 h-12 rounded-full border border-primary/10 bg-primary/5 text-primary flex items-center justify-center">
                <RiBankCardLine className="text-xl" />
              </div>
              <div>
-                <h3 className="font-black text-slate-800 text-lg">{t.cos.finalForms.g1450.title}</h3>
-                <p className="text-[9px] uppercase tracking-widest font-bold text-slate-400 mt-0.5">{t.cos.finalForms.g1450.subtitle}</p>
+                <h3 className="font-black text-text text-lg">{t.cos.finalForms.g1450.title}</h3>
+                <p className="text-[9px] uppercase tracking-widest font-bold text-text-muted mt-0.5">{t.cos.finalForms.g1450.subtitle}</p>
              </div>
            </div>
 
-           <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100 flex gap-3 text-sm font-medium text-amber-800 mb-8">
-             <RiInformationLine className="text-amber-500 text-xl shrink-0" />
+           <div className="bg-warning/5 p-4 rounded-xl border border-warning/10 flex gap-3 text-sm font-medium text-warning mb-8">
+             <RiInformationLine className="text-warning text-xl shrink-0" />
              {t.cos.finalForms.g1450.info}
            </div>
 
@@ -383,9 +383,9 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
                 />
               </div>
               
-              <div className="md:col-span-3 bg-red-50 border border-red-100 p-4 rounded-xl flex gap-3 text-xs font-bold text-red-700">
-                <RiErrorWarningLine className="text-lg shrink-0" />
-                {t.cos.finalForms.g1450.securityWarning}
+              <div className="md:col-span-3 bg-danger/5 border border-danger/10 p-4 rounded-xl flex gap-3 text-xs font-bold text-danger">
+                 <RiErrorWarningLine className="text-lg shrink-0" />
+                 {t.cos.finalForms.g1450.securityWarning}
               </div>
 
               <Input 
@@ -464,7 +464,7 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
         <button
           onClick={handleSaveDraft}
           disabled={isSavingDraft || isSubmitting}
-          className="flex items-center gap-2 px-6 py-3.5 rounded-xl border-2 border-slate-100 text-sm font-black text-slate-500 hover:bg-slate-50 hover:border-slate-200 transition-all disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-3.5 rounded-xl border-2 border-border text-sm font-black text-text-muted hover:bg-bg-subtle hover:border-border/50 transition-all disabled:opacity-50"
         >
           {isSavingDraft ? <RiLoader4Line className="animate-spin text-lg" /> : <RiSave3Line className="text-lg" />}
           {t.cos.finalForms.btns?.saveDraft || "Salvar rascunho"}
@@ -580,19 +580,19 @@ function PhoneInput({ label, value, onChange, onBlur, placeholder, error, descri
   return (
     <div className="relative group/input w-full">
       <div className="flex justify-between items-center mb-2">
-        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest flex items-center gap-1.5">
           {label}
           {description && (
             <div className="relative inline-block">
               <RiInformationLine 
-                className="text-slate-300 hover:text-primary cursor-help transition-colors text-xs" 
+                className="text-text-muted/65 hover:text-primary cursor-help transition-colors text-xs" 
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
               />
               {showTooltip && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-slate-800 text-white text-[9px] p-2 rounded-lg z-50 shadow-xl pointer-events-none animate-in fade-in zoom-in-95">
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-card text-text text-[9px] p-2 rounded-lg z-50 shadow-xl border border-border pointer-events-none animate-in fade-in zoom-in-95">
                   {description}
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-800" />
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-card" />
                 </div>
               )}
             </div>
@@ -607,24 +607,24 @@ function PhoneInput({ label, value, onChange, onBlur, placeholder, error, descri
             type="button"
             disabled={disabled}
             onClick={() => setIsOpen(!isOpen)}
-            className={`flex items-center gap-1.5 px-3 py-3 text-sm font-semibold bg-slate-50 border border-slate-200 border-r-0 rounded-l-xl hover:bg-slate-100 transition-all ${disabled ? "cursor-default opacity-70" : "cursor-pointer"}`}
+            className={`flex items-center gap-1.5 px-3 py-3 text-sm font-semibold bg-bg-subtle border border-border border-r-0 rounded-l-xl hover:bg-bg-subtle/80 transition-all ${disabled ? "cursor-default opacity-70" : "cursor-pointer"}`}
             style={{ height: "46px" }}
           >
             <span className="text-lg leading-none">{flagEmoji[country]}</span>
-            <span className="text-[11px] font-bold text-slate-500">
+            <span className="text-[11px] font-bold text-text-muted">
               {country === "US" ? "+1" : country === "BR" ? "+55" : "+"}
             </span>
-            <span className="text-[9px] text-slate-400 font-bold">▼</span>
+            <span className="text-[9px] text-text-muted/50 font-bold">▼</span>
           </button>
 
           {isOpen && (
-            <div className="absolute left-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 w-32 animate-in fade-in slide-in-from-top-1">
+            <div className="absolute left-0 mt-1 bg-card border border-border rounded-xl shadow-xl z-50 py-1 w-32 animate-in fade-in slide-in-from-top-1">
               {(["US", "BR", "OTHER"] as const).map((c) => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => handleCountryChange(c)}
-                  className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 text-xs font-semibold text-text hover:bg-bg-subtle transition-colors flex items-center gap-2"
                 >
                   <span className="text-base">{flagEmoji[c]}</span>
                   <span>{countryLabels[c]}</span>
@@ -641,7 +641,7 @@ function PhoneInput({ label, value, onChange, onBlur, placeholder, error, descri
           onBlur={onBlur}
           disabled={disabled}
           placeholder={placeholder || (country === "US" ? "(201) 555-0123" : country === "BR" ? "+55 (11) 98765-4321" : "+1...")}
-          className={`w-full bg-slate-50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-r-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-300 placeholder:font-medium shadow-sm shadow-slate-100/50`}
+          className={`w-full bg-bg-subtle border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-border'} rounded-r-xl px-4 py-3 text-sm font-semibold text-text outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} focus:bg-card transition-all disabled:bg-bg-subtle disabled:opacity-50 placeholder:text-text-muted/40 placeholder:font-medium shadow-sm`}
           style={{ height: "46px" }}
         />
       </div>
@@ -680,19 +680,19 @@ function Input({ label, value, onChange, onBlur, placeholder, type = "text", err
   return (
     <div className="relative group/input">
       <div className="flex justify-between items-center mb-2">
-        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest flex items-center gap-1.5">
           {label}
           {description && (
             <div className="relative inline-block">
               <RiInformationLine 
-                className="text-slate-300 hover:text-primary cursor-help transition-colors text-xs" 
+                className="text-text-muted/65 hover:text-primary cursor-help transition-colors text-xs" 
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
               />
               {showTooltip && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-slate-800 text-white text-[9px] p-2 rounded-lg z-50 shadow-xl pointer-events-none animate-in fade-in zoom-in-95">
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-card text-text text-[9px] p-2 rounded-lg z-50 shadow-xl border border-border pointer-events-none animate-in fade-in zoom-in-95">
                   {description}
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-800" />
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-card" />
                 </div>
               )}
             </div>
@@ -707,7 +707,7 @@ function Input({ label, value, onChange, onBlur, placeholder, type = "text", err
         onBlur={onBlur}
         placeholder={placeholder}
         readOnly={readOnly}
-        className={`w-full bg-slate-50/50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} transition-all focus:bg-white ${readOnly ? 'bg-slate-100 cursor-not-allowed opacity-60' : ''}`}
+        className={`w-full bg-bg-subtle border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-border'} rounded-xl px-4 py-3 text-sm font-bold text-text outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} transition-all focus:bg-card ${readOnly ? 'bg-bg-subtle/40 cursor-not-allowed opacity-60 border-border/50' : ''}`}
       />
     </div>
   );
@@ -720,19 +720,19 @@ function Select({ label, value, onChange, onBlur, options, error, description }:
   return (
     <div className="relative group/select">
       <div className="flex justify-between items-center mb-2">
-        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest flex items-center gap-1.5">
           {label}
           {description && (
             <div className="relative inline-block">
               <RiInformationLine 
-                className="text-slate-300 hover:text-primary cursor-help transition-colors text-xs" 
+                className="text-text-muted/65 hover:text-primary cursor-help transition-colors text-xs" 
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
               />
               {showTooltip && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-slate-800 text-white text-[9px] p-2 rounded-lg z-50 shadow-xl pointer-events-none animate-in fade-in zoom-in-95">
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-card text-text text-[9px] p-2 rounded-lg z-50 shadow-xl border border-border pointer-events-none animate-in fade-in zoom-in-95">
                   {description}
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-800" />
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-card" />
                 </div>
               )}
             </div>
@@ -745,14 +745,14 @@ function Select({ label, value, onChange, onBlur, options, error, description }:
           value={value || ""}
           onChange={e => onChange(e.target.value)}
           onBlur={onBlur}
-          className={`w-full bg-slate-50/50 border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-slate-200'} rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} transition-all focus:bg-white appearance-none pr-10`}
+          className={`w-full bg-bg-subtle border ${error ? 'border-red-500 ring-4 ring-red-500/10' : 'border-border'} rounded-xl px-4 py-3 text-sm font-bold text-text outline-none focus:ring-4 ${error ? 'focus:ring-red-500/10 focus:border-red-500' : 'focus:ring-primary/10 focus:border-primary'} transition-all focus:bg-card appearance-none pr-10`}
         >
-          <option value="">{t.cos.finalForms.g1450.placeholders.select}</option>
+          <option value="" className="bg-card text-text">{t.cos.finalForms.g1450.placeholders.select}</option>
           {options.map(o => (
-            <option key={o} value={o}>{o}</option>
+            <option key={o} value={o} className="bg-card text-text">{o}</option>
           ))}
         </select>
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 font-bold">⌄</div>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted/60 font-bold">⌄</div>
       </div>
     </div>
   );
@@ -761,8 +761,8 @@ function Select({ label, value, onChange, onBlur, options, error, description }:
 function SectionTitle({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-2 mb-6 mt-8">
-      <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-      <h4 className="text-[10px] font-black tracking-widest uppercase text-slate-800">{title}</h4>
+      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+      <h4 className="text-[10px] font-black tracking-widest uppercase text-text">{title}</h4>
     </div>
   );
 }

@@ -1007,7 +1007,7 @@ const visas = {
       specificPlan: "Você tem um plano de viagem específico?",
       arrivalDate: "Data de Chegada",
       arrivalHelper:
-        "Aqui você coloca a data que chegará nos EUA, Essa data é apenas uma previsão de viagem, não significa que você tem que já estar com as passagens compradas. O próprio consulado recomenda às pessoas que comprem suas passagens somente após estarem com visto em mãos.",
+        "Aqui você coloca a data que chegará nos EUA. Essa data é apenas uma previsão de viagem, não significa que você tem que já estar com as passagens compradas.",
       visitLocations: "Forneça os locais que planeja visitar nos EUA (localização)",
       visitHelper:
         "Mencione aqui os locais que você planeja visitar, ponha todos que tem vontade de visitar.",

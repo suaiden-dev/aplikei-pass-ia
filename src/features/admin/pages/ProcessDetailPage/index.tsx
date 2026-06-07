@@ -549,6 +549,83 @@ function MRVSetupPanel({ proc, onApprove, onRefresh, isActive }: { proc: Process
   );
 }
 
+function USCISFeeSetupPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser; onRefresh: () => void; isActive: boolean }) {
+  const [boletoPath, setBoletoPath] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    const d = (proc.step_data as Record<string, unknown> | null) ?? {};
+    setBoletoPath((d.uscis_boleto_path as string) || "");
+  }, [proc]);
+
+  const handleFileUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${proc.user_id}/uscis/guia_${crypto.randomUUID()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("aplikei-profiles")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      setBoletoPath(filePath);
+      await processService.updateStepData(proc.id, { uscis_boleto_path: filePath });
+      onRefresh();
+      toast.success("Guia/Boleto do USCIS enviado com sucesso!");
+    } catch (e: unknown) {
+      toast.error((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="p-6 bg-bg-subtle border border-border rounded-2xl">
+        <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-4">Guia de Pagamento (Boleto/Formulário)</p>
+        <div className="flex flex-col items-center justify-center py-6 text-left">
+          {boletoPath ? (
+            <div className="flex items-center gap-4 w-full text-left">
+              <div className="w-12 h-12 rounded-xl bg-success/10 text-success flex items-center justify-center">
+                <RiBarcodeLine className="text-2xl" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-black text-text uppercase">Guia Disponibilizada</p>
+                <p className="text-[10px] text-text-muted truncate">{boletoPath.split('/').pop()}</p>
+              </div>
+              <div className="flex gap-2">
+                <a
+                  href={supabase.storage.from("aplikei-profiles").getPublicUrl(boletoPath).data.publicUrl}
+                  target="_blank" rel="noreferrer"
+                  className="px-4 py-2 bg-card border border-border rounded-lg text-[10px] font-black text-text uppercase"
+                >Visualizar</a>
+                {isActive && (
+                  <button onClick={async () => {
+                    await processService.updateStepData(proc.id, { uscis_boleto_path: "" });
+                    setBoletoPath("");
+                    onRefresh();
+                  }} className="px-4 py-2 bg-danger/10 text-danger rounded-lg text-[10px] font-black uppercase">Remover</button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
+              <RiBarcodeLine className="text-4xl text-border mb-4" />
+              <label className="px-8 py-3 bg-card border border-border rounded-xl text-[10px] font-black text-text uppercase tracking-widest cursor-pointer hover:bg-bg-subtle transition-all shadow-sm flex items-center gap-2">
+                <RiFileUploadLine />
+                {uploading ? <RiLoader4Line className="animate-spin text-lg" /> : "Selecionar Guia/Boleto"}
+                <input type="file" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} disabled={!isActive} />
+              </label>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FinalSchedulingPanel({ proc, onRefresh, isActive }: { proc: ProcessWithUser; onRefresh: () => void; isActive: boolean }) {
   const [sameLocation, setSameLocation] = useState(true);
   const [casvDate, setCasvDate] = useState("");
@@ -2109,16 +2186,66 @@ export default function AdminProcessDetailPage() {
     const isActive = i20Idx !== -1 && currentStepIdx === i20Idx;
     const isPast = i20Idx !== -1 && currentStepIdx > i20Idx;
 
+    const targetVisa = String((proc.step_data as any)?.targetVisa || "");
+    const currentVisa = String((proc.step_data as any)?.currentVisa || "");
+    const isF1 = targetVisa.includes("F1") || targetVisa.includes("F-1") || currentVisa.includes("F1") || currentVisa.includes("F-1");
+
     const isWaitingClient = isActive && proc.status === "active";
     if (isWaitingClient) {
       return (
-        <CollapsibleStep title={t.processDetail.i20Sevis.title} icon={RiShieldCheckLine} isActive={isActive} isPast={isPast} badge="Aguardando Envio">
+        <CollapsibleStep title={isF1 ? t.processDetail.i20Sevis.title : "Revisão da Taxa do USCIS"} icon={RiShieldCheckLine} isActive={isActive} isPast={isPast} badge="Aguardando Envio">
           {renderWaitingClientFallback()}
         </CollapsibleStep>
       );
     }
 
     const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
+
+    if (!isF1) {
+      const uscisUrl = docs.uscis_receipt ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.uscis_receipt).data.publicUrl : null;
+      if (!isActive && !isPast && !uscisUrl) return null;
+
+      return (
+        <CollapsibleStep 
+          title="Revisão da Taxa do USCIS" 
+          icon={RiShieldCheckLine} 
+          isActive={isActive} 
+          isPast={isPast} 
+          badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}
+        >
+          <div className="flex flex-col gap-6">
+            <p className="text-sm font-medium text-text-muted text-left">
+              Verifique o comprovante de pagamento da Taxa do USCIS enviado pelo cliente.
+            </p>
+
+            <div className="grid grid-cols-1 gap-6">
+              {uscisUrl && (
+                <div className={`p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${selectedItems.includes('docs.uscis_receipt') ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+                  <div className="w-16 h-16 bg-success/10 text-success rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                    <RiMoneyDollarCircleLine className="text-3xl" />
+                  </div>
+                  <h4 className="font-black text-text text-sm mb-1 uppercase">Comprovante de Taxa do USCIS</h4>
+                  <div className="flex gap-2 w-full mt-4">
+                    <a href={uscisUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
+                      {t.processDetail.officialForms.viewPdf}
+                    </a>
+                    {isActive && (
+                      <button onClick={() => toggleItem('docs.uscis_receipt')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.uscis_receipt') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                        {selectedItems.includes('docs.uscis_receipt') ? "Selecionado" : "Selecionar"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            {isActive && (
+              renderCardActions("Aprovar Taxa do USCIS", "success", "Solicitar Correção")
+            )}
+          </div>
+        </CollapsibleStep>
+      );
+    }
+
     const i20Url = docs.i20_document ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.i20_document).data.publicUrl : null;
     const sevisUrl = docs.sevis_receipt ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.sevis_receipt).data.publicUrl : null;
 
@@ -2585,6 +2712,19 @@ export default function AdminProcessDetailPage() {
     return (
       <CollapsibleStep title={t.processDetail.mrv.title} icon={RiMoneyDollarCircleLine} isActive={isActive} isPast={isPast} badge={t.shared.administrativeAction}>
         <MRVSetupPanel proc={proc} onApprove={handleApproveStep} onRefresh={fetchProcessData} isActive={isActive} />
+      </CollapsibleStep>
+    );
+  };
+  const renderUSCISFeeAdmin = () => {
+    if (!proc || proc.service_slug !== "extensao-status") return null;
+    const isActive = currentStepBaseId === "eos_uscis_fee";
+    const stepIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === "eos_uscis_fee");
+    const isPast = stepIdx !== -1 && currentStepIdx > stepIdx;
+    if (!isActive && !isPast) return null;
+
+    return (
+      <CollapsibleStep title="Taxa do USCIS (Guia/Boleto)" icon={RiMoneyDollarCircleLine} isActive={isActive} isPast={isPast} badge="Preparação de Boleto">
+        <USCISFeeSetupPanel proc={proc} onRefresh={fetchProcessData} isActive={isActive} />
       </CollapsibleStep>
     );
   };
@@ -3065,6 +3205,7 @@ export default function AdminProcessDetailPage() {
               renderCOSDocumentsAdmin(),
               renderCoverLetterAdmin(),
               renderOfficialForms(),
+              renderUSCISFeeAdmin(),
               renderCOSAnalysisI20SevisAdmin(),
               renderFinalFormsAdmin(),
               renderB1B2CredentialsAdmin(),
