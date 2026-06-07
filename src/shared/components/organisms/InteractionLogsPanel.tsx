@@ -151,7 +151,6 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
 
   return (
     <div className="relative z-10 w-full space-y-10">
-      {/* Statistics Bar */}
       {!hideHeader && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[
@@ -177,7 +176,6 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
         </div>
       )}
 
-      {/* Control Bar */}
       <section className="flex flex-col md:flex-row gap-6 items-center justify-between">
         <div className="flex p-1 bg-card border border-border rounded-xl backdrop-blur-md">
           {[
@@ -213,9 +211,7 @@ export function InteractionLogsPanel({ userServiceId, hideHeader = false }: Inte
         </div>
       </section>
 
-      {/* Log Table Container */}
       <div className="bg-card border border-border rounded-[32px] overflow-hidden backdrop-blur-sm">
-        {/* Header Row */}
         <div className="grid grid-cols-12 gap-6 px-8 py-5 border-b border-border text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
           <div className="col-span-5 md:col-span-4 text-left">Evento Principal</div>
           <div className="hidden md:block col-span-3 text-left">Origem e Contexto</div>
