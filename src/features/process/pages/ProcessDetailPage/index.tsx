@@ -392,7 +392,7 @@ export default function ProcessDetailPage() {
       const progressPercent = isFinalized ? 100 : calculatePhaseProgress(proc, steps.length, isCOS);
 
   return (
-    <div className="p-12 max-w-[1200px]">
+    <div className="p-6 md:p-12 max-w-[1200px]">
       {/* Back */}
       <motion.div
         initial={{ opacity: 0, x: -8 }}

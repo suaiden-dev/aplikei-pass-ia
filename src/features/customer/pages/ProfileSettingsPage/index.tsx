@@ -93,7 +93,7 @@ export default function ProfileSettingsPage() {
     `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || "User")}&background=1a56db&color=fff`;
 
   return (
-    <div className="p-12 max-w-[800px]">
+    <div className="p-6 md:p-12 max-w-[800px]">
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}

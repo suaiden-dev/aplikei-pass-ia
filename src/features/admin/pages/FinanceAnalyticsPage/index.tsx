@@ -494,73 +494,144 @@ export default function FinanceAnalyticsPage() {
                 <p className="text-xs font-bold text-text-muted uppercase tracking-wider">{t.financeAnalytics.table.empty}</p>
               </div>
             ) : (
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-border bg-bg-subtle/50">
-                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.customer}</th>
-                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.office}</th>
-                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.product}</th>
-                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">
-                      {currentUser?.role === "master" ? "Payment (Detailed)" : t.financeAnalytics.table.amount}
-                    </th>
-                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.method}</th>
-                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted text-right">{t.financeAnalytics.table.action}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
+              <>
+                {/* Desktop View */}
+                <table className="w-full text-left border-collapse hidden md:table">
+                  <thead>
+                    <tr className="border-b border-border bg-bg-subtle/50">
+                      <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.customer}</th>
+                      <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.office}</th>
+                      <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.product}</th>
+                      <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">
+                        {currentUser?.role === "master" ? "Payment (Detailed)" : t.financeAnalytics.table.amount}
+                      </th>
+                      <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.method}</th>
+                      <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted text-right">{t.financeAnalytics.table.action}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredTransactions.map((tx) => (
+                      <tr key={tx.id} className="hover:bg-bg-subtle/30 transition-colors">
+                        <td className="px-6 py-4">
+                          <p className="text-sm font-black text-text">{tx.clientName}</p>
+                          <p className="text-[10px] text-text-muted font-medium">{tx.clientEmail}</p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <RiBuilding2Line className="text-text-muted" />
+                            <span className="text-xs font-bold text-text-muted uppercase">{tx.officeName}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="px-2 py-1 rounded-lg bg-primary/5 border border-primary/10 text-[10px] font-black text-primary uppercase whitespace-nowrap">
+                            {tx.productName}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {currentUser?.role === "master" ? (
+                            <div className="space-y-0.5">
+                              <p className="text-[11px] font-black text-text whitespace-nowrap">
+                                Client Paid: {fmtCurrency(tx.amount)}
+                              </p>
+                              <p className="text-[10px] font-bold text-primary whitespace-nowrap">
+                                Received: {fmtCurrency(tx.officeNetAmount)}
+                              </p>
+                              <p className="text-[10px] font-bold text-success whitespace-nowrap">
+                                Fee/Profit: {fmtCurrency(tx.platformFeeAmount)}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-sm font-black text-text whitespace-nowrap">{fmtCurrency(tx.amount)}</p>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-[10px] font-black text-text-muted uppercase tracking-widest bg-bg-subtle px-2 py-1 rounded-lg whitespace-nowrap">
+                            {tx.method}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-8 rounded-xl font-bold text-[10px] uppercase"
+                            onClick={() => setSelectedTx(tx)}
+                          >
+                            {t.financeAnalytics.table.details}
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* Mobile View */}
+                <div className="md:hidden divide-y divide-border">
                   {filteredTransactions.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-bg-subtle/30 transition-colors">
-                      <td className="px-6 py-4">
-                        <p className="text-sm font-black text-text">{tx.clientName}</p>
-                        <p className="text-[10px] text-text-muted font-medium">{tx.clientEmail}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <RiBuilding2Line className="text-text-muted" />
-                          <span className="text-xs font-bold text-text-muted uppercase">{tx.officeName}</span>
+                    <div 
+                      key={tx.id} 
+                      className="p-5 space-y-4 hover:bg-bg-subtle/10 transition-colors cursor-pointer"
+                      onClick={() => setSelectedTx(tx)}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <p className="text-sm font-black text-text truncate">{tx.clientName}</p>
+                          <p className="text-[10px] text-text-muted font-medium truncate">{tx.clientEmail}</p>
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="px-2 py-1 rounded-lg bg-primary/5 border border-primary/10 text-[10px] font-black text-primary uppercase">
+                        <span className="text-xs font-black text-text-muted uppercase bg-bg-subtle px-2 py-1 rounded-lg shrink-0">
+                          {tx.method}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <RiBuilding2Line className="text-text-muted shrink-0" />
+                          <span className="text-xs font-bold text-text-muted uppercase truncate">{tx.officeName}</span>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-lg bg-primary/5 border border-primary/10 text-[9px] font-black text-primary uppercase tracking-wider shrink-0">
                           {tx.productName}
                         </span>
-                      </td>
-                      <td className="px-6 py-4">
+                      </div>
+
+                      <div className="flex items-center justify-between gap-4 pt-1">
                         {currentUser?.role === "master" ? (
                           <div className="space-y-0.5">
-                            <p className="text-[11px] font-black text-text">
-                              Client Paid: {fmtCurrency(tx.amount)}
+                            <p className="text-[10px] font-bold text-text-muted uppercase">
+                              Paid: <span className="font-black text-text">{fmtCurrency(tx.amount)}</span>
                             </p>
-                            <p className="text-[10px] font-bold text-primary">
-                              Received: {fmtCurrency(tx.officeNetAmount)}
-                            </p>
-                            <p className="text-[10px] font-bold text-success">
-                              Fee/Profit: {fmtCurrency(tx.platformFeeAmount)}
+                            <p className="text-[10px] font-bold text-text-muted uppercase">
+                              Received: <span className="font-black text-primary">{fmtCurrency(tx.officeNetAmount)}</span>
                             </p>
                           </div>
                         ) : (
-                          <p className="text-sm font-black text-text">{fmtCurrency(tx.amount)}</p>
+                          <div>
+                            <p className="text-[9px] font-black text-text-muted uppercase tracking-wider">Amount</p>
+                            <p className="text-sm font-black text-text">{fmtCurrency(tx.amount)}</p>
+                          </div>
                         )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-[10px] font-black text-text-muted uppercase tracking-widest bg-bg-subtle px-2 py-1 rounded-lg">
-                          {tx.method}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
+                        
+                        {currentUser?.role === "master" && (
+                          <div className="text-right">
+                            <p className="text-[10px] font-bold text-text-muted uppercase">Fee/Profit</p>
+                            <p className="text-xs font-black text-success">{fmtCurrency(tx.platformFeeAmount)}</p>
+                          </div>
+                        )}
+
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-8 rounded-xl font-bold text-[10px] uppercase"
-                          onClick={() => setSelectedTx(tx)}
+                          className="h-8 px-4 rounded-xl font-bold text-[10px] uppercase shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedTx(tx);
+                          }}
                         >
                           {t.financeAnalytics.table.details}
                         </Button>
-                      </td>
-                    </tr>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              </>
             )}
           </div>
         </div>

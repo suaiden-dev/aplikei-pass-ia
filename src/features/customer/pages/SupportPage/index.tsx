@@ -3,7 +3,7 @@ import { RiQuestionLine } from "react-icons/ri";
 
 export default function SupportPage() {
   return (
-    <div className="p-12 max-w-[1400px]">
+    <div className="p-6 md:p-12 max-w-[1400px]">
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
