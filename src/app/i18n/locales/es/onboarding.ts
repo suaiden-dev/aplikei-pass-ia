@@ -36,6 +36,7 @@ const onboarding = {
         needMoreSlots: "¿Necesita más cupos?",
         addFamilyPrompt: "Agregue otro miembro de la familia por US$ 100.",
         buySlot: "Comprar Cupo",
+        refreshSlots: "Actualizar Slots",
         fullName: "Nombre Completo",
         passportPlaceholder: "Como consta en el pasaporte",
         relationship: "Parentesco",
@@ -56,12 +57,41 @@ const onboarding = {
       back: "Volver",
       completeStep: "Completar Etapa",
     },
+    fallback: {
+      title: "Análisis en Curso",
+      adminStep: "Etapa Administrativa",
+      processing: "Nuestro equipo está procesando su solicitud.",
+      status: "Estado del Proceso",
+      waitingReview: "A la espera de la revisión interna de nuestro equipo.",
+    },
     docs: {
       title: "Carga de Documentos",
-      desc: "Envíe los documentos necesarios para el inicio de su proceso.",
+      desc: "Envíe los documentos necessários para o início do seu proceso.",
       i94Instructions: "Instrucciones del I-94",
       i94InstructionsDesc: "Obtenga su registro de entrada más reciente en el sitio oficial del CBP.",
       accessI94: "Acceder al sitio de I-94",
+      slots: {
+        personalDocs: "Documentos Personales",
+        financialDocs: "Documentos Financieros",
+        depDocs: "Docs: {name}",
+        i94Title: "Formulario I-94 (Principal)",
+        i94Subtitle: "Registro de Entrada a EE. UU.",
+        passportVisaTitle: "Pasaporte y Visa (Principal)",
+        passportVisaSubtitle: "Página de datos + Sello de visa",
+        residenceTitle: "Comprobante de Residência",
+        residenceSubtitle: "Factura de servicios o documento bancario",
+        bankTitle: "Extracto Bancario",
+        bankSubtitleExtension: "Extensión 1.000USD/mes = USD 6.000",
+        bankSubtitleCOS: "COS USD 22.000 + USD 5.000 por dependiente = USD {total}",
+        i94DepTitle: "I-94 ({name})",
+        i94DepSubtitle: "Registro de Entrada a EE. UU.",
+        passportVisaDepTitle: "Pasaporte/Visa ({name})",
+        passportVisaDepSubtitle: "Página de datos + Sello de visa",
+        birthCertTitle: "Certificado de Nacimiento ({name})",
+        birthCertSubtitle: "Prueba de nacimiento",
+        marriageCertTitle: "Certificado de Matrimonio",
+        marriageCertSubtitle: "Prueba de matrimonio",
+      },
     },
     i539: {
       sections: {
@@ -321,6 +351,57 @@ const onboarding = {
         success: "¡Recibo SEVIS enviado con éxito!",
         error: "Error al enviar el recibo",
         required: "Por favor, envíe el comprobante de pago de la tasa SEVIS.",
+      }
+    },
+    uscisFee: {
+      title: "Confirmación de Pago",
+      desc: "Confirme el pago de la tasa de USCIS y envíe el comprobante para que podamos continuar con el siguiente paso.",
+      statusCard: {
+        title: "Pregunta de Estado",
+        question: "¿Ya ha realizado el pago de la Tasa de USCIS?",
+        yes: "Sí, ya la pagué",
+        no: "No, todavía no",
+      },
+      instructions: {
+        title: "Instrucciones de Pago",
+        desc: "Para pagar su tasa de USCIS (Formulario I-539), deberá realizar el pago a través del portal de USCIS o utilizar la guía de pago proporcionada.",
+        step1: {
+          prefix: "Inicie sesión en su cuenta en el portal de ",
+          bold: "USCIS",
+          suffix: " o siga las pautas de presentación.",
+        },
+        step2: {
+          prefix: "Acceda al enlace: ",
+          linkText: "Haga clic aquí",
+        },
+        step3: {
+          prefix: "Realice el pago de la tasa del ",
+          bold: "Formulario I-539",
+          suffix: ".",
+        },
+        step4: {
+          title: "Importante",
+          sevisId: "Guarde el comprobante de pago generado por USCIS.",
+          form: "El comprobante debe mostrar el número de caso (Receipt Number).",
+          schoolCode: "Asegúrese de que el pago se haya procesado con éxito.",
+          example: "Ej: IOE1234567890",
+        }
+      },
+      upload: {
+        title: "Comprobante de Pago",
+        receiptSent: "Recibo Enviado",
+        view: "Ver Recibo",
+        replace: "Cambiar",
+        boxTitle: "Subida del Recibo",
+        boxDesc: "Envíe el comprobante de pago de la Tasa de USCIS",
+        btn: "Seleccionar Archivo",
+        uploading: "Subiendo...",
+      },
+      nextBtn: "Continuar",
+      toasts: {
+        success: "¡Comprobante de USCIS enviado con éxito!",
+        error: "Error al enviar el comprobante",
+        required: "Por favor, envíe el comprobante de pago de la tasa de USCIS.",
       }
     },
     finalForms: {

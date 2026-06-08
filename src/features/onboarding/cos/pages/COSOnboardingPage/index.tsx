@@ -85,6 +85,7 @@ const TARGET_VISA_OPTIONS: { label: string; icon: string; color: string }[] = [
 
 export default function COSOnboardingPage() {
   const t = useT('onboarding')
+  const tVisas = useT('visas')
   const navigate = useNavigate()
   const { slug: urlSlug } = useParams<{ slug: string }>()
   const location = useLocation()
@@ -470,6 +471,11 @@ export default function COSOnboardingPage() {
     }
   }
 
+  if (currentStepId && tVisas.processSteps?.[currentStepId]) {
+    currentStepTitle = tVisas.processSteps[currentStepId].title || currentStepTitle
+    currentStepDescription = tVisas.processSteps[currentStepId].description || currentStepDescription
+  }
+
   const goToProcess = () => {
     if (hasChildRecoveryContext) {
       const nextParams = new URLSearchParams()
@@ -658,64 +664,72 @@ export default function COSOnboardingPage() {
   const getDocSlots = () => {
     const isExtension = slug === 'extensao-status'
     const cosTotal = 22000 + dependents.length * 5000
+    const slotsT = t?.cos?.docs?.slots || {}
+
     const bankSubtitle = isExtension
-      ? 'Extensão 1.000U$/mes = U$ 6.000'
-      : `COS U$ 22,000 + U$ 5.000 por dependente = U$ ${cosTotal.toLocaleString('en-US')}`
+      ? (slotsT.bankSubtitleExtension || 'Extensão 1.000U$/mes = U$ 6.000')
+      : (slotsT.bankSubtitleCOS || 'COS U$ 22,000 + U$ 5.000 por dependente = U$ {total}').replace('{total}', cosTotal.toLocaleString('en-US'))
+
+    const personalDocsCategory = slotsT.personalDocs || 'Personal Documents'
+    const financialDocsCategory = slotsT.financialDocs || 'Financial Documents'
 
     const slots = [
       {
         key: 'i94',
-        title: 'Form I-94 (Principal)',
-        subtitle: 'U.S. Entry Record',
-        category: 'Personal Documents',
+        title: slotsT.i94Title || 'Form I-94 (Principal)',
+        subtitle: slotsT.i94Subtitle || 'U.S. Entry Record',
+        category: personalDocsCategory,
       },
       {
         key: 'passportVisa',
-        title: 'Passport and Visa (Principal)',
-        subtitle: 'Bio page + Visa stamp',
-        category: 'Personal Documents',
+        title: slotsT.passportVisaTitle || 'Passport and Visa (Principal)',
+        subtitle: slotsT.passportVisaSubtitle || 'Bio page + Visa stamp',
+        category: personalDocsCategory,
       },
       {
         key: 'proofBrazil',
-        title: 'Proof of Residence',
-        subtitle: 'Utility bill or bank doc',
-        category: 'Personal Documents',
+        title: slotsT.residenceTitle || 'Proof of Residence',
+        subtitle: slotsT.residenceSubtitle || 'Utility bill or bank doc',
+        category: personalDocsCategory,
       },
       {
         key: 'bankStatement',
-        title: 'Bank Statement',
+        title: slotsT.bankTitle || 'Bank Statement',
         subtitle: bankSubtitle,
-        category: 'Financial Documents',
+        category: financialDocsCategory,
       },
     ]
 
     dependents.forEach((dep) => {
+      const depName = dep.name || 'Dependent'
+      const depCategory = (slotsT.depDocs || 'Docs: {name}').replace('{name}', depName)
+
       slots.push({
         key: `i94_dep_${dep.id}`,
-        title: `I-94 (${dep.name || 'Dependent'})`,
-        subtitle: 'U.S. Entry Record',
-        category: `Docs: ${dep.name || 'Dependent'}`,
+        title: (slotsT.i94DepTitle || 'I-94 ({name})').replace('{name}', depName),
+        subtitle: slotsT.i94DepSubtitle || 'U.S. Entry Record',
+        category: depCategory,
       })
       slots.push({
         key: `passportVisa_dep_${dep.id}`,
-        title: `Passport/Visa (${dep.name || 'Dependent'})`,
-        subtitle: 'Bio page + Visa stamp',
-        category: `Docs: ${dep.name || 'Dependent'}`,
+        title: (slotsT.passportVisaDepTitle || 'Passport/Visa ({name})').replace('{name}', depName),
+        subtitle: slotsT.passportVisaDepSubtitle || 'Bio page + Visa stamp',
+        category: depCategory,
       })
       if (dep.relation === 'child') {
         slots.push({
           key: `birthCertificate_dep_${dep.id}`,
-          title: `Birth Certificate (${dep.name || 'Dependent'})`,
-          subtitle: 'Birth proof',
-          category: `Docs: ${dep.name || 'Dependent'}`,
+          title: (slotsT.birthCertTitle || 'Birth Certificate ({name})').replace('{name}', depName),
+          subtitle: slotsT.birthCertSubtitle || 'Birth proof',
+          category: depCategory,
         })
       }
       if (dep.relation === 'spouse') {
         slots.push({
           key: `marriageCertificate`,
-          title: `Marriage Certificate`,
-          subtitle: 'Marriage proof',
-          category: `Docs: ${dep.name || 'Dependent'}`,
+          title: slotsT.marriageCertTitle || 'Marriage Certificate',
+          subtitle: slotsT.marriageCertSubtitle || 'Marriage proof',
+          category: depCategory,
         })
       }
     })
@@ -886,9 +900,19 @@ export default function COSOnboardingPage() {
           return
         }
 
-        let nextStepIdx = stepIdx + 1
-
         const freshStepData = (freshProc.step_data || {}) as any
+        const clientTargetVisa = String(freshStepData.targetVisa || "");
+        const clientCurrentVisa = String(freshStepData.currentVisa || "");
+        const isF1 = clientTargetVisa.includes("F1") || clientTargetVisa.includes("F-1") || clientCurrentVisa.includes("F1") || clientCurrentVisa.includes("F-1");
+
+        let nextStepIdx = stepIdx + 1;
+        if (!isF1) {
+          const stepsToSkipIds = ["cos_i20_upload", "cos_sevis_fee", "eos_i20_upload", "eos_sevis_fee"];
+          while (nextStepIdx < service.steps.length && stepsToSkipIds.includes(service.steps[nextStepIdx].id)) {
+            nextStepIdx++;
+          }
+        }
+
         const targetVisa = freshStepData.targetVisa as string
         const uscisResult = freshStepData.uscis_official_result as string
         const rfeResult = freshStepData.uscis_rfe_result as string

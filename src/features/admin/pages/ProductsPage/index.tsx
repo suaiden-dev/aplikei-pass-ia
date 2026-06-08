@@ -5,11 +5,16 @@ import {
   RiLockLine,
   RiSaveLine,
   RiSettings3Line,
+  RiPriceTag3Line,
+  RiEyeLine,
+  RiMoneyDollarCircleLine,
 } from "react-icons/ri";
 import { toast } from "sonner";
 import { supabase } from "@shared/lib/supabase";
 import { useAuth } from "@shared/hooks/useAuth";
 import { encodeCheckoutToken } from "@shared/utils/checkoutToken";
+import { cn } from "@shared/utils/cn";
+import { motion } from "framer-motion";
 import { useT } from "@app/app/i18n";
 import { Switch } from "@shared/components/atoms/switch";
 import { Input } from "@shared/components/atoms/input";
@@ -375,6 +380,12 @@ export default function ProductsPage() {
     () => products.filter((p) => p.category === "main_visa"),
     [products],
   );
+  const avgTicket = useMemo(() => {
+    const activeMain = mainServices.filter((p) => p.is_active);
+    if (activeMain.length === 0) return 0;
+    const sum = activeMain.reduce((acc, p) => acc + p.price, 0);
+    return sum / activeMain.length;
+  }, [mainServices]);
   const subServices = useMemo(
     () => products.filter((p) => p.category !== "main_visa"),
     [products],
@@ -525,124 +536,90 @@ export default function ProductsPage() {
           Copy         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6">
-        <aside className="rounded-2xl border border-slate-200 bg-white overflow-hidden h-fit shadow-sm">
-          <div className="px-5 py-4 border-b border-slate-200">
-            <p className="font-semibold text-slate-900 text-[20px] leading-none tracking-[-0.02em]">Flows</p>
-          </div>
-          <div>
-            {mainServices.map((flow) => {
-              const rowDraft = draft[flow.id];
-              const isSelected = flow.id === selectedMain?.id;
-              const upsellCount = getRelatedSubProducts(flow).length;
-              const active = rowDraft?.is_active ?? flow.is_active;
-              const price = cleanPrice(rowDraft?.price ?? String(flow.price));
-              return (
-                <button
-                  key={flow.id}
-                  onClick={() => setSelectedMainId(flow.id)}
-                  className={`w-full text-left px-5 py-4 border-b border-slate-200 transition-colors ${isSelected ? "bg-primary/5" : "bg-white hover:bg-slate-50"
-                    }`}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-medium text-slate-800 text-[14px]  tracking-[-0.02em]">{flow.name}</p>
-                    <span
-                      className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-400"
-                        }`}
-                    >
-                      {active ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-slate-500">
-                    <span className="text-[14px] font-regular">
-                      {upsellCount} {upsellCount === 1 ? "upsell" : "upsells"}
-                    </span>
-                    <span className="text-[14px] font-regular text-slate-700 tracking-[-0.02em]">
-                      {Number.isFinite(price) ? formatUsd(price) : "$0.00"}
-                    </span>
-                  </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
+        {[
+          { label: "Main Visas", value: mainServices.length, icon: RiPriceTag3Line, bg: "bg-info/10", color: "text-info" },
+          { label: "Active", value: mainServices.filter((p) => p.is_active).length, icon: RiEyeLine, bg: "bg-success/10", color: "text-success" },
+          { label: "Avg. Ticket", value: `$${avgTicket.toFixed(0)}`, icon: RiMoneyDollarCircleLine, bg: "bg-primary/10", color: "text-primary" },
+        ].map((s, i) => {
+          const Icon = s.icon;
+          return (
+            <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="bg-card rounded-3xl border border-border shadow-sm p-6 flex items-center gap-5">
+              <div className={`w-14 h-14 rounded-2xl ${s.bg} flex items-center justify-center shrink-0 shadow-inner`}>
+                <Icon className={`text-2xl ${s.color}`} />
+              </div>
+              <div className="text-left">
+                <p className="text-3xl font-black text-text leading-none tracking-tight">{s.value}</p>
+                <p className="text-sm font-bold text-text-muted mt-1 uppercase tracking-widest">{s.label}</p>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : mainServices.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-3 bg-card rounded-[32px] border border-border">
+          <RiPriceTag3Line className="text-6xl text-text-muted/20" />
+          <p className="text-lg font-bold text-text-muted">No main visas found.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+          {mainServices.map((main) => (
+            <div key={main.id} className="bg-card rounded-3xl border border-border p-6 shadow-sm">
+              <div className="text-left mb-4">
+                <p className="text-lg font-black text-text">{main.name}</p>
+                <p className="text-xs font-bold text-text-muted uppercase">{main.slug}</p>
+              </div>
+              <div className="flex items-center justify-between mb-5">
+                <span className="text-2xl font-black text-primary">${main.price.toFixed(2)}</span>
+                <span className={cn("text-[10px] font-black uppercase px-2 py-1 rounded-full border", main.is_active ? "bg-success/10 text-success border-success/20" : "bg-bg-subtle text-text-muted border-border")}>{main.is_active ? "Active" : "Inactive"}</span>
+              </div>
+              <div className="space-y-3">
+                <button onClick={() => setSelectedMainId(main.id)} className="w-full h-11 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all">
+                  Configure
                 </button>
-              );
-            })}
-          </div>
-        </aside>
-
-        <section className="rounded-2xl border border-slate-200 bg-white overflow-hidden min-h-[800px] shadow-sm">
-          {!selectedMain ? (
-            <div className="h-full min-h-[400px] flex items-center justify-center text-text-muted font-bold">
-              Select a flow to configure.
-            </div>
-          ) : (
-            <>
-              <div className="px-6 py-5 border-b border-slate-200">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="text-left">
-                    <h2 className="text-[24px] font-semibold text-slate-900 leading-[1.04] tracking-[-0.03em]">
-                      {selectedMain.name}
-                    </h2>
-                    <p className="text-[14px] leading-6 text-slate-500 font-[500] mt-1">
-                      Configure the base settings for this journey.
-                    </p>
-                    {selectedMain && (draft[selectedMain.id]?.is_active ?? selectedMain.is_active) ? (
-                      <div className="rounded-2xl border border-slate-200  p-2">
-                        <div className="flex items-center justify-center gap-2">
-                          <p className=" text-xs font-medium ">
-                            {checkoutUrl(selectedMain.slug) || "Office slug required to generate the link."}
-                          </p>
-                          <button
-                            onClick={() => {
-                              const url = checkoutUrl(selectedMain.slug);
-                              if (!url) {
-                                toast.error("Unable to generate link. Set office slug first.");
-                                return;
-                              }
-                              navigator.clipboard.writeText(url);
-                              toast.success("Product link copied!");
-                            }}
-                            className="text-[10px] font-semibold text-primary uppercase bg-primary/10 px-3 py-1.5 rounded-lg inline-flex items-center gap-1"
-                          >
-                            <RiFileCopyLine className="text-sm" />
-                            Copy
-                          </button>
-                        </div>
-
-                      </div>
-                    ) : null}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={draft[selectedMain.id]?.is_active ?? selectedMain.is_active}
-                      onCheckedChange={(checked) =>
-                        updateDraft(selectedMain.id, { is_active: checked })
-                      }
-                    />
-                    <span className="text-sm font-semibold text-slate-700">Active</span>
-                  </div>
-                </div>
-
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-[180px_1fr] gap-3">
-                  <div className="text-left">
-                    <p className="text-xs font-medium uppercase text-slate-500 mb-1">Base Price</p>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={draft[selectedMain.id]?.price ?? selectedMain.price.toFixed(2)}
-                      onChange={(e) =>
-                        updateDraft(selectedMain.id, { price: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-xs font-medium uppercase text-slate-500 mb-1">Public Description</p>
-                    <div className="min-h-[40px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
-                      {selectedMain.description || "No description available."}
+                {main.is_active && (
+                  <div className="rounded-xl border border-border bg-bg-subtle/50 p-2.5">
+                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Product link</p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        readOnly
+                        value={checkoutUrl(main.slug)}
+                        placeholder="Office slug required to generate the link"
+                        className="flex-1 h-9 px-2.5 rounded-lg border border-border bg-card text-[11px] font-medium text-text"
+                      />
+                      <button
+                        onClick={() => {
+                          const url = checkoutUrl(main.slug);
+                          if (!url) {
+                            toast.error("Unable to generate link. Set office slug first.");
+                            return;
+                          }
+                          navigator.clipboard.writeText(url);
+                          toast.success("Product link copied!");
+                        }}
+                        className="h-9 px-3 rounded-lg bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-all inline-flex items-center gap-1"
+                        title="Copy product link"
+                      >
+                        <RiFileCopyLine className="text-sm" />
+                        Copy
+                      </button>
                     </div>
                   </div>
-                </div>
-              </div>
+                )}
+            </div>
+          </div>
+        ))}
+        </div>
+      )}
 
-              <div className="px-6 py-5 space-y-8">
+        {selectedMain && (
+          <>
+            <div className="px-6 py-5 space-y-8 bg-card rounded-3xl border border-border p-6 shadow-sm mt-8">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-primary">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white text-xs font-black">
@@ -921,8 +898,6 @@ export default function ProductsPage() {
               </div>
             </>
           )}
-        </section>
-      </div>
 
 
       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">

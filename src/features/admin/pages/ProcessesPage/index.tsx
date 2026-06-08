@@ -411,7 +411,7 @@ export default function AdminProcessesPage() {
               {[...new Map(processes.filter(p => !isAuxiliarySlug(p.service_slug)).map(p => [p.service_slug, p])).values()]
                 .map(p => (
                   <option key={p.service_slug} value={p.service_slug}>
-                    {p.service_name || getServiceBySlug(p.service_slug)?.title || p.service_slug}
+                    {vt.processDetail.services[p.service_slug]?.label || getServiceBySlug(p.service_slug)?.title || p.service_name || p.service_slug}
                   </option>
                 ))}
             </select>

@@ -262,7 +262,7 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose, paymentStage = "initi
                 className={cn(
                   "flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all gap-1.5",
                   activeMethod === m.id
-                    ? "bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-200 scale-105"
+                    ? "bg-slate-900 border-slate-900 text-white shadow-xl shadow-black/20 scale-105"
                     : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
                 )}
               >
@@ -686,7 +686,7 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
         <button 
           onClick={handleManualComplete}
           disabled={submitting}
-          className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-black transition-all flex items-center justify-center gap-3"
+          className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-black/30 hover:bg-black transition-all flex items-center justify-center gap-3"
         >
           {t?.workflows?.shared?.confirmBtn}
           <RiArrowRightLine className="text-xl" />

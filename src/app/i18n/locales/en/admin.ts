@@ -28,7 +28,10 @@ const admin = {
     view: "View",
     select: "Select",
     remove: "Remove",
-    locale: "en-US"
+    locale: "en-US",
+    examplePrefix: "e.g.,",
+    paidByClient: "Paid by client",
+    awaitingPayment: "Awaiting payment"
   },
   nav: {
     overview: "Overview",
@@ -303,6 +306,23 @@ const admin = {
       packageReady: "Motion Document Ready",
       noPackage: "No package sent yet",
       selectPackage: "Select Final PDF",
+      clientReasonLabel: "Reason sent by client",
+      clientReasonPlaceholder: "Client has not sent the reason yet.",
+      submittedAt: "Submitted on",
+      denialLetterLabel: "Denial letter",
+      viewFile: "View file",
+      notSent: "Not sent.",
+      supportingDocs: "Supporting documents",
+      submissionHistory: "Submission history",
+      submission: "Submission",
+      noDescription: "No description",
+      proposalHistory: "Proposal history",
+      proposal: "Proposal",
+      amountLabelShort: "Value: USD",
+      motionRejectedByClient: "Motion rejected by client",
+      motionApprovedByClient: "Motion approved by client",
+      proposalPaidByClient: "Motion proposal paid by client",
+      awaitingProposalPayment: "Awaiting motion proposal payment",
     },
     rfe: {
       panelTitle: "Formulate RFE Response Proposal",
@@ -324,6 +344,13 @@ const admin = {
       finalPackageReady: "RFE final package ready",
       selectFinalPdf: "Select Final PDF",
       provideToClient: "Provide to Client",
+      clientDescriptionLabel: "Description sent by client",
+      clientDescriptionPlaceholder: "Client has not sent the description yet.",
+      officialLetterLabel: "RFE Letter",
+      rfeRejectedByClient: "RFE rejected by client",
+      rfeApprovedByClient: "RFE approved by client",
+      proposalPaidByClient: "RFE proposal paid by client",
+      awaitingProposalPayment: "Awaiting RFE proposal payment",
     },
     credentials: {
       title: "CEAC Credentials / Application ID",
@@ -1008,13 +1035,16 @@ const admin = {
         description: "Main identification data for the office.",
         companyName: "Company / Office Name",
         cnpj: "CNPJ / Tax ID",
-        address: "Full Address"
+        cnpjPlaceholder: "e.g., 12-3456789",
+        address: "Full Address",
+        addressPlaceholder: "e.g., 123 Main St, Suite 100, Miami - FL"
       },
       contact: {
         title: "Contact and Channels",
         description: "How clients can find you.",
         email: "Corporate Email",
         phone: "Phone / WhatsApp",
+        phonePlaceholder: "e.g., +1 (555) 000-0000",
         website: "Website"
       },
       social: {

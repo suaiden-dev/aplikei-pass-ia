@@ -23,7 +23,8 @@ const admin = {
     view: "Ver",
     select: "Seleccionar",
     remove: "Eliminar",
-    locale: "es-ES"
+    locale: "es-ES",
+    examplePrefix: "Ej:"
   },
   nav: {
     overview: "Resumen General",
@@ -649,6 +650,45 @@ const admin = {
       linkTitle: "Enlace de registro — {{role}}",
       copyBtn: "Copiar al portapapeles",
       backBtn: "Volver"
+    }
+  },
+  companyProfile: {
+    title: "Perfil de la Empresa",
+    subtitle: "Gestione la información básica, contacto y redes sociales de su oficina.",
+    sections: {
+      general: {
+        title: "Información General",
+        description: "Datos principales de identificación de la oficina.",
+        companyName: "Nombre de la Empresa / Oficina",
+        cnpj: "CNPJ / Tax ID",
+        cnpjPlaceholder: "Ej: 12-3456789",
+        address: "Dirección Completa",
+        addressPlaceholder: "Ej: Calle, Número, Barrio, Ciudad - Estado"
+      },
+      contact: {
+        title: "Contacto y Canales",
+        description: "Cómo pueden encontrarle los clientes.",
+        email: "Correo Corporativo",
+        phone: "Teléfono / WhatsApp",
+        phonePlaceholder: "Ej: +1 (555) 000-0000",
+        website: "Sitio Web"
+      },
+      social: {
+        title: "Redes Sociales",
+        description: "Enlaces a sus perfiles sociales.",
+        instagram: "Instagram",
+        linkedin: "LinkedIn",
+        facebook: "Facebook"
+      }
+    },
+    saveBtn: "Guardar Perfil de la Empresa",
+    savingBtn: "Guardando Cambios...",
+    messages: {
+      notFound: "Oficina no encontrada.",
+      notFoundDescription: "No pudimos localizar el registro de su oficina.",
+      loadError: "Error al cargar los datos de la empresa.",
+      saveSuccess: "¡Datos actualizados con éxito!",
+      saveError: "Error al guardar los cambios."
     }
   }
 };

@@ -155,7 +155,7 @@ export default function FinalPackageStep({
             __html: t.cos.finalPackage.celebration.desc,
           }}
         />
-        <div className='bg-white rounded-[40px] border border-slate-100 p-12 shadow-xl shadow-slate-200/50 mb-12 max-w-lg w-full relative overflow-hidden group'>
+        <div className='bg-white rounded-[40px] border border-slate-100 p-12 shadow-xl shadow-black/20 mb-12 max-w-lg w-full relative overflow-hidden group'>
           <div className='absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity'>
             <RiCheckDoubleLine className='text-8xl' />
           </div>
@@ -176,7 +176,7 @@ export default function FinalPackageStep({
             await processService.updateProcessStatus(proc.id, 'completed')
             window.location.href = '/dashboard'
           }}
-          className='bg-slate-900 hover:bg-black text-white px-12 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all flex items-center gap-3'
+          className='bg-slate-900 hover:bg-black text-white px-12 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-black/30 transition-all flex items-center gap-3'
         >
           {t.cos.finalPackage.celebration.btn}
           <RiArrowRightLine className='text-xl' />

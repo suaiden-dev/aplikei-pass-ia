@@ -99,7 +99,7 @@ export function MotionAcquisitionStep({ proc, onComplete }: Props) {
             onClick={() => {
               window.location.href = 'https://wa.me/message/APLIKEISUPPORT'
             }}
-            className='w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-slate-200 transition-all flex items-center justify-center gap-3'
+            className='w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-black/30 transition-all flex items-center justify-center gap-3'
           >
             {acquisitionCopy?.secondaryBtn || 'Falar com Especialista'}
             <RiMessage3Line className='text-xl' />

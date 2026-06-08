@@ -145,7 +145,7 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
                 >
                   {t.cos.i20Upload.statusCard.view}
                 </a>
-                <label className="flex-1 px-4 py-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all cursor-pointer shadow-lg shadow-emerald-200 flex items-center justify-center gap-2">
+                <label className="flex-1 px-4 py-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all cursor-pointer shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
                   <RiFileUploadLine className="text-sm" />
                   {t.cos.i20Upload.statusCard.replace}
                   <input 
@@ -163,7 +163,7 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
               <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">{t.cos.i20Upload.uploadBox.select}</h4>
               <p className="text-xs text-slate-400 font-medium mb-8">{t.cos.i20Upload.uploadBox.formats}</p>
               
-              <label className="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all cursor-pointer shadow-xl shadow-slate-200">
+              <label className="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all cursor-pointer shadow-xl shadow-black/30">
                 {isUploading ? <RiLoader4Line className="animate-spin text-lg" /> : <RiFileUploadLine className="text-lg" />}
                 {isUploading ? t.cos.i20Upload.uploadBox.uploading : t.cos.i20Upload.uploadBox.btn}
                 <input 

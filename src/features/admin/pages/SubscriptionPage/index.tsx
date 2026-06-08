@@ -54,6 +54,24 @@ export default function SubscriptionPage() {
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [isCancelingSubscription, setIsCancelingSubscription] = useState(false);
   const [isActivatingSubscription, setIsActivatingSubscription] = useState(false);
+  const [officeName, setOfficeName] = useState<string>("");
+
+  useEffect(() => {
+    async function fetchOfficeName() {
+      if (!officeId) return;
+      const { data } = await supabase
+        .from("offices")
+        .select("name")
+        .eq("id", officeId)
+        .maybeSingle();
+      if (data?.name) {
+        setOfficeName(data.name);
+      }
+    }
+    fetchOfficeName();
+  }, [officeId]);
+
+  const displayOfficeName = officeName || officeId || "";
 
   const fetchPlans = useCallback(async () => {
     setLoadingPlans(true);
@@ -237,6 +255,8 @@ export default function SubscriptionPage() {
       if (error) throw error;
 
       await notifyMaster({
+        title: "Subscription updated",
+        body: `Office ${displayOfficeName} activated/changed to plan ${planToContract.name}.`,
         link: "/master/offices",
         category: "billing",
         action: "subscription_updated",
@@ -266,7 +286,7 @@ export default function SubscriptionPage() {
   const renderContent = () => {
     if (status === 'none' || (urlPlanId && !isActive)) {
       return (
-        <div className="p-4 sm:p-6 lg:p-8 max-w-8xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-1000">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20 mb-6">
               <RiVipCrown2Line /> {t.subscription.onboarding.eyebrow}
@@ -279,13 +299,14 @@ export default function SubscriptionPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-6 lg:gap-8 text-left">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8 text-left">
             {availablePlans.map((plan) => {
               const color = getPlanColor(plan.type);
               return (
                 <div
                   key={plan.id}
-                  className={`relative p-6 sm:p-8 lg:p-10 rounded-[32px] lg:rounded-[40px] border-2 bg-card transition-all hover:-translate-y-2 flex flex-col shadow-xl shadow-bg-subtle ${color === 'primary' ? 'border-primary/20 hover:border-primary' :
+                  className={`relative p-6 sm:p-8 lg:p-10 rounded-[32px] lg:rounded-[40px] border-2 bg-card transition-all hover:-translate-y-2 flex flex-col shadow-xl shadow-bg-subtle ${
+                    color === 'primary' ? 'border-primary/20 hover:border-primary' :
                     color === 'secondary' ? 'border-secondary/20 hover:border-secondary' :
                       'border-warning/20 hover:border-warning'
                     } ${plan.id === urlPlanId ? 'ring-4 ring-amber-500/30' : ''}`}
@@ -313,45 +334,22 @@ export default function SubscriptionPage() {
                     </span>
                   </div>
 
-                  {plan.type === 'PERCENTAGE' ? (
-                    <div className="space-y-4 mb-8 flex-grow">
-                      {[
-                        { title: "Unlimited Cases", sub: "Handle as many cases as your business needs." },
-                        { title: "Up to 5 Team Members", sub: "Collaborate with your team in a single workspace." },
-                        { title: "24/7 Priority Support", sub: "Get fast assistance whenever you need it." },
-                        { title: "Custom Sales Page", sub: "Create a fully branded sales experience." },
-                        { title: "Advanced AI Integration", sub: "Automate workflows with powerful AI features." },
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-start gap-3">
-                          <RiCheckDoubleLine className={`text-xl mt-0.5 flex-shrink-0 ${color === 'primary' ? 'text-primary' :
-                            color === 'secondary' ? 'text-secondary' :
-                              'text-warning'
-                            }`} />
-                          <div>
-                            <span className="text-sm font-black text-text">{item.title}</span>
-                            <span className="text-xs text-text-muted font-medium block leading-snug">{item.sub}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-sm text-text-muted font-medium mb-8 flex-grow leading-relaxed">
-                        {normalizePlanDescription(plan.description, plan.type)}
-                      </p>
-                      <div className="space-y-4 mb-10">
-                        {(plan.features || []).map((f, i) => (
-                          <div key={i} className="flex items-center gap-3 text-sm font-bold text-text/80">
-                            <RiCheckDoubleLine className={`text-xl ${color === 'primary' ? 'text-primary' :
-                              color === 'secondary' ? 'text-secondary' :
-                                'text-warning'
-                              }`} />
-                            {f}
-                          </div>
-                        ))}
+                  <p className="text-sm text-text-muted font-medium mb-8 flex-grow leading-relaxed">
+                    {normalizePlanDescription(plan.description, plan.type)}
+                  </p>
+
+                  <div className="space-y-4 mb-10">
+                    {(plan.features || []).map((f, i) => (
+                      <div key={i} className="flex items-center gap-3 text-sm font-bold text-text/80">
+                        <RiCheckDoubleLine className={`text-xl ${
+                          color === 'primary' ? 'text-primary' :
+                          color === 'secondary' ? 'text-secondary' :
+                          'text-warning'
+                        }`} />
+                        {f}
                       </div>
-                    </>
-                  )}
+                    ))}
+                  </div>
 
                   <button
                     onClick={() => handleSelectPlan(plan)}

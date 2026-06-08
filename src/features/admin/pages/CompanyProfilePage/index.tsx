@@ -357,11 +357,11 @@ export default function CompanyProfilePage() {
                   <div className="flex items-center gap-3">
                     <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm text-text hover:bg-bg-subtle transition-colors">
                       {isUploadingLogo ? <Loader2 className="animate-spin h-4 w-4" /> : <RiUploadLine className="h-4 w-4" />}
-                      {isUploadingLogo ? "Uploading..." : (office.logo_url || office.landing_page_config?.logoUrl) ? "Trocar Logo" : "Upload Logo"}
+                      {isUploadingLogo ? "Uploading..." : (office.logo_url || office.landing_page_config?.logoUrl) ? "Change Logo" : "Upload Logo"}
                       <input type="file" accept="image/*" className="hidden" onChange={handleLogoSelected} disabled={isUploadingLogo} />
                     </label>
                     {(office.logo_url || office.landing_page_config?.logoUrl) && (
-                      <span className="text-xs text-success font-bold">✓ Logo salva</span>
+                      <span className="text-xs text-success font-bold">✓ Logo saved</span>
                     )}
                   </div>
                 </div>
@@ -375,7 +375,7 @@ export default function CompanyProfilePage() {
                   onChange={(e) => {
                     setOffice({ ...office, name: e.target.value });
                   }}
-                  placeholder="Ex: Silva & Associados"
+                  placeholder="e.g., Smith & Associates"
                   className={`rounded-xl border-border bg-bg-subtle ${getTourClass("companyName")}`}
                   required
                 />
@@ -397,7 +397,7 @@ export default function CompanyProfilePage() {
                     if (slugConflict) setSlugConflict(null);
                   }}
                   onBlur={() => { void checkOfficeSlugConflict(office.slug || office.name, office.id); }}
-                  placeholder="silva-associados"
+                  placeholder="smith-associates"
                   className={`rounded-xl border-border bg-bg-subtle ${getTourClass("companySlug")}`}
                   required
                 />
@@ -420,7 +420,7 @@ export default function CompanyProfilePage() {
                       cnpj: e.target.value.replace(/\D/g, "").slice(0, 14),
                     })
                   }
-                  placeholder="00.000.000/0000-00"
+                  placeholder={t.companyProfile.sections.general.cnpjPlaceholder || "00.000.000/0000-00"}
                   className={`rounded-xl border-border bg-bg-subtle ${getTourClass("cnpj")}`}
                 />
               </div>
@@ -433,7 +433,7 @@ export default function CompanyProfilePage() {
                     id="address"
                     value={office.address || ""}
                     onChange={(e) => setOffice({ ...office, address: e.target.value })}
-                    placeholder="Street, Number, District, City - State"
+                    placeholder={t.companyProfile.sections.general.addressPlaceholder || "Street, Number, District, City - State"}
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("address")}`}
                   />
                 </div>
@@ -466,7 +466,7 @@ export default function CompanyProfilePage() {
                     type="email"
                     value={office.email || ""}
                     onChange={(e) => setOffice({ ...office, email: e.target.value })}
-                    placeholder="contato@escritorio.com"
+                    placeholder="contact@office.com"
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("email")}`}
                   />
                 </div>
@@ -480,7 +480,7 @@ export default function CompanyProfilePage() {
                     id="phone"
                     value={office.phone || ""}
                     onChange={(e) => setOffice({ ...office, phone: e.target.value })}
-                    placeholder="+55 (00) 00000-0000"
+                    placeholder={t.companyProfile.sections.contact.phonePlaceholder || "+55 (00) 00000-0000"}
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("phone")}`}
                   />
                 </div>
@@ -494,7 +494,7 @@ export default function CompanyProfilePage() {
                     id="website"
                     value={office.website || ""}
                     onChange={(e) => setOffice({ ...office, website: e.target.value })}
-                    placeholder="https://www.meusite.com"
+                    placeholder="https://www.mywebsite.com"
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("website")}`}
                   />
                 </div>
@@ -524,7 +524,7 @@ export default function CompanyProfilePage() {
                     id="instagram"
                     value={office.instagram_url || ""}
                     onChange={(e) => setOffice({ ...office, instagram_url: e.target.value })}
-                    placeholder="@seuusuario"
+                    placeholder="@yourusername"
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("instagram")}`}
                   />
                 </div>
@@ -538,7 +538,7 @@ export default function CompanyProfilePage() {
                     id="linkedin"
                     value={office.linkedin_url || ""}
                     onChange={(e) => setOffice({ ...office, linkedin_url: e.target.value })}
-                    placeholder="linkedin.com/company/seu-escritorio"
+                    placeholder="linkedin.com/company/your-office"
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("linkedin")}`}
                   />
                 </div>
@@ -552,7 +552,7 @@ export default function CompanyProfilePage() {
                     id="facebook"
                     value={office.facebook_url || ""}
                     onChange={(e) => setOffice({ ...office, facebook_url: e.target.value })}
-                    placeholder="facebook.com/seu-escritorio"
+                    placeholder="facebook.com/your-office"
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("facebook")}`}
                   />
                 </div>

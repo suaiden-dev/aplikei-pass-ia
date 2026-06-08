@@ -187,7 +187,10 @@ export function COSStepContent({
   }
 
   if (isStep('cos_i20_upload') && proc && user) {
-    if (targetVisa !== 'F1') {
+    const isF1 = 
+      (targetVisa && (targetVisa.toUpperCase().includes('F1') || targetVisa.toUpperCase().includes('F-1'))) ||
+      (currentVisa && (currentVisa.toUpperCase().includes('F1') || currentVisa.toUpperCase().includes('F-1')));
+    if (!isF1) {
       return (
         <COSProcessingFallbackStep
           title={serviceTitle}
@@ -211,7 +214,11 @@ export function COSStepContent({
   }
 
   if (isStep('cos_sevis_fee') && proc && user) {
-    if (targetVisa !== 'F1') {
+    const isF1 = 
+      (targetVisa && (targetVisa.toUpperCase().includes('F1') || targetVisa.toUpperCase().includes('F-1'))) ||
+      (currentVisa && (currentVisa.toUpperCase().includes('F1') || currentVisa.toUpperCase().includes('F-1')));
+    
+    if (!isF1 && currentStepId !== 'eos_uscis_fee') {
       return (
         <COSProcessingFallbackStep
           title={serviceTitle}
@@ -222,11 +229,16 @@ export function COSStepContent({
 
     return (
       <StepShell
-        title={t.cos.sevisFee.title}
-        description={t.cos.sevisFee.desc}
+        title={serviceTitle || t.cos.sevisFee.title}
+        description={serviceDescription || t.cos.sevisFee.desc}
         className="px-8 py-6 pb-24"
       >
-        <SevisFeeStep proc={proc} user={user} onComplete={onComplete} />
+        <SevisFeeStep 
+          proc={proc} 
+          user={user} 
+          onComplete={onComplete} 
+          isUSCIS={currentStepId === 'eos_uscis_fee'}
+        />
       </StepShell>
     )
   }

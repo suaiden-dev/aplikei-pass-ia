@@ -2,16 +2,16 @@ import { useState, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import {
-  RiSearchLine,
-  RiTimeLine,
-  RiArrowUpSLine,
-  RiArrowDownSLine,
-  RiExpandUpDownLine,
-  RiShoppingBag3Line,
-  RiInformationLine,
-  RiUser3Line,
-  RiBuilding2Line,
-  RiMoneyDollarCircleLine,
+    RiSearchLine,
+    RiTimeLine,
+    RiArrowUpSLine,
+    RiArrowDownSLine,
+    RiExpandUpDownLine,
+    RiShoppingBag3Line,
+    RiInformationLine,
+    RiUser3Line,
+    RiBuilding2Line,
+    RiMoneyDollarCircleLine,
 } from "react-icons/ri";
 import { supabase } from "@shared/lib/supabase";
 import * as paymentService from "@features/payments/lib/paymentOps";
@@ -27,30 +27,29 @@ import { useAuth } from "@shared/hooks/useAuth";
 type Tab = "zelle" | "office_requests" | "approved_payments";
 
 interface UnifiedPayment {
-  id: string;
-  source: "zelle" | "stripe" | "order" | "withdrawal";
-  clientName: string;
-  clientEmail: string;
-  serviceName: string;
-  serviceSlug: string;
-  amount: number;
-  officeNetAmount?: number;
-  platformFeeAmount?: number;
-  processingFeeAmount?: number;
-  method: string;
-  createdAt: string;
-  officeName?: string;
-  officeId?: string;
-  status: string;
-  // Zelle-only
-  zelleId?: string;
-  proofUrl?: string | null;
-  confirmationCode?: string | null;
-  adminNotes?: string | null;
-  paymentLink?: string | null;
-  reviewedByName?: string | null;
-  zelleName?: string | null;
-  zelleIdentifier?: string | null;
+    id: string;
+    source: "zelle" | "stripe" | "order" | "withdrawal";
+    clientName: string;
+    clientEmail: string;
+    serviceName: string;
+    serviceSlug: string;
+    amount: number;
+    officeNetAmount?: number;
+    platformFeeAmount?: number;
+    method: string;
+    createdAt: string;
+    officeName?: string;
+    officeId?: string;
+    status: string;
+    // Zelle-only
+    zelleId?: string;
+    proofUrl?: string | null;
+    confirmationCode?: string | null;
+    adminNotes?: string | null;
+    paymentLink?: string | null;
+    reviewedByName?: string | null;
+    zelleName?: string | null;
+    zelleIdentifier?: string | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -182,7 +181,6 @@ function DetailModal({
               )}
             </div>
           )}
-
           {payment.source === "withdrawal" && payment.method.toLowerCase() === "zelle" && (
             <div className="p-4 rounded-2xl bg-info/5 border border-info/10 space-y-2">
               <p className="text-[10px] font-black text-info uppercase tracking-widest">Zelle do advogado</p>
@@ -605,13 +603,13 @@ export default function RevenuePage() {
       toast.success(t.payments.messages.updateStatusSuccess.replace("{{status}}", status));
       setSelectedPayment(null);
       await load();
-    } catch (err: unknown) {
+    } catch (err) {
+      console.error(err);
       let detail = "";
-      const context = (err as { context?: unknown })?.context;
-      if (typeof Response !== "undefined" && context instanceof Response) {
+      if (err instanceof Error) {
         try {
-          const body = await context.clone().json() as { error?: string; message?: string };
-          detail = body?.error || body?.message || "";
+          const body = JSON.parse(err.message);
+          detail = body?.error || "";
         } catch {
           detail = "";
         }
@@ -662,9 +660,361 @@ export default function RevenuePage() {
     if (!search) return true;
     const q = search.toLowerCase();
     return (
-      p.clientName.toLowerCase().includes(q) ||
-      p.officeName?.toLowerCase().includes(q) ||
-      p.serviceName.toLowerCase().includes(q)
+        <div className="p-4 sm:p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-700">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="text-left">
+                    <h1 className="text-3xl font-black text-text tracking-tighter uppercase">{t.payments.title}</h1>
+                    <p className="text-text-muted font-medium mt-1">{t.payments.subtitle}</p>
+                </div>
+
+                <div className="relative w-full md:w-96">
+                    <RiSearchLine className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-lg" />
+                    <input
+                        type="text"
+                        placeholder={t.payments.searchPlaceholder}
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full h-12 pl-12 pr-4 rounded-2xl border border-border bg-card text-sm font-medium focus:border-primary transition-all outline-none"
+                    />
+                </div>
+            </div>
+
+            {isAdminLawyer ? (
+                <div className="border-b border-border pb-4">
+                    <p className="text-sm font-black uppercase tracking-widest text-primary">
+                        {"Payments"}
+                    </p>
+                </div>
+            ) : (
+                <div className="flex flex-wrap items-end gap-6 border-b border-border">
+                    <button
+                        onClick={() => setTab("zelle")}
+                        className={cn(
+                            "pb-4 text-sm font-black uppercase tracking-widest transition-all relative",
+                            tab === "zelle" ? "text-primary" : "text-text-muted hover:text-text"
+                        )}
+                    >
+                        {t.payments?.tabs?.pending || "Payment Pending"}
+                        {tab === "zelle" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
+                    </button>
+                    {canAccessOfficeRequests && (
+                        <button
+                            onClick={() => setTab("office_requests")}
+                            className={cn(
+                                "pb-4 text-sm font-black uppercase tracking-widest transition-all relative",
+                                tab === "office_requests" ? "text-primary" : "text-text-muted hover:text-text"
+                            )}
+                        >
+                            {t.payments?.tabs?.officeRequests || "Withdrawal Requests"}
+                            {tab === "office_requests" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
+                        </button>
+                    )}
+                    <button
+                        onClick={() => setTab("approved_payments")}
+                        className={cn(
+                            "pb-4 text-sm font-black uppercase tracking-widest transition-all relative",
+                            tab === "approved_payments" ? "text-primary" : "text-text-muted hover:text-text"
+                        )}
+                    >
+                        {"Payments"}
+                        {tab === "approved_payments" && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />}
+                    </button>
+                </div>
+            )}
+
+            {tab === "office_requests" && canAccessOfficeRequests && (
+                <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Status</span>
+                        <select
+                            value={officeRequestStatusFilter}
+                            onChange={(e) => setOfficeRequestStatusFilter(e.target.value as typeof officeRequestStatusFilter)}
+                            className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wider"
+                        >
+                            <option value="all">All</option>
+                            <option value="pending">Pending approval</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Period</span>
+                        <select
+                            value={officeRequestPeriodFilter}
+                            onChange={(e) => setOfficeRequestPeriodFilter(e.target.value as typeof officeRequestPeriodFilter)}
+                            className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wider"
+                        >
+                            <option value="all">All time</option>
+                            <option value="7d">Last 7 days</option>
+                            <option value="30d">Last 30 days</option>
+                            <option value="90d">Last 90 days</option>
+                        </select>
+                    </div>
+
+                    <div className="md:ml-auto inline-flex items-center gap-2 px-3 h-10 rounded-xl border border-warning/20 bg-warning/10 text-warning text-xs font-black uppercase tracking-widest">
+                        Pending approval: {officePendingCount}
+                    </div>
+                </div>
+            )}
+            {tab === "approved_payments" && (
+                <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Status</span>
+                        <select
+                            value={paymentsStatusFilter}
+                            onChange={(e) => setPaymentsStatusFilter(e.target.value as typeof paymentsStatusFilter)}
+                            className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wider"
+                        >
+                            <option value="all">All</option>
+                            <option value="approved">Approved</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Period</span>
+                        <select
+                            value={paymentsPeriodFilter}
+                            onChange={(e) => setPaymentsPeriodFilter(e.target.value as typeof paymentsPeriodFilter)}
+                            className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wider"
+                        >
+                            <option value="all">All time</option>
+                            <option value="7d">Last 7 days</option>
+                            <option value="30d">Last 30 days</option>
+                            <option value="90d">Last 90 days</option>
+                        </select>
+                    </div>
+                </div>
+            )}
+
+            <div className="bg-card rounded-[32px] border border-border shadow-sm overflow-hidden">
+                <div className="overflow-x-auto min-h-[400px]">
+                    {isLoading ? (
+                        <div className="flex items-center justify-center py-20">
+                            <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                        </div>
+                    ) : filtered.length === 0 ? (
+                        <div className="py-20 text-center text-text-muted font-bold">
+                            {t.payments.table.noResults}
+                        </div>
+                    ) : (
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-border bg-bg-subtle/50">
+                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.payments.table.customer}</th>
+                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.offices.table.office}</th>
+                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.payments.table.serviceName}</th>
+                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.payments.table.payment}</th>
+                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">Date & Time</th>
+                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">Method</th>
+                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                                {paginated.map((p) => (
+                                    <tr key={p.id} className="hover:bg-bg-subtle/30 transition-colors text-left">
+                                        <td className="px-6 py-5">
+                                            <div>
+                                                <p className="text-sm font-black text-text">{p.clientName}</p>
+                                                <p className="text-[11px] text-text-muted font-medium">{p.clientEmail}</p>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-2">
+                                                <RiBuilding2Line className="text-text-muted" />
+                                                <span className="text-xs font-bold text-text-muted uppercase tracking-tight">{p.officeName || "UNASSIGNED OFFICE"}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <span className="inline-flex px-2 py-1 rounded-lg bg-primary/5 border border-primary/10 text-[10px] font-black text-primary uppercase tracking-widest">
+                                                {p.serviceName}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            {(() => {
+                                                const normalizedStatus = String(p.status || "").toLowerCase();
+                                                const isApprovedStatus = ["paid", "approved", "complete", "completed", "succeeded"].includes(normalizedStatus);
+                                                const isRejectedStatus = ["rejected", "cancelled", "canceled", "failed"].includes(normalizedStatus);
+                                                const statusClass = isApprovedStatus
+                                                    ? "text-success"
+                                                    : isRejectedStatus
+                                                        ? "text-danger"
+                                                        : "text-warning";
+                                                return (
+                                                    <>
+                                            {isMaster && tab === "approved_payments" ? (
+                                                <>
+                                                    <p className="text-[11px] font-black text-text">
+                                                        Cliente: {fmtCurrency(p.amount)}
+                                                    </p>
+                                                    <p className="text-[10px] font-bold text-primary">
+                                                        Recebido: {fmtCurrency(Number(p.officeNetAmount ?? p.amount))}
+                                                    </p>
+                                                    <p className="text-[10px] font-bold text-success">
+                                                        Taxa/Lucro: {fmtCurrency(Number(p.platformFeeAmount ?? 0))}
+                                                    </p>
+                                                    <p className={cn(
+                                                        "text-[9px] font-black uppercase tracking-tighter",
+                                                        statusClass
+                                                    )}>
+                                                        {p.status}
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <p className="text-sm font-black text-text">{fmtCurrency(p.amount)}</p>
+                                                    <p className={cn(
+                                                        "text-[9px] font-black uppercase tracking-tighter",
+                                                        statusClass
+                                                    )}>
+                                                        {p.status}
+                                                    </p>
+                                                </>
+                                            )}
+                                                    </>
+                                                );
+                                            })()}
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <p className="text-xs font-bold text-text">
+                                                {new Date(p.createdAt).toLocaleDateString("en-US")}
+                                            </p>
+                                            <p className="text-[10px] font-medium text-text-muted">
+                                                {new Date(p.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                                            </p>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <span className="text-[10px] font-black text-text-muted uppercase tracking-widest bg-bg-subtle px-2 py-1 rounded-lg">
+                                                {p.method}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-5 text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 rounded-xl border-border px-3 font-bold text-[11px] uppercase tracking-wider inline-flex items-center gap-1.5"
+                                                    onClick={() => setSelectedPayment(p)}
+                                                >
+                                                    <RiInformationLine className="text-sm" />
+                                                    {t.payments.table.detailsBtn}
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+                {!isLoading && filtered.length > 0 && (
+                    <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-border bg-bg-subtle/30">
+                        <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                            {`Mostrando ${pageStart + 1}-${Math.min(pageEnd, filtered.length)} de ${filtered.length}`}
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 px-3 rounded-xl border-border text-[11px] font-bold uppercase tracking-wider"
+                                disabled={safeCurrentPage <= 1}
+                                onClick={() =>
+                                    setPageByTab((prev) => ({
+                                        ...prev,
+                                        [tab]: Math.max(1, safeCurrentPage - 1),
+                                    }))
+                                }
+                            >
+                                Anterior
+                            </Button>
+                            <span className="text-[11px] font-black text-text uppercase tracking-wider px-2">
+                                {`Página ${safeCurrentPage} de ${totalPages}`}
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 px-3 rounded-xl border-border text-[11px] font-bold uppercase tracking-wider"
+                                disabled={safeCurrentPage >= totalPages}
+                                onClick={() =>
+                                    setPageByTab((prev) => ({
+                                        ...prev,
+                                        [tab]: Math.min(totalPages, safeCurrentPage + 1),
+                                    }))
+                                }
+                            >
+                                Próxima
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <AnimatePresence>
+                {selectedPayment && (
+                    <DetailModal
+                        payment={selectedPayment}
+                        onClose={() => setSelectedPayment(null)}
+                        onApprove={
+                            tab === "zelle" &&
+                                selectedPayment.source === "zelle" &&
+                                String(selectedPayment.status).toLowerCase() === "pending_verification"
+                                ? () => void handleApproveZelle(selectedPayment)
+                                : tab === "office_requests" &&
+                                    selectedPayment.source === "withdrawal" &&
+                                    String(selectedPayment.status).toLowerCase() === "pending"
+                                    ? () => void handleUpdateWithdrawalStatus(selectedPayment.id, "approved")
+                                    : undefined
+                        }
+                        onReject={
+                            tab === "zelle" &&
+                                selectedPayment.source === "zelle" &&
+                                String(selectedPayment.status).toLowerCase() === "pending_verification"
+                                ? () => void handleRejectZelle(selectedPayment)
+                                : tab === "office_requests" &&
+                                    selectedPayment.source === "withdrawal" &&
+                                    String(selectedPayment.status).toLowerCase() === "pending"
+                                    ? () => void handleUpdateWithdrawalStatus(selectedPayment.id, "rejected")
+                                    : undefined
+                        }
+                        onPay={
+                            tab === "office_requests" &&
+                                selectedPayment.source === "withdrawal" &&
+                                !!selectedPayment.paymentLink
+                                ? () => setConfirmPayLink(normalizeExternalUrl(selectedPayment.paymentLink || ""))
+                                : undefined
+                        }
+                        busy={!!busy}
+                    />
+                )}
+            </AnimatePresence>
+            <Dialog open={!!confirmPayLink} onOpenChange={(open) => { if (!open) setConfirmPayLink(null); }}>
+                <DialogContent className="max-w-md border-border bg-card">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-black text-text uppercase">
+                            Confirmar pagamento
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-text-muted">
+                            Você está prestes a abrir o link de pagamento. Deseja continuar?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2">
+                        <Button variant="outline" onClick={() => setConfirmPayLink(null)}>
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                if (confirmPayLink) window.open(confirmPayLink, "_blank", "noopener,noreferrer");
+                                setConfirmPayLink(null);
+                            }}
+                            className="bg-primary text-white hover:bg-primary/90"
+                        >
+                            Confirmar e abrir
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
     );
   });
 
