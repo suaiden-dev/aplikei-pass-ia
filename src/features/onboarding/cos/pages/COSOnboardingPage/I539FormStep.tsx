@@ -20,6 +20,7 @@ import {
   MdSecurity,
 } from "react-icons/md";
 import { StepTimeline } from "@shared/components/organisms/StepTimeline";
+import { HelpCircle } from "lucide-react";
 import { Form, Formik, getIn, useField, useFormikContext } from "formik";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/components/atoms/tooltip";
@@ -145,15 +146,15 @@ function Field({ label, required, name, children, tooltip }: { label: string; re
         <label htmlFor={name} className="flex items-center gap-1.5 block text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none">
           {label}{required && <span className="text-red-500 ml-1">*</span>}
           {tooltip && (
-            <TooltipProvider>
+            <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button type="button" className="text-slate-300 hover:text-primary transition-colors cursor-help">
-                    <RiInformationLine className="text-sm" />
+                  <button type="button" className="text-text-muted hover:text-text focus:outline-none transition-colors" tabIndex={-1}>
+                    <HelpCircle size={14} className="inline-block" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-[200px] text-[10px] font-bold py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
-                  <p>{tooltip}</p>
+                <TooltipContent className="max-w-[240px] text-xs bg-popover text-popover-foreground border border-border p-2 shadow-md z-50">
+                  {tooltip}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

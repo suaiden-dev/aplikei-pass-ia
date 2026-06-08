@@ -3,12 +3,13 @@ import { useFormikContext, Field, ErrorMessage } from "formik";
 import type { DS160FormValues } from "@features/onboarding/b1b2/schemas/ds160.schema";
 import { useT, useLocale } from "@app/app/i18n";
 import { maskCPF } from "@shared/utils/cpf";
+import { HelpCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/components/atoms/tooltip";
-import { RiInformationLine } from "react-icons/ri";
 
 type VisasOnboardingFormText = {
   onboardingPage: {
     form: Record<string, string>;
+    tooltips?: Record<string, string>;
   };
 };
 
@@ -61,7 +62,28 @@ const US_STATE_CODES = [
   "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC",
 ];
 
+// DS-160 tooltips are dynamically loaded from visas translation files (t.onboardingPage.tooltips)
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
+
+const FieldTooltip = ({ content }: { content: string }) => {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className="text-text-muted hover:text-text focus:outline-none transition-colors"
+          tabIndex={-1}
+        >
+          <HelpCircle size={14} className="inline-block" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-[240px] text-xs bg-popover text-popover-foreground border border-border p-2 shadow-md z-50">
+        {content}
+      </TooltipContent>
+    </Tooltip>
+  );
+};
 
 const FieldError = ({ name }: { name: string }) => (
   <ErrorMessage name={name}>
@@ -102,23 +124,12 @@ const FormInput = ({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="flex items-center gap-1.5 block text-xs font-bold text-text-muted uppercase tracking-wider">
-        <span>{label} {required && <span className="text-primary">*</span>}</span>
-        {activeTooltip && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
-                  <RiInformationLine className="text-sm" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
-                <p>{activeTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </label>
+      <div className="flex items-center gap-1.5">
+        <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+          {label} {required && <span className="text-primary">*</span>}
+        </label>
+        {tooltip && <FieldTooltip content={tooltip} />}
+      </div>
       <Field name={name}>
         {({ field }: any) => (
           <input
@@ -185,23 +196,12 @@ const FormNumericInput = ({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="flex items-center gap-1.5 block text-xs font-bold text-text-muted uppercase tracking-wider">
-        <span>{label} {required && <span className="text-primary">*</span>}</span>
-        {activeTooltip && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
-                  <RiInformationLine className="text-sm" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
-                <p>{activeTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </label>
+      <div className="flex items-center gap-1.5">
+        <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+          {label} {required && <span className="text-primary">*</span>}
+        </label>
+        {tooltip && <FieldTooltip content={tooltip} />}
+      </div>
       <div className="flex gap-2">
         <div className="relative flex-1">
           {isCurrency && (
@@ -370,23 +370,12 @@ const FormUSZipLookupInput = ({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="flex items-center gap-1.5 block text-xs font-bold text-text-muted uppercase tracking-wider">
-        <span>{label} {required && <span className="text-primary">*</span>}</span>
-        {activeTooltip && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
-                  <RiInformationLine className="text-sm" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
-                <p>{activeTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </label>
+      <div className="flex items-center gap-1.5">
+        <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+          {label} {required && <span className="text-primary">*</span>}
+        </label>
+        {tooltip && <FieldTooltip content={tooltip} />}
+      </div>
       <Field name={name}>
         {({ field, form }: any) => (
           <input
@@ -445,23 +434,12 @@ const FormTextarea = ({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="flex items-center gap-1.5 block text-xs font-bold text-text-muted uppercase tracking-wider">
-        <span>{label} {required && <span className="text-primary">*</span>}</span>
-        {activeTooltip && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
-                  <RiInformationLine className="text-sm" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
-                <p>{activeTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </label>
+      <div className="flex items-center gap-1.5">
+        <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+          {label} {required && <span className="text-primary">*</span>}
+        </label>
+        {tooltip && <FieldTooltip content={tooltip} />}
+      </div>
       <Field
         as="textarea"
         id={name}
@@ -499,23 +477,12 @@ const FormSelect = ({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={name} className="flex items-center gap-1.5 block text-xs font-bold text-text-muted uppercase tracking-wider">
-        <span>{label} {required && <span className="text-primary">*</span>}</span>
-        {activeTooltip && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
-                  <RiInformationLine className="text-sm" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
-                <p>{activeTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </label>
+      <div className="flex items-center gap-1.5">
+        <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+          {label} {required && <span className="text-primary">*</span>}
+        </label>
+        {tooltip && <FieldTooltip content={tooltip} />}
+      </div>
       <Field
         as="select"
         id={name}
@@ -556,25 +523,16 @@ const YesNo = ({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-1.5">
-        <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
-          {label} {required && <span className="text-primary">*</span>}
-        </p>
-        {activeTooltip && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
-                  <RiInformationLine className="text-sm" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
-                <p>{activeTooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
+      {(label || tooltip) && (
+        <div className="flex items-center gap-1.5">
+          {label && (
+            <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
+              {label} {required && <span className="text-primary">*</span>}
+            </p>
+          )}
+          {tooltip && <FieldTooltip content={tooltip} />}
+        </div>
+      )}
       <div role="group" className="flex gap-3">
         <label className="flex-1 cursor-pointer">
           <Field type="radio" name={name} value="sim" className="sr-only peer" />
@@ -622,20 +580,7 @@ const RadioGroup = ({
           <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
             {label} {required && <span className="text-primary">*</span>}
           </p>
-          {activeTooltip && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button type="button" className="text-text-muted/40 hover:text-primary transition-colors cursor-help">
-                    <RiInformationLine className="text-sm" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-[250px] text-xs font-medium py-2 px-3 bg-slate-800 text-white border-none shadow-xl transform-none !slide-in-from-top-0 !zoom-in-100">
-                  <p>{activeTooltip}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+          {tooltip && <FieldTooltip content={tooltip} />}
         </div>
       )}
       <div role="group" className="flex flex-wrap gap-3">
@@ -686,6 +631,7 @@ export const DS160SingleFormStep = ({
   const [usZipLookupState, setUsZipLookupState] = useState<"idle" | "searching" | "found" | "not_found" | "error">("idle");
   const [usZipPlaces, setUsZipPlaces] = useState<Array<{ city: string; state: string }>>([]);
   const t = useT('visas') as VisasOnboardingFormText
+  const DS160_FIELD_TOOLTIPS = t.onboardingPage.tooltips || {};
   const usZipDigits = String(values.usStayZip || "").replace(/\D/g, "");
   const shouldDisableUsAddressFields = usZipDigits.length < 5;
   const usCitySuggestions = Array.from(new Set(usZipPlaces.map((p) => p.city).filter(Boolean)));
@@ -694,9 +640,12 @@ export const DS160SingleFormStep = ({
   const sections = [
     <Section key="interview" title={`📍 ${t.onboardingPage.form.interviewLocationTitle}`} subtitle={t.onboardingPage.form.interviewLocationSubtitle}>
       <div className="space-y-2">
-        <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
-          {t.onboardingPage.form.interviewLocationLabel} <span className="text-primary">*</span>
-        </p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
+            {t.onboardingPage.form.interviewLocationLabel} <span className="text-primary">*</span>
+          </p>
+          <FieldTooltip content={DS160_FIELD_TOOLTIPS.interviewLocation || "Local onde você fará a entrevista presencial no Consulado Americano."} />
+        </div>
         <div role="group" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {["Brasilia", "Rio de Janeiro", "São Paulo", "Recife", "Porto Alegre"].map((city) => (
             <label key={city} className="cursor-pointer">
@@ -711,8 +660,8 @@ export const DS160SingleFormStep = ({
       </div>
     </Section>,
 
-    <Section key="personal" title={`👤 ${t.onboardingPage.form.personalInfoTitle}`} subtitle={t.onboardingPage.form.personalInfoSubtitle}>
-      <YesNo name="isBrazilian" label={t.onboardingPage.form.isBrazilian} required />
+    <Section key="personal" title={t.onboardingPage.form.personalInfoTitle} subtitle={t.onboardingPage.form.personalInfoSubtitle}>
+      <YesNo name="isBrazilian" label={t.onboardingPage.form.isBrazilian} required tooltip={DS160_FIELD_TOOLTIPS.isBrazilian} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <FormInput
@@ -720,12 +669,14 @@ export const DS160SingleFormStep = ({
           label={t.onboardingPage.form.surnameLabel}
           placeholder="Ex: Silva"
           required
+          tooltip={DS160_FIELD_TOOLTIPS.surname}
         />
         <FormInput
           name="givenName"
           label={t.onboardingPage.form.givenNameLabel}
           placeholder="Ex: João"
           required
+          tooltip={DS160_FIELD_TOOLTIPS.givenName}
         />
       </div>
 
@@ -733,12 +684,14 @@ export const DS160SingleFormStep = ({
         name="fullNameNativeAlphabet"
         label={t.onboardingPage.form.fullNameNativeAlphabetLabel}
         placeholder="Nome completo no alfabeto nativo"
+        tooltip={DS160_FIELD_TOOLTIPS.fullNameNativeAlphabet}
       />
 
       <YesNo
         name="hasTelecodeForName"
         label={t.onboardingPage.form.hasTelecodeForNameLabel}
         required
+        tooltip={DS160_FIELD_TOOLTIPS.hasTelecodeForName}
       />
 
       <FormInput
@@ -746,13 +699,14 @@ export const DS160SingleFormStep = ({
         label={t.onboardingPage.form.maternalGrandmotherNameLabel}
         placeholder="Ex: Maria Silva"
         required
+        tooltip={DS160_FIELD_TOOLTIPS.maternalGrandmotherName}
       />
 
-      <FormInput name="fullName" label={t.onboardingPage.form.fullNameLabel} placeholder="Ex: João da Silva" required tooltip={(t as any).ds160?.personal1?.fullNameHelper} />
+      <FormInput name="fullName" label={t.onboardingPage.form.fullNameLabel} placeholder="Ex: João da Silva" required tooltip={DS160_FIELD_TOOLTIPS.fullName} />
 
-      <YesNo name="hasOtherNames" label={t.onboardingPage.form.hasOtherNames} required />
+      <YesNo name="hasOtherNames" label={t.onboardingPage.form.hasOtherNames} required tooltip={DS160_FIELD_TOOLTIPS.hasOtherNames} />
       {values.hasOtherNames === "sim" && (
-        <FormInput name="otherNames" label={t.onboardingPage.form.whatName} required />
+        <FormInput name="otherNames" label={t.onboardingPage.form.whatName} required tooltip={DS160_FIELD_TOOLTIPS.otherNames} />
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -760,6 +714,7 @@ export const DS160SingleFormStep = ({
           name="gender"
           label={t.onboardingPage.form.genderLabel}
           required
+          tooltip={DS160_FIELD_TOOLTIPS.gender}
           options={[
             { value: "masculino", label: t.onboardingPage.form.genderMale },
             { value: "feminino", label: t.onboardingPage.form.genderFemale },
@@ -769,6 +724,7 @@ export const DS160SingleFormStep = ({
           name="maritalStatus"
           label={t.onboardingPage.form.maritalStatusLabel}
           required
+          tooltip={DS160_FIELD_TOOLTIPS.maritalStatus}
           options={[
             { value: "solteiro", label: t.onboardingPage.form.maritalSingle },
             { value: "casado", label: t.onboardingPage.form.maritalMarried },
@@ -781,22 +737,22 @@ export const DS160SingleFormStep = ({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <FormInput name="birthDate" label={t.onboardingPage.form.birthDateLabel} type="date" required />
-        <FormInput name="birthCity" label={t.onboardingPage.form.birthCityLabel} placeholder={t.onboardingPage.form.birthCityPlaceholder} required />
-        <FormInput name="birthState" label={t.onboardingPage.form.birthStateLabel} placeholder={t.onboardingPage.form.birthStatePlaceholder} required />
-        <FormInput name="birthCountry" label={t.onboardingPage.form.birthCountryLabel} placeholder={t.onboardingPage.form.birthCountryPlaceholder} required />
+        <FormInput name="birthDate" label={t.onboardingPage.form.birthDateLabel} type="date" required tooltip={DS160_FIELD_TOOLTIPS.birthDate} />
+        <FormInput name="birthCity" label={t.onboardingPage.form.birthCityLabel} placeholder={t.onboardingPage.form.birthCityPlaceholder} required tooltip={DS160_FIELD_TOOLTIPS.birthCity} />
+        <FormInput name="birthState" label={t.onboardingPage.form.birthStateLabel} placeholder={t.onboardingPage.form.birthStatePlaceholder} required tooltip={DS160_FIELD_TOOLTIPS.birthState} />
+        <FormInput name="birthCountry" label={t.onboardingPage.form.birthCountryLabel} placeholder={t.onboardingPage.form.birthCountryPlaceholder} required tooltip={DS160_FIELD_TOOLTIPS.birthCountry} />
       </div>
     </Section>,
 
-    <Section key="nationality" title={`🪪 ${t.onboardingPage.form.nationalityIdentificationTitle}`}>
-      <YesNo name="hasOtherNationality" label={t.onboardingPage.form.hasOtherNationality} required />
+    <Section key="nationality" title={t.onboardingPage.form.nationalityIdentificationTitle}>
+      <YesNo name="hasOtherNationality" label={t.onboardingPage.form.hasOtherNationality} required tooltip={DS160_FIELD_TOOLTIPS.hasOtherNationality} />
       {values.hasOtherNationality === "sim" && (
-        <FormInput name="otherNationalityDetails" label={t.onboardingPage.form.otherNationalityDetailsLabel} placeholder={t.onboardingPage.form.otherNationalityDetailsPlaceholder} />
+        <FormInput name="otherNationalityDetails" label={t.onboardingPage.form.otherNationalityDetailsLabel} placeholder={t.onboardingPage.form.otherNationalityDetailsPlaceholder} tooltip={DS160_FIELD_TOOLTIPS.otherNationalityDetails} />
       )}
 
-      <YesNo name="hasOtherResidence" label={t.onboardingPage.form.hasOtherResidence} required />
+      <YesNo name="hasOtherResidence" label={t.onboardingPage.form.hasOtherResidence} required tooltip={DS160_FIELD_TOOLTIPS.hasOtherResidence} />
       {values.hasOtherResidence === "sim" && (
-        <FormInput name="otherResidenceCountry" label={t.onboardingPage.form.whatCountry} required />
+        <FormInput name="otherResidenceCountry" label={t.onboardingPage.form.whatCountry} required tooltip={DS160_FIELD_TOOLTIPS.otherResidenceCountry} />
       )}
 
       <div className="max-w-xs">
@@ -804,6 +760,7 @@ export const DS160SingleFormStep = ({
           name="cpf"
           label={t.onboardingPage.form.cpfLabel}
           placeholder={t.onboardingPage.form.cpfPlaceholder}
+          tooltip={DS160_FIELD_TOOLTIPS.cpf}
           onChange={(e) => setFieldValue("cpf", maskCPF(e.target.value))}
           tooltip={lang === "pt" ? "Insira seu CPF (Apenas se brasileiro)" : lang === "es" ? "Ingrese su CPF (Solo si es brasileño)" : "Enter your CPF (Only if Brazilian)"}
         />
@@ -812,16 +769,16 @@ export const DS160SingleFormStep = ({
 
     <Section key="passport" title={`🛂 ${t.onboardingPage.form.passportDataTitle}`}>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <FormInput name="passportNumber" label={t.onboardingPage.form.passportNumberLabel} required tooltip={(t as any).ds160?.passport?.numberHelper} />
-        <FormInput name="passportIssueDate" label={t.onboardingPage.form.passportIssueDateLabel} type="date" required />
-        <FormInput name="passportExpDate" label={t.onboardingPage.form.passportExpDateLabel} type="date" required />
+        <FormInput name="passportNumber" label={t.onboardingPage.form.passportNumberLabel} required tooltip={DS160_FIELD_TOOLTIPS.passportNumber} />
+        <FormInput name="passportIssueDate" label={t.onboardingPage.form.passportIssueDateLabel} type="date" required tooltip={DS160_FIELD_TOOLTIPS.passportIssueDate} />
+        <FormInput name="passportExpDate" label={t.onboardingPage.form.passportExpDateLabel} type="date" required tooltip={DS160_FIELD_TOOLTIPS.passportExpDate} />
       </div>
 
-      <YesNo name="lostPassport" label={t.onboardingPage.form.lostPassport} required />
+      <YesNo name="lostPassport" label={t.onboardingPage.form.lostPassport} required tooltip={DS160_FIELD_TOOLTIPS.lostPassport} />
       {values.lostPassport === "sim" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
-          <FormInput name="lostPassportNumber" label={t.onboardingPage.form.lostPassportNumberLabel} required />
-          <FormInput name="lostPassportExpanation" label={t.onboardingPage.form.briefExplanationLabel} placeholder={t.onboardingPage.form.briefExplanationPlaceholder} required />
+          <FormInput name="lostPassportNumber" label={t.onboardingPage.form.lostPassportNumberLabel} required tooltip={DS160_FIELD_TOOLTIPS.lostPassportNumber} />
+          <FormInput name="lostPassportExpanation" label={t.onboardingPage.form.briefExplanationLabel} placeholder={t.onboardingPage.form.briefExplanationPlaceholder} required tooltip={DS160_FIELD_TOOLTIPS.lostPassportExpanation} />
         </div>
       )}
     </Section>,
@@ -831,6 +788,7 @@ export const DS160SingleFormStep = ({
         name="travelPurpose"
         label={t.onboardingPage.form.travelPurposeLabel}
         required
+        tooltip={DS160_FIELD_TOOLTIPS.travelPurpose}
         options={[
           { value: "b2", label: t.onboardingPage.form.purposeTourism },
           { value: "b1", label: t.onboardingPage.form.purposeBusiness },
@@ -839,24 +797,24 @@ export const DS160SingleFormStep = ({
         ]}
       />
 
-      <YesNo name="specificTravelPlan" label={t.onboardingPage.form.specificTravelPlan} required />
+      <YesNo name="specificTravelPlan" label={t.onboardingPage.form.specificTravelPlan} required tooltip={DS160_FIELD_TOOLTIPS.specificTravelPlan} />
 
       {values.specificTravelPlan === "sim" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <FormInput name="arrivalDate" label={t.onboardingPage.form.arrivalDateLabel} type="date" required tooltip={(t as any).ds160?.travel?.arrivalHelper} />
-          <FormInput name="arrivalFlight" label={t.onboardingPage.form.arrivalFlightLabel} placeholder={t.onboardingPage.form.arrivalFlightPlaceholder} />
-          <FormInput name="arrivalCity" label={t.onboardingPage.form.arrivalCityLabel} required />
-          <FormInput name="placesToVisit" label={t.onboardingPage.form.placesToVisitLabel} placeholder={t.onboardingPage.form.placesToVisitPlaceholder} tooltip={(t as any).ds160?.travel?.visitHelper} />
-          <FormInput name="departureDate" label={t.onboardingPage.form.departureDateLabel} type="date" />
-          <FormInput name="departureFlight" label={t.onboardingPage.form.departureFlightLabel} />
-          <FormInput name="departureCity" label={t.onboardingPage.form.departureCityLabel} />
+          <FormInput name="arrivalDate" label={t.onboardingPage.form.arrivalDateLabel} type="date" required tooltip={DS160_FIELD_TOOLTIPS.arrivalDate} />
+          <FormInput name="arrivalFlight" label={t.onboardingPage.form.arrivalFlightLabel} placeholder={t.onboardingPage.form.arrivalFlightPlaceholder} tooltip={DS160_FIELD_TOOLTIPS.arrivalFlight} />
+          <FormInput name="arrivalCity" label={t.onboardingPage.form.arrivalCityLabel} required tooltip={DS160_FIELD_TOOLTIPS.arrivalCity} />
+          <FormInput name="placesToVisit" label={t.onboardingPage.form.placesToVisitLabel} placeholder={t.onboardingPage.form.placesToVisitPlaceholder} tooltip={DS160_FIELD_TOOLTIPS.placesToVisit} />
+          <FormInput name="departureDate" label={t.onboardingPage.form.departureDateLabel} type="date" tooltip={DS160_FIELD_TOOLTIPS.departureDate} />
+          <FormInput name="departureFlight" label={t.onboardingPage.form.departureFlightLabel} tooltip={DS160_FIELD_TOOLTIPS.departureFlight} />
+          <FormInput name="departureCity" label={t.onboardingPage.form.departureCityLabel} tooltip={DS160_FIELD_TOOLTIPS.departureCity} />
         </div>
       )}
 
       {values.specificTravelPlan === "nao" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <FormInput name="estArrivalDate" label={t.onboardingPage.form.estArrivalDateLabel} type="date" required tooltip={(t as any).ds160?.travel?.arrivalHelper} />
-          <FormInput name="estStayLength" label={t.onboardingPage.form.estStayLengthLabel} placeholder={t.onboardingPage.form.estStayLengthPlaceholder} />
+          <FormInput name="estArrivalDate" label={t.onboardingPage.form.estArrivalDateLabel} type="date" required tooltip={DS160_FIELD_TOOLTIPS.estArrivalDate} />
+          <FormInput name="estStayLength" label={t.onboardingPage.form.estStayLengthLabel} placeholder={t.onboardingPage.form.estStayLengthPlaceholder} tooltip={DS160_FIELD_TOOLTIPS.estStayLength} />
         </div>
       )}
 
@@ -869,6 +827,7 @@ export const DS160SingleFormStep = ({
             placeholder={t.onboardingPage.form.zipCodePlaceholder}
             onLookupStateChange={setUsZipLookupState}
             onZipPlacesResolved={setUsZipPlaces}
+            tooltip={DS160_FIELD_TOOLTIPS.usStayZip}
           />
           <div className="sm:col-span-2">
             <FormInput
@@ -877,7 +836,7 @@ export const DS160SingleFormStep = ({
               placeholder={t.onboardingPage.form.usStayNamePlaceholder}
               required
               disabled={shouldDisableUsAddressFields}
-              tooltip={(t as any).ds160?.travel?.stayHelper}
+              tooltip={DS160_FIELD_TOOLTIPS.usStayName}
             />
           </div>
           <div className="sm:col-span-2">
@@ -886,6 +845,7 @@ export const DS160SingleFormStep = ({
               label={t.onboardingPage.form.streetNumberLabel}
               required
               disabled={shouldDisableUsAddressFields}
+              tooltip={DS160_FIELD_TOOLTIPS.usStayStreet}
             />
           </div>
           <FormInput
@@ -894,6 +854,7 @@ export const DS160SingleFormStep = ({
             required
             disabled={shouldDisableUsAddressFields}
             datalistOptions={usCitySuggestions}
+            tooltip={DS160_FIELD_TOOLTIPS.usStayCity}
           />
           <FormInput
             name="usStayState"
@@ -902,6 +863,7 @@ export const DS160SingleFormStep = ({
             required
             disabled={shouldDisableUsAddressFields}
             datalistOptions={usStateSuggestions}
+            tooltip={DS160_FIELD_TOOLTIPS.usStayState}
           />
           {usZipDigits.length < 5 && (
             <p className="sm:col-span-2 text-[11px] font-semibold text-text-muted">
@@ -920,6 +882,7 @@ export const DS160SingleFormStep = ({
         name="payingTrip"
         label={t.onboardingPage.form.payingTripLabel}
         required
+        tooltip={DS160_FIELD_TOOLTIPS.payingTrip}
         options={[
           { value: "eu", label: t.onboardingPage.form.payingMe },
           { value: "outra_pessoa", label: t.onboardingPage.form.payingOther },
@@ -930,32 +893,33 @@ export const DS160SingleFormStep = ({
 
       {values.payingTrip && values.payingTrip !== "eu" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <FormInput name="payerName" label={t.onboardingPage.form.payerNameLabel} required />
-          <FormInput name="payerRelation" label={t.onboardingPage.form.payerRelationLabel} placeholder={t.onboardingPage.form.payerRelationPlaceholder} required />
-          <FormInput name="payerPhone" label={t.onboardingPage.form.phoneLabel} />
-          <FormInput name="payerEmail" label={t.onboardingPage.form.emailLabel} type="email" />
+          <FormInput name="payerName" label={t.onboardingPage.form.payerNameLabel} required tooltip={DS160_FIELD_TOOLTIPS.payerName} />
+          <FormInput name="payerRelation" label={t.onboardingPage.form.payerRelationLabel} placeholder={t.onboardingPage.form.payerRelationPlaceholder} required tooltip={DS160_FIELD_TOOLTIPS.payerRelation} />
+          <FormInput name="payerPhone" label={t.onboardingPage.form.phoneLabel} tooltip={DS160_FIELD_TOOLTIPS.payerPhone} />
+          <FormInput name="payerEmail" label={t.onboardingPage.form.emailLabel} type="email" tooltip={DS160_FIELD_TOOLTIPS.payerEmail} />
         </div>
       )}
     </Section>,
 
-    <Section key="companions" title={`👥 ${t.onboardingPage.form.companionsTitle}`}>
-      <YesNo name="travelingWithOthers" label={t.onboardingPage.form.travelingWithOthers} required tooltip={(t as any).ds160?.companions?.companionHelper} />
+    <Section key="companions" title={t.onboardingPage.form.companionsTitle}>
+      <YesNo name="travelingWithOthers" label={t.onboardingPage.form.travelingWithOthers} required tooltip={DS160_FIELD_TOOLTIPS.travelingWithOthers} />
 
       {values.travelingWithOthers === "sim" && (
         <div className="space-y-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <YesNo name="travelGroup" label={t.onboardingPage.form.travelGroup} />
+          <YesNo name="travelGroup" label={t.onboardingPage.form.travelGroup} tooltip={DS160_FIELD_TOOLTIPS.travelGroup} />
           <FormTextarea
             name="companionsDetails"
             label={t.onboardingPage.form.companionsDetailsLabel}
             placeholder={t.onboardingPage.form.companionsDetailsPlaceholder}
+            tooltip={DS160_FIELD_TOOLTIPS.companionsDetails}
             rows={3}
           />
         </div>
       )}
     </Section>,
 
-    <Section key="travel-history" title={`🔙 ${t.onboardingPage.form.previousTravelTitle}`}>
-      <YesNo name="beenToUS" label={t.onboardingPage.form.beenToUS} required />
+    <Section key="travel-history" title={t.onboardingPage.form.previousTravelTitle}>
+      <YesNo name="beenToUS" label={t.onboardingPage.form.beenToUS} required tooltip={DS160_FIELD_TOOLTIPS.beenToUS} />
       {values.beenToUS === "sim" && (
         <div className="space-y-5 p-5 bg-bg-subtle rounded-2xl border border-border">
           <FormTextarea
@@ -963,46 +927,48 @@ export const DS160SingleFormStep = ({
             label={t.onboardingPage.form.previousVisitsDetailsLabel}
             placeholder={t.onboardingPage.form.previousVisitsDetailsPlaceholder}
             required
+            tooltip={DS160_FIELD_TOOLTIPS.previousVisitsDetails}
           />
-          <YesNo name="hadUSDriverLicense" label={t.onboardingPage.form.hadUSDriverLicense} />
+          <YesNo name="hadUSDriverLicense" label={t.onboardingPage.form.hadUSDriverLicense} tooltip={DS160_FIELD_TOOLTIPS.hadUSDriverLicense} />
         </div>
       )}
 
-      <YesNo name="hadUSVisa" label={t.onboardingPage.form.hadUSVisa} required />
+      <YesNo name="hadUSVisa" label={t.onboardingPage.form.hadUSVisa} required tooltip={DS160_FIELD_TOOLTIPS.hadUSVisa} />
       {values.hadUSVisa === "sim" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <FormInput name="lastVisaDate" label={t.onboardingPage.form.lastVisaDateLabel} type="date" required />
-          <FormInput name="lastVisaNumber" label={t.onboardingPage.form.lastVisaNumberLabel} placeholder={t.onboardingPage.form.lastVisaNumberPlaceholder} />
-          <FormSelect name="sameVisaType" label={t.onboardingPage.form.sameVisaType} options={[{ value: "sim", label: t.onboardingPage.form.yes }, { value: "nao", label: t.onboardingPage.form.no }]} />
-          <FormSelect name="sameVisaCountry" label={t.onboardingPage.form.sameVisaCountry} options={[{ value: "sim", label: t.onboardingPage.form.yes }, { value: "nao", label: t.onboardingPage.form.no }]} />
-          <FormSelect name="tenPrinted" label={t.onboardingPage.form.tenPrinted} options={[{ value: "sim", label: t.onboardingPage.form.yes }, { value: "nao", label: t.onboardingPage.form.no }]} />
-          <FormSelect name="visaLost" label={t.onboardingPage.form.visaLost} options={[{ value: "sim", label: t.onboardingPage.form.yes }, { value: "nao", label: t.onboardingPage.form.no }]} />
-          <FormSelect name="visaCancelled" label={t.onboardingPage.form.visaCancelled} options={[{ value: "sim", label: t.onboardingPage.form.yes }, { value: "nao", label: t.onboardingPage.form.no }]} />
+          <FormInput name="lastVisaDate" label={t.onboardingPage.form.lastVisaDateLabel} type="date" required tooltip={DS160_FIELD_TOOLTIPS.lastVisaDate} />
+          <FormInput name="lastVisaNumber" label={t.onboardingPage.form.lastVisaNumberLabel} placeholder={t.onboardingPage.form.lastVisaNumberPlaceholder} tooltip={DS160_FIELD_TOOLTIPS.lastVisaNumber} />
+          <FormSelect name="sameVisaType" label={t.onboardingPage.form.sameVisaType} tooltip={DS160_FIELD_TOOLTIPS.sameVisaType} options={[{ value: "sim", label: t.onboardingPage.form.yes }, { value: "nao", label: t.onboardingPage.form.no }]} />
+          <FormSelect name="sameVisaCountry" label={t.onboardingPage.form.sameVisaCountry} tooltip={DS160_FIELD_TOOLTIPS.sameVisaCountry} options={[{ value: "sim", label: t.onboardingPage.form.yes }, { value: "nao", label: t.onboardingPage.form.no }]} />
+          <FormSelect name="tenPrinted" label={t.onboardingPage.form.tenPrinted} tooltip={DS160_FIELD_TOOLTIPS.tenPrinted} options={[{ value: "sim", label: t.onboardingPage.form.yes }, { value: "nao", label: t.onboardingPage.form.no }]} />
+          <FormSelect name="visaLost" label={t.onboardingPage.form.visaLost} tooltip={DS160_FIELD_TOOLTIPS.visaLost} options={[{ value: "sim", label: t.onboardingPage.form.yes }, { value: "nao", label: t.onboardingPage.form.no }]} />
+          <FormSelect name="visaCancelled" label={t.onboardingPage.form.visaCancelled} tooltip={DS160_FIELD_TOOLTIPS.visaCancelled} options={[{ value: "sim", label: t.onboardingPage.form.yes }, { value: "nao", label: t.onboardingPage.form.no }]} />
         </div>
       )}
 
-      <YesNo name="refusedUSVisa" label={t.onboardingPage.form.refusedUSVisa} required />
+      <YesNo name="refusedUSVisa" label={t.onboardingPage.form.refusedUSVisa} required tooltip={DS160_FIELD_TOOLTIPS.refusedUSVisa} />
       {values.refusedUSVisa === "sim" && (
-        <FormTextarea name="refusedExpanation" label={t.onboardingPage.form.explainDetailLabel} required />
+        <FormTextarea name="refusedExpanation" label={t.onboardingPage.form.explainDetailLabel} required tooltip={DS160_FIELD_TOOLTIPS.refusedExpanation} />
       )}
 
-      <YesNo name="immigrationPetition" label={t.onboardingPage.form.immigrationPetition} required tooltip={(t as any).ds160?.previousTravel?.petitionHelper} />
+      <YesNo name="immigrationPetition" label={t.onboardingPage.form.immigrationPetition} required tooltip={DS160_FIELD_TOOLTIPS.immigrationPetition} />
       {values.immigrationPetition === "sim" && (
-        <FormInput name="petitionExpanation" label={t.onboardingPage.form.explainLabel} required />
+        <FormInput name="petitionExpanation" label={t.onboardingPage.form.explainLabel} required tooltip={DS160_FIELD_TOOLTIPS.petitionExpanation} />
       )}
     </Section>,
 
     <Section key="contact" title={`🏠 ${t.onboardingPage.form.contactAddressTitle}`}>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="sm:col-span-2">
-          <FormInput name="homeStreet" label={t.onboardingPage.form.homeStreetLabel} required />
+          <FormInput name="homeStreet" label={t.onboardingPage.form.homeStreetLabel} required tooltip={DS160_FIELD_TOOLTIPS.homeStreet} />
         </div>
-        <FormInput name="homeCity" label={t.onboardingPage.form.homeCityLabel || t.onboardingPage.form.cityLabel} required />
-        <FormInput name="homeState" label={t.onboardingPage.form.stateProvinceLabel} required />
+        <FormInput name="homeCity" label={t.onboardingPage.form.homeCityLabel || t.onboardingPage.form.cityLabel} required tooltip={DS160_FIELD_TOOLTIPS.homeCity} />
+        <FormInput name="homeState" label={t.onboardingPage.form.stateProvinceLabel} required tooltip={DS160_FIELD_TOOLTIPS.homeState} />
         <FormNumericInput
           name="homeZip"
           label={t.onboardingPage.form.zipCodeLabel}
           required
+          tooltip={DS160_FIELD_TOOLTIPS.homeZip}
           onChange={async (val) => {
             const cleanCep = val.replace(/\D/g, "");
             if (cleanCep.length === 8) {
@@ -1041,32 +1007,32 @@ export const DS160SingleFormStep = ({
             }
           }}
         />
-        <FormInput name="homeCountry" label={t.onboardingPage.form.countryLabel} required />
+        <FormInput name="homeCountry" label={t.onboardingPage.form.countryLabel} required tooltip={DS160_FIELD_TOOLTIPS.homeCountry} />
       </div>
 
-      <YesNo name="differentMailingAddress" label={t.onboardingPage.form.differentMailingAddress} required />
+      <YesNo name="differentMailingAddress" label={t.onboardingPage.form.differentMailingAddress} required tooltip={DS160_FIELD_TOOLTIPS.differentMailingAddress} />
       {values.differentMailingAddress === "sim" && (
-        <FormTextarea name="mailingAddressFull" label={t.onboardingPage.form.mailingAddressFullLabel} />
+        <FormTextarea name="mailingAddressFull" label={t.onboardingPage.form.mailingAddressFullLabel} tooltip={DS160_FIELD_TOOLTIPS.mailingAddressFull} />
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <FormInput name="primaryPhone" label={t.onboardingPage.form.primaryPhoneLabel} placeholder={t.onboardingPage.form.phonePlaceholder} required />
-        <FormInput name="secondaryPhone" label={t.onboardingPage.form.secondaryPhoneLabel} />
-        <FormInput name="cellPhone" label={t.onboardingPage.form.cellPhoneLabel} />
+        <FormInput name="primaryPhone" label={t.onboardingPage.form.primaryPhoneLabel} placeholder={t.onboardingPage.form.phonePlaceholder} required tooltip={DS160_FIELD_TOOLTIPS.primaryPhone} />
+        <FormInput name="secondaryPhone" label={t.onboardingPage.form.secondaryPhoneLabel} tooltip={DS160_FIELD_TOOLTIPS.secondaryPhone} />
+        <FormInput name="cellPhone" label={t.onboardingPage.form.cellPhoneLabel} tooltip={DS160_FIELD_TOOLTIPS.cellPhone} />
       </div>
 
-      <YesNo name="otherPhones5Y" label={t.onboardingPage.form.otherPhones5Y} required />
+      <YesNo name="otherPhones5Y" label={t.onboardingPage.form.otherPhones5Y} required tooltip={DS160_FIELD_TOOLTIPS.otherPhones5Y} />
       {values.otherPhones5Y === "sim" && (
-        <FormInput name="otherPhonesList" label={t.onboardingPage.form.otherPhonesListLabel} />
+        <FormInput name="otherPhonesList" label={t.onboardingPage.form.otherPhonesListLabel} tooltip={DS160_FIELD_TOOLTIPS.otherPhonesList} />
       )}
 
       <div className="max-w-sm">
-        <FormInput name="primaryEmail" label={t.onboardingPage.form.primaryEmailLabel} type="email" required />
+        <FormInput name="primaryEmail" label={t.onboardingPage.form.primaryEmailLabel} type="email" required tooltip={DS160_FIELD_TOOLTIPS.primaryEmail} />
       </div>
 
-      <YesNo name="otherEmails5Y" label={t.onboardingPage.form.otherEmails5Y} required />
+      <YesNo name="otherEmails5Y" label={t.onboardingPage.form.otherEmails5Y} required tooltip={DS160_FIELD_TOOLTIPS.otherEmails5Y} />
       {values.otherEmails5Y === "sim" && (
-        <FormInput name="otherEmailList" label={t.onboardingPage.form.otherEmailListLabel} />
+        <FormInput name="otherEmailList" label={t.onboardingPage.form.otherEmailListLabel} tooltip={DS160_FIELD_TOOLTIPS.otherEmailList} />
       )}
 
       <FormTextarea
@@ -1074,6 +1040,7 @@ export const DS160SingleFormStep = ({
         label={t.onboardingPage.form.socialMediaAccountsLabel}
         placeholder={t.onboardingPage.form.socialMediaAccountsPlaceholder}
         required
+        tooltip={DS160_FIELD_TOOLTIPS.socialMediaAccounts}
         rows={3}
       />
     </Section>,
@@ -1082,14 +1049,14 @@ export const DS160SingleFormStep = ({
       <div>
         <p className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-4">{t.onboardingPage.form.fatherLabel}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <FormInput name="fatherName" label={t.onboardingPage.form.fatherNameLabel} />
-          <FormInput name="fatherBirth" label={t.onboardingPage.form.birthDateLabel} type="date" />
+          <FormInput name="fatherName" label={t.onboardingPage.form.fatherNameLabel} tooltip={DS160_FIELD_TOOLTIPS.fatherName} />
+          <FormInput name="fatherBirth" label={t.onboardingPage.form.birthDateLabel} type="date" tooltip={DS160_FIELD_TOOLTIPS.fatherBirth} />
           <div className="sm:col-span-2">
-            <YesNo name="fatherInUS" label={t.onboardingPage.form.fatherInUS} />
+            <YesNo name="fatherInUS" label={t.onboardingPage.form.fatherInUS} tooltip={DS160_FIELD_TOOLTIPS.fatherInUS} />
           </div>
           {values.fatherInUS === "sim" && (
             <div className="sm:col-span-2">
-              <FormInput name="fatherUSStatus" label={t.onboardingPage.form.fatherUSStatusLabel} placeholder={t.onboardingPage.form.usStatusPlaceholder} />
+              <FormInput name="fatherUSStatus" label={t.onboardingPage.form.fatherUSStatusLabel} placeholder={t.onboardingPage.form.usStatusPlaceholder} tooltip={DS160_FIELD_TOOLTIPS.fatherUSStatus} />
             </div>
           )}
         </div>
@@ -1098,20 +1065,20 @@ export const DS160SingleFormStep = ({
       <div>
         <p className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-4">{t.onboardingPage.form.motherLabel}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <FormInput name="motherName" label={t.onboardingPage.form.motherNameLabel} />
-          <FormInput name="motherBirth" label={t.onboardingPage.form.birthDateLabel} type="date" />
+          <FormInput name="motherName" label={t.onboardingPage.form.motherNameLabel} tooltip={DS160_FIELD_TOOLTIPS.motherName} />
+          <FormInput name="motherBirth" label={t.onboardingPage.form.birthDateLabel} type="date" tooltip={DS160_FIELD_TOOLTIPS.motherBirth} />
           <div className="sm:col-span-2">
-            <YesNo name="motherInUS" label={t.onboardingPage.form.motherInUS} />
+            <YesNo name="motherInUS" label={t.onboardingPage.form.motherInUS} tooltip={DS160_FIELD_TOOLTIPS.motherInUS} />
           </div>
           {values.motherInUS === "sim" && (
             <div className="sm:col-span-2">
-              <FormInput name="motherUSStatus" label={t.onboardingPage.form.motherUSStatusLabel} placeholder={t.onboardingPage.form.usStatusPlaceholder} />
+              <FormInput name="motherUSStatus" label={t.onboardingPage.form.motherUSStatusLabel} placeholder={t.onboardingPage.form.usStatusPlaceholder} tooltip={DS160_FIELD_TOOLTIPS.motherUSStatus} />
             </div>
           )}
         </div>
       </div>
 
-      <YesNo name="otherRelInUS" label={t.onboardingPage.form.otherRelInUS} />
+      <YesNo name="otherRelInUS" label={t.onboardingPage.form.otherRelInUS} tooltip={DS160_FIELD_TOOLTIPS.otherRelInUS} />
 
       {values.otherRelInUS === "sim" && (
         <div className="space-y-6">
@@ -1134,18 +1101,21 @@ export const DS160SingleFormStep = ({
                           }}
                           className="absolute top-4 right-4 text-xs font-bold text-red-500 hover:text-red-750 hover:underline uppercase tracking-widest"
                         >
-                          Remover
+                          {t.onboardingPage.form.removeBtn || "Remover"}
                         </button>
                       )}
                       <p className="text-[11px] font-black text-text-muted uppercase tracking-widest">
-                        Parente {idx + 1}
+                        {(t.onboardingPage.form.relativeHeader || "Parente")} {idx + 1}
                       </p>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                          <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">
-                            Nome Completo
-                          </label>
+                          <div className="flex items-center gap-1.5">
+                            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+                              {t.onboardingPage.form.relativeNameLabel || "Nome Completo"}
+                            </label>
+                            <FieldTooltip content={DS160_FIELD_TOOLTIPS.relativeName || "Nome completo do seu parente nos EUA."} />
+                          </div>
                           <input
                             type="text"
                             value={rel.name || ""}
@@ -1160,9 +1130,12 @@ export const DS160SingleFormStep = ({
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">
-                            Grau de Parentesco
-                          </label>
+                          <div className="flex items-center gap-1.5">
+                            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+                              {t.onboardingPage.form.relativeRelationLabel || "Grau de Parentesco"}
+                            </label>
+                            <FieldTooltip content={DS160_FIELD_TOOLTIPS.relativeRelation || "Qual a relação de parentesco com esta pessoa."} />
+                          </div>
                           <select
                             value={rel.relation || ""}
                             onChange={(e) => {
@@ -1172,18 +1145,21 @@ export const DS160SingleFormStep = ({
                             }}
                             className="w-full px-4 py-3 rounded-xl border border-border bg-card text-sm font-medium text-text transition-all outline-none focus:ring-2 focus:ring-primary/20 appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%23888\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E')] bg-[length:18px] bg-no-repeat bg-[right_12px_center] pr-10 focus:border-primary"
                           >
-                            <option value="">Selecione...</option>
-                            <option value="irmao">Irmão/Irmã</option>
-                            <option value="filho">Filho/Filha</option>
-                            <option value="noivo">Noivo/Noiva</option>
-                            <option value="outro">Outro Parente</option>
+                            <option value="">{t.onboardingPage.form.selectPlaceholder || "Selecione..."}</option>
+                            <option value="irmao">{t.onboardingPage.form.relationBrotherSister || "Irmão/Irmã"}</option>
+                            <option value="filho">{t.onboardingPage.form.relationChild || "Filho/Filha"}</option>
+                            <option value="noivo">{t.onboardingPage.form.relationFiance || "Noivo/Noiva"}</option>
+                            <option value="outro">{t.onboardingPage.form.relationOther || "Outro Parente"}</option>
                           </select>
                         </div>
 
                         <div className="sm:col-span-2 space-y-1.5">
-                          <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">
-                            Status Imigratório nos EUA
-                          </label>
+                          <div className="flex items-center gap-1.5">
+                            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+                              {t.onboardingPage.form.relativeStatusLabel || "Status Imigratório nos EUA"}
+                            </label>
+                            <FieldTooltip content={DS160_FIELD_TOOLTIPS.relativeStatus || "O status legal de permanência dele(a) nos EUA."} />
+                          </div>
                           <select
                             value={rel.status || ""}
                             onChange={(e) => {
@@ -1193,11 +1169,11 @@ export const DS160SingleFormStep = ({
                             }}
                             className="w-full px-4 py-3 rounded-xl border border-border bg-card text-sm font-medium text-text transition-all outline-none focus:ring-2 focus:ring-primary/20 appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%23888\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E')] bg-[length:18px] bg-no-repeat bg-[right_12px_center] pr-10 focus:border-primary"
                           >
-                            <option value="">Selecione...</option>
-                            <option value="citizen">Cidadão Americano</option>
-                            <option value="lpr">Residente Permanente Legal (Green Card)</option>
-                            <option value="nonImmigrant">Não Imigrante (Visto de Turismo/Trabalho)</option>
-                            <option value="student">Estudante / Intercâmbio (F/J)</option>
+                            <option value="">{t.onboardingPage.form.selectPlaceholder || "Selecione..."}</option>
+                            <option value="citizen">{t.onboardingPage.form.statusCitizen || "Cidadão Americano"}</option>
+                            <option value="lpr">{t.onboardingPage.form.statusLpr || "Residente Permanente Legal (Green Card)"}</option>
+                            <option value="nonImmigrant">{t.onboardingPage.form.statusNonImmigrant || "Não Imigrante (Visto de Turismo/Trabalho)"}</option>
+                            <option value="student">{t.onboardingPage.form.statusStudent || "Estudante / Intercâmbio (F/J)"}</option>
                           </select>
                         </div>
                       </div>
@@ -1213,7 +1189,7 @@ export const DS160SingleFormStep = ({
                   }}
                   className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-border hover:border-primary hover:text-primary transition-all text-xs font-black uppercase tracking-widest text-text-muted w-full"
                 >
-                  + Adicionar Parente nos EUA
+                  {t.onboardingPage.form.addRelativeBtn || "+ Adicionar Parente nos EUA"}
                 </button>
               </>
             );
@@ -1224,12 +1200,12 @@ export const DS160SingleFormStep = ({
       <div>
         <p className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-4">{t.onboardingPage.form.spouseLabel}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <FormInput name="spouseName" label={t.onboardingPage.form.fullNameLabel} />
-          <FormInput name="spouseBirth" label={t.onboardingPage.form.birthDateLabel} type="date" />
-          <FormInput name="spouseCity" label={t.onboardingPage.form.birthCityLabel} />
-          <FormInput name="spouseCountry" label={t.onboardingPage.form.birthCountryLabel} />
+          <FormInput name="spouseName" label={t.onboardingPage.form.fullNameLabel} tooltip={DS160_FIELD_TOOLTIPS.spouseName} />
+          <FormInput name="spouseBirth" label={t.onboardingPage.form.birthDateLabel} type="date" tooltip={DS160_FIELD_TOOLTIPS.spouseBirth} />
+          <FormInput name="spouseCity" label={t.onboardingPage.form.birthCityLabel} tooltip={DS160_FIELD_TOOLTIPS.spouseCity} />
+          <FormInput name="spouseCountry" label={t.onboardingPage.form.birthCountryLabel} tooltip={DS160_FIELD_TOOLTIPS.spouseCountry} />
           <div className="sm:col-span-2">
-            <YesNo name="spouseSameAddress" label={t.onboardingPage.form.spouseSameAddress} />
+            <YesNo name="spouseSameAddress" label={t.onboardingPage.form.spouseSameAddress} tooltip={DS160_FIELD_TOOLTIPS.spouseSameAddress} />
           </div>
         </div>
       </div>
@@ -1239,55 +1215,55 @@ export const DS160SingleFormStep = ({
       <div>
         <p className="text-[11px] font-black text-text-muted uppercase tracking-widest mb-4">{t.onboardingPage.form.currentJobLabel}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <FormInput name="primaryJobSector" label={t.onboardingPage.form.jobSectorLabel} placeholder={t.onboardingPage.form.jobSectorPlaceholder} required tooltip={(t as any).ds160?.workEducation?.occHelper} />
-          <FormInput name="primaryJobEntity" label={t.onboardingPage.form.jobEntityLabel} required tooltip={(t as any).ds160?.workEducation?.employerHelper} />
+          <FormInput name="primaryJobSector" label={t.onboardingPage.form.jobSectorLabel} placeholder={t.onboardingPage.form.jobSectorPlaceholder} required tooltip={DS160_FIELD_TOOLTIPS.primaryJobSector} />
+          <FormInput name="primaryJobEntity" label={t.onboardingPage.form.jobEntityLabel} required tooltip={DS160_FIELD_TOOLTIPS.primaryJobEntity} />
           <div className="sm:col-span-2">
-            <FormInput name="primaryJobAddress" label={t.onboardingPage.form.fullAddressLabel} tooltip={(t as any).ds160?.workEducation?.addressHelper} />
+            <FormInput name="primaryJobAddress" label={t.onboardingPage.form.fullAddressLabel} tooltip={DS160_FIELD_TOOLTIPS.primaryJobAddress} />
           </div>
-          <FormInput name="primaryJobPhone" label={t.onboardingPage.form.phoneLabel} />
-          <FormNumericInput name="primaryJobSalary" label={t.onboardingPage.form.monthlySalaryLabel} placeholder={t.onboardingPage.form.monthlySalaryPlaceholder} allowDecimals={true} isCurrency={true} tooltip={(t as any).ds160?.workEducation?.incomeHelper} />
+          <FormInput name="primaryJobPhone" label={t.onboardingPage.form.phoneLabel} tooltip={DS160_FIELD_TOOLTIPS.primaryJobPhone} />
+          <FormNumericInput name="primaryJobSalary" label={t.onboardingPage.form.monthlySalaryLabel} placeholder={t.onboardingPage.form.monthlySalaryPlaceholder} allowDecimals={true} isCurrency={true} tooltip={DS160_FIELD_TOOLTIPS.primaryJobSalary} />
           <div className="sm:col-span-2">
-            <FormTextarea name="primaryJobDuties" label={t.onboardingPage.form.jobDutiesLabel} rows={2} />
+            <FormTextarea name="primaryJobDuties" label={t.onboardingPage.form.jobDutiesLabel} rows={2} tooltip={DS160_FIELD_TOOLTIPS.primaryJobDuties} />
           </div>
         </div>
       </div>
 
-      <YesNo name="employedLast5Y" label={t.onboardingPage.form.employedLast5Y} required />
+      <YesNo name="employedLast5Y" label={t.onboardingPage.form.employedLast5Y} required tooltip={DS160_FIELD_TOOLTIPS.employedLast5Y} />
       {values.employedLast5Y === "sim" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <FormInput name="prevEmployerName" label={t.onboardingPage.form.prevEmployerNameLabel} required />
-          <FormInput name="prevEmployerTitle" label={t.onboardingPage.form.prevEmployerTitleLabel} />
-          <FormInput name="prevEmployerStart" label={t.onboardingPage.form.startDateLabel} type="date" />
-          <FormInput name="prevEmployerEnd" label={t.onboardingPage.form.endDateLabel} type="date" />
+          <FormInput name="prevEmployerName" label={t.onboardingPage.form.prevEmployerNameLabel} required tooltip={DS160_FIELD_TOOLTIPS.prevEmployerName} />
+          <FormInput name="prevEmployerTitle" label={t.onboardingPage.form.prevEmployerTitleLabel} tooltip={DS160_FIELD_TOOLTIPS.prevEmployerTitle} />
+          <FormInput name="prevEmployerStart" label={t.onboardingPage.form.startDateLabel} type="date" tooltip={DS160_FIELD_TOOLTIPS.prevEmployerStart} />
+          <FormInput name="prevEmployerEnd" label={t.onboardingPage.form.endDateLabel} type="date" tooltip={DS160_FIELD_TOOLTIPS.prevEmployerEnd} />
           <div className="sm:col-span-2">
-            <FormInput name="prevEmployerDuties" label={t.onboardingPage.form.jobDutiesLabel} />
+            <FormInput name="prevEmployerDuties" label={t.onboardingPage.form.jobDutiesLabel} tooltip={DS160_FIELD_TOOLTIPS.prevEmployerDuties} />
           </div>
         </div>
       )}
 
-      <YesNo name="higherEducation" label={t.onboardingPage.form.higherEducation} required />
+      <YesNo name="higherEducation" label={t.onboardingPage.form.higherEducation} required tooltip={DS160_FIELD_TOOLTIPS.higherEducation} />
       {values.higherEducation === "sim" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
           <div className="sm:col-span-2">
-            <FormInput name="eduName" label={t.onboardingPage.form.eduNameLabel} required />
+            <FormInput name="eduName" label={t.onboardingPage.form.eduNameLabel} required tooltip={DS160_FIELD_TOOLTIPS.eduName} />
           </div>
           <div className="sm:col-span-2">
-            <FormInput name="eduCourse" label={t.onboardingPage.form.eduCourseLabel} />
+            <FormInput name="eduCourse" label={t.onboardingPage.form.eduCourseLabel} tooltip={DS160_FIELD_TOOLTIPS.eduCourse} />
           </div>
-          <FormInput name="eduStart" label={t.onboardingPage.form.startDateLabel} type="date" />
-          <FormInput name="eduEnd" label={t.onboardingPage.form.endDateLabel} type="date" />
+          <FormInput name="eduStart" label={t.onboardingPage.form.startDateLabel} type="date" tooltip={DS160_FIELD_TOOLTIPS.eduStart} />
+          <FormInput name="eduEnd" label={t.onboardingPage.form.endDateLabel} type="date" tooltip={DS160_FIELD_TOOLTIPS.eduEnd} />
         </div>
       )}
 
-      <YesNo name="belongsToTribe" label={t.onboardingPage.form.belongsToTribe} required />
-      <FormInput name="fluentLanguages" label={t.onboardingPage.form.fluentLanguagesLabel} placeholder={t.onboardingPage.form.fluentLanguagesPlaceholder} required />
-      <FormTextarea name="countriesVisited5Y" label={t.onboardingPage.form.countriesVisited5YLabel} placeholder={t.onboardingPage.form.countriesVisited5YPlaceholder} rows={2} />
+      <YesNo name="belongsToTribe" label={t.onboardingPage.form.belongsToTribe} required tooltip={DS160_FIELD_TOOLTIPS.belongsToTribe} />
+      <FormInput name="fluentLanguages" label={t.onboardingPage.form.fluentLanguagesLabel} placeholder={t.onboardingPage.form.fluentLanguagesPlaceholder} required tooltip={DS160_FIELD_TOOLTIPS.fluentLanguages} />
+      <FormTextarea name="countriesVisited5Y" label={t.onboardingPage.form.countriesVisited5YLabel} placeholder={t.onboardingPage.form.countriesVisited5YPlaceholder} rows={2} tooltip={DS160_FIELD_TOOLTIPS.countriesVisited5Y} />
 
-      <YesNo name="servedMilitary" label={t.onboardingPage.form.servedMilitary} required />
+      <YesNo name="servedMilitary" label={t.onboardingPage.form.servedMilitary} required tooltip={DS160_FIELD_TOOLTIPS.servedMilitary} />
       {values.servedMilitary === "sim" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
-          <FormInput name="militaryBranch" label={t.onboardingPage.form.militaryBranchLabel} placeholder={t.onboardingPage.form.militaryBranchPlaceholder} />
-          <FormInput name="militarySpecialty" label={t.onboardingPage.form.militarySpecialtyLabel} />
+          <FormInput name="militaryBranch" label={t.onboardingPage.form.militaryBranchLabel} placeholder={t.onboardingPage.form.militaryBranchPlaceholder} tooltip={DS160_FIELD_TOOLTIPS.militaryBranch} />
+          <FormInput name="militarySpecialty" label={t.onboardingPage.form.militarySpecialtyLabel} tooltip={DS160_FIELD_TOOLTIPS.militarySpecialty} />
         </div>
       )}
     </Section>,
@@ -1301,13 +1277,14 @@ export const DS160SingleFormStep = ({
         <p className="text-sm font-medium text-amber-800 leading-relaxed">
           {t.onboardingPage.form.securityExceptionsPrompt}
         </p>
-        <YesNo name="securityExceptions" label="" />
+        <YesNo name="securityExceptions" label="" tooltip={DS160_FIELD_TOOLTIPS.securityExceptions} />
         {values.securityExceptions === "sim" && (
           <FormInput
             name="securityExceptionsDetails"
             label={t.onboardingPage.form.securityExceptionsLabel}
             placeholder={t.onboardingPage.form.securityExceptionsPlaceholder}
             required
+            tooltip={DS160_FIELD_TOOLTIPS.securityExceptionsDetails}
           />
         )}
       </div>
@@ -1315,8 +1292,11 @@ export const DS160SingleFormStep = ({
   ];
 
   return (
-    <fieldset disabled={readOnly} className='space-y-8 disabled:opacity-90'>
-      {sections[currentSection] ?? sections[0]}
-    </fieldset>
+    <TooltipProvider delayDuration={200}>
+      <fieldset disabled={readOnly} className='space-y-8 disabled:opacity-90'>
+        {sections[currentSection] ?? sections[0]}
+      </fieldset>
+    </TooltipProvider>
   )
 }
+

@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useFormik } from "formik";
 import { toast } from "sonner";
-import { Shield } from "lucide-react";
 import { zodValidate } from "@shared/utils/zodValidate";
+import { Shield, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/components/atoms/tooltip";
 import { Button } from "@shared/components/atoms/button";
 import { Checkbox } from "@shared/components/atoms/checkbox";
 import { Field } from "@shared/components/molecules/Field";
@@ -83,16 +84,72 @@ export default function SignUp() {
 
   return (
     <AuthCard title={t.signup.title} subtitle={t.signup.subtitle}>
-        <form className="space-y-5" onSubmit={formik.handleSubmit}>
-          <Field
-            id="fullName"
-            name="fullName"
-            label={t.signup.fullName}
-            placeholder={t.signup.namePlaceholder}
-            value={formik.values.fullName}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.fullName ? formik.errors.fullName : undefined}
+      <form className="space-y-5" onSubmit={formik.handleSubmit}>
+        <Field
+          id="fullName"
+          name="fullName"
+          label={t.signup.fullName}
+          placeholder={t.signup.namePlaceholder}
+          value={formik.values.fullName}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.fullName ? formik.errors.fullName : undefined}
+          tooltip={(t.signup as any).fullNameTooltip}
+        />
+
+        <Field
+          id="email"
+          name="email"
+          type="email"
+          label={t.signup.email}
+          placeholder={t.signup.emailPlaceholder}
+          value={formik.values.email}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.email ? formik.errors.email : undefined}
+          tooltip={(t.signup as any).emailTooltip}
+        />
+
+        <Field
+          id="password"
+          name="password"
+          type="password"
+          label={t.signup.password}
+          placeholder={t.signup.passwordPlaceholder}
+          value={formik.values.password}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.password ? formik.errors.password : undefined}
+          tooltip={(t.signup as any).passwordTooltip}
+        />
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5">
+            <label className="text-[13px] font-semibold tracking-[0.02em] text-text">{t.signup.phone}</label>
+            {(t.signup as any).phoneTooltip && (
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-text-muted hover:text-text focus:outline-none transition-colors"
+                      tabIndex={-1}
+                    >
+                      <HelpCircle size={14} className="inline-block" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[240px] text-xs bg-popover text-popover-foreground border border-border p-2 shadow-md z-50">
+                    {(t.signup as any).phoneTooltip}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
+          <PhoneInput
+            name="phoneNumber"
+            value={formik.values.phoneNumber}
+            onChange={(val) => formik.setFieldValue("phoneNumber", val)}
+            onBlur={() => formik.setFieldTouched("phoneNumber", true)}
           />
 
           <Field

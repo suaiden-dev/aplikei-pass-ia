@@ -15,6 +15,8 @@ const auth = {
     demoAccountsTitle: "Mock demo accounts",
     demoAccountsHint: "Use any account below with the default password.",
     defaultPasswordLabel: "Default password",
+    emailTooltip: "Enter the email registered to your account.",
+    passwordTooltip: "Enter your access password.",
   },
   signup: {
     title: "Create your account",
@@ -39,6 +41,10 @@ const auth = {
     submitting: "Creating account...",
     hasAccount: "Already have an account?",
     loginLink: "Log in",
+    fullNameTooltip: "Your full name for registration.",
+    emailTooltip: "The email you will use to access the platform.",
+    passwordTooltip: "Create a strong password (minimum 6 characters).",
+    phoneTooltip: "Your cell phone number with area/country code.",
     errors: {
       nameRequired: "Name is required",
       emailInvalid: "Invalid email",
