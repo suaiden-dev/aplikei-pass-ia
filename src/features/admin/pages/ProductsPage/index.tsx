@@ -549,77 +549,90 @@ export default function ProductsPage() {
                 <Icon className={`text-2xl ${s.color}`} />
               </div>
               <div className="text-left">
-                <p className="text-3xl font-black text-text leading-none tracking-tight">{s.value}</p>
-                <p className="text-sm font-bold text-text-muted mt-1 uppercase tracking-widest">{s.label}</p>
+                <p className="text-3xl font-semibold text-text leading-none tracking-tight">{s.value}</p>
+                <p className="text-sm font-normal text-text-muted mt-1 uppercase tracking-widest">{s.label}</p>
               </div>
             </motion.div>
           );
         })}
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : mainServices.length === 0 ? (
+      {mainServices.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3 bg-card rounded-[32px] border border-border">
           <RiPriceTag3Line className="text-6xl text-text-muted/20" />
           <p className="text-lg font-bold text-text-muted">No main visas found.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-          {mainServices.map((main) => (
-            <div key={main.id} className="bg-card rounded-3xl border border-border p-6 shadow-sm">
-              <div className="text-left mb-4">
-                <p className="text-lg font-black text-text">{main.name}</p>
-                <p className="text-xs font-bold text-text-muted uppercase">{main.slug}</p>
-              </div>
-              <div className="flex items-center justify-between mb-5">
-                <span className="text-2xl font-black text-primary">${main.price.toFixed(2)}</span>
-                <span className={cn("text-[10px] font-black uppercase px-2 py-1 rounded-full border", main.is_active ? "bg-success/10 text-success border-success/20" : "bg-bg-subtle text-text-muted border-border")}>{main.is_active ? "Active" : "Inactive"}</span>
-              </div>
-              <div className="space-y-3">
-                <button onClick={() => setSelectedMainId(main.id)} className="w-full h-11 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all">
-                  Configure
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+          <aside className="rounded-3xl border border-border bg-card p-4 shadow-sm xl:sticky xl:top-6 xl:self-start">
+            <div className="mb-4 space-y-2 text-left">
+              <p className="text-xs font-semibold uppercase tracking-widest text-text-muted">
+                Application flows
+              </p>
+              <p className="text-sm font-normal text-text-muted">
+                Select the main visa flow to configure pricing, add-ons and finalization offers.
+              </p>
+              {selectedMain?.is_active && (
+                <button
+                  onClick={() => {
+                    const url = checkoutUrl(selectedMain.slug);
+                    if (!url) {
+                      toast.error("Unable to generate link. Set office slug first.");
+                      return;
+                    }
+                    navigator.clipboard.writeText(url);
+                    toast.success("Product link copied!");
+                  }}
+                  className="mt-2 h-10 rounded-xl bg-primary/10 px-4 text-xs font-semibold uppercase tracking-widest text-primary transition-all hover:bg-primary/20 inline-flex items-center gap-2"
+                >
+                  <RiFileCopyLine className="text-sm" />
+                  Copy selected link
                 </button>
-                {main.is_active && (
-                  <div className="rounded-xl border border-border bg-bg-subtle/50 p-2.5">
-                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Product link</p>
-                    <div className="flex items-center gap-2">
-                      <input
-                        readOnly
-                        value={checkoutUrl(main.slug)}
-                        placeholder="Office slug required to generate the link"
-                        className="flex-1 h-9 px-2.5 rounded-lg border border-border bg-card text-[11px] font-medium text-text"
-                      />
-                      <button
-                        onClick={() => {
-                          const url = checkoutUrl(main.slug);
-                          if (!url) {
-                            toast.error("Unable to generate link. Set office slug first.");
-                            return;
-                          }
-                          navigator.clipboard.writeText(url);
-                          toast.success("Product link copied!");
-                        }}
-                        className="h-9 px-3 rounded-lg bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-all inline-flex items-center gap-1"
-                        title="Copy product link"
-                      >
-                        <RiFileCopyLine className="text-sm" />
-                        Copy
-                      </button>
-                    </div>
-                  </div>
-                )}
+              )}
             </div>
-          </div>
-        ))}
-        </div>
-      )}
 
-        {selectedMain && (
-          <>
-            <div className="px-6 py-5 space-y-8 bg-card rounded-3xl border border-border p-6 shadow-sm mt-8">
+            <div className="grid grid-cols-1 gap-3">
+              {mainServices.map((main) => (
+                <button
+                  key={main.id}
+                  type="button"
+                  onClick={() => setSelectedMainId(main.id)}
+                  className={cn(
+                    "rounded-2xl border p-4 text-left transition-all",
+                    selectedMainId === main.id
+                      ? "border-primary bg-primary/10 shadow-lg shadow-primary/10"
+                      : "border-border bg-bg-subtle hover:border-primary/30 hover:bg-primary/5",
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-text">{main.name}</p>
+                      <p className="mt-1 truncate text-[10px] font-normal uppercase tracking-widest text-text-muted">
+                        {main.slug}
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase",
+                        main.is_active
+                          ? "border-success/20 bg-success/10 text-success"
+                          : "border-border bg-card text-text-muted",
+                      )}
+                    >
+                      {main.is_active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <p className="mt-4 text-2xl font-semibold text-primary">
+                    {formatUsd(main.price)}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </aside>
+
+          <div className="min-w-0">
+            {selectedMain && (
+              <div className="px-6 py-5 space-y-8 bg-card rounded-3xl border border-border p-6 shadow-sm">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-primary">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white text-xs font-black">
@@ -896,8 +909,10 @@ export default function ProductsPage() {
                   )}
                 </div>
               </div>
-            </>
-          )}
+            )}
+          </div>
+        </div>
+      )}
 
 
       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">

@@ -142,13 +142,13 @@ function Field({ label, required, name, children, tooltip }: { label: string; re
   return (
     <div id={`field-${name}`}>
       <div className="flex justify-between items-center mb-2.5">
-        <label htmlFor={name} className="flex items-center gap-1.5 block text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none">
-          {label}{required && <span className="text-red-500 ml-1">*</span>}
+        <label htmlFor={name} className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] font-black text-slate-400 uppercase tracking-widest leading-tight">
+          <span>{label}</span>{required && <span className="text-red-500">*</span>}
           {tooltip && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button type="button" className="text-slate-300 hover:text-primary transition-colors cursor-help">
+                  <button type="button" className="shrink-0 text-slate-300 hover:text-primary transition-colors cursor-help">
                     <RiInformationLine className="text-sm" />
                   </button>
                 </TooltipTrigger>
@@ -507,6 +507,8 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
   ];
 
   const saved = ((proc.step_data as any)?.i539 ?? {}) as Partial<I539Data> & { hasMiddleName?: boolean };
+  const serviceSlug = proc.service_slug?.toLowerCase() ?? "";
+  const isExtensionOfStatus = serviceSlug === "extensao-status" || serviceSlug === "visa-eos" || serviceSlug.includes("eos");
 
   const initialValues: I539FormInput = {
     familyName: saved.familyName ?? user.fullName?.split(" ").slice(-1)[0] ?? "",
@@ -542,13 +544,15 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
     currentStatus: saved.currentStatus ?? "",
     statusExpirationDate: saved.statusExpirationDate ?? "",
     statusExpiresDS: saved.statusExpiresDS ?? false,
-    applicationType: "change",
+    applicationType: saved.applicationType ?? (isExtensionOfStatus ? "extend" : "change"),
     extendSelf: saved.extendSelf ?? true,
     extendSpouse: saved.extendSpouse ?? false,
     extendChildren: saved.extendChildren ?? false,
     numberOfCoApplicants: saved.numberOfCoApplicants ?? "0",
+    totalPeople: saved.totalPeople ?? String((((proc.step_data as any)?.dependents as unknown[] | undefined)?.length ?? Number(saved.numberOfCoApplicants ?? 0)) + 1),
     newStatusDropdown: saved.newStatusDropdown ?? ((proc.step_data as any)?.targetVisa as string ?? ""),
     effectiveDate: saved.effectiveDate ?? "",
+    schoolName: saved.schoolName ?? "",
     priorExtensionDate: saved.priorExtensionDate ?? "",
     priorExtensionYes: saved.priorExtensionYes ?? false,
     priorExtensionNo: saved.priorExtensionNo ?? true,
@@ -724,7 +728,8 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
         familyName: "Family Name", givenName: "Given Name", dateOfBirth: "Date of Birth",
         zipCode: "ZIP Code", i94Number: "I-94 Number", passportNumber: "Passport Number",
         currentStatus: "Current Status", newStatusDropdown: "New Status Requested",
-        effectiveDate: "Effective Date", hasMailingAddress: "Address Choice",
+        effectiveDate: "Effective Date", totalPeople: "Total number of people",
+        hasMailingAddress: "Address Choice",
         interpreterPhone: "Interpreter Phone", preparerPhone: "Preparer Phone"
       };
 
@@ -1011,6 +1016,21 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
               </SelectInput>
             </Field>
             <Field label={t.cos.i539.labels.effectiveDate} name="effectiveDate" tooltip={I539_TOOLTIPS.effectiveDate}><TextInput name="effectiveDate" type="date" /></Field>
+            <Field
+              label={t.cos.i539.labels.totalPeople}
+              required
+              name="totalPeople"
+              tooltip={I539_TOOLTIPS.totalPeople || "Enter the total number of people included in this application, counting you and all co-applicants."}
+            >
+              <TextInput name="totalPeople" />
+            </Field>
+            <Field
+              label={t.cos.i539.labels.schoolName}
+              name="schoolName"
+              tooltip={I539_TOOLTIPS.schoolName || "Enter the name of the school or institution you will attend if applicable."}
+            >
+              <TextInput name="schoolName" />
+            </Field>
           </div>
         </SectionCard>
 

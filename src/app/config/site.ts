@@ -3,7 +3,7 @@ function parseBoolean(value: string | undefined): boolean {
   return ["true", "1", "yes", "on"].includes(value.trim().toLowerCase());
 }
 
-const envIsProd = "false";
+const envIsProd = import.meta.env.VITE_SITE_IS_PROD as string | undefined;
 
 /**
  * Controls which public experience is shown at the site root.
@@ -12,4 +12,3 @@ const envIsProd = "false";
 export const siteConfig = {
   isProd: envIsProd !== undefined ? parseBoolean(envIsProd) : import.meta.env.PROD,
 };
-
