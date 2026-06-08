@@ -107,16 +107,23 @@ export const I539ValidationSchema = z.object({
   statusExpiresDS: z.boolean().optional(),
 
   // --- Part 2: Application Details ---
-  applicationType: z.literal("change"),
+  applicationType: z.enum(["extend", "change"]),
   extendSelf: z.boolean().optional(),
   extendSpouse: z.boolean().optional(),
   extendChildren: z.boolean().optional(),
   numberOfCoApplicants: z.string().optional().or(z.literal("")),
+  totalPeople: z.string()
+    .min(1, "Total number of people is required / Número total de pessoas é obrigatório")
+    .regex(/^\d+$/, "Use digits only / Use apenas números"),
   newStatusDropdown: z.string().optional().or(z.literal("")),
   effectiveDate: z.string()
     .refine(val => !val || DATE_REGEX.test(val), {
       message: "Invalid date format (MM/DD/YYYY) / Formato de data inválido"
     })
+    .optional()
+    .or(z.literal("")),
+  schoolName: z.string()
+    .max(80, "Maximum 80 characters / Máximo 80 caracteres")
     .optional()
     .or(z.literal("")),
   priorExtensionDate: z.string().optional().or(z.literal("")),

@@ -1,149 +1,223 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { RiInformationLine, RiCheckDoubleLine, RiTeamLine, RiHistoryLine, RiAwardLine, RiGlobeLine } from "react-icons/ri";
-import { useT } from "@app/app/i18n";
+import {
+  ArrowRight,
+  BarChart3,
+  Check,
+  FileText,
+  LockKeyhole,
+  Network,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
+import { useLocale, useT } from "@app/app/i18n";
+import officeTeamImage from "@assets/images/group-business-executives-discussing-laptop-their-des.jpg";
+
+type Pillar = {
+  title: string;
+  description: string;
+};
+
+const whoCopy = {
+  pt: {
+    accent: "com tecnologia operacional",
+    primaryCta: "Agendar demonstração",
+    secondaryCta: "Conhecer pilares",
+    showcaseLabel: "Plataforma B2B",
+    showcaseTitle: "Aplikei OS",
+    showcaseSubtitle: "Operação consular centralizada",
+    missionKicker: "Missão",
+    pillarsKicker: "Pilares",
+    metricsKicker: "Impacto",
+    cards: [
+      { title: "Automação aplicada", text: "Fluxos guiados para reduzir tarefas repetitivas em processos consulares." },
+      { title: "Governança de dados", text: "Segurança, histórico e controle de acesso para informações sensíveis." },
+      { title: "Escala para escritórios", text: "Ferramentas para vender, operar e acompanhar mais casos com padrão." },
+    ],
+  },
+  en: {
+    accent: "with operational technology",
+    primaryCta: "Schedule a demo",
+    secondaryCta: "See pillars",
+    showcaseLabel: "B2B platform",
+    showcaseTitle: "Aplikei OS",
+    showcaseSubtitle: "Centralized consular operation",
+    missionKicker: "Mission",
+    pillarsKicker: "Pillars",
+    metricsKicker: "Impact",
+    cards: [
+      { title: "Applied automation", text: "Guided workflows to reduce repetitive tasks in consular processes." },
+      { title: "Data governance", text: "Security, history and access control for sensitive information." },
+      { title: "Scale for firms", text: "Tools to sell, operate and track more cases with consistency." },
+    ],
+  },
+  es: {
+    accent: "con tecnología operativa",
+    primaryCta: "Agendar demostración",
+    secondaryCta: "Ver pilares",
+    showcaseLabel: "Plataforma B2B",
+    showcaseTitle: "Aplikei OS",
+    showcaseSubtitle: "Operación consular centralizada",
+    missionKicker: "Misión",
+    pillarsKicker: "Pilares",
+    metricsKicker: "Impacto",
+    cards: [
+      { title: "Automatización aplicada", text: "Flujos guiados para reducir tareas repetitivas en procesos consulares." },
+      { title: "Gobernanza de datos", text: "Seguridad, historial y control de acceso para información sensible." },
+      { title: "Escala para firmas", text: "Herramientas para vender, operar y acompañar más casos con consistencia." },
+    ],
+  },
+} as const;
+
+const pillarIcons = [Sparkles, LockKeyhole, BarChart3, Network];
 
 export default function QuemSomosPage() {
   const t = useT("common");
+  const { lang } = useLocale();
   const p = t.whoWeArePage;
+  const copy = whoCopy[lang as keyof typeof whoCopy] ?? whoCopy.pt;
+  const pillars = (p?.pillars?.items ?? []) as Pillar[];
+  const stats = [
+    { value: p?.stats?.success, label: p?.stats?.successLabel },
+    { value: p?.stats?.approval, label: p?.stats?.approvalLabel },
+    { value: p?.stats?.countries, label: p?.stats?.countriesLabel },
+  ];
 
   return (
-    <div className="bg-card">
-      {/* Page Hero */}
-      <section className="pt-20 lg:pt-32 pb-16 lg:pb-24 px-8 lg:px-16 bg-card overflow-hidden">
-        <div className="max-w-7xl mx-auto">
+    <div className="bg-bg text-text">
+      <section className="relative overflow-hidden bg-bg-subtle px-6 py-16 sm:px-8 lg:px-16 lg:py-24">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(45,99,255,0.18),transparent_34%),radial-gradient(circle_at_12%_0%,rgba(52,211,238,0.12),transparent_30%)]" />
+        <div className="relative mx-auto grid max-w-[1200px] items-center gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-center"
+            transition={{ duration: 0.65, ease: "easeOut" }}
           >
-            <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mb-8">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                  <RiInformationLine className="text-primary text-xl" />
-                </div>
-                <span className="text-xs font-black uppercase tracking-[0.2em] text-primary">{p?.hero?.tag}</span>
-              </div>
-              <h1 className="text-5xl lg:text-7xl font-black text-primary leading-[1.05] mb-10 tracking-tighter">
-                {p?.hero?.title}{" "}
-                <span className="text-text-muted">{p?.hero?.titleHighlight}</span>
-              </h1>
-              <p className="text-lg lg:text-2xl text-text-muted font-medium leading-relaxed mb-12 italic">
-                {p?.hero?.description}
-              </p>
+            <span className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-card/80 px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary shadow-sm">
+              <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_0_4px_rgba(45,99,255,0.22)]" />
+              {p?.hero?.tag}
+            </span>
+            <h1 className="font-display text-5xl font-bold leading-[1.04] tracking-tight text-text lg:text-7xl">
+              {p?.hero?.title} <span className="text-primary">{copy.accent}</span>
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-text-muted">{p?.hero?.description}</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link to="/contato" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-bold text-on-primary shadow-lg shadow-primary/20 transition hover:bg-primary-hover">
+                {copy.primaryCta}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <a href="#pilares" className="inline-flex items-center rounded-full border border-border bg-card px-6 py-3 font-bold text-text transition hover:border-primary/30">
+                {copy.secondaryCta}
+              </a>
             </div>
-            <div className="relative">
-              <div className="aspect-square bg-bg-subtle rounded-[40px] overflow-hidden border border-border relative group">
-                <img
-                  src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=2070&auto=format&fit=crop"
-                  alt="Aplikei team"
-                  className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent"></div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.75, delay: 0.1 }}
+            className="relative grid min-h-[520px] place-items-center max-sm:min-h-auto max-sm:pb-20"
+          >
+            <div className="absolute aspect-square w-[min(88%,560px)] rounded-full bg-[radial-gradient(circle_at_46%_40%,rgba(45,99,255,0.2)_0_34%,rgba(52,211,238,0.08)_35%,transparent_66%)]" />
+            <div className="relative z-10 aspect-[4/4.6] w-full max-w-[520px] overflow-hidden rounded-[26px] border border-border bg-card shadow-2xl">
+              <img src={officeTeamImage} alt="" className="h-full w-full object-cover saturate-[.84] contrast-[1.02]" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,13,28,0.02),rgba(8,13,28,0.72)),radial-gradient(circle_at_74%_24%,rgba(45,99,255,0.18),transparent_60%)]" />
+              <div className="absolute inset-x-5 bottom-5 rounded-[20px] border border-white/15 bg-[#080d1c]/75 p-5 text-white backdrop-blur">
+                <span className="block text-xs font-black uppercase tracking-[0.14em] text-white/65">{copy.showcaseLabel}</span>
+                <strong className="mt-2 block font-display text-3xl tracking-tight">{copy.showcaseTitle}</strong>
+                <p className="mt-2 text-sm text-white/70">{copy.showcaseSubtitle}</p>
               </div>
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 }}
-                className="absolute -bottom-10 -right-6 lg:-right-12 bg-card p-8 rounded-[32px] shadow-2xl border border-border max-w-xs"
-              >
-                <p className="text-primary font-black text-4xl mb-2 tracking-tighter">{p?.stats?.approval}</p>
-                <p className="text-xs font-black text-text-muted uppercase tracking-widest leading-relaxed">
-                  {p?.hero?.stats}
-                </p>
-              </motion.div>
+            </div>
+            <div className="absolute bottom-32 right-0 z-20 grid w-[min(70%,320px)] grid-cols-[auto_1fr] items-center gap-4 rounded-[20px] border border-border bg-card/90 p-5 shadow-xl backdrop-blur max-sm:bottom-5 max-sm:left-0 max-sm:right-auto max-sm:w-[min(92%,310px)]">
+              <ShieldCheck className="h-9 w-9 text-primary" />
+              <div>
+                <strong className="block font-display text-3xl leading-none tracking-tight text-primary">{p?.stats?.approval}</strong>
+                <span className="mt-2 block text-xs leading-relaxed text-text-muted">{p?.hero?.stats}</span>
+              </div>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-12 bg-bg-subtle border-y border-border">
-        <div className="max-w-7xl mx-auto px-8 lg:px-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="flex flex-col items-center text-center">
-              <p className="text-4xl font-black text-primary mb-2">{p?.stats?.success}</p>
-              <p className="text-xs font-bold text-text-muted uppercase tracking-widest">{p?.stats?.successLabel}</p>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <p className="text-4xl font-black text-primary mb-2">{p?.stats?.approval}</p>
-              <p className="text-xs font-bold text-text-muted uppercase tracking-widest">{p?.stats?.approvalLabel}</p>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <p className="text-4xl font-black text-primary mb-2">{p?.stats?.countries}</p>
-              <p className="text-xs font-bold text-text-muted uppercase tracking-widest">{p?.stats?.countriesLabel}</p>
-            </div>
+      <section className="bg-bg-subtle px-6 py-14 sm:px-8 lg:px-16">
+        <div className="mx-auto max-w-[1200px]">
+          <p className="mb-5 text-center text-xs font-black uppercase tracking-[0.16em] text-primary">{copy.metricsKicker}</p>
+          <div className="grid gap-4 md:grid-cols-3">
+            {stats.map((stat) => (
+              <div key={stat.label} className="rounded-[20px] border border-border bg-card p-6 text-center shadow-sm">
+                <strong className="block font-display text-4xl leading-none tracking-tight text-primary">{stat.value}</strong>
+                <span className="mt-3 block text-xs font-black uppercase tracking-[0.14em] text-text-muted">{stat.label}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Our History */}
-      <section className="py-24 lg:py-32 px-8 lg:px-16">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="order-2 lg:order-1 relative">
-               <div className="aspect-[4/3] bg-bg-subtle rounded-[40px] overflow-hidden border border-border">
-                <img
-                  src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop"
-                  alt="Office history"
-                  className="w-full h-full object-cover "
-                />
-              </div>
-              <div className="absolute -top-6 -left-6 w-24 h-24 bg-primary/10 rounded-full blur-2xl"></div>
-            </div>
-            <div className="order-1 lg:order-2">
-              <div className="flex items-center gap-3 mb-8">
-                <RiHistoryLine className="text-primary text-2xl" />
-                <h2 className="text-2xl font-black uppercase tracking-widest text-primary">{p?.history?.title}</h2>
-              </div>
-              <p className="text-xl text-text-muted leading-relaxed font-medium whitespace-pre-line">
-                {p?.history?.description}
-              </p>
-            </div>
+      <section className="px-6 py-20 sm:px-8 lg:px-16 lg:py-28">
+        <div className="mx-auto grid max-w-[1200px] items-start gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{copy.missionKicker}</p>
+            <h2 className="mt-4 font-display text-4xl font-bold tracking-tight lg:text-5xl">{p?.history?.title}</h2>
+            <p className="mt-4 max-w-3xl whitespace-pre-line text-lg leading-relaxed text-text-muted">{p?.history?.description}</p>
+          </div>
+          <div className="grid gap-4">
+            {copy.cards.map((card, index) => {
+              const Icon = index === 0 ? Sparkles : index === 1 ? ShieldCheck : FileText;
+              return (
+                <article key={card.title} className="grid gap-4 rounded-[20px] border border-border bg-card p-6 shadow-sm sm:grid-cols-[auto_1fr]">
+                  <div className="grid h-12 w-12 place-items-center rounded-[14px] bg-primary text-on-primary shadow-lg shadow-primary/20">
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-xl font-bold tracking-tight">{card.title}</h3>
+                    <p className="mt-2 leading-relaxed text-text-muted">{card.text}</p>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Pillars Section */}
-      <section className="py-24 lg:py-32 px-8 lg:px-16 bg-bg-subtle">
-        <div className="max-w-7xl mx-auto text-center mb-16 lg:mb-24">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <RiAwardLine className="text-primary text-2xl" />
-            <h2 className="text-2xl font-black uppercase tracking-widest text-primary">{p?.pillars?.title}</h2>
+      <section id="pilares" className="bg-bg-subtle px-6 py-20 sm:px-8 lg:px-16 lg:py-28">
+        <div className="mx-auto max-w-[1200px]">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{copy.pillarsKicker}</p>
+            <h2 className="mt-4 font-display text-4xl font-bold tracking-tight lg:text-5xl">{p?.pillars?.title}</h2>
           </div>
-        </div>
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {(p?.pillars?.items || []).map((item: any, i: number) => (
-            <div key={i} className="bg-card p-10 rounded-[32px] border border-border hover:shadow-xl transition-all group">
-              <div className="w-12 h-12 bg-primary/5 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-primary transition-colors">
-                <RiCheckDoubleLine className="text-primary text-2xl group-hover:text-white transition-colors" />
-              </div>
-              <h3 className="text-xl font-black text-primary mb-4">{item.title}</h3>
-              <p className="text-sm text-text-muted leading-relaxed font-medium">{item.description}</p>
-            </div>
-          ))}
+
+          <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {pillars.map((pillar, index) => {
+              const Icon = pillarIcons[index] ?? Check;
+              return (
+                <motion.article
+                  key={pillar.title}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.45, delay: index * 0.06 }}
+                  className="rounded-[20px] border border-border bg-card p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <div className="mb-5 grid h-12 w-12 place-items-center rounded-[14px] bg-primary text-on-primary shadow-lg shadow-primary/20">
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="font-display text-xl font-bold tracking-tight">{pillar.title}</h3>
+                  <p className="mt-3 leading-relaxed text-text-muted">{pillar.description}</p>
+                </motion.article>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-
-      {/* CTA */}
-      <section className="py-24 px-8 lg:px-16">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-primary rounded-[48px] p-12 lg:p-24 text-center relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-            <div className="relative z-10 max-w-3xl mx-auto">
-              <h2 className="text-4xl lg:text-6xl font-black text-white mb-8 tracking-tighter">
-                {p?.cta?.title}
-              </h2>
-              <p className="text-xl text-white/70 font-medium mb-12 italic">{p?.cta?.subtitle}</p>
-              <Link
-                to="/contato"
-                className="px-12 py-5 bg-white text-primary rounded-xl font-black text-lg shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all inline-flex items-center justify-center"
-              >
-                {p?.cta?.button}
-              </Link>
-            </div>
-          </div>
+      <section className="px-6 py-20 sm:px-8 lg:px-16 lg:py-28">
+        <div className="mx-auto max-w-[1200px] rounded-[26px] bg-primary bg-[radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.18),transparent_48%)] p-10 text-center text-on-primary shadow-2xl shadow-primary/25 lg:p-16">
+          <h2 className="font-display text-4xl font-bold tracking-tight lg:text-5xl">{p?.cta?.title}</h2>
+          <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-on-primary/80">{p?.cta?.subtitle}</p>
+          <Link to="/contato" className="mt-8 inline-flex items-center gap-2 rounded-full bg-card px-6 py-3 font-bold text-primary shadow-lg transition hover:-translate-y-0.5">
+            {p?.cta?.button}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
     </div>

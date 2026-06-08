@@ -40,7 +40,7 @@ export type I539Data = {
   currentStatus?: string; statusExpirationDate?: string; statusExpiresDS?: boolean;
   applicationType?: "extend" | "change";
   extendSelf?: boolean; extendSpouse?: boolean; extendChildren?: boolean;
-  numberOfCoApplicants?: string; newStatusDropdown?: string; effectiveDate?: string; priorExtensionDate?: string;
+  numberOfCoApplicants?: string; totalPeople?: string; newStatusDropdown?: string; effectiveDate?: string; schoolName?: string; priorExtensionDate?: string;
   priorExtensionYes?: boolean; priorExtensionNo?: boolean;
   petitionType_I130?: boolean; petitionType_I140?: boolean; petitionType_I360?: boolean;
   petitionerName?: string; petitionFiledDate?: string; receiptNumber?: string;
@@ -158,9 +158,10 @@ export async function fillI539Form(
   btn("form1[0].#subform[1].P2_checkbox[0]", data.extendSelf);
   btn("form1[0].#subform[1].P2_checkbox[1]", data.extendSpouse);
   btn("form1[0].#subform[1].P2_checkbox[2]", data.extendChildren);
-  tx("form1[0].#subform[1].P2_Line5b_TotalNumber[0]", data.numberOfCoApplicants);
+  tx("form1[0].#subform[1].P2_Line5b_TotalNumber[0]", data.totalPeople ?? data.numberOfCoApplicants);
   tx("form1[0].#subform[1].Pt2Line2b_EffectiveDate[0]", data.effectiveDate);
   dropdown("form1[0].#subform[1].Pt2Line2a_NewStatus[0]", data.newStatusDropdown);
+  tx("form1[0].#subform[1].SupA_Line1k_Passport[1]", data.schoolName);
 
   // ── Part 3 ──
   btn("form1[0].#subform[1].P3_checkbox2a[0]", data.priorExtensionYes);

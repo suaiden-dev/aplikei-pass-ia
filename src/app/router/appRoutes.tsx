@@ -226,7 +226,7 @@ export const appRoutes: AppRouteDefinition[] = [
   {
     path: "/",
     title: "Home",
-    component: HomePage,
+    component: siteConfig.isProd ? HomePage : MaintenancePage,
     authRequired: false,
     accessLevels: [],
     layout: "public",

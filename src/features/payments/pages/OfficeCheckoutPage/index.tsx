@@ -1182,8 +1182,16 @@ export default function OfficeCheckoutPage() {
                                             name="acceptedTerms"
                                             checked={formik.values.acceptedTerms}
                                             onCheckedChange={(checked) => {
-                                                formik.setFieldValue("acceptedTerms", checked);
-                                                formik.setFieldTouched("acceptedTerms", true);
+                                                const acceptedTerms = checked === true;
+
+                                                void formik.setFieldValue("acceptedTerms", acceptedTerms, false);
+                                                void formik.setFieldTouched("acceptedTerms", true, false);
+                                                formik.setFieldError(
+                                                    "acceptedTerms",
+                                                    acceptedTerms
+                                                        ? undefined
+                                                        : t.userData.errors.termsRequired || "Você deve aceitar os termos",
+                                                );
                                             }}
                                             error={formik.touched.acceptedTerms && formik.errors.acceptedTerms ? String(formik.errors.acceptedTerms) : undefined}
                                             label={
