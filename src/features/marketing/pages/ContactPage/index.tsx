@@ -98,30 +98,27 @@ export default function ContactPage() {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.75, delay: 0.1 }}
-            className="relative grid min-h-[500px] place-items-center max-sm:min-h-auto max-sm:gap-3"
+            className="relative grid min-h-[500px] content-center gap-4"
             aria-hidden="true"
           >
             <div className="absolute aspect-square w-[min(88%,540px)] rounded-full border border-primary/10 bg-[radial-gradient(circle_at_50%_50%,rgba(45,99,255,0.18)_0_34%,rgba(52,211,238,0.08)_35%,transparent_66%)] max-sm:w-[min(92vw,360px)]" />
-            <div className="relative z-10 flex min-h-64 w-[min(78%,360px)] flex-col justify-center gap-3 rounded-[26px] border border-border bg-card/90 p-7 text-center shadow-2xl backdrop-blur max-sm:w-full max-sm:min-h-56">
+            <div className="relative z-10 mx-auto flex min-h-56 w-full max-w-[420px] flex-col justify-center gap-3 rounded-[26px] border border-border bg-card/90 p-7 text-center shadow-2xl backdrop-blur">
               <Mail className="mx-auto h-11 w-11 text-primary" />
               <strong className="font-display text-2xl tracking-tight">contato@aplikei.com.br</strong>
               <span className="text-sm leading-relaxed text-text-muted">{p?.hero?.subtitle ?? "Estamos prontos para tirar suas dúvidas."}</span>
             </div>
-            {copy.cards.map((card, index) => {
-              const Icon = cardIcons[index] ?? MessageSquareText;
-              const positions = [
-                "left-2 top-12 max-sm:static max-sm:justify-self-start",
-                "right-0 top-40 max-sm:static max-sm:justify-self-end",
-                "bottom-12 left-12 max-sm:static max-sm:justify-self-start",
-              ];
-              return (
-                <article key={card.title} className={`absolute z-20 w-[min(48%,235px)] rounded-[20px] border border-border bg-card/90 p-4 shadow-xl backdrop-blur max-sm:relative max-sm:w-[min(100%,340px)] ${positions[index]}`}>
-                  <Icon className="h-6 w-6 text-primary" />
-                  <strong className="mt-2 block text-sm">{card.title}</strong>
-                  <span className="mt-1 block text-xs leading-relaxed text-text-muted">{card.text}</span>
-                </article>
-              );
-            })}
+            <div className="relative z-10 grid gap-4 sm:grid-cols-3">
+              {copy.cards.map((card, index) => {
+                const Icon = cardIcons[index] ?? MessageSquareText;
+                return (
+                  <article key={card.title} className="rounded-[20px] border border-border bg-card/90 p-4 shadow-xl backdrop-blur">
+                    <Icon className="h-6 w-6 text-primary" />
+                    <strong className="mt-2 block text-sm">{card.title}</strong>
+                    <span className="mt-1 block text-xs leading-relaxed text-text-muted">{card.text}</span>
+                  </article>
+                );
+              })}
+            </div>
           </motion.div>
         </div>
       </section>
