@@ -3,6 +3,7 @@ import { supabase } from "@shared/lib/supabase";
 import { isCustomerChatEligible, getAnalysisChatTitle, isMentoriaService, buildMentoriaChatTitle } from "../services/eligibility";
 import type { SpecialistChatThread } from "../types";
 import type { UserService } from "../../process/types";
+import type { Json } from "@shared/types/database";
 
 // Services that create their own user_services row and own conversation (not routed to parent)
 const STANDALONE_SERVICE_SLUGS = new Set([
@@ -253,14 +254,8 @@ export function useCustomerChats(userId: string) {
           .find((s) => isMentoriaService(s) || s.startsWith("consultoria-") || s.startsWith("consultancy-"));
 
         if (serviceRow && !isCustomerChatEligible({
-          id: serviceRow.id as string,
-          user_id: serviceRow.user_id as string,
           service_slug: serviceRow.service_slug as string,
-          status: serviceRow.status as string,
-          step_data: serviceStepData,
-          current_step: (serviceRow.current_step as number | null) ?? null,
-          created_at: serviceRow.created_at as string,
-          updated_at: serviceRow.created_at as string,
+          step_data: serviceStepData as Json,
         }) && !mentoriaPurchaseSlug) return;
 
         const serviceSlug = String(serviceRow?.service_slug || "support");
