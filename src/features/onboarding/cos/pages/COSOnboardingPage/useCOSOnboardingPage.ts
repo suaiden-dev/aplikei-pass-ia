@@ -184,7 +184,7 @@ export function useCOSOnboardingPage() {
       if (urlStepIdx < 0) {
         const first = deriveCurrentStepIdx(userSteps)
         const params = new URLSearchParams(searchParams)
-        params.set('id', inst.id)
+        params.set('slug', inst.id)
         params.set('step', String(Math.min(first, Math.max(0, userSteps.length - 1))))
         setSearchParams(params, { replace: true })
       }
@@ -327,16 +327,16 @@ export function useCOSOnboardingPage() {
       const nextIdx = shouldAdvanceSequentially ? stepIdx + 1 : derivedNextIdx
 
       if (nextIdx >= nextSteps.length) {
-        navigate(`/dashboard/processes/${slug}?id=${instance.id}`)
+        navigate(`/dashboard/processes/${slug}?slug=${instance.id}`)
       } else {
         const nextStep = nextSteps[nextIdx]
         if (nextStep?.product_step?.type === 'admin_action') {
-          navigate(`/dashboard/processes/${slug}?id=${instance.id}`)
+          navigate(`/dashboard/processes/${slug}?slug=${instance.id}`)
           return
         }
 
         const params = new URLSearchParams(searchParams)
-        params.set('id', instance.id)
+        params.set('slug', instance.id)
         params.set('step', String(nextIdx))
         setSearchParams(params)
       }
@@ -360,7 +360,7 @@ export function useCOSOnboardingPage() {
 
   const goToProcess        = useCallback(() => {
     if (instance) {
-      navigate(`/dashboard/processes/${slug}?id=${instance.id}`)
+      navigate(`/dashboard/processes/${slug}?slug=${instance.id}`)
       return
     }
     navigate(`/dashboard/processes/${slug}`)
@@ -368,7 +368,7 @@ export function useCOSOnboardingPage() {
   const jumpToOnboardingStep = useCallback((target: number) => {
     const params = new URLSearchParams(searchParams)
     if (instance) {
-      params.set('id', instance.id)
+      params.set('slug', instance.id)
     }
     params.set('step', String(target))
     setSearchParams(params)

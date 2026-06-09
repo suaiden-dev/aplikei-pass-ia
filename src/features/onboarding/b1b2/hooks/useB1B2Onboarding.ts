@@ -98,7 +98,7 @@ export function useB1B2Onboarding({
   );
 
   useEffect(() => {
-    const idParam = searchParams.get("id");
+    const idParam = searchParams.get("slug") || searchParams.get("id");
     loadService(idParam ?? undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);

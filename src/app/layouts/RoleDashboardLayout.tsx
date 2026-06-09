@@ -197,8 +197,9 @@ function SidebarNav({
             {/* Items — always visible on desktop collapsed (icon only), visible when open on mobile */}
             <div
               className={cn(
-                !collapsed && !isOpen && "hidden",
-                collapsed && "lg:block",
+                (!isOpen && !collapsed) && "hidden",
+                (!isOpen && collapsed) && "hidden lg:block",
+                isOpen && "block",
               )}
             >
               <div

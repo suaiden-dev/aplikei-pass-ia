@@ -261,7 +261,7 @@ test.describe("Mentoria — Falar com Especialista após compra", () => {
     await mockConversationsAndMessages(page, CONV_ID);
 
     // Navega para o passo final de preparação (step >= 11)
-    await page.goto(`/dashboard/processes/visto-f1/onboarding?id=${F1_PROC_ID}&step=11`);
+    await page.goto(`/dashboard/processes/visto-f1/onboarding?slug=${F1_PROC_ID}&step=11`);
 
     // Com hasMentorship=true o botão mostra "Falar com especialista" (não o modal de compra)
     const btn = page.getByText("Falar com especialista").first();
@@ -296,7 +296,7 @@ test.describe("Mentoria — Falar com Especialista após compra", () => {
     );
     await mockConversationsAndMessages(page, CONV_ID);
 
-    await page.goto(`/dashboard/processes/visto-f1/onboarding?id=${F1_PROC_ID}&step=11`);
+    await page.goto(`/dashboard/processes/visto-f1/onboarding?slug=${F1_PROC_ID}&step=11`);
 
     const btn = page.getByText("Falar com especialista").first();
     await expect(btn).toBeVisible({ timeout: 15000 });
@@ -326,7 +326,7 @@ test.describe("Mentoria — Falar com Especialista após compra", () => {
     );
     await mockConversationsAndMessages(page, CONV_ID);
 
-    await page.goto(`/dashboard/processes/visto-f1/onboarding?id=${F1_PROC_ID}&step=11`);
+    await page.goto(`/dashboard/processes/visto-f1/onboarding?slug=${F1_PROC_ID}&step=11`);
 
     const btn = page.getByText("Falar com especialista").first();
     await expect(btn).toBeVisible({ timeout: 15000 });
@@ -374,7 +374,7 @@ test.describe("Mentoria — Falar com Especialista após compra", () => {
       });
     });
 
-    await page.goto(`/dashboard/processes/visto-f1/onboarding?id=${F1_PROC_ID}&step=11`);
+    await page.goto(`/dashboard/processes/visto-f1/onboarding?slug=${F1_PROC_ID}&step=11`);
 
     // O título do botão sem mentoria é o da tradução, não "Falar com especialista"
     // Após clicar, um modal de especialista deve aparecer (não há navegação para support)

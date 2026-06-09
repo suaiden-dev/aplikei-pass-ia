@@ -97,6 +97,7 @@ export default function COSOnboardingPage() {
   const [searchParams] = useSearchParams()
   const stepIdx = Number(searchParams.get('step') ?? '0')
   const parentProcessId =
+    searchParams.get('slug') ||
     searchParams.get('id') ||
     searchParams.get('parentId') ||
     searchParams.get('processId')
@@ -479,7 +480,7 @@ export default function COSOnboardingPage() {
   const goToProcess = () => {
     if (hasChildRecoveryContext) {
       const nextParams = new URLSearchParams()
-      if (parentProcessId) nextParams.set('id', parentProcessId)
+      if (parentProcessId) nextParams.set('slug', parentProcessId)
       nextParams.set('childId', childProcessId || proc?.id || '')
       if (childWorkflowType) nextParams.set('workflowType', childWorkflowType)
       navigate(`/dashboard/processes/${slug}?${nextParams.toString()}`)
@@ -487,7 +488,7 @@ export default function COSOnboardingPage() {
     }
 
     if (proc?.id) {
-      navigate(`/dashboard/processes/${slug}?id=${proc.id}`)
+      navigate(`/dashboard/processes/${slug}?slug=${proc.id}`)
       return
     }
     navigate(`/dashboard/processes/${slug}`)
@@ -515,7 +516,7 @@ export default function COSOnboardingPage() {
         const { childProcessId } = await processService.startAdditionalWorkflow(proc.id, 'motion')
         toast.success(t?.cos?.toasts?.deniedMotion ?? 'Visto negado. Iniciando fluxo de Motion.')
         const nextParams = new URLSearchParams()
-        nextParams.set('id', proc.id)
+        nextParams.set('slug', proc.id)
         if (childProcessId) nextParams.set('childId', childProcessId)
         nextParams.set('workflowType', 'motion')
         navigate(`/dashboard/processes/${slug}?${nextParams.toString()}`)
@@ -526,7 +527,7 @@ export default function COSOnboardingPage() {
         const { childProcessId } = await processService.startAdditionalWorkflow(proc.id, 'rfe')
         toast.success(t?.cos?.toasts?.resultReported ?? 'Resultado informado.')
         const nextParams = new URLSearchParams()
-        nextParams.set('id', proc.id)
+        nextParams.set('slug', proc.id)
         if (childProcessId) nextParams.set('childId', childProcessId)
         nextParams.set('workflowType', 'rfe')
         navigate(`/dashboard/processes/${slug}?${nextParams.toString()}`)
@@ -582,7 +583,7 @@ export default function COSOnboardingPage() {
           })
           const { childProcessId } = await processService.startAdditionalWorkflow(parentId, 'motion')
           const nextParams = new URLSearchParams()
-          nextParams.set('id', parentId)
+          nextParams.set('slug', parentId)
           if (childProcessId) nextParams.set('childId', childProcessId)
           nextParams.set('workflowType', 'motion')
           navigate(`/dashboard/processes/${slug}?${nextParams.toString()}`)
@@ -609,7 +610,7 @@ export default function COSOnboardingPage() {
           rfe_payment_completed_at: null,
         })
         const nextParams = new URLSearchParams()
-        nextParams.set('id', parentId || proc.id)
+        nextParams.set('slug', parentId || proc.id)
         nextParams.set('childId', targetChildId)
         nextParams.set('workflowType', 'rfe')
         nextParams.set('step', '13')
@@ -620,7 +621,7 @@ export default function COSOnboardingPage() {
       toast.success(
         normalizedResult === 'approved'
           ? (t?.cos?.toasts?.approvedResultSaved ?? 'Resultado informado como aprovado.')
-          : normalizedResult === 'rfe'
+          : (normalizedResult as string) === 'rfe'
           ? (t?.cos?.toasts?.resultReported ?? 'Novo ciclo de RFE iniciado.')
           : (t?.cos?.toasts?.rejectedResultSaved ?? 'Resultado informado como reprovado.'),
       )
@@ -888,10 +889,10 @@ export default function COSOnboardingPage() {
           const baseStep = flow === 'motion' ? 19 : 13
 
           if (isFinal || nextStep?.type === 'admin_action') {
-            navigate(`/dashboard/processes/${slug}?id=${parentId}&childId=${proc.id}&workflowType=${flow}`)
+            navigate(`/dashboard/processes/${slug}?slug=${parentId}&childId=${proc.id}&workflowType=${flow}`)
           } else {
             const params = new URLSearchParams()
-            params.set('id', parentId)
+            params.set('slug', parentId)
             params.set('childId', proc.id)
             params.set('workflowType', flow)
             params.set('step', String(baseStep + nextStepIdx))

@@ -40,7 +40,7 @@ export function useProcessDetail(userId: string | undefined) {
   const { slug = "" } = useParams<{ slug: string }>();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const idParam = searchParams.get("id");
+  const idParam = searchParams.get("slug") || searchParams.get("id");
 
   const [isUpdating, setIsUpdating] = useState(false);
 

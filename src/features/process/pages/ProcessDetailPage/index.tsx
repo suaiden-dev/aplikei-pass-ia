@@ -86,11 +86,11 @@ export default function ProcessDetailPage() {
   const Icon = cfg ? (serviceIconMap[cfg.iconName] ?? MdLanguage) : MdLanguage;
 
   const { data: proc, isLoading, refetch } = useQuery({
-    queryKey: ['process-detail', slug, searchParams.get("id")],
+    queryKey: ['process-detail', slug, searchParams.get("slug") || searchParams.get("id")],
     queryFn: async () => {
       if (!user || !slug) return null;
       let procData: any;
-      const idParam = searchParams.get("id");
+      const idParam = searchParams.get("slug") || searchParams.get("id");
 
       if (idParam) {
         const { data, error } = await supabase
@@ -203,7 +203,7 @@ export default function ProcessDetailPage() {
         },
         () => {
           console.log("[ProcessDetail] Realtime update detected, refetching...");
-          queryClient.invalidateQueries({ queryKey: ['process-detail', slug, searchParams.get("id")] });
+          queryClient.invalidateQueries({ queryKey: ['process-detail', slug, searchParams.get("slug") || searchParams.get("id")] });
         }
       )
       .subscribe();
@@ -281,7 +281,7 @@ export default function ProcessDetailPage() {
   const goToOnboardingStep = (originalIdx: number, stepId?: string) => {
     const targetStep = getOnboardingStepForView(originalIdx, stepId);
     const params = new URLSearchParams();
-    params.set("id", proc.id);
+    params.set("slug", proc.id);
     params.set("step", String(targetStep));
     if (isChildRecoveryView && childId && workflowType) {
       params.set("childId", childId);
@@ -401,7 +401,7 @@ export default function ProcessDetailPage() {
         className="mb-8"
       >
         <Link
-          to={isChildRecoveryView ? `/dashboard/processes/${slug}?id=${proc.id}` : "/dashboard/processes"}
+          to={isChildRecoveryView ? `/dashboard/processes/${slug}?slug=${proc.id}` : "/dashboard/processes"}
           className="inline-flex items-center gap-2 text-sm font-bold text-text-muted hover:text-text transition-colors"
         >
           <RiArrowLeftLine />
@@ -603,7 +603,7 @@ export default function ProcessDetailPage() {
                     {/* Botão de Preparação para Vistos Consulares (Sempre visível se for a etapa final) */}
                     {isConsular && originalIdx === (slug.includes("f1") ? 11 : 10) && (
                       <button
-                        onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?id=${proc.id}&step=${originalIdx}`)}
+                        onClick={() => navigate(`/dashboard/processes/${slug}/onboarding?slug=${proc.id}&step=${originalIdx}`)}
                         className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${isCurrent
                             ? "border-primary text-primary hover:bg-primary/5 shadow-sm"
                             : "border-border text-text-muted hover:border-primary hover:text-primary bg-card"
@@ -789,7 +789,7 @@ export default function ProcessDetailPage() {
                         key={child.id}
                         onClick={() => {
                           navigate(
-                            `/dashboard/processes/${slug}?id=${proc.id}&childId=${child.id}&workflowType=${childFlow}`,
+                            `/dashboard/processes/${slug}?slug=${proc.id}&childId=${child.id}&workflowType=${childFlow}`,
                           );
                         }}
                         className="w-full flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-left hover:border-primary/40 hover:bg-primary/5 transition-all"

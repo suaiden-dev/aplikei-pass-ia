@@ -81,7 +81,7 @@ export default function F1OnboardingPage() {
   }
 
   const handleNavigateToProcess = () => {
-    navigate(`/dashboard/processes/${slug}${procId ? `?id=${procId}` : ""}`)
+    navigate(`/dashboard/processes/${slug}${procId ? `?slug=${procId}` : ""}`)
   }
 
   const formatStepLabel = (idx: number) => {

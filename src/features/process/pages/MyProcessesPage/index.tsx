@@ -198,7 +198,7 @@ function ProcessRow({ proc, index, displaySlug, officeName }: { proc: UserServic
         </div>
 
         <Link
-          to={`/dashboard/processes/${proc.service_slug}?id=${proc.id}`}
+          to={`/dashboard/processes/${proc.service_slug}?slug=${proc.id}`}
           className="flex items-center justify-center gap-2 w-full md:w-auto px-6 py-3 md:py-2.5 rounded-xl bg-primary text-white text-[12px] font-black uppercase tracking-wider transition-all hover:bg-primary-hover shadow-lg shadow-primary/20 md:opacity-0 md:group-hover:opacity-100 md:translate-x-2 md:group-hover:translate-x-0 duration-200"
         >
           {t.dashboard.myCases.accessCase}
@@ -243,7 +243,7 @@ function ChildRecoveryRows({
       {recoveryChildren.map((child) => (
         <Link
           key={child.id}
-          to={`/dashboard/processes/${parentProc.service_slug}?id=${parentProc.id}&childId=${child.id}&workflowType=${workflowTypeFromChild(child)}`}
+          to={`/dashboard/processes/${parentProc.service_slug}?slug=${parentProc.id}&childId=${child.id}&workflowType=${workflowTypeFromChild(child)}`}
           className="flex items-center justify-between rounded-2xl border border-border bg-bg-subtle px-4 py-3 transition-colors hover:bg-bg"
         >
           <div className="min-w-0">

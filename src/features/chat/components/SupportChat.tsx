@@ -159,7 +159,7 @@ export function SupportChat({
                 <div className="flex flex-col items-center gap-3">
                   <p>{t?.messages?.closedCustomer ?? "Este chat foi encerrado. O especialista enviou a resposta no seu painel."}</p>
                   <button
-                    onClick={() => navigate(`/dashboard/processes/${serviceSlug}?id=${processId}`)}
+                    onClick={() => navigate(`/dashboard/processes/${serviceSlug}?slug=${processId}`)}
                     className="px-6 py-2 bg-primary text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-primary-hover transition-all flex items-center gap-2"
                   >
                     {t?.actions?.viewResult ?? "Ver Resultado"}

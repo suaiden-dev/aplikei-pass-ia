@@ -241,12 +241,12 @@ export default function CheckoutSuccessPage() {
               if (isRecoveryChild && parentProcessId) {
                 const absoluteStep = flow === "motion" ? 19 + nextStep : 13 + nextStep;
                 window.location.assign(
-                  `/dashboard/processes/${parentServiceSlug}/onboarding?id=${parentProcessId}&childId=${pendingAdvance.procId}&workflowType=${flow}&step=${absoluteStep}`,
+                  `/dashboard/processes/${parentServiceSlug}/onboarding?slug=${parentProcessId}&childId=${pendingAdvance.procId}&workflowType=${flow}&step=${absoluteStep}`,
                 );
               } else {
                 const targetSlug = row?.service_slug || "troca-status";
                 window.location.assign(
-                  `/dashboard/processes/${targetSlug}/onboarding?id=${pendingAdvance.procId}&step=${nextStep}`,
+                  `/dashboard/processes/${targetSlug}/onboarding?slug=${pendingAdvance.procId}&step=${nextStep}`,
                 );
               }
               return;

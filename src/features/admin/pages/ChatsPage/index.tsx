@@ -138,6 +138,8 @@ export default function ChatsPage() {
   }, [unreadByProcess, clearedUnreadProcessIds, prevUnread]);
 
   useEffect(() => {
+    if (isMobile) return;
+
     if (!filteredChats.length) {
       setSelectedChat(null);
       return;
@@ -146,7 +148,7 @@ export default function ChatsPage() {
     if (!selectedChat || !filteredChats.some((c) => c.processId === selectedChat.processId)) {
       setSelectedChat(filteredChats[0]);
     }
-  }, [filteredChats, selectedChat]);
+  }, [filteredChats, selectedChat, isMobile]);
 
   return (
     <div className="h-full flex flex-col bg-bg overflow-hidden">

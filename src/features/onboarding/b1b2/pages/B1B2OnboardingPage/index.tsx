@@ -79,7 +79,7 @@ export default function B1B2OnboardingPage() {
   }
 
   const handleNavigateToProcess = () => {
-    navigate(`/dashboard/processes/${slug}${procId ? `?id=${procId}` : ""}`)
+    navigate(`/dashboard/processes/${slug}${procId ? `?slug=${procId}` : ""}`)
   }
 
   const formatStepLabel = (idx: number) => {

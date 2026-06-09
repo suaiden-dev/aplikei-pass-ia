@@ -102,7 +102,7 @@ export function ActiveProcessCard({
   };
 
   return (
-    <Link to={`/dashboard/processes/${proc.service_slug}?id=${proc.id}`} className="w-full h-full">
+    <Link to={`/dashboard/processes/${proc.service_slug}?slug=${proc.id}`} className="w-full h-full">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
