@@ -9,8 +9,12 @@ import { DashboardPageHeader, DashboardSection, InlineMetric, StatusBadge } from
 import { useAuth } from "@shared/hooks/useAuth";
 import type { CaseOnboardingStep } from "@shared/types/case.model";
 import { caseService } from "@features/process/services/caseService";
+import {
+  fetchCaseWorkflowReview,
+  getCaseDocumentUrl,
+  uploadCaseDocument,
+} from "@features/process/services/caseOnboardingService";
 import * as processService from "@features/process/services/processOps";
-import { getSupabaseClient } from "@shared/lib/supabase/client";
 import * as workflowOps from "@features/workflow/services/workflowOps";
 import type { StepReview } from "@features/workflow/types";
 import { formatDate } from "@shared/utils/format";
@@ -475,8 +479,7 @@ function B1B2MRVSetupPanel({
     try {
       const ext = file.name.split(".").pop();
       const path = `${procId}/mrv/boleto_${crypto.randomUUID()}.${ext}`;
-      const { error } = await getSupabaseClient()!.storage.from("aplikei-profiles").upload(path, file);
-      if (error) throw new Error(error.message);
+      await uploadCaseDocument(path, file);
       setBoletoPath(path);
       toast.success("Boleto enviado com sucesso.");
     } catch {
@@ -510,7 +513,7 @@ function B1B2MRVSetupPanel({
   };
 
   const boletoUrl = boletoPath
-    ? getSupabaseClient()!.storage.from("aplikei-profiles").getPublicUrl(boletoPath).data.publicUrl
+    ? getCaseDocumentUrl(boletoPath)
     : null;
 
   return (
@@ -659,7 +662,7 @@ function B1B2FinalAnalysisPanel({
         {docEntries.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {docEntries.map(({ key, label, path }) => {
-              const url = getSupabaseClient()!.storage.from("aplikei-profiles").getPublicUrl(path).data.publicUrl;
+              const url = getCaseDocumentUrl(path);
               return (
                 <div key={key} className="flex items-center gap-4 rounded-2xl border border-border bg-bg-subtle p-4">
                   <div className="flex-1 min-w-0">
@@ -1083,38 +1086,7 @@ export default function CaseOnboardingPage() {
         return null;
       }
 
-      // Query directly — bypasses the preferMockWorkflow flag in workflowService
-      // so the admin always sees real submitted data from the customer.
-      const { data: stepsData, error: stepsError } = await getSupabaseClient()!
-        .schema("aplikei")
-        .from("user_steps")
-        .select("*, product_step:product_steps(*)")
-        .eq("user_product_id", caseId)
-        .order("product_step(order)", { ascending: true });
-
-      if (stepsError || !stepsData || stepsData.length < 3) {
-        return null;
-      }
-
-      const orderedStepsData = [...stepsData].sort(
-        (a, b) =>
-          ((a as { product_step?: { order?: number | null } }).product_step?.order ?? Number.MAX_SAFE_INTEGER) -
-          ((b as { product_step?: { order?: number | null } }).product_step?.order ?? Number.MAX_SAFE_INTEGER),
-      );
-
-      // Fetch reviews for the first two steps (form + docs)
-      const firstTwoIds = (orderedStepsData as {id: string}[]).slice(0, 2).map((s) => s.id);
-      const { data: reviewsData } = await getSupabaseClient()!
-        .schema("aplikei")
-        .from("step_reviews")
-        .select("*")
-        .in("user_step_id", firstTwoIds)
-        .order("created_at", { ascending: false });
-
-      return {
-        steps: orderedStepsData,
-        reviews: reviewsData ?? [],
-      };
+      return fetchCaseWorkflowReview(caseId);
     },
     enabled: Boolean(caseId && user && !caseId.startsWith("CASE-")),
   });
