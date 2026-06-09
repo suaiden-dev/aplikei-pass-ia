@@ -1,5 +1,12 @@
 import { supabase } from "@shared/lib/supabase";
-import type { OfficeRow, UpsertOfficePayload } from "@features/offices/types/office";
+import type {
+  MasterOfficeStats,
+  OfficeDetails,
+  OfficeProcess,
+  OfficeRow,
+  OfficeTeamMember,
+  UpsertOfficePayload,
+} from "@features/offices/types/office";
 export type { OfficeRow, UpsertOfficePayload } from "@features/offices/types/office";
 
 export function normalizeOfficeName(name: string) {
@@ -26,6 +33,24 @@ export async function fetchOfficeByOwner(ownerId: string): Promise<OfficeRow | n
 
   if (error) throw Error(error.message);
   return data as OfficeRow | null;
+}
+
+export async function fetchPublishedOfficeLandingBySlug(slug: string): Promise<OfficeRow | null> {
+  const cleanSlug = slug.trim().toLowerCase();
+  if (!cleanSlug) return null;
+
+  const { data, error } = await supabase
+    .from("offices")
+    .select("id, name, slug, logo_url, landing_page_config, address, phone, cnpj, email, website, instagram_url, linkedin_url, facebook_url, owner_id")
+    .eq("slug", cleanSlug)
+    .maybeSingle();
+
+  if (error) throw Error(error.message);
+  const office = data as OfficeRow | null;
+  const config = office?.landing_page_config;
+
+  if (!office || config?.isLandingLive !== true) return null;
+  return office;
 }
 
 export async function listOffices(): Promise<OfficeRow[]> {
@@ -66,6 +91,73 @@ export async function listOffices(): Promise<OfficeRow[]> {
     owner_name: row.user_accounts?.full_name || row.user_accounts?.name || null,
     owner_email: row.user_accounts?.email || null,
   }));
+}
+
+export async function listMasterOfficeStats(): Promise<MasterOfficeStats[]> {
+  const { data, error } = await supabase.from("v_master_office_stats").select("*");
+  if (error) throw Error(error.message);
+
+  const officesData = (data ?? []) as MasterOfficeStats[];
+  const ownerIds = Array.from(new Set(officesData.map((office) => office.owner_id).filter(Boolean))) as string[];
+
+  if (ownerIds.length === 0) return officesData;
+
+  const { data: owners, error: ownersError } = await supabase
+    .from("user_accounts")
+    .select("id, full_name, email")
+    .in("id", ownerIds);
+
+  if (ownersError) throw Error(ownersError.message);
+
+  const ownerById = new Map(
+    (owners ?? []).map((owner) => [owner.id, owner.full_name?.trim() || owner.email || null]),
+  );
+
+  return officesData.map((office) => ({
+    ...office,
+    responsible_name: (office.owner_id && ownerById.get(office.owner_id)) || office.responsible_name || null,
+  }));
+}
+
+type OfficeProcessRow = Omit<OfficeProcess, "user_accounts"> & {
+  user_accounts?: Array<{ full_name: string | null; email: string | null }> | { full_name: string | null; email: string | null } | null;
+};
+
+export async function fetchOfficeDetails(officeId: string): Promise<OfficeDetails> {
+  const [
+    { data: officeData, error: officeError },
+    { data: membersData, error: membersError },
+    { data: processData, error: processError },
+  ] = await Promise.all([
+    supabase.from("v_master_office_stats").select("*").eq("office_id", officeId).maybeSingle(),
+    supabase
+      .from("user_accounts")
+      .select("id, full_name, email, role")
+      .eq("office_id", officeId)
+      .in("role", ["seller", "manager", "admin_lawyer"]),
+    supabase
+      .from("user_services")
+      .select("id, service_slug, status, current_step, created_at, user_id, office_id, user_accounts:profiles(full_name, email)")
+      .eq("office_id", officeId)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  if (officeError) throw Error(officeError.message);
+  if (membersError) throw Error(membersError.message);
+  if (processError) throw Error(processError.message);
+
+  const members = (membersData as OfficeTeamMember[] | null) ?? [];
+  const processRows = ((processData as unknown as OfficeProcessRow[] | null) ?? []);
+
+  return {
+    office: (officeData as MasterOfficeStats | null) ?? null,
+    sellers: members.filter((member) => member.role === "seller"),
+    managers: members.filter((member) => member.role === "manager" || member.role === "admin_lawyer"),
+    processes: processRows.map((process) => ({
+      ...process,
+      user_accounts: Array.isArray(process.user_accounts) ? process.user_accounts[0] : process.user_accounts,
+    })),
+  };
 }
 
 export async function findOfficeByName(name: string): Promise<OfficeRow | null> {
