@@ -44,6 +44,8 @@ const MOBILE_SCREEN_UI = {
     panel: "PAINEL",
     active: "ATIVO",
     progress: "0%",
+    nextStep1: "RECEBER I-20",
+    nextStep2: "AGENDAR ENTREVISTA",
   },
   en: {
     nav: "MY CASES",
@@ -55,6 +57,8 @@ const MOBILE_SCREEN_UI = {
     panel: "DASHBOARD",
     active: "ACTIVE",
     progress: "0%",
+    nextStep1: "RECEIVE I-20",
+    nextStep2: "SCHEDULE INTERVIEW",
   },
   es: {
     nav: "MIS CASOS",
@@ -66,6 +70,8 @@ const MOBILE_SCREEN_UI = {
     panel: "PANEL",
     active: "ACTIVO",
     progress: "0%",
+    nextStep1: "RECIBIR I-20",
+    nextStep2: "AGENDAR ENTREVISTA",
   },
 } as const;
 
@@ -561,7 +567,7 @@ export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const t = (T as Record<string, typeof T.pt>)[lang] ?? T.pt;
+  const t = (T as unknown as Record<Lang, typeof T.pt>)[lang as Lang] ?? T.pt;
   const isDark = theme === "dark";
 
   // Redirect authenticated users once auth resolves — don't block rendering
