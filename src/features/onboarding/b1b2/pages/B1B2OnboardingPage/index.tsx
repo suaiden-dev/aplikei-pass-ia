@@ -9,6 +9,8 @@ import { AdminFeedbackBanner } from '@shared/components/organisms/AdminFeedbackB
 import { B1B2StepContent } from './components/B1B2StepContent';
 import { type DS160FormValues } from '@features/onboarding/b1b2/schemas/ds160.schema';
 
+import { OnboardingStepper } from '@shared/components/molecules/OnboardingStepper';
+
 function buildLabels(t: any): B1B2OnboardingLabels {
   return {
     stepLabel: t.onboardingPage.stepLabel || "Step",
@@ -127,12 +129,15 @@ export default function B1B2OnboardingPage() {
             </div>
           </div>
 
-          <div className='hidden sm:flex items-center gap-2 bg-primary/5 border border-primary/20 px-4 py-2 rounded-full'>
-            <span className='w-1.5 h-1.5 rounded-full bg-primary animate-pulse' />
-            <span className='text-[11px] font-black text-primary tracking-widest uppercase'>
-              {labels.stepLabel} {formatStepLabel(stepIdx)}
-            </span>
+          <div className='md:hidden w-36'>
+            <OnboardingStepper slug={slug} stepIdx={stepIdx} totalSteps={11} />
           </div>
+        </div>
+      </div>
+
+      <div className="hidden md:block bg-card border-b border-border py-6 mb-8">
+        <div className="max-w-4xl mx-auto px-6">
+          <OnboardingStepper slug={slug} stepIdx={stepIdx} totalSteps={11} />
         </div>
       </div>
 
