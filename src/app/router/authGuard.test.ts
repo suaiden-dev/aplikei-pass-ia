@@ -53,7 +53,7 @@ describe("authGuard", () => {
       },
     })).toEqual({
       kind: "redirect-login",
-      to: "/acompanhar-meu-caso",
+      to: "/track-my-visa",
       state: {
         from: {
           pathname: "/dashboard",

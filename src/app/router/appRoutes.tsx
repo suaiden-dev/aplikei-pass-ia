@@ -75,6 +75,9 @@ const CheckoutSuccessPage = lazyPage(
 const OfficeCheckoutPage = lazyPage(
   () => import("@features/payments/pages/OfficeCheckoutPage"),
 );
+const PublicLandingPage = lazyPage(
+  () => import("@features/page-builder/pages/PublicLandingPage"),
+);
 const Terms = lazyPage(() => import("@features/legal/pages/Terms"));
 const Privacy = lazyPage(() => import("@features/legal/pages/Privacy"));
 const Refund = lazyPage(() => import("@features/legal/pages/Refund"));
@@ -282,14 +285,6 @@ export const appRoutes: AppRouteDefinition[] = [
     layout: "auth",
   },
   {
-    path: "/track-my-case",
-    title: "Track My Case",
-    component: Login,
-    authRequired: false,
-    accessLevels: [],
-    layout: "auth",
-  },
-  {
     path: "/track-my-visa",
     title: "Track My Visa",
     component: Login,
@@ -457,6 +452,14 @@ export const appRoutes: AppRouteDefinition[] = [
     component: CheckoutSuccessPage,
     authRequired: true,
     accessLevels: [...STAFF_AND_SELLER, AccessLevel.CUSTOMER],
+    layout: "standalone",
+  },
+  {
+    path: "/:slug",
+    title: "Published Landing",
+    component: PublicLandingPage,
+    authRequired: false,
+    accessLevels: [],
     layout: "standalone",
   },
 
