@@ -41,3 +41,8 @@ export interface Office {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface OfficeLogo {
+  name: string;
+  src: string;
+}

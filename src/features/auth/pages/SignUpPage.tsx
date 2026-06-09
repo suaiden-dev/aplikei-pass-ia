@@ -11,7 +11,7 @@ import { AuthCard } from "@shared/components/organisms/AuthCard";
 import { PhoneInput } from "@shared/components/molecules/PhoneInput";
 import { useAuthForm } from "../hooks/useAuthForm";
 import { getSignUpSchema } from "../schemas/auth.schema";
-import { useT } from "@app/app/i18n";
+import { useLocale, useT } from "@app/app/i18n";
 import { authService } from "../lib/auth";
 import { getDashboardPathForRole, normalizeRole } from "../lib/roles";
 
@@ -69,7 +69,7 @@ export default function SignUp() {
         }
 
         if (normalizedRole === "customer") {
-          navigate("/acompanhar-meu-caso", { replace: true });
+          navigate("/track-my-visa", { replace: true });
         } else {
           navigate("/login", { replace: true });
         }
