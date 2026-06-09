@@ -1,5 +1,23 @@
 import { getServiceBySlug } from "@shared/data/services";
+import { supabase } from "@shared/lib/supabase";
 import { isAnalysisServiceSlug, isProcessDenied, type UserService } from "@shared/types/process.model";
+
+export interface CustomerRow {
+  id: string;
+  name?: string | null;
+  full_name?: string | null;
+  email: string;
+  phone?: string | null;
+  phone_number?: string | null;
+  avatar_url: string | null;
+  role: string;
+  created_at: string;
+}
+
+export interface CustomerWithStats extends CustomerRow {
+  productsCount: number;
+  totalSpent: number;
+}
 
 export interface CustomerRecord {
   id: string;
@@ -23,6 +41,57 @@ const HARDCODED_CUSTOMERS: CustomerRecord[] = [
 
 export interface AdminCustomerRecord extends CustomerRecord {
   stageDetails: string[];
+}
+
+export async function listCustomersWithStats(): Promise<CustomerWithStats[]> {
+  const [
+    { data: accountsData, error: accountsErr },
+    { data: zelleData },
+    { data: stripeData },
+  ] = await Promise.all([
+    supabase
+      .from("user_accounts")
+      .select("id, name, full_name, email, phone, phone_number, avatar_url, role, created_at")
+      .order("created_at", { ascending: false }),
+    supabase.from("zelle_payments").select("amount, user_id, guest_email").eq("status", "approved"),
+    supabase
+      .from("orders")
+      .select("total_price_usd, client_email")
+      .in("payment_status", ["paid", "complete", "succeeded", "completed"]),
+  ]);
+
+  if (accountsErr) throw Error(accountsErr.message);
+
+  return ((accountsData ?? []) as CustomerRow[]).map((customer) => {
+    let productsCount = 0;
+    let totalSpent = 0;
+
+    zelleData?.forEach((payment) => {
+      if (
+        payment.user_id === customer.id ||
+        payment.guest_email?.toLowerCase() === customer.email?.toLowerCase()
+      ) {
+        productsCount += 1;
+        totalSpent += Number(payment.amount) || 0;
+      }
+    });
+
+    stripeData?.forEach((order) => {
+      if (order.client_email?.toLowerCase() === customer.email?.toLowerCase()) {
+        productsCount += 1;
+        const value = typeof order.total_price_usd === "string"
+          ? parseFloat(order.total_price_usd)
+          : order.total_price_usd;
+        totalSpent += Number(value) || 0;
+      }
+    });
+
+    return {
+      ...customer,
+      productsCount,
+      totalSpent,
+    };
+  });
 }
 
 function parsePrice(price?: string) {
