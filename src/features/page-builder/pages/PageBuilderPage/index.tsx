@@ -1,5 +1,5 @@
 import { useEffect, useState as useLocalState } from "react";
-import { Check, Copy, Download, Eye, Monitor, Save, Smartphone } from "lucide-react";
+import { Check, Copy, Download, Eye, Globe2, Monitor, Power, Save, Smartphone } from "lucide-react";
 import { RiLayoutGridLine } from "react-icons/ri";
 import { toast } from "sonner";
 import { Button } from "@shared/components/atoms/button";
@@ -19,10 +19,14 @@ export default function PageBuilderPage() {
         usePageBuilder();
     const [previewViewport, setPreviewViewport] =
         useState<PreviewViewport>("desktop");
-    const [copiedKey, setCopiedKey] = useLocalState<"login" | null>(null);
+    const [copiedKey, setCopiedKey] = useLocalState<"login" | "public" | null>(null);
     const [showCatalog, setShowCatalog] = useState(true);
+    const publicUrl = config.officeSlug && typeof window !== "undefined"
+        ? `${window.location.origin}/${config.officeSlug}`
+        : "";
 
-    const handleCopyUrl = (key: "login", value: string) => {
+    const handleCopyUrl = (key: "login" | "public", value: string) => {
+        if (!value) return;
         void navigator.clipboard.writeText(value).then(() => {
             setCopiedKey(key);
             setTimeout(() => setCopiedKey(null), 2000);
@@ -62,6 +66,24 @@ export default function PageBuilderPage() {
             toast.success("Landing page saved successfully.");
         } catch (error) {
             const message = error instanceof Error ? error.message : "Failed to save landing page.";
+            toast.error(message);
+        }
+    };
+
+    const handleToggleDeploy = async () => {
+        try {
+            if (!config.officeSlug) {
+                toast.error("Create or assign an office before publishing this landing page.");
+                return;
+            }
+
+            const nextConfig = { ...config, isLandingLive: !config.isLandingLive };
+            updateConfig("isLandingLive", nextConfig.isLandingLive);
+            await saveConfig(nextConfig);
+            toast.success(nextConfig.isLandingLive ? "Landing page is live." : "Landing page is offline.");
+        } catch (error) {
+            updateConfig("isLandingLive", config.isLandingLive);
+            const message = error instanceof Error ? error.message : "Failed to update deploy status.";
             toast.error(message);
         }
     };
@@ -109,8 +131,35 @@ export default function PageBuilderPage() {
                             {copiedKey === "login" ? <Check size={13} className="text-success" /> : <Copy size={13} />}
                         </button>
                     </div>
+                    <div className="flex max-w-xl items-center gap-1.5 rounded-lg border border-border bg-bg-subtle px-3 py-1.5">
+                        <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${config.isLandingLive ? "bg-success/10 text-success" : "bg-text-muted/10 text-text-muted"}`}>
+                            {config.isLandingLive ? "live" : "off"}
+                        </span>
+                        <Globe2 size={13} className="shrink-0 text-text-muted" />
+                        <span className="truncate text-xs font-mono text-text-muted flex-1">
+                            {publicUrl || "No office slug available"}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => handleCopyUrl("public", publicUrl)}
+                            title="Copy public URL"
+                            disabled={!publicUrl}
+                            className="shrink-0 rounded p-0.5 text-text-muted transition-colors hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                            {copiedKey === "public" ? <Check size={13} className="text-success" /> : <Copy size={13} />}
+                        </button>
+                    </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                        variant={config.isLandingLive ? "default" : "outline"}
+                        onClick={handleToggleDeploy}
+                        disabled={isSaving || !config.officeSlug}
+                    >
+                        <Power size={16} className="mr-2" />
+                        {config.isLandingLive ? "Set Off" : "Deploy Live"}
+                    </Button>
+                    <div className="h-5 w-px bg-border" />
                     <Button
                         variant={showCatalog ? "default" : "outline"}
                         onClick={() => setShowCatalog((v) => !v)}

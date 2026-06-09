@@ -43,6 +43,12 @@ function replaceFooterContactItem(html: string, index: number, value: string) {
   return html.replace(block, updatedBlock);
 }
 
+function removeAnchorByText(html: string, text: string) {
+  const escapedText = text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`<a\\s+href="[^"]*"[^>]*>\\s*${escapedText}\\s*<\\/a>`, "i");
+  return html.replace(regex, "");
+}
+
 function replaceAnchorByText(html: string, text: string, href: string, label?: string) {
   const escapedText = text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const regex = new RegExp(
@@ -100,10 +106,42 @@ function toAbsoluteUrl(value: string) {
   return value;
 }
 
+function normalizeLoginHref(value: string, officeId?: string) {
+  const legacyTrackPath = `/track-my-${"case"}`;
+
+  if (officeId) return `/track-my-visa?office_id=${encodeURIComponent(officeId)}`;
+  if (!value) return "/track-my-visa";
+
+  try {
+    const base = typeof window !== "undefined" ? window.location.origin : "https://aplikei.local";
+    const url = new URL(value, base);
+    const urlOfficeId = url.searchParams.get("office_id") || url.searchParams.get("officeId");
+
+    if (urlOfficeId) {
+      return `/track-my-visa?office_id=${encodeURIComponent(urlOfficeId)}`;
+    }
+
+    if (url.pathname === "/acompanhar-meu-caso" || url.pathname === legacyTrackPath) {
+      url.pathname = "/track-my-visa";
+    }
+
+    if (value.startsWith("/") && typeof window === "undefined") {
+      return `${url.pathname}${url.search}${url.hash}`;
+    }
+
+    return value.startsWith("/") && typeof window !== "undefined"
+      ? `${url.pathname}${url.search}${url.hash}`
+      : url.toString();
+  } catch {
+    return "/track-my-visa";
+  }
+}
+
 export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig) {
   let html = baseHtml;
 
   const faviconUrl = toAbsoluteUrl(config.faviconUrl);
+  const loginUrl = normalizeLoginHref(config.loginUrl, config.officeId);
 
   html = replaceFirst(html, /<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(config.pageTitle)}</title>`);
   if (/<link\s+rel="icon"/i.test(html)) {
@@ -127,9 +165,9 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
     `<img src="${escapeHtml(config.logoUrl)}" alt="Logo" style="height:40px;width:auto;object-fit:contain" />`,
   );
 
-  html = replaceLoginHeaderButton(html, config.loginUrl, config.loginButtonLabel);
-  html = replaceAnchorByText(html, "Entrar", config.loginUrl, config.loginButtonLabel);
-  html = replaceAnchorByText(html, "Log in", config.loginUrl, config.loginButtonLabel);
+  html = replaceLoginHeaderButton(html, loginUrl, config.loginButtonLabel);
+  html = replaceAnchorByText(html, "Entrar", loginUrl, config.loginButtonLabel);
+  html = replaceAnchorByText(html, "Log in", loginUrl, config.loginButtonLabel);
   html = replaceAnchorByText(html, "Quero análise do meu caso", config.primaryCtaUrl, config.primaryCtaLabel);
   html = replaceAnchorByText(html, "I want my case reviewed", config.primaryCtaUrl, config.primaryCtaLabel);
   html = replaceAnchorByText(html, "Falar com especialista", config.secondaryCtaUrl, config.secondaryCtaLabel);
@@ -200,9 +238,21 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
   html = replaceFooterContactItem(html, 1, config.footerContactPhone);
   html = replaceFooterContactItem(html, 2, config.footerContactLocation);
   html = replaceFirst(html, /<div class="footer-bottom">[\s\S]*?<p>[\s\S]*?<\/p>/i, `<div class="footer-bottom">\n                <p>${escapeHtml(config.footerCopyright)}</p>`);
-  html = replaceAnchorByText(html, "Instagram", "#", config.footerSocialInstagramLabel);
-  html = replaceAnchorByText(html, "LinkedIn", "#", config.footerSocialLinkedinLabel);
-  html = replaceAnchorByText(html, "WhatsApp", config.contactUrl, config.footerSocialWhatsappLabel);
+  if (config.footerSocialInstagramLabel) {
+    html = replaceAnchorByText(html, "Instagram", "#", config.footerSocialInstagramLabel);
+  } else {
+    html = removeAnchorByText(html, "Instagram");
+  }
+  if (config.footerSocialLinkedinLabel) {
+    html = replaceAnchorByText(html, "LinkedIn", "#", config.footerSocialLinkedinLabel);
+  } else {
+    html = removeAnchorByText(html, "LinkedIn");
+  }
+  if (config.footerSocialWhatsappLabel) {
+    html = replaceAnchorByText(html, "WhatsApp", config.contactUrl, config.footerSocialWhatsappLabel);
+  } else {
+    html = removeAnchorByText(html, "WhatsApp");
+  }
 
   const enabledByIndex = [
     config.serviceB1B2Enabled,

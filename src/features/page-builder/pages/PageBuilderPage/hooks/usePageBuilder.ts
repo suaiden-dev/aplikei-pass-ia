@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@shared/hooks/useAuth";
 import { fetchOfficeByOwner, saveOfficeLandingConfig } from "@features/offices/services/officeOps";
-import { supabase } from "@shared/lib/supabase";
+import { uploadPageBuilderAsset } from "@features/page-builder/services/pageBuilderStorageService";
 import type { LandingPageConfig } from "../types";
 
 function toAbsoluteUrl(value: string) {
@@ -18,20 +18,25 @@ function sanitizeLoginUrl(value: string) {
 
   try {
     const url = new URL(absolute);
-    // Login URL no longer needs officeId context.
+    const officeId = url.searchParams.get("office_id") || url.searchParams.get("officeId");
     url.searchParams.delete("officeId");
-    if (url.pathname !== "/acompanhar-meu-caso" && url.pathname !== "/login") {
-      url.pathname = "/acompanhar-meu-caso";
+
+    if (officeId) {
+      url.pathname = "/track-my-visa";
+      url.searchParams.set("office_id", officeId);
+    } else if (url.pathname !== "/track-my-visa" && url.pathname !== "/login") {
+      url.pathname = "/track-my-visa";
       url.search = "";
     }
+
     return url.toString();
   } catch {
-    return `${window.location.origin}/acompanhar-meu-caso`;
+    return `${window.location.origin}/track-my-visa`;
   }
 }
 
-const initialConfig: LandingPageConfig = {
-  pageTitle: "Premium Visa Advisory",
+export const defaultLandingPageConfig: LandingPageConfig = {
+  pageTitle: "Aplikei",
   faviconUrl: "/logo.png",
   logoUrl: "https://dummyimage.com/180x52/0f172a/ffffff.png&text=SEU+LOGO",
   heroBadge: "PREMIUM VISA ADVISORY",
@@ -43,7 +48,7 @@ const initialConfig: LandingPageConfig = {
   expertStat2Value: "4.9/5",
   expertStat2Label: "Average satisfaction",
   adminLawyerUrl: typeof window !== "undefined" ? `${window.location.origin}/master` : "/master",
-  loginUrl: typeof window !== "undefined" ? `${window.location.origin}/acompanhar-meu-caso` : "/acompanhar-meu-caso",
+  loginUrl: typeof window !== "undefined" ? `${window.location.origin}/track-my-visa` : "/track-my-visa",
   contactUrl: "https://wa.me/15551234567",
   primaryCtaUrl: "/checkout/b1-b2",
   secondaryCtaUrl: "/quem-somos",
@@ -108,6 +113,8 @@ const initialConfig: LandingPageConfig = {
   footerSocialLinkedinLabel: "LinkedIn",
   footerSocialWhatsappLabel: "WhatsApp",
   officeSlug: "",
+  officeId: "",
+  isLandingLive: false,
   serviceF1Enabled: true,
   serviceB1B2Enabled: true,
   serviceEOSEnabled: true,
@@ -116,7 +123,7 @@ const initialConfig: LandingPageConfig = {
 
 export function usePageBuilder() {
   const { user } = useAuth();
-  const [config, setConfig] = useState<LandingPageConfig>(initialConfig);
+  const [config, setConfig] = useState<LandingPageConfig>(defaultLandingPageConfig);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
@@ -134,7 +141,8 @@ export function usePageBuilder() {
 
         const url = new URL(`${window.location.origin}/master`);
         url.searchParams.set("office", office.name);
-        const loginUrl = new URL(`${window.location.origin}/acompanhar-meu-caso`);
+        const loginUrl = new URL(`${window.location.origin}/track-my-visa`);
+        loginUrl.searchParams.set("office_id", office.id);
 
         setConfig((prev) => ({
           ...prev,
@@ -144,6 +152,7 @@ export function usePageBuilder() {
           adminLawyerUrl: url.toString(),
           loginUrl: sanitizeLoginUrl(String((office.landing_page_config as Partial<LandingPageConfig> | null)?.loginUrl ?? loginUrl.toString())),
           officeSlug: office.slug,
+          officeId: office.id,
         }));
       } catch {
         // Keep the default master URL when office data isn't available.
@@ -171,11 +180,11 @@ export function usePageBuilder() {
   const openPreview = () => setIsPreviewOpen(true);
   const closePreview = () => setIsPreviewOpen(false);
 
-  const saveConfig = async () => {
+  const saveConfig = async (nextConfig = config) => {
     if (!user?.id) throw new Error("User not authenticated.");
     setIsSaving(true);
     try {
-      await saveOfficeLandingConfig(user.id, config as unknown as Record<string, unknown>);
+      await saveOfficeLandingConfig(user.id, nextConfig as unknown as Record<string, unknown>);
     } finally {
       setIsSaving(false);
     }
@@ -185,15 +194,7 @@ export function usePageBuilder() {
     if (!user?.id) throw new Error("User not authenticated.");
     setIsUploadingLogo(true);
     try {
-      const ext = file.name.split(".").pop() ?? "png";
-      const baseName = file.name.replace(/\.[^/.]+$/, "");
-      const safeBaseName = baseName.replace(/\s+/g, "-").toLowerCase();
-      const path = `landing-logos/${user.id}/${Date.now()}-${safeBaseName}.${ext}`;
-      const { error } = await supabase.storage
-        .from("profiles")
-        .upload(path, file, { contentType: file.type, upsert: true });
-      if (error) throw new Error(error.message);
-      const publicUrl = supabase.storage.from("profiles").getPublicUrl(path).data.publicUrl;
+      const publicUrl = await uploadPageBuilderAsset({ file, userId: user.id, folder: "landing-logos" });
       setConfig((prev) => ({ ...prev, logoUrl: publicUrl }));
       return publicUrl;
     } finally {
@@ -205,15 +206,7 @@ export function usePageBuilder() {
     if (!user?.id) throw new Error("User not authenticated.");
     setIsUploadingFavicon(true);
     try {
-      const ext = file.name.split(".").pop() ?? "png";
-      const baseName = file.name.replace(/\.[^/.]+$/, "");
-      const safeBaseName = baseName.replace(/\s+/g, "-").toLowerCase();
-      const path = `landing-favicons/${user.id}/${Date.now()}-${safeBaseName}.${ext}`;
-      const { error } = await supabase.storage
-        .from("profiles")
-        .upload(path, file, { contentType: file.type, upsert: true });
-      if (error) throw new Error(error.message);
-      const publicUrl = supabase.storage.from("profiles").getPublicUrl(path).data.publicUrl;
+      const publicUrl = await uploadPageBuilderAsset({ file, userId: user.id, folder: "landing-favicons" });
       setConfig((prev) => ({ ...prev, faviconUrl: publicUrl }));
       return publicUrl;
     } finally {
