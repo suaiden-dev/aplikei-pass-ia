@@ -1136,7 +1136,8 @@ const admin = {
             cancelBtn: "Cancelar Assinatura",
             expiration: "Expiração",
             cancelSuccess: "Assinatura cancelada com sucesso.",
-            cancelError: "Falha ao cancelar assinatura."
+            cancelError: "Falha ao cancelar assinatura.",
+            minFeeNotice: "Se a taxa de plataforma calculada para uma transação de main visa ficar abaixo de {{amount}}, a Aplikei cobrará o valor mínimo fixo de {{amount}}."
         },
         onboarding: {
             eyebrow: "Torne-se um Escritório Parceiro",
@@ -1172,7 +1173,8 @@ const admin = {
             membersLimit: "Até 5 Membros na Equipe",
             prioritySupport: "Suporte Prioritário 24/7",
             customSalesPage: "Página de Vendas Customizada",
-            advancedAi: "Integração com IA Avançada"
+            advancedAi: "Integração com IA Avançada",
+            minFeePerTransaction: "Taxa mínima de plataforma de {{amount}} por transação de main visa"
         }
     },
 

@@ -1100,7 +1100,8 @@ const admin = {
       cancelBtn: "Cancel Subscription",
       expiration: "Expiration",
       cancelSuccess: "Subscription canceled successfully.",
-      cancelError: "Failed to cancel subscription."
+      cancelError: "Failed to cancel subscription.",
+      minFeeNotice: "If the calculated platform fee for a main visa transaction is below {{amount}}, Aplikei will charge the fixed minimum fee of {{amount}} instead."
     },
     onboarding: {
       eyebrow: "Become a Partner Office",
@@ -1136,7 +1137,8 @@ const admin = {
       membersLimit: "Up to 5 Team Members",
       prioritySupport: "24/7 Priority Support",
       customSalesPage: "Custom Sales Page",
-      advancedAi: "Advanced AI Integration"
+      advancedAi: "Advanced AI Integration",
+      minFeePerTransaction: "{{amount}} minimum platform fee per main visa transaction"
     }
   },
 
