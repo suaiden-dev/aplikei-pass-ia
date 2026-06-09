@@ -8,20 +8,10 @@ import {
   RiTimeLine,
   RiMoneyDollarBoxLine,
 } from "react-icons/ri";
-import { supabase } from "@shared/lib/supabase";
+import { listLawyers } from "@features/admin/services/lawyersService";
+import type { LawyerRow } from "@features/admin/types";
 import { toast } from "sonner";
 import { useT, useLocale } from "@app/app/i18n";
-
-interface LawyerRow {
-  id: string;
-  name?: string | null;
-  full_name?: string | null;
-  email: string;
-  avatar_url: string | null;
-  role: string;
-  is_active: boolean;
-  created_at: string;
-}
 
 function getLawyerName(lawyer: LawyerRow, t: any) {
   return lawyer.full_name || lawyer.name || lawyer.email || t.cases.table.noName;
@@ -37,14 +27,7 @@ export default function LawyersPage() {
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("user_accounts")
-        .select("id, name, full_name, email, avatar_url, role, is_active, created_at")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      const rows = (data || []) as LawyerRow[];
-      setLawyers(rows.filter((row) => row.role === "admin_lawyer" || row.role === "admin"));
+      setLawyers(await listLawyers());
     } catch (err: any) {
       console.error("Error loading lawyers:", err);
       toast.error(t.cases.messages.errorAction);

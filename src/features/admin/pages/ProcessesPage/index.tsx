@@ -13,8 +13,6 @@ import {
   RiFilterOffLine,
   RiCheckDoubleLine
 } from "react-icons/ri";
-import { supabase } from "@shared/lib/supabase";
-import type { UserService } from "@features/process/types";
 import { getServiceBySlug } from "@shared/data/services";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -22,22 +20,12 @@ import { useT } from "@app/app/i18n";
 import { useAuth } from "@shared/hooks/useAuth";
 import { RiCalendarLine, RiHistoryLine, RiCloseLine } from "react-icons/ri";
 import { AnimatePresence } from "framer-motion";
-
-interface ProcessLog {
-  id: string;
-  user_service_id: string;
-  actor_id?: string;
-  actor_name?: string;
-  actor_role?: string;
-  action_type?: string;
-  action?: string;
-  message?: string;
-  previous_step?: number;
-  new_step?: number;
-  previous_status?: string;
-  new_status?: string;
-  created_at: string;
-}
+import {
+  listAdminProcesses,
+  listProcessLogs,
+  type AdminProcessWithUser,
+  type ProcessLog,
+} from "@features/admin/services/adminProcessesService";
 
 function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientName: string }) {
   const [logs, setLogs] = useState<ProcessLog[]>([]);
@@ -47,13 +35,7 @@ function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientN
   useEffect(() => {
     async function fetchLogs() {
       setLoading(true);
-      const { data } = await supabase
-        .from("process_logs")
-        .select("*")
-        .eq("user_service_id", serviceId)
-        .order("created_at", { ascending: false })
-        .limit(30);
-      setLogs((data || []) as ProcessLog[]);
+      setLogs(await listProcessLogs(serviceId));
       setLoading(false);
     }
     fetchLogs();
@@ -149,15 +131,7 @@ function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientN
   );
 }
 
-interface ProcessWithUser extends UserService {
-  user_accounts?: {
-    full_name: string;
-    email?: string;
-  };
-  service_name?: string;
-}
-
-function getCurrentStepIndex(process: ProcessWithUser): number {
+function getCurrentStepIndex(process: AdminProcessWithUser): number {
   const raw =
     process.current_step ??
     (typeof (process.step_data as any)?.current_step === "number"
@@ -198,7 +172,7 @@ export default function AdminProcessesPage() {
     user?.role === "master" ? "/master" :
       user?.role === "manager" ? "/manager" :
         "/admin";
-  const [processes, setProcesses] = useState<ProcessWithUser[]>([]);
+  const [processes, setProcesses] = useState<AdminProcessWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedService, setSelectedService] = useState("all");
@@ -207,109 +181,12 @@ export default function AdminProcessesPage() {
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Prefer resolved office from auth context (covers office owners with null user_accounts.office_id).
-      let officeId: string | null = user?.officeId ?? null;
-
-      // Fallback for staff rows where auth context has no office_id yet.
-      if (!officeId && user?.id) {
-        const { data: accountRow } = await supabase
-          .from("user_accounts")
-          .select("office_id")
-          .eq("id", user.id)
-          .maybeSingle();
-        officeId = accountRow?.office_id ?? null;
-      }
-
-      // admin_lawyer must only see processes from their own office.
-      if (user?.role === "admin_lawyer" && !officeId) {
-        setProcesses([]);
-        return;
-      }
-
-      let base: ProcessWithUser[] = [];
-      if (officeId && user?.role !== "master") {
-        const [officeServicesRes, officeCustomersRes] = await Promise.all([
-          supabase
-            .from("user_services")
-            .select("*")
-            .eq("office_id", officeId)
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("office_customers" as any)
-            .select("user_id")
-            .eq("office_id", officeId),
-        ]);
-
-        if (officeServicesRes.error) throw officeServicesRes.error;
-        if (officeCustomersRes.error) throw officeCustomersRes.error;
-
-        const direct = (officeServicesRes.data || []) as ProcessWithUser[];
-        const customerUserIds = Array.from(
-          new Set(
-            ((officeCustomersRes.data || []) as Array<{ user_id: string }>)
-              .map((r) => r.user_id)
-              .filter(Boolean),
-          ),
-        );
-
-        let byCustomer: ProcessWithUser[] = [];
-        if (customerUserIds.length > 0) {
-          const { data: byCustomerRows, error: byCustomerError } = await supabase
-            .from("user_services")
-            .select("*")
-            .in("user_id", customerUserIds)
-            .order("created_at", { ascending: false });
-          if (byCustomerError) throw byCustomerError;
-          byCustomer = (byCustomerRows || []) as ProcessWithUser[];
-        }
-
-        const mergedById = new Map<string, ProcessWithUser>();
-        [...direct, ...byCustomer].forEach((proc) => {
-          mergedById.set(proc.id, proc);
-        });
-        base = Array.from(mergedById.values()).sort(
-          (a, b) =>
-            new Date(b.created_at || 0).getTime() -
-            new Date(a.created_at || 0).getTime(),
-        );
-      } else {
-        const { data, error } = await supabase
-          .from("user_services")
-          .select("*")
-          .order("created_at", { ascending: false });
-        if (error) throw error;
-        base = (data || []) as ProcessWithUser[];
-      }
-
-      const userIds = [...new Set(base.map((p) => p.user_id).filter(Boolean))];
-      const slugs = [...new Set(base.map((p) => p.service_slug).filter(Boolean))];
-
-      const [usersResult, servicesResult] = await Promise.all([
-        userIds.length > 0
-          ? supabase.from("profiles").select("id, full_name, email").in("id", userIds)
-          : Promise.resolve({ data: [], error: null }),
-        slugs.length > 0
-          ? supabase.from("services").select("slug, name").in("slug", slugs)
-          : Promise.resolve({ data: [], error: null }),
-      ]);
-
-      if (usersResult.error) throw usersResult.error;
-
-      const usersById = Object.fromEntries(
-        ((usersResult.data as Array<{ id: string; full_name?: string | null; email?: string | null }>) || [])
-          .map((u) => [u.id, { full_name: u.full_name || t.shared.client, email: u.email || undefined }]),
-      );
-
-      const serviceNameBySlug = Object.fromEntries(
-        ((servicesResult.data as Array<{ slug: string; name: string }>) || [])
-          .map((s) => [s.slug, s.name]),
-      );
-
-      setProcesses(base.map((p) => ({
-        ...p,
-        user_accounts: usersById[p.user_id],
-        service_name: serviceNameBySlug[p.service_slug],
-      })));
+      setProcesses(await listAdminProcesses({
+        userId: user?.id,
+        userRole: user?.role,
+        officeId: user?.officeId,
+        defaultClientName: t.shared.client,
+      }));
     } catch (err: unknown) {
       console.error("Error loading processes:", err);
       toast.error(t.cases.messages.loadError);

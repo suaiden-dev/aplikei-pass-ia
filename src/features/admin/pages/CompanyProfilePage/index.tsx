@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { FaInstagram, FaLinkedin, FaFacebook } from "react-icons/fa";
 import { RiUploadLine } from "react-icons/ri";
-import { supabase } from "@shared/lib/supabase";
 import { useAuth } from "@shared/hooks/useAuth";
 import { Button } from "@shared/components/atoms/button";
 import { Input } from "@shared/components/atoms/input";
@@ -21,22 +20,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@shar
 import { DashboardPageHeader } from "@shared/components/organisms/DashboardUI";
 import { toast } from "sonner";
 import { useT } from "@app/app/i18n";
-
-interface OfficeData {
-  id?: string;
-  slug?: string | null;
-  name: string;
-  cnpj: string | null;
-  address: string | null;
-  phone: string | null;
-  email: string | null;
-  website: string | null;
-  instagram_url: string | null;
-  linkedin_url: string | null;
-  facebook_url: string | null;
-  logo_url?: string | null;
-  landing_page_config?: any;
-}
+import {
+  findOfficeByOwner,
+  officeSlugExists,
+  saveOfficeProfile,
+  updateOfficeLogo,
+  uploadOfficeLogo,
+  type OfficeData,
+} from "@features/admin/services/companyProfileService";
 
 function formatTaxId(value: string): string {
   const digits = value.replace(/\D/g, "").slice(0, 14);
@@ -110,16 +101,7 @@ export default function CompanyProfilePage() {
 
     setIsCheckingSlug(true);
     try {
-      const { data, error } = await supabase
-        .from("offices")
-        .select("id")
-        .eq("slug", slug)
-        .limit(1);
-
-      if (error) throw error;
-
-      const conflict = (data || []).find((row) => row.id !== currentOfficeId);
-      if (conflict) {
+      if (await officeSlugExists(slug, currentOfficeId)) {
         setSlugConflict("This slug is already in use.");
         return true;
       }
@@ -145,11 +127,7 @@ export default function CompanyProfilePage() {
       const baseName = file.name.replace(/\.[^/.]+$/, "");
       const safeBaseName = baseName.replace(/\s+/g, "-").toLowerCase();
       const path = `landing-logos/${user.id}/${Date.now()}-${safeBaseName}.${ext}`;
-      const { error } = await supabase.storage
-        .from("profiles")
-        .upload(path, file, { contentType: file.type, upsert: true });
-      if (error) throw new Error(error.message);
-      const publicUrl = supabase.storage.from("profiles").getPublicUrl(path).data.publicUrl;
+      const publicUrl = await uploadOfficeLogo(path, file);
 
       // Update local state
       setOffice(prev => prev ? { 
@@ -163,13 +141,7 @@ export default function CompanyProfilePage() {
 
       // Auto-save to the dedicated logo_url column if office already exists
       if (office?.id) {
-        await supabase.from("offices").update({
-          logo_url: publicUrl,
-          landing_page_config: { 
-            ...(office.landing_page_config || {}), 
-            logoUrl: publicUrl 
-          }
-        }).eq("id", office.id);
+        await updateOfficeLogo(office.id, publicUrl, office.landing_page_config);
       }
 
       toast.success("Logo uploaded successfully!");
@@ -185,37 +157,24 @@ export default function CompanyProfilePage() {
       if (!user?.id) return;
       
       try {
-        const { data, error } = await supabase
-          .from("offices")
-          .select("id, slug, name, cnpj, address, phone, email, website, instagram_url, linkedin_url, facebook_url, logo_url, landing_page_config")
-          .eq("owner_id", user.id)
-          .maybeSingle();
-
-        if (error) {
-          throw error;
-        } else {
-          if (data) {
-            setOffice({
-              ...data,
-              email: data.email || user.email || "",
-              phone: data.phone || user.phoneNumber || "",
-            });
-          } else {
-            setOffice({
-              slug: "",
-              name: "",
-              cnpj: "",
-              address: "",
-              phone: user.phoneNumber || "",
-              email: user.email || "",
-              website: "",
-              instagram_url: "",
-              linkedin_url: "",
-              facebook_url: "",
-              landing_page_config: {},
-            });
-          }
-        }
+        const data = await findOfficeByOwner(user.id);
+        setOffice(data ? {
+          ...data,
+          email: data.email || user.email || "",
+          phone: data.phone || user.phoneNumber || "",
+        } : {
+          slug: "",
+          name: "",
+          cnpj: "",
+          address: "",
+          phone: user.phoneNumber || "",
+          email: user.email || "",
+          website: "",
+          instagram_url: "",
+          linkedin_url: "",
+          facebook_url: "",
+          landing_page_config: {},
+        });
       } catch (err) {
         console.error("Error fetching office:", err);
         toast.error(t.companyProfile.messages.loadError);
@@ -240,60 +199,14 @@ export default function CompanyProfilePage() {
 
     setSaving(true);
     try {
-      const payload = {
-        name: office.name,
-        cnpj: office.cnpj,
-        address: office.address,
-        phone: office.phone,
-        email: office.email,
-        website: office.website,
-        instagram_url: office.instagram_url,
-        linkedin_url: office.linkedin_url,
-        facebook_url: office.facebook_url,
-        landing_page_config: office.landing_page_config,
-      };
-      let officeId = office.id;
-      let createdSlug: string | null = null;
+      const result = await saveOfficeProfile({
+        office,
+        ownerId: user.id,
+        slug: resolvedSlug,
+      });
 
-      if (officeId) {
-        const { error } = await supabase
-          .from("offices")
-          .update({ ...payload, slug: resolvedSlug })
-          .eq("id", officeId);
-
-        if (error) throw error;
-      } else {
-        const { data: created, error } = await supabase
-          .from("offices")
-          .insert({
-            ...payload,
-            slug: resolvedSlug,
-            owner_id: user.id,
-          })
-          .select("id, slug")
-          .single();
-
-        if (error) throw error;
-        officeId = created.id;
-        createdSlug = created.slug ?? null;
-
-        const { error: userOfficeError } = await supabase
-          .from("user_accounts")
-          .update({ office_id: officeId })
-          .eq("id", user.id);
-
-        if (userOfficeError) throw userOfficeError;
-
-        const { error: disableProductsError } = await supabase
-          .from("user_service_prices")
-          .update({ is_active: false })
-          .eq("office_id", officeId);
-
-        if (disableProductsError) throw disableProductsError;
-      }
-
-      if (officeId && !office.id) {
-        setOffice((prev) => (prev ? { ...prev, id: officeId, slug: createdSlug ?? prev.slug ?? null } : prev));
+      if (result.officeId && !office.id) {
+        setOffice((prev) => (prev ? { ...prev, id: result.officeId, slug: result.slug ?? prev.slug ?? null } : prev));
       }
       await refreshAccount();
       toast.success(t.companyProfile.messages.saveSuccess);

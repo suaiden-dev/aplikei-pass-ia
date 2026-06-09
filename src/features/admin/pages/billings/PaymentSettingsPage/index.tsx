@@ -14,7 +14,12 @@ import {
   Zap,
   Info
 } from "lucide-react";
-import { supabase } from "@shared/lib/supabase";
+import {
+  createDefaultPaymentSettings,
+  fetchOfficePaymentSettings,
+  saveOfficePaymentSettings,
+} from "@features/admin/services/paymentSettingsService";
+import type { PaymentSettings } from "@features/admin/types";
 import { useAuth } from "@shared/hooks/useAuth";
 import { Button } from "@shared/components/atoms/button";
 import { Input } from "@shared/components/atoms/input";
@@ -24,16 +29,6 @@ import { Switch } from "@shared/components/atoms/switch";
 import { DashboardPageHeader } from "@shared/components/organisms/DashboardUI";
 import { toast } from "sonner";
 import { useT } from "@app/app/i18n";
-
-interface PaymentSettings {
-  id?: string;
-  office_id: string;
-  default_payout_method: string;
-  stripe_enabled: boolean;
-  zelle_enabled: boolean;
-  zelle_name: string | null;
-  zelle_identifier: string | null;
-}
 
 export default function PaymentSettingsPage() {
   const t = useT("admin");
@@ -47,30 +42,8 @@ export default function PaymentSettingsPage() {
       if (!user?.officeId) return;
       
       try {
-        const { data, error } = await supabase
-          .from("office_payment_settings")
-          .select("id, office_id, default_payout_method, stripe_enabled, zelle_enabled, zelle_name, zelle_identifier")
-          .eq("office_id", user.officeId)
-          .maybeSingle();
-
-        if (error) throw error;
-        
-        if (data) {
-          setSettings({
-            ...data,
-            stripe_enabled: Boolean((data as any).stripe_enabled),
-            zelle_enabled: Boolean((data as any).zelle_enabled),
-          });
-        } else {
-          setSettings({
-            office_id: user.officeId,
-            default_payout_method: "stripe",
-            stripe_enabled: false,
-            zelle_enabled: false,
-            zelle_name: "",
-            zelle_identifier: ""
-          });
-        }
+        const data = await fetchOfficePaymentSettings(user.officeId);
+        setSettings(data ?? createDefaultPaymentSettings(user.officeId));
       } catch (err) {
         console.error("Error fetching payment settings:", err);
         toast.error(t?.payoutSettings?.messages?.loadError || "Error loading settings");
@@ -92,23 +65,7 @@ export default function PaymentSettingsPage() {
 
     setSaving(true);
     try {
-      const defaultPayoutMethod =
-        settings.default_payout_method === "zelle" && settings.zelle_enabled
-          ? "zelle"
-          : settings.stripe_enabled
-          ? "stripe"
-          : "zelle";
-
-      const { error } = await supabase
-        .from("office_payment_settings")
-        .upsert({
-          ...settings,
-          default_payout_method: defaultPayoutMethod,
-          office_id: user.officeId,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'office_id' });
-
-      if (error) throw error;
+      await saveOfficePaymentSettings(settings, user.officeId);
       toast.success(t?.payoutSettings?.messages?.saveSuccess || "Settings saved!");
     } catch (err) {
       console.error("Error updating payment settings:", err);

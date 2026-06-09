@@ -4,36 +4,39 @@ import {
   RiFileTextLine, RiShieldUserLine, RiSaveLine, RiLoader4Line,
   RiUserLine, RiUserStarLine,
 } from "react-icons/ri";
-import { supabase } from "@shared/lib/supabase";
+import {
+  fetchActiveLegalTermRecords,
+  LEGAL_TERM_CATEGORIES,
+  saveLegalTerm,
+} from "@features/legal/services/legalTermsService";
+import type { LegalContentType, LegalRole, LegalTerm, LegalTermCategory } from "@features/legal/types";
 import { useAuth } from "@shared/hooks/useAuth";
 import { RichEditor } from "./RichEditor";
 
-type Role = "lawyer" | "customer";
-type ContentType = "terms" | "privacy";
-type TabKey = "lawyer_terms" | "lawyer_privacy" | "customer_terms" | "customer_privacy";
+type TabKey = LegalTermCategory;
 
-const ALL_KEYS: TabKey[] = ["lawyer_terms", "lawyer_privacy", "customer_terms", "customer_privacy"];
+const ALL_KEYS = LEGAL_TERM_CATEGORIES;
 
-function makeKey(role: Role, ct: ContentType): TabKey {
+function makeKey(role: LegalRole, ct: LegalContentType): TabKey {
   return `${role}_${ct}` as TabKey;
 }
 
-const ROLES: { id: Role; label: string; icon: React.ReactNode }[] = [
+const ROLES: { id: LegalRole; label: string; icon: React.ReactNode }[] = [
   { id: "lawyer", label: "Lawyer", icon: <RiUserStarLine /> },
   { id: "customer", label: "Customer", icon: <RiUserLine /> },
 ];
 
-const CONTENT_TYPES: { id: ContentType; label: string; icon: React.ReactNode; description: string }[] = [
+const CONTENT_TYPES: { id: LegalContentType; label: string; icon: React.ReactNode; description: string }[] = [
   { id: "terms", label: "Terms of Service", icon: <RiShieldUserLine />, description: "Displayed at /legal/terms" },
   { id: "privacy", label: "Privacy Policy", icon: <RiFileTextLine />, description: "Displayed at /legal/privacy" },
 ];
 
-const FIXED_TITLES: Record<ContentType, string> = {
+const FIXED_TITLES: Record<LegalContentType, string> = {
   terms: "Terms of Service",
   privacy: "Privacy Policy",
 };
 
-interface TermRecord { id: string; title: string; content: string; }
+type TermRecord = LegalTerm;
 
 type TabMap<T> = Record<TabKey, T>;
 
@@ -43,8 +46,8 @@ function emptyMap<T>(val: T): TabMap<T> {
 
 export default function LegalTermsPage() {
   const { user } = useAuth();
-  const [activeRole, setActiveRole] = useState<Role>("lawyer");
-  const [activeContent, setActiveContent] = useState<ContentType>("terms");
+  const [activeRole, setActiveRole] = useState<LegalRole>("lawyer");
+  const [activeContent, setActiveContent] = useState<LegalContentType>("terms");
 
   const [records, setRecords] = useState<TabMap<TermRecord | null>>(emptyMap(null));
   const [contents, setContents] = useState<TabMap<string>>(emptyMap(""));
@@ -54,17 +57,12 @@ export default function LegalTermsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await supabase
-        .from("legal_terms")
-        .select("id, title, content, category")
-        .eq("is_active", true)
-        .in("category", ALL_KEYS)
-        .order("created_at", { ascending: false });
+      const data = await fetchActiveLegalTermRecords();
 
       const byCategory = emptyMap<TermRecord | null>(null);
       for (const row of data ?? []) {
         const cat = row.category as TabKey;
-        if (ALL_KEYS.includes(cat) && !byCategory[cat]) byCategory[cat] = row as TermRecord;
+        if (ALL_KEYS.includes(cat) && !byCategory[cat]) byCategory[cat] = row;
       }
 
       setRecords(byCategory);
@@ -79,21 +77,15 @@ export default function LegalTermsPage() {
   const handleSave = async (key: TabKey) => {
     setSaving((p) => ({ ...p, [key]: true }));
     try {
-      const ct = key.split("_")[1] as ContentType;
-      const payload = {
+      const ct = key.split("_")[1] as LegalContentType;
+      const existing = records[key];
+      await saveLegalTerm({
+        id: existing?.id,
         title: FIXED_TITLES[ct],
         content: contents[key],
         category: key,
-        is_active: true,
-      };
-      const existing = records[key];
-      if (existing) {
-        const { error } = await supabase.from("legal_terms").update(payload).eq("id", existing.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("legal_terms").insert({ ...payload, created_by: user?.id ?? null });
-        if (error) throw error;
-      }
+        createdBy: user?.id ?? null,
+      });
       toast.success("Saved successfully!");
       void load();
     } catch (e: unknown) {

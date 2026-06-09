@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { RiEditLine, RiPercentLine, RiStackLine } from "react-icons/ri";
 import { toast } from "sonner";
-import { supabase } from "@shared/lib/supabase";
+import {
+  listSubscriptionPlans,
+  updateSubscriptionPlanPercentage,
+} from "@features/admin/services/subscriptionPlansService";
+import type { SubscriptionPlan } from "@features/admin/types";
 import { Button } from "@shared/components/atoms/button";
 import {
   Dialog,
@@ -13,14 +17,7 @@ import {
 } from "@shared/components/atoms/dialog";
 import { cn } from "@shared/utils/cn";
 
-type Plan = {
-  id: string;
-  name: string;
-  percentage_fee: number;
-  available_after_minutes: number;
-  is_active: boolean;
-  category_minimums?: Record<string, number> | null;
-};
+type Plan = SubscriptionPlan;
 
 type EditablePlanData = {
   percentage_fee: number;
@@ -185,13 +182,7 @@ export default function PlansPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
 
   const loadPlans = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("subscription_plans")
-      .select("id, name, percentage_fee, available_after_minutes, is_active, category_minimums")
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-    setPlans((data || []) as Plan[]);
+    setPlans(await listSubscriptionPlans());
   }, []);
 
   const load = useCallback(async () => {
@@ -212,15 +203,7 @@ export default function PlansPage() {
   const handleSave = async (payload: EditablePlanData) => {
     if (!selectedPlan) return;
 
-    const { error } = await supabase
-      .from("subscription_plans")
-      .update({
-        percentage_fee: payload.percentage_fee,
-      })
-      .eq("id", selectedPlan.id);
-
-    if (error) throw error;
-
+    await updateSubscriptionPlanPercentage(selectedPlan.id, payload.percentage_fee);
     toast.success("Plan updated");
     await loadPlans();
   };

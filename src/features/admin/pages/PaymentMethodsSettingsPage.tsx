@@ -5,6 +5,11 @@ import { DashboardPageHeader } from "@shared/components/organisms/DashboardUI";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter, Switch, Button, Input, Textarea, Label, Badge } from "@shared/components/atoms";
 import { useT } from "@app/app/i18n";
 import { useAuth } from "@shared/hooks/useAuth";
+import {
+  createStripeConnectUrl,
+  disconnectStripeAccount,
+  handleStripeConnectCallback,
+} from "@features/admin/services/stripeConnectService";
 import { usePaymentSettings } from "@features/payments/hooks/usePaymentSettings";
 import type { StripeConfig, ZelleConfig, ParcelowConfig } from "@features/payments/types";
 import { toast } from "sonner";
@@ -193,11 +198,7 @@ export default function PaymentMethodsSettingsPage() {
     const exchange = async () => {
       setStripeConnecting(true);
       try {
-        const { error } = await (await import("@shared/lib/supabase")).supabase
-          .functions.invoke("stripe-connect", {
-            body: { action: "callback", code, state },
-          });
-        if (error) throw new Error(error.message);
+        await handleStripeConnectCallback({ code, state });
         setStripeConfig((prev) => ({ ...prev, account_id: "__REDACTED__" }));
         setStripeActive(true);
         toast.success(t.paymentMethods.stripe.messages.connectSuccess);
@@ -225,22 +226,13 @@ export default function PaymentMethodsSettingsPage() {
     }
     setStripeConnecting(true);
     try {
-      const { supabase } = await import("@shared/lib/supabase");
-
-      // 1. Salva o client_id no banco primeiro
-      const saveRes = await supabase.functions.invoke("stripe-connect", {
-        body: { action: "save-client-id", user_id: user.id, client_id: stripeConfig.client_id.trim() },
-      });
-      if (saveRes.error) throw new Error(saveRes.error.message);
-
-      // 2. Edge function lê o client_id do banco e gera a URL OAuth
       const redirectUri = `${window.location.origin}/settings/payment-methods`;
-      const { data, error } = await supabase.functions.invoke("stripe-connect", {
-        body: { action: "init", user_id: user.id, redirect_uri: redirectUri },
+      const url = await createStripeConnectUrl({
+        userId: user.id,
+        clientId: stripeConfig.client_id.trim(),
+        redirectUri,
       });
-      if (error) throw new Error(error.message);
-      console.log("[stripe-connect] OAuth URL gerada:", data.debug);
-      window.location.href = data.url;
+      window.location.href = url;
     } catch (err: unknown) {
       toast.error(`${t.paymentMethods.stripe.messages.initError}${err instanceof Error ? err.message : t.shared.error}`);
       setStripeConnecting(false);
@@ -251,11 +243,7 @@ export default function PaymentMethodsSettingsPage() {
     if (!user?.id) return;
     setStripeDisconnecting(true);
     try {
-      const { error } = await (await import("@shared/lib/supabase")).supabase
-        .functions.invoke("stripe-connect", {
-          body: { action: "disconnect", user_id: user.id },
-        });
-      if (error) throw new Error(error.message);
+      await disconnectStripeAccount(user.id);
       setStripeConfig((prev) => ({ ...prev, account_id: "" }));
       setStripeActive(false);
       toast.success(t.paymentMethods.stripe.messages.disconnectSuccess);

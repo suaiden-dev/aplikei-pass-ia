@@ -8,26 +8,13 @@ import {
   RiVipCrown2Line,
   RiTimeLine,
 } from "react-icons/ri";
-import { supabase } from "@shared/lib/supabase";
+import {
+  listCustomersWithStats,
+  type CustomerRow,
+  type CustomerWithStats,
+} from "@features/admin/services/adminCustomerService";
 import { toast } from "sonner";
 import { useT, useLocale } from "@app/app/i18n";
-
-interface CustomerRow {
-  id: string;
-  name?: string | null;
-  full_name?: string | null;
-  email: string;
-  phone?: string | null;
-  phone_number?: string | null;
-  avatar_url: string | null;
-  role: string;
-  created_at: string;
-}
-
-export interface CustomerWithStats extends CustomerRow {
-  productsCount: number;
-  totalSpent: number;
-}
 
 function getCustomerName(customer: CustomerRow, t: any) {
   return customer.full_name || customer.name || customer.email || t.cases.table.noName;
@@ -48,49 +35,7 @@ export default function CustomersPage() {
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [
-        { data: accountsData, error: accountsErr },
-        { data: zelleData },
-        { data: stripeData }
-      ] = await Promise.all([
-        supabase
-          .from("user_accounts")
-          .select("id, name, full_name, email, phone, phone_number, avatar_url, role, created_at")
-          .order("created_at", { ascending: false }),
-        supabase.from("zelle_payments").select("amount, user_id, guest_email").eq("status", "approved"),
-        supabase.from("orders").select("total_price_usd, client_email").in("payment_status", ["paid", "complete", "succeeded", "completed"])
-      ]);
-
-      if (accountsErr) throw accountsErr;
-
-      const enhancedCustomers = (accountsData as CustomerRow[]).map(c => {
-        let productsCount = 0;
-        let totalSpent = 0;
-
-        zelleData?.forEach(z => {
-          if (z.user_id === c.id || z.guest_email?.toLowerCase() === c.email?.toLowerCase()) {
-            productsCount++;
-            totalSpent += Number(z.amount) || 0;
-          }
-        });
-
-        stripeData?.forEach(s => {
-          if (s.client_email?.toLowerCase() === c.email?.toLowerCase()) {
-            productsCount++;
-            let val = s.total_price_usd;
-            if (typeof val === "string") val = parseFloat(val);
-            totalSpent += Number(val) || 0;
-          }
-        });
-
-        return {
-          ...c,
-          productsCount,
-          totalSpent
-        };
-      });
-
-      setCustomers(enhancedCustomers);
+      setCustomers(await listCustomersWithStats());
     } catch (err: unknown) {
       console.error("Error loading customers:", err);
       toast.error(t.cases.messages.errorAction);
