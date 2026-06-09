@@ -10,6 +10,7 @@ export interface SubscriptionInfo {
   planType: "FIXED" | "PERCENTAGE" | "HYBRID";
   fixedFee: number;
   percentageFee: number;
+  minFeePerTransactionUsd: number | null;
   currentPeriodEnd: string | null;
   loading: boolean;
 }
@@ -23,6 +24,7 @@ export function useSubscription() {
     planType: "FIXED",
     fixedFee: 0,
     percentageFee: 0,
+    minFeePerTransactionUsd: null,
     currentPeriodEnd: null,
     loading: true,
   });
@@ -77,6 +79,7 @@ export function useSubscription() {
           planType: data.plan_type,
           fixedFee: data.fixed_fee || 0,
           percentageFee: data.percentage_fee || 0,
+          minFeePerTransactionUsd: data.min_fee_per_transaction_usd ?? null,
           currentPeriodEnd: data.current_period_end,
           loading: false,
         });
