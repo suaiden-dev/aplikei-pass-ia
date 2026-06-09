@@ -90,7 +90,7 @@ function ProcessRow({ proc, index, displaySlug, officeName }: { proc: UserServic
                    rfeResult === 'denied' ||
                    rfeResult === 'rejected';
   const isApproved = !isDenied &&
-    (uscisResult === 'approved' ||
+     (uscisResult === 'approved' ||
       rfeResult === 'approved' ||
       motionResult === 'approved' ||
       interviewResult === 'approved');
@@ -132,15 +132,15 @@ function ProcessRow({ proc, index, displaySlug, officeName }: { proc: UserServic
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.06 }}
-      className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 bg-card rounded-3xl border border-border p-5 sm:px-6 sm:py-5 shadow-sm hover:shadow-md hover:border-border transition-all group"
+      className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 bg-card rounded-3xl border border-border p-5 md:px-6 md:py-5 shadow-sm hover:shadow-md hover:border-border transition-all group"
     >
-      <div className="flex items-center gap-4 sm:gap-6 flex-1 min-w-0">
+      <div className="flex items-center gap-4 md:gap-6 flex-1 min-w-0">
         <div className={`w-12 h-12 shrink-0 rounded-2xl ${cfg.bg} flex items-center justify-center border border-black/5`}>
           <Icon className={`text-2xl ${cfg.icon}`} />
         </div>
         <div className="flex-1 min-w-0 text-left">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <h3 className="font-display font-black text-text text-[15px] tracking-tight leading-none uppercase">
+          <div className="flex flex-wrap items-center gap-2 mb-1.5">
+            <h3 className="font-display font-black text-text text-[15px] tracking-tight leading-tight uppercase">
               {t.dashboard.products[slugForDisplay]?.label || cfg.label}
             </h3>
             <span className={cn(
@@ -155,7 +155,7 @@ function ProcessRow({ proc, index, displaySlug, officeName }: { proc: UserServic
             {t.dashboard.products[slugForDisplay]?.category || cfg.category}
           </p>
           {proc.officeName && (
-            <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold text-text-muted uppercase tracking-widest bg-bg-subtle px-2.5 py-1.5 rounded-xl border border-border/40 w-fit">
+            <div className="flex items-center gap-1.5 mt-2.5 text-[10px] font-bold text-text-muted uppercase tracking-widest bg-bg-subtle px-2.5 py-1.5 rounded-xl border border-border/40 w-fit">
               {proc.officeLogoUrl ? (
                 <img
                   src={proc.officeLogoUrl}
@@ -175,12 +175,12 @@ function ProcessRow({ proc, index, displaySlug, officeName }: { proc: UserServic
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-        <div className="flex flex-col items-end gap-2 w-full sm:w-36">
+      <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto">
+        <div className="flex flex-col items-start md:items-end gap-2 w-full md:w-40">
           <div className="flex items-center justify-between w-full">
-            <span className="text-[10px] sm:text-[11px] font-bold text-text-muted uppercase tracking-widest">{t.dashboard.myCases.progress}</span>
+            <span className="text-[10px] md:text-[11px] font-bold text-text-muted uppercase tracking-widest">{t.dashboard.myCases.progress}</span>
             <span className={cn(
-              "text-[12px] sm:text-[13px] font-black tabular-nums",
+              "text-[12px] md:text-[13px] font-black tabular-nums",
               isApproved ? "text-emerald-600" : isDenied ? "text-red-600" : "text-primary"
             )}>{progressPercent}%</span>
           </div>
@@ -199,7 +199,7 @@ function ProcessRow({ proc, index, displaySlug, officeName }: { proc: UserServic
 
         <Link
           to={`/dashboard/processes/${proc.service_slug}?id=${proc.id}`}
-          className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 sm:py-2.5 rounded-xl bg-primary text-white text-[12px] font-black uppercase tracking-wider transition-all hover:bg-primary-hover shadow-lg shadow-primary/20 sm:opacity-0 sm:group-hover:opacity-100 sm:translate-x-2 sm:group-hover:translate-x-0 duration-200"
+          className="flex items-center justify-center gap-2 w-full md:w-auto px-6 py-3 md:py-2.5 rounded-xl bg-primary text-white text-[12px] font-black uppercase tracking-wider transition-all hover:bg-primary-hover shadow-lg shadow-primary/20 md:opacity-0 md:group-hover:opacity-100 md:translate-x-2 md:group-hover:translate-x-0 duration-200"
         >
           {t.dashboard.myCases.accessCase}
           <RiArrowRightLine className="text-base" />
