@@ -24,8 +24,11 @@ export async function handleContactForm(raw: unknown): Promise<{ success: true }
 
   await sendNotificationEmail({
     to: "admin@aplikei.com",
-    title: `Contact Form: ${subject}`,
+    title: `Aplikei Demo: ${name}`,
+    subject: `Aplikei Demo: ${name}`,
     message: [`Name: ${name}`, `Email: ${email}`, `Subject: ${subject}`, "", "Message:", message].join("\n"),
+    showPortalLink: false,
+    appendPortalText: false,
   });
 
   return { success: true };
