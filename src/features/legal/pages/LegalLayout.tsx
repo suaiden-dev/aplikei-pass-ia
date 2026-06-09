@@ -107,7 +107,7 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({ children }) => {
               <div className="flex items-center gap-4">
                 <Link to="/" className="hover:text-primary transition-colors">Home</Link>
                 <Link to="/servicos" className="hover:text-primary transition-colors">Serviços</Link>
-                <Link to="/acompanhar-meu-caso" className="hover:text-primary transition-colors">Login</Link>
+                <Link to="/track-my-visa" className="hover:text-primary transition-colors">Login</Link>
               </div>
             </div>
           </main>
