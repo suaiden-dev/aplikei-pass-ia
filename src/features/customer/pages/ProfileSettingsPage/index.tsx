@@ -13,12 +13,10 @@ import {
   RiInformationLine
 } from "react-icons/ri";
 import { useAuth } from "@shared/hooks/useAuth";
-import { authService } from "@features/auth/lib/auth";
-import { storageService } from "@features/auth/services/storage";
+import { updateProfile, uploadProfilePhoto } from "@features/customer/services/profileSettingsService";
 import { Input } from "@shared/components/atoms/input";
 import { Label } from "@shared/components/atoms/label";
 import { zodValidate } from "@shared/utils/zodValidate";
-import { supabase } from "@shared/lib/supabase";
 import { cn } from "@shared/utils/cn";
 
 const profileSchema = z.object({
@@ -43,20 +41,16 @@ export default function ProfileSettingsPage() {
     onSubmit: async (values) => {
       if (!user) return;
       try {
-        // 1. Update Profile in DB using authService
-        await authService.updateAccount(user.id, {
-          full_name: values.fullName,
-          phone_number: values.phoneNumber,
+        const { emailChanged } = await updateProfile({
+          userId: user.id,
+          fullName: values.fullName,
+          phoneNumber: values.phoneNumber,
+          email: values.email,
+          currentEmail: user.email ?? "",
         });
-
-        // 2. Check if email changed
-        if (values.email !== user.email) {
-          const { error: emailError } = await supabase.auth.updateUser({ email: values.email });
-          if (emailError) throw emailError;
-          toast.success("Perfil atualizado! Verifique o novo e-mail para confirmar a alteração.");
-        } else {
-          toast.success("Perfil atualizado com sucesso!");
-        }
+        toast.success(emailChanged
+          ? "Perfil atualizado! Verifique o novo e-mail para confirmar a alteração."
+          : "Perfil atualizado com sucesso!");
       } catch (error) {
         const err = error as Error;
         toast.error(err.message || "Erro ao atualizar perfil");
@@ -76,11 +70,9 @@ export default function ProfileSettingsPage() {
 
     setIsUploading(true);
     try {
-      const url = await storageService.uploadProfilePhoto(user.id, file);
-      await authService.updateAccount(user.id, { avatar_url: url });
+      await uploadProfilePhoto(user.id, file);
       toast.success("Foto de perfil atualizada!");
-      // Simple way to force re-fetch from supabase
-      window.location.reload(); 
+      window.location.reload();
     } catch (error) {
       const err = error as Error;
       toast.error(err.message || "Erro ao fazer upload");
