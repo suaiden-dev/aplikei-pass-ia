@@ -17,7 +17,7 @@ import firstPhaseImg from "@assets/tutorial/first_phase.png";
 import secondPhaseImg from "@assets/tutorial/second_phase.png";
 import thirdPhaseImg from "@assets/tutorial/three_phase.png";
 
-import { supabase } from "@shared/lib/supabase";
+import { uploadOnboardingDocument } from "@features/onboarding/services/onboardingStorageService";
 import * as processService from "@features/process/services/processOps";
 import * as notificationService from "@features/notifications/services/notify";
 
@@ -103,8 +103,7 @@ export function B1B2UserReviewSignStep({
     try {
       const fileExt = file.name.split(".").pop();
       const filePath = `${userId}/b1b2/${key}_${crypto.randomUUID()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from("aplikei-profiles").upload(filePath, file);
-      if (uploadError) throw uploadError;
+      await uploadOnboardingDocument(filePath, file);
 
       const updatedDocs = { ...docsRef.current, [key]: filePath };
       docsRef.current = updatedDocs;

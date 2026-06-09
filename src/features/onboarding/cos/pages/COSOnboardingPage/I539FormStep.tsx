@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/components/atoms/tooltip";
 import type { UserAccount } from "@features/auth/types";
 import { i539Validator, type I539FormInput } from "@features/onboarding/cos/schemas/i539.schema";
+import { lookupBrazilCep, lookupUsZip } from "@features/onboarding/services/addressLookupService";
 import { useT } from "@app/app/i18n";
 import { fillI539Form, type I539Data, uploadFilledI539 } from "@features/onboarding/cos/lib/i539";
 import { 
@@ -846,18 +847,12 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
                     const clean = val.replace(/\D/g, "");
                     if (clean.length === 8) {
                       try {
-                        const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
-                        if (res.ok) {
-                          const data = await res.json();
-                          if (!data.erro) {
-                            const streetValue = data.logradouro 
-                              ? `${data.logradouro}${data.bairro ? `, ${data.bairro}` : ""}`
-                              : "";
-                            setFieldValue("streetName", streetValue);
-                            setFieldValue("city", data.localidade || "");
-                            if (data.uf && US_STATES.includes(data.uf)) {
-                              setFieldValue("state", data.uf);
-                            }
+                        const data = await lookupBrazilCep(clean);
+                        if (data) {
+                          setFieldValue("streetName", data.street);
+                          setFieldValue("city", data.city);
+                          if (data.state && US_STATES.includes(data.state)) {
+                            setFieldValue("state", data.state);
                           }
                         }
                       } catch (err) {
@@ -865,16 +860,11 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
                       }
                     } else if (clean.length === 5) {
                       try {
-                        const res = await fetch(`https://api.zippopotam.us/us/${clean}`);
-                        if (res.ok) {
-                          const data = await res.json();
-                          const place = data.places?.[0];
-                          if (place) {
-                            setFieldValue("city", place["place name"] || "");
-                            const stateAbbr = place["state abbreviation"] || "";
-                            if (US_STATES.includes(stateAbbr)) {
-                              setFieldValue("state", stateAbbr);
-                            }
+                        const data = await lookupUsZip(clean);
+                        if (data) {
+                          setFieldValue("city", data.city);
+                          if (US_STATES.includes(data.state)) {
+                            setFieldValue("state", data.state);
                           }
                         }
                       } catch (err) {
@@ -926,18 +916,12 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
                     const clean = val.replace(/\D/g, "");
                     if (clean.length === 8) {
                       try {
-                        const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
-                        if (res.ok) {
-                          const data = await res.json();
-                          if (!data.erro) {
-                            const streetValue = data.logradouro 
-                              ? `${data.logradouro}${data.bairro ? `, ${data.bairro}` : ""}`
-                              : "";
-                            setFieldValue("streetNameForeign", streetValue);
-                            setFieldValue("cityForeign", data.localidade || "");
-                            if (data.uf && US_STATES.includes(data.uf)) {
-                              setFieldValue("stateForeign", data.uf);
-                            }
+                        const data = await lookupBrazilCep(clean);
+                        if (data) {
+                          setFieldValue("streetNameForeign", data.street);
+                          setFieldValue("cityForeign", data.city);
+                          if (data.state && US_STATES.includes(data.state)) {
+                            setFieldValue("stateForeign", data.state);
                           }
                         }
                       } catch (err) {
@@ -945,16 +929,11 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
                       }
                     } else if (clean.length === 5) {
                       try {
-                        const res = await fetch(`https://api.zippopotam.us/us/${clean}`);
-                        if (res.ok) {
-                          const data = await res.json();
-                          const place = data.places?.[0];
-                          if (place) {
-                            setFieldValue("cityForeign", place["place name"] || "");
-                            const stateAbbr = place["state abbreviation"] || "";
-                            if (US_STATES.includes(stateAbbr)) {
-                              setFieldValue("stateForeign", stateAbbr);
-                            }
+                        const data = await lookupUsZip(clean);
+                        if (data) {
+                          setFieldValue("cityForeign", data.city);
+                          if (US_STATES.includes(data.state)) {
+                            setFieldValue("stateForeign", data.state);
                           }
                         }
                       } catch (err) {
@@ -1106,33 +1085,23 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
                       const clean = val.replace(/\D/g, "");
                       if (clean.length === 8) {
                         try {
-                          const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
-                          if (res.ok) {
-                            const data = await res.json();
-                            if (!data.erro) {
-                              const streetValue = data.logradouro 
-                                ? `${data.logradouro}${data.bairro ? `, ${data.bairro}` : ""}`
-                                : "";
-                              setFieldValue("docStreet", streetValue);
-                              setFieldValue("docCity", data.localidade || "");
-                              setFieldValue("docProvince", data.uf || "");
-                              setFieldValue("docCountry", "Brasil");
-                            }
+                          const data = await lookupBrazilCep(clean);
+                          if (data) {
+                            setFieldValue("docStreet", data.street);
+                            setFieldValue("docCity", data.city);
+                            setFieldValue("docProvince", data.state);
+                            setFieldValue("docCountry", data.country);
                           }
                         } catch (err) {
                           console.error("ViaCEP docPostalCode failed:", err);
                         }
                       } else if (clean.length === 5) {
                         try {
-                          const res = await fetch(`https://api.zippopotam.us/us/${clean}`);
-                          if (res.ok) {
-                            const data = await res.json();
-                            const place = data.places?.[0];
-                            if (place) {
-                              setFieldValue("docCity", place["place name"] || "");
-                              setFieldValue("docProvince", place["state abbreviation"] || "");
-                              setFieldValue("docCountry", "United States");
-                            }
+                          const data = await lookupUsZip(clean);
+                          if (data) {
+                            setFieldValue("docCity", data.city);
+                            setFieldValue("docProvince", data.state);
+                            setFieldValue("docCountry", data.country);
                           }
                         } catch (err) {
                           console.error("Zippopotam docPostalCode failed:", err);

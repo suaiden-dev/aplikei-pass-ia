@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useFormikContext, Field, ErrorMessage } from "formik";
 import type { DS160FormValues } from "@features/onboarding/b1b2/schemas/ds160.schema";
+import { lookupBrazilCep, lookupUsZip } from "@features/onboarding/services/addressLookupService";
 import { useT, useLocale } from "@app/app/i18n";
 import { maskCPF } from "@shared/utils/cpf";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/components/atoms/tooltip";
@@ -314,34 +315,24 @@ const FormUSZipLookupInput = ({
       setLookupMessage("");
       onLookupStateChange?.("searching");
       try {
-        const response = await fetch(`https://api.zippopotam.us/us/${zip}`, { signal: controller.signal });
-        if (!response.ok) {
-          setLookupMessage("ZIP code not found.");
-          onZipPlacesResolved?.([]);
-          onLookupStateChange?.("not_found");
-          return;
-        }
-        const data = (await response.json()) as {
-          places?: Array<{ "place name"?: string; "state abbreviation"?: string; state?: string }>;
-        };
-        const place = data.places?.[0];
-        if (!place) {
+        const result = await lookupUsZip(zip, controller.signal);
+        if (!result) {
           setLookupMessage("ZIP code not found.");
           onZipPlacesResolved?.([]);
           onLookupStateChange?.("not_found");
           return;
         }
 
-        const normalizedPlaces = (data.places || [])
-          .map((p) => ({
-            city: String(p["place name"] || "").trim(),
-            state: String(p["state abbreviation"] || p.state || "").trim(),
+        const normalizedPlaces = result.places
+          .map((place) => ({
+            city: String(place.city || "").trim(),
+            state: String(place.state || place.stateName || "").trim(),
           }))
           .filter((p) => p.city || p.state);
         onZipPlacesResolved?.(normalizedPlaces);
 
-        const city = String(place["place name"] || "").trim();
-        const state = String(place["state abbreviation"] || place.state || "").trim();
+        const city = String(result.city || "").trim();
+        const state = String(result.state || "").trim();
         if (city) setFieldValue("usStayCity", city);
         if (state) setFieldValue("usStayState", state);
         setLookupMessage(`Address detected: ${city}${state ? `, ${state}` : ""}`);
@@ -1007,33 +998,23 @@ export const DS160SingleFormStep = ({
             const cleanCep = val.replace(/\D/g, "");
             if (cleanCep.length === 8) {
               try {
-                const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
-                if (res.ok) {
-                  const data = await res.json();
-                  if (!data.erro) {
-                    const streetValue = data.logradouro 
-                      ? `${data.logradouro}${data.bairro ? `, ${data.bairro}` : ""}`
-                      : "";
-                    setFieldValue("homeStreet", streetValue);
-                    setFieldValue("homeCity", data.localidade || "");
-                    setFieldValue("homeState", data.uf || "");
-                    setFieldValue("homeCountry", "Brasil");
-                  }
+                const data = await lookupBrazilCep(cleanCep);
+                if (data) {
+                  setFieldValue("homeStreet", data.street);
+                  setFieldValue("homeCity", data.city);
+                  setFieldValue("homeState", data.state);
+                  setFieldValue("homeCountry", data.country);
                 }
               } catch (err) {
                 console.error("ViaCEP autofill failed:", err);
               }
             } else if (cleanCep.length === 5) {
               try {
-                const res = await fetch(`https://api.zippopotam.us/us/${cleanCep}`);
-                if (res.ok) {
-                  const data = await res.json();
-                  const place = data.places?.[0];
-                  if (place) {
-                    setFieldValue("homeCity", place["place name"] || "");
-                    setFieldValue("homeState", place["state abbreviation"] || "");
-                    setFieldValue("homeCountry", "United States");
-                  }
+                const data = await lookupUsZip(cleanCep);
+                if (data) {
+                  setFieldValue("homeCity", data.city);
+                  setFieldValue("homeState", data.state);
+                  setFieldValue("homeCountry", data.country);
                 }
               } catch (err) {
                 console.error("Zippopotam US homeZip failed:", err);

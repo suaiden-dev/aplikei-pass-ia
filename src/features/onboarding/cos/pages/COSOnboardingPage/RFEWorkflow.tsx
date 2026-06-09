@@ -20,7 +20,6 @@ import {
 } from "react-icons/ri";
 import { MdPix } from "react-icons/md";
 import { toast } from "sonner";
-import { supabase } from "@shared/lib/supabase";
 import * as processService from "@features/process/services/processOps";
 import type { UserService } from "@features/process/types";
 import { cosNotificationService } from "@features/onboarding/cos/lib/cos-notifications";
@@ -40,6 +39,11 @@ import type { RFEOutcome } from "@shared/types/process.model";
 import { getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
 import { compressImageForUpload } from "@shared/utils/uploadCompression";
 import { HomologationAutofillButton } from "./components/HomologationAutofillButton";
+import { fetchActiveServicePrice } from "@features/onboarding/services/cosOnboardingService";
+import {
+  getOnboardingDocumentUrl,
+  uploadOnboardingDocument,
+} from "@features/onboarding/services/onboardingStorageService";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -429,7 +433,7 @@ function RFEHistoryPanel({ proc }: { proc: UserService }) {
             <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
               {hist.rfe_letter && (
                 <a 
-                  href={supabase.storage.from('aplikei-profiles').getPublicUrl(hist.rfe_letter).data.publicUrl}
+                  href={getOnboardingDocumentUrl(hist.rfe_letter)}
                   target="_blank"
                   rel="noreferrer"
                   className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl font-bold text-[10px] uppercase tracking-widest border border-slate-200 transition-all flex items-center gap-2"
@@ -439,7 +443,7 @@ function RFEHistoryPanel({ proc }: { proc: UserService }) {
               )}
               {hist.rfe_final_package && (
                 <a 
-                  href={supabase.storage.from('aplikei-profiles').getPublicUrl(hist.rfe_final_package).data.publicUrl}
+                  href={getOnboardingDocumentUrl(hist.rfe_final_package)}
                   target="_blank"
                   rel="noreferrer"
                   className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-xl font-bold text-[10px] uppercase tracking-widest border border-emerald-100 transition-all flex items-center gap-2"
@@ -488,21 +492,11 @@ export function RFEExplanationStep({ proc }: StepProps) {
       : `Taxa de analise: $${baseAmount.toFixed(2)}`;
 
   useEffect(() => {
-    supabase
-      .from("services_prices")
-      .select("price")
-      .in("service_id", [analysisSlug, LEGACY_RFE_ANALYSIS_SLUG])
-      .eq("is_active", true)
-      .limit(1)
-      .then(({ data, error }) => {
-        if (error) {
-          console.warn("[RFEExplanationStep] Failed to load base price:", error.message);
-          setBaseAmount(50);
-          return;
-        }
-        const firstPrice = data?.[0]?.price;
-        const parsedPrice = Number(firstPrice);
-        setBaseAmount(Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 50);
+    fetchActiveServicePrice([analysisSlug, LEGACY_RFE_ANALYSIS_SLUG], 50)
+      .then(setBaseAmount)
+      .catch((error) => {
+        console.warn("[RFEExplanationStep] Failed to load base price:", error.message);
+        setBaseAmount(50);
       });
   }, [analysisSlug]);
 
@@ -584,8 +578,7 @@ export function RFEInstructionStep({ proc, onComplete }: StepProps) {
       const fileExt = fileToUpload.name.split(".").pop();
       const filePath = `${proc.user_id}/rfe/rfe_letter_${crypto.randomUUID()}.${fileExt}`;
       
-      const { error: uploadError } = await supabase.storage.from("aplikei-profiles").upload(filePath, fileToUpload);
-      if (uploadError) throw uploadError;
+      await uploadOnboardingDocument(filePath, fileToUpload);
 
       const currentDocs = (data.docs as Record<string, string>) || {};
       await processService.updateStepData(proc.id, {
@@ -907,7 +900,7 @@ export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, o
   const rfeResult = data.uscis_rfe_result as string | undefined;
   const docs = (data.docs as Record<string, string>) || {};
   const rfeFinalPath = docs.rfe_final_package;
-  const rfeFinalUrl = rfeFinalPath ? supabase.storage.from('aplikei-profiles').getPublicUrl(rfeFinalPath).data.publicUrl : null;
+  const rfeFinalUrl = rfeFinalPath ? getOnboardingDocumentUrl(rfeFinalPath) : null;
 
   const handleRFEOutcome = async (outcome: RFEOutcome) => {
     setLoading(true);

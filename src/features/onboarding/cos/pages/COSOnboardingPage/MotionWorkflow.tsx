@@ -18,7 +18,6 @@ import {
 } from 'react-icons/ri'
 import { MdPix } from 'react-icons/md'
 import { toast } from 'sonner'
-import { supabase } from "@shared/lib/supabase";
 import type { UserService } from "@features/process/types";
 import * as processService from "@features/process/services/processOps";
 import { cosNotificationService } from "@features/onboarding/cos/lib/cos-notifications";
@@ -38,6 +37,14 @@ import type { MotionOutcome } from '@shared/types/process.model'
 import { COS_MOTION_PROPOSAL_STEP, getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
 import { compressImageForUpload } from "@shared/utils/uploadCompression";
 import { HomologationAutofillButton } from "./components/HomologationAutofillButton";
+import {
+  fetchActiveServicePrice,
+  fetchUserAccountContact,
+} from "@features/onboarding/services/cosOnboardingService";
+import {
+  getOnboardingDocumentUrl,
+  uploadOnboardingDocument,
+} from "@features/onboarding/services/onboardingStorageService";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -173,17 +180,13 @@ function MotionCheckoutOverlay({
       }
     }
 
-    const { data: account } = await supabase
-      .from('user_accounts')
-      .select('email, name, phone')
-      .eq('id', proc.user_id)
-      .maybeSingle()
+    const account = await fetchUserAccountContact(proc.user_id)
 
     const email = String(directEmail || account?.email || '').trim()
 
     return {
       email,
-      fullName: String(directFullName || account?.name || 'Cliente').trim(),
+      fullName: String(directFullName || account?.fullName || 'Cliente').trim(),
       phone: String(directPhone || account?.phone || '0000000000').trim(),
     }
   }
@@ -662,24 +665,14 @@ export function MotionExplanationStep({
       : `Taxa de analise: $${baseAmount.toFixed(2)}`
 
   useEffect(() => {
-    supabase
-      .from('services_prices')
-      .select('price')
-      .in('service_id', [analysisSlug, LEGACY_MOTION_ANALYSIS_SLUG])
-      .eq('is_active', true)
-      .limit(1)
-      .then(({ data, error }) => {
-        if (error) {
-          console.warn(
-            '[MotionExplanationStep] Failed to load base price:',
-            error.message,
-          )
-          setBaseAmount(50)
-          return
-        }
-        const firstPrice = data?.[0]?.price
-        const parsedPrice = Number(firstPrice)
-        setBaseAmount(Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : 50)
+    fetchActiveServicePrice([analysisSlug, LEGACY_MOTION_ANALYSIS_SLUG], 50)
+      .then(setBaseAmount)
+      .catch((error) => {
+        console.warn(
+          '[MotionExplanationStep] Failed to load base price:',
+          error.message,
+        )
+        setBaseAmount(50)
       })
   }, [analysisSlug])
 
@@ -801,11 +794,7 @@ export function MotionInstructionStep({ proc, onComplete }: StepProps) {
       const fileExt = fileToUpload.name.split('.').pop()
       const filePath = `${proc.user_id}/motion/${docKey}_${crypto.randomUUID()}.${fileExt}`
 
-      const { error: uploadError } = await supabase.storage
-        .from('aplikei-profiles')
-        .upload(filePath, fileToUpload)
-
-      if (uploadError) throw uploadError
+      await uploadOnboardingDocument(filePath, fileToUpload)
 
       const currentDocs = (data.docs as Record<string, string>) || {}
       const motionUploadHistory = Array.isArray(data.motion_upload_history)
@@ -1235,8 +1224,7 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
   const motionLetterPath = (data.docs as Record<string, string>)
     ?.motion_final_package
   const motionLetterUrl = motionLetterPath
-    ? supabase.storage.from('aplikei-profiles').getPublicUrl(motionLetterPath).data
-      .publicUrl
+    ? getOnboardingDocumentUrl(motionLetterPath)
     : null
   const workflowStatus = String(data.workflow_status || '').toLowerCase()
   const motionResult =
