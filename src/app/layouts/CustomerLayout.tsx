@@ -29,7 +29,7 @@ export function CustomerLayout() {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/acompanhar-meu-caso", { replace: true });
+    navigate("/track-my-visa", { replace: true });
   };
   const resolvedName = useMemo(() => {
     const raw = user?.fullName || "";
@@ -53,11 +53,11 @@ export function CustomerLayout() {
   ];
 
   if (!user) {
-    return <Navigate to="/acompanhar-meu-caso" replace />;
+    return <Navigate to="/track-my-visa" replace />;
   }
 
   if (user.role !== "customer") {
-    return <Navigate to={getDashboardPathForRole(user.role) ?? "/acompanhar-meu-caso"} replace />;
+    return <Navigate to={getDashboardPathForRole(user.role) ?? "/track-my-visa"} replace />;
   }
 
   const closeSidebar = () => setSidebarOpenPath(null);

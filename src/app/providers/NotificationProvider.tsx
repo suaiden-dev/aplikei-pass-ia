@@ -179,7 +179,7 @@ async function fetchNotifications(
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  return ((data as GroupRow[] | null) ?? [])
+  return ((data as unknown as GroupRow[] | null) ?? [])
     .map(normalizeGroupRow)
     .filter((n): n is AppNotification => n !== null);
 }
@@ -197,7 +197,7 @@ async function fetchGroupById(groupId: string): Promise<AppNotification | null> 
     .maybeSingle();
 
   if (!data) return null;
-  return normalizeGroupRow(data as GroupRow);
+  return normalizeGroupRow(data as unknown as GroupRow);
 }
 
 // ---------------------------------------------------------------------------

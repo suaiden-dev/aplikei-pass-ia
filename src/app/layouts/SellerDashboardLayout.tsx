@@ -16,7 +16,7 @@ export function SellerDashboardLayout() {
       navItems={navItems}
       spotlightTitle={t.layout.seller.spotlightTitle}
       spotlightDescription={t.layout.seller.spotlightDescription}
-      unauthorizedFallback="/acompanhar-meu-caso"
+      unauthorizedFallback="/track-my-visa"
     />
   );
 }

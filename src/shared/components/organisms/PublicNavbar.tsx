@@ -180,7 +180,7 @@ export function PublicNavbar() {
           </button>
 
           <Button asChild>
-            <Link to="/track-my-case">{t.trackMyCase}</Link>
+            <Link to="/track-my-visa">{t.trackMyCase}</Link>
           </Button>
 
           <Button asChild>
@@ -241,7 +241,7 @@ export function PublicNavbar() {
                 {theme === "dark" ? "Light mode" : "Dark mode"}
               </button>
               <Button asChild className="w-full">
-                <Link to="/track-my-case">{t.trackMyCase}</Link>
+                <Link to="/track-my-visa" onClick={closeMenu}>{t.trackMyCase}</Link>
               </Button>
 
               <Button asChild className="w-full">
