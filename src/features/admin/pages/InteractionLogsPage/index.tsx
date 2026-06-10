@@ -18,22 +18,14 @@ import {
   RiDatabase2Line,
   RiErrorWarningLine
 } from "react-icons/ri";
-import { supabase } from "@shared/lib/supabase";
+import {
+  fetchInteractionLogStats,
+  listInteractionLogs,
+} from "@features/admin/services/interactionLogsService";
+import type { InteractionLog } from "@features/admin/types";
 import { useT } from "@app/app/i18n";
 import { useAuth } from "@shared/hooks/useAuth";
-
-interface InteractionLog {
-  id: string;
-  created_at: string;
-  event_name: string;
-  email: string;
-  office_id: string;
-  details: string;
-  metadata?: {
-    device?: string;
-    [key: string]: any;
-  };
-}
+import { toast } from "sonner";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -72,24 +64,14 @@ export default function InteractionLogsPage() {
   const fetchGlobalStats = async () => {
     if (!user?.officeId && user?.role !== "master") return;
     try {
-      let totalQuery = supabase.from("checkout_logs").select("id", { count: "exact", head: true });
-      if (user?.role !== "master") {
-        totalQuery = totalQuery.eq("office_id", user?.officeId);
-      }
-      const { count: total } = await totalQuery;
-      setGlobalTotalCount(total || 0);
-
-      let errorQuery = supabase
-        .from("checkout_logs")
-        .select("id", { count: "exact", head: true })
-        .ilike("event_name", "%erro%");
-      if (user?.role !== "master") {
-        errorQuery = errorQuery.eq("office_id", user?.officeId);
-      }
-      const { count: errors } = await errorQuery;
-      setGlobalErrorCount(errors || 0);
-    } catch (err) {
-      console.error("Error fetching global stats:", err);
+      const stats = await fetchInteractionLogStats({
+        officeId: user.officeId,
+        isMaster: user.role === "master",
+      });
+      setGlobalTotalCount(stats.total);
+      setGlobalErrorCount(stats.errors);
+    } catch {
+      // stats are optional — failure does not block the main list
     }
   };
 
@@ -103,33 +85,18 @@ export default function InteractionLogsPage() {
     try {
       void fetchGlobalStats();
 
-      let query = supabase
-        .from("checkout_logs")
-        .select("*", { count: "exact" })
-        .order("created_at", { ascending: false })
-        .range(page * pageSize, (page + 1) * pageSize - 1);
-
-      // Office filter (if not master)
-      if (user?.role !== "master") {
-        query = query.eq("office_id", user?.officeId);
-      }
-
-      if (filter === "error") {
-        query = query.ilike("event_name", "%error%");
-      } else if (filter === "warning") {
-        query = query.or("event_name.ilike.%aviso%,event_name.ilike.%tentativa%,event_name.ilike.%recusad%,event_name.ilike.%warning%,details.ilike.%aviso%,details.ilike.%tentativa%,details.ilike.%recusad%,details.ilike.%warning%");
-      }
-
-      if (search) {
-        query = query.or(`details.ilike.%${search}%,email.ilike.%${search}%,event_name.ilike.%${search}%`);
-      }
-
-      const { data, count, error } = await query;
-      if (error) throw error;
-      setLogs(data || []);
-      setTotalCount(count || 0);
-    } catch (err) {
-      console.error("Error fetching logs:", err);
+      const result = await listInteractionLogs({
+        officeId: user?.officeId,
+        isMaster: user?.role === "master",
+        page,
+        pageSize,
+        filter,
+        search,
+      });
+      setLogs(result.logs);
+      setTotalCount(result.totalCount);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : t.shared.error);
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,8 @@
-type NotifContent = Record<string, { title: string; message: string }>;
+import { buildNotifContent, type NotifLang, type NotifTemplate } from "../services/templates";
+
+type StructuredNotifContent = { title: string; message: string };
+type LegacyNotifContent = Record<string, string | StructuredNotifContent>;
+type NotifContent = Record<string, StructuredNotifContent> | LegacyNotifContent;
 
 type NotificationLike = {
   category?: string;
@@ -22,7 +26,7 @@ function interpolate(template: string, meta: Record<string, unknown>): string {
 
 export function localizeNotificationContent(
   notification: NotificationLike,
-  _lang: string,
+  lang: string,
   content?: NotifContent,
 ): { title: string; message: string } {
   const category = notification.category ?? "system";
@@ -34,12 +38,41 @@ export function localizeNotificationContent(
   const storedTitle   = notification.title   ?? "";
   const storedMessage = notification.message ?? "";
 
-  if (!entry) {
-    return { title: storedTitle || key, message: storedMessage };
+  const template = meta.template;
+  if (typeof template === "string") {
+    return buildNotifContent(
+      template as NotifTemplate,
+      Object.fromEntries(
+        Object.entries(meta).map(([metaKey, value]) => [metaKey, typeof value === "string" ? value : String(value ?? "")]),
+      ),
+      lang as NotifLang,
+    );
   }
 
-  return {
-    title:   interpolate(entry.title,   meta) || storedTitle,
-    message: interpolate(entry.message, meta) || storedMessage,
-  };
+  if (entry && typeof entry !== "string") {
+    return {
+      title:   interpolate(entry.title,   meta) || storedTitle,
+      message: interpolate(entry.message, meta) || storedMessage,
+    };
+  }
+
+  if (content && storedTitle === "Step Approved") {
+    return {
+      title: String(content.stepApproved ?? storedTitle),
+      message: String(content.stepApprovedMessage ?? storedMessage),
+    };
+  }
+
+  if (content && storedTitle === "Action required: review step") {
+    const match = storedMessage.match(/Client completed step "(.+)" in (.+) and is waiting/i);
+    return {
+      title: String(content.actionRequiredReview ?? storedTitle),
+      message: interpolate(String(content.clientCompletedStepMessage ?? storedMessage), {
+        step: match?.[1] ?? "",
+        service: match?.[2] ?? "",
+      }),
+    };
+  }
+
+  return { title: storedTitle || String(content?.system ?? key), message: storedMessage };
 }

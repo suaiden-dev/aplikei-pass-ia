@@ -38,7 +38,9 @@ import { authService } from "@features/auth/lib/auth";
 import { storageService } from "@features/auth/services/storage";
 import { cn } from "@shared/utils/cn";
 import { toast } from "sonner";
-import { useT } from "@app/app/i18n";
+import { useLocale, useT, type Language } from "@app/app/i18n";
+import Flag from "@shared/components/atoms/flag";
+import { LANGUAGE_FLAG_CODE } from "@shared/components/atoms/flags";
 import { OnboardingModal } from "@shared/components/organisms/OnboardingModal";
 import { useSubscription } from "@features/admin/hooks/useSubscription";
 import { RiLockPasswordLine, RiErrorWarningLine } from "react-icons/ri";
@@ -313,6 +315,7 @@ export function RoleDashboardLayout({
   unauthorizedFallback,
 }: RoleDashboardLayoutProps) {
   const tProfile = useT("admin").profile;
+  const { lang, setLang } = useLocale();
   const { theme, toggleTheme } = useTheme();
   const { user: currentUser, logout, refreshAccount } = useAuth();
   const navigate = useNavigate();
@@ -556,7 +559,7 @@ export function RoleDashboardLayout({
   };
 
   if (!currentUser) {
-    return <Navigate to="/acompanhar-meu-caso" replace />;
+    return <Navigate to="/track-my-visa" replace />;
   }
 
   if (!allowedRoles.includes(currentUser.role)) {
@@ -646,39 +649,84 @@ export function RoleDashboardLayout({
             />
           </div>
 
-          {/* Profile & Logout (Mobile Only) */}
-          <div className="mt-auto border-t border-border pt-4 space-y-2 lg:hidden">
-            <div className="flex items-center gap-3 px-3 py-2">
+          {/* Profile, language, theme & logout (Mobile Only) */}
+          <div className="mt-auto space-y-3 border-t border-border pt-4 lg:hidden">
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                openEditProfile();
+              }}
+              className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left transition-colors hover:border-primary/30 hover:bg-bg-subtle"
+            >
               <img
                 src={resolvedAvatar}
                 alt="Avatar"
-                className="h-9 w-9 rounded-full object-cover border border-border"
+                className="h-10 w-10 rounded-full border border-border object-cover"
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-text truncate">
+                <p className="truncate text-sm font-semibold text-text">
                   {resolvedName}
                 </p>
-                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none mt-1">
+                <p className="mt-1 text-[10px] font-medium uppercase leading-none tracking-widest text-text-muted">
                   {currentUser.role.replace("_", " ")}
                 </p>
+              </div>
+              <RiPencilLine size={18} className="text-text-muted" />
+            </button>
+
+            <div className="rounded-xl border border-border bg-bg-subtle/50 p-3">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+                {tProfile.language || "Language"}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {(["pt", "en", "es"] as Language[]).map((nextLang) => (
+                  <button
+                    key={nextLang}
+                    type="button"
+                    onClick={() => setLang(nextLang)}
+                    className={cn(
+                      "flex h-9 items-center justify-center gap-2 rounded-lg border text-xs font-semibold uppercase transition-colors",
+                      lang === nextLang
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-card text-text-muted hover:text-text",
+                    )}
+                  >
+                    <Flag countryCode={LANGUAGE_FLAG_CODE[nextLang]} size={18} />
+                    {nextLang}
+                  </button>
+                ))}
               </div>
             </div>
 
             <button
               onClick={toggleTheme}
-              className="flex w-full items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-text-muted hover:bg-bg-subtle hover:text-text transition-all"
+              className="flex w-full items-center justify-between rounded-xl border border-border px-3 py-3 text-sm font-semibold text-text-muted transition-all hover:bg-bg-subtle hover:text-text"
             >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-              <span>
+              <span className="flex items-center gap-3">
+                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
                 {theme === "dark"
                   ? tProfile.lightMode || "Modo Claro"
                   : tProfile.darkMode || "Modo Escuro"}
+              </span>
+              <span
+                className={cn(
+                  "flex h-5 w-9 items-center rounded-full border border-border bg-bg-subtle p-0.5 transition-colors",
+                  theme === "dark" && "bg-primary/20",
+                )}
+              >
+                <span
+                  className={cn(
+                    "h-3.5 w-3.5 rounded-full bg-text-muted transition-transform",
+                    theme === "dark" && "translate-x-4 bg-primary",
+                  )}
+                />
               </span>
             </button>
 
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-red-500 hover:bg-red-500/10 transition-all"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-red-500 transition-all hover:bg-red-500/10"
             >
               <RiLogoutBoxRLine size={18} />
               <span>{tProfile.logout}</span>
@@ -742,22 +790,22 @@ export function RoleDashboardLayout({
             collapsed ? "lg:pl-16" : "lg:pl-72",
           )}
         >
-          <header className="sticky top-0 z-30 border-b border-border bg-bg/80 px-4 py-4 backdrop-blur sm:px-6 lg:px-8">
+          <header className="sticky top-0 z-30 border-b border-border bg-bg/85 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-text-muted lg:hidden"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-text-muted lg:hidden"
                   onClick={() => setMobileMenuOpen(true)}
                   aria-label={tProfile.openMenu}
                 >
                   <Menu className="h-5 w-5" />
                 </button>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
                     {headerEyebrow}
                   </p>
-                  <h1 className="font-display text-2xl font-black tracking-[-0.04em] text-text">
+                  <h1 className="font-display text-xl font-semibold tracking-tight text-text sm:text-2xl">
                     {activeItem?.label ?? "Overview"}
                   </h1>
                 </div>
@@ -772,7 +820,7 @@ export function RoleDashboardLayout({
                 <button
                   type="button"
                   onClick={toggleTheme}
-                  className="hidden lg:flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card text-text-muted transition-colors hover:text-text"
+                  className="hidden h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-text-muted transition-colors hover:text-text lg:flex"
                   aria-label={tProfile.toggleTheme}
                 >
                   {theme === "dark" ? (
@@ -787,7 +835,7 @@ export function RoleDashboardLayout({
                   <button
                     type="button"
                     onClick={() => setMenuOpen((prev) => !prev)}
-                    className="flex h-11 items-center gap-2 rounded-2xl border border-border bg-card px-3 text-sm font-semibold text-text transition-colors hover:border-primary/40"
+                    className="flex h-10 items-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold text-text transition-colors hover:border-primary/40"
                   >
                     <img
                       src={resolvedAvatar}
@@ -843,21 +891,21 @@ export function RoleDashboardLayout({
                   <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : isRestricted && isSubscriptionLockedPath ? (
-                <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center animate-in zoom-in-95 duration-500">
-                  <div className="w-24 h-24 rounded-[32px] bg-warning/10 flex items-center justify-center text-warning mb-8">
-                    <RiLockPasswordLine className="text-5xl" />
+                <div className="flex min-h-[60vh] flex-col items-center justify-center p-8 text-center animate-in zoom-in-95 duration-500">
+                  <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-warning/10 text-warning">
+                    <RiLockPasswordLine className="text-3xl" />
                   </div>
-                  <h2 className="text-3xl font-black text-text mb-4 tracking-tighter">
+                  <h2 className="mb-3 text-2xl font-semibold tracking-tight text-text">
                     Feature Locked
                   </h2>
-                  <p className="text-text-muted max-w-md mx-auto font-medium mb-8">
+                  <p className="mx-auto mb-7 max-w-md font-medium text-text-muted">
                     This feature is part of professional plans. Activate your
                     subscription to manage products, discounts and your custom
                     website.
                   </p>
                   <Button
-                    onClick={() => navigate("/subscription")}
-                    className="h-14 px-10 rounded-2xl bg-primary text-white font-black uppercase tracking-widest shadow-xl shadow-primary/20"
+                    onClick={() => navigate("/admin/subscription")}
+                    className="h-11 rounded-xl bg-primary px-8 text-[10px] font-semibold uppercase tracking-widest text-white"
                   >
                     View Available Plans
                   </Button>
@@ -866,16 +914,16 @@ export function RoleDashboardLayout({
                 <>
                   {isRestricted &&
                     !routeLocation.pathname.includes("/subscription") && (
-                      <div className="mb-6 flex items-center justify-between p-4 rounded-2xl bg-warning/10 border border-warning/20 animate-in slide-in-from-top duration-500">
+                      <div className="mb-6 flex items-center justify-between rounded-xl border border-warning/20 bg-warning/10 p-4 animate-in slide-in-from-top duration-500">
                         <div className="flex items-center gap-3 text-warning">
                           <RiErrorWarningLine className="text-xl" />
-                          <p className="text-xs font-black uppercase tracking-widest">
+                          <p className="text-xs font-semibold uppercase tracking-widest">
                             Your subscription is not active
                           </p>
                         </div>
                         <button
-                          onClick={() => navigate("/subscription")}
-                          className="text-[10px] font-black uppercase tracking-widest text-warning hover:underline"
+                          onClick={() => navigate("/admin/subscription")}
+                          className="text-[10px] font-semibold uppercase tracking-widest text-warning hover:underline"
                         >
                           Activate now
                         </button>

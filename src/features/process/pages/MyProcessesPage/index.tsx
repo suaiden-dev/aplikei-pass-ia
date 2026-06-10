@@ -11,7 +11,7 @@ import {
 } from "react-icons/ri";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@shared/lib/supabase";
+import { fetchOfficeNameMap } from "@features/process/services/officeNamesService";
 import { getCanonicalSlug, getServiceBySlug, servicesData } from "@shared/data/services";
 import { calculateProcessProgress } from "@features/process/utils";
 import { cn } from "@shared/utils/cn";
@@ -278,18 +278,7 @@ export default function MyProcessesPage() {
   const { data: officeNameById = {} } = useQuery({
     queryKey: ["my-processes-office-names", officeIds.join(",")],
     enabled: officeIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("offices")
-        .select("id, name")
-        .in("id", officeIds);
-      if (error) throw error;
-      const map: Record<string, string> = {};
-      (data ?? []).forEach((row: { id: string; name: string | null }) => {
-        map[row.id] = row.name ?? "Office";
-      });
-      return map;
-    },
+    queryFn: () => fetchOfficeNameMap(officeIds),
   });
 
   const displaySlugByProcessId = (() => {

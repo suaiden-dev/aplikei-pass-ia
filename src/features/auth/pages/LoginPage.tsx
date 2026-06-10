@@ -1,6 +1,5 @@
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "@shared/lib/supabase";
 import { useFormik } from "formik";
 import { toast } from "sonner";
 import { Button } from "@shared/components/atoms/button";
@@ -36,22 +35,12 @@ export default function Login() {
   useEffect(() => {
     const officeId = searchParams.get("office_id");
     if (!officeId) return;
-    supabase
-      .from("offices")
-      .select("name, logo_url, landing_page_config")
-      .eq("id", officeId)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!data) return;
-        const src =
-          (data as any).logo_url ||
-          ((data as any).landing_page_config as any)?.logoUrl ||
-          null;
-        if (src) setOfficeLogo({ name: data.name, src });
-      });
+    authService.fetchOfficeLogo(officeId).then((logo) => {
+      if (logo) setOfficeLogo(logo);
+    });
   }, [searchParams]);
   const activeTab: "login" | "track" =
-    location.pathname === "/track-my-case" || location.pathname === "/track-my-visa"
+    location.pathname === "/track-my-visa"
       ? "track"
       : "login";
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { 
+import {
   RiFileUploadLine, 
   RiFileTextLine, 
   RiCheckLine,
@@ -7,7 +7,10 @@ import {
   RiInformationLine
 } from "react-icons/ri";
 import { toast } from "sonner";
-import { supabase } from "@shared/lib/supabase";
+import {
+  getOnboardingDocumentUrl,
+  uploadOnboardingDocument,
+} from "@features/onboarding/services/onboardingStorageService";
 import * as processService from "@features/process/services/processOps";
 import type { UserService } from "@features/process/types";
 import { cosNotificationService } from "@features/onboarding/cos/lib/cos-notifications";
@@ -63,11 +66,10 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
       const fileExt = fileToUpload.name.split(".").pop();
       const filePath = `${user.id}/cos/i20_${crypto.randomUUID()}.${fileExt}`;
       
-      const { error: uploadError } = await supabase.storage
-        .from("aplikei-profiles")
-        .upload(filePath, fileToUpload, { upsert: true, contentType: fileToUpload.type });
-
-      if (uploadError) throw uploadError;
+      await uploadOnboardingDocument(filePath, fileToUpload, {
+        upsert: true,
+        contentType: fileToUpload.type,
+      });
       
       setI20Path(filePath);
       
@@ -138,7 +140,7 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
               
               <div className="flex gap-3">
                 <a 
-                  href={supabase.storage.from("aplikei-profiles").getPublicUrl(i20Path).data.publicUrl}
+                  href={getOnboardingDocumentUrl(i20Path)}
                   target="_blank"
                   rel="noreferrer"
                   className="flex-1 px-4 py-3 bg-white border border-emerald-200 rounded-xl text-[10px] font-black text-emerald-700 uppercase tracking-widest hover:bg-emerald-100 transition-all"

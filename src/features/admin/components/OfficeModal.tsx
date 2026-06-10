@@ -3,6 +3,7 @@ import { RiLoader4Line } from "react-icons/ri";
 import { toast } from "sonner";
 import type { UserAccountRow } from "../services/rolesOps";
 import { fetchOfficeByOwner, listOffices, type OfficeRow } from "@features/offices/services/officeOps";
+import { useT } from "@app/app/i18n";
 
 interface OfficeModalProps {
   user: UserAccountRow;
@@ -13,6 +14,7 @@ interface OfficeModalProps {
 }
 
 export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate = true }: OfficeModalProps) {
+  const t = useT("admin");
   const [mode, setMode] = useState<"existing" | "create">("existing");
   const [offices, setOffices] = useState<OfficeRow[]>([]);
   const [selectedOfficeId, setSelectedOfficeId] = useState("");
@@ -37,7 +39,7 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
           setMode("create");
         }
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Error loading office.";
+        const message = err instanceof Error ? err.message : t.offices.messages.loadError;
         toast.error(message);
       } finally {
         if (mounted) setIsLoading(false);
@@ -54,7 +56,7 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
     if (mode === "create") {
       const trimmedName = newOfficeName.trim();
       if (!trimmedName) {
-        toast.error("Office name is required.");
+        toast.error(t.officeModal.messages.nameRequired);
         return;
       }
       const normalizedName = normalizeOfficeName(trimmedName);
@@ -63,7 +65,7 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
       );
 
       if (duplicateOffice) {
-        toast.error(`An office with this name already exists: ${duplicateOffice.name}.`);
+        toast.error(t.officeModal.messages.duplicateName.replace("{{name}}", duplicateOffice.name));
         return;
       }
       await onConfirm({ mode: "create", name: trimmedName });
@@ -71,7 +73,7 @@ export function OfficeModal({ user, onConfirm, onCancel, isSaving, allowCreate =
     }
 
     if (!selectedOfficeId) {
-      toast.error("Select an office.");
+      toast.error(t.officeModal.messages.selectOffice);
       return;
     }
 

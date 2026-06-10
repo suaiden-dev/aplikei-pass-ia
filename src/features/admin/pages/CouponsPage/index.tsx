@@ -15,42 +15,23 @@ import {
   RiPercentLine,
   RiPriceTag3Line,
 } from "react-icons/ri";
-import { supabase } from "@shared/lib/supabase";
+import {
+  createDiscountCoupon,
+  fetchOfficeDiscountRulesForCoupons,
+  fetchUserOfficeId,
+  listCouponServiceOptions,
+  listDiscountCoupons,
+  toggleDiscountCoupon,
+  type Coupon,
+  type ServiceOption,
+} from "@features/admin/services/couponManagementService";
+import type { DiscountRules } from "@features/admin/types";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useT, useLocale } from "@app/app/i18n";
 import { Input } from "@shared/components/atoms/input";
 import { Label } from "@shared/components/atoms/label";
 import { zodValidate } from "@shared/utils/zodValidate";
 import { formatCouponCode } from "@features/payments/lib/coupon";
-
-interface Coupon {
-  id: string;
-  code: string;
-  discount_type: "percentage" | "fixed";
-  discount_value: number;
-  max_uses: number | null;
-  uses_count: number;
-  applicable_slugs: string[] | null;
-  min_purchase_usd: number;
-  expires_at: string;
-  is_active: boolean;
-  created_at: string;
-}
-
-interface ServiceOption {
-  slug: string;
-  name: string;
-}
-
-interface DiscountRules {
-  seller_max_pct: number | null;
-  seller_max_fixed: number | null;
-  seller_allow_percentage: boolean;
-  seller_allow_fixed: boolean;
-  seller_max_coupons: number | null;
-  seller_max_uses: number | null;
-  seller_min_purchase_usd: number | null;
-}
 
 const NO_RULES: DiscountRules = {
   seller_max_pct: null,
@@ -96,46 +77,26 @@ export default function CouponsPage() {
     if (!isSeller || !user?.id) return;
     if (officeId) { setResolvedOfficeId(officeId); return; }
 
-    supabase
-      .from("user_accounts")
-      .select("office_id")
-      .eq("id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data?.office_id) setResolvedOfficeId(data.office_id as string);
-      });
+    fetchUserOfficeId(user.id).then((id) => {
+      if (id) setResolvedOfficeId(id);
+    });
   }, [isSeller, user?.id, officeId]);
 
   const fetchCoupons = useCallback(async () => {
     setIsLoading(true);
-    const { data } = await supabase
-      .from("discount_coupons")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setCoupons(data ?? []);
+    setCoupons(await listDiscountCoupons());
     setIsLoading(false);
   }, []);
 
   useEffect(() => { void fetchCoupons(); }, [fetchCoupons]);
 
   useEffect(() => {
-    let q = supabase.from("services").select("slug, name, category").eq("is_active", true).order("name");
-    if (isSeller) q = q.eq("category", "main_visa");
-    q.then(({ data }) => setServices((data as ServiceOption[]) ?? []));
+    listCouponServiceOptions(isSeller).then(setServices);
   }, [isSeller]);
 
   useEffect(() => {
     if (!isSeller || !resolvedOfficeId) return;
-    supabase
-      .from("offices")
-      .select("discount_rules")
-      .eq("id", resolvedOfficeId)
-      .single()
-      .then(({ data }) => {
-        if (data?.discount_rules && Object.keys(data.discount_rules).length > 0) {
-          setRules({ ...NO_RULES, ...(data.discount_rules as Partial<DiscountRules>) });
-        }
-      });
+    fetchOfficeDiscountRulesForCoupons(resolvedOfficeId, NO_RULES).then(setRules);
   }, [isSeller, resolvedOfficeId]);
 
   const statsCount = {
@@ -147,16 +108,12 @@ export default function CouponsPage() {
 
   const handleToggle = async (coupon: Coupon) => {
     setSavingId(coupon.id);
-    const { error } = await supabase
-      .from("discount_coupons")
-      .update({ is_active: !coupon.is_active })
-      .eq("id", coupon.id);
-    
-    if (error) {
-      toast.error(t.messages.toggleError);
-    } else {
+    try {
+      await toggleDiscountCoupon(coupon.id, !coupon.is_active);
       const statusText = !coupon.is_active ? t.messages.statusActivated : t.messages.statusDeactivated;
       toast.success(t.messages.toggleSuccess.replace("{{code}}", coupon.code).replace("{{status}}", statusText));
+    } catch {
+      toast.error(t.messages.toggleError);
     }
     setSavingId(null);
     void fetchCoupons();
@@ -213,9 +170,10 @@ export default function CouponsPage() {
         if (applicableSlugs.length === 0) applicableSlugs = mainVisaSlugs;
       }
 
-      const { error } = await supabase.from("discount_coupons").insert({
+      try {
+        await createDiscountCoupon({
         code: formatCouponCode(values.code),
-        discount_type: values.discount_type,
+        discount_type: values.discount_type as "percentage" | "fixed",
         discount_value: discountValue,
         max_uses: values.max_uses === "" ? null : parseInt(values.max_uses),
         applicable_slugs: applicableSlugs,
@@ -224,8 +182,11 @@ export default function CouponsPage() {
         is_active: true,
         created_by: user?.id ?? null,
         office_id: resolvedOfficeId,
-      });
-      if (error) { toast.error(t.messages.createError.replace("{{error}}", error.message)); return; }
+        });
+      } catch (error) {
+        toast.error(t.messages.createError.replace("{{error}}", (error as Error).message));
+        return;
+      }
       toast.success(t.messages.createSuccess.replace("{{code}}", values.code));
       setIsModalOpen(false);
       formik.resetForm();

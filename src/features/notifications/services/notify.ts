@@ -15,6 +15,8 @@ export interface NotifyClientParams {
 export interface NotifyAdminParams {
   serviceId?: string;
   userId?: string;
+  title?: string;
+  body?: string;
   metadata?: Record<string, unknown>;
   link?: string;
   category?: string;
@@ -65,6 +67,8 @@ export async function notifyAdmin(params: NotifyAdminParams): Promise<void> {
       service_id:     params.serviceId ?? null,
       link:           params.link      ?? null,
       send_email:     true,
+      title:          params.title     ?? null,
+      body:           params.body      ?? null,
       metadata:       params.metadata  ?? {},
       category:       params.category  ?? "admin",
       action:         params.action    ?? "message",
@@ -83,6 +87,8 @@ export async function notifyMaster(params: NotifyAdminParams): Promise<void> {
       service_id:     params.serviceId ?? null,
       link:           params.link      ?? null,
       send_email:     true,
+      title:          params.title     ?? null,
+      body:           params.body      ?? null,
       metadata:       params.metadata  ?? {},
       category:       params.category  ?? "admin",
       action:         params.action    ?? "message",
@@ -104,6 +110,8 @@ export async function notifyAdminLawyersByOffice(
       service_id:  params.serviceId ?? null,
       link:        params.link      ?? null,
       send_email:  true,
+      title:       params.title     ?? null,
+      body:        params.body      ?? null,
       metadata:    params.metadata  ?? {},
       category:    params.category  ?? "admin",
       action:      params.action    ?? "message",
@@ -124,6 +132,8 @@ export async function notifyUser(
       user_ids:   [userId],
       link:       params.link     ?? null,
       send_email: true,
+      title:      params.title    ?? null,
+      body:       params.body     ?? null,
       metadata:   params.metadata ?? {},
       category:   params.category ?? "admin",
       action:     params.action   ?? "message",

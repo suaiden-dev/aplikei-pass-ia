@@ -1,7 +1,7 @@
 import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 import { getSessionSafe, supabase } from "@shared/lib/supabase";
 import type { LoginInput, SignUpInput } from "../schemas/auth.schema";
-import type { UserAccount } from "../types";
+import type { OfficeLogo, UserAccount } from "../types";
 import { normalizeRole, getDashboardPathForRole } from "../lib/roles";
 
 export { getDashboardPathForRole };
@@ -161,6 +161,20 @@ async function updateAccount(id: string, input: UserUpdateInput): Promise<UserAc
     .single();
   if (error || !data) return null;
   return mapRow(data as UserAccountRow);
+}
+
+async function fetchOfficeLogo(officeId: string): Promise<OfficeLogo | null> {
+  const { data, error } = await supabase
+    .from("offices")
+    .select("name, logo_url, landing_page_config")
+    .eq("id", officeId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+
+  const config = data.landing_page_config as { logoUrl?: string | null } | null;
+  const src = data.logo_url || config?.logoUrl || null;
+  return src ? { name: data.name, src } : null;
 }
 
 // ── Auth subscription ─────────────────────────────────────────────────────────
@@ -424,6 +438,14 @@ export const authService = {
     cachedUser = result;
     return result;
   },
+
+  async updateEmail(email: string) {
+    const { data, error } = await supabase.auth.updateUser({ email });
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  fetchOfficeLogo,
 
   async requestPasswordReset(email: string) {
     const normalizedEmail = email.trim().toLowerCase();

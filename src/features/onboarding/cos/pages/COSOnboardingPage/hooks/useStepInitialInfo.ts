@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { fetchPaidDependentSlots } from "@features/onboarding/services/onboardingProcessDataService";
 import * as workflowOps from "@features/workflow/services/workflowOps";
 import type { UserStep } from "@features/workflow/types";
 import {
@@ -62,18 +63,7 @@ export function useStepInitialInfo({
   // ── Carrega step + slots ao montar ───────────────────────────────────────────
   const refreshSlots = useCallback(async () => {
     if (!instanceId) return;
-    const supabase = (await import("@shared/lib/supabase")).getSupabaseClient();
-    if (!supabase) return;
-    const { data: inst } = await supabase
-      .schema("aplikei")
-      .from("user_product_instances")
-      .select("metadata")
-      .eq("id", instanceId)
-      .maybeSingle();
-    if (inst?.metadata) {
-      const paid = (inst.metadata as Record<string, unknown>).paid_dependents;
-      setPaidSlots(typeof paid === "number" ? paid : parseInt(String(paid ?? "0"), 10));
-    }
+    setPaidSlots(await fetchPaidDependentSlots(instanceId));
   }, [instanceId]);
 
   useEffect(() => {

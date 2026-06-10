@@ -1,5 +1,10 @@
 import { getServiceBySlug } from "@shared/data/services";
-import type { UserService } from "../../process/types";
+import type { Json } from "@shared/types/database";
+
+type ChatEligibilityProcess = {
+  service_slug: string;
+  step_data?: Json | Record<string, unknown> | null;
+};
 
 export function getAnalysisChatTitle(serviceSlug?: string): string {
   if (!serviceSlug) return "Specialist";
@@ -55,7 +60,7 @@ const PROPOSAL_SLUGS = new Set([
   "analise-especialista-rfe",
 ]);
 
-function isMotionOrCOSProcess(proc: UserService): boolean {
+function isMotionOrCOSProcess(proc: ChatEligibilityProcess): boolean {
   const stepData = (proc.step_data || {}) as Record<string, unknown>;
   const history = Array.isArray(stepData.history)
     ? (stepData.history as Array<Record<string, unknown>>)
@@ -120,7 +125,7 @@ export function isMentoriaService(serviceSlug?: string): boolean {
   return slug.startsWith("mentoria-") || slug.startsWith("mentoring-");
 }
 
-export function isCustomerChatEligible(proc: UserService): boolean {
+export function isCustomerChatEligible(proc: ChatEligibilityProcess): boolean {
   const slug = (proc.service_slug || "").toLowerCase();
   if (
     slug.startsWith("mentoring-") ||

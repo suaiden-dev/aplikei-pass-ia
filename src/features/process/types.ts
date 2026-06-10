@@ -7,6 +7,7 @@ import type {
 // ── DB-derived types (fonte única: gerado pelo Supabase) ──────────────────────
 export interface UserService extends UserServiceRow {
   updated_at: string;
+  negativa?: Record<string, unknown> | null;
   office_id?: string | null;
   officeName?: string;
   officeLogoUrl?: string;
@@ -29,6 +30,36 @@ export type ProcessStatus =
 export type StepStatus = "pending" | "in_progress" | "completed" | "rejected";
 
 export interface StepData {
+  // Identity / contact
+  seller_id?: string;
+  full_name?: string;
+  fullName?: string;
+  email?: string;
+  primaryEmail?: string;
+  cellPhone?: string;
+  phone?: string;
+  primaryPhone?: string;
+  // Scheduling
+  final_casv_date?: string;
+  casv_preferred_date?: string;
+  interviewLocation?: string;
+  // Process control
+  current_step?: number;
+  workflow_status?: string;
+  upsell_plan?: string;
+  targetVisa?: string;
+  currentVisa?: string;
+  // Workflow
+  history?: WorkflowCycle[];
+  // Admin
+  admin_feedback?: string;
+  reported_at?: string;
+  rejected_items?: unknown[];
+  docs?: unknown;
+  // PDFs / output
+  finalPackagePdfUrl?: string;
+  i539PdfUrl?: string;
+  coverLetter?: string;
   [key: string]: unknown;
 }
 

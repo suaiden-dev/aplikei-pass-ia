@@ -69,7 +69,7 @@ export async function fetchInviteLinks(officeId: string): Promise<InviteLink[]> 
     if (error) {
       // Handle missing table: 404 status or specific error codes
       if (
-        (error as any).status === 404 ||
+        (error as { status?: number }).status === 404 ||
         error.code === "PGRST116" ||
         error.code === "PGRST205" ||
         error.code === "42P01"

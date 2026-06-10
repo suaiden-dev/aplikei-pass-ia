@@ -26,7 +26,6 @@ import {
   getCosVisualStepIndexForProcessStep,
   isCosInitialAnalysisStep,
 } from "@shared/data/cosWorkflow";
-import { supabase } from "@shared/lib/supabase";
 import { toast } from "sonner";
 import PhotoUploadOverlay from "@shared/components/organisms/PhotoUploadOverlay";
 import { cn } from "@shared/utils/cn";
@@ -34,10 +33,23 @@ import { useT } from "@app/app/i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { StepConfig } from "@shared/components/templates/ServiceDetailTemplate";
 import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "@shared/data/workflowTemplates";
+import type { StepTemplate } from "@shared/data/workflowTemplates";
 import { Skeleton } from "@shared/components/atoms/skeleton";
 import { shouldPromptForIdentityPhoto } from "./identityPhotoPrompt";
 import type { UserService } from "@shared/types/process.model";
 import { normalizeLegacyFinalShipSteps } from "@shared/utils/legacyWorkflow";
+import {
+  fetchCustomerChildProcess,
+  fetchCustomerProcessWithOffice,
+  fetchCustomerRecoveryChildren,
+  subscribeToProcessChanges,
+} from "@features/process/services/processDetailService";
+
+type WorkflowDisplayStep = StepConfig & StepTemplate;
+
+function toWorkflowDisplaySteps(steps: StepTemplate[]): WorkflowDisplayStep[] {
+  return steps.map((step) => ({ ...step })) as WorkflowDisplayStep[];
+}
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   MdLanguage,
@@ -92,44 +104,13 @@ export default function ProcessDetailPage() {
       let procData: any;
       const idParam = searchParams.get("slug") || searchParams.get("id");
 
-      if (idParam) {
-        const { data, error } = await supabase
-          .from("user_services")
-          .select("*")
-          .eq("id", idParam)
-          .single();
-        if (error || !data) return null;
-        if (data.user_id !== user.id || !isSameService(data.service_slug, slug)) return null;
-        procData = data;
-      } else {
-        const { data } = await supabase
-          .from("user_services")
-          .select("*")
-          .eq("user_id", user.id)
-          .in("service_slug", getServiceSlugs(slug))
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        procData = data ?? null;
-      }
-
-      // Always try to resolve the office logo: process office_id first, then user's own office
-      if (!procData) return null;
-
-      const officeIdToFetch = procData.office_id || user?.officeId;
-      if (procData && officeIdToFetch) {
-        const { data: officeData } = await supabase
-          .from("offices")
-          .select("name, logo_url, landing_page_config")
-          .eq("id", officeIdToFetch)
-          .single();
-        if (officeData) {
-          procData.officeName = officeData.name;
-          procData.officeLogoUrl = officeData.logo_url || (officeData.landing_page_config as any)?.logoUrl;
-        }
-      }
-
-      return procData;
+      return fetchCustomerProcessWithOffice({
+        processId: idParam,
+        userId: user.id,
+        userOfficeId: user.officeId,
+        serviceSlugs: getServiceSlugs(slug),
+        isAllowedService: (serviceSlug) => isSameService(serviceSlug, slug),
+      });
     },
     enabled: !!user && !!slug,
     staleTime: 0,
@@ -144,16 +125,7 @@ export default function ProcessDetailPage() {
     queryKey: ["process-child-context", childId, proc?.id],
     enabled: !!user && !!proc?.id && !!childId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_services")
-        .select("*")
-        .eq("id", childId)
-        .maybeSingle();
-      if (error || !data) return null;
-      if (data.user_id !== user?.id) return null;
-      const parentId = String((data.step_data as any)?.parent_process_id || "").trim();
-      if (parentId && parentId !== proc?.id) return null;
-      return data as UserService;
+      return fetchCustomerChildProcess(childId!, user!.id, proc!.id);
     },
   });
 
@@ -161,14 +133,7 @@ export default function ProcessDetailPage() {
     queryKey: ["process-recovery-children", proc?.id],
     enabled: !!user && !!proc?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_services")
-        .select("*")
-        .eq("user_id", user!.id)
-        .contains("step_data", { parent_process_id: proc!.id })
-        .order("created_at", { ascending: false });
-      if (error) return [] as UserService[];
-      return (data ?? []) as UserService[];
+      return fetchCustomerRecoveryChildren(proc!.id, user!.id);
     },
   });
   const dedupedRecoveryChildren = useMemo(() => {
@@ -211,6 +176,10 @@ export default function ProcessDetailPage() {
     return () => {
       supabase.removeChannel(channel);
     };
+    return subscribeToProcessChanges(proc.id, () => {
+      console.log("[ProcessDetail] Realtime update detected, refetching...");
+      queryClient.invalidateQueries({ queryKey: ['process-detail', slug, searchParams.get("id")] });
+    });
   }, [user, proc, slug, searchParams, queryClient]);
 
   const handleCompleteStep = async () => {
@@ -295,7 +264,7 @@ export default function ProcessDetailPage() {
 
   // Base steps
   const steps = isChildRecoveryView
-    ? [...(workflowType === "motion" ? MOTION_STEPS_TEMPLATE : RFE_STEPS_TEMPLATE)]
+    ? toWorkflowDisplaySteps(workflowType === "motion" ? MOTION_STEPS_TEMPLATE : RFE_STEPS_TEMPLATE)
     : [...service.steps];
 
   // Append dynamic cycle steps from step_data.history (parent flow only)
@@ -306,7 +275,7 @@ export default function ProcessDetailPage() {
     history.forEach((cycle, cIdx) => {
       let baseTemplate = cycle.steps || [];
       if (!baseTemplate.length || !baseTemplate[0]?.id) {
-        baseTemplate = cycle.type === 'motion' ? MOTION_STEPS_TEMPLATE : RFE_STEPS_TEMPLATE;
+        baseTemplate = toWorkflowDisplaySteps(cycle.type === 'motion' ? MOTION_STEPS_TEMPLATE : RFE_STEPS_TEMPLATE);
       }
       const template = normalizeLegacyFinalShipSteps(baseTemplate as StepConfig[]);
       template.forEach((s: StepConfig) => {

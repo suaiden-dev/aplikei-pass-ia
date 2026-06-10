@@ -17,7 +17,7 @@ export type AuthGuardResolution =
   | { kind: "allow" }
   | {
       kind: "redirect-login";
-      to: "/track-my-case" | "/login";
+      to: "/track-my-visa" | "/login";
       state: {
         from: RedirectLocation;
       };
@@ -57,7 +57,7 @@ export function resolveAuthGuard({
 
     return {
       kind: "redirect-login",
-      to: isProfessionalRoute ? "/login" : "/track-my-case",
+      to: isProfessionalRoute ? "/login" : "/track-my-visa",
       state: buildLoginRedirectState(location),
     };
   }

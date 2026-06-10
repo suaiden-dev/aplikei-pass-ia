@@ -17,34 +17,17 @@ import {
 import { toast } from "sonner";
 import { InlineWidget, useCalendlyEventListener } from "react-calendly";
 import { useAuth } from "@shared/hooks/useAuth";
-import { supabase } from "@shared/lib/supabase";
 import { useT, useLocale } from "@app/app/i18n";
-import { getCanonicalSlug } from "@shared/data/services";
 import { interviewTrainingService } from "@features/onboarding/services/interviewTrainingService";
-
-function extractProcessPurchaseSlugs(stepData: Record<string, unknown> | null): Set<string> {
-  const purchases = Array.isArray(stepData?.purchases)
-    ? (stepData?.purchases as Array<Record<string, unknown>>)
-    : [];
-
-  const slugs = new Set<string>();
-  purchases.forEach((purchase) => {
-    const candidates = [
-      purchase.slug,
-      purchase.service_slug,
-      purchase.product_slug,
-      purchase.productSlug,
-      purchase.serviceSlug,
-    ];
-    candidates.forEach((candidate) => {
-      const raw = String(candidate || "").trim();
-      if (!raw) return;
-      slugs.add(raw);
-      slugs.add(getCanonicalSlug(raw));
-    });
-  });
-  return slugs;
-}
+import {
+  extractProcessPurchaseSlugs,
+  fetchFinalPreparationState,
+  fetchLatestPurchasedService,
+  incrementScheduledCount,
+  loadFinalPlanPrices,
+  openFinalPreparationSupportChat,
+  reportInterviewOutcome,
+} from "@features/onboarding/services/finalPreparationService";
 
 interface F1FinalPreparationStepProps {
   procId: string;
@@ -61,24 +44,20 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Fresh Data State
   const [freshStepData, setFreshStepData] = useState<Record<string, unknown>>(stepData);
   const [isAdminConfirmed, setIsAdminConfirmed] = useState(false);
 
-  // Mentorship State
   const [purchasedMentorship, setPurchasedMentorship] = useState<Record<string, unknown> | null>(null);
   const [isScheduling, setIsScheduling] = useState(false);
   const [calendlyUrl, setCalendlyUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [planPrices, setPlanPrices] = useState<Record<string, number>>({});
 
-  // Consultation State
   const [purchasedConsultation, setPurchasedConsultation] = useState<Record<string, unknown> | null>(null);
   const [isSchedulingConsultation, setIsSchedulingConsultation] = useState(false);
   const [processOfficeId, setProcessOfficeId] = useState<string | null>(null);
   const checkoutOfficeId = user?.officeId || processOfficeId;
 
-  // Chatbot State
   const [chatMessages, setChatMessages] = useState<{ id: string, role: "user" | "bot", text: string }[]>([
     { id: "1", role: "bot", text: t.onboardingPage.aiInterviewChat.initialMessage }
   ]);
@@ -94,17 +73,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
   }, [chatMessages, isBotTyping]);
 
   useEffect(() => {
-    async function resolveProcessOfficeId() {
-      if (!procId) return;
-      const { data } = await supabase
-        .from("user_services")
-        .select("office_id")
-        .eq("id", procId)
-        .maybeSingle();
-      setProcessOfficeId((data?.office_id as string | null | undefined) ?? null);
-    }
-
-    async function checkMentorship() {
+    async function loadState() {
       if (!user || !procId) return;
       const mentorshipSlugs = [
         "mentoring-bronze",
@@ -123,59 +92,29 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
       setPurchasedMentorship(null);
       setPurchasedConsultation(null);
 
-      // Query mentorship scoped to this process only
-      const { data: mentorshipData } = await supabase
-        .from("user_services")
-        .select("*")
-        .eq("user_id", user.id)
-        .in("service_slug", mentorshipSlugs)
-        .neq("status", "cancelled")
-        .contains("step_data", { parent_process_id: procId })
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (mentorshipData) setPurchasedMentorship(mentorshipData as Record<string, unknown>);
-
-      // Query consultation scoped to this process only
-      const { data: activeConsultation } = await supabase
-        .from("user_services")
-        .select("*")
-        .eq("user_id", user.id)
-        .in("service_slug", consultationSlugs)
-        .neq("status", "cancelled")
-        .contains("step_data", { parent_process_id: procId })
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (activeConsultation) {
-        setPurchasedConsultation(activeConsultation);
-      }
-    }
-
-    async function loadFreshData() {
-      if (!procId) return;
       try {
-        const { data } = await supabase
-          .from("user_services")
-          .select("step_data")
-          .eq("id", procId)
-          .single();
-
-        if (data?.step_data) {
-          const sd = data.step_data as Record<string, unknown>;
+        const state = await fetchFinalPreparationState({
+          userId: user.id,
+          procId,
+          mentorshipSlugs,
+          consultationSlugs,
+        });
+        setProcessOfficeId(state.processOfficeId);
+        setPurchasedMentorship(state.purchasedMentorship);
+        setPurchasedConsultation(state.purchasedConsultation);
+        if (state.freshStepData) {
+          const sd = state.freshStepData;
           setFreshStepData(sd);
           if (sd.final_casv_date || sd.final_scheduling_notified_at) {
             setIsAdminConfirmed(true);
           }
         }
       } catch (err) {
-        console.error("[F1FinalPreparationStep] Error loading data:", err);
+        console.error("[F1FinalPreparationStep] Error loading state:", err);
       }
     }
 
-    resolveProcessOfficeId();
-    checkMentorship();
-    loadFreshData();
+    loadState();
   }, [user, procId]);
 
   useEffect(() => {
@@ -192,51 +131,23 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
         "mentoria-gold",
       ];
 
-      const { data: services } = await supabase
-        .from("services")
-        .select("id, slug")
-        .in("slug", slugsToResolve);
-
-      if (!services?.length) return;
-
-      const serviceIds = services.map((s) => s.id);
-      const { data: officePrices } = await supabase
-        .from("user_service_prices")
-        .select("service_id, price, is_active")
-        .eq("office_id", user.officeId)
-        .in("service_id", serviceIds)
-        .or("is_active.is.true,is_active.is.null");
-
-      if (!officePrices?.length) return;
-
-      const slugById = new Map(services.map((s) => [s.id, s.slug]));
-      const priceBySlug = new Map<string, number>();
-      officePrices.forEach((row) => {
-        const slug = slugById.get(row.service_id);
-        if (slug) priceBySlug.set(slug, Number(row.price));
-      });
-
-      setPlanPrices({
-        "mentoring-bronze":
-          priceBySlug.get("mentoring-bronze") ??
-          priceBySlug.get("mentoria-individual") ??
-          197,
-        "mentoring-silver":
-          priceBySlug.get("mentoring-silver") ??
-          priceBySlug.get("mentoria-bronze") ??
-          priceBySlug.get("mentoria-silver") ??
-          397,
-        "mentoring-gold":
-          priceBySlug.get("mentoring-gold") ??
-          priceBySlug.get("mentoria-gold") ??
-          697,
-      });
+      setPlanPrices(await loadFinalPlanPrices(user.officeId, {
+        slugsToResolve,
+        defaults: {
+          "mentoring-bronze": 197,
+          "mentoring-silver": 397,
+          "mentoring-gold": 697,
+        },
+        aliases: {
+          "mentoring-bronze": ["mentoring-bronze", "mentoria-individual"],
+          "mentoring-silver": ["mentoring-silver", "mentoria-bronze", "mentoria-silver"],
+          "mentoring-gold": ["mentoring-gold", "mentoria-gold"],
+        },
+      }));
     }
 
     loadPlanPrices();
   }, [user?.officeId]);
-
-  // Mentoria now starts via support chat with manager, so no Calendly lookups here.
 
   useCalendlyEventListener({
     onEventScheduled: async () => {
@@ -247,19 +158,7 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
       }
 
       if (!purchasedMentorship || !isScheduling) return;
-      const stepData = (purchasedMentorship.step_data as Record<string, unknown>) || {};
-      const nextCount = ((stepData.scheduled_count as number) || 0) + 1;
-      await supabase
-        .from("user_services")
-        .update({
-          step_data: { ...stepData, scheduled_count: nextCount }
-        })
-        .eq("id", purchasedMentorship.id);
-
-      setPurchasedMentorship({
-        ...purchasedMentorship,
-        step_data: { ...stepData, scheduled_count: nextCount }
-      });
+      setPurchasedMentorship(await incrementScheduledCount(purchasedMentorship));
       toast.success(t.onboardingPage.specialistTraining.sessionScheduledToast);
       setIsScheduling(false);
     },
@@ -299,21 +198,8 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
   const handleReportOutcome = async (outcome: 'approved' | 'rejected') => {
     try {
       setLoading(true);
-      const outcomeStatus = outcome === 'approved' ? 'completed' : 'rejected';
-      const { error } = await supabase
-        .from('user_services')
-        .update({
-          status: outcomeStatus,
-          step_data: {
-            ...(freshStepData || {}),
-            interview_outcome: outcome,
-            reported_at: new Date().toISOString()
-          }
-        })
-        .eq('id', procId);
-
-      if (error) throw error;
-      setFreshStepData(prev => ({ ...prev, interview_outcome: outcome }));
+      const nextStepData = await reportInterviewOutcome({ procId, freshStepData, outcome });
+      setFreshStepData(nextStepData);
       toast.success(outcome === 'approved' ? t.onboardingPage.f1.approvedToast : t.onboardingPage.f1.rejectedToast);
       if (outcome === 'approved') onComplete();
     } catch (err: unknown) {
@@ -356,63 +242,19 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
           "mentoria-individual", "mentoria-bronze", "mentoria-prata",
           "mentoria-silver", "mentoria-gold", "consultoria-especialista",
         ];
-        const { data: fallback } = await supabase
-          .from("user_services")
-          .select("*")
-          .eq("user_id", user.id)
-          .in("service_slug", mentorshipSlugs)
-          .neq("status", "cancelled")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        mentorshipRecord = fallback as Record<string, unknown> | null;
+        mentorshipRecord = await fetchLatestPurchasedService({
+          userId: user.id,
+          slugs: mentorshipSlugs,
+        });
       }
 
       const processId = mentorshipRecord?.id ? String(mentorshipRecord.id) : procId;
-
-      // 1. Tenta buscar conversa ativa existente
-      const { data: active } = await supabase
-        .from("conversations")
-        .select("id")
-        .eq("process_id", processId)
-        .eq("is_closed", false)
-        .maybeSingle();
-
-      let conversationId = active?.id;
-
-      // 2. Se não existir, cria a nova conversa
-      if (!conversationId) {
-        const { data: created, error: createError } = await supabase
-          .from("conversations")
-          .insert({
-            process_id: processId,
-            customer_id: user.id,
-            office_id: (mentorshipRecord?.office_id as string | null | undefined) ?? user.officeId ?? null,
-            is_closed: false,
-          })
-          .select("id")
-          .single();
-
-        if (createError) throw createError;
-        conversationId = created?.id;
-      }
-
-      // 3. Verifica se já existem mensagens na conversa
-      const { count } = await supabase
-        .from("conversation_messages")
-        .select("id", { count: "exact", head: true })
-        .eq("conversation_id", conversationId);
-
-      // 4. Insere a mensagem inicial caso não haja histórico
-      if ((count ?? 0) === 0) {
-        await supabase.from("conversation_messages").insert({
-          conversation_id: conversationId,
-          content: "Olá, comprei o pacote Specialist Mentoring e quero iniciar meu atendimento com o manager.",
-          sender_id: user.id,
-          sender_role: "customer",
-          created_at: new Date().toISOString(),
-        });
-      }
+      await openFinalPreparationSupportChat({
+        processId,
+        customerId: user.id,
+        officeId: (mentorshipRecord?.office_id as string | null | undefined) ?? user.officeId ?? null,
+        initialMessage: "Olá, comprei o pacote Specialist Mentoring e quero iniciar meu atendimento com o manager.",
+      });
 
       navigate(`/dashboard/support?processId=${processId}`);
     } catch (err) {
@@ -433,50 +275,12 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
     setIsLoadingChat(true);
     try {
       const processId = String(purchasedConsultation?.id ?? procId);
-
-      // 1. Tenta buscar conversa ativa existente
-      const { data: active } = await supabase
-        .from("conversations")
-        .select("id")
-        .eq("process_id", processId)
-        .eq("is_closed", false)
-        .maybeSingle();
-
-      let conversationId = active?.id;
-
-      // 2. Se não existir, cria a nova conversa
-      if (!conversationId) {
-        const { data: created, error: createError } = await supabase
-          .from("conversations")
-          .insert({
-            process_id: processId,
-            customer_id: user.id,
-            office_id: purchasedConsultation?.office_id ?? user.officeId ?? null,
-            is_closed: false,
-          })
-          .select("id")
-          .single();
-
-        if (createError) throw createError;
-        conversationId = created?.id;
-      }
-
-      // 3. Verifica se já existem mensagens na conversa
-      const { count } = await supabase
-        .from("conversation_messages")
-        .select("id", { count: "exact", head: true })
-        .eq("conversation_id", conversationId);
-
-      // 4. Insere a mensagem inicial caso não haja histórico
-      if ((count ?? 0) === 0) {
-        await supabase.from("conversation_messages").insert({
-          conversation_id: conversationId,
-          content: "Olá, comprei a consultoria pós-negativa e quero iniciar meu atendimento com o manager.",
-          sender_id: user.id,
-          sender_role: "customer",
-          created_at: new Date().toISOString(),
-        });
-      }
+      await openFinalPreparationSupportChat({
+        processId,
+        customerId: user.id,
+        officeId: (purchasedConsultation?.office_id as string | null | undefined) ?? user.officeId ?? null,
+        initialMessage: "Olá, comprei a consultoria pós-negativa e quero iniciar meu atendimento com o manager.",
+      });
 
       navigate(`/dashboard/support?processId=${processId}`);
     } catch (err) {

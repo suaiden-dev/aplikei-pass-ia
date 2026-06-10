@@ -12,7 +12,6 @@ import * as processService from "@features/process/services/processOps";
 import type { UserService } from "@features/process/types";
 import { getServiceBySlug } from "@shared/data/services";
 import { toast } from 'sonner'
-import { supabase, getSessionSafe } from "@shared/lib/supabase";
 import { compressImageForUpload } from "@shared/utils/uploadCompression";
 import { useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
@@ -50,6 +49,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@shared/components/atoms/dialog'
+import {
+  fetchCosProcessById,
+  fetchCurrentUserId,
+  fetchLatestCosProcess,
+  fetchValidChildRecoveryProcess,
+} from "@features/onboarding/services/cosOnboardingService";
+import { uploadOnboardingDocument } from "@features/onboarding/services/onboardingStorageService";
 
 // Assets
 import imgTutor1 from '@assets/tutorial/arrastar_ate_o_final_para_aceitar.png'
@@ -256,41 +262,20 @@ export default function COSOnboardingPage() {
         let parentData = null
 
         if (parentProcessId) {
-          const { data: row } = await supabase
-            .from('user_services')
-            .select('*')
-            .eq('id', parentProcessId)
-            .single()
-          parentData = row && row.user_id === user.id ? row : null
+          parentData = await fetchCosProcessById(parentProcessId, user.id)
           data = parentData
         } else {
-          const { data: row } = await supabase
-            .from('user_services')
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('service_slug', slug)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle()
-          data = row ?? null
+          data = await fetchLatestCosProcess(user.id, slug)
         }
 
         // In child recovery context, operate on child process as source-of-truth
         if (childProcessId && childWorkflowType) {
-          const { data: childRow } = await supabase
-            .from('user_services')
-            .select('*')
-            .eq('id', childProcessId)
-            .single()
-
-          const isValidChild =
-            childRow &&
-            childRow.user_id === user.id &&
-            String((childRow.step_data as any)?.parent_process_id || '') === String(parentProcessId || parentData?.id || '')
-
-          if (isValidChild) {
-            data = childRow
-          }
+          const childRow = await fetchValidChildRecoveryProcess(
+            childProcessId,
+            user.id,
+            String(parentProcessId || parentData?.id || ''),
+          )
+          if (childRow) data = childRow
         }
 
         if (!data) return
@@ -368,8 +353,8 @@ export default function COSOnboardingPage() {
             setDependents(stepData.dependents as Dependent[])
 
           // Hydrate docs
-          if (data.step_data.docs) {
-            const savedDocs = data.step_data.docs as Record<string, string>
+          if (stepData.docs) {
+            const savedDocs = stepData.docs as Record<string, string>
             setDocs((prev) => {
               const next = { ...prev }
               Object.keys(savedDocs).forEach((key) => {
@@ -624,8 +609,6 @@ export default function COSOnboardingPage() {
       toast.success(
         normalizedResult === 'approved'
           ? (t?.cos?.toasts?.approvedResultSaved ?? 'Resultado informado como aprovado.')
-          : (normalizedResult as string) === 'rfe'
-          ? (t?.cos?.toasts?.resultReported ?? 'Novo ciclo de RFE iniciado.')
           : (t?.cos?.toasts?.rejectedResultSaved ?? 'Resultado informado como reprovado.'),
       )
     } catch (err) {
@@ -803,8 +786,8 @@ export default function COSOnboardingPage() {
           )
         }
 
-        const session = await getSessionSafe()
-        if (!session?.user?.id) {
+        const currentUserId = await fetchCurrentUserId()
+        if (!currentUserId) {
           throw new Error(
             'Sessão expirada. Faça login novamente antes de enviar os documentos.',
           )
@@ -821,21 +804,11 @@ export default function COSOnboardingPage() {
           if (doc?.file) {
             const fileToUpload = await compressImageForUpload(doc.file)
             const fileExt = fileToUpload.name.split('.').pop()
-            const filePath = `${session.user.id}/cos/${slot.key}.${fileExt}`
-            let uploadError = null
-
-            const result = await supabase.storage
-              .from('aplikei-profiles')
-              .upload(filePath, fileToUpload, {
-                upsert: true,
-                contentType: fileToUpload.type,
-              })
-            uploadError = result.error
-
-            if (uploadError)
-              throw new Error(
-                `Erro ao enviar ${slot.key}: ${uploadError.message}`,
-              )
+            const filePath = `${currentUserId}/cos/${slot.key}.${fileExt}`
+            await uploadOnboardingDocument(filePath, fileToUpload, {
+              upsert: true,
+              contentType: fileToUpload.type,
+            })
             updatedDocs[slot.key] = filePath
           } else if (doc?.path) {
             updatedDocs[slot.key] = doc.path
@@ -848,11 +821,7 @@ export default function COSOnboardingPage() {
       await processService.updateStepData(proc.id, stepData)
 
       // FRESH FETCH: Get latest data after potential update
-      const { data: freshProc } = await supabase
-        .from('user_services')
-        .select('*')
-        .eq('id', proc.id)
-        .single()
+      const freshProc = await fetchCosProcessById(proc.id, proc.user_id)
       if (!freshProc) return
 
       const service = getServiceBySlug(slug!)

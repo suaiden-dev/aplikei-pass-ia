@@ -9,52 +9,11 @@ import {
   RiTeamLine,
   RiUserLine,
 } from "react-icons/ri";
-import { supabase } from "@shared/lib/supabase";
+import { fetchOfficeDetails } from "@features/offices/services/officeOps";
+import type { MasterOfficeStats, OfficeProcess, OfficeTeamMember } from "@features/offices/types";
 import { useT } from "@app/app/i18n";
 import { toast } from "sonner";
 import { useAuth } from "@shared/hooks/useAuth";
-
-type OfficeStats = {
-  office_id: string;
-  office_name: string;
-  responsible_name: string | null;
-  cnpj: string | null;
-  address: string | null;
-  phone: string | null;
-  email: string | null;
-  website: string | null;
-  process_count: number;
-  total_revenue: number;
-  available_balance: number;
-  pending_requests: number;
-  pending_amount: number;
-  active_plan_name: string;
-  subscription_status: string;
-};
-
-type TeamMember = {
-  id: string;
-  full_name: string | null;
-  email: string | null;
-  role: string;
-};
-
-type OfficeProcess = {
-  id: string;
-  service_slug: string;
-  status: string | null;
-  current_step: number | null;
-  created_at: string | null;
-  user_id: string;
-  user_accounts?: {
-    full_name: string | null;
-    email: string | null;
-  } | null;
-};
-
-type OfficeProcessRow = Omit<OfficeProcess, "user_accounts"> & {
-  user_accounts?: Array<{ full_name: string | null; email: string | null }> | { full_name: string | null; email: string | null } | null;
-};
 
 function normalizePlanName(name: string | null | undefined): string {
   const value = String(name || "").trim();
@@ -70,9 +29,9 @@ export default function OfficeDetailsPage() {
   const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
-  const [office, setOffice] = useState<OfficeStats | null>(null);
-  const [sellers, setSellers] = useState<TeamMember[]>([]);
-  const [managers, setManagers] = useState<TeamMember[]>([]);
+  const [office, setOffice] = useState<MasterOfficeStats | null>(null);
+  const [sellers, setSellers] = useState<OfficeTeamMember[]>([]);
+  const [managers, setManagers] = useState<OfficeTeamMember[]>([]);
   const [processes, setProcesses] = useState<OfficeProcess[]>([]);
 
   const routePrefix = user?.role === "master" ? "/master" : "";
@@ -81,35 +40,11 @@ export default function OfficeDetailsPage() {
     if (!officeId) return;
     setLoading(true);
     try {
-      const [{ data: officeData, error: officeError }, { data: membersData, error: membersError }, { data: processData, error: processError }] = await Promise.all([
-        supabase.from("v_master_office_stats").select("*").eq("office_id", officeId).maybeSingle(),
-        supabase
-          .from("user_accounts")
-          .select("id, full_name, email, role")
-          .eq("office_id", officeId)
-          .in("role", ["seller", "manager", "admin_lawyer"]),
-        supabase
-          .from("user_services")
-          .select("id, service_slug, status, current_step, created_at, user_id, office_id, user_accounts:profiles(full_name, email)")
-          .eq("office_id", officeId)
-          .order("created_at", { ascending: false }),
-      ]);
-
-      if (officeError) throw officeError;
-      if (membersError) throw membersError;
-      if (processError) throw processError;
-
-      setOffice((officeData as OfficeStats | null) ?? null);
-
-      const members = (membersData as TeamMember[] | null) ?? [];
-      setSellers(members.filter((m) => m.role === "seller"));
-      setManagers(members.filter((m) => m.role === "manager" || m.role === "admin_lawyer"));
-
-      const processRows = ((processData as unknown as OfficeProcessRow[] | null) ?? []);
-      setProcesses(processRows.map((p) => ({
-        ...p,
-        user_accounts: Array.isArray(p.user_accounts) ? p.user_accounts[0] : p.user_accounts,
-      })));
+      const details = await fetchOfficeDetails(officeId);
+      setOffice(details.office);
+      setSellers(details.sellers);
+      setManagers(details.managers);
+      setProcesses(details.processes);
     } catch (error) {
       console.error("[OfficeDetails] error:", error);
       toast.error(t.offices.messages.loadError);

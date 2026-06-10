@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@shared/lib/supabase";
 import { useLocale } from "@app/app/i18n";
+import { adminQueryKeys } from "@features/admin/lib/queryKeys";
 
 export interface DashboardStats {
   revenueTotal: number;
@@ -34,7 +35,7 @@ export function useAdminOverview() {
   const localeCode = lang === 'pt' ? 'pt-BR' : 'en-US';
 
   const { data: stats, isLoading: isLoadingStats } = useQuery({
-    queryKey: ["admin-dashboard-stats-v2"],
+    queryKey: adminQueryKeys.adminDashboardStats(),
     queryFn: async () => {
       const [
         { count: lawyersCount },
@@ -71,7 +72,7 @@ export function useAdminOverview() {
   });
 
   const { data: monthlyRevenue = [], isLoading: isLoadingRevenue } = useQuery({
-    queryKey: ["admin-monthly-revenue", lang],
+    queryKey: adminQueryKeys.adminMonthlyRevenue(lang),
     queryFn: async () => {
       const now = new Date();
       const sixMonthsAgo = new Date();
@@ -92,8 +93,8 @@ export function useAdminOverview() {
       }
 
       (paidOrders || [])
-        .filter((o: any) => ["paid", "complete", "succeeded", "completed"].includes(String(o.payment_status || "").toLowerCase()))
-        .forEach((p: any) => {
+        .filter((o) => ["paid", "complete", "succeeded", "completed"].includes(String(o.payment_status || "").toLowerCase()))
+        .forEach((p) => {
         const val = Number(p.total_price_usd) || 0;
         const pDate = new Date(p.created_at);
         const mKey = pDate.toLocaleString(localeCode, { month: 'short' }).replace('.', '');
@@ -105,7 +106,7 @@ export function useAdminOverview() {
   });
 
   const { data: serviceDistribution = [], isLoading: isLoadingDistribution } = useQuery({
-    queryKey: ["admin-service-distribution"],
+    queryKey: adminQueryKeys.adminServiceDistribution(),
     queryFn: async () => {
       const { data: services } = await supabase.from("user_services").select("service_slug, status");
       const normalizeProductGroup = (slugRaw: string): "B1/B2" | "F-1" | "COS" | "EOS" | null => {
@@ -147,7 +148,7 @@ export function useAdminOverview() {
   });
 
   const { data: recentActivity = [], isLoading: isLoadingActivity } = useQuery({
-    queryKey: ["admin-recent-activity"],
+    queryKey: adminQueryKeys.adminRecentActivity(),
     queryFn: async () => {
       const { data: msgs } = await supabase
         .from("notifications_messages")

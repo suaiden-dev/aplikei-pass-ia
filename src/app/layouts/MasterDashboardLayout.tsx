@@ -19,7 +19,7 @@ export function MasterDashboardLayout() {
       navItems={navItems}
       spotlightTitle={t.layout.master.spotlightTitle}
       spotlightDescription={t.layout.master.spotlightDescription}
-      unauthorizedFallback="/acompanhar-meu-caso"
+      unauthorizedFallback="/track-my-visa"
     />
   );
 }

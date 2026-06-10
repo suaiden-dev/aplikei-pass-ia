@@ -12,7 +12,8 @@ import {
 } from "react-icons/ri";
 import * as processService from "@features/process/services/processOps";
 import * as notificationService from "@features/notifications/services/notify";
-import { supabase } from "@shared/lib/supabase";
+import { fetchProcessStepData } from "@features/onboarding/services/onboardingProcessDataService";
+import { getOnboardingDocumentUrl } from "@features/onboarding/services/onboardingStorageService";
 import { toast } from "sonner";
 import { useT } from "@app/app/i18n";
 
@@ -33,16 +34,9 @@ export function B1B2MRVPaymentStep({ procId, stepData, nextStepIdx = 10, onCompl
     let active = true;
 
     async function loadFreshStepData() {
-      const { data, error } = await supabase
-        .from("user_services")
-        .select("step_data")
-        .eq("id", procId)
-        .maybeSingle();
-
-      if (!active || error) return;
-      if (data?.step_data && typeof data.step_data === "object") {
-        setFreshStepData(data.step_data as Record<string, unknown>);
-      }
+      const data = await fetchProcessStepData(procId);
+      if (!active || !data) return;
+      setFreshStepData(data);
     }
 
     void loadFreshStepData();
@@ -65,7 +59,7 @@ export function B1B2MRVPaymentStep({ procId, stepData, nextStepIdx = 10, onCompl
     login !== t.onboardingPage.paymentPending.notInformed &&
     password !== t.onboardingPage.paymentPending.notInformed;
   const boletoPath = freshStepData.mrv_boleto_path as string;
-  const boletoUrl = boletoPath ? supabase.storage.from("aplikei-profiles").getPublicUrl(boletoPath).data.publicUrl : null;
+  const boletoUrl = boletoPath ? getOnboardingDocumentUrl(boletoPath) : null;
 
   const handleConfirm = async () => {
     if (!method) return;
