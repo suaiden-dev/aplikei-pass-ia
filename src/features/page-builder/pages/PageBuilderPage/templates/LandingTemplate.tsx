@@ -4,7 +4,7 @@ const landingTemplateHtml = String.raw`
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Visa Advisory</title>
+    <title>Aplikei</title>
     <meta name="description" content="Premium legal advisory for B1/B2, F1, status extension, and change of status. Legal strategy from start to finish for your visa process.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,25 +14,15 @@ const landingTemplateHtml = String.raw`
             --primary: #3b82f6;
             --primary-hover: #2563eb;
             --secondary: #1e293b;
-            --bg-dark: #0f172a;
-            --bg-section: #0b1120;
-            --bg-card: rgba(30, 41, 59, 0.7);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #60a5fa;
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --container-width: 1200px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        :root.light-mode {
             --bg-dark: #ffffff;
             --bg-section: #f1f5f9;
             --bg-card: rgba(255, 255, 255, 0.9);
             --text-main: #0f172a;
             --text-muted: #475569;
-            --glass-border: rgba(0, 0, 0, 0.1);
             --accent: #2563eb;
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --container-width: 1200px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -220,26 +210,6 @@ const landingTemplateHtml = String.raw`
             color: white;
         }
 
-        /* Toggle Theme */
-        .theme-toggle {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            color: var(--text-main);
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: scale(1.05);
-        }
-
         /* Expert Card */
         .glass-card {
             background: var(--bg-card);
@@ -320,28 +290,20 @@ const landingTemplateHtml = String.raw`
         }
 
         .service-card {
-            background: rgba(30, 41, 59, 0.4);
+            background: white;
             border: 1px solid var(--glass-border);
             border-radius: 20px;
             padding: 2rem;
             transition: var(--transition);
             display: flex;
             flex-direction: column;
-        }
-
-        .light-mode .service-card {
-            background: white;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
         }
 
         .service-card:hover {
             transform: translateY(-10px);
-            background: rgba(30, 41, 59, 0.6);
-            border-color: var(--primary);
-        }
-
-        .light-mode .service-card:hover {
             background: white;
+            border-color: var(--primary);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
 
@@ -451,7 +413,7 @@ const landingTemplateHtml = String.raw`
 
         /* FAQ Section */
         .faq {
-            padding: 8rem 0;
+            padding: 5rem 0 3rem;
             background: var(--bg-section);
         }
 
@@ -485,7 +447,7 @@ const landingTemplateHtml = String.raw`
 
         /* Footer Section */
         .footer {
-            padding: 5rem 0 3rem;
+            padding: 3rem 0 2rem;
             background: var(--bg-section);
             border-top: 1px solid var(--glass-border);
         }
@@ -591,22 +553,41 @@ const landingTemplateHtml = String.raw`
         }
 
         @media (max-width: 768px) {
+            .header { padding: 0.85rem 0; }
+            .header .container { padding: 0 1rem; }
+            .header-actions { gap: 0.75rem; }
+            .btn-sm { padding: 0.55rem 1rem; }
+            .hero {
+                min-height: auto;
+                padding: 6.5rem 0 3.5rem;
+                align-items: flex-start;
+            }
+            .hero .container { gap: 2rem; }
+            .hero-content { max-width: 36rem; margin: 0 auto; }
             .section-title { font-size: 2rem; }
             .services, .how-it-works, .testimonials, .faq { padding: 5rem 0; }
             .footer-bottom { flex-direction: column; gap: 1.5rem; text-align: center; }
             .steps-grid { gap: 2rem; }
             .step-card { padding: 1.5rem; }
-            .hero-title { font-size: 2.5rem; }
+            .hero-title { font-size: 2.25rem; line-height: 1.08; margin-bottom: 1rem; }
+            .hero-description { font-size: 1rem; margin-bottom: 1.75rem; }
         }
 
         @media (max-width: 640px) {
-            .header .container { flex-direction: column; gap: 1rem; }
-            .logo-text { font-size: 1.25rem; }
-            .header-actions { width: 100%; justify-content: center; }
-            .hero-title { font-size: 2.2rem; }
+            .header .container { flex-direction: row; gap: 0.75rem; }
+            .logo { min-width: 0; }
+            .logo-text { font-size: 1.1rem; max-width: 12rem; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .header-actions { width: auto; justify-content: flex-end; gap: 0.65rem; }
+            .nav .btn { white-space: nowrap; }
+            .hero-title { font-size: 2rem; }
             .hero-actions { flex-direction: column; width: 100%; }
             .hero-actions .btn { width: 100%; text-align: center; }
             .container { padding: 0 1.25rem; }
+            .badge {
+                max-width: 100%;
+                overflow-wrap: anywhere;
+                margin-bottom: 1rem;
+            }
             .glass-card { padding: 1.5rem; }
             .expert-stats { flex-direction: column; gap: 1.5rem; align-items: center; }
             .step-number { font-size: 3rem; }
@@ -614,9 +595,21 @@ const landingTemplateHtml = String.raw`
         }
 
         @media (max-width: 480px) {
-            .hero-title { font-size: 1.8rem; }
+            .hero { padding: 5.75rem 0 3rem; }
+            .hero-title { font-size: 1.65rem; line-height: 1.12; }
+            .hero-description { font-size: 0.95rem; line-height: 1.55; }
             .section-title { font-size: 1.75rem; }
-            .badge { font-size: 0.65rem; padding: 0.4rem 0.8rem; }
+            .badge { font-size: 0.62rem; padding: 0.35rem 0.65rem; letter-spacing: 0.04em; }
+            .btn { padding: 0.85rem 1rem; border-radius: 10px; }
+            .hero-card { display: none; }
+        }
+
+        @media (max-width: 360px) {
+            .container { padding: 0 1rem; }
+            .logo-text { max-width: 9rem; }
+            .hero-title { font-size: 1.45rem; }
+            .hero-description { font-size: 0.9rem; }
+            .badge { font-size: 0.58rem; }
         }
     </style>
 </head>
@@ -627,10 +620,6 @@ const landingTemplateHtml = String.raw`
                 <span class="logo-text">SEU LOGO</span>
             </div>
             <div class="header-actions">
-                <button class="theme-toggle" id="theme-toggle" title="Alternar tema">
-                    <svg id="sun-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                    <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                </button>
                 <nav class="nav">
                     <a href="#" class="btn btn-outline btn-sm">Entrar</a>
                 </nav>
@@ -835,35 +824,6 @@ const landingTemplateHtml = String.raw`
         </div>
     </footer>
 
-    <script>
-        const themeToggle = document.getElementById('theme-toggle');
-        const sunIcon = document.getElementById('sun-icon');
-        const moonIcon = document.getElementById('moon-icon');
-        const root = document.documentElement;
-
-        themeToggle.addEventListener('click', () => {
-            root.classList.toggle('light-mode');
-            const isLight = root.classList.contains('light-mode');
-            
-            if (isLight) {
-                sunIcon.style.display = 'block';
-                moonIcon.style.display = 'none';
-            } else {
-                sunIcon.style.display = 'none';
-                moonIcon.style.display = 'block';
-            }
-            
-            localStorage.setItem('theme', isLight ? 'light' : 'dark');
-        });
-
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light') {
-            root.classList.add('light-mode');
-            sunIcon.style.display = 'block';
-            moonIcon.style.display = 'none';
-        }
-    </script>
 </body>
 </html>
 

@@ -12,7 +12,10 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import { toast } from 'sonner'
 import { useAuth } from "@shared/hooks/useAuth";
 import { useT } from "@app/app/i18n";
-import { getSupabaseClient } from "@shared/lib/supabase";
+import {
+  getOnboardingDocumentUrl,
+  uploadOnboardingDocument,
+} from "@features/onboarding/services/onboardingStorageService";
 import * as workflowOps from "@features/workflow/services/workflowOps";
 import type { UserProductInstance, UserStep, StepReview } from "@features/workflow/types";
 import type { UserService } from "@features/process/types";
@@ -260,7 +263,6 @@ export function useCOSOnboardingPage() {
       } else if (stepIdx === 1) {
         const slots = getDocSlots()
         const refs: Array<{ name: string; path: string; url: string }> = []
-        const storage = getSupabaseClient()?.storage.from('aplikei-profiles') ?? null
 
         for (const slot of slots) {
           const doc = docs[slot.key]
@@ -269,18 +271,15 @@ export function useCOSOnboardingPage() {
             const ext  = fileToUpload.name.split('.').pop()
             const path = `${user!.id}/cos/${instance.id}/${slot.key}.${ext}`
 
-            if (storage) {
-              try {
-                const { error } = await storage.upload(path, fileToUpload, { upsert: true })
-                if (error) throw new Error(`Upload ${slot.key}: ${error.message}`)
-                refs.push({ name: slot.key, path, url: storage.getPublicUrl(path).data.publicUrl })
-                continue
-              } catch (error) {
-                if (!shouldFallbackStorageUpload(error)) {
-                  throw error
-                }
-                console.warn('[useCOSOnboardingPage] Falling back to local upload storage:', error)
+            try {
+              await uploadOnboardingDocument(path, fileToUpload, { upsert: true })
+              refs.push({ name: slot.key, path, url: getOnboardingDocumentUrl(path) })
+              continue
+            } catch (error) {
+              if (!shouldFallbackStorageUpload(error)) {
+                throw error
               }
+              console.warn('[useCOSOnboardingPage] Falling back to local upload storage:', error)
             }
 
             refs.push(buildMockFileRef(instance.id, slot.key, fileToUpload))
@@ -288,8 +287,8 @@ export function useCOSOnboardingPage() {
             refs.push({
               name: slot.key,
               path: doc.path,
-              url: storage && !doc.path.startsWith('mock://')
-                ? storage.getPublicUrl(doc.path).data.publicUrl
+              url: !doc.path.startsWith('mock://')
+                ? getOnboardingDocumentUrl(doc.path)
                 : doc.path,
             })
           }

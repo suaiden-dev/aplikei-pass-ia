@@ -10,6 +10,22 @@ export type SlugBehavior = {
   isAuxiliary?: boolean;
 };
 
+export const MAIN_VISA_SLUGS = [
+  "visto-b1-b2",
+  "visa-b1b2",
+  "visto-f1",
+  "visa-f1",
+  "visa-f1f2",
+  "troca-status",
+  "visa-cos",
+  "extensao-status",
+  "visa-eos",
+] as const;
+
+export function isMainVisaSlug(slug: string | null | undefined) {
+  return MAIN_VISA_SLUGS.includes((slug ?? "").trim().toLowerCase() as (typeof MAIN_VISA_SLUGS)[number]);
+}
+
 // Single source of truth for per-slug behavior.
 // To add a new service: add one entry here.
 export const SLUG_BEHAVIOR: Readonly<Record<string, SlugBehavior>> = {

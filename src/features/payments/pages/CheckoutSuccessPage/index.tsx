@@ -10,7 +10,13 @@ import {
 } from "react-icons/ri";
 import { getServiceBySlug } from "@shared/data/services";
 import { getCosPaymentStageTarget } from "@shared/data/cosWorkflow";
-import { supabase } from "@shared/lib/supabase";
+import {
+  fetchOrderProcessId,
+  fetchUserServiceCheckoutState,
+  findActiveMentorshipProcess,
+  getCurrentAuthUserId,
+  updateUserServiceAfterCheckout,
+} from "@features/payments/services/checkoutSuccessService";
 import { useT } from "@app/app/i18n";
 import { LogoLoader } from "@shared/components/atoms/logo-loader";
 import * as paymentService from "@features/payments/lib/paymentOps";
@@ -85,12 +91,7 @@ export default function CheckoutSuccessPage() {
 
         let parentProcId: string | null = null;
         if (paidOrderId) {
-          const { data: orderRow } = await supabase
-            .from("orders")
-            .select("proc_id")
-            .eq("id", paidOrderId)
-            .maybeSingle();
-          parentProcId = String((orderRow as Record<string, unknown> | null)?.proc_id || "").trim() || null;
+          parentProcId = await fetchOrderProcessId(paidOrderId);
         }
 
         const canonicalCandidates = [normalizedSlug];
@@ -103,21 +104,11 @@ export default function CheckoutSuccessPage() {
         if (normalizedSlug === "consultoria-f1-negativa") canonicalCandidates.push("consultancy-negative-f1");
         if (normalizedSlug === "mentoria-negativa-consular") canonicalCandidates.push("consultancy-negative-b1b2");
 
-        let query = supabase
-          .from("user_services")
-          .select("id")
-          .eq("user_id", currentUserId)
-          .in("service_slug", canonicalCandidates)
-          .eq("status", "active");
-        if (parentProcId) {
-          query = query.contains("step_data", { parent_process_id: parentProcId });
-        }
-        const { data: mentorshipProcess } = await query
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        const targetProcessId = String((mentorshipProcess as Record<string, unknown> | null)?.id || "").trim();
+        const targetProcessId = await findActiveMentorshipProcess({
+          userId: currentUserId,
+          serviceSlugs: canonicalCandidates,
+          parentProcessId: parentProcId,
+        });
         // Chat-only flow (no user_services row): attach chat to parent process
         const chatProcessId = targetProcessId || parentProcId || "";
         if (!chatProcessId) return;
@@ -130,8 +121,8 @@ export default function CheckoutSuccessPage() {
       };
 
       const hasOrderReference = !!orderId || !!sessionId;
-      const { data: { user } } = await supabase.auth.getUser();
-      const hasSession = !!user?.id;
+      const currentUserId = await getCurrentAuthUserId();
+      const hasSession = !!currentUserId;
 
       if (!hasSession && !hasOrderReference) {
         setErrorMsg(t.sessionExpired);
@@ -179,11 +170,7 @@ export default function CheckoutSuccessPage() {
                 0;
 
               const now = new Date().toISOString();
-              const { data: row } = await supabase
-                .from("user_services")
-                .select("service_slug,current_step,step_data,status")
-                .eq("id", pendingAdvance.procId)
-                .maybeSingle();
+              const row = await fetchUserServiceCheckoutState(pendingAdvance.procId);
 
               const currentStep = Number(row?.current_step ?? 0);
               const rowSlug = String(row?.service_slug || "").toLowerCase();
@@ -202,10 +189,10 @@ export default function CheckoutSuccessPage() {
               if (pendingAdvance.stage === "proposal" && pendingAdvance.flow === "rfe") {
                 paymentStepData.rfe_proposal_paid = true;
                 paymentStepData.rfe_payment_completed_at = now;
-                if (user?.id) {
+                if (currentUserId) {
                   await processService.createChatThread(
                     pendingAdvance.procId,
-                    user.id,
+                    currentUserId,
                     "Olá! Quero falar com o especialista sobre a proposta da minha RFE.",
                   );
                 }
@@ -216,17 +203,14 @@ export default function CheckoutSuccessPage() {
                 paymentStepData.motion_payment_completed_at = now;
               }
 
-              await supabase
-                .from("user_services")
-                .update({
-                  current_step: nextStep,
-                  status: "active",
-                  step_data: {
-                    ...currentStepData,
-                    ...paymentStepData,
-                  },
-                })
-                .eq("id", pendingAdvance.procId);
+              await updateUserServiceAfterCheckout({
+                processId: pendingAdvance.procId,
+                currentStep: nextStep,
+                stepData: {
+                  ...currentStepData,
+                  ...paymentStepData,
+                },
+              });
 
               localStorage.removeItem("checkout_slug");
               localStorage.removeItem("checkout_order_id");
@@ -277,8 +261,8 @@ export default function CheckoutSuccessPage() {
 
         const paid = await paymentService.checkOrderPaymentStatus(slug, 30000, resolvedOrderId);
         if (paid) {
-          if (user?.id) {
-            await seedMentorshipChat(resolvedOrderId, user.id);
+          if (currentUserId) {
+            await seedMentorshipChat(resolvedOrderId, currentUserId);
           }
           await markAsDone();
         } else {

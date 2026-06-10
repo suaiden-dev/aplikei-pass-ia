@@ -6,9 +6,8 @@ export type CouponValidation = {
   error?: string;
 };
 
-export async function validateCoupon(code: string, slug: string): Promise<CouponValidation> {
-  // Stub: Always invalid for now
-  console.log("Validating coupon:", code, "for service:", slug);
+export async function validateCoupon(_code: string, _slug: string): Promise<CouponValidation> {
+  // Stub: always invalid until coupon service is implemented
   return { valid: false, error: "INVALID" };
 }
 

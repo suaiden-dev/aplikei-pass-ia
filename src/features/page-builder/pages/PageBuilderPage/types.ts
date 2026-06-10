@@ -76,6 +76,8 @@ export interface LandingPageConfig {
   footerSocialLinkedinLabel: string;
   footerSocialWhatsappLabel: string;
   officeSlug: string;
+  officeId: string;
+  isLandingLive: boolean;
   serviceF1Enabled: boolean;
   serviceB1B2Enabled: boolean;
   serviceEOSEnabled: boolean;

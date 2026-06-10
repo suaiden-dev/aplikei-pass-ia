@@ -1,32 +1,18 @@
 import { useState, useEffect } from "react";
 import { RiPercentLine, RiMoneyDollarCircleLine, RiTicket2Line, RiUserLine, RiSaveLine, RiInformationLine } from "react-icons/ri";
-import { supabase } from "@shared/lib/supabase";
+import {
+  DEFAULT_DISCOUNT_RULES,
+  fetchOfficeDiscountRules,
+  saveOfficeDiscountRules,
+} from "@features/admin/services/discountRulesService";
+import type { DiscountRules } from "@features/admin/types";
 import { useAuth } from "@shared/hooks/useAuth";
 import { fetchOfficeByOwner } from "@features/offices/services/officeOps";
 import { Switch } from "@shared/components/atoms/switch";
 import { Input } from "@shared/components/atoms/input";
 import { Label } from "@shared/components/atoms/label";
 import { toast } from "sonner";
-
-interface DiscountRules {
-  seller_max_pct: number | null;
-  seller_max_fixed: number | null;
-  seller_allow_percentage: boolean;
-  seller_allow_fixed: boolean;
-  seller_max_coupons: number | null;
-  seller_max_uses: number | null;
-  seller_min_purchase_usd: number | null;
-}
-
-const DEFAULTS: DiscountRules = {
-  seller_max_pct: 0,
-  seller_max_fixed: 0,
-  seller_allow_percentage: false,
-  seller_allow_fixed: false,
-  seller_max_coupons: 0,
-  seller_max_uses: 0,
-  seller_min_purchase_usd: 0,
-};
+import { useT } from "@app/app/i18n";
 
 function RuleCard({ icon, title, description, children }: {
   icon: React.ReactNode;
@@ -86,9 +72,10 @@ function NumericInput({
 }
 
 export default function DiscountRulesPage() {
+  const t = useT("admin");
   const { user } = useAuth();
   const [officeId, setOfficeId] = useState<string | null>(null);
-  const [rules, setRules] = useState<DiscountRules>(DEFAULTS);
+  const [rules, setRules] = useState<DiscountRules>(DEFAULT_DISCOUNT_RULES);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -100,16 +87,7 @@ export default function DiscountRulesPage() {
         const office = await fetchOfficeByOwner(user.id);
         if (!office) { setIsLoading(false); return; }
         setOfficeId(office.id);
-
-        const { data } = await supabase
-          .from("offices")
-          .select("discount_rules")
-          .eq("id", office.id)
-          .single();
-
-        if (data?.discount_rules && Object.keys(data.discount_rules).length > 0) {
-          setRules({ ...DEFAULTS, ...(data.discount_rules as Partial<DiscountRules>) });
-        }
+        setRules(await fetchOfficeDiscountRules(office.id));
       } finally {
         setIsLoading(false);
       }
@@ -118,15 +96,16 @@ export default function DiscountRulesPage() {
   }, [user?.id]);
 
   const save = async () => {
-    if (!officeId) { toast.error("Office not found."); return; }
+    if (!officeId) { toast.error(t.discountRules.messages.officeNotFound); return; }
     setIsSaving(true);
-    const { error } = await supabase
-      .from("offices")
-      .update({ discount_rules: rules })
-      .eq("id", officeId);
-    setIsSaving(false);
-    if (error) toast.error("Error saving rules.");
-    else toast.success("Discount rules saved.");
+    try {
+      await saveOfficeDiscountRules(officeId, rules);
+      toast.success(t.discountRules.messages.saveSuccess);
+    } catch {
+      toast.error(t.discountRules.messages.saveError);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const set = <K extends keyof DiscountRules>(key: K, value: DiscountRules[K]) =>

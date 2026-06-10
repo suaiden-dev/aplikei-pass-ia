@@ -1,32 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { RiMoneyDollarCircleLine, RiLinkM, RiCheckLine, RiLoader4Line, RiShoppingCartLine, RiCalendarLine, RiBarChartBoxLine } from "react-icons/ri";
-import { supabase } from "@shared/lib/supabase";
+import { fetchSellerEarningsData } from "@features/seller/services/earningsService";
+import type { SellerOfficeInfo, SellerOrderRow, SellerService } from "@features/seller/types";
 import { useAuth } from "@shared/hooks/useAuth";
 import { encodeCheckoutToken } from "@shared/utils/checkoutToken";
 import { toast } from "sonner";
-
-interface Service {
-  id: string;
-  name: string;
-  slug: string;
-  category: string;
-  price: number;
-}
-
-interface OrderRow {
-  id: string;
-  total_price_usd: number;
-  payment_status: string;
-  created_at: string;
-  client_name: string | null;
-  product_slug: string;
-}
-
-interface OfficeInfo {
-  id: string;
-  slug: string;
-  name: string;
-}
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -50,62 +28,24 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-const PAID_STATUSES = ["paid", "approved", "complete", "completed", "succeeded"];
-
 export default function EarningsPage() {
   const { user } = useAuth();
-  const [office, setOffice] = useState<OfficeInfo | null>(null);
-  const [services, setServices] = useState<Service[]>([]);
-  const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [office, setOffice] = useState<SellerOfficeInfo | null>(null);
+  const [services, setServices] = useState<SellerService[]>([]);
+  const [orders, setOrders] = useState<SellerOrderRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const load = useCallback(async () => {
     if (!user?.id) return;
     setIsLoading(true);
     try {
-      const officeId = user.officeId;
-      let officeData: OfficeInfo | null = null;
-
-      if (officeId) {
-        const { data: officeRow } = await supabase
-          .from("offices")
-          .select("id, slug, name")
-          .eq("id", officeId)
-          .maybeSingle();
-
-        officeData = officeRow as OfficeInfo | null;
-      }
-
-      setOffice(officeData);
-
-      if (officeId) {
-        const { data: priceRows } = await supabase
-          .from("user_service_prices")
-          .select("price, services(id, name, slug, category)")
-          .eq("office_id", officeId)
-          .eq("is_active", true);
-
-        const mapped: Service[] = ((priceRows ?? []) as any)
-          .filter((r: any) => r.services?.category === "main_visa")
-          .map((r: any) => ({
-            id: r.services!.id,
-            name: r.services!.name,
-            slug: r.services!.slug,
-            category: r.services!.category,
-            price: r.price,
-          }));
-
-        setServices(mapped);
-      }
-
-      const { data: ordersData } = await supabase
-        .from("orders")
-        .select("id, total_price_usd, payment_status, created_at, client_name, product_slug")
-        .eq("seller_id", user.id)
-        .in("payment_status", PAID_STATUSES)
-        .order("created_at", { ascending: false });
-
-      setOrders((ordersData as OrderRow[]) ?? []);
+      const data = await fetchSellerEarningsData({
+        sellerId: user.id,
+        officeId: user.officeId,
+      });
+      setOffice(data.office);
+      setServices(data.services);
+      setOrders(data.orders);
     } catch (err: unknown) {
       toast.error("Error loading data.");
       console.error(err);
@@ -134,7 +74,7 @@ export default function EarningsPage() {
     return `${checkoutBase}/l/${token}`;
   };
 
-  const grouped = services.reduce<Record<string, Service[]>>((acc, s) => {
+  const grouped = services.reduce<Record<string, SellerService[]>>((acc, s) => {
     const cat = s.category || "other";
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(s);

@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@shared/lib/supabase";
 import { useAuth } from "@shared/hooks/useAuth";
+import { adminQueryKeys } from "@features/admin/lib/queryKeys";
 
 export type SubscriptionStatus = "active" | "past_due" | "canceled" | "trialing" | "none";
 
@@ -10,102 +11,71 @@ export interface SubscriptionInfo {
   planType: "FIXED" | "PERCENTAGE" | "HYBRID";
   fixedFee: number;
   percentageFee: number;
+  minFeePerTransactionUsd: number | null;
   currentPeriodEnd: string | null;
   loading: boolean;
 }
 
+interface SubscriptionViewRow {
+  status: string;
+  plan_name: string;
+  plan_type: string;
+  fixed_fee: number | null;
+  percentage_fee: number | null;
+  min_fee_per_transaction_usd: number | null;
+  current_period_end: string | null;
+}
+
 export function useSubscription() {
   const { user } = useAuth();
-  const [resolvedOfficeId, setResolvedOfficeId] = useState<string | null>(user?.officeId ?? null);
-  const [subscription, setSubscription] = useState<SubscriptionInfo>({
-    status: "none",
-    planName: "",
-    planType: "FIXED",
-    fixedFee: 0,
-    percentageFee: 0,
-    currentPeriodEnd: null,
-    loading: true,
+
+  const { data: resolvedOfficeId = null, isLoading: isLoadingOffice } = useQuery({
+    queryKey: adminQueryKeys.userOfficeId(user?.id, user?.officeId ?? undefined),
+    queryFn: async () => {
+      if (user?.officeId) return user.officeId;
+      const { data } = await supabase
+        .from("offices")
+        .select("id")
+        .eq("owner_id", user!.id)
+        .maybeSingle();
+      return data?.id ?? null;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
   });
 
-  const refreshOfficeId = useCallback(async () => {
-    if (user?.officeId) {
-      setResolvedOfficeId(user.officeId);
-      return user.officeId;
-    }
-
-    if (!user?.id) {
-      setResolvedOfficeId(null);
-      return null;
-    }
-
-    const { data } = await supabase
-      .from("offices")
-      .select("id")
-      .eq("owner_id", user.id)
-      .maybeSingle();
-
-    const nextOfficeId = data?.id ?? null;
-    setResolvedOfficeId(nextOfficeId);
-    return nextOfficeId;
-  }, [user?.id, user?.officeId]);
-
-  useEffect(() => {
-    void refreshOfficeId();
-  }, [refreshOfficeId]);
-
-  const refreshSubscription = useCallback(async () => {
-    const nextOfficeId = await refreshOfficeId();
-    if (!nextOfficeId) {
-      setSubscription(prev => ({ ...prev, loading: false, status: "none" }));
-      return;
-    }
-
-    setSubscription(prev => ({ ...prev, loading: true }));
-    try {
+  const { data: subData, isLoading: isLoadingSub, refetch } = useQuery({
+    queryKey: adminQueryKeys.officeSubscription(resolvedOfficeId ?? undefined),
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("v_office_current_subscription")
         .select("*")
-        .eq("office_id", nextOfficeId)
+        .eq("office_id", resolvedOfficeId!)
         .maybeSingle();
-
       if (error) throw error;
+      return data as SubscriptionViewRow | null;
+    },
+    enabled: !!resolvedOfficeId,
+  });
 
-      if (data) {
-        setSubscription({
-          status: data.status as SubscriptionStatus,
-          planName: data.plan_name,
-          planType: data.plan_type,
-          fixedFee: data.fixed_fee || 0,
-          percentageFee: data.percentage_fee || 0,
-          currentPeriodEnd: data.current_period_end,
-          loading: false,
-        });
-      } else {
-        setSubscription(prev => ({ ...prev, loading: false, status: "none" }));
-      }
-    } catch (err) {
-      console.error("Error fetching subscription:", err);
-      setSubscription(prev => ({ ...prev, loading: false }));
-    }
-  }, [refreshOfficeId]);
+  const refreshSubscription = async () => { await refetch(); };
 
-  useEffect(() => {
-    void refreshSubscription();
-  }, [refreshSubscription]);
-
-  const isActive = subscription.status === "active" || subscription.status === "trialing";
-  
-  // Roles that should be restricted if subscription is inactive
+  const status = (subData?.status ?? "none") as SubscriptionStatus;
+  const isActive = status === "active" || status === "trialing";
   const isStaff = user?.role === "admin_lawyer" || user?.role === "manager" || user?.role === "seller";
 
-  // Features are restricted if the user is staff and the subscription is not active
-  const isRestricted = isStaff && !isActive;
-
   return {
-    ...subscription,
+    status,
+    planName: subData?.plan_name ?? "",
+    planType: (subData?.plan_type ?? "FIXED") as "FIXED" | "PERCENTAGE" | "HYBRID",
+    fixedFee: subData?.fixed_fee ?? 0,
+    percentageFee: subData?.percentage_fee ?? 0,
+    minFeePerTransactionUsd: subData?.min_fee_per_transaction_usd ?? null,
+    currentPeriodEnd: subData?.current_period_end ?? null,
+    loading: isLoadingOffice || (!!resolvedOfficeId && isLoadingSub),
     officeId: resolvedOfficeId,
     isActive,
-    isRestricted,
+    isRestricted: isStaff && !isActive,
     isStaff,
     refreshSubscription,
   };

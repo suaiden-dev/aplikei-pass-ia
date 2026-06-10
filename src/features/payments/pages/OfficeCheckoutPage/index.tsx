@@ -39,7 +39,11 @@ import { maskCPF, validateCPF } from "@shared/utils/cpf";
 import { useT } from "@app/app/i18n";
 import { calculateDiscount } from "@features/payments/lib/coupon";
 import { useCoupon } from "@features/payments/hooks/useCoupon";
-import { supabase } from "@shared/lib/supabase";
+import {
+    fetchPublicOfficeCheckoutData,
+    logCheckoutInteraction,
+    logCheckoutInteractionEventually,
+} from "@features/payments/services/checkoutPageService";
 
 const FALLBACK_EXCHANGE_RATE = 5.7;
 
@@ -186,7 +190,7 @@ function PriceSummary({
 
 const logInteraction = async (eventName: string, email: string, officeId: string | null, details: string = "") => {
     try {
-        await supabase.from("checkout_logs").insert({
+        await logCheckoutInteraction({
             event_name: eventName,
             email: email,
             office_id: officeId,
@@ -249,42 +253,21 @@ export default function OfficeCheckoutPage() {
                 return;
             }
             try {
-                // 1. Fetch Office
-                let { data: officeData, error: officeError } = await supabase
-                    .from("offices")
-                    .select("*")
-                    .eq("slug", officeSlug)
-                    .maybeSingle();
+                const serviceSlugs = getServiceSlugs(serviceSlug);
+                const {
+                    office: officeData,
+                    service: serviceData,
+                    paymentMethods,
+                    price: priceData,
+                    dependentPrice: depPriceData,
+                } = await fetchPublicOfficeCheckoutData(officeSlug, serviceSlugs);
 
-                // Fallback: case-insensitive slug match
                 if (!officeData) {
-                    const fallback = await supabase
-                        .from("offices")
-                        .select("*")
-                        .ilike("slug", officeSlug)
-                        .maybeSingle();
-                    officeData = fallback.data;
-                    officeError = fallback.error;
-                }
-
-                if (officeError || !officeData) {
                     toast.error("Escritório não encontrado");
                     navigate("/dashboard");
                     return;
                 }
                 setOffice(officeData);
-
-                // 2. Fetch Service from DB
-                const serviceSlugs = getServiceSlugs(serviceSlug);
-                const { data: serviceData, error: serviceError } = await supabase
-                    .from("services")
-                    .select("id, name, slug, description, category, dependent_service_id")
-                    .in("slug", serviceSlugs)
-                    .maybeSingle();
-
-                if (serviceError) {
-                    console.error("[checkout] Error fetching service:", serviceError.message);
-                }
 
                 if (serviceData) {
                     setDbService(serviceData);
@@ -292,13 +275,7 @@ export default function OfficeCheckoutPage() {
                     console.warn(`[checkout] Service slug "${serviceSlug}" not found in DB — custom price and service linking will be skipped.`);
                 }
 
-                // 3. Fetch Payment Methods
-                const { data: methods } = await supabase
-                    .from("view_public_office_payment_methods")
-                    .select("*")
-                    .eq("user_id", officeData.owner_id);
-
-                const configs = methods || [];
+                const configs = paymentMethods;
                 const useAplikei = configs.find(m => m.provider === "aplikei")?.is_active ?? true;
 
                 if (useAplikei) {
@@ -340,25 +317,7 @@ export default function OfficeCheckoutPage() {
                     }
                 }
 
-                // 4. Fetch Custom Price (requires service to exist in DB)
                 if (serviceData) {
-                    const [{ data: priceData }, { data: depPriceData }] = await Promise.all([
-                        supabase
-                            .from("user_service_prices")
-                            .select("price, is_active")
-                            .eq("office_id", officeData.id)
-                            .eq("service_id", serviceData.id)
-                            .maybeSingle(),
-                        serviceData.dependent_service_id
-                            ? supabase
-                                .from("user_service_prices")
-                                .select("price, is_active")
-                                .eq("office_id", officeData.id)
-                                .eq("service_id", serviceData.dependent_service_id)
-                                .maybeSingle()
-                            : Promise.resolve({ data: null }),
-                    ]);
-
                     if (priceData?.is_active === false) {
                         setProductUnavailable(true);
                         return;
@@ -607,7 +566,6 @@ export default function OfficeCheckoutPage() {
         },
     });
 
-    // Logs de Interação (Posicionados corretamente após o formik)
     useEffect(() => {
         if (dbService) {
             logInteraction("acesso_checkout", formik.values.email, office?.id || officeSlug, `${serviceSlug} | Acesso inicial ao office checkout`);
@@ -623,7 +581,7 @@ export default function OfficeCheckoutPage() {
                     office_id: office?.id || officeSlug,
                     details: `${serviceSlug} | Abandono Office Checkout. Dependentes: ${checkoutCount} | Método: ${activeMethod}`,
                 };
-                supabase.from("checkout_logs").insert(logData).then();
+                logCheckoutInteractionEventually(logData);
             }
         };
 

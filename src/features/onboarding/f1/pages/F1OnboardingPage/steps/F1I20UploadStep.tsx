@@ -7,7 +7,7 @@ import {
   RiFileTextLine
 } from "react-icons/ri";
 
-import { supabase } from "@shared/lib/supabase";
+import { uploadOnboardingDocument } from "@features/onboarding/services/onboardingStorageService";
 import * as processService from "@features/process/services/processOps";
 import * as notificationService from "@features/notifications/services/notify";
 
@@ -46,11 +46,7 @@ export function F1I20UploadStep({ procId, userId, stepData, labels, onComplete, 
       const prefix = docType.split('_')[0];
       const filePath = `${userId}/f1/${prefix}_${crypto.randomUUID()}.${fileExt}`;
       
-      const { error: uploadError } = await supabase.storage
-        .from("aplikei-profiles")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
+      await uploadOnboardingDocument(filePath, file);
 
       const currentDocs = (stepData.docs as Record<string, string>) || {};
       const updatedDocs = { ...currentDocs, [docType]: filePath };

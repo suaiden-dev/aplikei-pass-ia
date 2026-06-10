@@ -1,29 +1,18 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { supabase } from "@shared/lib/supabase";
+import { fetchPublishedLegalTerms } from "@features/legal/services/legalTermsService";
+import type { LegalTerm, LegalTermCategory } from "@features/legal/types";
 import { LegalLayout } from "../LegalLayout";
-
-interface LegalTerm {
-    id: string;
-    title: string;
-    content: string;
-}
 
 export default function Terms() {
     const [searchParams] = useSearchParams();
     const role = searchParams.get("role") ?? "customer";
-    const category = role === "lawyer" ? "lawyer_terms" : "customer_terms";
+    const category: LegalTermCategory = role === "lawyer" ? "lawyer_terms" : "customer_terms";
 
     const [dbTerms, setDbTerms] = useState<LegalTerm[]>([]);
 
     useEffect(() => {
-        supabase
-            .from("legal_terms")
-            .select("id, title, content")
-            .eq("category", category)
-            .eq("is_active", true)
-            .order("created_at", { ascending: true })
-            .then(({ data }) => setDbTerms(data ?? []));
+        fetchPublishedLegalTerms(category).then(setDbTerms).catch(() => setDbTerms([]));
     }, [category]);
 
     return (

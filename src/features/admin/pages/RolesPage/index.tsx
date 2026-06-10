@@ -123,7 +123,7 @@ export default function RolesPage() {
 
                       <td className="px-6 py-5">
                         <span className="inline-flex items-center px-3 py-1 rounded-full bg-bg-subtle border border-border text-[11px] font-black text-text-muted uppercase tracking-wider">
-                          {(t.shared.roleLabels as any)[normalizeRole(user.role)] || user.role}
+                          {(t.shared.roleLabels as Record<string, string>)[normalizeRole(user.role)] || user.role}
                         </span>
                       </td>
 
@@ -150,7 +150,7 @@ export default function RolesPage() {
                           >
                             {roleOptions.map((opt) => (
                               <option key={opt.value} value={opt.value}>
-                                {(t.shared.roleLabels as any)[opt.value] || opt.label}
+                                {(t.shared.roleLabels as Record<string, string>)[opt.value] || opt.label}
                               </option>
                             ))}
                           </select>

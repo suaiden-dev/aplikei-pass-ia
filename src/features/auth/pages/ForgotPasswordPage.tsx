@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
     >
       <div className="mb-8 flex items-center justify-between gap-4">
         <Link
-          to="/acompanhar-meu-caso"
+          to="/track-my-visa"
           className="flex items-center gap-1.5 text-sm font-medium text-text-muted transition-colors hover:text-text"
         >
           <ArrowLeft className="h-4 w-4" />

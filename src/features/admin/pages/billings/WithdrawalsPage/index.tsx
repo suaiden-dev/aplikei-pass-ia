@@ -11,7 +11,9 @@ import {
   Filter,
   Settings
 } from "lucide-react";
-import { supabase } from "@shared/lib/supabase";
+import { hasOfficeWithdrawalMethod } from "@features/admin/services/paymentSettingsService";
+import { listOfficeWithdrawals } from "@features/admin/services/withdrawalsService";
+import type { Withdrawal } from "@features/admin/types";
 import { useAuth } from "@shared/hooks/useAuth";
 import { Button } from "@shared/components/atoms/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@shared/components/atoms/card";
@@ -21,16 +23,6 @@ import { toast } from "sonner";
 import { useT } from "@app/app/i18n";
 import { useOfficeOverview } from "@features/offices/hooks/useOfficeOverview";
 import { WithdrawalModal } from "@features/admin/components/WithdrawalModal";
-
-interface Withdrawal {
-  id: string;
-  amount: number;
-  status: 'pending' | 'completed' | 'approved' | 'processing' | 'paid' | 'cancelled';
-  method: 'stripe' | 'zelle';
-  created_at: string;
-  completed_at: string | null;
-  payment_link?: string;
-}
 
 function getWithdrawalStatusMeta(rawStatus: string | null | undefined) {
   const status = String(rawStatus || "").toLowerCase();
@@ -93,17 +85,9 @@ export default function WithdrawalsPage() {
     if (!user?.officeId) return;
     
     try {
-      const { data, error } = await supabase
-        .from("office_withdrawals")
-        .select("*")
-        .eq("office_id", user.officeId)
-        .order("created_at", { ascending: false });
-
-      if (!error && data) {
-        setWithdrawals(data);
-      }
-    } catch (err) {
-      console.error("Error fetching withdrawals:", err);
+      setWithdrawals(await listOfficeWithdrawals(user.officeId));
+    } catch (err: unknown) {
+      toast.error(t.payoutSettings?.messages?.loadError || "Error loading withdrawals.");
     } finally {
       setLoading(false);
     }
@@ -121,16 +105,8 @@ export default function WithdrawalsPage() {
     }
 
     try {
-      const { data, error } = await supabase
-        .from("office_payment_settings")
-        .select("stripe_enabled, zelle_enabled")
-        .eq("office_id", user.officeId)
-        .maybeSingle();
-
-      if (error) throw error;
-      setHasWithdrawalMethod(Boolean(data?.stripe_enabled || data?.zelle_enabled));
-    } catch (err) {
-      console.error("Error fetching payout settings:", err);
+      setHasWithdrawalMethod(await hasOfficeWithdrawalMethod(user.officeId));
+    } catch {
       setHasWithdrawalMethod(false);
     } finally {
       setLoadingSettings(false);

@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { RiEditLine, RiPercentLine, RiStackLine } from "react-icons/ri";
 import { toast } from "sonner";
-import { supabase } from "@shared/lib/supabase";
+import { useT } from "@app/app/i18n";
+import {
+  listSubscriptionPlans,
+  updateSubscriptionPlanPercentage,
+} from "@features/admin/services/subscriptionPlansService";
+import type { SubscriptionPlan } from "@features/admin/types";
 import { Button } from "@shared/components/atoms/button";
 import {
   Dialog,
@@ -13,14 +18,7 @@ import {
 } from "@shared/components/atoms/dialog";
 import { cn } from "@shared/utils/cn";
 
-type Plan = {
-  id: string;
-  name: string;
-  percentage_fee: number;
-  available_after_minutes: number;
-  is_active: boolean;
-  category_minimums?: Record<string, number> | null;
-};
+type Plan = SubscriptionPlan;
 
 type EditablePlanData = {
   percentage_fee: number;
@@ -61,6 +59,7 @@ function PlanEditModal({
   onClose: () => void;
   onSave: (data: EditablePlanData) => Promise<void>;
 }) {
+  const t = useT("admin");
   const [percentageFee, setPercentageFee] = useState<number>(plan.percentage_fee || 0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -73,8 +72,8 @@ function PlanEditModal({
         percentage_fee: Math.max(0, toNumber(percentageFee, 0)),
       });
       onClose();
-    } catch (error) {
-      toast.error("Error saving plan");
+    } catch {
+      toast.error(t.plansPage.messages.saveError);
     } finally {
       setIsSubmitting(false);
     }
@@ -180,26 +179,21 @@ function PlanCard({ plan, onEdit }: { plan: Plan; onEdit: () => void }) {
 }
 
 export default function PlansPage() {
+  const t = useT("admin");
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
 
   const loadPlans = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("subscription_plans")
-      .select("id, name, percentage_fee, available_after_minutes, is_active, category_minimums")
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-    setPlans((data || []) as Plan[]);
+    setPlans(await listSubscriptionPlans());
   }, []);
 
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
       await loadPlans();
-    } catch (error) {
-      toast.error("Error loading plans");
+    } catch {
+      toast.error(t.plansPage.messages.loadError);
     } finally {
       setIsLoading(false);
     }
@@ -212,16 +206,8 @@ export default function PlansPage() {
   const handleSave = async (payload: EditablePlanData) => {
     if (!selectedPlan) return;
 
-    const { error } = await supabase
-      .from("subscription_plans")
-      .update({
-        percentage_fee: payload.percentage_fee,
-      })
-      .eq("id", selectedPlan.id);
-
-    if (error) throw error;
-
-    toast.success("Plan updated");
+    await updateSubscriptionPlanPercentage(selectedPlan.id, payload.percentage_fee);
+    toast.success(t.plansPage.messages.updateSuccess);
     await loadPlans();
   };
 

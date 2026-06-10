@@ -274,7 +274,6 @@ export default function FinanceAnalyticsPage() {
         setOfficeSalesMetrics([]);
       }
     } catch (err) {
-      console.error(err);
       setError(err instanceof Error ? err.message : "Failed to load analytics data.");
     } finally {
       setIsLoading(false);

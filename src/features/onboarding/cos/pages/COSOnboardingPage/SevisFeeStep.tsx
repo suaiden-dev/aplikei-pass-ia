@@ -10,7 +10,10 @@ import {
   RiBarcodeLine
 } from "react-icons/ri";
 import { toast } from "sonner";
-import { supabase } from "@shared/lib/supabase";
+import {
+  getOnboardingDocumentUrl,
+  uploadOnboardingDocument,
+} from "@features/onboarding/services/onboardingStorageService";
 import * as processService from "@features/process/services/processOps";
 import type { UserService } from "@features/process/types";
 import { cosNotificationService } from "@features/onboarding/cos/lib/cos-notifications";
@@ -77,7 +80,7 @@ export default function SevisFeeStep({ proc, user, onComplete, isUSCIS = false }
   const paidKey = isUSCIS ? "uscis_already_paid" : "sevis_already_paid";
 
   const uscisBoletoPath = (proc?.step_data as any)?.uscis_boleto_path as string;
-  const uscisBoletoUrl = uscisBoletoPath ? supabase.storage.from("aplikei-profiles").getPublicUrl(uscisBoletoPath).data.publicUrl : null;
+  const uscisBoletoUrl = uscisBoletoPath ? getOnboardingDocumentUrl(uscisBoletoPath) : null;
 
   useEffect(() => {
     const data = proc.step_data || {};
@@ -101,11 +104,10 @@ export default function SevisFeeStep({ proc, user, onComplete, isUSCIS = false }
       const prefix = isUSCIS ? "uscis" : "sevis";
       const filePath = `${user.id}/cos/${prefix}_receipt_${crypto.randomUUID()}.${fileExt}`;
       
-      const { error: uploadError } = await supabase.storage
-        .from("aplikei-profiles")
-        .upload(filePath, fileToUpload, { upsert: true, contentType: fileToUpload.type });
-
-      if (uploadError) throw uploadError;
+      await uploadOnboardingDocument(filePath, fileToUpload, {
+        upsert: true,
+        contentType: fileToUpload.type,
+      });
       
       setReceiptPath(filePath);
       
@@ -296,7 +298,7 @@ export default function SevisFeeStep({ proc, user, onComplete, isUSCIS = false }
                 
                 <div className="flex gap-3 mt-6">
                   <a 
-                    href={supabase.storage.from("aplikei-profiles").getPublicUrl(receiptPath).data.publicUrl}
+                    href={getOnboardingDocumentUrl(receiptPath)}
                     target="_blank"
                     rel="noreferrer"
                     className="flex-1 px-4 py-3 bg-white border border-emerald-200 rounded-xl text-[10px] font-black text-emerald-700 uppercase tracking-widest hover:bg-emerald-100 transition-all"

@@ -89,7 +89,7 @@ export function WithdrawalModal({
       return;
     }
     if (method === 'stripe' && !paymentLink) {
-        toast.error("Please provide a Stripe payment link for this withdrawal.");
+        toast.error(t.withdrawalModal.messages.stripeRequired);
         return;
     }
 

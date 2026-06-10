@@ -5,7 +5,6 @@ import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { authService } from "@features/auth/lib/auth";
-import { supabase } from "@shared/lib/supabase";
 import {
   RiShieldCheckLine,
   RiLockLine,
@@ -39,6 +38,15 @@ import { maskCPF, validateCPF } from "@shared/utils/cpf";
 import { useT } from "@app/app/i18n";
 import { calculateDiscount } from "@features/payments/lib/coupon";
 import { useCoupon } from "@features/payments/hooks/useCoupon";
+import {
+  fetchCheckoutOfficeBrand,
+  fetchCheckoutServiceBySlugs,
+  fetchOfficeIdByProcess,
+  fetchOfficeServicePrice,
+  fetchOfficeSubscriptionStatus,
+  logCheckoutInteraction,
+  logCheckoutInteractionEventually,
+} from "@features/payments/services/checkoutPageService";
 
 const ZELLE_EMAIL = ZELLE_RECIPIENT.email;
 const ZELLE_PHONE = ZELLE_RECIPIENT.phone;
@@ -196,7 +204,7 @@ function PriceSummary({
 
 const logInteraction = async (eventName: string, email: string, officeId: string | null, details: string = "") => {
   try {
-    await supabase.from("checkout_logs").insert({
+    await logCheckoutInteraction({
       event_name: eventName,
       email: email,
       office_id: officeId,
@@ -294,12 +302,7 @@ export default function CheckoutPage() {
       }
       setResolvingOfficeId(true);
       try {
-        const { data } = await supabase
-          .from("user_services")
-          .select("office_id")
-          .eq("id", parentId)
-          .maybeSingle();
-        setOfficeIdFromProcess((data?.office_id as string | null) ?? null);
+        setOfficeIdFromProcess(await fetchOfficeIdByProcess(parentId));
       } catch {
         setOfficeIdFromProcess(null);
       } finally {
@@ -314,15 +317,8 @@ export default function CheckoutPage() {
       if (!officeId) return;
       setCheckingOffice(true);
       try {
-        const { data } = await supabase
-          .from("v_office_current_subscription")
-          .select("status")
-          .eq("office_id", officeId)
-          .maybeSingle();
-
-        if (data) {
-          setOfficeStatus(data.status);
-        }
+        const status = await fetchOfficeSubscriptionStatus(officeId);
+        if (status) setOfficeStatus(status);
       } finally {
         setCheckingOffice(false);
       }
@@ -333,15 +329,8 @@ export default function CheckoutPage() {
   useEffect(() => {
     async function fetchOfficeLogo() {
       if (!officeId) return;
-      const { data } = await supabase
-        .from("offices")
-        .select("name, logo_url, landing_page_config")
-        .eq("id", officeId)
-        .maybeSingle();
-      if (data) {
-        const logoSrc = (data as any).logo_url || (data as any).landing_page_config?.logoUrl || null;
-        setOfficeLogo({ name: data.name, logoSrc });
-      }
+      const brand = await fetchCheckoutOfficeBrand(officeId);
+      if (brand) setOfficeLogo(brand);
     }
     fetchOfficeLogo();
   }, [officeId]);
@@ -353,13 +342,9 @@ export default function CheckoutPage() {
       try {
         const slugs = getServiceSlugs(slug);
 
-        const { data: serviceData, error: serviceError } = await supabase
-          .from("services")
-          .select("id, is_active")
-          .in("slug", slugs)
-          .maybeSingle();
+        const serviceData = await fetchCheckoutServiceBySlugs(slugs);
 
-        if (serviceError || !serviceData) return;
+        if (!serviceData) return;
 
         if (serviceData.is_active === false) {
           setProductUnavailable(true);
@@ -368,14 +353,7 @@ export default function CheckoutPage() {
 
         if (!officeId) return;
 
-        const { data: priceData, error: priceError } = await supabase
-          .from("user_service_prices")
-          .select("price, is_active")
-          .eq("office_id", officeId)
-          .eq("service_id", serviceData.id)
-          .maybeSingle();
-
-        if (priceError) return;
+        const priceData = await fetchOfficeServicePrice(officeId, serviceData.id);
 
         if (priceData?.is_active === false) {
           setProductUnavailable(true);
@@ -612,7 +590,7 @@ export default function CheckoutPage() {
           details: `${service?.slug || slug} | Abandono do checkout (Aba fechada). Dependentes: ${checkoutCount} | Método: ${activeMethod}`,
         };
         // We use a simple insert and don't await because the page is closing
-        supabase.from("checkout_logs").insert(logData).then();
+        logCheckoutInteractionEventually(logData);
       }
     };
 

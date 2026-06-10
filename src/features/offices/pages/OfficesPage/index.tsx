@@ -6,36 +6,13 @@ import {
   RiSearchLine,
   RiEyeLine,
 } from "react-icons/ri";
-import { supabase } from "@shared/lib/supabase";
+import { listMasterOfficeStats } from "@features/offices/services/officeOps";
+import type { MasterOfficeStats } from "@features/offices/types";
 import { Button } from "@shared/components/atoms/button";
 import { toast } from "sonner";
 import { cn } from "@shared/utils/cn";
 import { useT } from "@app/app/i18n";
 import { useNavigate } from "react-router-dom";
-
-interface OfficeStats {
-  office_id: string;
-  office_name: string;
-  owner_id?: string | null;
-  responsible_name: string | null;
-  cnpj: string | null;
-  address: string | null;
-  phone: string | null;
-  email: string | null;
-  website: string | null;
-  instagram_url: string | null;
-  linkedin_url: string | null;
-  facebook_url: string | null;
-  process_count: number;
-  total_revenue: number;
-  available_balance: number;
-  pending_requests: number;
-  pending_amount: number;
-  active_plan_name: string;
-  subscription_status: string;
-  subscription_id: string;
-  plan_id: string;
-}
 
 function normalizePlanName(name: string | null | undefined): string {
   const value = String(name || "").trim();
@@ -48,39 +25,12 @@ function normalizePlanName(name: string | null | undefined): string {
 export default function OfficesPage() {
   const t = useT("admin");
   const navigate = useNavigate();
-  const [offices, setOffices] = React.useState<OfficeStats[]>([]);
+  const [offices, setOffices] = React.useState<MasterOfficeStats[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [searchTerm, setSearchTerm] = React.useState("");
 
   const loadOffices = React.useCallback(async () => {
-    const { data, error } = await supabase.from("v_master_office_stats").select("*");
-    if (error) throw error;
-
-    const officesData = (data || []) as OfficeStats[];
-    const ownerIds = Array.from(new Set(officesData.map((office) => office.owner_id).filter(Boolean)));
-
-    if (ownerIds.length === 0) {
-      setOffices(officesData);
-      return;
-    }
-
-    const { data: owners, error: ownersError } = await supabase
-      .from("user_accounts")
-      .select("id, full_name, email")
-      .in("id", ownerIds);
-
-    if (ownersError) throw ownersError;
-
-    const ownerById = new Map(
-      (owners || []).map((owner) => [owner.id, owner.full_name?.trim() || owner.email || null]),
-    );
-
-    const officesWithOwnerNames = officesData.map((office) => ({
-      ...office,
-      responsible_name: (office.owner_id && ownerById.get(office.owner_id)) || office.responsible_name || null,
-    }));
-
-    setOffices(officesWithOwnerNames);
+    setOffices(await listMasterOfficeStats());
   }, []);
 
   React.useEffect(() => {

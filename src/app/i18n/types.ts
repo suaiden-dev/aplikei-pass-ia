@@ -9,6 +9,7 @@ export type TranslationNamespace =
   | "landing"
   | "checkout"
   | "admin"
+  | "maintenance"
   | "tracking"
   | "services"
   | "howItWorks"

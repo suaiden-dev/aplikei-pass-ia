@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { FaInstagram, FaLinkedin, FaFacebook } from "react-icons/fa";
 import { RiUploadLine } from "react-icons/ri";
-import { supabase } from "@shared/lib/supabase";
 import { useAuth } from "@shared/hooks/useAuth";
 import { Button } from "@shared/components/atoms/button";
 import { Input } from "@shared/components/atoms/input";
@@ -21,22 +20,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@shar
 import { DashboardPageHeader } from "@shared/components/organisms/DashboardUI";
 import { toast } from "sonner";
 import { useT } from "@app/app/i18n";
-
-interface OfficeData {
-  id?: string;
-  slug?: string | null;
-  name: string;
-  cnpj: string | null;
-  address: string | null;
-  phone: string | null;
-  email: string | null;
-  website: string | null;
-  instagram_url: string | null;
-  linkedin_url: string | null;
-  facebook_url: string | null;
-  logo_url?: string | null;
-  landing_page_config?: any;
-}
+import {
+  findOfficeByOwner,
+  officeSlugExists,
+  saveOfficeProfile,
+  updateOfficeLogo,
+  uploadOfficeLogo,
+  type OfficeData,
+} from "@features/admin/services/companyProfileService";
 
 function formatTaxId(value: string): string {
   const digits = value.replace(/\D/g, "").slice(0, 14);
@@ -110,24 +101,14 @@ export default function CompanyProfilePage() {
 
     setIsCheckingSlug(true);
     try {
-      const { data, error } = await supabase
-        .from("offices")
-        .select("id")
-        .eq("slug", slug)
-        .limit(1);
-
-      if (error) throw error;
-
-      const conflict = (data || []).find((row) => row.id !== currentOfficeId);
-      if (conflict) {
+      if (await officeSlugExists(slug, currentOfficeId)) {
         setSlugConflict("This slug is already in use.");
         return true;
       }
 
       setSlugConflict(null);
       return false;
-    } catch (err) {
-      console.error("Error checking office slug conflict:", err);
+    } catch {
       setSlugConflict(null);
       return false;
     } finally {
@@ -145,11 +126,7 @@ export default function CompanyProfilePage() {
       const baseName = file.name.replace(/\.[^/.]+$/, "");
       const safeBaseName = baseName.replace(/\s+/g, "-").toLowerCase();
       const path = `landing-logos/${user.id}/${Date.now()}-${safeBaseName}.${ext}`;
-      const { error } = await supabase.storage
-        .from("profiles")
-        .upload(path, file, { contentType: file.type, upsert: true });
-      if (error) throw new Error(error.message);
-      const publicUrl = supabase.storage.from("profiles").getPublicUrl(path).data.publicUrl;
+      const publicUrl = await uploadOfficeLogo(path, file);
 
       // Update local state
       setOffice(prev => prev ? { 
@@ -163,18 +140,12 @@ export default function CompanyProfilePage() {
 
       // Auto-save to the dedicated logo_url column if office already exists
       if (office?.id) {
-        await supabase.from("offices").update({
-          logo_url: publicUrl,
-          landing_page_config: { 
-            ...(office.landing_page_config || {}), 
-            logoUrl: publicUrl 
-          }
-        }).eq("id", office.id);
+        await updateOfficeLogo(office.id, publicUrl, office.landing_page_config);
       }
 
-      toast.success("Logo uploaded successfully!");
+      toast.success(t.companyProfile.messages.logoUploadSuccess);
     } catch (err) {
-      toast.error("Failed to upload logo.");
+      toast.error(t.companyProfile.messages.logoUploadError);
     } finally {
       setIsUploadingLogo(false);
     }
@@ -185,39 +156,25 @@ export default function CompanyProfilePage() {
       if (!user?.id) return;
       
       try {
-        const { data, error } = await supabase
-          .from("offices")
-          .select("id, slug, name, cnpj, address, phone, email, website, instagram_url, linkedin_url, facebook_url, logo_url, landing_page_config")
-          .eq("owner_id", user.id)
-          .maybeSingle();
-
-        if (error) {
-          throw error;
-        } else {
-          if (data) {
-            setOffice({
-              ...data,
-              email: data.email || user.email || "",
-              phone: data.phone || user.phoneNumber || "",
-            });
-          } else {
-            setOffice({
-              slug: "",
-              name: "",
-              cnpj: "",
-              address: "",
-              phone: user.phoneNumber || "",
-              email: user.email || "",
-              website: "",
-              instagram_url: "",
-              linkedin_url: "",
-              facebook_url: "",
-              landing_page_config: {},
-            });
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching office:", err);
+        const data = await findOfficeByOwner(user.id);
+        setOffice(data ? {
+          ...data,
+          email: data.email || user.email || "",
+          phone: data.phone || user.phoneNumber || "",
+        } : {
+          slug: "",
+          name: "",
+          cnpj: "",
+          address: "",
+          phone: user.phoneNumber || "",
+          email: user.email || "",
+          website: "",
+          instagram_url: "",
+          linkedin_url: "",
+          facebook_url: "",
+          landing_page_config: {},
+        });
+      } catch {
         toast.error(t.companyProfile.messages.loadError);
       } finally {
         setLoading(false);
@@ -234,72 +191,25 @@ export default function CompanyProfilePage() {
     const resolvedSlug = slugifyOfficeName(office.slug || office.name);
     const hasSlugConflict = await checkOfficeSlugConflict(resolvedSlug, office.id);
     if (hasSlugConflict) {
-      toast.error("This slug is already in use.");
+      toast.error(t.companyProfile.messages.slugConflict);
       return;
     }
 
     setSaving(true);
     try {
-      const payload = {
-        name: office.name,
-        cnpj: office.cnpj,
-        address: office.address,
-        phone: office.phone,
-        email: office.email,
-        website: office.website,
-        instagram_url: office.instagram_url,
-        linkedin_url: office.linkedin_url,
-        facebook_url: office.facebook_url,
-        landing_page_config: office.landing_page_config,
-      };
-      let officeId = office.id;
-      let createdSlug: string | null = null;
+      const result = await saveOfficeProfile({
+        office,
+        ownerId: user.id,
+        slug: resolvedSlug,
+      });
 
-      if (officeId) {
-        const { error } = await supabase
-          .from("offices")
-          .update({ ...payload, slug: resolvedSlug })
-          .eq("id", officeId);
-
-        if (error) throw error;
-      } else {
-        const { data: created, error } = await supabase
-          .from("offices")
-          .insert({
-            ...payload,
-            slug: resolvedSlug,
-            owner_id: user.id,
-          })
-          .select("id, slug")
-          .single();
-
-        if (error) throw error;
-        officeId = created.id;
-        createdSlug = created.slug ?? null;
-
-        const { error: userOfficeError } = await supabase
-          .from("user_accounts")
-          .update({ office_id: officeId })
-          .eq("id", user.id);
-
-        if (userOfficeError) throw userOfficeError;
-
-        const { error: disableProductsError } = await supabase
-          .from("user_service_prices")
-          .update({ is_active: false })
-          .eq("office_id", officeId);
-
-        if (disableProductsError) throw disableProductsError;
-      }
-
-      if (officeId && !office.id) {
-        setOffice((prev) => (prev ? { ...prev, id: officeId, slug: createdSlug ?? prev.slug ?? null } : prev));
+      if (result.officeId && !office.id) {
+        setOffice((prev) => (prev ? { ...prev, id: result.officeId, slug: result.slug ?? prev.slug ?? null } : prev));
       }
       await refreshAccount();
       toast.success(t.companyProfile.messages.saveSuccess);
       window.location.reload();
-    } catch (err) {
-      console.error("Error updating office:", err);
+    } catch {
       toast.error(t.companyProfile.messages.saveError);
     } finally {
       setSaving(false);
@@ -315,6 +225,13 @@ export default function CompanyProfilePage() {
   }
 
   if (!office) return null;
+
+  const logoUrl =
+    typeof office.logo_url === "string" && office.logo_url
+      ? office.logo_url
+      : typeof office.landing_page_config?.logoUrl === "string"
+        ? office.landing_page_config.logoUrl
+        : null;
 
   return (
     <div className="space-y-6 max-w-5xl pb-10">
@@ -342,9 +259,9 @@ export default function CompanyProfilePage() {
             <div className="grid gap-6 md:grid-cols-2 text-left">
               <div className="space-y-2 md:col-span-2 flex items-center gap-6">
                 <div className="h-16 w-16 bg-bg-subtle rounded-xl border border-border flex items-center justify-center overflow-hidden shrink-0">
-                  {(office.logo_url || office.landing_page_config?.logoUrl) ? (
+                  {logoUrl ? (
                     <img 
-                      src={office.logo_url || office.landing_page_config?.logoUrl} 
+                      src={logoUrl} 
                       alt="Logo" 
                       className="w-full h-full object-contain p-1" 
                     />
@@ -357,10 +274,10 @@ export default function CompanyProfilePage() {
                   <div className="flex items-center gap-3">
                     <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm text-text hover:bg-bg-subtle transition-colors">
                       {isUploadingLogo ? <Loader2 className="animate-spin h-4 w-4" /> : <RiUploadLine className="h-4 w-4" />}
-                      {isUploadingLogo ? "Uploading..." : (office.logo_url || office.landing_page_config?.logoUrl) ? "Change Logo" : "Upload Logo"}
+                      {isUploadingLogo ? "Uploading..." : logoUrl ? "Change Logo" : "Upload Logo"}
                       <input type="file" accept="image/*" className="hidden" onChange={handleLogoSelected} disabled={isUploadingLogo} />
                     </label>
-                    {(office.logo_url || office.landing_page_config?.logoUrl) && (
+                    {logoUrl && (
                       <span className="text-xs text-success font-bold">✓ Logo saved</span>
                     )}
                   </div>
