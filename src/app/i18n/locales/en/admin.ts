@@ -120,7 +120,9 @@ const admin = {
     messages: {
       saveSuccess: "Payout settings updated successfully!",
       saveError: "Error saving payout settings.",
-      loadError: "Error loading payout settings."
+      loadError: "Error loading payout settings.",
+      enableAtLeastOne: "Enable at least one withdrawal method before saving.",
+      requestCreated: "Withdrawal request created successfully!"
     },
     saveBtn: "Save Configuration",
     savingBtn: "Saving..."
@@ -623,7 +625,13 @@ const admin = {
       statusActivated: "\"{{name}}\" activated!",
       statusDeactivated: "\"{{name}}\" deactivated!",
       statusError: "Error changing product status.",
-      noPermission: "No permission to change this product. Check RLS policies."
+      noPermission: "No permission to change this product. Check RLS policies.",
+      configSaved: "Configuration saved successfully.",
+      configError: "Failed to save configuration.",
+      invalidPrice: "Invalid price for {{name}}.",
+      linkCopied: "Product link copied!",
+      loginUrlCopied: "Login URL copied!",
+      noSlug: "Unable to generate link. Set office slug first."
     },
     footerHint: "Deactivated products will not appear in the sales flow for customers."
   },
@@ -818,6 +826,13 @@ const admin = {
       linkTitle: "Registration Link — {{role}}",
       copyBtn: "Copy to Clipboard",
       backBtn: "Back",
+    },
+    messages: {
+      activated: "Member activated successfully.",
+      rejected: "Request rejected.",
+      roleUpdated: "Role updated.",
+      removed: "Member removed.",
+      linkError: "Error generating link."
     },
   },
   lawyers: {
@@ -1062,7 +1077,10 @@ const admin = {
       notFoundDescription: "We couldn't locate your office registration.",
       loadError: "Error loading company data.",
       saveSuccess: "Data updated successfully!",
-      saveError: "Error saving changes."
+      saveError: "Error saving changes.",
+      logoUploadSuccess: "Logo uploaded successfully!",
+      logoUploadError: "Failed to upload logo.",
+      slugConflict: "This slug is already in use."
     }
   },
   subscription: {
@@ -1101,6 +1119,8 @@ const admin = {
       expiration: "Expiration",
       cancelSuccess: "Subscription canceled successfully.",
       cancelError: "Failed to cancel subscription.",
+      planActivated: "Plan {{name}} activated successfully!",
+      activateError: "Error activating plan. Please try again.",
       minFeeNotice: "If the calculated platform fee for a main visa transaction is below {{amount}}, Aplikei will charge the fixed minimum fee of {{amount}} instead."
     },
     onboarding: {
@@ -1142,6 +1162,32 @@ const admin = {
     }
   },
 
+  discountRules: {
+    messages: {
+      officeNotFound: "Office not found.",
+      saveSuccess: "Discount rules saved.",
+      saveError: "Error saving rules."
+    }
+  },
+  plansPage: {
+    messages: {
+      saveError: "Error saving plan.",
+      loadError: "Error loading plans.",
+      updateSuccess: "Plan updated."
+    }
+  },
+  officeModal: {
+    messages: {
+      nameRequired: "Office name is required.",
+      selectOffice: "Select an office.",
+      duplicateName: "An office with this name already exists: {{name}}."
+    }
+  },
+  withdrawalModal: {
+    messages: {
+      stripeRequired: "Please provide a Stripe payment link for this withdrawal."
+    }
+  },
   legalTerms: {
     title: "Legal Terms",
     subtitle: "Manage terms of service for lawyers and customers.",

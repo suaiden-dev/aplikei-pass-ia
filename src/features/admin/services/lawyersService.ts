@@ -5,7 +5,8 @@ export async function listLawyers(): Promise<LawyerRow[]> {
   const { data, error } = await supabase
     .from("user_accounts")
     .select("id, name, full_name, email, avatar_url, role, is_active, created_at")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(200);
 
   if (error) throw Error(error.message);
   const rows = (data ?? []) as LawyerRow[];

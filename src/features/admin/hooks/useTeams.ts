@@ -1,6 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@shared/hooks/useAuth";
+import { useT } from "@app/app/i18n";
+import { adminQueryKeys } from "@features/admin/lib/queryKeys";
 import {
   activateTeamMember,
   createInviteLink,
@@ -9,180 +12,123 @@ import {
   fetchTeamMembers,
   rejectTeamMember,
   updateTeamMemberRole,
-  type InviteLink,
-  type TeamMember,
   type TeamRole,
 } from "../services/teamsOps";
 import { listOffices, fetchOfficeForUser, type OfficeRow } from "@features/offices/services/officeOps";
 
 export function useTeams() {
+  const t = useT("admin");
   const { user } = useAuth();
-  const [selectedOfficeId, setSelectedOfficeId] = useState<string | null>(null);
-  const [offices, setOffices] = useState<OfficeRow[]>([]);
-  const [currentOffice, setCurrentOffice] = useState<OfficeRow | null>(null);
-  
-  const [members, setMembers] = useState<TeamMember[]>([]);
-  const [pending, setPending] = useState<TeamMember[]>([]);
-  const [inviteLinks, setInviteLinks] = useState<InviteLink[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const isMaster = user?.role === "master";
+  const queryClient = useQueryClient();
 
-  // Initial office setup
+  const [selectedOfficeId, setSelectedOfficeId] = useState<string | null>(user?.officeId ?? null);
+
+  const { data: offices = [] } = useQuery({
+    queryKey: adminQueryKeys.teamOffices(),
+    queryFn: listOffices,
+    enabled: isMaster,
+    staleTime: 5 * 60 * 1000,
+  });
+
   useEffect(() => {
-    async function setup() {
-      if (!user) return;
-      
-      const isMaster = user.role === "master";
-      
-      if (isMaster) {
-        try {
-          const allOffices = await listOffices();
-          setOffices(allOffices);
-          if (allOffices.length > 0) {
-            setSelectedOfficeId(allOffices[0].id);
-            setCurrentOffice(allOffices[0]);
-          }
-        } catch (err) {
-          console.error("Error loading offices:", err);
-        }
-      } else if (user.officeId) {
-        setSelectedOfficeId(user.officeId);
-        try {
-          const office = await fetchOfficeForUser(user.id);
-          setCurrentOffice(office);
-        } catch (err) {
-          console.error("Error loading office details:", err);
-        }
-      }
-    }
-    void setup();
-  }, [user]);
+    if (!selectedOfficeId && offices.length > 0) setSelectedOfficeId(offices[0].id);
+  }, [offices, selectedOfficeId]);
 
-  const load = useCallback(async () => {
-    if (!selectedOfficeId) {
-      setIsLoading(false);
-      return;
-    }
-    
-    setIsLoading(true);
-    try {
-      const [m, p, links] = await Promise.all([
-        fetchTeamMembers(selectedOfficeId),
-        fetchPendingRequests(selectedOfficeId),
-        fetchInviteLinks(selectedOfficeId),
+  const { data: currentOffice = null } = useQuery<OfficeRow | null>({
+    queryKey: adminQueryKeys.teamCurrentOffice(user?.id),
+    queryFn: () => fetchOfficeForUser(user!.id),
+    enabled: !isMaster && !!user?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const effectiveCurrentOffice = isMaster
+    ? (offices.find((o) => o.id === selectedOfficeId) ?? null)
+    : currentOffice;
+
+  const { data: teamData, isLoading } = useQuery({
+    queryKey: adminQueryKeys.teamData(selectedOfficeId ?? undefined),
+    queryFn: async () => {
+      const [members, pending, inviteLinks] = await Promise.all([
+        fetchTeamMembers(selectedOfficeId!),
+        fetchPendingRequests(selectedOfficeId!),
+        fetchInviteLinks(selectedOfficeId!),
       ]);
-      setMembers(m);
-      setPending(p);
-      setInviteLinks(links);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error loading team.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedOfficeId]);
+      return { members, pending, inviteLinks };
+    },
+    enabled: !!selectedOfficeId,
+  });
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const invalidateTeam = () =>
+    queryClient.invalidateQueries({ queryKey: adminQueryKeys.teamData(selectedOfficeId ?? undefined) });
 
-  // Update current office when selection changes
-  useEffect(() => {
-    if (selectedOfficeId && offices.length > 0) {
-      const office = offices.find(o => o.id === selectedOfficeId);
-      if (office) setCurrentOffice(office);
-    }
-  }, [selectedOfficeId, offices]);
+  const generateLinkMutation = useMutation({
+    mutationFn: (role: TeamRole) => createInviteLink(selectedOfficeId!, role, user!.id),
+    onSuccess: () => invalidateTeam(),
+    onError: (err: Error) => toast.error(err.message || t.teams.messages.linkError),
+  });
 
-  const generateLink = useCallback(async (role: TeamRole): Promise<string | null> => {
-    if (!selectedOfficeId || !user?.id) return null;
-    setIsGeneratingLink(true);
+  const activateMutation = useMutation({
+    mutationFn: (userId: string) => activateTeamMember(userId),
+    onSuccess: () => { invalidateTeam(); toast.success(t.teams.messages.activated); },
+    onError: (err: Error) => toast.error(err.message || t.teams.messages.linkError),
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: (userId: string) => rejectTeamMember(userId),
+    onSuccess: () => { invalidateTeam(); toast.success(t.teams.messages.rejected); },
+    onError: (err: Error) => toast.error(err.message || t.teams.messages.linkError),
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: TeamRole }) =>
+      updateTeamMemberRole(userId, role),
+    onSuccess: () => { invalidateTeam(); toast.success(t.teams.messages.roleUpdated); },
+    onError: (err: Error) => toast.error(err.message || t.teams.messages.linkError),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (userId: string) => rejectTeamMember(userId),
+    onSuccess: () => { invalidateTeam(); toast.success(t.teams.messages.removed); },
+    onError: (err: Error) => toast.error(err.message || t.teams.messages.linkError),
+  });
+
+  const savingIds = new Set([
+    activateMutation.isPending ? activateMutation.variables : null,
+    rejectMutation.isPending ? rejectMutation.variables : null,
+    updateRoleMutation.isPending ? updateRoleMutation.variables?.userId : null,
+    removeMutation.isPending ? removeMutation.variables : null,
+  ].filter(Boolean) as string[]);
+
+  const generateLink = async (role: TeamRole): Promise<string | null> => {
     try {
-      const link = await createInviteLink(selectedOfficeId, role, user.id);
-      setInviteLinks((prev) => [link, ...prev]);
+      const link = await generateLinkMutation.mutateAsync(role);
       return link.token;
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error generating link.");
+    } catch {
       return null;
-    } finally {
-      setIsGeneratingLink(false);
     }
-  }, [selectedOfficeId, user?.id]);
-
-  const handleActivate = useCallback(async (userId: string) => {
-    setSavingId(userId);
-    try {
-      await activateTeamMember(userId);
-      const activated = pending.find((u) => u.id === userId);
-      if (activated) {
-        setPending((prev) => prev.filter((u) => u.id !== userId));
-        setMembers((prev) => [{ ...activated, is_active: true }, ...prev]);
-      }
-      toast.success("Member activated successfully.");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error activating member.");
-    } finally {
-      setSavingId(null);
-    }
-  }, [pending]);
-
-  const handleReject = useCallback(async (userId: string) => {
-    setSavingId(userId);
-    try {
-      await rejectTeamMember(userId);
-      setPending((prev) => prev.filter((u) => u.id !== userId));
-      toast.success("Request rejected.");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error rejecting request.");
-    } finally {
-      setSavingId(null);
-    }
-  }, []);
-
-  const handleUpdateRole = useCallback(async (userId: string, role: TeamRole) => {
-    setSavingId(userId);
-    try {
-      await updateTeamMemberRole(userId, role);
-      setMembers((prev) => prev.map((m) => (m.id === userId ? { ...m, role } : m)));
-      toast.success("Role updated.");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error updating role.");
-    } finally {
-      setSavingId(null);
-    }
-  }, []);
-
-  const handleRemoveMember = useCallback(async (userId: string) => {
-    if (!window.confirm("Remove this team member?")) return;
-    setSavingId(userId);
-    try {
-      await rejectTeamMember(userId);
-      setMembers((prev) => prev.filter((u) => u.id !== userId));
-      toast.success("Member removed.");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error removing member.");
-    } finally {
-      setSavingId(null);
-    }
-  }, []);
+  };
 
   return {
     officeId: selectedOfficeId,
     setOfficeId: setSelectedOfficeId,
     offices,
-    currentOffice,
-    members,
-    pending,
-    inviteLinks,
+    currentOffice: effectiveCurrentOffice,
+    members: teamData?.members ?? [],
+    pending: teamData?.pending ?? [],
+    inviteLinks: teamData?.inviteLinks ?? [],
     isLoading,
-    savingId,
-    isGeneratingLink,
-    isMaster: user?.role === "master",
-    reload: load,
+    savingId: savingIds.size > 0 ? Array.from(savingIds)[0] : null,
+    isGeneratingLink: generateLinkMutation.isPending,
+    isMaster,
+    reload: invalidateTeam,
     generateLink,
-    handleActivate,
-    handleReject,
-    handleUpdateRole,
-    handleRemoveMember,
+    handleActivate: (userId: string) => activateMutation.mutate(userId),
+    handleReject: (userId: string) => rejectMutation.mutate(userId),
+    handleUpdateRole: (userId: string, role: TeamRole) => updateRoleMutation.mutate({ userId, role }),
+    handleRemoveMember: (userId: string) => {
+      if (!window.confirm("Remove this team member?")) return;
+      removeMutation.mutate(userId);
+    },
   };
 }

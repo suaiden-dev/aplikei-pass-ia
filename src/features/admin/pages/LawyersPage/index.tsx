@@ -28,8 +28,7 @@ export default function LawyersPage() {
     setIsLoading(true);
     try {
       setLawyers(await listLawyers());
-    } catch (err: any) {
-      console.error("Error loading lawyers:", err);
+    } catch {
       toast.error(t.cases.messages.errorAction);
     } finally {
       setIsLoading(false);

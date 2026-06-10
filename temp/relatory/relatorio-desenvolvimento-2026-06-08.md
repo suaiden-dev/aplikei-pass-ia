@@ -430,3 +430,157 @@ Antes de fechar o dia com commit final, recomenda-se:
 - rodar novamente `npm run build`;
 - rodar os testes do Vitest relacionados ao Plano Escalável;
 - commitar as alterações pendentes em um ou mais commits temáticos.
+
+---
+
+# Relatório De Desenvolvimento (09/06/2026)
+
+## 1. Resumo Executivo
+
+O trabalho deste dia concentrou-se em duas frentes complementares: (1) migração de todas as strings de toast hardcoded do feature `admin` para o sistema de i18n existente, com adição das chaves faltantes nos locales `en` e `pt`; (2) aplicação das melhorias de qualidade de código identificadas em análise técnica da base.
+
+Totais do dia:
+
+- Arquivos modificados: 44+
+- Novas chaves i18n adicionadas: 30+
+- `as any` eliminados de `ProcessDetailPage`: 49 ocorrências substituídas por tipagem real (`StepData`)
+- Query keys inline eliminadas: 34 ocorrências centralizadas
+- Testes: 101/101 Vitest passando; Playwright 44/47 (3 falhas pré-existentes, sem regressões introduzidas)
+
+---
+
+## 2. Migração de Strings para i18n
+
+### 2.1 - Novas chaves adicionadas nos locales
+
+Arquivos alterados:
+
+- `src/app/i18n/locales/en/admin.ts`
+- `src/app/i18n/locales/pt/admin.ts`
+
+Chaves adicionadas:
+
+- `products.messages`: `configSaved`, `configError`, `invalidPrice` (com `{{name}}`), `linkCopied`, `loginUrlCopied`, `noSlug`
+- `teams.messages` (novo): `activated`, `rejected`, `roleUpdated`, `removed`, `linkError`
+- `subscription.modals`: `planActivated` (com `{{name}}`), `activateError`
+- `companyProfile.messages`: `logoUploadSuccess`, `logoUploadError`, `slugConflict`
+- `payoutSettings.messages`: `enableAtLeastOne`, `requestCreated`
+- `discountRules.messages` (novo): `officeNotFound`, `saveSuccess`, `saveError`
+- `plansPage.messages` (novo): `saveError`, `loadError`, `updateSuccess`
+- `officeModal.messages` (novo): `nameRequired`, `selectOffice`, `duplicateName` (com `{{name}}`)
+- `withdrawalModal.messages`: `stripeRequired`
+
+### 2.2 - Hooks migrados
+
+- `src/features/admin/hooks/useTeams.ts` — adicionado `useT("admin")`; 5 toasts migrados
+- `src/features/admin/hooks/useProductsPage.ts` — 3 toasts migrados
+- `src/features/admin/hooks/useSubscriptionPage.ts` — 2 toasts migrados
+- `src/features/admin/hooks/useWithdrawals.ts` — adicionado `useT("admin")`; 2 toasts migrados
+
+### 2.3 - Páginas migradas
+
+- `src/features/admin/pages/CompanyProfilePage/index.tsx` — 3 toasts
+- `src/features/admin/pages/billings/PaymentSettingsPage/index.tsx` — 1 toast
+- `src/features/admin/pages/DiscountRulesPage/index.tsx` — adicionado `useT`; 3 toasts
+- `src/features/admin/pages/PlansPage/index.tsx` — adicionado `useT` em dois componentes; 3 toasts
+- `src/features/admin/pages/ProductsPage/index.tsx` — adicionado `useT`; 3 toasts
+- `src/features/admin/components/OfficeModal.tsx` — adicionado `useT`; 3 toasts
+- `src/features/admin/components/WithdrawalModal.tsx` — 1 toast
+
+---
+
+## 3. Correção de Runtime Crash em ProcessDetailPage
+
+**Arquivo:** `src/features/admin/pages/ProcessDetailPage/index.tsx`
+
+**Causa:** O código acessava `t.motion.*` e `t.rfe.*` como chaves de topo do namespace `admin`, mas as chaves reais estão em `t.processDetail.motion.*` e `t.processDetail.rfe.*`. Resultado: `Cannot read properties of undefined (reading 'clientReasonLabel')` no console do browser.
+
+**Correção:** Substituição global (`replace_all`) de todos os acessos `t.motion.` → `t.processDetail.motion.` e `t.rfe.` → `t.processDetail.rfe.` no arquivo.
+
+---
+
+## 4. Correções de Testes (Vitest)
+
+Quatro falhas pré-existentes corrigidas:
+
+| Arquivo | Causa | Correção |
+|---------|-------|----------|
+| `authGuard.test.ts` | Esperava `/login-office` mas authGuard foi unificado para `/login` | Atualizado valor esperado |
+| `financeAnalyticsService.test.ts` | Serviço passou a fazer query secundária `from("orders").in(...)` depois que o teste foi escrito | Mock de `supabase.from` refatorado para retornar stubs diferentes por table name |
+| `FinanceAnalyticsPage/index.test.tsx` | (1) `getOfficeSalesMetricsByDateRange` não mockado causava erro; (2) fixtures de transação sem `officeNetAmount`/`platformFeeAmount` causavam crash no render | Adicionado mock da função e campos ausentes nas fixtures |
+| `chatIntegration.test.ts` | `localStorage.clear()` lançava TypeError em contexto jsdom sem localStorage | Adicionado guard `typeof localStorage !== "undefined"` |
+
+---
+
+## 5. Melhorias de Qualidade de Código
+
+### 5.1 - Centralização de Query Keys do React Query
+
+**Arquivo criado:** `src/features/admin/lib/queryKeys.ts`
+
+Problema: 34 query keys eram strings literais inline, duplicadas entre hooks. Uma typo impede invalidação silenciosamente.
+
+Solução: Objeto `adminQueryKeys` com funções tipadas para cada chave. Todos os 10 hooks do feature `admin` atualizados para usar as funções centralizadas:
+
+- `useAdminOverview.ts` — 4 chaves migradas
+- `useMasterOverview.ts` — 5 chaves migradas
+- `useSubscription.ts` — 2 chaves migradas
+- `useProductsPage.ts` — 3 chaves migradas
+- `useTeams.ts` — 4 chaves migradas
+- `useSubscriptionPage.ts` — 5 chaves migradas
+- `useAdminRoles.ts` — 2 chaves migradas
+- `useRevenuePage.ts` — 2 chaves migradas
+- `useZellePayments.ts` — 2 chaves migradas
+- `useWithdrawals.ts` — 3 chaves migradas
+
+### 5.2 - Tipagem de StepData
+
+**Arquivo alterado:** `src/features/process/types.ts`
+
+Problema: `StepData` era `{ [key: string]: unknown }`, obrigando 49 usos de `as any` em `ProcessDetailPage` para acessar campos conhecidos como `seller_id`, `current_step`, `history`, `coverLetter`, etc.
+
+Solução: Adicionados 25 campos nomeados à interface `StepData`, mantendo o index signature `[key: string]: unknown` para campos dinâmicos. Todos os `(proc.step_data as any)`, `(processRow.service_metadata as any)` e equivalentes em `ProcessDetailPage` substituídos por `(... as StepData)`.
+
+Benefício: TypeScript agora valida acesso a esses campos em tempo de compilação — um typo como `.seler_id` vira erro, não silêncio.
+
+### 5.3 - Remoção de console.log de Produção
+
+**Arquivo:** `src/features/admin/services/couponService.ts`
+
+Removido `console.log("Validating coupon:", code, "for service:", slug)` de dentro da função `validateCoupon` (stub que sempre retorna inválido). Parâmetros não utilizados renomeados para `_code` e `_slug` para evitar warnings de linter.
+
+### 5.4 - Tipagem de roleLabels em RolesPage
+
+**Arquivo:** `src/features/admin/pages/RolesPage/index.tsx`
+
+Substituídos 2 usos de `(t.shared.roleLabels as any)[key]` por `(t.shared.roleLabels as Record<string, string>)[key]` — cast mais preciso que documenta a intenção sem recorrer a `any`.
+
+### 5.5 - landing_page_config tipado em ProcessDetailPage
+
+**Arquivo:** `src/features/admin/pages/ProcessDetailPage/index.tsx`
+
+Substituído `(ownOfficeData.landing_page_config as any)?.logoUrl` por extração com tipagem explícita:
+```ts
+const landingConfig = ownOfficeData.landing_page_config as Record<string, unknown> | null;
+setOfficeLogoUrl(ownOfficeData.logo_url ?? (landingConfig?.logoUrl as string | null) ?? null);
+```
+
+---
+
+## 6. Validações Executadas (09/06/2026)
+
+- `npm run build` — ✓ passou (zero erros TypeScript)
+- `npx vitest run` — ✓ 101/101 testes passando
+- `npx playwright test` — 44/47 passando; 3 falhas pré-existentes (`eos-onboarding.spec.ts:5`, `eos-onboarding.spec.ts:19` — EOS não implementado; `b1b2-onboarding.spec.ts:44` — flaky sob carga paralela, passa isolado)
+
+---
+
+## 7. Dívidas Técnicas Documentadas (não corrigidas neste ciclo)
+
+| Item | Complexidade | Impacto |
+|------|-------------|---------|
+| `ProcessDetailPage` com 3 506 linhas — 8 seções distintas sem separação em componentes | Alta | Manutenibilidade |
+| 10 páginas admin com `useState(loading)` manual em vez de React Query | Média | Consistência, UX |
+| `adminCustomerService.ts:165` — TODO com arrays estáticos vazios (feature inacabada) | Média | Funcionalidade (`CustomersPage` sempre renderiza vazio) |
+| `tsconfig.app.json` sem `strict: true` — `noUnusedLocals` e `noUnusedParameters` desabilitados | Baixa (habilitar) / Alta (corrigir erros) | Segurança de tipos |
+| Cobertura de testes: 1 serviço e 1 página testados de 15+ serviços e 20+ páginas no feature `admin` | Alta | Regressões futuras |

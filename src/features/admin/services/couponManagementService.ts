@@ -47,8 +47,9 @@ export async function fetchUserOfficeId(userId: string): Promise<string | null> 
 export async function listDiscountCoupons(): Promise<Coupon[]> {
   const { data, error } = await supabase
     .from("discount_coupons")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .select("id, code, discount_type, discount_value, max_uses, uses_count, applicable_slugs, min_purchase_usd, expires_at, is_active, created_at")
+    .order("created_at", { ascending: false })
+    .limit(200);
 
   if (error) throw Error(error.message);
   return (data ?? []) as Coupon[];
@@ -59,7 +60,8 @@ export async function listCouponServiceOptions(isSeller: boolean): Promise<Servi
     .from("services")
     .select("slug, name, category")
     .eq("is_active", true)
-    .order("name");
+    .order("name")
+    .limit(100);
 
   if (isSeller) query = query.eq("category", "main_visa");
 

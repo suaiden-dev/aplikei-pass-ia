@@ -25,6 +25,7 @@ import {
 import type { InteractionLog } from "@features/admin/types";
 import { useT } from "@app/app/i18n";
 import { useAuth } from "@shared/hooks/useAuth";
+import { toast } from "sonner";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -69,8 +70,8 @@ export default function InteractionLogsPage() {
       });
       setGlobalTotalCount(stats.total);
       setGlobalErrorCount(stats.errors);
-    } catch (err) {
-      console.error("Error fetching global stats:", err);
+    } catch {
+      // stats are optional — failure does not block the main list
     }
   };
 
@@ -94,8 +95,8 @@ export default function InteractionLogsPage() {
       });
       setLogs(result.logs);
       setTotalCount(result.totalCount);
-    } catch (err) {
-      console.error("Error fetching logs:", err);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : t.shared.error);
     } finally {
       setLoading(false);
     }

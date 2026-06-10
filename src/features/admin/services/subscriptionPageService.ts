@@ -34,11 +34,25 @@ export async function fetchOfficeName(officeId: string): Promise<string> {
 export async function fetchActiveSubscriptionPlans(): Promise<DBPlan[]> {
   const { data, error } = await supabase
     .from("subscription_plans")
-    .select("*")
-    .eq("is_active", true);
+    .select("id, name, description, type, fixed_fee, percentage_fee, min_fee_per_transaction_usd, features, is_active, is_exclusive")
+    .eq("is_active", true)
+    .limit(20);
 
   if (error) throw Error(error.message);
   return (data ?? []) as DBPlan[];
+}
+
+interface SubscriptionHistoryRow {
+  id: string;
+  created_at: string;
+  current_period_start: string | null;
+  subscription_plans: {
+    name: string | null;
+    type: string | null;
+    fixed_fee: number | null;
+    percentage_fee: number | null;
+    min_fee_per_transaction_usd: number | null;
+  } | null;
 }
 
 export async function fetchBillingHistory(
@@ -49,11 +63,12 @@ export async function fetchBillingHistory(
     .from("office_subscriptions")
     .select("id, created_at, current_period_start, subscription_plans(name, type, fixed_fee, percentage_fee, min_fee_per_transaction_usd)")
     .eq("office_id", officeId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(50);
 
   if (error) throw Error(error.message);
 
-  return (data ?? []).map((row: any) => {
+  return ((data ?? []) as unknown as SubscriptionHistoryRow[]).map((row) => {
     const plan = row.subscription_plans;
     const amountLabel = plan?.type === "PERCENTAGE"
       ? `${plan?.percentage_fee ?? 0}%`

@@ -566,7 +566,6 @@ export default function OfficeCheckoutPage() {
         },
     });
 
-    // Logs de Interação (Posicionados corretamente após o formik)
     useEffect(() => {
         if (dbService) {
             logInteraction("acesso_checkout", formik.values.email, office?.id || officeSlug, `${serviceSlug} | Acesso inicial ao office checkout`);

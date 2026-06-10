@@ -266,7 +266,9 @@ export default function PaymentMethodsSettingsPage() {
         config: zelleConfig,
       });
       toast.success(t.paymentMethods.saveSuccess);
-    } catch (err) {}
+    } catch (err: unknown) {
+      toast.error(t.paymentMethods.saveError + (err instanceof Error ? err.message : ""));
+    }
   };
 
   const handleSaveParcelow = async () => {
@@ -281,7 +283,9 @@ export default function PaymentMethodsSettingsPage() {
         config: parcelowConfig,
       });
       toast.success(t.paymentMethods.saveSuccess);
-    } catch (err) {}
+    } catch (err: unknown) {
+      toast.error(t.paymentMethods.saveError + (err instanceof Error ? err.message : ""));
+    }
   };
 
   if (isLoading) {

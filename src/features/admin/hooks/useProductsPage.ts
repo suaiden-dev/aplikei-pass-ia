@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   listOfficeServicePrices,
@@ -12,6 +13,7 @@ import {
 import { useAuth } from "@shared/hooks/useAuth";
 import { encodeCheckoutToken } from "@shared/utils/checkoutToken";
 import { useT } from "@app/app/i18n";
+import { adminQueryKeys } from "@features/admin/lib/queryKeys";
 
 export interface DraftState {
   is_active: boolean;
@@ -23,50 +25,38 @@ export type DraftMap = Record<string, DraftState>;
 export function useProductsPage() {
   const t = useT("admin");
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const [resolvedOfficeId, setResolvedOfficeId] = useState<string | null>(user?.officeId ?? null);
-  const [officeSlug, setOfficeSlug] = useState<string | null>(null);
-  const [products, setProducts] = useState<ServicePrice[]>([]);
   const [draft, setDraft] = useState<DraftMap>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const draftInitialized = useRef(false);
   const [selectedMainId, setSelectedMainId] = useState<string | null>(null);
   const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
   const [productInfoItem, setProductInfoItem] = useState<ServicePrice | null>(null);
 
+  const { data: office } = useQuery({
+    queryKey: adminQueryKeys.officeProductsResolved(user?.id, user?.officeId ?? undefined),
+    queryFn: () => resolveProductsOffice({ userId: user?.id, officeId: user?.officeId ?? undefined }),
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const resolvedOfficeId = office?.officeId ?? null;
+  const officeSlug = office?.officeSlug ?? null;
+
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: adminQueryKeys.officeProducts(resolvedOfficeId ?? undefined),
+    queryFn: () => listOfficeServicePrices(resolvedOfficeId!),
+    enabled: !!resolvedOfficeId,
+  });
+
   useEffect(() => {
-    resolveProductsOffice({ userId: user?.id, officeId: user?.officeId }).then((office) => {
-      setResolvedOfficeId(office.officeId);
-      setOfficeSlug(office.officeSlug);
-    });
-  }, [user?.id, user?.officeId]);
-
-  const load = useCallback(async () => {
-    if (!resolvedOfficeId) {
-      setProducts([]);
-      setIsLoading(false);
-      return;
-    }
-    setIsLoading(true);
-    let parsed: ServicePrice[];
-    try {
-      parsed = await listOfficeServicePrices(resolvedOfficeId);
-    } catch {
-      toast.error(t.cases.messages.errorAction);
-      setIsLoading(false);
-      return;
-    }
-    setProducts(parsed);
-    setDraft(
-      parsed.reduce((acc, item) => {
-        acc[item.id] = { is_active: item.is_active, price: item.price.toFixed(2) };
-        return acc;
-      }, {} as DraftMap),
-    );
-    setIsLoading(false);
-  }, [resolvedOfficeId, t.cases.messages.errorAction]);
-
-  useEffect(() => { void load(); }, [load]);
+    if (draftInitialized.current || products.length === 0) return;
+    setDraft(products.reduce((acc, item) => {
+      acc[item.id] = { is_active: item.is_active, price: item.price.toFixed(2) };
+      return acc;
+    }, {} as DraftMap));
+    draftInitialized.current = true;
+  }, [products]);
 
   const mainServices = useMemo(() => products.filter((p) => p.category === "main_visa"), [products]);
   const subServices = useMemo(() => products.filter((p) => p.category !== "main_visa"), [products]);
@@ -84,7 +74,7 @@ export function useProductsPage() {
     }
   }, [mainServices, selectedMainId]);
 
-  const getRelatedSubProducts = useCallback((mainProduct: ServicePrice): ServicePrice[] => {
+  const getRelatedSubProducts = (mainProduct: ServicePrice): ServicePrice[] => {
     const config = getFlowConfig(mainProduct.slug);
     if (!config) return [];
     const allSlugs = [...config.phaseMap.addons, ...config.phaseMap.finalization];
@@ -92,7 +82,7 @@ export function useProductsPage() {
     return subServices
       .filter((p) => indexBySlug.has(p.slug))
       .sort((a, b) => (indexBySlug.get(a.slug) ?? Number.MAX_SAFE_INTEGER) - (indexBySlug.get(b.slug) ?? Number.MAX_SAFE_INTEGER));
-  }, [subServices]);
+  };
 
   const selectedMain = mainServices.find((p) => p.id === selectedMainId) ?? null;
   const selectedFlowConfig = selectedMain ? getFlowConfig(selectedMain.slug) : null;
@@ -101,8 +91,7 @@ export function useProductsPage() {
   const finalization = relatedProducts.filter((item) => selectedFlowConfig?.phaseMap.finalization.includes(item.slug));
 
   const interviewItems = addons.filter((a) => INTERVIEW_SPECIALIST_SLUGS.has(a.slug));
-  const interviewGroupActive =
-    interviewItems.length > 0 && interviewItems.every((i) => draft[i.id]?.is_active ?? i.is_active);
+  const interviewGroupActive = interviewItems.length > 0 && interviewItems.every((i) => draft[i.id]?.is_active ?? i.is_active);
   const interviewPricesDefined = interviewItems.every((i) => {
     const p = cleanPrice(draft[i.id]?.price ?? String(i.price));
     return Number.isFinite(p) && p > 0;
@@ -124,35 +113,37 @@ export function useProductsPage() {
     setDraft((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
   };
 
+  const saveMutation = useMutation({
+    mutationFn: (rows: Array<{ id: string; is_active: boolean; price: number }>) =>
+      updateServicePriceRows(rows),
+    onSuccess: () => {
+      draftInitialized.current = false;
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.officeProducts(resolvedOfficeId ?? undefined) });
+      toast.success(t.products.messages.configSaved);
+    },
+    onError: () => toast.error(t.products.messages.configError),
+  });
+
   const saveConfiguration = async () => {
     if (!selectedMain) return;
     const rowsToSave = [selectedMain, ...relatedProducts];
     for (const row of rowsToSave) {
       const price = cleanPrice(draft[row.id]?.price ?? "");
       if (!Number.isFinite(price) || price < 0) {
-        toast.error(`Invalid price for ${row.name}.`);
+        toast.error(t.products.messages.invalidPrice.replace("{{name}}", row.name));
         return;
       }
     }
-    setIsSaving(true);
-    try {
-      await updateServicePriceRows(rowsToSave.map((row) => ({
-        id: row.id,
-        is_active: draft[row.id].is_active,
-        price: cleanPrice(draft[row.id].price),
-      })));
-      toast.success("Configuration saved successfully.");
-      await load();
-    } catch {
-      toast.error("Failed to save configuration.");
-    } finally {
-      setIsSaving(false);
-    }
+    saveMutation.mutate(rowsToSave.map((row) => ({
+      id: row.id,
+      is_active: draft[row.id].is_active,
+      price: cleanPrice(draft[row.id].price),
+    })));
   };
 
   return {
     isLoading,
-    isSaving,
+    isSaving: saveMutation.isPending,
     draft,
     mainServices,
     subServices,

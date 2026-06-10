@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@shared/lib/supabase";
 import { useLocale } from "@app/app/i18n";
+import { adminQueryKeys } from "@features/admin/lib/queryKeys";
 
 export interface MasterDashboardStats {
     revenueTotal: number;
@@ -42,7 +43,7 @@ export function useMasterOverview() {
     const localeCode = lang === "pt" ? "pt-BR" : "en-US";
 
     const statsQuery = useQuery({
-        queryKey: ["master-overview-stats-v1"],
+        queryKey: adminQueryKeys.masterStats(),
         queryFn: async () => {
             const [
                 { count: lawyersCount },
@@ -78,7 +79,7 @@ export function useMasterOverview() {
     });
 
     const monthlyRevenueQuery = useQuery({
-        queryKey: ["master-overview-monthly-revenue-v1", lang],
+        queryKey: adminQueryKeys.masterMonthlyRevenue(lang),
         queryFn: async () => {
             const now = new Date();
             const sixMonthsAgo = new Date();
@@ -110,7 +111,7 @@ export function useMasterOverview() {
     });
 
     const distributionQuery = useQuery({
-        queryKey: ["master-overview-service-distribution-v1"],
+        queryKey: adminQueryKeys.masterServiceDistribution(),
         queryFn: async () => {
             const { data: orders } = await supabase
                 .from("orders")
@@ -167,7 +168,7 @@ export function useMasterOverview() {
     });
 
     const recentActivityQuery = useQuery({
-        queryKey: ["master-overview-recent-activity-v1", lang],
+        queryKey: adminQueryKeys.masterRecentActivity(lang),
         queryFn: async () => {
             const { data: msgs } = await supabase
                 .from("notifications_messages")
@@ -213,7 +214,7 @@ export function useMasterOverview() {
     });
 
     const topOfficesQuery = useQuery({
-        queryKey: ["master-overview-top-offices-v1"],
+        queryKey: adminQueryKeys.masterTopOffices(),
         queryFn: async () => {
             const { data, error } = await supabase
                 .from("v_master_office_stats")

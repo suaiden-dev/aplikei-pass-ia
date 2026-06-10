@@ -52,11 +52,12 @@ async function fetchOfficeScopedProcesses(officeId: string): Promise<AdminProces
   const [officeServicesRes, officeCustomersRes] = await Promise.all([
     supabase
       .from("user_services")
-      .select("*")
+      .select("id, user_id, service_slug, status, current_step, step_data, created_at, office_id")
       .eq("office_id", officeId)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .limit(500),
     supabase
-      .from("office_customers" as any)
+      .from("office_customers" as Parameters<typeof supabase.from>[0])
       .select("user_id")
       .eq("office_id", officeId),
   ]);
@@ -77,9 +78,10 @@ async function fetchOfficeScopedProcesses(officeId: string): Promise<AdminProces
   if (customerUserIds.length > 0) {
     const { data, error } = await supabase
       .from("user_services")
-      .select("*")
+      .select("id, user_id, service_slug, status, current_step, step_data, created_at, office_id")
       .in("user_id", customerUserIds)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(500);
     if (error) throw Error(error.message);
     byCustomer = (data ?? []) as AdminProcessWithUser[];
   }
@@ -99,8 +101,9 @@ async function fetchOfficeScopedProcesses(officeId: string): Promise<AdminProces
 async function fetchAllProcesses(): Promise<AdminProcessWithUser[]> {
   const { data, error } = await supabase
     .from("user_services")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .select("id, user_id, service_slug, status, current_step, step_data, created_at, office_id")
+    .order("created_at", { ascending: false })
+    .limit(500);
 
   if (error) throw Error(error.message);
   return (data ?? []) as AdminProcessWithUser[];

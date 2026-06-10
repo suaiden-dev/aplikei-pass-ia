@@ -222,6 +222,21 @@ export async function resolveProductsOffice(params: {
   return { officeId: data?.id ?? null, officeSlug: data?.slug ?? null };
 }
 
+interface ServicePriceRow {
+  id: string;
+  office_id: string;
+  service_id: string;
+  price: number;
+  currency: string;
+  is_active: boolean | null;
+  services: {
+    name: string | null;
+    category: string | null;
+    slug: string | null;
+    description: string | null;
+  } | null;
+}
+
 export async function listOfficeServicePrices(officeId: string): Promise<ServicePrice[]> {
   const { data, error } = await supabase
     .from("user_service_prices")
@@ -231,7 +246,7 @@ export async function listOfficeServicePrices(officeId: string): Promise<Service
 
   if (error) throw Error(error.message);
 
-  return ((data ?? []) as any[]).map((price) => ({
+  return ((data ?? []) as unknown as ServicePriceRow[]).map((price) => ({
     id: price.id,
     office_id: price.office_id,
     service_id: price.service_id,

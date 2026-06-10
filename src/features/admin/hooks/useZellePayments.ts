@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   listOrderPaymentsByStatus,
@@ -10,6 +11,7 @@ import * as paymentService from "@features/payments/lib/paymentOps";
 import * as notificationService from "@features/notifications/services/notify";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useT } from "@app/app/i18n";
+import { adminQueryKeys } from "@features/admin/lib/queryKeys";
 
 export type ZelleTab = "pending" | "approved" | "rejected";
 
@@ -43,18 +45,56 @@ export function buildZelleProofUrl(raw: string | null | undefined): string | nul
   return `${SUPABASE_URL}/storage/v1/object/public/zelle_comprovantes/${raw}`;
 }
 
+function mapZelleRecord(r: ZelleRecord, slugToName: (s: string) => string): ZelleUnifiedPayment {
+  return {
+    id: r.id,
+    source: "zelle",
+    zelleId: r.id,
+    userId: r.user_id ?? null,
+    clientName: r.guest_name ?? "",
+    clientEmail: r.guest_email ?? "",
+    serviceName: slugToName(r.service_slug),
+    serviceSlug: r.service_slug,
+    amount: r.amount,
+    method: "zelle",
+    createdAt: r.created_at,
+    paymentStatus: r.status,
+    proofUrl: buildZelleProofUrl(r.image_url || r.proof_path),
+    confirmationCode: r.confirmation_code,
+    paymentDate: r.payment_date,
+    adminNotes: r.admin_notes,
+    expectedAmount: r.expected_amount ?? null,
+    couponCode: r.coupon_code || null,
+    discountAmount: r.discount_amount ?? 0,
+  };
+}
+
+function mapStripeRecord(r: StripeRecord, slugToName: (s: string) => string): ZelleUnifiedPayment {
+  return {
+    id: r.id,
+    source: "stripe",
+    clientName: r.client_name ?? "",
+    clientEmail: r.client_email ?? "",
+    serviceName: slugToName(r.product_slug ?? ""),
+    serviceSlug: r.product_slug ?? "",
+    amount: typeof r.total_price_usd === "string" ? parseFloat(r.total_price_usd) : (Number(r.total_price_usd) || 0),
+    method: r.payment_method ?? "stripe_card",
+    createdAt: r.created_at,
+    paymentStatus: r.payment_status,
+  };
+}
+
 export function useZellePayments() {
   const { user } = useAuth();
   const isMaster = user?.role === "master";
   const officeId = user?.officeId ?? null;
+  const queryClient = useQueryClient();
 
   const t = useT("admin");
   const tVisas = useT("visas");
 
   const [tab, setTab] = useState<ZelleTab>("pending");
   const [search, setSearch] = useState("");
-  const [payments, setPayments] = useState<ZelleUnifiedPayment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [rejectTarget, setRejectTarget] = useState<ZelleUnifiedPayment | null>(null);
   const [proofTarget, setProofTarget] = useState<ZelleUnifiedPayment | null>(null);
@@ -84,133 +124,41 @@ export function useZellePayments() {
     return serviceNameMap[slug] ?? slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }, [t, tVisas]);
 
-  const load = useCallback(async () => {
-    setIsLoading(true);
-    const results: ZelleUnifiedPayment[] = [];
+  const { data: payments = [], isLoading } = useQuery({
+    queryKey: adminQueryKeys.zellePayments(tab, isMaster, officeId ?? undefined),
+    queryFn: async () => {
+      const results: ZelleUnifiedPayment[] = [];
 
-    if (tab === "pending") {
-      const zelleData = await listZellePaymentsByStatus({ status: "pending_verification", officeId, isMaster });
-      (zelleData ?? []).forEach((r: ZelleRecord) => {
-        results.push({
-          id: r.id,
-          source: "zelle",
-          zelleId: r.id,
-          userId: r.user_id ?? null,
-          clientName: r.guest_name ?? "",
-          clientEmail: r.guest_email ?? "",
-          serviceName: slugToName(r.service_slug),
-          serviceSlug: r.service_slug,
-          amount: r.amount,
-          method: "zelle",
-          createdAt: r.created_at,
-          paymentStatus: r.status,
-          proofUrl: buildZelleProofUrl(r.image_url || r.proof_path),
-          confirmationCode: r.confirmation_code,
-          paymentDate: r.payment_date,
-          adminNotes: r.admin_notes,
-          expectedAmount: r.expected_amount ?? null,
-          couponCode: r.coupon_code || null,
-          discountAmount: r.discount_amount ?? 0,
-        });
-      });
-    } else if (tab === "approved") {
-      const zelleData = await listZellePaymentsByStatus({ status: "approved", officeId, isMaster });
-      (zelleData ?? []).forEach((r: ZelleRecord) => {
-        results.push({
-          id: r.id,
-          source: "zelle",
-          zelleId: r.id,
-          userId: r.user_id ?? null,
-          clientName: r.guest_name ?? "",
-          clientEmail: r.guest_email ?? "",
-          serviceName: slugToName(r.service_slug),
-          serviceSlug: r.service_slug,
-          amount: r.amount,
-          method: "zelle",
-          createdAt: r.created_at,
-          proofUrl: buildZelleProofUrl(r.image_url || r.proof_path),
-          confirmationCode: r.confirmation_code,
-          expectedAmount: r.expected_amount ?? null,
-          couponCode: r.coupon_code || null,
-          discountAmount: r.discount_amount ?? 0,
-        });
-      });
+      if (tab === "pending") {
+        const zelleData = await listZellePaymentsByStatus({ status: "pending_verification", officeId, isMaster });
+        zelleData.forEach((r: ZelleRecord) => results.push(mapZelleRecord(r, slugToName)));
+      } else if (tab === "approved") {
+        const [zelleData, stripeData] = await Promise.all([
+          listZellePaymentsByStatus({ status: "approved", officeId, isMaster }),
+          listOrderPaymentsByStatus({ statuses: ["paid", "complete", "succeeded", "completed"], officeId, isMaster }),
+        ]);
+        zelleData.forEach((r) => results.push(mapZelleRecord(r, slugToName)));
+        stripeData.forEach((r) => results.push(mapStripeRecord(r, slugToName)));
+      } else {
+        const [zelleData, stripeData] = await Promise.all([
+          listZellePaymentsByStatus({ status: "rejected", officeId, isMaster }),
+          listOrderPaymentsByStatus({ statuses: ["rejected", "cancelled", "failed", "error"], officeId, isMaster }),
+        ]);
+        zelleData.forEach((r) => results.push(mapZelleRecord(r, slugToName)));
+        stripeData.forEach((r) => results.push(mapStripeRecord(r, slugToName)));
+      }
 
-      const stripeData = await listOrderPaymentsByStatus({
-        statuses: ["paid", "complete", "succeeded", "completed"],
-        officeId,
-        isMaster,
-      });
-      (stripeData ?? []).forEach((r: StripeRecord) => {
-        results.push({
-          id: r.id,
-          source: "stripe",
-          clientName: r.client_name ?? "",
-          clientEmail: r.client_email ?? "",
-          serviceName: slugToName(r.product_slug ?? ""),
-          serviceSlug: r.product_slug ?? "",
-          amount: typeof r.total_price_usd === "string" ? parseFloat(r.total_price_usd) : (Number(r.total_price_usd) || 0),
-          method: r.payment_method ?? "stripe_card",
-          createdAt: r.created_at,
-          paymentStatus: r.payment_status,
-        });
-      });
-    } else if (tab === "rejected") {
-      const [zelleData, stripeData] = await Promise.all([
-        listZellePaymentsByStatus({ status: "rejected", officeId, isMaster }),
-        listOrderPaymentsByStatus({ statuses: ["rejected", "cancelled", "failed", "error"], officeId, isMaster }),
-      ]);
+      return results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    },
+    staleTime: 0,
+  });
 
-      (zelleData ?? []).forEach((r: ZelleRecord) => {
-        results.push({
-          id: r.id,
-          source: "zelle",
-          zelleId: r.id,
-          clientName: r.guest_name ?? "",
-          clientEmail: r.guest_email ?? "",
-          serviceName: slugToName(r.service_slug),
-          serviceSlug: r.service_slug,
-          amount: r.amount,
-          method: "zelle",
-          createdAt: r.created_at,
-          paymentStatus: r.status,
-          proofUrl: buildZelleProofUrl(r.image_url || r.proof_path),
-          confirmationCode: r.confirmation_code,
-          adminNotes: r.admin_notes,
-          expectedAmount: r.expected_amount ?? null,
-          couponCode: r.coupon_code || null,
-          discountAmount: r.discount_amount ?? 0,
-        });
-      });
-      (stripeData ?? []).forEach((r: StripeRecord) => {
-        results.push({
-          id: r.id,
-          source: "stripe",
-          clientName: r.client_name ?? "",
-          clientEmail: r.client_email ?? "",
-          serviceName: slugToName(r.product_slug ?? ""),
-          serviceSlug: r.product_slug ?? "",
-          amount: typeof r.total_price_usd === "string" ? parseFloat(r.total_price_usd) : (Number(r.total_price_usd) || 0),
-          method: r.payment_method ?? "stripe_card",
-          createdAt: r.created_at,
-          paymentStatus: r.payment_status,
-        });
-      });
-    }
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: adminQueryKeys.zellePayments(tab, isMaster, officeId ?? undefined) });
 
-    results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    setPayments(results);
-    setIsLoading(false);
-  }, [tab, slugToName, isMaster, officeId]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const handleApprove = async (p: ZelleUnifiedPayment) => {
-    if (!p.zelleId) return;
-    setBusy(p.id);
-    try {
+  const approveMutation = useMutation({
+    mutationFn: async (p: ZelleUnifiedPayment) => {
       const approvedByName = user?.fullName || user?.email || "Admin";
-      await paymentService.approveZellePayment(p.zelleId, approvedByName);
+      await paymentService.approveZellePayment(p.zelleId!, approvedByName);
       await notificationService.notifyClient({
         userId: p.userId ?? undefined,
         link: "/dashboard",
@@ -218,21 +166,18 @@ export function useZellePayments() {
         action: "zelle_approved",
         metadata: { amount: `$${p.amount.toFixed(2)}`, service_name: p.serviceName },
       });
+    },
+    onSuccess: (_, p) => {
       toast.success(t.payments.messages.approveSuccess.replace("{{name}}", p.clientName || "Client"));
-      await load();
-    } catch {
-      toast.error(t.payments.messages.approveError);
-    } finally {
-      setBusy(null);
-    }
-  };
+      invalidate();
+    },
+    onError: () => toast.error(t.payments.messages.approveError),
+    onSettled: () => setBusy(null),
+  });
 
-  const handleReject = async (p: ZelleUnifiedPayment, reason: string) => {
-    if (!p.zelleId) return;
-    setRejectTarget(null);
-    setBusy(p.id);
-    try {
-      await paymentService.rejectZellePayment(p.zelleId, reason);
+  const rejectMutation = useMutation({
+    mutationFn: async ({ p, reason }: { p: ZelleUnifiedPayment; reason: string }) => {
+      await paymentService.rejectZellePayment(p.zelleId!, reason);
       await notificationService.notifyClient({
         userId: p.userId ?? undefined,
         link: "/dashboard",
@@ -240,13 +185,23 @@ export function useZellePayments() {
         action: "zelle_rejected",
         metadata: { reason: reason || "Payment rejected by administrator.", service_name: p.serviceName },
       });
-      toast.success(t.payments.messages.rejectSuccess);
-      await load();
-    } catch {
-      toast.error(t.payments.messages.rejectError);
-    } finally {
-      setBusy(null);
-    }
+    },
+    onSuccess: () => { toast.success(t.payments.messages.rejectSuccess); invalidate(); },
+    onError: () => toast.error(t.payments.messages.rejectError),
+    onSettled: () => setBusy(null),
+  });
+
+  const handleApprove = async (p: ZelleUnifiedPayment) => {
+    if (!p.zelleId) return;
+    setBusy(p.id);
+    await approveMutation.mutateAsync(p).catch(() => {});
+  };
+
+  const handleReject = async (p: ZelleUnifiedPayment, reason: string) => {
+    if (!p.zelleId) return;
+    setRejectTarget(null);
+    setBusy(p.id);
+    await rejectMutation.mutateAsync({ p, reason }).catch(() => {});
   };
 
   const filtered = payments.filter((p) => {
@@ -270,6 +225,6 @@ export function useZellePayments() {
     proofTarget, setProofTarget,
     handleApprove,
     handleReject,
-    load,
+    load: invalidate,
   };
 }

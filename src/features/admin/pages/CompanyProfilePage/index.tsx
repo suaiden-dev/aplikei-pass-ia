@@ -108,8 +108,7 @@ export default function CompanyProfilePage() {
 
       setSlugConflict(null);
       return false;
-    } catch (err) {
-      console.error("Error checking office slug conflict:", err);
+    } catch {
       setSlugConflict(null);
       return false;
     } finally {
@@ -144,9 +143,9 @@ export default function CompanyProfilePage() {
         await updateOfficeLogo(office.id, publicUrl, office.landing_page_config);
       }
 
-      toast.success("Logo uploaded successfully!");
+      toast.success(t.companyProfile.messages.logoUploadSuccess);
     } catch (err) {
-      toast.error("Failed to upload logo.");
+      toast.error(t.companyProfile.messages.logoUploadError);
     } finally {
       setIsUploadingLogo(false);
     }
@@ -175,8 +174,7 @@ export default function CompanyProfilePage() {
           facebook_url: "",
           landing_page_config: {},
         });
-      } catch (err) {
-        console.error("Error fetching office:", err);
+      } catch {
         toast.error(t.companyProfile.messages.loadError);
       } finally {
         setLoading(false);
@@ -193,7 +191,7 @@ export default function CompanyProfilePage() {
     const resolvedSlug = slugifyOfficeName(office.slug || office.name);
     const hasSlugConflict = await checkOfficeSlugConflict(resolvedSlug, office.id);
     if (hasSlugConflict) {
-      toast.error("This slug is already in use.");
+      toast.error(t.companyProfile.messages.slugConflict);
       return;
     }
 
@@ -211,8 +209,7 @@ export default function CompanyProfilePage() {
       await refreshAccount();
       toast.success(t.companyProfile.messages.saveSuccess);
       window.location.reload();
-    } catch (err) {
-      console.error("Error updating office:", err);
+    } catch {
       toast.error(t.companyProfile.messages.saveError);
     } finally {
       setSaving(false);
@@ -228,6 +225,13 @@ export default function CompanyProfilePage() {
   }
 
   if (!office) return null;
+
+  const logoUrl =
+    typeof office.logo_url === "string" && office.logo_url
+      ? office.logo_url
+      : typeof office.landing_page_config?.logoUrl === "string"
+        ? office.landing_page_config.logoUrl
+        : null;
 
   return (
     <div className="space-y-6 max-w-5xl pb-10">
@@ -255,9 +259,9 @@ export default function CompanyProfilePage() {
             <div className="grid gap-6 md:grid-cols-2 text-left">
               <div className="space-y-2 md:col-span-2 flex items-center gap-6">
                 <div className="h-16 w-16 bg-bg-subtle rounded-xl border border-border flex items-center justify-center overflow-hidden shrink-0">
-                  {(office.logo_url || office.landing_page_config?.logoUrl) ? (
+                  {logoUrl ? (
                     <img 
-                      src={office.logo_url || office.landing_page_config?.logoUrl} 
+                      src={logoUrl} 
                       alt="Logo" 
                       className="w-full h-full object-contain p-1" 
                     />
@@ -270,10 +274,10 @@ export default function CompanyProfilePage() {
                   <div className="flex items-center gap-3">
                     <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm text-text hover:bg-bg-subtle transition-colors">
                       {isUploadingLogo ? <Loader2 className="animate-spin h-4 w-4" /> : <RiUploadLine className="h-4 w-4" />}
-                      {isUploadingLogo ? "Uploading..." : (office.logo_url || office.landing_page_config?.logoUrl) ? "Change Logo" : "Upload Logo"}
+                      {isUploadingLogo ? "Uploading..." : logoUrl ? "Change Logo" : "Upload Logo"}
                       <input type="file" accept="image/*" className="hidden" onChange={handleLogoSelected} disabled={isUploadingLogo} />
                     </label>
-                    {(office.logo_url || office.landing_page_config?.logoUrl) && (
+                    {logoUrl && (
                       <span className="text-xs text-success font-bold">✓ Logo saved</span>
                     )}
                   </div>

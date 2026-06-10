@@ -62,14 +62,19 @@ describe("financeAnalyticsService", () => {
     });
 
     const orderMock = vi.fn().mockReturnValue({ limit: limitMock });
-    const selectMock = vi.fn().mockReturnValue({ order: orderMock });
+    const inMock = vi.fn().mockResolvedValue({ data: [], error: null });
+    const selectViewMock = vi.fn().mockReturnValue({ order: orderMock });
+    const selectOtherMock = vi.fn().mockReturnValue({ in: inMock });
 
-    vi.mocked(supabase.from).mockReturnValue({ select: selectMock } as any);
+    vi.mocked(supabase.from).mockImplementation((table: string) => {
+      if (table === "v_finance_analytics_transactions") return { select: selectViewMock } as any;
+      return { select: selectOtherMock } as any;
+    });
 
     const result = await financeAnalyticsService.getRecentTransactions(50);
 
     expect(result).toEqual([
-      {
+      expect.objectContaining({
         id: "ord-1",
         clientName: "John",
         clientEmail: "john@example.com",
@@ -79,7 +84,7 @@ describe("financeAnalyticsService", () => {
         method: "STRIPE",
         createdAt: "2026-05-01T12:00:00.000Z",
         status: "paid",
-      },
+      }),
     ]);
     expect(supabase.from).toHaveBeenCalledWith("v_finance_analytics_transactions");
   });

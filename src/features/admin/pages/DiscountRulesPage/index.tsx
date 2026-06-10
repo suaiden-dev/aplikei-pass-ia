@@ -12,6 +12,7 @@ import { Switch } from "@shared/components/atoms/switch";
 import { Input } from "@shared/components/atoms/input";
 import { Label } from "@shared/components/atoms/label";
 import { toast } from "sonner";
+import { useT } from "@app/app/i18n";
 
 function RuleCard({ icon, title, description, children }: {
   icon: React.ReactNode;
@@ -71,6 +72,7 @@ function NumericInput({
 }
 
 export default function DiscountRulesPage() {
+  const t = useT("admin");
   const { user } = useAuth();
   const [officeId, setOfficeId] = useState<string | null>(null);
   const [rules, setRules] = useState<DiscountRules>(DEFAULT_DISCOUNT_RULES);
@@ -94,13 +96,13 @@ export default function DiscountRulesPage() {
   }, [user?.id]);
 
   const save = async () => {
-    if (!officeId) { toast.error("Office not found."); return; }
+    if (!officeId) { toast.error(t.discountRules.messages.officeNotFound); return; }
     setIsSaving(true);
     try {
       await saveOfficeDiscountRules(officeId, rules);
-      toast.success("Discount rules saved.");
+      toast.success(t.discountRules.messages.saveSuccess);
     } catch {
-      toast.error("Error saving rules.");
+      toast.error(t.discountRules.messages.saveError);
     } finally {
       setIsSaving(false);
     }

@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@shared/lib/supabase";
 import { toast } from "sonner";
 import { notifyMaster } from "@features/notifications/services/notify";
+import { useT } from "@app/app/i18n";
+import { adminQueryKeys } from "@features/admin/lib/queryKeys";
 
 export interface WithdrawalRequest {
   id?: string;
@@ -14,10 +16,11 @@ export interface WithdrawalRequest {
 }
 
 export function useWithdrawals(officeId?: string) {
+  const t = useT("admin");
   const queryClient = useQueryClient();
 
   const { data: withdrawals, isLoading } = useQuery({
-    queryKey: ["office-withdrawals", officeId],
+    queryKey: adminQueryKeys.officeWithdrawals(officeId),
     queryFn: async () => {
       if (!officeId) return [];
       const { data, error } = await supabase
@@ -62,13 +65,12 @@ export function useWithdrawals(officeId?: string) {
           method: created?.method,
         },
       }).catch(err => console.warn("[withdrawals] Notification failed but request was created:", err));
-      queryClient.invalidateQueries({ queryKey: ["office-withdrawals", officeId] });
-      queryClient.invalidateQueries({ queryKey: ["office-overview-stats", officeId] });
-      toast.success("Withdrawal request created successfully!");
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.officeWithdrawals(officeId) });
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.officeOverviewStats(officeId) });
+      toast.success(t.payoutSettings.messages.requestCreated);
     },
-    onError: (error: any) => {
-      console.error("Error creating withdrawal:", error);
-      toast.error(error.message || "Error creating withdrawal request.");
+    onError: (error: Error) => {
+      toast.error(error.message || t.payoutSettings.messages.saveError);
     }
   });
 

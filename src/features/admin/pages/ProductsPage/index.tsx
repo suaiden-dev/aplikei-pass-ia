@@ -28,8 +28,10 @@ import {
   formatUsd,
 } from "@features/admin/services/productsService";
 import { useProductsPage } from "@features/admin/hooks/useProductsPage";
+import { useT } from "@app/app/i18n";
 
 export default function ProductsPage() {
+  const t = useT("admin");
   const {
     isLoading,
     isSaving,
@@ -86,7 +88,7 @@ export default function ProductsPage() {
           Login URL: <span className="text-text normal-case font-medium">{loginUrl}</span>
         </p>
         <button
-          onClick={() => { navigator.clipboard.writeText(loginUrl); toast.success("Login URL copied!"); }}
+          onClick={() => { navigator.clipboard.writeText(loginUrl); toast.success(t.products.messages.loginUrlCopied); }}
           className="text-[10px] font-black text-primary uppercase bg-primary/10 px-3 py-1.5 rounded-lg inline-flex items-center gap-1"
         >
           <RiFileCopyLine className="text-sm" />
@@ -134,9 +136,9 @@ export default function ProductsPage() {
                 <button
                   onClick={() => {
                     const url = checkoutUrl(selectedMain.slug);
-                    if (!url) { toast.error("Unable to generate link. Set office slug first."); return; }
+                    if (!url) { toast.error(t.products.messages.noSlug); return; }
                     navigator.clipboard.writeText(url);
-                    toast.success("Product link copied!");
+                    toast.success(t.products.messages.linkCopied);
                   }}
                   className="mt-2 h-10 rounded-xl bg-primary/10 px-4 text-xs font-semibold uppercase tracking-widest text-primary transition-all hover:bg-primary/20 inline-flex items-center gap-2"
                 >

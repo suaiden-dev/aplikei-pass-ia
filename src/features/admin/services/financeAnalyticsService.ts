@@ -258,8 +258,8 @@ export const financeAnalyticsService = {
         .from("offices")
         .select("id, name")
         .in("id", officeIds);
-      (offices ?? []).forEach((office: any) => {
-        if (office?.id) officeNameById.set(office.id, office.name ?? "Office");
+      (offices ?? []).forEach((office) => {
+        if (office?.id) officeNameById.set(office.id, (office as { id: string; name?: string | null }).name ?? "Office");
       });
     }
 

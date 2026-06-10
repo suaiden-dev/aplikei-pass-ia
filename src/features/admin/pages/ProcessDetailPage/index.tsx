@@ -34,7 +34,7 @@ import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "@shared/data/workflow
 import { normalizeLegacyFinalShipSteps, normalizeLegacyStepId } from "@shared/utils/legacyWorkflow";
 import { supabase } from "@shared/lib/supabase";
 import * as processService from "@features/process/services/processOps";
-import type { UserService } from "@features/process/types";
+import type { UserService, StepData } from "@features/process/types";
 import * as notificationService from "@features/notifications/services/notify";
 import { packageService } from "@features/onboarding/cos/lib/package";
 import { toast } from "sonner";
@@ -638,7 +638,7 @@ function FinalSchedulingPanel({ proc, onRefresh, isActive }: { proc: ProcessWith
   const t = useT("admin");
   const vt = useT("visas");
 
-  const hasSchedulingData = !!(proc.step_data as any)?.final_casv_date;
+  const hasSchedulingData = !!(proc.step_data as StepData)?.final_casv_date;
   const isPast = hasSchedulingData;
   const canEdit = isActive || isPast;
 
@@ -687,7 +687,7 @@ function FinalSchedulingPanel({ proc, onRefresh, isActive }: { proc: ProcessWith
     }
   };
 
-  const upsellPlan = (proc.step_data as any)?.upsell_plan as string;
+  const upsellPlan = (proc.step_data as StepData)?.upsell_plan as string;
 
   return (
     <div className="space-y-8">
@@ -1414,7 +1414,8 @@ export default function AdminProcessDetailPage() {
           .maybeSingle();
         if (ownOfficeData) {
           setOfficeName(ownOfficeData.name ?? null);
-          setOfficeLogoUrl(ownOfficeData.logo_url ?? (ownOfficeData.landing_page_config as any)?.logoUrl ?? null);
+          const landingConfig = ownOfficeData.landing_page_config as Record<string, unknown> | null;
+          setOfficeLogoUrl(ownOfficeData.logo_url ?? (landingConfig?.logoUrl as string | null) ?? null);
         } else {
           setOfficeName(null);
           setOfficeLogoUrl(null);
@@ -1423,17 +1424,18 @@ export default function AdminProcessDetailPage() {
 
       // 1. Direct step_data / metadata checks
       let resolvedSellerId: string | null = 
-        (processRow.step_data as any)?.seller_id || 
-        (processRow.service_metadata as any)?.seller_id || 
-        (processRow.data as any)?.seller_id || 
+        (processRow.step_data as StepData)?.seller_id || 
+        (processRow.service_metadata as StepData)?.seller_id || 
+        (processRow.data as StepData)?.seller_id || 
         null;
       let resolvedSellerName: string | null = null;
 
       try {
         // Collect order IDs from this process
         const orderIds = new Set<string>();
-        const sd = (processRow.step_data as any) || {};
-        if (sd.purchase_ref?.order_id) orderIds.add(sd.purchase_ref.order_id);
+        const sd = (processRow.step_data as StepData) || {};
+        const purchaseRef = (sd.purchase_ref as { order_id?: string } | null | undefined) ?? null;
+        if (purchaseRef?.order_id) orderIds.add(purchaseRef.order_id);
         if (Array.isArray(sd.purchases)) {
           sd.purchases.forEach((p: any) => {
             if (p.order_id) orderIds.add(p.order_id);
@@ -1441,7 +1443,7 @@ export default function AdminProcessDetailPage() {
         }
 
         // Parent process checks
-        const parentId = sd.parent_process_id;
+        const parentId = typeof sd.parent_process_id === "string" ? sd.parent_process_id : null;
         if (parentId) {
           const { data: parentProc } = await supabase
             .from("user_services")
@@ -1451,13 +1453,14 @@ export default function AdminProcessDetailPage() {
           if (parentProc) {
             if (!resolvedSellerId) {
               resolvedSellerId = 
-                (parentProc.step_data as any)?.seller_id || 
-                (parentProc.service_metadata as any)?.seller_id || 
-                (parentProc.data as any)?.seller_id || 
+                (parentProc.step_data as StepData)?.seller_id || 
+                (parentProc.service_metadata as StepData)?.seller_id || 
+                (parentProc.data as StepData)?.seller_id || 
                 null;
             }
-            const psd = (parentProc.step_data as any) || {};
-            if (psd.purchase_ref?.order_id) orderIds.add(psd.purchase_ref.order_id);
+            const psd = (parentProc.step_data as StepData) || {};
+            const parentPurchaseRef = (psd.purchase_ref as { order_id?: string } | null | undefined) ?? null;
+            if (parentPurchaseRef?.order_id) orderIds.add(parentPurchaseRef.order_id);
             if (Array.isArray(psd.purchases)) {
               psd.purchases.forEach((p: any) => {
                 if (p.order_id) orderIds.add(p.order_id);
@@ -1553,12 +1556,10 @@ export default function AdminProcessDetailPage() {
             }
           }
         }
-      } catch (sellerErr) {
-        console.error("Error fetching seller details:", sellerErr);
+      } catch {
+        // seller details are optional — failure does not block process load
       }
 
-      console.log("Resolved seller ID:", resolvedSellerId);
-      console.log("Resolved seller name:", resolvedSellerName);
       setSellerId(resolvedSellerId);
       setSellerName(resolvedSellerName);
 
@@ -1575,8 +1576,7 @@ export default function AdminProcessDetailPage() {
         const rawHtml = stepData.generatedCoverLetterHTML as string;
         setCoverLetterHtml(rawHtml.replace(/(?:background-color|background|color)\s*:\s*[^;}"']+;?/gi, ''));
       }
-    } catch (err: unknown) {
-      console.error("Error loading process:", err);
+    } catch {
       toast.error(t.cases.messages.loadError);
       navigate(`${processRoutePrefix}/processes`);
     } finally {
@@ -1629,19 +1629,20 @@ export default function AdminProcessDetailPage() {
     );
   }
   const isCOS = proc.service_slug.includes("troca-status") || proc.service_slug.includes("extensao-status");
-  const history = ((proc.step_data as any)?.history as Array<{ type?: string; steps?: unknown[] }>) || [];
+  const history = ((proc.step_data as StepData)?.history as Array<{ type?: string; steps?: unknown[] }>) || [];
   
   const effectiveSteps = service ? buildEffectiveSteps(service.steps, history) : [];
   const rawCurrentStep =
     proc.current_step ??
-    (typeof (proc.step_data as any)?.current_step === "number"
-      ? (proc.step_data as any).current_step
-      : Number((proc.step_data as any)?.current_step ?? 0));
-  const normalizedCurrentStep = Number.isFinite(rawCurrentStep) ? Math.max(0, Math.floor(rawCurrentStep)) : 0;
+    (typeof (proc.step_data as StepData)?.current_step === "number"
+      ? (proc.step_data as StepData).current_step
+      : Number((proc.step_data as StepData)?.current_step ?? 0));
+  const currentStepNumber = Number(rawCurrentStep);
+  const normalizedCurrentStep = Number.isFinite(currentStepNumber) ? Math.max(0, Math.floor(currentStepNumber)) : 0;
   const currentStepIdx = Math.min(normalizedCurrentStep, Math.max(0, effectiveSteps.length - 1));
   const currentStep = effectiveSteps[currentStepIdx];
   const currentStepBaseId = normalizeLegacyStepId(currentStep?.id);
-  const workflowStatus = String((proc.step_data as any)?.workflow_status ?? "").toLowerCase();
+  const workflowStatus = String((proc.step_data as StepData)?.workflow_status ?? "").toLowerCase();
 
   const handleApproveStep = async (extraData?: Record<string, unknown>) => {
     if (!service || isSubmitting) return;
@@ -1651,8 +1652,8 @@ export default function AdminProcessDetailPage() {
 
       // --- SKIP LOGIC: Se o visto de destino ou atual NÃO for F1, pula I-20 e SEVIS ---
       if (isCOS) {
-        const targetVisa = String((proc.step_data as any)?.targetVisa || "");
-        const currentVisa = String((proc.step_data as any)?.currentVisa || "");
+        const targetVisa = String((proc.step_data as StepData)?.targetVisa || "");
+        const currentVisa = String((proc.step_data as StepData)?.currentVisa || "");
         const isF1 = targetVisa.includes("F1") || targetVisa.includes("F-1") || currentVisa.includes("F1") || currentVisa.includes("F-1");
 
         if (!isF1) {
@@ -1714,7 +1715,6 @@ export default function AdminProcessDetailPage() {
       window.scrollTo(0, 0);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Unknown error";
-      console.error(error);
       toast.error(t.cases.messages.errorAction + msg);
     } finally {
       setIsSubmitting(false);
@@ -1792,7 +1792,6 @@ export default function AdminProcessDetailPage() {
       window.scrollTo(0, 0);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Unknown error";
-      console.error(error);
       toast.error(t.cases.messages.errorAction + msg);
     } finally {
       setIsSubmitting(false);
@@ -1804,7 +1803,7 @@ export default function AdminProcessDetailPage() {
     setIsGeneratingCoverLetter(true);
     try {
       const payload = {
-        coverLetter: (proc.step_data as any)?.coverLetter,
+        coverLetter: (proc.step_data as StepData)?.coverLetter,
         user: proc.user_accounts
       };
       const res = await fetch(import.meta.env.VITE_N8N_BOT_COVERLATTER as string, {
@@ -1956,7 +1955,7 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderOfficialForms = () => {
-    const pdfUrl = (proc.step_data as any)?.i539PdfUrl as string | undefined;
+    const pdfUrl = (proc.step_data as StepData)?.i539PdfUrl as string | undefined;
     if (!pdfUrl) return null;
 
     const isSelected = selectedItems.includes('i539PdfUrl');
@@ -2016,7 +2015,7 @@ export default function AdminProcessDetailPage() {
   };
 
   const renderCoverLetterAdmin = () => {
-    if (!(proc.step_data as any)?.coverLetter) return null;
+    if (!(proc.step_data as StepData)?.coverLetter) return null;
     const stepId =
       proc.service_slug === "extensao-status"
         ? "eos_admin_cover_analysis"
@@ -2057,8 +2056,8 @@ export default function AdminProcessDetailPage() {
   const renderFinalFormsAdmin = () => {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
     const isEOS = proc.service_slug === "extensao-status";
-    const g1145PdfUrl = (proc.step_data as any)?.g1145PdfUrl as string;
-    const g1450PdfUrl = (proc.step_data as any)?.g1450PdfUrl as string;
+    const g1145PdfUrl = (proc.step_data as StepData)?.g1145PdfUrl as string;
+    const g1450PdfUrl = (proc.step_data as StepData)?.g1450PdfUrl as string;
     if (!g1145PdfUrl && !g1450PdfUrl) return null;
     const finalFormsStepId = isEOS ? "eos_admin_final_review" : "cos_analysis_final_forms";
     const isActive = currentStepBaseId === finalFormsStepId;
@@ -2139,7 +2138,7 @@ export default function AdminProcessDetailPage() {
       );
     }
 
-    const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
+    const docs = ((proc.step_data as StepData)?.docs || {}) as Record<string, string>;
     if (Object.keys(docs).length === 0) return null;
 
     return (
@@ -2186,8 +2185,8 @@ export default function AdminProcessDetailPage() {
     const isActive = i20Idx !== -1 && currentStepIdx === i20Idx;
     const isPast = i20Idx !== -1 && currentStepIdx > i20Idx;
 
-    const targetVisa = String((proc.step_data as any)?.targetVisa || "");
-    const currentVisa = String((proc.step_data as any)?.currentVisa || "");
+    const targetVisa = String((proc.step_data as StepData)?.targetVisa || "");
+    const currentVisa = String((proc.step_data as StepData)?.currentVisa || "");
     const isF1 = targetVisa.includes("F1") || targetVisa.includes("F-1") || currentVisa.includes("F1") || currentVisa.includes("F-1");
 
     const isWaitingClient = isActive && proc.status === "active";
@@ -2199,7 +2198,7 @@ export default function AdminProcessDetailPage() {
       );
     }
 
-    const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
+    const docs = ((proc.step_data as StepData)?.docs || {}) as Record<string, string>;
 
     if (!isF1) {
       const uscisUrl = docs.uscis_receipt ? supabase.storage.from("aplikei-profiles").getPublicUrl(docs.uscis_receipt).data.publicUrl : null;
@@ -2315,9 +2314,9 @@ export default function AdminProcessDetailPage() {
       );
     }
 
-    const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
-    const rejectedItems = (((proc.step_data as any)?.rejected_items as string[]) || []);
-    const hasAdminFeedback = Boolean((proc.step_data as any)?.admin_feedback);
+    const docs = ((proc.step_data as StepData)?.docs || {}) as Record<string, string>;
+    const rejectedItems = (((proc.step_data as StepData)?.rejected_items as string[]) || []);
+    const hasAdminFeedback = Boolean((proc.step_data as StepData)?.admin_feedback);
     const hasCorrectionsInSection = hasAdminFeedback && rejectedItems.some((item) =>
       ["docs.i20_document", "docs.sevis_receipt"].includes(item),
     );
@@ -2379,9 +2378,9 @@ export default function AdminProcessDetailPage() {
       );
     }
 
-    const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
-    const rejectedItems = (((proc.step_data as any)?.rejected_items as string[]) || []);
-    const hasAdminFeedback = Boolean((proc.step_data as any)?.admin_feedback);
+    const docs = ((proc.step_data as StepData)?.docs || {}) as Record<string, string>;
+    const rejectedItems = (((proc.step_data as StepData)?.rejected_items as string[]) || []);
+    const hasAdminFeedback = Boolean((proc.step_data as StepData)?.admin_feedback);
     const hasCorrectionsInSection = hasAdminFeedback && rejectedItems.some((item) =>
       ["docs.ds160_assinada", "docs.ds160_comprovante"].includes(item),
     );
@@ -2460,9 +2459,9 @@ export default function AdminProcessDetailPage() {
       );
     }
 
-    const docs = ((proc.step_data as any)?.docs || {}) as Record<string, string>;
-    const rejectedItems = (((proc.step_data as any)?.rejected_items as string[]) || []);
-    const hasAdminFeedback = Boolean((proc.step_data as any)?.admin_feedback);
+    const docs = ((proc.step_data as StepData)?.docs || {}) as Record<string, string>;
+    const rejectedItems = (((proc.step_data as StepData)?.rejected_items as string[]) || []);
+    const hasAdminFeedback = Boolean((proc.step_data as StepData)?.admin_feedback);
     const hasCorrectionsInSection = hasAdminFeedback && rejectedItems.some((item) =>
       ["docs.ds160_assinada", "docs.ds160_comprovante"].includes(item),
     );
@@ -2535,8 +2534,8 @@ export default function AdminProcessDetailPage() {
     const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 6 : 5);
     if (!isActive && !isPast) return null;
 
-    const casvDate = (proc.step_data as any)?.casv_preferred_date as string;
-    const consulado = (proc.step_data as any)?.interviewLocation as string;
+    const casvDate = (proc.step_data as StepData)?.casv_preferred_date as string;
+    const consulado = (proc.step_data as StepData)?.interviewLocation as string;
 
     const consuladoLabels: Record<string, { flag: string; cidade: string; estado: string }> = {
       Brasilia: { flag: "🏛️", cidade: "Brasília", estado: "DF" },
@@ -2596,12 +2595,12 @@ export default function AdminProcessDetailPage() {
     const isPast = currentStepIdx > (proc.service_slug.includes("f1") ? 7 : 6);
     if (!isActive && !isPast) return null;
 
-    const emailRaw = ((proc.step_data as any)?.primaryEmail || proc.user_accounts?.email || "") as string;
-    const name = ((proc.step_data as any)?.fullName || proc.user_accounts?.full_name || t.processDetail.accountCreation.notInformed) as string;
+    const emailRaw = ((proc.step_data as StepData)?.primaryEmail || proc.user_accounts?.email || "") as string;
+    const name = ((proc.step_data as StepData)?.fullName || proc.user_accounts?.full_name || t.processDetail.accountCreation.notInformed) as string;
     const phoneRaw = (
-      (proc.step_data as any)?.primaryPhone ||
-      (proc.step_data as any)?.cellPhone ||
-      (proc.step_data as any)?.phone ||
+      (proc.step_data as StepData)?.primaryPhone ||
+      (proc.step_data as StepData)?.cellPhone ||
+      (proc.step_data as StepData)?.phone ||
       ""
     ) as string;
     const email = emailRaw || t.processDetail.accountCreation.notInformed;
@@ -2731,7 +2730,7 @@ export default function AdminProcessDetailPage() {
   const renderB1B2FinalSchedulingAdmin = () => {
     if (!proc || (!proc.service_slug.includes("b1b2") && !proc.service_slug.includes("b1-b2") && !proc.service_slug.includes("f1"))) return null;
     const finalSchedulingStepIdx = proc.service_slug.includes("f1") ? 11 : 10;
-    const hasSchedulingData = !!(proc.step_data as any)?.final_casv_date;
+    const hasSchedulingData = !!(proc.step_data as StepData)?.final_casv_date;
     const isActiveByStep = currentStepBaseId === "b1b2_final_scheduling" || currentStepBaseId === "f1_final_scheduling";
     const isActiveByPosition = currentStepIdx >= finalSchedulingStepIdx && !hasSchedulingData;
     const isActive = isActiveByStep || isActiveByPosition;
@@ -2748,7 +2747,7 @@ export default function AdminProcessDetailPage() {
   const renderFinalPackageAdmin = () => {
     if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
     const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const finalPackageUrl = (proc.step_data as any)?.finalPackagePdfUrl as string;
+    const finalPackageUrl = (proc.step_data as StepData)?.finalPackagePdfUrl as string;
     const stepId = `${prefix}final_package`;
     const packageIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
     const isActive = packageIdx !== -1 && currentStepIdx === packageIdx;
@@ -2863,42 +2862,42 @@ export default function AdminProcessDetailPage() {
       <CollapsibleStep title={proc.service_slug.includes("extensao-status") ? "EOS - Info" : "Motion - Info"} icon={RiFileTextLine} isActive={isActive} isPast={isPast}>
         <div className="space-y-4 text-left">
           <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
-            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.motion.clientReasonLabel || "Motivo enviado pelo cliente"}</p>
-            <p className="text-sm font-bold text-text whitespace-pre-wrap">{reason || (t.motion.clientReasonPlaceholder || "Cliente ainda não enviou o motivo.")}</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.processDetail.motion.clientReasonLabel || "Motivo enviado pelo cliente"}</p>
+            <p className="text-sm font-bold text-text whitespace-pre-wrap">{reason || (t.processDetail.motion.clientReasonPlaceholder || "Cliente ainda não enviou o motivo.")}</p>
             {submittedAt && (
               <p className="text-[10px] font-bold text-text-muted mt-3 uppercase tracking-widest">
-                {t.motion.submittedAt || "Enviado em"} {new Date(submittedAt).toLocaleString(t.shared.locale || "pt-BR")}
+                {t.processDetail.motion.submittedAt || "Enviado em"} {new Date(submittedAt).toLocaleString(t.shared.locale || "pt-BR")}
               </p>
             )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 rounded-2xl bg-bg-subtle border border-border">
-              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.motion.denialLetterLabel || "Carta de negativa"}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.processDetail.motion.denialLetterLabel || "Carta de negativa"}</p>
               {denialUrl ? (
                 <a href={denialUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                  <RiExternalLinkLine /> {t.motion.viewFile || "Visualizar arquivo"}
+                  <RiExternalLinkLine /> {t.processDetail.motion.viewFile || "Visualizar arquivo"}
                 </a>
               ) : (
-                <p className="text-xs font-bold text-text-muted">{t.motion.notSent || "Não enviado."}</p>
+                <p className="text-xs font-bold text-text-muted">{t.processDetail.motion.notSent || "Não enviado."}</p>
               )}
             </div>
 
             <div className="p-4 rounded-2xl bg-bg-subtle border border-border">
-              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.motion.supportingDocs || "Documentos de apoio"}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.processDetail.motion.supportingDocs || "Documentos de apoio"}</p>
               {supportUrl ? (
                 <a href={supportUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                  <RiExternalLinkLine /> {t.motion.viewFile || "Visualizar arquivo"}
+                  <RiExternalLinkLine /> {t.processDetail.motion.viewFile || "Visualizar arquivo"}
                 </a>
               ) : (
-                <p className="text-xs font-bold text-text-muted">{t.motion.notSent || "Não enviado."}</p>
+                <p className="text-xs font-bold text-text-muted">{t.processDetail.motion.notSent || "Não enviado."}</p>
               )}
             </div>
           </div>
 
           {instructionHistory.length > 0 && (
             <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
-              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3">{t.motion.submissionHistory || "Histórico de envios"}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3">{t.processDetail.motion.submissionHistory || "Histórico de envios"}</p>
               <div className="space-y-3">
                 {[...instructionHistory].reverse().map((entry, idx) => {
                   const entryReason = String(entry.reason || "").trim();
@@ -2914,21 +2913,21 @@ export default function AdminProcessDetailPage() {
                   return (
                     <div key={`motion-history-${idx}`} className="p-4 rounded-xl bg-card border border-border">
                       <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
-                        {t.motion.submission || "Envio"} {instructionHistory.length - idx}
+                        {t.processDetail.motion.submission || "Envio"} {instructionHistory.length - idx}
                         {entryAt ? ` • ${new Date(entryAt).toLocaleString(t.shared.locale || "pt-BR")}` : ""}
                       </p>
                       <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">
-                        {entryReason || (t.motion.noDescription || "Sem descrição")}
+                        {entryReason || (t.processDetail.motion.noDescription || "Sem descrição")}
                       </p>
                       <div className="flex flex-wrap gap-3">
                         {entryDenial && (
                           <a href={entryDenial} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                            <RiExternalLinkLine /> {t.motion.denialLetterLabel || "Carta de negativa"}
+                            <RiExternalLinkLine /> {t.processDetail.motion.denialLetterLabel || "Carta de negativa"}
                           </a>
                         )}
                         {entrySupport && (
                           <a href={entrySupport} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                            <RiExternalLinkLine /> {t.motion.supportingDocs || "Documento de apoio"}
+                            <RiExternalLinkLine /> {t.processDetail.motion.supportingDocs || "Documento de apoio"}
                           </a>
                         )}
                       </div>
@@ -2941,7 +2940,7 @@ export default function AdminProcessDetailPage() {
 
           {proposalHistory.length > 0 && (
             <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
-              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3">{t.motion.proposalHistory || "Histórico de propostas"}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3">{t.processDetail.motion.proposalHistory || "Histórico de propostas"}</p>
               <div className="space-y-3">
                 {[...proposalHistory].reverse().map((entry, idx) => {
                   const entryText = String(entry.proposal_text || "").trim();
@@ -2951,14 +2950,14 @@ export default function AdminProcessDetailPage() {
                   return (
                     <div key={`motion-proposal-history-${idx}`} className="p-4 rounded-xl bg-card border border-border">
                       <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">
-                        {t.motion.proposal || "Proposta"} {proposalHistory.length - idx}
+                        {t.processDetail.motion.proposal || "Proposta"} {proposalHistory.length - idx}
                         {entryAt ? ` • ${new Date(entryAt).toLocaleString(t.shared.locale || "pt-BR")}` : ""}
                       </p>
                       <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">
-                        {entryText || (t.motion.noDescription || "Sem descrição")}
+                        {entryText || (t.processDetail.motion.noDescription || "Sem descrição")}
                       </p>
                       <p className="text-[10px] font-black uppercase tracking-widest text-primary">
-                        {t.motion.amountLabelShort || "Valor: USD"} {entryAmount.toFixed(2)}
+                        {t.processDetail.motion.amountLabelShort || "Valor: USD"} {entryAmount.toFixed(2)}
                       </p>
                     </div>
                   );
@@ -3019,14 +3018,14 @@ export default function AdminProcessDetailPage() {
           {(isMotionRejected || isMotionApproved) && (
             <div className={`p-4 rounded-2xl border ${isMotionRejected ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"}`}>
               <p className={`text-[10px] font-black uppercase tracking-widest ${isMotionRejected ? "text-red-700" : "text-emerald-700"}`}>
-                {isMotionRejected ? (t.motion.motionRejectedByClient || "Motion reprovado pelo cliente") : (t.motion.motionApprovedByClient || "Motion aprovado pelo cliente")}
+                {isMotionRejected ? (t.processDetail.motion.motionRejectedByClient || "Motion reprovado pelo cliente") : (t.processDetail.motion.motionApprovedByClient || "Motion aprovado pelo cliente")}
               </p>
             </div>
           )}
 
           <div className={`p-4 rounded-2xl border ${isProposalPaid ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"}`}>
             <p className={`text-[10px] font-black uppercase tracking-widest ${isProposalPaid ? "text-emerald-700" : "text-amber-700"}`}>
-              {isProposalPaid ? (t.motion.proposalPaidByClient || "Motion - Proposal paga pelo cliente") : (t.motion.awaitingProposalPayment || "Aguardando pagamento da Motion - Proposal")}
+              {isProposalPaid ? (t.processDetail.motion.proposalPaidByClient || "Motion - Proposal paga pelo cliente") : (t.processDetail.motion.awaitingProposalPayment || "Aguardando pagamento da Motion - Proposal")}
             </p>
             {isProposalPaid && proposalPaidAt && (
               <p className="text-[10px] font-bold text-emerald-700/80 mt-1 uppercase tracking-widest">
@@ -3037,10 +3036,10 @@ export default function AdminProcessDetailPage() {
 
           {(latestText || latestAmount > 0 || latestSentAt || proposalHistory.length > 0) && (
             <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
-              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.motion.sendProposal || "Proposta enviada"}</p>
-              <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">{latestText || (t.motion.noDescription || "Sem descrição")}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.processDetail.motion.sendProposal || "Proposta enviada"}</p>
+              <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">{latestText || (t.processDetail.motion.noDescription || "Sem descrição")}</p>
               <p className="text-[10px] font-black uppercase tracking-widest text-primary">
-                {t.motion.amountLabelShort || "Valor: USD"} {latestAmount.toFixed(2)}
+                {t.processDetail.motion.amountLabelShort || "Valor: USD"} {latestAmount.toFixed(2)}
               </p>
               {latestSentAt && (
                 <p className="text-[10px] font-bold text-text-muted mt-2 uppercase tracking-widest">
@@ -3089,17 +3088,17 @@ export default function AdminProcessDetailPage() {
       <CollapsibleStep title={proc.service_slug.includes("extensao-status") ? "EOS RFE - Info" : "RFE - Info"} icon={RiFileTextLine} isActive={isActive} isPast={isPast}>
         <div className="space-y-4 text-left">
           <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
-            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.rfe.clientDescriptionLabel || "Descrição enviada pelo cliente"}</p>
-            <p className="text-sm font-bold text-text whitespace-pre-wrap">{description || (t.rfe.clientDescriptionPlaceholder || "Cliente ainda não enviou a descrição.")}</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.processDetail.rfe.clientDescriptionLabel || "Descrição enviada pelo cliente"}</p>
+            <p className="text-sm font-bold text-text whitespace-pre-wrap">{description || (t.processDetail.rfe.clientDescriptionPlaceholder || "Cliente ainda não enviou a descrição.")}</p>
           </div>
           <div className="p-4 rounded-2xl bg-bg-subtle border border-border">
-            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.rfe.officialLetterLabel || "Carta RFE"}</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.processDetail.rfe.officialLetterLabel || "Carta RFE"}</p>
             {rfeUrl ? (
               <a href={rfeUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                <RiExternalLinkLine /> {t.motion.viewFile || "Visualizar arquivo"}
+                <RiExternalLinkLine /> {t.processDetail.motion.viewFile || "Visualizar arquivo"}
               </a>
             ) : (
-              <p className="text-xs font-bold text-text-muted">{t.motion.notSent || "Não enviado."}</p>
+              <p className="text-xs font-bold text-text-muted">{t.processDetail.motion.notSent || "Não enviado."}</p>
             )}
           </div>
         </div>
@@ -3130,20 +3129,20 @@ export default function AdminProcessDetailPage() {
           {(isRejected || isApproved) && (
             <div className={`p-4 rounded-2xl border ${isRejected ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"}`}>
               <p className={`text-[10px] font-black uppercase tracking-widest ${isRejected ? "text-red-700" : "text-emerald-700"}`}>
-                {isRejected ? (t.rfe.rfeRejectedByClient || "RFE reprovado pelo cliente") : (t.rfe.rfeApprovedByClient || "RFE aprovado pelo cliente")}
+                {isRejected ? (t.processDetail.rfe.rfeRejectedByClient || "RFE reprovado pelo cliente") : (t.processDetail.rfe.rfeApprovedByClient || "RFE aprovado pelo cliente")}
               </p>
             </div>
           )}
           <div className={`p-4 rounded-2xl border ${isPaid ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"}`}>
             <p className={`text-[10px] font-black uppercase tracking-widest ${isPaid ? "text-emerald-700" : "text-amber-700"}`}>
-              {isPaid ? (t.rfe.proposalPaidByClient || "RFE - Proposta paga pelo cliente") : (t.rfe.awaitingProposalPayment || "Aguardando pagamento da RFE - Proposta")}
+              {isPaid ? (t.processDetail.rfe.proposalPaidByClient || "RFE - Proposta paga pelo cliente") : (t.processDetail.rfe.awaitingProposalPayment || "Aguardando pagamento da RFE - Proposta")}
             </p>
           </div>
           {(latestText || latestAmount > 0 || latestSentAt) && (
             <div className="p-5 rounded-2xl bg-bg-subtle border border-border">
-              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.motion.sendProposal || "Proposta enviada"}</p>
-              <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">{latestText || (t.motion.noDescription || "Sem descrição")}</p>
-              <p className="text-[10px] font-black uppercase tracking-widest text-primary">{t.rfe.amount || "Valor:"} USD {latestAmount.toFixed(2)}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">{t.processDetail.motion.sendProposal || "Proposta enviada"}</p>
+              <p className="text-sm font-bold text-text whitespace-pre-wrap mb-3">{latestText || (t.processDetail.motion.noDescription || "Sem descrição")}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-primary">{t.processDetail.rfe.amount || "Valor:"} USD {latestAmount.toFixed(2)}</p>
               {latestSentAt && (
                 <p className="text-[10px] font-bold text-text-muted mt-2 uppercase tracking-widest">
                   {new Date(latestSentAt).toLocaleString(t.shared.locale || "pt-BR")}
@@ -3382,9 +3381,9 @@ export default function AdminProcessDetailPage() {
                     <span className="text-[11px] font-black uppercase text-emerald-600 tracking-tight">
                       {vt.onboardingPage?.processingStatus?.outcomeApproved}
                     </span>
-                    {(proc.step_data as any)?.reported_at && (
+                    {(proc.step_data as StepData)?.reported_at && (
                       <span className="text-[8px] font-bold text-emerald-600/60 uppercase">
-                        {new Date((proc.step_data as any).reported_at as string).toLocaleDateString()}
+                        {new Date((proc.step_data as StepData).reported_at as string).toLocaleDateString()}
                       </span>
                     )}
                   </div>
@@ -3399,9 +3398,9 @@ export default function AdminProcessDetailPage() {
                     <span className="text-[11px] font-black uppercase text-rose-600 tracking-tight">
                       {vt.onboardingPage?.processingStatus?.outcomeRejected}
                     </span>
-                    {(proc.step_data as any)?.reported_at && (
+                    {(proc.step_data as StepData)?.reported_at && (
                       <span className="text-[8px] font-bold text-rose-600/60 uppercase">
-                        {new Date((proc.step_data as any).reported_at as string).toLocaleDateString()}
+                        {new Date((proc.step_data as StepData).reported_at as string).toLocaleDateString()}
                       </span>
                     )}
                   </div>

@@ -44,24 +44,20 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Fresh Data State
   const [freshStepData, setFreshStepData] = useState<Record<string, unknown>>(stepData);
   const [isAdminConfirmed, setIsAdminConfirmed] = useState(false);
 
-  // Mentorship State
   const [purchasedMentorship, setPurchasedMentorship] = useState<Record<string, unknown> | null>(null);
   const [isScheduling, setIsScheduling] = useState(false);
   const [calendlyUrl, setCalendlyUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [planPrices, setPlanPrices] = useState<Record<string, number>>({});
 
-  // Consultation State
   const [purchasedConsultation, setPurchasedConsultation] = useState<Record<string, unknown> | null>(null);
   const [isSchedulingConsultation, setIsSchedulingConsultation] = useState(false);
   const [processOfficeId, setProcessOfficeId] = useState<string | null>(null);
   const checkoutOfficeId = user?.officeId || processOfficeId;
 
-  // Chatbot State
   const [chatMessages, setChatMessages] = useState<{ id: string, role: "user" | "bot", text: string }[]>([
     { id: "1", role: "bot", text: t.onboardingPage.aiInterviewChat.initialMessage }
   ]);
@@ -152,8 +148,6 @@ export function F1FinalPreparationStep({ procId, stepData, onComplete }: F1Final
 
     loadPlanPrices();
   }, [user?.officeId]);
-
-  // Mentoria now starts via support chat with manager, so no Calendly lookups here.
 
   useCalendlyEventListener({
     onEventScheduled: async () => {

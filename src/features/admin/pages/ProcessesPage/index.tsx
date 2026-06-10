@@ -187,8 +187,7 @@ export default function AdminProcessesPage() {
         officeId: user?.officeId,
         defaultClientName: t.shared.client,
       }));
-    } catch (err: unknown) {
-      console.error("Error loading processes:", err);
+    } catch {
       toast.error(t.cases.messages.loadError);
     } finally {
       setIsLoading(false);

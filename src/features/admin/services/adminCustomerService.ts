@@ -152,7 +152,7 @@ function getCustomerStatus(processes: UserService[]): CustomerRecord["status"] {
 
   if (
     processes.some((service) =>
-      ["active", "awaiting_review", "completed"].includes(service.status as any),
+      (["active", "awaiting_review", "completed"] as string[]).includes(String(service.status)),
     )
   ) {
     return "active";

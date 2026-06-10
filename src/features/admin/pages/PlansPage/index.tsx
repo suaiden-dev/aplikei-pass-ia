@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { RiEditLine, RiPercentLine, RiStackLine } from "react-icons/ri";
 import { toast } from "sonner";
+import { useT } from "@app/app/i18n";
 import {
   listSubscriptionPlans,
   updateSubscriptionPlanPercentage,
@@ -58,6 +59,7 @@ function PlanEditModal({
   onClose: () => void;
   onSave: (data: EditablePlanData) => Promise<void>;
 }) {
+  const t = useT("admin");
   const [percentageFee, setPercentageFee] = useState<number>(plan.percentage_fee || 0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -70,8 +72,8 @@ function PlanEditModal({
         percentage_fee: Math.max(0, toNumber(percentageFee, 0)),
       });
       onClose();
-    } catch (error) {
-      toast.error("Error saving plan");
+    } catch {
+      toast.error(t.plansPage.messages.saveError);
     } finally {
       setIsSubmitting(false);
     }
@@ -177,6 +179,7 @@ function PlanCard({ plan, onEdit }: { plan: Plan; onEdit: () => void }) {
 }
 
 export default function PlansPage() {
+  const t = useT("admin");
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -189,8 +192,8 @@ export default function PlansPage() {
     setIsLoading(true);
     try {
       await loadPlans();
-    } catch (error) {
-      toast.error("Error loading plans");
+    } catch {
+      toast.error(t.plansPage.messages.loadError);
     } finally {
       setIsLoading(false);
     }
@@ -204,7 +207,7 @@ export default function PlansPage() {
     if (!selectedPlan) return;
 
     await updateSubscriptionPlanPercentage(selectedPlan.id, payload.percentage_fee);
-    toast.success("Plan updated");
+    toast.success(t.plansPage.messages.updateSuccess);
     await loadPlans();
   };
 

@@ -44,18 +44,15 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Fresh Data State
   const [freshStepData, setFreshStepData] = useState<Record<string, unknown>>(stepData);
   const [isAdminConfirmed, setIsAdminConfirmed] = useState(false);
 
-  // Mentorship State
   const [purchasedMentorship, setPurchasedMentorship] = useState<Record<string, unknown> | null>(null);
   const [isScheduling, setIsScheduling] = useState(false);
   const [calendlyUrl, setCalendlyUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [planPrices, setPlanPrices] = useState<Record<string, number>>({});
 
-  // Consultation State
   const [purchasedConsultation, setPurchasedConsultation] = useState<Record<string, unknown> | null>(null);
   const [hasConsultationInCurrentProcess, setHasConsultationInCurrentProcess] = useState(false);
   const [processOfficeId, setProcessOfficeId] = useState<string | null>(null);
@@ -160,8 +157,6 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
 
     loadPlanPrices();
   }, [user?.officeId]);
-
-  // Mentoria now starts via support chat with manager, so no Calendly lookup here.
 
   useCalendlyEventListener({
     onEventScheduled: async () => {
@@ -316,7 +311,6 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
   const consuladoDate = freshStepData?.final_consulado_date as string;
   const isAwaitingAdmin = !isAdminConfirmed && !casvDate;
 
-  // New Interview Result Logic
   const now = new Date();
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
@@ -398,7 +392,6 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
       </div>
     )}
 
-      {/* Main Tools Section - Always Visible */}
       <div className="bg-card p-12 rounded-[40px] border border-border shadow-xl shadow-border/10">
         <div className="text-center mb-10">
           <h3 className="text-2xl font-black text-text uppercase tracking-tight">{t.onboardingPage.awaitingInterview.preparationResources}</h3>
@@ -411,7 +404,6 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
 
       {!isAwaitingAdmin && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* CASV/CONSULATE DATES DETAILS (Original content moved here) */}
           <div className="bg-card p-8 rounded-[40px] border border-border shadow-xl shadow-border/10 relative overflow-hidden">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center">
@@ -458,13 +450,10 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
         </div>
       )}
 
-      {/* Outcome Section if applicable */}
       {isInterviewDayOrPast && (
         <div className="p-10 bg-bg-subtle rounded-[40px] text-center space-y-8 shadow-2xl border border-primary/20 relative overflow-hidden group">
-          {/* outcome logic remains as it was inside this block */}
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
 
-          {/* Lógica de Telas Pós-Resultado */}
           {alreadyReported ? (
             <div className="animate-in fade-in zoom-in duration-500 space-y-8">
               {freshStepData.interview_outcome === 'approved' ? (
@@ -696,7 +685,6 @@ export function B1B2FinalPreparationStep({ procId, stepData, onComplete }: B1B2F
         )}
       </AnimatePresence>
 
-      {/* Calendly Full-screen Overlay - Dedicated to avoid scroll/click issues on mobile */}
       {isScheduling && calendlyUrl && (
         <div className="fixed inset-0 bg-card z-[200] flex flex-col animate-in fade-in duration-300">
           <div className="h-20 flex items-center justify-between px-8 border-b bg-card">

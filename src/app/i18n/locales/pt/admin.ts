@@ -119,7 +119,9 @@ const admin = {
       messages: {
         saveSuccess: "Configurações de recebimento atualizadas!",
         saveError: "Erro ao salvar configurações.",
-        loadError: "Erro ao carregar configurações."
+        loadError: "Erro ao carregar configurações.",
+        enableAtLeastOne: "Ative pelo menos um método de saque antes de salvar.",
+        requestCreated: "Solicitação de saque criada com sucesso!"
       },
       saveBtn: "Salvar Configuração",
       savingBtn: "Salvando..."
@@ -618,7 +620,13 @@ const admin = {
             statusActivated: "\"{{name}}\" ativado!",
             statusDeactivated: "\"{{name}}\" desativado!",
             statusError: "Erro ao alterar status do produto.",
-            noPermission: "Sem permissão para alterar este produto. Verifique as políticas RLS."
+            noPermission: "Sem permissão para alterar este produto. Verifique as políticas RLS.",
+            configSaved: "Configuração salva com sucesso.",
+            configError: "Falha ao salvar configuração.",
+            invalidPrice: "Preço inválido para {{name}}.",
+            linkCopied: "Link do produto copiado!",
+            loginUrlCopied: "URL de login copiada!",
+            noSlug: "Não foi possível gerar o link. Defina o slug do escritório primeiro."
         },
         footerHint: "Produtos desativados não aparecerão no fluxo de vendas para os clientes."
     },
@@ -813,6 +821,13 @@ const admin = {
             linkTitle: "Link de cadastro — {{role}}",
             copyBtn: "Copiar para área de transferência",
             backBtn: "Voltar",
+        },
+        messages: {
+            activated: "Membro ativado com sucesso.",
+            rejected: "Solicitação rejeitada.",
+            roleUpdated: "Função atualizada.",
+            removed: "Membro removido.",
+            linkError: "Erro ao gerar link."
         },
     },
     lawyers: {
@@ -1098,7 +1113,10 @@ const admin = {
             notFoundDescription: "Não conseguimos localizar o registro do seu escritório.",
             loadError: "Erro ao carregar dados da empresa.",
             saveSuccess: "Dados atualizados com sucesso!",
-            saveError: "Erro ao salvar alterações."
+            saveError: "Erro ao salvar alterações.",
+            logoUploadSuccess: "Logo enviada com sucesso!",
+            logoUploadError: "Falha ao enviar logo.",
+            slugConflict: "Este slug já está em uso."
         }
     },
     subscription: {
@@ -1137,6 +1155,8 @@ const admin = {
             expiration: "Expiração",
             cancelSuccess: "Assinatura cancelada com sucesso.",
             cancelError: "Falha ao cancelar assinatura.",
+            planActivated: "Plano {{name}} ativado com sucesso!",
+            activateError: "Erro ao ativar plano. Por favor, tente novamente.",
             minFeeNotice: "Se a taxa de plataforma calculada para uma transação de main visa ficar abaixo de {{amount}}, a Aplikei cobrará o valor mínimo fixo de {{amount}}."
         },
         onboarding: {
@@ -1178,6 +1198,32 @@ const admin = {
         }
     },
 
+    discountRules: {
+        messages: {
+            officeNotFound: "Escritório não encontrado.",
+            saveSuccess: "Regras de desconto salvas.",
+            saveError: "Erro ao salvar regras."
+        }
+    },
+    plansPage: {
+        messages: {
+            saveError: "Erro ao salvar plano.",
+            loadError: "Erro ao carregar planos.",
+            updateSuccess: "Plano atualizado."
+        }
+    },
+    officeModal: {
+        messages: {
+            nameRequired: "Nome do escritório é obrigatório.",
+            selectOffice: "Selecione um escritório.",
+            duplicateName: "Já existe um escritório com este nome: {{name}}."
+        }
+    },
+    withdrawalModal: {
+        messages: {
+            stripeRequired: "Forneça um link de pagamento Stripe para este saque."
+        }
+    },
     legalTerms: {
         title: "Termos Legais",
         subtitle: "Gerencie os termos de serviço para advogados e clientes.",

@@ -15,7 +15,7 @@ export interface OfficeData {
   linkedin_url: string | null;
   facebook_url: string | null;
   logo_url?: string | null;
-  landing_page_config?: any;
+  landing_page_config?: Record<string, unknown> | null;
 }
 
 export async function findOfficeByOwner(ownerId: string): Promise<OfficeData | null> {
@@ -52,7 +52,7 @@ export async function uploadOfficeLogo(path: string, file: File): Promise<string
 export async function updateOfficeLogo(
   officeId: string,
   logoUrl: string,
-  landingPageConfig: any,
+  landingPageConfig: Record<string, unknown> | null | undefined,
 ): Promise<void> {
   const { error } = await supabase
     .from("offices")

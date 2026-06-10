@@ -86,8 +86,8 @@ export default function WithdrawalsPage() {
     
     try {
       setWithdrawals(await listOfficeWithdrawals(user.officeId));
-    } catch (err) {
-      console.error("Error fetching withdrawals:", err);
+    } catch (err: unknown) {
+      toast.error(t.payoutSettings?.messages?.loadError || "Error loading withdrawals.");
     } finally {
       setLoading(false);
     }
@@ -106,8 +106,7 @@ export default function WithdrawalsPage() {
 
     try {
       setHasWithdrawalMethod(await hasOfficeWithdrawalMethod(user.officeId));
-    } catch (err) {
-      console.error("Error fetching payout settings:", err);
+    } catch {
       setHasWithdrawalMethod(false);
     } finally {
       setLoadingSettings(false);

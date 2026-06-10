@@ -44,8 +44,7 @@ export default function PaymentSettingsPage() {
       try {
         const data = await fetchOfficePaymentSettings(user.officeId);
         setSettings(data ?? createDefaultPaymentSettings(user.officeId));
-      } catch (err) {
-        console.error("Error fetching payment settings:", err);
+      } catch {
         toast.error(t?.payoutSettings?.messages?.loadError || "Error loading settings");
       } finally {
         setLoading(false);
@@ -59,7 +58,7 @@ export default function PaymentSettingsPage() {
     e.preventDefault();
     if (!settings || !user?.officeId) return;
     if (!settings.stripe_enabled && !settings.zelle_enabled) {
-      toast.error("Enable at least one withdrawal method before saving.");
+      toast.error(t?.payoutSettings?.messages?.enableAtLeastOne || "Enable at least one withdrawal method before saving.");
       return;
     }
 
@@ -67,8 +66,7 @@ export default function PaymentSettingsPage() {
     try {
       await saveOfficePaymentSettings(settings, user.officeId);
       toast.success(t?.payoutSettings?.messages?.saveSuccess || "Settings saved!");
-    } catch (err) {
-      console.error("Error updating payment settings:", err);
+    } catch {
       toast.error(t?.payoutSettings?.messages?.saveError || "Error saving settings");
     } finally {
       setSaving(false);

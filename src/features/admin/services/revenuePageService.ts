@@ -68,9 +68,10 @@ export async function listPendingZellePayments(params: {
 }): Promise<ZellePaymentRow[]> {
   let query = supabase
     .from("zelle_payments")
-    .select("*")
+    .select("id, guest_name, guest_email, service_slug, amount, created_at, office_id, status, image_url, proof_path, confirmation_code")
     .eq("status", "pending_verification")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(500);
 
   if (!params.isMaster && params.officeId) query = query.eq("office_id", params.officeId);
 
@@ -85,8 +86,9 @@ export async function listOfficeWithdrawals(params: {
 }): Promise<WithdrawalRow[]> {
   let query = supabase
     .from("office_withdrawals")
-    .select("*, offices(name)")
-    .order("created_at", { ascending: false });
+    .select("id, office_id, amount, status, method, payment_method, payment_link, reviewed_by_name, created_at, offices(name)")
+    .order("created_at", { ascending: false })
+    .limit(500);
 
   if (!params.isMaster && params.officeId) query = query.eq("office_id", params.officeId);
 
@@ -112,7 +114,7 @@ export async function listApprovedOrders(params: {
 }): Promise<OrderPaymentRow[]> {
   let query = supabase
     .from("orders")
-    .select("*")
+    .select("id, office_id, seller_id, user_id, total_price_usd, office_net_amount_usd, client_name, client_email, product_slug, payment_method, created_at, payment_status")
     .in("payment_status", ["paid", "approved", "complete", "completed", "succeeded", "pending"])
     .order("created_at", { ascending: false })
     .limit(100);

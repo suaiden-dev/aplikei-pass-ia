@@ -40,7 +40,7 @@ import { supabase } from "@shared/lib/supabase";
 describe("Comprehensive Chat Module Integration Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
+    if (typeof localStorage !== "undefined") localStorage.clear();
   });
 
   describe("chatService unit tests", () => {

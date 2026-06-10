@@ -76,7 +76,7 @@ describe("authGuard", () => {
       },
     })).toEqual({
       kind: "redirect-login",
-      to: "/login-office",
+      to: "/login",
       state: {
         from: {
           pathname: "/admin/overview",

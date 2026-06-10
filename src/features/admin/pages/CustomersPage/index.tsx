@@ -36,8 +36,7 @@ export default function CustomersPage() {
     setIsLoading(true);
     try {
       setCustomers(await listCustomersWithStats());
-    } catch (err: unknown) {
-      console.error("Error loading customers:", err);
+    } catch {
       toast.error(t.cases.messages.errorAction);
     } finally {
       setIsLoading(false);

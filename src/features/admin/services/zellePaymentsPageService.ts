@@ -47,9 +47,10 @@ export async function listZellePaymentsByStatus(params: {
 }): Promise<ZelleRecord[]> {
   let query = supabase
     .from("zelle_payments")
-    .select("*")
+    .select("id, user_id, guest_name, guest_email, service_slug, amount, created_at, status, image_url, proof_path, confirmation_code, payment_date, admin_notes, expected_amount, coupon_code, discount_amount")
     .eq("status", params.status)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(500);
 
   query = applyOfficeFilter(query, params.officeId, params.isMaster);
   const { data, error } = await query;
@@ -66,7 +67,8 @@ export async function listOrderPaymentsByStatus(params: {
     .from("orders")
     .select("id, client_name, client_email, product_slug, total_price_usd, payment_method, created_at, payment_status")
     .in("payment_status", params.statuses)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(500);
 
   query = applyOfficeFilter(query, params.officeId, params.isMaster);
   const { data, error } = await query;

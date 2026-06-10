@@ -759,39 +759,6 @@ function B1B2FinalSchedulingPanel({
   const [consuladoTime, setConsuladoTime] = useState((stepData.final_consulado_time as string) || "");
   const [consuladoLocation, setConsuladoLocation] = useState((stepData.final_consulado_location as string) || (stepData.interviewLocation as string) || "");
   const [sameLocation, setSameLocation] = useState(stepData.final_same_location === undefined ? true : !!stepData.final_same_location);
-  // const [loading, setLoading] = useState(false);
-
-  // const handleUpdate = async () => {
-  //   if (!casvDate || !casvTime || !casvLocation) {
-  //     toast.error("Preencha data, horário e local do CASV.");
-  //     return;
-  //   }
-  //   if (!sameLocation && (!consuladoDate || !consuladoTime || !consuladoLocation)) {
-  //     toast.error("Preencha os dados do Consulado ou marque como mesmo local.");
-  //     return;
-  //   }
-  //   try {
-  //     await processService.updateStepData(procId, {
-  //       final_same_location: sameLocation,
-  //       final_casv_date: casvDate,
-  //       final_casv_time: casvTime,
-  //       final_casv_location: casvLocation,
-  //       final_consulado_date: sameLocation ? casvDate : consuladoDate,
-  //       final_consulado_time: sameLocation ? casvTime : consuladoTime,
-  //       final_consulado_location: sameLocation ? casvLocation : consuladoLocation,
-  //       final_scheduling_notified_at: new Date().toISOString(),
-  //     });
-  //     if (isActive) {
-  //       await processService.approveStep(procId, currentDBStep + 1, false);
-  //     }
-  //     toast.success(isActive ? "Agendamento confirmado. Cliente notificado!" : "Agendamento atualizado com sucesso.");
-  //     await onDone();
-  //   } catch {
-  //     toast.error("Erro ao salvar agendamento.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const canEdit = isActive;
 
