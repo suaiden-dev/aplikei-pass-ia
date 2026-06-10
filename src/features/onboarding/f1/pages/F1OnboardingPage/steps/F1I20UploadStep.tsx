@@ -4,7 +4,8 @@ import {
   RiArrowRightLine,
   RiLoader4Line,
   RiCheckDoubleLine,
-  RiFileTextLine
+  RiFileTextLine,
+  RiCheckLine
 } from "react-icons/ri";
 
 import { uploadOnboardingDocument } from "@features/onboarding/services/onboardingStorageService";
@@ -18,11 +19,24 @@ interface F1I20UploadStepProps {
   labels: any;
   onComplete: () => void;
   onBack: () => void;
+  procStatus?: string | null;
+  currentStep?: number;
+  nextStepIdx?: number;
 }
 
 type DocType = "i20_document";
 
-export function F1I20UploadStep({ procId, userId, stepData, labels, onComplete, onBack }: F1I20UploadStepProps) {
+export function F1I20UploadStep({
+  procId,
+  userId,
+  stepData,
+  labels,
+  onComplete,
+  onBack,
+  procStatus,
+  currentStep = 0,
+  nextStepIdx = 2,
+}: F1I20UploadStepProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState<DocType | null>(null);
   
@@ -76,7 +90,7 @@ export function F1I20UploadStep({ procId, userId, stepData, labels, onComplete, 
         rejected_at: null,
       });
       
-      await processService.approveStep(procId, 2, false);
+      await processService.approveStep(procId, nextStepIdx, false);
       await processService.requestStepReview(procId);
       
       await notificationService.notifyAdmin({
@@ -95,6 +109,53 @@ export function F1I20UploadStep({ procId, userId, stepData, labels, onComplete, 
       setIsSubmitting(false);
     }
   };
+
+  const isAwaitingReview = procStatus === "awaiting_review" && currentStep >= nextStepIdx;
+  const isStepApproved = currentStep > nextStepIdx;
+
+  // ── Etapa aprovada ──────────────────────────────────────────────────────────
+  if (isStepApproved) {
+    return (
+      <div className="bg-card rounded-[32px] border border-border shadow-xl p-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-inner">
+          <RiCheckLine className="text-3xl" />
+        </div>
+        <h3 className="text-xl font-black text-text mb-2 uppercase tracking-tight">Etapa Aprovada</h3>
+        <p className="text-sm text-text-muted font-medium max-w-sm mx-auto">
+          O seu I-20 foi validado pela equipe. Você já pode avançar para a próxima etapa.
+        </p>
+        <button
+          onClick={onComplete}
+          className="mt-6 px-8 py-3 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all"
+        >
+          {labels.onboardingPage?.backToDashboard ?? "Voltar para Dashboard"}
+        </button>
+      </div>
+    );
+  }
+
+  // ── Aguardando revisão ──────────────────────────────────────────────────────
+  if (isAwaitingReview) {
+    return (
+      <div className="bg-card rounded-[32px] border border-border shadow-xl p-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6 shadow-inner">
+          <RiLoader4Line className="text-3xl animate-spin" />
+        </div>
+        <h3 className="text-xl font-black text-text mb-2 uppercase tracking-tight">
+          {labels.onboardingPage?.awaitingReview ?? "Aguardando Revisão"}
+        </h3>
+        <p className="text-sm text-text-muted font-medium max-w-sm mx-auto">
+          O seu I-20 foi enviado com sucesso e está sendo analisado pela nossa equipe.
+        </p>
+        <button
+          onClick={onComplete}
+          className="mt-6 px-8 py-3 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all"
+        >
+          {labels.onboardingPage?.backToDashboard ?? "Voltar para Dashboard"}
+        </button>
+      </div>
+    );
+  }
 
   const docConfigs: { type: DocType; label: string; desc: string; icon: typeof RiFileTextLine }[] = [
     { 

@@ -208,6 +208,9 @@ export function COSStepContent({
           labels={f1Labels}
           onComplete={onComplete}
           onBack={() => onJumpToStep(2)}
+          procStatus={proc.status}
+          currentStep={proc.current_step}
+          nextStepIdx={4}
         />
       </StepShell>
     )

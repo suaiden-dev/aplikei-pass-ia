@@ -82,6 +82,9 @@ export function B1B2StepContent({
         email={savedValues.primaryEmail}
         onComplete={onNavigateToProcess}
         onBack={onNavigateToProcess}
+        procStatus={procStatus}
+        currentStep={currentStep}
+        nextStepIdx={8}
       />
     )
   }

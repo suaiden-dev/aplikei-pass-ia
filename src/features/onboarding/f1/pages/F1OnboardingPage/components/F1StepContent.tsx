@@ -87,6 +87,8 @@ export function F1StepContent({
         nextStepIdx={9}
         onComplete={onNavigateToProcess}
         onBack={onNavigateToProcess}
+        procStatus={procStatus}
+        currentStep={currentStep}
       />
     )
   }
@@ -175,6 +177,9 @@ export function F1StepContent({
         labels={labels}
         onComplete={onNavigateToProcess}
         onBack={onNavigateToProcess}
+        procStatus={procStatus}
+        currentStep={currentStep}
+        nextStepIdx={2}
       />
     )
   }
