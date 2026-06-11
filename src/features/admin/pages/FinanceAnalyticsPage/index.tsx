@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  RiLineChartLine, 
-  RiBarChartGroupedLine, 
-  RiBuilding2Line, 
+import {
+  RiLineChartLine,
+  RiBarChartGroupedLine,
+  RiBuilding2Line,
   RiInformationLine
 } from "react-icons/ri";
 import { useT } from "@app/app/i18n";
@@ -20,6 +20,12 @@ import {
   type FinanceRoleAction,
   type FinanceRoleActorMetric,
 } from "@features/admin/services/financeAnalyticsService";
+import {
+  filterFinanceTransactions,
+  getFinanceOfficeScope,
+  getMasterFinanceTotals,
+  shouldShowFinanceOfficeField,
+} from "./calculations";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -51,7 +57,7 @@ function AnalyticsChart({
     ? Math.max(...data.map((d) => (type === "comparison" ? Math.max(d.revenue, d.profit) : d.revenue)))
     : 0;
   const maxVal = Math.max(computedMax, 1);
-  
+
   return (
     <div className="bg-card rounded-3xl border border-border p-6 shadow-sm flex flex-col h-[420px]">
       <div className="flex items-center justify-between mb-8">
@@ -82,7 +88,7 @@ function AnalyticsChart({
             <div key={item.month} className="flex-1 flex flex-col items-center gap-3 group relative">
               <div className="w-full flex items-end justify-center gap-1 h-48 relative">
                 {/* Revenue Bar */}
-                <motion.div 
+                <motion.div
                   initial={{ scaleY: 0 }}
                   animate={{ scaleY: 1 }}
                   transition={{ delay: i * 0.05 }}
@@ -92,14 +98,14 @@ function AnalyticsChart({
                     type === "revenue" ? "bg-primary/80 hover:bg-primary hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]" : "bg-primary/60"
                   )}
                 >
-                   <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-text text-bg text-[10px] font-black px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-30">
+                  <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-text text-bg text-[10px] font-black px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap z-30">
                     {fmtCurrency(item.revenue)}
                   </div>
                 </motion.div>
 
                 {/* Profit Bar (if comparison) */}
                 {type === "comparison" && (
-                  <motion.div 
+                  <motion.div
                     initial={{ scaleY: 0 }}
                     animate={{ scaleY: 1 }}
                     transition={{ delay: (i * 0.05) + 0.1 }}
@@ -240,18 +246,14 @@ export default function FinanceAnalyticsPage() {
   const [masterDateStart, setMasterDateStart] = useState<string>("");
   const [masterDateEnd, setMasterDateEnd] = useState<string>("");
   const [officeSalesMetrics, setOfficeSalesMetrics] = useState<OfficeSalesMetric[]>([]);
+  const showOfficeField = shouldShowFinanceOfficeField(currentUser?.role);
 
   const load = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const officeId =
-        currentUser?.role === "admin_lawyer" ||
-        currentUser?.role === "manager" ||
-        currentUser?.role === "seller"
-          ? currentUser.officeId
-          : undefined;
-      
+      const officeId = getFinanceOfficeScope(currentUser);
+
       const [txData, monthlyData, actionsData, sellerData, managerData] = await Promise.all([
         financeAnalyticsService.getRecentTransactions(50, officeId || undefined),
         financeAnalyticsService.getMonthlyAnalytics(6, officeId || undefined),
@@ -283,30 +285,11 @@ export default function FinanceAnalyticsPage() {
   useEffect(() => { load(); }, [load]);
 
   const filteredTransactions = useMemo(() => {
-    return transactions.filter((tx) => {
-      const status = String(tx.status || "").toLowerCase();
-      const groupedStatus = ["paid", "approved", "complete", "completed", "succeeded"].includes(status) ? "approved" : "pending";
-      const method = String(tx.method || "").toLowerCase();
-
-      if (statusFilter !== "all" && groupedStatus !== statusFilter) return false;
-      if (methodFilter !== "all" && method !== methodFilter) return false;
-
-      if (periodFilter !== "all") {
-        const now = Date.now();
-        const days = periodFilter === "7d" ? 7 : periodFilter === "30d" ? 30 : 90;
-        const cutoff = now - days * 24 * 60 * 60 * 1000;
-        const createdAt = new Date(tx.createdAt).getTime();
-        if (createdAt < cutoff) return false;
-      }
-
-      return true;
-    });
+    return filterFinanceTransactions(transactions, { statusFilter, methodFilter, periodFilter });
   }, [methodFilter, periodFilter, statusFilter, transactions]);
 
   const masterTotals = useMemo(() => {
-    const totalRevenue = officeSalesMetrics.reduce((sum, item) => sum + item.grossRevenue, 0);
-    const totalProfit = officeSalesMetrics.reduce((sum, item) => sum + item.platformFeeRevenue, 0);
-    return { totalRevenue, totalProfit };
+    return getMasterFinanceTotals(officeSalesMetrics);
   }, [officeSalesMetrics]);
 
   return (
@@ -477,9 +460,9 @@ export default function FinanceAnalyticsPage() {
         <div className="bg-card rounded-[32px] border border-border shadow-sm overflow-hidden">
           <div className="overflow-auto min-h-[300px] max-h-[520px]">
             {isLoading ? (
-               <div className="flex items-center justify-center py-20">
-                 <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-               </div>
+              <div className="flex items-center justify-center py-20">
+                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center py-20 px-6 text-center gap-3">
                 <p className="text-sm font-black text-red-500 uppercase tracking-wider">{t.financeAnalytics.states.loadErrorTitle}</p>
@@ -549,9 +532,9 @@ export default function FinanceAnalyticsPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="h-8 rounded-xl font-bold text-[10px] uppercase"
                             onClick={() => setSelectedTx(tx)}
                           >
@@ -566,8 +549,8 @@ export default function FinanceAnalyticsPage() {
                 {/* Mobile View */}
                 <div className="md:hidden divide-y divide-border">
                   {filteredTransactions.map((tx) => (
-                    <div 
-                      key={tx.id} 
+                    <div
+                      key={tx.id}
                       className="p-5 space-y-4 hover:bg-bg-subtle/10 transition-colors cursor-pointer"
                       onClick={() => setSelectedTx(tx)}
                     >
@@ -607,7 +590,7 @@ export default function FinanceAnalyticsPage() {
                             <p className="text-sm font-black text-text">{fmtCurrency(tx.amount)}</p>
                           </div>
                         )}
-                        
+
                         {currentUser?.role === "master" && (
                           <div className="text-right">
                             <p className="text-[10px] font-bold text-text-muted uppercase">Fee/Profit</p>
@@ -615,9 +598,9 @@ export default function FinanceAnalyticsPage() {
                           </div>
                         )}
 
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="h-8 px-4 rounded-xl font-bold text-[10px] uppercase shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -651,17 +634,19 @@ export default function FinanceAnalyticsPage() {
                   ID: {selectedTx.id}
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-3 rounded-2xl bg-bg-subtle border border-border">
                     <p className="text-[9px] font-black text-text-muted uppercase mb-1">{t.financeAnalytics.modal.customer}</p>
                     <p className="text-xs font-bold text-text">{selectedTx.clientName}</p>
                   </div>
-                  <div className="p-3 rounded-2xl bg-bg-subtle border border-border">
-                    <p className="text-[9px] font-black text-text-muted uppercase mb-1">{t.financeAnalytics.modal.office}</p>
-                    <p className="text-xs font-bold text-text">{selectedTx.officeName}</p>
-                  </div>
+                  {showOfficeField && (
+                    <div className="p-3 rounded-2xl bg-bg-subtle border border-border">
+                      <p className="text-[9px] font-black text-text-muted uppercase mb-1">{t.financeAnalytics.modal.office}</p>
+                      <p className="text-xs font-bold text-text">{selectedTx.officeName}</p>
+                    </div>
+                  )}
                   <div className="p-3 rounded-2xl bg-bg-subtle border border-border">
                     <p className="text-[9px] font-black text-text-muted uppercase mb-1">{t.financeAnalytics.modal.product}</p>
                     <p className="text-xs font-bold text-text">{selectedTx.productName}</p>
@@ -672,8 +657,8 @@ export default function FinanceAnalyticsPage() {
                   </div>
                 </div>
                 <div className="p-3 rounded-2xl bg-bg-subtle border border-border">
-                   <p className="text-[9px] font-black text-text-muted uppercase mb-1">{t.financeAnalytics.modal.statusMethod}</p>
-                   <p className="text-xs font-bold text-text uppercase">{selectedTx.status} · {selectedTx.method}</p>
+                  <p className="text-[9px] font-black text-text-muted uppercase mb-1">{t.financeAnalytics.modal.statusMethod}</p>
+                  <p className="text-xs font-bold text-text uppercase">{selectedTx.status} · {selectedTx.method}</p>
                 </div>
               </div>
 

@@ -16,6 +16,7 @@ import { cn } from "@shared/utils/cn";
 import { NotificationProvider } from "@app/app/providers/NotificationProvider";
 import { NotificationToaster } from "@features/notifications/components/NotificationToaster";
 import { DashboardNavbar } from "@shared/components/organisms/DashboardNavbar";
+import { useCustomerChats } from "@features/chat/hooks/useCustomerChats";
 
 export function CustomerLayout() {
   const { user, logout } = useAuth();
@@ -26,6 +27,8 @@ export function CustomerLayout() {
   const { pathname } = useLocation();
   const [sidebarOpenPath, setSidebarOpenPath] = useState<string | null>(null);
   const isSidebarOpen = sidebarOpenPath === pathname;
+  const { threads: supportThreads } = useCustomerChats(user?.id ?? "");
+  const hasSupportChats = supportThreads.length > 0;
 
   const handleLogout = async () => {
     await logout();
@@ -49,7 +52,9 @@ export function CustomerLayout() {
   const navItems = [
     { label: tDashboard.sidebar.dashboard, icon: RiDashboardLine, to: "/dashboard" },
     { label: tDashboard.sidebar.cases, icon: RiBriefcaseLine, to: "/dashboard/processes" },
-    { label: tDashboard.sidebar.support, icon: RiQuestionLine, to: "/dashboard/support" },
+    ...(hasSupportChats
+      ? [{ label: tDashboard.sidebar.support, icon: RiQuestionLine, to: "/dashboard/support" }]
+      : []),
   ];
 
   if (!user) {

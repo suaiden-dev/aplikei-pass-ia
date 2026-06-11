@@ -85,17 +85,31 @@ function getTargetCOSStep(service: UserService): number | null {
   return step < target ? target : null;
 }
 
-async function normaliseCOSStep(service: UserService): Promise<UserService> {
+function getCOSStepUpdate(service: UserService): { id: string; current_step: number; status: string } | null {
   const target = getTargetCOSStep(service);
-  if (target == null) return service;
+  if (target == null) return null;
+  return { id: service.id, current_step: target, status: "active" };
+}
 
-  const { error } = await supabase
-    .from("user_services")
-    .update({ current_step: target, status: "active" })
-    .eq("id", service.id);
+async function normaliseCOSSteps(services: UserService[]): Promise<UserService[]> {
+  const updates = services
+    .map(getCOSStepUpdate)
+    .filter((update): update is { id: string; current_step: number; status: string } => Boolean(update));
 
-  if (error) return service;
-  return { ...service, current_step: target, status: "active" };
+  if (updates.length === 0) return services;
+
+  const { error } = await supabase.rpc("bulk_update_user_service_steps", {
+    p_updates: updates,
+  });
+
+  if (error) return services;
+
+  const updateById = new Map(updates.map((update) => [update.id, update]));
+  return services.map((service) => {
+    const update = updateById.get(service.id);
+    if (!update) return service;
+    return { ...service, current_step: update.current_step, status: update.status };
+  });
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
@@ -115,7 +129,7 @@ export function useUserProcesses(userId: string | undefined) {
 
       if (error) throw error;
       const services = (data as UserService[]) ?? [];
-      const normalised = await Promise.all(services.map(normaliseCOSStep));
+      const normalised = await normaliseCOSSteps(services);
 
       const officeIdByProcessId: Record<string, string> = {};
       const officeIdByUserId: Record<string, string> = {};

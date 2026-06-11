@@ -265,15 +265,11 @@ export async function updateServicePriceRows(rows: Array<{
   is_active: boolean;
   price: number;
 }>): Promise<void> {
-  const results = await Promise.all(
-    rows.map((row) =>
-      supabase
-        .from("user_service_prices")
-        .update({ is_active: row.is_active, price: row.price })
-        .eq("id", row.id),
-    ),
-  );
+  if (rows.length === 0) return;
 
-  const error = results.find((result) => result.error)?.error;
+  const { error } = await supabase.rpc("bulk_update_user_service_prices", {
+    p_updates: rows,
+  });
+
   if (error) throw Error(error.message);
 }

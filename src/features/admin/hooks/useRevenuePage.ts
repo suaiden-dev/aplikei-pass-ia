@@ -19,6 +19,12 @@ import {
 import { useAuth } from "@shared/hooks/useAuth";
 import { useT } from "@app/app/i18n";
 import { adminQueryKeys } from "@features/admin/lib/queryKeys";
+import {
+  canAccessOfficeRequests,
+  computeProcessingFee,
+  filterRevenuePayments,
+  paginateRevenuePayments,
+} from "./revenueCalculations";
 
 export type RevenueTab = "zelle" | "office_requests" | "approved_payments";
 
@@ -54,13 +60,6 @@ export function buildProofUrl(raw: string | null | undefined): string | null {
   if (!raw) return null;
   if (raw.startsWith("http")) return raw;
   return `${SUPABASE_URL}/storage/v1/object/public/zelle_comprovantes/${raw}`;
-}
-
-function computeProcessingFee(gross: number, method: string): number {
-  const m = method.toUpperCase();
-  if (m.includes("ZELLE")) return 0;
-  if (m.includes("PIX")) return Math.round(gross * 0.01 * 100) / 100;
-  return Math.round((gross * 0.029 + 0.30) * 100) / 100;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -282,39 +281,21 @@ export function useRevenuePage() {
     updateWithdrawalMutation.mutate({ id, status });
   };
 
-  const filtered = payments.filter((p) => {
-    if (tab === "office_requests") {
-      if (officeRequestStatusFilter !== "all" && String(p.status).toLowerCase() !== officeRequestStatusFilter) return false;
-      if (officeRequestPeriodFilter !== "all") {
-        const days = officeRequestPeriodFilter === "7d" ? 7 : officeRequestPeriodFilter === "30d" ? 30 : 90;
-        if (new Date(p.createdAt).getTime() < Date.now() - days * 86400000) return false;
-      }
-    } else if (tab === "approved_payments") {
-      const normalizedStatus = String(p.status || "").toLowerCase();
-      const isApproved = ["paid", "approved", "complete", "completed", "succeeded"].includes(normalizedStatus);
-      const groupedStatus = isApproved ? "approved" : "pending";
-      if (paymentsStatusFilter !== "all" && groupedStatus !== paymentsStatusFilter) return false;
-      if (paymentsPeriodFilter !== "all") {
-        const days = paymentsPeriodFilter === "7d" ? 7 : paymentsPeriodFilter === "30d" ? 30 : 90;
-        if (new Date(p.createdAt).getTime() < Date.now() - days * 86400000) return false;
-      }
-    }
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      p.clientName.toLowerCase().includes(q) ||
-      p.clientEmail.toLowerCase().includes(q) ||
-      p.serviceName.toLowerCase().includes(q) ||
-      (p.confirmationCode ?? "").toLowerCase().includes(q)
-    );
+  const filtered = filterRevenuePayments(payments, {
+    tab,
+    search,
+    officeRequestStatusFilter,
+    officeRequestPeriodFilter,
+    paymentsStatusFilter,
+    paymentsPeriodFilter,
   });
 
   const currentPage = pageByTab[tab] ?? 1;
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
-  const safeCurrentPage = Math.min(currentPage, totalPages);
-  const pageStart = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
-  const pageEnd = pageStart + ITEMS_PER_PAGE;
-  const paginated = filtered.slice(pageStart, pageEnd);
+  const { totalPages, safeCurrentPage, pageStart, pageEnd, paginated } = paginateRevenuePayments(
+    filtered,
+    currentPage,
+    ITEMS_PER_PAGE,
+  );
   const officePendingCount = tab === "office_requests"
     ? payments.filter((p) => String(p.status).toLowerCase() === "pending").length
     : 0;
@@ -344,7 +325,7 @@ export function useRevenuePage() {
     officePendingCount,
     isMaster,
     isAdminLawyer,
-    canAccessOfficeRequests: !isAdminLawyer,
+    canAccessOfficeRequests: canAccessOfficeRequests(user?.role),
     handleApproveZelle,
     handleRejectZelle,
     handleUpdateStatus,
