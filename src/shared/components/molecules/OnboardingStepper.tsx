@@ -108,7 +108,7 @@ export function OnboardingStepper({ slug, stepIdx, totalSteps }: OnboardingStepp
 
       {/* Mobile Stepper */}
       <div className="flex md:hidden flex-col gap-1.5 w-full bg-primary/5 border border-primary/10 rounded-2xl px-4 py-3 shadow-inner">
-        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-primary leading-none">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[10px] font-black uppercase tracking-widest text-primary leading-tight">
           <span>{currentActiveMilestone.label}</span>
           <span>Etapa {stepIdx + 1} de {totalSteps}</span>
         </div>

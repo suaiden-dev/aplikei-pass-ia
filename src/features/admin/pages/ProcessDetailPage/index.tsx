@@ -1757,9 +1757,10 @@ export default function AdminProcessDetailPage() {
         toast.success(t.shared.administrativeAction); // Or better: t.cases.messages.rejectSuccess
       } else if (isF1 && currentStepBaseId === "f1_admin_analysis") {
         // Volta para o upload do I-20 (idx 1)
+        const itemsToReject = selectedItems.length > 0 ? selectedItems : ["docs.i20_document"];
         await processService.updateStepData(proc.id, {
           admin_feedback: rejectionReason,
-          rejected_items: selectedItems,
+          rejected_items: itemsToReject,
           rejected_at: new Date().toISOString()
         });
         const { error } = await supabase
@@ -2335,22 +2336,17 @@ export default function AdminProcessDetailPage() {
         badge={hasCorrectionsInSection ? (t.cases.statusLabel.corrections || "Correções Necessárias") : (isActive ? t.cases.statusLabel.awaitingReview : undefined)}
       >
         <div className="flex flex-col gap-6">
-          <div className="max-w-md">
+          <div className="max-w-md mx-auto w-full">
             {i20Url && (
-              <div className={`p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isI20Selected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+              <div className="p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all bg-bg-subtle border-border w-full">
                 <div className="w-16 h-16 bg-info/10 text-info rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <RiFileTextLine className="text-3xl" />
                 </div>
                 <h4 className="font-black text-text text-sm mb-1 uppercase">I-20 Form</h4>
-                <div className="flex gap-2 w-full mt-4">
-                  <a href={i20Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
+                <div className="flex w-full mt-4">
+                  <a href={i20Url} target="_blank" rel="noreferrer" className="w-full flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                     {t.processDetail.officialForms.viewPdf}
                   </a>
-                  {isActive && (
-                    <button onClick={() => toggleItem('docs.i20_document')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${isI20Selected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
-                      Select
-                    </button>
-                  )}
                 </div>
               </div>
             )}

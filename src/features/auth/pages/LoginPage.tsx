@@ -155,6 +155,29 @@ export default function Login() {
         description: "Acessando sua conta com clareza",
       }}
     >
+      <div className="flex bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50 mb-6">
+        <Link
+          to={`/login${location.search}`}
+          className={`flex-1 py-2 text-center text-xs font-black uppercase tracking-wider rounded-lg transition-all ${
+            activeTab === "login"
+              ? "bg-white dark:bg-card text-primary shadow-sm"
+              : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+          }`}
+        >
+          {t.login.email === "Email" ? "Professional" : "Profissional"}
+        </Link>
+        <Link
+          to={`/track-my-visa${location.search}`}
+          className={`flex-1 py-2 text-center text-xs font-black uppercase tracking-wider rounded-lg transition-all ${
+            activeTab === "track"
+              ? "bg-white dark:bg-card text-primary shadow-sm"
+              : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+          }`}
+        >
+          {t.login.email === "Email" ? "Client" : "Cliente"}
+        </Link>
+      </div>
+
       <form className="space-y-5" onSubmit={formik.handleSubmit}>
         <Field
           id="email"

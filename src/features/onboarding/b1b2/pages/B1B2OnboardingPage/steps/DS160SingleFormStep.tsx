@@ -4,6 +4,7 @@ import type { DS160FormValues } from "@features/onboarding/b1b2/schemas/ds160.sc
 import { lookupBrazilCep, lookupUsZip } from "@features/onboarding/services/addressLookupService";
 import { useT, useLocale } from "@app/app/i18n";
 import { maskCPF } from "@shared/utils/cpf";
+import { masks } from "@shared/lib/form/masks";
 import { HelpCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/components/atoms/tooltip";
 
@@ -162,6 +163,165 @@ const FormInput = ({
           ))}
         </datalist>
       ) : null}
+      <FieldError name={name} />
+    </div>
+  );
+};
+
+function detectCountry(value: string): "US" | "BR" | "OTHER" {
+  if (!value) return "US";
+  const clean = value.replace(/\D/g, "");
+  if (value.startsWith("+55") || (clean.startsWith("55") && clean.length >= 12)) {
+    return "BR";
+  }
+  if (value.startsWith("+1") || value.startsWith("(") || (clean.length === 10 && !value.startsWith("+"))) {
+    return "US";
+  }
+  if (value.startsWith("+")) {
+    return "OTHER";
+  }
+  return "US";
+}
+
+function formatPhoneNumber(value: string, country: "US" | "BR" | "OTHER"): string {
+  let digits = value.replace(/\D/g, "");
+  
+  if (country === "US") {
+    if (digits.length === 11 && digits.startsWith("1")) {
+      digits = digits.slice(1);
+    }
+    digits = digits.slice(0, 10);
+    if (digits.length === 0) return "";
+    if (digits.length <= 3) return `(${digits}`;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  }
+  
+  if (country === "BR") {
+    if (digits.length === 0) return "";
+    if ((value.trim().startsWith("+55") || digits.length > 11) && digits.startsWith("55")) {
+      digits = digits.slice(2);
+    }
+    digits = digits.slice(0, 11);
+    if (digits.length <= 2) return `+55 (${digits}`;
+    if (digits.length <= 6) return `+55 (${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 10) {
+      return `+55 (${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    }
+    return `+55 (${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+  }
+  
+  if (!digits.startsWith("+") && value.startsWith("+")) {
+    return "+" + digits;
+  }
+  return digits ? "+" + digits : "";
+}
+
+const FormPhoneInput = ({
+  name,
+  label,
+  required = false,
+  disabled = false,
+  tooltip,
+}: {
+  name: string;
+  label: string;
+  required?: boolean;
+  disabled?: boolean;
+  tooltip?: string;
+}) => {
+  const { errors, touched, values, setFieldValue } = useFormikContext<Record<string, any>>();
+  const hasError = !!(errors[name] && touched[name]);
+  const displayValue = String(values[name] || "");
+  const [country, setCountry] = useState<"US" | "BR" | "OTHER">(() => detectCountry(displayValue));
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setCountry(detectCountry(displayValue));
+  }, [displayValue]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = formatPhoneNumber(e.target.value, country);
+    setFieldValue(name, val);
+  };
+
+  const handleCountryChange = (c: "US" | "BR" | "OTHER") => {
+    setCountry(c);
+    setIsOpen(false);
+    const val = formatPhoneNumber(displayValue, c);
+    setFieldValue(name, val);
+  };
+
+  const flagEmoji = {
+    US: "🇺🇸",
+    BR: "🇧🇷",
+    OTHER: "🌐"
+  };
+
+  const countryLabels = {
+    US: "US (+1)",
+    BR: "BR (+55)",
+    OTHER: "Other (+)"
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-1.5">
+        <label htmlFor={name} className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+          {label} {required && <span className="text-primary">*</span>}
+        </label>
+        {tooltip && <FieldTooltip content={tooltip} />}
+      </div>
+      <div className="relative flex items-center w-full">
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => setIsOpen(!isOpen)}
+            className={`flex items-center gap-1.5 px-3 py-3 text-sm font-semibold bg-card border border-border border-r-0 rounded-l-xl hover:bg-slate-50 transition-all ${disabled ? "cursor-default opacity-70" : "cursor-pointer"}`}
+            style={{ height: "46px" }}
+          >
+            <span className="text-lg leading-none">{flagEmoji[country]}</span>
+            <span className="text-[11px] font-bold text-text-muted">
+              {country === "US" ? "+1" : country === "BR" ? "+55" : "+"}
+            </span>
+            <span className="text-[9px] text-text-muted/60 font-bold">▼</span>
+          </button>
+
+          {isOpen && (
+            <div className="absolute left-0 mt-1 bg-card border border-border rounded-xl shadow-xl z-50 py-1 w-32 animate-in fade-in slide-in-from-top-1">
+              {(["US", "BR", "OTHER"] as const).map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => handleCountryChange(c)}
+                  className="w-full text-left px-3 py-2 text-xs font-semibold text-text hover:bg-slate-50 transition-colors flex items-center gap-2"
+                >
+                  <span className="text-base">{flagEmoji[c]}</span>
+                  <span>{countryLabels[c]}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Field name={name}>
+          {({ field }: any) => (
+            <input
+              {...field}
+              id={name}
+              value={displayValue}
+              onChange={handleChange}
+              type="text"
+              inputMode="tel"
+              disabled={disabled}
+              placeholder={country === "US" ? "(201) 555-0123" : country === "BR" ? "+55 (11) 98765-4321" : "+1..."}
+              className={`w-full bg-card border ${hasError ? 'border-red-300 bg-red-50/50 focus:border-red-400' : 'border-border focus:border-primary'} rounded-r-xl px-4 py-3 text-sm font-semibold text-text outline-none focus:ring-2 focus:ring-primary/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed placeholder:text-text-muted/50`}
+              style={{ height: "46px" }}
+            />
+          )}
+        </Field>
+      </div>
       <FieldError name={name} />
     </div>
   );
@@ -751,9 +911,8 @@ export const DS160SingleFormStep = ({
           name="cpf"
           label={t.onboardingPage.form.cpfLabel}
           placeholder={t.onboardingPage.form.cpfPlaceholder}
-          tooltip={DS160_FIELD_TOOLTIPS.cpf}
+          tooltip={DS160_FIELD_TOOLTIPS.cpf || (lang === "pt" ? "Insira seu CPF (Apenas se brasileiro)" : lang === "es" ? "Ingrese su CPF (Solo si es brasileño)" : "Enter your CPF (Only if Brazilian)")}
           onChange={(e) => setFieldValue("cpf", maskCPF(e.target.value))}
-          tooltip={lang === "pt" ? "Insira seu CPF (Apenas se brasileiro)" : lang === "es" ? "Ingrese su CPF (Solo si es brasileño)" : "Enter your CPF (Only if Brazilian)"}
         />
       </div>
     </Section>,
@@ -873,20 +1032,23 @@ export const DS160SingleFormStep = ({
         name="payingTrip"
         label={t.onboardingPage.form.payingTripLabel}
         required
-        tooltip={DS160_FIELD_TOOLTIPS.payingTrip}
+        tooltip={DS160_FIELD_TOOLTIPS.payingTrip || (t as any).ds160?.travel?.payerHelper}
         options={[
           { value: "eu", label: t.onboardingPage.form.payingMe },
           { value: "outra_pessoa", label: t.onboardingPage.form.payingOther },
           { value: "empresa", label: t.onboardingPage.form.payingCompany },
         ]}
-        tooltip={(t as any).ds160?.travel?.payerHelper}
       />
 
       {values.payingTrip && values.payingTrip !== "eu" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-bg-subtle rounded-2xl border border-border">
           <FormInput name="payerName" label={t.onboardingPage.form.payerNameLabel} required tooltip={DS160_FIELD_TOOLTIPS.payerName} />
           <FormInput name="payerRelation" label={t.onboardingPage.form.payerRelationLabel} placeholder={t.onboardingPage.form.payerRelationPlaceholder} required tooltip={DS160_FIELD_TOOLTIPS.payerRelation} />
-          <FormInput name="payerPhone" label={t.onboardingPage.form.phoneLabel} tooltip={DS160_FIELD_TOOLTIPS.payerPhone} />
+          <FormPhoneInput
+            name="payerPhone"
+            label={t.onboardingPage.form.phoneLabel}
+            tooltip={DS160_FIELD_TOOLTIPS.payerPhone}
+          />
           <FormInput name="payerEmail" label={t.onboardingPage.form.emailLabel} type="email" tooltip={DS160_FIELD_TOOLTIPS.payerEmail} />
         </div>
       )}
@@ -997,9 +1159,22 @@ export const DS160SingleFormStep = ({
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <FormInput name="primaryPhone" label={t.onboardingPage.form.primaryPhoneLabel} placeholder={t.onboardingPage.form.phonePlaceholder} required tooltip={DS160_FIELD_TOOLTIPS.primaryPhone} />
-        <FormInput name="secondaryPhone" label={t.onboardingPage.form.secondaryPhoneLabel} tooltip={DS160_FIELD_TOOLTIPS.secondaryPhone} />
-        <FormInput name="cellPhone" label={t.onboardingPage.form.cellPhoneLabel} tooltip={DS160_FIELD_TOOLTIPS.cellPhone} />
+        <FormPhoneInput
+          name="primaryPhone"
+          label={t.onboardingPage.form.primaryPhoneLabel}
+          required
+          tooltip={DS160_FIELD_TOOLTIPS.primaryPhone}
+        />
+        <FormPhoneInput
+          name="secondaryPhone"
+          label={t.onboardingPage.form.secondaryPhoneLabel}
+          tooltip={DS160_FIELD_TOOLTIPS.secondaryPhone}
+        />
+        <FormPhoneInput
+          name="cellPhone"
+          label={t.onboardingPage.form.cellPhoneLabel}
+          tooltip={DS160_FIELD_TOOLTIPS.cellPhone}
+        />
       </div>
 
       <YesNo name="otherPhones5Y" label={t.onboardingPage.form.otherPhones5Y} required tooltip={DS160_FIELD_TOOLTIPS.otherPhones5Y} />
@@ -1201,7 +1376,11 @@ export const DS160SingleFormStep = ({
           <div className="sm:col-span-2">
             <FormInput name="primaryJobAddress" label={t.onboardingPage.form.fullAddressLabel} tooltip={DS160_FIELD_TOOLTIPS.primaryJobAddress} />
           </div>
-          <FormInput name="primaryJobPhone" label={t.onboardingPage.form.phoneLabel} tooltip={DS160_FIELD_TOOLTIPS.primaryJobPhone} />
+          <FormPhoneInput
+            name="primaryJobPhone"
+            label={t.onboardingPage.form.phoneLabel}
+            tooltip={DS160_FIELD_TOOLTIPS.primaryJobPhone}
+          />
           <FormNumericInput name="primaryJobSalary" label={t.onboardingPage.form.monthlySalaryLabel} placeholder={t.onboardingPage.form.monthlySalaryPlaceholder} allowDecimals={true} isCurrency={true} tooltip={DS160_FIELD_TOOLTIPS.primaryJobSalary} />
           <div className="sm:col-span-2">
             <FormTextarea name="primaryJobDuties" label={t.onboardingPage.form.jobDutiesLabel} rows={2} tooltip={DS160_FIELD_TOOLTIPS.primaryJobDuties} />
