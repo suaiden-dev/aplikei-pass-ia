@@ -23,6 +23,10 @@ export async function applySuccessfulPayment(data: ApplySuccessfulPaymentInput):
   const now = new Date().toISOString();
 
   const order = await updateOrderSuccess(data);
+  await registerOrderCouponUsage({
+    supabase,
+    orderId: (order?.id as string | undefined) || order_id || null,
+  });
 
   const orderMetadata = (order?.payment_metadata as Record<string, unknown>) ?? {};
   const effectiveDependents = parseCount(orderMetadata.dependents ?? data.dependents, 0);
@@ -205,5 +209,25 @@ export async function applySuccessfulPayment(data: ApplySuccessfulPaymentInput):
   const parentSlugToSync = effectiveParentSlug || (currentProc.service_slug as string | null);
   if (parentSlugToSync) {
     await syncParentOrderMetadata({ supabase, user_id, targetProcId: effectiveTargetProcId, parentServiceSlug: parentSlugToSync, newCount, purchaseRecord });
+  }
+}
+
+async function registerOrderCouponUsage(data: {
+  supabase: ApplySuccessfulPaymentInput["supabase"];
+  orderId?: string | null;
+}): Promise<void> {
+  if (!data.orderId) return;
+
+  const { data: registered, error } = await data.supabase.rpc("register_order_coupon_usage", {
+    p_order_id: data.orderId,
+  });
+
+  if (error) {
+    log.error("failed to register coupon usage", error, { order_id: data.orderId });
+    return;
+  }
+
+  if (registered) {
+    log.info("coupon usage registered", { order_id: data.orderId });
   }
 }
