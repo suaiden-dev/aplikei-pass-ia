@@ -165,7 +165,7 @@ export default function AIChatPage() {
 
       {/* Thread view — mobile modal */}
       <AnimatePresence>
-        {selected && isMobile && (
+        {selected && selectedProcessId && isMobile && (
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
