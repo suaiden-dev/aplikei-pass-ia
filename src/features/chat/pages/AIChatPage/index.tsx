@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   RiChat3Line,
@@ -18,6 +18,7 @@ import { cn } from "@shared/utils/cn";
 export default function AIChatPage() {
   const t = useT('dashboard')
   const { user } = useAuth()
+  const { pathname } = useLocation()
   const [searchParams] = useSearchParams()
   const processIdFromQuery = searchParams.get('processId')
   const { threads, isLoading } = useCustomerChats(user?.id ?? '')
@@ -42,6 +43,10 @@ export default function AIChatPage() {
       (threads.length === 1 ? threads[0] : null),
     [selectedProcessId, threads],
   )
+
+  if (pathname === '/dashboard/support' && !isLoading && threads.length === 0) {
+    return <Navigate to="/dashboard" replace />
+  }
 
   return (
     <div className="h-full flex flex-col bg-card overflow-hidden">

@@ -189,6 +189,33 @@ async function normalizeCOSRecoveryStep(
   return { ...service, current_step: normalizedStep, status: "active" };
 }
 
+function getCOSRecoveryStepUpdate(service: UserService): { id: string; current_step: number; status: ProcessStatus } | null {
+  const normalizedStep = getNormalizedCOSRecoveryStep(service);
+  if (normalizedStep == null) return null;
+  return { id: service.id, current_step: normalizedStep, status: "active" };
+}
+
+async function normalizeCOSRecoverySteps(services: UserService[]): Promise<UserService[]> {
+  const updates = services
+    .map(getCOSRecoveryStepUpdate)
+    .filter((update): update is { id: string; current_step: number; status: ProcessStatus } => Boolean(update));
+
+  if (updates.length === 0) return services;
+
+  const { error } = await supabase.rpc("bulk_update_user_service_steps", {
+    p_updates: updates,
+  });
+
+  if (error) return services;
+
+  const updateById = new Map(updates.map((update) => [update.id, update]));
+  return services.map((service) => {
+    const update = updateById.get(service.id);
+    if (!update) return service;
+    return { ...service, current_step: update.current_step, status: update.status };
+  });
+}
+
 // ── Step title helpers ────────────────────────────────────────────────────────
 
 function getStepTitles(serviceSlug: string, currentStep: number | null, nextStep?: number) {
@@ -212,9 +239,7 @@ export async function getUserServices(userId: string): Promise<UserService[]> {
     .select("*")
     .eq("user_id", userId);
   const services = (data as UserService[] | null) ?? [];
-  return Promise.all(
-    services.map((s) => normalizeCOSRecoveryStep(s) as Promise<UserService>),
-  );
+  return normalizeCOSRecoverySteps(services);
 }
 
 export async function hasActiveService(userId: string, slug: string): Promise<boolean> {

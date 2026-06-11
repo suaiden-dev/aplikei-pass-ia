@@ -20,6 +20,12 @@ import {
   type FinanceRoleAction,
   type FinanceRoleActorMetric,
 } from "@features/admin/services/financeAnalyticsService";
+import {
+  filterFinanceTransactions,
+  getFinanceOfficeScope,
+  getMasterFinanceTotals,
+  shouldShowFinanceOfficeField,
+} from "./calculations";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -240,17 +246,13 @@ export default function FinanceAnalyticsPage() {
   const [masterDateStart, setMasterDateStart] = useState<string>("");
   const [masterDateEnd, setMasterDateEnd] = useState<string>("");
   const [officeSalesMetrics, setOfficeSalesMetrics] = useState<OfficeSalesMetric[]>([]);
+  const showOfficeField = shouldShowFinanceOfficeField(currentUser?.role);
 
   const load = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const officeId =
-        currentUser?.role === "admin_lawyer" ||
-        currentUser?.role === "manager" ||
-        currentUser?.role === "seller"
-          ? currentUser.officeId
-          : undefined;
+      const officeId = getFinanceOfficeScope(currentUser);
       
       const [txData, monthlyData, actionsData, sellerData, managerData] = await Promise.all([
         financeAnalyticsService.getRecentTransactions(50, officeId || undefined),
@@ -283,30 +285,11 @@ export default function FinanceAnalyticsPage() {
   useEffect(() => { load(); }, [load]);
 
   const filteredTransactions = useMemo(() => {
-    return transactions.filter((tx) => {
-      const status = String(tx.status || "").toLowerCase();
-      const groupedStatus = ["paid", "approved", "complete", "completed", "succeeded"].includes(status) ? "approved" : "pending";
-      const method = String(tx.method || "").toLowerCase();
-
-      if (statusFilter !== "all" && groupedStatus !== statusFilter) return false;
-      if (methodFilter !== "all" && method !== methodFilter) return false;
-
-      if (periodFilter !== "all") {
-        const now = Date.now();
-        const days = periodFilter === "7d" ? 7 : periodFilter === "30d" ? 30 : 90;
-        const cutoff = now - days * 24 * 60 * 60 * 1000;
-        const createdAt = new Date(tx.createdAt).getTime();
-        if (createdAt < cutoff) return false;
-      }
-
-      return true;
-    });
+    return filterFinanceTransactions(transactions, { statusFilter, methodFilter, periodFilter });
   }, [methodFilter, periodFilter, statusFilter, transactions]);
 
   const masterTotals = useMemo(() => {
-    const totalRevenue = officeSalesMetrics.reduce((sum, item) => sum + item.grossRevenue, 0);
-    const totalProfit = officeSalesMetrics.reduce((sum, item) => sum + item.platformFeeRevenue, 0);
-    return { totalRevenue, totalProfit };
+    return getMasterFinanceTotals(officeSalesMetrics);
   }, [officeSalesMetrics]);
 
   return (
@@ -497,7 +480,9 @@ export default function FinanceAnalyticsPage() {
                 <thead>
                   <tr className="border-b border-border bg-bg-subtle/50">
                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.customer}</th>
-                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.office}</th>
+                    {showOfficeField && (
+                      <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.office}</th>
+                    )}
                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.financeAnalytics.table.product}</th>
                     <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">
                       {currentUser?.role === "master" ? "Payment (Detailed)" : t.financeAnalytics.table.amount}
@@ -513,12 +498,14 @@ export default function FinanceAnalyticsPage() {
                         <p className="text-sm font-black text-text">{tx.clientName}</p>
                         <p className="text-[10px] text-text-muted font-medium">{tx.clientEmail}</p>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <RiBuilding2Line className="text-text-muted" />
-                          <span className="text-xs font-bold text-text-muted uppercase">{tx.officeName}</span>
-                        </div>
-                      </td>
+                      {showOfficeField && (
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <RiBuilding2Line className="text-text-muted" />
+                            <span className="text-xs font-bold text-text-muted uppercase">{tx.officeName}</span>
+                          </div>
+                        </td>
+                      )}
                       <td className="px-6 py-4">
                         <span className="px-2 py-1 rounded-lg bg-primary/5 border border-primary/10 text-[10px] font-black text-primary uppercase">
                           {tx.productName}
@@ -587,10 +574,12 @@ export default function FinanceAnalyticsPage() {
                     <p className="text-[9px] font-black text-text-muted uppercase mb-1">{t.financeAnalytics.modal.customer}</p>
                     <p className="text-xs font-bold text-text">{selectedTx.clientName}</p>
                   </div>
-                  <div className="p-3 rounded-2xl bg-bg-subtle border border-border">
-                    <p className="text-[9px] font-black text-text-muted uppercase mb-1">{t.financeAnalytics.modal.office}</p>
-                    <p className="text-xs font-bold text-text">{selectedTx.officeName}</p>
-                  </div>
+                  {showOfficeField && (
+                    <div className="p-3 rounded-2xl bg-bg-subtle border border-border">
+                      <p className="text-[9px] font-black text-text-muted uppercase mb-1">{t.financeAnalytics.modal.office}</p>
+                      <p className="text-xs font-bold text-text">{selectedTx.officeName}</p>
+                    </div>
+                  )}
                   <div className="p-3 rounded-2xl bg-bg-subtle border border-border">
                     <p className="text-[9px] font-black text-text-muted uppercase mb-1">{t.financeAnalytics.modal.product}</p>
                     <p className="text-xs font-bold text-text">{selectedTx.productName}</p>

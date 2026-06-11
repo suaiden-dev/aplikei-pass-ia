@@ -14,6 +14,7 @@ import { Button } from "@shared/components/atoms/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@shared/components/atoms/dialog";
 import { cn } from "@shared/utils/cn";
 import { useRevenuePage, type UnifiedPayment, buildProofUrl as _buildProofUrl } from "@features/admin/hooks/useRevenuePage";
+import { shouldShowPaymentsOfficeField } from "@features/admin/hooks/revenueCalculations";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -37,6 +38,7 @@ function DetailModal({
   onReject,
   busy,
   onPay,
+  showOfficeField,
 }: {
   payment: UnifiedPayment;
   onClose: () => void;
@@ -44,6 +46,7 @@ function DetailModal({
   onReject?: () => void;
   busy?: boolean;
   onPay?: () => void;
+  showOfficeField: boolean;
 }) {
   const t = useT("admin");
   return (
@@ -68,12 +71,14 @@ function DetailModal({
               <p className="text-sm font-black text-text">{payment.clientName}</p>
               <p className="text-xs text-text-muted">{payment.clientEmail}</p>
             </div>
-            <div className="p-4 rounded-2xl bg-bg-subtle border border-border space-y-1">
-              <p className="text-[10px] font-black text-text-muted uppercase tracking-widest flex items-center gap-1">
-                <RiBuilding2Line /> {t.offices.table.office}
-              </p>
-              <p className="text-sm font-black text-text">{payment.officeName || "—"}</p>
-            </div>
+            {showOfficeField && (
+              <div className="p-4 rounded-2xl bg-bg-subtle border border-border space-y-1">
+                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest flex items-center gap-1">
+                  <RiBuilding2Line /> {t.offices.table.office}
+                </p>
+                <p className="text-sm font-black text-text">{payment.officeName || "—"}</p>
+              </div>
+            )}
             <div className="p-4 rounded-2xl bg-bg-subtle border border-border space-y-1">
               <p className="text-[10px] font-black text-text-muted uppercase tracking-widest flex items-center gap-1">
                 <RiShoppingBag3Line /> {t.payments.table.serviceName}
@@ -202,6 +207,7 @@ export default function RevenuePage() {
     handleRejectZelle,
     handleUpdateWithdrawalStatus,
   } = useRevenuePage();
+  const showOfficeField = shouldShowPaymentsOfficeField(isMaster ? "master" : undefined);
 
   return (
     <div className="p-4 sm:p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-700">
@@ -315,7 +321,9 @@ export default function RevenuePage() {
               <thead>
                 <tr className="border-b border-border bg-bg-subtle/50">
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.payments.table.customer}</th>
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.offices.table.office}</th>
+                  {showOfficeField && (
+                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.offices.table.office}</th>
+                  )}
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.payments.table.serviceName}</th>
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">Paid by customer</th>
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">Received</th>
@@ -339,12 +347,14 @@ export default function RevenuePage() {
                         <p className="text-sm font-black text-text">{p.clientName}</p>
                         <p className="text-[11px] text-text-muted font-medium">{p.clientEmail}</p>
                       </td>
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-2">
-                          <RiBuilding2Line className="text-text-muted" />
-                          <span className="text-xs font-bold text-text-muted uppercase tracking-tight">{p.officeName || "UNASSIGNED OFFICE"}</span>
-                        </div>
-                      </td>
+                      {showOfficeField && (
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-2">
+                            <RiBuilding2Line className="text-text-muted" />
+                            <span className="text-xs font-bold text-text-muted uppercase tracking-tight">{p.officeName || "UNASSIGNED OFFICE"}</span>
+                          </div>
+                        </td>
+                      )}
                       <td className="px-6 py-5">
                         <span className="inline-flex px-2 py-1 rounded-lg bg-primary/5 border border-primary/10 text-[10px] font-black text-primary uppercase tracking-widest">
                           {p.serviceName}
@@ -388,7 +398,9 @@ export default function RevenuePage() {
               <thead>
                 <tr className="border-b border-border bg-bg-subtle/50">
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.payments.table.customer}</th>
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.offices.table.office}</th>
+                  {showOfficeField && (
+                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.offices.table.office}</th>
+                  )}
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.payments.table.serviceName}</th>
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">{t.payments.table.payment}</th>
                   <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-text-muted">Date & Time</th>
@@ -408,12 +420,14 @@ export default function RevenuePage() {
                         <p className="text-sm font-black text-text">{p.clientName}</p>
                         <p className="text-[11px] text-text-muted font-medium">{p.clientEmail}</p>
                       </td>
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-2">
-                          <RiBuilding2Line className="text-text-muted" />
-                          <span className="text-xs font-bold text-text-muted uppercase tracking-tight">{p.officeName || "UNASSIGNED OFFICE"}</span>
-                        </div>
-                      </td>
+                      {showOfficeField && (
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-2">
+                            <RiBuilding2Line className="text-text-muted" />
+                            <span className="text-xs font-bold text-text-muted uppercase tracking-tight">{p.officeName || "UNASSIGNED OFFICE"}</span>
+                          </div>
+                        </td>
+                      )}
                       <td className="px-6 py-5">
                         <span className="inline-flex px-2 py-1 rounded-lg bg-primary/5 border border-primary/10 text-[10px] font-black text-primary uppercase tracking-widest">
                           {p.serviceName}
@@ -487,6 +501,7 @@ export default function RevenuePage() {
                 : undefined
             }
             busy={!!busy}
+            showOfficeField={showOfficeField}
           />
         )}
       </AnimatePresence>

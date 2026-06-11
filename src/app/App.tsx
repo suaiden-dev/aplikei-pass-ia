@@ -60,9 +60,10 @@ export default function App() {
   const customerRoutes = routesByLayout("customer");
   const masterRoutes = routesByLayout("master");
   const adminRoutes = routesByLayout("manager");
+  const sellerRoutes = routesByLayout("seller");
   const masterActiveRoutes = masterRoutes.filter((route) => route.path === "/master");
   const adminActiveRoutes = adminRoutes.filter((route) => route.path === "/admin" || route.path === "/admin/page-builder");
-  const sellerActiveRoutes: typeof adminRoutes = [];
+  const sellerActiveRoutes = sellerRoutes.filter((route) => route.path === "/seller");
   const adminSharedRoutes = protectedRoutes.filter((route) =>
     route.accessLevels.includes(AccessLevel.MANAGER) ||
     route.accessLevels.includes(AccessLevel.ADMIN_LAWYER),
@@ -166,9 +167,13 @@ export default function App() {
             </Route>
 
             <Route path="/seller" element={<SellerDashboardLayout />}>
-              {sellerActiveRoutes.map((route) => (
-                <Route key={route.path} path={nestedPath(route.path, "/seller")} element={<route.component />} />
-              ))}
+              {sellerActiveRoutes.map((route) =>
+                route.path === "/seller" ? (
+                  <Route key={route.path} index element={<route.component />} />
+                ) : (
+                  <Route key={route.path} path={nestedPath(route.path, "/seller")} element={<route.component />} />
+                ),
+              )}
               {sellerSharedRoutes.map((route) => (
                 <Route
                   key={`seller-shared-${route.path}`}

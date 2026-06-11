@@ -136,6 +136,9 @@ const PageBuilderPage = lazyPage(
 const SellerEarningsPage = lazyPage(
   () => import("@features/seller/pages/EarningsPage"),
 );
+const SellerOverviewPage = lazyPage(
+  () => import("@features/seller/pages/OverviewPage"),
+);
 const DiscountRulesPage = lazyPage(
   () => import("@features/admin/pages/DiscountRulesPage/index"),
 );
@@ -572,6 +575,18 @@ export const appRoutes: AppRouteDefinition[] = [
     sidebarLayouts: ["manager"],
   },
   {
+    path: "/seller",
+    title: "Overview",
+    titleKey: "overview",
+    component: SellerOverviewPage,
+    authRequired: true,
+    accessLevels: [AccessLevel.SELLER],
+    layout: "seller",
+    showInSidebar: true,
+    icon: LayoutDashboard,
+    exact: true,
+  },
+  {
     path: "/coupons",
     title: "Coupons",
     titleKey: "coupons",
@@ -597,7 +612,7 @@ export const appRoutes: AppRouteDefinition[] = [
   },
   {
     path: "/earnings",
-    title: "Billing",
+    title: "Sales",
     titleKey: "earnings",
     component: SellerEarningsPage,
     authRequired: true,

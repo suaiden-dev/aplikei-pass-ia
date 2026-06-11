@@ -74,6 +74,18 @@ function normalizeMethod(method?: string | null) {
   return method.toUpperCase();
 }
 
+async function updateOrderOfficeIds(updates: Array<{ id: string; office_id: string }>) {
+  if (updates.length === 0) return;
+
+  const { error } = await supabase.rpc("bulk_update_order_office_ids", {
+    p_updates: updates,
+  });
+
+  if (error) {
+    throw new Error(`Erro ao atualizar offices das transações: ${error.message}`);
+  }
+}
+
 export const financeAnalyticsService = {
   async getMonthlyAnalytics(months = 6, officeId?: string): Promise<FinanceMonthlyAnalytics[]> {
     const safeMonths = Number.isFinite(months) ? Math.min(Math.max(Math.trunc(months), 1), 24) : 6;
@@ -167,11 +179,7 @@ export const financeAnalyticsService = {
       });
 
       if (inferredUpdates.length > 0) {
-        await Promise.all(
-          inferredUpdates.map((item) =>
-            supabase.from("orders").update({ office_id: item.office_id }).eq("id", item.id),
-          ),
-        );
+        await updateOrderOfficeIds(inferredUpdates);
       }
 
       const officeIds = Array.from(new Set(

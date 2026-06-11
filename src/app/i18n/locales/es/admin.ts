@@ -37,6 +37,7 @@ const admin = {
     chats: "Mensajes",
     customers: "Clientes",
     coupons: "Cupones",
+    earnings: "Sales",
     roles: "Roles",
     pageBuilder: "Page Builder",
   },

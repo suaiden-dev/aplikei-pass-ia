@@ -45,6 +45,7 @@ const admin = {
     customers: "Customers",
     plans: "Plans",
     coupons: "Coupons",
+    earnings: "Sales",
     roles: "Teams",
     pageBuilder: "Page Builder",
     caseLaw: "Case Law",

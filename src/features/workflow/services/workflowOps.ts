@@ -264,6 +264,24 @@ export async function getReviews(userStepId: string): Promise<StepReview[]> {
   return (data ?? []) as StepReview[];
 }
 
+/** Histórico de revisões de vários steps em uma única consulta. */
+export async function getReviewsForSteps(userStepIds: string[]): Promise<StepReview[]> {
+  const ids = Array.from(new Set(userStepIds.filter(Boolean)));
+  if (ids.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("step_reviews")
+    .select("*")
+    .in("user_step_id", ids)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.warn("[workflowOps] getReviewsForSteps failed:", error.message);
+    return [];
+  }
+  return (data ?? []) as StepReview[];
+}
+
 // ── Product steps (template) ─────────────────────────────────────────────────
 
 /** Lista os steps-template de um produto pelo slug. */
