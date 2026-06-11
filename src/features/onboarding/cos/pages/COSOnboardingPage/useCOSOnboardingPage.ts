@@ -161,7 +161,7 @@ export function useCOSOnboardingPage() {
       const userSteps = await workflowOps.getSteps(inst.id)
       setSteps(userSteps)
 
-      const allReviews = (await Promise.all(userSteps.map((s) => workflowOps.getReviews(s.id)))).flat()
+      const allReviews = await workflowOps.getReviewsForSteps(userSteps.map((s) => s.id))
       setReviews(allReviews)
 
       // Hidrata form step 0

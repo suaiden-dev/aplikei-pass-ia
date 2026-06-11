@@ -145,15 +145,13 @@ export async function inferOfficeIdsByOwner(ownerIds: string[]): Promise<Map<str
 }
 
 export async function updateOrderOfficeIds(updates: Array<{ id: string; office_id: string }>): Promise<void> {
-  await Promise.all(
-    updates.map(async (item) => {
-      const { error } = await supabase
-        .from("orders")
-        .update({ office_id: item.office_id })
-        .eq("id", item.id);
-      if (error) throw Error(error.message);
-    }),
-  );
+  if (updates.length === 0) return;
+
+  const { error } = await supabase.rpc("bulk_update_order_office_ids", {
+    p_updates: updates,
+  });
+
+  if (error) throw Error(error.message);
 }
 
 export async function updateOrderPaymentStatus(id: string, status: string): Promise<void> {

@@ -16,15 +16,22 @@ const renderWithProviders = (ui: React.ReactElement) => {
 const serviceMocks = vi.hoisted(() => ({
   getRecentTransactions: vi.fn(),
   getMonthlyAnalytics: vi.fn(),
+  getRoleActions: vi.fn(),
+  getRoleActorMetrics: vi.fn(),
+  getOfficeSalesMetricsByDateRange: vi.fn(),
+}));
+
+const authMocks = vi.hoisted(() => ({
+  user: { role: "master", officeId: null } as { role: string; officeId?: string | null },
 }));
 
 vi.mock("@features/admin/services/financeAnalyticsService", () => ({
   financeAnalyticsService: {
     getRecentTransactions: serviceMocks.getRecentTransactions,
     getMonthlyAnalytics: serviceMocks.getMonthlyAnalytics,
-    getRoleActions: vi.fn().mockResolvedValue([]),
-    getRoleActorMetrics: vi.fn().mockResolvedValue([]),
-    getOfficeSalesMetricsByDateRange: vi.fn().mockResolvedValue([]),
+    getRoleActions: serviceMocks.getRoleActions,
+    getRoleActorMetrics: serviceMocks.getRoleActorMetrics,
+    getOfficeSalesMetricsByDateRange: serviceMocks.getOfficeSalesMetricsByDateRange,
   },
 }));
 
@@ -71,13 +78,17 @@ vi.mock("@app/app/i18n", () => ({
 
 vi.mock("@shared/hooks/useAuth", () => ({
   useAuth: () => ({
-    user: { role: "master" },
+    user: authMocks.user,
   }),
 }));
 
 describe("FinanceAnalyticsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authMocks.user = { role: "master", officeId: null };
+    serviceMocks.getRoleActions.mockResolvedValue([]);
+    serviceMocks.getRoleActorMetrics.mockResolvedValue([]);
+    serviceMocks.getOfficeSalesMetricsByDateRange.mockResolvedValue([]);
   });
 
   it("renders loading and then success state", async () => {
@@ -188,5 +199,81 @@ describe("FinanceAnalyticsPage", () => {
     expect(screen.getByText("Transaction Details")).toBeInTheDocument();
     expect(screen.getByText("ID: ord-3")).toBeInTheDocument();
     expect(screen.getAllByText("Alice").length).toBeGreaterThan(0);
+  });
+
+  it("shows Office column and master office metrics only for master", async () => {
+    authMocks.user = { role: "master", officeId: null };
+    serviceMocks.getMonthlyAnalytics.mockResolvedValue([{ month: "2026-05", revenue: 500, profit: 35 }]);
+    serviceMocks.getRecentTransactions.mockResolvedValue([
+      {
+        id: "ord-master",
+        clientName: "Master Client",
+        clientEmail: "master@example.com",
+        officeName: "Office Master",
+        productName: "F1",
+        amount: 500,
+        officeNetAmount: 450,
+        platformFeeAmount: 50,
+        method: "CARD",
+        createdAt: "2026-05-03T12:00:00.000Z",
+        status: "completed",
+      },
+    ]);
+    serviceMocks.getOfficeSalesMetricsByDateRange.mockResolvedValue([
+      {
+        officeId: "office-master",
+        officeName: "Office Master",
+        grossRevenue: 500,
+        officeNetRevenue: 450,
+        platformFeeRevenue: 50,
+        salesCount: 1,
+      },
+    ]);
+
+    renderWithProviders(<FinanceAnalyticsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("columnheader", { name: "Office" })).toBeInTheDocument();
+    });
+    expect(screen.getByText("Top Offices by Sales")).toBeInTheDocument();
+    expect(serviceMocks.getRecentTransactions).toHaveBeenCalledWith(50, undefined);
+    expect(serviceMocks.getMonthlyAnalytics).toHaveBeenCalledWith(6, undefined);
+    expect(serviceMocks.getOfficeSalesMetricsByDateRange).toHaveBeenCalled();
+  });
+
+  it.each([
+    ["admin_lawyer", "office-lawyer"],
+    ["manager", "office-manager"],
+    ["seller", "office-seller"],
+  ])("hides Office column and scopes analytics for %s", async (role, officeId) => {
+    authMocks.user = { role, officeId };
+    serviceMocks.getMonthlyAnalytics.mockResolvedValue([{ month: "2026-05", revenue: 500, profit: 35 }]);
+    serviceMocks.getRecentTransactions.mockResolvedValue([
+      {
+        id: `ord-${role}`,
+        clientName: "Scoped Client",
+        clientEmail: `${role}@example.com`,
+        officeName: "Hidden Office",
+        productName: "F1",
+        amount: 500,
+        officeNetAmount: 450,
+        platformFeeAmount: 50,
+        method: "CARD",
+        createdAt: "2026-05-03T12:00:00.000Z",
+        status: "completed",
+      },
+    ]);
+
+    renderWithProviders(<FinanceAnalyticsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(`${role}@example.com`)).toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole("columnheader", { name: "Office" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Top Offices by Sales")).not.toBeInTheDocument();
+    expect(serviceMocks.getRecentTransactions).toHaveBeenCalledWith(50, officeId);
+    expect(serviceMocks.getMonthlyAnalytics).toHaveBeenCalledWith(6, officeId);
+    expect(serviceMocks.getOfficeSalesMetricsByDateRange).not.toHaveBeenCalled();
   });
 });
