@@ -209,7 +209,7 @@ export function COSStepContent({
           onComplete={onComplete}
           onBack={() => onJumpToStep(2)}
           procStatus={proc.status}
-          currentStep={proc.current_step}
+          currentStep={proc.current_step ?? undefined}
           nextStepIdx={4}
         />
       </StepShell>
@@ -249,7 +249,7 @@ export function COSStepContent({
   if (isStep('cos_cover_letter', 'cos_presentation_letter') && proc && user) {
     return (
       <StepShell title={serviceTitle} description={serviceDescription}>
-        <CoverLetterStep proc={proc} user={user} onComplete={onComplete} />
+        <CoverLetterStep proc={proc} user={user} onComplete={onComplete} isReadOnly={isReadOnly} />
       </StepShell>
     )
   }

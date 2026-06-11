@@ -107,12 +107,12 @@ export function OnboardingStepper({ slug, stepIdx, totalSteps }: OnboardingStepp
       </div>
 
       {/* Mobile Stepper */}
-      <div className="flex md:hidden flex-col gap-1.5 w-full bg-primary/5 border border-primary/10 rounded-2xl px-4 py-3 shadow-inner">
-        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[10px] font-black uppercase tracking-widest text-primary leading-tight">
+      <div className="flex md:hidden flex-col gap-1 w-full bg-primary/5 border border-primary/10 rounded-xl px-3 py-2 shadow-inner">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-[9px] font-black uppercase tracking-widest text-primary leading-tight">
           <span>{currentActiveMilestone.label}</span>
-          <span>Etapa {stepIdx + 1} de {totalSteps}</span>
+          <span>Etapa {stepIdx + 1}/{totalSteps}</span>
         </div>
-        <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
+        <div className="w-full h-1 bg-border rounded-full overflow-hidden">
           <div 
             className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
             style={{ width: `${((stepIdx + 1) / totalSteps) * 100}%` }}

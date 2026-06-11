@@ -53,20 +53,22 @@ export function B1B2UserConfirmEmailStep({
   // ── Etapa aprovada ──────────────────────────────────────────────────────────
   if (isStepApproved) {
     return (
-      <div className="bg-card rounded-[32px] border border-border shadow-xl p-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-inner">
-          <RiCheckLine className="text-3xl" />
+      <div className="pt-6 md:pt-0">
+        <div className="bg-card rounded-[32px] border border-border shadow-xl p-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-inner">
+            <RiCheckLine className="text-3xl" />
+          </div>
+          <h3 className="text-xl font-black text-text mb-2 uppercase tracking-tight">E-mail Confirmado</h3>
+          <p className="text-sm text-text-muted font-medium max-w-sm mx-auto">
+            A confirmação de e-mail foi validada e seu processo avançou.
+          </p>
+          <button
+            onClick={onComplete}
+            className="mt-6 px-8 py-3 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all"
+          >
+            {t.onboardingPage?.backToDashboard ?? "Voltar para Dashboard"}
+          </button>
         </div>
-        <h3 className="text-xl font-black text-text mb-2 uppercase tracking-tight">E-mail Confirmado</h3>
-        <p className="text-sm text-text-muted font-medium max-w-sm mx-auto">
-          A confirmação de e-mail foi validada e seu processo avançou.
-        </p>
-        <button
-          onClick={onComplete}
-          className="mt-6 px-8 py-3 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all"
-        >
-          {t.onboardingPage?.backToDashboard ?? "Voltar para Dashboard"}
-        </button>
       </div>
     );
   }
@@ -74,28 +76,30 @@ export function B1B2UserConfirmEmailStep({
   // ── Aguardando revisão ──────────────────────────────────────────────────────
   if (isAwaitingReview) {
     return (
-      <div className="bg-card rounded-[32px] border border-border shadow-xl p-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6 shadow-inner">
-          <RiLoader4Line className="text-3xl animate-spin" />
+      <div className="pt-6 md:pt-0">
+        <div className="bg-card rounded-[32px] border border-border shadow-xl p-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6 shadow-inner">
+            <RiLoader4Line className="text-3xl animate-spin" />
+          </div>
+          <h3 className="text-xl font-black text-text mb-2 uppercase tracking-tight">
+            Aguardando Confirmação
+          </h3>
+          <p className="text-sm text-text-muted font-medium max-w-sm mx-auto">
+            Você já confirmou a criação da conta. Nossa equipe está validando a confirmação do e-mail para prosseguir com o seu processo.
+          </p>
+          <button
+            onClick={onComplete}
+            className="mt-6 px-8 py-3 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all"
+          >
+            {t.onboardingPage?.backToDashboard ?? "Voltar para Dashboard"}
+          </button>
         </div>
-        <h3 className="text-xl font-black text-text mb-2 uppercase tracking-tight">
-          Aguardando Confirmação
-        </h3>
-        <p className="text-sm text-text-muted font-medium max-w-sm mx-auto">
-          Você já confirmou a criação da conta. Nossa equipe está validando a confirmação do e-mail para prosseguir com o seu processo.
-        </p>
-        <button
-          onClick={onComplete}
-          className="mt-6 px-8 py-3 rounded-xl border border-border text-text font-bold text-xs uppercase tracking-widest hover:bg-bg-subtle transition-all"
-        >
-          {t.onboardingPage?.backToDashboard ?? "Voltar para Dashboard"}
-        </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pt-6 md:pt-0">
       {/* Header */}
       <div className="text-center">
         <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-inner">

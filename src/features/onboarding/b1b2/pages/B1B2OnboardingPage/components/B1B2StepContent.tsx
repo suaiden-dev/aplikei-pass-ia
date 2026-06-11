@@ -104,12 +104,16 @@ export function B1B2StepContent({
   }
 
   if (stepIdx === 5) {
+    const isCompleted = currentStep > 5
+    const isAwaiting = procStatus === 'awaiting_review'
+    const isStepReadOnly = isCompleted || isAwaiting
     return (
       <B1B2CASVSchedulingStep
         procId={procId}
         stepData={savedValues}
         onComplete={onNavigateToProcess}
         onBack={onNavigateToProcess}
+        isReadOnly={isStepReadOnly}
       />
     )
   }

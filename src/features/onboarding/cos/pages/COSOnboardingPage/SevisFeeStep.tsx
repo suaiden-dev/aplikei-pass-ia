@@ -296,16 +296,16 @@ export default function SevisFeeStep({ proc, user, onComplete, isUSCIS = false }
                 </div>
                 <h4 className="text-sm font-black text-emerald-900 uppercase tracking-widest mb-1">{tStep.upload.receiptSent}</h4>
                 
-                <div className="flex gap-3 mt-6">
+                <div className="flex flex-col sm:flex-row gap-3 mt-6">
                   <a 
                     href={getOnboardingDocumentUrl(receiptPath)}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex-1 px-4 py-3 bg-white border border-emerald-200 rounded-xl text-[10px] font-black text-emerald-700 uppercase tracking-widest hover:bg-emerald-100 transition-all"
+                    className="w-full sm:flex-1 px-4 py-3 bg-white border border-emerald-200 rounded-xl text-[10px] font-black text-emerald-700 uppercase tracking-widest hover:bg-emerald-100 transition-all text-center"
                   >
                     {tStep.upload.view}
                   </a>
-                  <label className="flex-1 px-4 py-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all cursor-pointer shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
+                  <label className="w-full sm:flex-1 px-4 py-3 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all cursor-pointer shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
                     <RiFileUploadLine className="text-sm" />
                     {tStep.upload.replace}
                     <input 
@@ -341,11 +341,12 @@ export default function SevisFeeStep({ proc, user, onComplete, isUSCIS = false }
       )}
 
       {/* Action Bar */}
-      <div className="fixed bottom-4 right-4 lg:right-8 z-40">
+      <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 mt-8">
+        <div className="hidden sm:block flex-1" />
         <button
           onClick={handleNext}
           disabled={!receiptPath || isSubmitting}
-          className="flex items-center justify-center gap-2 px-6 md:px-12 py-4 rounded-2xl bg-primary text-white text-sm font-black uppercase tracking-widest hover:bg-primary-hover shadow-xl shadow-primary/20 transition-all disabled:opacity-50 whitespace-normal text-center leading-tight"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 md:px-12 py-4 rounded-2xl bg-primary text-white text-sm font-black uppercase tracking-widest hover:bg-primary-hover shadow-xl shadow-primary/20 transition-all disabled:opacity-50 whitespace-normal text-center leading-tight cursor-pointer"
         >
           {isSubmitting ? <RiLoader4Line className="animate-spin text-lg" /> : <RiCheckLine className="text-lg" />}
           {tStep.nextBtn}

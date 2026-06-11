@@ -460,11 +460,11 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
         </div>
       </div>
 
-      <div className="fixed bottom-4 right-4 lg:right-8 z-40 flex items-center gap-4">
+      <div className="pt-8 flex flex-col-reverse sm:flex-row items-center justify-end gap-4 border-t border-slate-100 mt-8">
         <button
           onClick={handleSaveDraft}
           disabled={isSavingDraft || isSubmitting}
-          className="flex items-center gap-2 px-6 py-3.5 rounded-xl border-2 border-border text-sm font-black text-text-muted hover:bg-bg-subtle hover:border-border/50 transition-all disabled:opacity-50"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border-2 border-border text-sm font-black text-text-muted hover:bg-bg-subtle hover:border-border/50 transition-all disabled:opacity-50 shadow-sm"
         >
           {isSavingDraft ? <RiLoader4Line className="animate-spin text-lg" /> : <RiSave3Line className="text-lg" />}
           {t.cos.finalForms.btns?.saveDraft || "Salvar rascunho"}
@@ -473,7 +473,7 @@ export default function FinalFormsStep({ proc, user, onComplete }: Props) {
         <button
           onClick={handleFinalSubmit}
           disabled={isSubmitting || isSavingDraft}
-          className="flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-primary text-white text-sm font-black hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-primary text-white text-sm font-black hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
         >
           {isSubmitting ? (
             <><RiLoader4Line className="animate-spin text-lg" /> {t.cos.finalForms.btns?.processing || "Enviando..."}</>

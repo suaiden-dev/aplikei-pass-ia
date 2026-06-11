@@ -110,6 +110,9 @@ export function F1StepContent({
 
   // 6: f1_casv_scheduling
   if (stepIdx === 6) {
+    const isCompleted = currentStep > 6
+    const isAwaiting = procStatus === 'awaiting_review'
+    const isStepReadOnly = isCompleted || isAwaiting
     return (
       <B1B2CASVSchedulingStep
         procId={procId}
@@ -117,6 +120,7 @@ export function F1StepContent({
         nextStepIdx={7}
         onComplete={onNavigateToProcess}
         onBack={onNavigateToProcess}
+        isReadOnly={isStepReadOnly}
       />
     )
   }

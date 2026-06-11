@@ -37,9 +37,10 @@ interface B1B2CASVSchedulingStepProps {
   nextStepIdx?: number;
   onComplete: () => void;
   onBack: () => void;
+  isReadOnly?: boolean;
 }
 
-export function B1B2CASVSchedulingStep({ procId, stepData, nextStepIdx = 6, onComplete, onBack }: B1B2CASVSchedulingStepProps) {
+export function B1B2CASVSchedulingStep({ procId, stepData, nextStepIdx = 6, onComplete, onBack, isReadOnly = false }: B1B2CASVSchedulingStepProps) {
   const t = useT("visas") as VisasSchedulingText;
   const { lang } = useLocale();
   const consulado = (stepData.interviewLocation as string) || "";
@@ -197,7 +198,8 @@ export function B1B2CASVSchedulingStep({ procId, stepData, nextStepIdx = 6, onCo
               min={minDate}
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-xl border border-border bg-card text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 transition-all"
+              disabled={isReadOnly}
+              className="w-full px-4 py-3.5 rounded-xl border border-border bg-card text-sm font-black text-text outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/40 transition-all disabled:opacity-75 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -243,21 +245,28 @@ export function B1B2CASVSchedulingStep({ procId, stepData, nextStepIdx = 6, onCo
           {t.onboardingPage.common.back}
         </button>
 
-        <button
-          type="button"
-          onClick={handleConfirm}
-          disabled={isSubmitting || !selectedDate}
-          className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-        >
-          {isSubmitting ? (
-            <RiLoader4Line className="animate-spin text-lg" />
-          ) : (
-            <>
-              {t.onboardingPage.scheduling.confirmDate}
-              <RiArrowRightLine className="text-lg" />
-            </>
-          )}
-        </button>
+        {isReadOnly ? (
+          <div className="px-6 py-3.5 rounded-xl bg-success/15 border border-success/30 text-success font-black text-xs uppercase tracking-widest flex items-center gap-2">
+            <RiCheckLine className="text-base" />
+            {t.onboardingPage.scheduling.dateSubmitted || "Preferência Enviada"}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={isSubmitting || !selectedDate}
+            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+          >
+            {isSubmitting ? (
+              <RiLoader4Line className="animate-spin text-lg" />
+            ) : (
+              <>
+                {t.onboardingPage.scheduling.confirmDate}
+                <RiArrowRightLine className="text-lg" />
+              </>
+            )}
+          </button>
+        )}
       </div>
 
     </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { supabase } from "@shared/lib/supabase";
 import { MdLanguage, MdSchool, MdHistory, MdSyncAlt } from "react-icons/md";
 import {
   RiArrowLeftLine,
@@ -153,7 +154,7 @@ export default function ProcessDetailPage() {
   }, [recoveryChildren]);
 
   useEffect(() => {
-    if (!user || !proc) return;
+    if (!user || !proc?.id) return;
 
     // REALTIME SUBSCRIPTION
     const channel = supabase
@@ -176,10 +177,6 @@ export default function ProcessDetailPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-    return subscribeToProcessChanges(proc.id, () => {
-      console.log("[ProcessDetail] Realtime update detected, refetching...");
-      queryClient.invalidateQueries({ queryKey: ['process-detail', slug, searchParams.get("id")] });
-    });
   }, [user, proc, slug, searchParams, queryClient]);
 
   const handleCompleteStep = async () => {

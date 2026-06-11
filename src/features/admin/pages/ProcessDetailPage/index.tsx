@@ -1704,6 +1704,7 @@ export default function AdminProcessDetailPage() {
         !!nextStepBaseId &&
         (nextStepBaseId.includes("_admin_credentials") ||
           nextStepBaseId.includes("_admin_account_creation") ||
+          nextStepBaseId.includes("_admin_mrv_setup") ||
           nextStepBaseId.includes("_admin_analysis"));
 
       if (isAdminTask) {
@@ -1830,17 +1831,17 @@ export default function AdminProcessDetailPage() {
     approveTone: "success" | "primary" = "success",
     requestLabel = t.analysisPanel.actions.requestMoreInfo,
   ) => (
-    <div className="flex items-center gap-4 pt-4 border-t border-border">
+    <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t border-border w-full">
       <button
         onClick={() => setShowRejectionModal(true)}
-        className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
+        className="w-full sm:flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
       >
         <RiCloseLine className="text-xl" /> {requestLabel}
       </button>
       <button
         onClick={() => handleApproveStep()}
         disabled={isSubmitting}
-        className={`flex-1 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg ${
+        className={`w-full sm:flex-1 text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg ${
           approveTone === "primary"
             ? "bg-primary shadow-primary/20"
             : "bg-success shadow-success/20"
@@ -1975,19 +1976,19 @@ export default function AdminProcessDetailPage() {
         isActive={isActive}
         isPast={isPast}
       >
-        <div className="flex flex-col md:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
             <div className="w-16 h-16 bg-danger/10 text-danger rounded-2xl flex items-center justify-center mb-4 shadow-sm">
               <RiFileTextLine className="text-3xl" />
             </div>
             <h4 className="font-black text-text text-lg mb-1">{t.processDetail.officialForms.i539Form}</h4>
             <p className="text-xs text-text-muted font-medium mb-6">{t.processDetail.officialForms.digitalDocDesc}</p>
-            <div className="flex gap-3 w-full">
-              <a href={pdfUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              <a href={pdfUrl} target="_blank" rel="noreferrer" className="w-full sm:flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                 <RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}
               </a>
               {isActive && (
-                <button onClick={() => toggleItem('i539PdfUrl')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                <button onClick={() => toggleItem('i539PdfUrl')} className={`w-full sm:flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                   <RiErrorWarningLine className="text-sm" /> Select
                 </button>
               )}
@@ -1995,17 +1996,17 @@ export default function AdminProcessDetailPage() {
           </div>
         </div>
         {isActive && (
-          <div className="flex items-center gap-4 pt-4 border-t border-border mt-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t border-border mt-4 w-full">
             <button
               onClick={() => setShowRejectionModal(true)}
-              className="flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
+              className="w-full sm:flex-1 h-14 rounded-2xl border-2 border-border text-text-muted font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:border-danger/30 hover:text-danger hover:bg-danger/10"
             >
               <RiCloseLine className="text-xl" /> {t.cases.actions.reject}
             </button>
             <button
               onClick={() => handleApproveStep()}
               disabled={isSubmitting}
-              className="flex-1 bg-success text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-success/20"
+              className="w-full sm:flex-1 bg-success text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-success/20"
             >
               {isSubmitting ? <RiLoader4Line className="animate-spin text-xl" /> : <><RiCheckLine className="text-xl" /> {t.cases.actions.approve}</>}
             </button>
@@ -2069,15 +2070,15 @@ export default function AdminProcessDetailPage() {
       <CollapsibleStep title={`${t.processDetail.finalForms?.g1145} / ${t.processDetail.finalForms?.g1450}`} icon={RiBankCardLine} isActive={isActive} isPast={isPast}>
         <div className="space-y-6">
           {g1145PdfUrl && (
-            <div className={`flex items-center justify-between p-6 border rounded-2xl transition-all ${selectedItems.includes('g1145PdfUrl') ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 border rounded-2xl transition-all ${selectedItems.includes('g1145PdfUrl') ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
               <div className="flex items-center gap-4">
                 <RiFileTextLine className="text-2xl text-info" />
                 <h4 className="text-sm font-black text-text">G-1145</h4>
               </div>
-              <div className="flex items-center gap-3">
-                <a href={g1145PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-info text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <a href={g1145PdfUrl} target="_blank" rel="noreferrer" className="w-full sm:w-auto text-center px-6 py-2.5 bg-info text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
                 {isActive && (
-                  <button onClick={() => toggleItem('g1145PdfUrl')} className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedItems.includes('g1145PdfUrl') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                  <button onClick={() => toggleItem('g1145PdfUrl')} className={`w-full sm:w-auto px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedItems.includes('g1145PdfUrl') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                     Select
                   </button>
                 )}
@@ -2085,15 +2086,15 @@ export default function AdminProcessDetailPage() {
             </div>
           )}
           {g1450PdfUrl && (
-            <div className={`flex items-center justify-between p-6 border rounded-2xl transition-all ${selectedItems.includes('g1450PdfUrl') ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
+            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 border rounded-2xl transition-all ${selectedItems.includes('g1450PdfUrl') ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
               <div className="flex items-center gap-4">
                 <RiBankCardLine className="text-2xl text-primary" />
                 <h4 className="text-sm font-black text-text">G-1450</h4>
               </div>
-              <div className="flex items-center gap-3">
-                <a href={g1450PdfUrl} target="_blank" rel="noreferrer" className="px-6 py-2.5 bg-primary text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <a href={g1450PdfUrl} target="_blank" rel="noreferrer" className="w-full sm:w-auto text-center px-6 py-2.5 bg-primary text-white font-black text-[10px] uppercase rounded-xl">{t.processDetail.officialForms.viewPdf}</a>
                 {isActive && (
-                  <button onClick={() => toggleItem('g1450PdfUrl')} className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedItems.includes('g1450PdfUrl') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                  <button onClick={() => toggleItem('g1450PdfUrl')} className={`w-full sm:w-auto px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedItems.includes('g1450PdfUrl') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                     Select
                   </button>
                 )}
@@ -2145,7 +2146,7 @@ export default function AdminProcessDetailPage() {
     return (
       <CollapsibleStep title={t.analysisPanel.clientDocuments} icon={RiFileUploadLine} isActive={isActive} isPast={isPast} badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}>
         <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Object.entries(docs).map(([key, path]) => {
               if (key === 'i20_document' || key === 'sevis_receipt') return null;
               const url = supabase.storage.from("aplikei-profiles").getPublicUrl(path).data.publicUrl;
@@ -2156,12 +2157,12 @@ export default function AdminProcessDetailPage() {
                   <h4 className="text-[10px] font-black text-text uppercase tracking-tight truncate mb-3">
                     {key.replace(/_/g, ' ')}
                   </h4>
-                  <div className="flex gap-2 mt-auto">
-                    <a href={url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
+                  <div className="flex flex-col sm:flex-row gap-2 mt-auto w-full">
+                    <a href={url} target="_blank" rel="noreferrer" className="w-full sm:flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                       {t.processDetail.officialForms.viewPdf}
                     </a>
                     {isActive && (
-                      <button onClick={() => toggleItem(`docs.${key}`)} className={`flex-1 flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${isSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                      <button onClick={() => toggleItem(`docs.${key}`)} className={`w-full sm:flex-1 flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${isSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                         <RiErrorWarningLine className="text-sm" /> Select
                       </button>
                     )}
@@ -2225,12 +2226,12 @@ export default function AdminProcessDetailPage() {
                     <RiMoneyDollarCircleLine className="text-3xl" />
                   </div>
                   <h4 className="font-black text-text text-sm mb-1 uppercase">Comprovante de Taxa do USCIS</h4>
-                  <div className="flex gap-2 w-full mt-4">
-                    <a href={uscisUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
+                  <div className="flex flex-col gap-2 w-full mt-4">
+                    <a href={uscisUrl} target="_blank" rel="noreferrer" className="w-full flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2.5 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                       {t.processDetail.officialForms.viewPdf}
                     </a>
                     {isActive && (
-                      <button onClick={() => toggleItem('docs.uscis_receipt')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.uscis_receipt') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                      <button onClick={() => toggleItem('docs.uscis_receipt')} className={`w-full flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2.5 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.uscis_receipt') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                         {selectedItems.includes('docs.uscis_receipt') ? "Selecionado" : "Selecionar"}
                       </button>
                     )}
@@ -2254,19 +2255,19 @@ export default function AdminProcessDetailPage() {
     return (
       <CollapsibleStep title={t.processDetail.i20Sevis.title} icon={RiShieldCheckLine} isActive={isActive} isPast={isPast} badge={isActive ? t.cases.statusLabel.awaitingReview : undefined}>
         <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {i20Url && (
               <div className={`p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${selectedItems.includes('docs.i20_document') ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
                 <div className="w-16 h-16 bg-info/10 text-info rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <RiFileTextLine className="text-3xl" />
                 </div>
                 <h4 className="font-black text-text text-sm mb-1 uppercase">I-20 Form</h4>
-                <div className="flex gap-2 w-full mt-4">
-                  <a href={i20Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
+                <div className="flex flex-col gap-2 w-full mt-4">
+                  <a href={i20Url} target="_blank" rel="noreferrer" className="w-full flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2.5 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                     {t.processDetail.officialForms.viewPdf}
                   </a>
                   {isActive && (
-                    <button onClick={() => toggleItem('docs.i20_document')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.i20_document') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                    <button onClick={() => toggleItem('docs.i20_document')} className={`w-full flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2.5 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.i20_document') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                       Select
                     </button>
                   )}
@@ -2279,12 +2280,12 @@ export default function AdminProcessDetailPage() {
                   <RiMoneyDollarCircleLine className="text-3xl" />
                 </div>
                 <h4 className="font-black text-text text-sm mb-1 uppercase">Recibo SEVIS</h4>
-                <div className="flex gap-2 w-full mt-4">
-                  <a href={sevisUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
+                <div className="flex flex-col gap-2 w-full mt-4">
+                  <a href={sevisUrl} target="_blank" rel="noreferrer" className="w-full flex items-center justify-center gap-2 bg-card border border-border text-text text-[9px] font-black uppercase tracking-widest py-2.5 px-3 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                     {t.processDetail.officialForms.viewPdf}
                   </a>
                   {isActive && (
-                    <button onClick={() => toggleItem('docs.sevis_receipt')} className={`flex-1 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.sevis_receipt') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                    <button onClick={() => toggleItem('docs.sevis_receipt')} className={`w-full flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest py-2.5 px-3 rounded-xl transition-all shadow-sm ${selectedItems.includes('docs.sevis_receipt') ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                       Select
                     </button>
                   )}
@@ -2397,14 +2398,14 @@ export default function AdminProcessDetailPage() {
         badge={hasCorrectionsInSection ? (t.cases.statusLabel.corrections || "Correções Necessárias") : (isActive ? t.cases.statusLabel.awaitingReview : undefined)}
       >
         <div className="flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row gap-6">
             {ds160Url && (
               <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isDsSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
                 <div className="w-16 h-16 bg-info/10 text-info rounded-2xl flex items-center justify-center mb-4 shadow-sm"><RiFileTextLine className="text-3xl" /></div>
                 <h4 className="font-black text-text text-lg mb-1">{t.processDetail.f1FinalDocs.ds160Signed}</h4>
-                <div className="flex gap-3 w-full mt-4">
-                  <a href={ds160Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm"><RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}</a>
-                  {isActive && <button onClick={() => toggleItem('docs.ds160_assinada')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> Select</button>}
+                <div className="flex flex-col gap-2 w-full mt-4">
+                  <a href={ds160Url} target="_blank" rel="noreferrer" className="w-full flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm"><RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}</a>
+                  {isActive && <button onClick={() => toggleItem('docs.ds160_assinada')} className={`w-full flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> Select</button>}
                 </div>
               </div>
             )}
@@ -2412,9 +2413,9 @@ export default function AdminProcessDetailPage() {
               <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isComprovanteSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
                 <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-4 shadow-sm"><RiFileTextLine className="text-3xl" /></div>
                 <h4 className="font-black text-text text-lg mb-1">{t.processDetail.f1FinalDocs.finalProof}</h4>
-                <div className="flex gap-3 w-full mt-4">
-                  <a href={comprovanteUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm"><RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}</a>
-                  {isActive && <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> Select</button>}
+                <div className="flex flex-col gap-2 w-full mt-4">
+                  <a href={comprovanteUrl} target="_blank" rel="noreferrer" className="w-full flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm"><RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}</a>
+                  {isActive && <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`w-full flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}><RiErrorWarningLine className="text-sm" /> Select</button>}
                 </div>
               </div>
             )}
@@ -2478,19 +2479,19 @@ export default function AdminProcessDetailPage() {
         badge={hasCorrectionsInSection ? (t.cases.statusLabel.corrections || "Correções Necessárias") : (isActive ? t.cases.statusLabel.awaitingReview : undefined)}
       >
         <div className="flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row gap-6">
             {ds160Url && (
               <div className={`flex-1 p-6 rounded-2xl border flex flex-col items-center justify-center text-center transition-all ${isDsSelected ? 'bg-danger/10 border-danger/30' : 'bg-bg-subtle border-border'}`}>
                 <div className="w-16 h-16 bg-info/10 text-info rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                   <RiFileTextLine className="text-3xl" />
                 </div>
                 <h4 className="font-black text-text text-lg mb-1">{t.processDetail.f1FinalDocs.ds160Signed}</h4>
-                <div className="flex gap-3 w-full mt-4">
-                  <a href={ds160Url} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
+                <div className="flex flex-col gap-3 w-full mt-4">
+                  <a href={ds160Url} target="_blank" rel="noreferrer" className="w-full flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                     <RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}
                   </a>
                   {isActive && (
-                    <button onClick={() => toggleItem('docs.ds160_assinada')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                    <button onClick={() => toggleItem('docs.ds160_assinada')} className={`w-full flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isDsSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                       <RiErrorWarningLine className="text-sm" /> Select
                     </button>
                   )}
@@ -2504,12 +2505,12 @@ export default function AdminProcessDetailPage() {
                   <RiFileTextLine className="text-3xl" />
                 </div>
                 <h4 className="font-black text-text text-lg mb-1">{t.processDetail.f1FinalDocs.finalProof}</h4>
-                <div className="flex gap-3 w-full mt-4">
-                  <a href={comprovanteUrl} target="_blank" rel="noreferrer" className="flex-[2] flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
+                <div className="flex flex-col gap-3 w-full mt-4">
+                  <a href={comprovanteUrl} target="_blank" rel="noreferrer" className="w-full flex items-center justify-center gap-2 bg-card border border-border text-text text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl hover:bg-bg-subtle transition-all shadow-sm">
                     <RiExternalLinkLine className="text-sm" /> {t.processDetail.officialForms.viewPdf}
                   </a>
                   {isActive && (
-                    <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`flex-1 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
+                    <button onClick={() => toggleItem('docs.ds160_comprovante')} className={`w-full flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl transition-all shadow-sm ${isComprovanteSelected ? 'bg-danger text-white' : 'bg-danger/10 text-danger'}`}>
                       <RiErrorWarningLine className="text-sm" /> Select
                     </button>
                   )}
