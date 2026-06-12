@@ -17,6 +17,13 @@ import type { Withdrawal } from "@features/admin/types";
 import { useAuth } from "@shared/hooks/useAuth";
 import { Button } from "@shared/components/atoms/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@shared/components/atoms/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@shared/components/atoms/select";
 import { DashboardPageHeader } from "@shared/components/organisms/DashboardUI";
 import { Badge } from "@shared/components/atoms/badge";
 import { toast } from "sonner";
@@ -24,28 +31,36 @@ import { useT } from "@app/app/i18n";
 import { useOfficeOverview } from "@features/offices/hooks/useOfficeOverview";
 import { WithdrawalModal } from "@features/admin/components/WithdrawalModal";
 
-function getWithdrawalStatusMeta(rawStatus: string | null | undefined) {
+type WithdrawalHistoryFilter = "all" | "pending" | "approved" | "rejected";
+
+function normalizeWithdrawalStatus(rawStatus: string | null | undefined): WithdrawalHistoryFilter | "other" {
   const status = String(rawStatus || "").toLowerCase();
 
-  const isApproved = status === "completed" || status === "approved" || status === "paid" || status === "processing";
-  const isPending = status === "pending";
-  const isRejected = status === "rejected" || status === "cancelled" || status === "canceled";
+  if (status === "pending") return "pending";
+  if (status === "completed" || status === "approved" || status === "paid" || status === "processing") return "approved";
+  if (status === "rejected" || status === "cancelled" || status === "canceled") return "rejected";
 
-  if (isApproved) {
+  return "other";
+}
+
+function getWithdrawalStatusMeta(rawStatus: string | null | undefined) {
+  const status = normalizeWithdrawalStatus(rawStatus);
+
+  if (status === "approved") {
     return {
       iconClass: "bg-green-500/10 text-green-600",
       badgeClass: "bg-green-500/10 text-green-700 border-green-200",
     };
   }
 
-  if (isPending) {
+  if (status === "pending") {
     return {
       iconClass: "bg-amber-500/10 text-amber-600",
       badgeClass: "bg-amber-500/10 text-amber-700 border-amber-200",
     };
   }
 
-  if (isRejected) {
+  if (status === "rejected") {
     return {
       iconClass: "bg-red-500/10 text-red-600",
       badgeClass: "bg-red-500/10 text-red-700 border-red-200",
@@ -67,6 +82,7 @@ export default function WithdrawalsPage() {
   const [withdrawals, setWithdrawals] = React.useState<Withdrawal[]>([]);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [hasWithdrawalMethod, setHasWithdrawalMethod] = React.useState(false);
+  const [historyFilter, setHistoryFilter] = React.useState<WithdrawalHistoryFilter>("all");
 
   const { data: officeStats } = useOfficeOverview();
 
@@ -75,11 +91,13 @@ export default function WithdrawalsPage() {
     .reduce((sum, w) => sum + w.amount, 0);
 
   const totalWithdrawn = withdrawals
-    .filter((w) => {
-      const status = String(w.status || "").toLowerCase();
-      return status === "completed" || status === "approved" || status === "paid" || status === "processing";
-    })
+    .filter((w) => normalizeWithdrawalStatus(w.status) === "approved")
     .reduce((sum, w) => sum + w.amount, 0);
+
+  const filteredWithdrawals = React.useMemo(() => {
+    if (historyFilter === "all") return withdrawals;
+    return withdrawals.filter((withdrawal) => normalizeWithdrawalStatus(withdrawal.status) === historyFilter);
+  }, [historyFilter, withdrawals]);
 
   const fetchWithdrawals = React.useCallback(async () => {
     if (!user?.officeId) return;
@@ -196,9 +214,18 @@ export default function WithdrawalsPage() {
               <CardTitle className="text-lg uppercase tracking-tight">Withdrawal History</CardTitle>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="rounded-lg h-9">
-                <Filter className="mr-2 h-4 w-4" /> Filter
-              </Button>
+              <Filter className="h-4 w-4 text-text-muted" />
+              <Select value={historyFilter} onValueChange={(value) => setHistoryFilter(value as WithdrawalHistoryFilter)}>
+                <SelectTrigger className="h-9 w-[150px] rounded-lg bg-card px-3">
+                  <SelectValue placeholder="Filter" />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
@@ -220,9 +247,19 @@ export default function WithdrawalsPage() {
                 Learn more about payouts
               </Button>
             </div>
+          ) : filteredWithdrawals.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+              <div className="h-16 w-16 rounded-full bg-bg-subtle flex items-center justify-center mb-4">
+                <Filter className="h-8 w-8 text-text-muted/30" />
+              </div>
+              <h3 className="text-lg font-bold">No withdrawals match this filter</h3>
+              <p className="text-text-muted max-w-xs mx-auto">
+                Choose another status to review more withdrawal requests.
+              </p>
+            </div>
           ) : (
             <div className="divide-y divide-border">
-              {withdrawals.map((withdrawal) => (
+              {filteredWithdrawals.map((withdrawal) => (
                 <div key={withdrawal.id} className="p-6 flex items-center justify-between hover:bg-bg-subtle/30 transition-colors">
                   {(() => {
                     const meta = getWithdrawalStatusMeta(withdrawal.status);

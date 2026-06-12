@@ -13,7 +13,7 @@ export function LandingPagePreview({ config }: LandingPagePreviewProps) {
   const renderedHtml = useMemo(() => {
     if (!baseTemplate) return "";
     const html = applyTemplateConfig(baseTemplate, config);
-    const blockScript = `<script>document.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();},true);document.addEventListener('submit',function(e){e.preventDefault();e.stopPropagation();},true);</script>`;
+    const blockScript = `<script>document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('[data-theme-toggle]'))return;e.preventDefault();e.stopPropagation();},true);document.addEventListener('submit',function(e){e.preventDefault();e.stopPropagation();},true);</script>`;
     return html.includes("</body>")
       ? html.replace("</body>", blockScript + "</body>")
       : html + blockScript;
@@ -22,7 +22,7 @@ export function LandingPagePreview({ config }: LandingPagePreviewProps) {
   return (
     <iframe
       title="Landing preview"
-      className="h-full min-h-[700px] w-full border-0"
+      className="block h-full min-h-full w-full border-0"
       srcDoc={renderedHtml}
       sandbox="allow-same-origin allow-scripts"
     />

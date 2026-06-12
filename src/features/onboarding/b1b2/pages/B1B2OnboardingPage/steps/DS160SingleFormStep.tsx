@@ -3,6 +3,7 @@ import { useFormikContext, Field, ErrorMessage } from "formik";
 import type { DS160FormValues } from "@features/onboarding/b1b2/schemas/ds160.schema";
 import { lookupBrazilCep, lookupUsZip } from "@features/onboarding/services/addressLookupService";
 import { useT, useLocale } from "@app/app/i18n";
+import { masks } from "@shared/lib/form/masks";
 import { maskCPF } from "@shared/utils/cpf";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/components/atoms/tooltip";
 import { RiInformationLine } from "react-icons/ri";
@@ -183,6 +184,19 @@ const FormNumericInput = ({
   // Lógica local para moeda (Padrão: R$ se não houver indicador de dólar)
   const isUsdName = `${name}_currency`;
   const selectedCurrency = (values[isUsdName] as string) || "BRL";
+  const currencyMask = selectedCurrency === "USD" ? masks.currencyUSD : masks.currencyBRL;
+  const lastCurrencyRef = useRef(selectedCurrency);
+
+  useEffect(() => {
+    if (!isCurrency) return;
+    if (lastCurrencyRef.current === selectedCurrency) return;
+
+    const currentValue = String(values[name] || "");
+    if (currentValue) {
+      setFieldValue(name, currencyMask(currentValue), false);
+    }
+    lastCurrencyRef.current = selectedCurrency;
+  }, [currencyMask, isCurrency, name, selectedCurrency, setFieldValue, values]);
 
   return (
     <div className="space-y-1.5">
@@ -216,12 +230,14 @@ const FormNumericInput = ({
                 {...field}
                 id={name}
                 type="text"
-                inputMode={allowDecimals ? "decimal" : "numeric"}
+                inputMode={isCurrency || !allowDecimals ? "numeric" : "decimal"}
                 placeholder={placeholder}
                 value={field.value || ""}
                 onChange={(e) => {
                   let val = e.target.value;
-                  if (allowDecimals) {
+                  if (isCurrency) {
+                    val = currencyMask(val);
+                  } else if (allowDecimals) {
                     // Allow digits and single dot or comma
                     val = val.replace(/[^0-9.,]/g, "");
                     const firstSeparatorIndex = val.search(/[.,]/);

@@ -1,5 +1,5 @@
 import { useEffect, useState as useLocalState } from "react";
-import { Check, Copy, Download, Eye, Globe2, Monitor, Power, Save, Smartphone } from "lucide-react";
+import { Check, Copy, Download, Eye, Globe2, Monitor, Power, Save, Smartphone, Tablet } from "lucide-react";
 import { RiLayoutGridLine } from "react-icons/ri";
 import { toast } from "sonner";
 import { Button } from "@shared/components/atoms/button";
@@ -12,10 +12,10 @@ import { applyTemplateConfig } from "./lib/templateHtml";
 import { getLandingTemplateHtml } from "./templates/LandingTemplate";
 import { useState } from "react";
 
-type PreviewViewport = "desktop" | "mobile";
+type PreviewViewport = "desktop" | "tablet" | "mobile";
 
 export default function PageBuilderPage() {
-    const { config, isPreviewOpen, isSaving, isUploadingLogo, isUploadingFavicon, updateConfig, saveConfig, uploadLogo, uploadFavicon, openPreview, closePreview } =
+    const { config, isPreviewOpen, isSaving, isUploadingLogo, isUploadingFavicon, uploadingTestimonialPhoto, updateConfig, saveConfig, uploadLogo, uploadFavicon, uploadTestimonialPhoto, openPreview, closePreview } =
         usePageBuilder();
     const [previewViewport, setPreviewViewport] =
         useState<PreviewViewport>("desktop");
@@ -108,6 +108,16 @@ export default function PageBuilderPage() {
         }
     };
 
+    const handleUploadTestimonialPhoto = async (index: 1 | 2 | 3, file: File) => {
+        try {
+            await uploadTestimonialPhoto(index, file);
+            toast.success("Testimonial photo uploaded successfully.");
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Failed to upload testimonial photo.";
+            toast.error(message);
+        }
+    };
+
     return (
         <div className="flex h-full min-h-0 flex-col">
             <header className="flex flex-col gap-3 border-b border-border bg-card px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
@@ -176,6 +186,13 @@ export default function PageBuilderPage() {
                         Desktop
                     </Button>
                     <Button
+                        variant={previewViewport === "tablet" ? "default" : "outline"}
+                        onClick={() => setPreviewViewport("tablet")}
+                    >
+                        <Tablet size={16} className="mr-2" />
+                        Tablet
+                    </Button>
+                    <Button
                         variant={previewViewport === "mobile" ? "default" : "outline"}
                         onClick={() => setPreviewViewport("mobile")}
                     >
@@ -197,18 +214,22 @@ export default function PageBuilderPage() {
                 </div>
             </header>
 
-            <section className="flex min-h-0 flex-col lg:h-[calc(100vh-64px)] lg:flex-row">
+            <section className="flex min-h-0 flex-1 flex-col lg:flex-row">
                 {showCatalog && (
                     <TemplateCatalog config={config} onUpdateConfig={updateConfig} />
                 )}
                 <main className="min-h-[52vh] flex-1 overflow-hidden bg-[#0f172a] lg:min-h-0">
-                    <div className="flex h-full items-start justify-center overflow-y-auto overflow-x-hidden p-2 sm:p-4">
+                    <div className="flex h-full min-h-0 items-stretch justify-center overflow-y-auto overflow-x-hidden p-2 sm:p-4">
                         {previewViewport === "desktop" ? (
-                            <div className="w-full overflow-hidden shadow-2xl">
+                            <div className="h-full min-h-0 w-full overflow-hidden bg-white shadow-2xl">
+                                <LandingPagePreview config={config} />
+                            </div>
+                        ) : previewViewport === "tablet" ? (
+                            <div className="mx-auto h-full min-h-0 w-[768px] max-w-full overflow-hidden bg-white shadow-2xl">
                                 <LandingPagePreview config={config} />
                             </div>
                         ) : (
-                            <div className="mx-auto w-[390px] overflow-hidden shadow-2xl">
+                            <div className="mx-auto h-full min-h-0 w-[390px] max-w-full overflow-hidden bg-white shadow-2xl">
                                 <LandingPagePreview config={config} />
                             </div>
                         )}
@@ -218,8 +239,10 @@ export default function PageBuilderPage() {
                     config={config}
                     isUploadingLogo={isUploadingLogo}
                     isUploadingFavicon={isUploadingFavicon}
+                    uploadingTestimonialPhoto={uploadingTestimonialPhoto}
                     onUploadLogo={handleUploadLogo}
                     onUploadFavicon={handleUploadFavicon}
+                    onUploadTestimonialPhoto={handleUploadTestimonialPhoto}
                     onUpdateConfig={updateConfig}
                 />
             </section>

@@ -1,4 +1,4 @@
-import type { LandingPageConfig } from "../types";
+import type { LandingPageConfig, LandingSectionKey } from "../types";
 
 function escapeHtml(value: string) {
   return value
@@ -7,6 +7,43 @@ function escapeHtml(value: string) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+}
+
+function sanitizeHref(value: string, fallback = "#") {
+  const raw = String(value ?? "").trim();
+  if (!raw) return fallback;
+  if (raw.startsWith("#")) return raw;
+  if (raw.startsWith("/")) return raw.startsWith("//") ? fallback : raw;
+
+  try {
+    const url = new URL(raw);
+    const protocol = url.protocol.toLowerCase();
+    if (protocol === "http:" || protocol === "https:" || protocol === "mailto:" || protocol === "tel:") {
+      return url.toString();
+    }
+  } catch {
+    return fallback;
+  }
+
+  return fallback;
+}
+
+function sanitizeImageUrl(value: string, fallback = "") {
+  const raw = String(value ?? "").trim();
+  if (!raw) return fallback;
+  if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
+
+  try {
+    const url = new URL(raw);
+    const protocol = url.protocol.toLowerCase();
+    if (protocol === "http:" || protocol === "https:") {
+      return url.toString();
+    }
+  } catch {
+    return fallback;
+  }
+
+  return fallback;
 }
 
 function replaceFirst(html: string, pattern: RegExp, replacement: string) {
@@ -27,6 +64,28 @@ function replaceByClassNth(
   const matches = html.match(regex);
   if (!matches || !matches[index]) return html;
   return html.replace(matches[index], `<${tag} class="${className}">${escapeHtml(value)}</${tag}>`);
+}
+
+function replaceImageByClassNth(
+  html: string,
+  className: string,
+  index: number,
+  src: string,
+  alt: string,
+) {
+  const regex = new RegExp(
+    `<img class="${className}"[^>]*>`,
+    "gi",
+  );
+  const matches = html.match(regex);
+  if (!matches || !matches[index]) return html;
+  const safeSrc = escapeHtml(toAbsoluteUrl(sanitizeImageUrl(src)));
+  const safeAlt = escapeHtml(alt);
+  const fallback = `this.style.opacity='0';this.removeAttribute('src');`;
+  return html.replace(
+    matches[index],
+    `<img class="${className}" src="${safeSrc}" alt="${safeAlt}" loading="lazy" onerror="${fallback}" />`,
+  );
 }
 
 function replaceFooterContactItem(html: string, index: number, value: string) {
@@ -57,7 +116,7 @@ function replaceAnchorByText(html: string, text: string, href: string, label?: s
   );
   return html.replace(
     regex,
-    `<a href="${escapeHtml(href)}"$1>${escapeHtml(label ?? text)}</a>`,
+    `<a href="${escapeHtml(sanitizeHref(href))}"$1>${escapeHtml(label ?? text)}</a>`,
   );
 }
 
@@ -65,7 +124,7 @@ function replaceLoginHeaderButton(html: string, href: string, label: string) {
   const regex = /<a\s+href="[^"]*"\s+class="btn btn-outline btn-sm">[\s\S]*?<\/a>/i;
   return html.replace(
     regex,
-    `<a href="${escapeHtml(href)}" class="btn btn-outline btn-sm">${escapeHtml(label)}</a>`,
+    `<a href="${escapeHtml(sanitizeHref(href))}" class="btn btn-outline btn-sm">${escapeHtml(label)}</a>`,
   );
 }
 
@@ -95,6 +154,54 @@ function removeServiceCardByIndex(html: string, index: number) {
   const matches = html.match(cardRegex);
   if (!matches || !matches[index]) return html;
   return html.replace(matches[index], "");
+}
+
+function removeBlockByClass(html: string, tag: string, className: string) {
+  const regex = new RegExp(`<${tag} class="${className}"[\\s\\S]*?<\\/${tag}>\\s*`, "i");
+  return html.replace(regex, "");
+}
+
+function getBlockByClass(html: string, tag: string, className: string) {
+  const regex = new RegExp(`<${tag} class="${className}"[\\s\\S]*?<\\/${tag}>\\s*`, "i");
+  return html.match(regex)?.[0] ?? "";
+}
+
+const DEFAULT_SECTION_ORDER: LandingSectionKey[] = ["services", "how-it-works", "proof-band", "testimonials", "faq"];
+
+function normalizeSectionOrder(value: LandingPageConfig["sectionOrder"]) {
+  const current = Array.isArray(value) ? value : [];
+  return DEFAULT_SECTION_ORDER
+    .map((section) => section)
+    .sort((a, b) => {
+      const aIndex = current.indexOf(a);
+      const bIndex = current.indexOf(b);
+      return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
+    });
+}
+
+function reorderSections(html: string, sectionOrder: LandingPageConfig["sectionOrder"]) {
+  const blocks = new Map<LandingSectionKey, string>();
+  DEFAULT_SECTION_ORDER.forEach((section) => {
+    blocks.set(section, getBlockByClass(html, "section", section));
+  });
+
+  let withoutSections = html;
+  DEFAULT_SECTION_ORDER.forEach((section) => {
+    withoutSections = removeBlockByClass(withoutSections, "section", section);
+  });
+
+  const orderedBlocks = normalizeSectionOrder(sectionOrder)
+    .map((section) => blocks.get(section))
+    .filter(Boolean)
+    .join("");
+
+  return withoutSections.replace(/(<section class="hero"[\s\S]*?<\/section>\s*)/i, `$1${orderedBlocks}`);
+}
+
+function normalizePercent(value: string) {
+  const numeric = Number.parseInt(String(value).replace(/\D/g, ""), 10);
+  if (Number.isNaN(numeric)) return "0";
+  return String(Math.min(100, Math.max(0, numeric)));
 }
 
 function toAbsoluteUrl(value: string) {
@@ -137,18 +244,153 @@ function normalizeLoginHref(value: string, officeId?: string) {
   }
 }
 
+function normalizeHexColor(value: string | undefined, fallback: string) {
+  const color = String(value ?? "").trim();
+  return /^#[0-9a-f]{6}$/i.test(color) ? color : fallback;
+}
+
+function normalizePx(value: string | undefined, fallback: number, min: number, max: number) {
+  const parsed = Number.parseInt(String(value ?? ""), 10);
+  if (Number.isNaN(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
+}
+
+function buttonRadiusValue(value: LandingPageConfig["buttonRadiusStyle"]) {
+  if (value === "square") return "4px";
+  if (value === "soft") return "10px";
+  return "999px";
+}
+
+function shadowValues(value: LandingPageConfig["cardShadowStyle"]) {
+  if (value === "none") {
+    return {
+      shadow: "none",
+      soft: "none",
+    };
+  }
+  if (value === "strong") {
+    return {
+      shadow: "0 22px 70px rgba(13, 22, 48, 0.22)",
+      soft: "0 18px 48px rgba(13, 22, 48, 0.18)",
+    };
+  }
+  return {
+    shadow: "0 16px 48px rgba(13, 22, 48, 0.12)",
+    soft: "0 10px 30px rgba(13, 22, 48, 0.08)",
+  };
+}
+
+function buildColorVariables(config: LandingPageConfig) {
+  const lightPrimary = normalizeHexColor(config.lightPrimaryColor, "#2d63ff");
+  const lightBackground = normalizeHexColor(config.lightBackgroundColor, "#ffffff");
+  const lightSurface = normalizeHexColor(config.lightSurfaceColor, "#ffffff");
+  const lightText = normalizeHexColor(config.lightTextColor, "#0b1220");
+  const lightMutedText = normalizeHexColor(config.lightMutedTextColor, "#516073");
+  const darkPrimary = normalizeHexColor(config.darkPrimaryColor, "#6ea2ff");
+  const darkBackground = normalizeHexColor(config.darkBackgroundColor, "#080d1c");
+  const darkSurface = normalizeHexColor(config.darkSurfaceColor, "#101936");
+  const darkText = normalizeHexColor(config.darkTextColor, "#eef4ff");
+  const darkMutedText = normalizeHexColor(config.darkMutedTextColor, "#a9b8d4");
+  const primaryButton = normalizeHexColor(config.primaryButtonColor, lightPrimary);
+  const secondaryButton = normalizeHexColor(config.secondaryButtonColor, lightSurface);
+  const radius = normalizePx(config.cardRadius, 8, 0, 24);
+  const buttonRadius = buttonRadiusValue(config.buttonRadiusStyle);
+  const shadows = shadowValues(config.cardShadowStyle);
+
+  return `<style id="landing-config-colors">
+    :root {
+      --primary: ${lightPrimary};
+      --primary-2: ${lightPrimary};
+      --bg: ${lightBackground};
+      --bg-soft: color-mix(in srgb, ${lightBackground} 92%, ${lightPrimary});
+      --bg-panel: color-mix(in srgb, ${lightSurface} 94%, ${lightPrimary});
+      --surface: ${lightSurface};
+      --surface-strong: ${lightSurface};
+      --ink: ${lightText};
+      --muted: ${lightMutedText};
+      --muted-2: ${lightMutedText};
+      --hero-ink: ${lightText};
+      --hero-muted: ${lightMutedText};
+      --hero-highlight: ${lightPrimary};
+      --metric-ink: ${lightText};
+      --metric-muted: ${lightMutedText};
+      --proof-ink: ${lightText};
+      --proof-muted: ${lightMutedText};
+      --footer-ink: ${lightText};
+      --footer-muted: ${lightMutedText};
+      --card-button-bg: ${primaryButton};
+      --secondary-button-bg: ${secondaryButton};
+      --radius: ${radius}px;
+      --button-radius: ${buttonRadius};
+      --shadow: ${shadows.shadow};
+      --shadow-soft: ${shadows.soft};
+    }
+    :root[data-theme="dark"] {
+      --primary: ${darkPrimary};
+      --primary-2: ${darkPrimary};
+      --bg: ${darkBackground};
+      --bg-soft: color-mix(in srgb, ${darkBackground} 88%, ${darkPrimary});
+      --bg-panel: color-mix(in srgb, ${darkSurface} 92%, ${darkPrimary});
+      --surface: ${darkSurface};
+      --surface-strong: ${darkSurface};
+      --ink: ${darkText};
+      --muted: ${darkMutedText};
+      --muted-2: ${darkMutedText};
+      --hero-ink: ${darkText};
+      --hero-muted: ${darkMutedText};
+      --hero-highlight: ${darkPrimary};
+      --metric-ink: ${darkText};
+      --metric-muted: ${darkMutedText};
+      --proof-ink: ${darkText};
+      --proof-muted: ${darkMutedText};
+      --footer-ink: ${darkText};
+      --footer-muted: ${darkMutedText};
+      --card-button-bg: ${darkPrimary};
+      --secondary-button-bg: color-mix(in srgb, ${darkSurface} 90%, ${darkPrimary});
+    }
+    .btn {
+      border-radius: var(--button-radius);
+    }
+    .btn-primary {
+      background: ${primaryButton};
+      box-shadow: 0 14px 30px color-mix(in srgb, ${primaryButton} 34%, transparent);
+    }
+    .btn-primary:hover {
+      background: color-mix(in srgb, ${primaryButton} 88%, #000000);
+    }
+    .btn-secondary,
+    .btn-outline {
+      background: var(--secondary-button-bg);
+    }
+  </style>`;
+}
+
 export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig) {
   let html = baseHtml;
 
-  const faviconUrl = toAbsoluteUrl(config.faviconUrl);
+  const faviconUrl = toAbsoluteUrl(sanitizeImageUrl(config.faviconUrl, "/logo.png"));
   const loginUrl = normalizeLoginHref(config.loginUrl, config.officeId);
 
   html = replaceFirst(html, /<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(config.pageTitle)}</title>`);
+  html = replaceFirst(
+    html,
+    /<meta name="description" content="[^"]*">/i,
+    `<meta name="description" content="${escapeHtml(config.seoDescription)}">`,
+  );
+  const seoImageUrl = toAbsoluteUrl(sanitizeImageUrl(config.seoImageUrl));
+  const socialMeta = [
+    `<meta property="og:title" content="${escapeHtml(config.pageTitle)}">`,
+    `<meta property="og:description" content="${escapeHtml(config.seoDescription)}">`,
+    seoImageUrl ? `<meta property="og:image" content="${escapeHtml(seoImageUrl)}">` : "",
+    `<meta name="twitter:card" content="${seoImageUrl ? "summary_large_image" : "summary"}">`,
+  ].filter(Boolean).join("\n    ");
+  html = replaceFirst(html, /<\/head>/i, `    ${socialMeta}\n</head>`);
   if (/<link\s+rel="icon"/i.test(html)) {
     html = replaceFirst(html, /<link\s+rel="icon"[^>]*>/i, `<link rel="icon" href="${escapeHtml(faviconUrl)}" />`);
   } else {
     html = replaceFirst(html, /<\/head>/i, `  <link rel="icon" href="${escapeHtml(faviconUrl)}" />\n</head>`);
   }
+  html = replaceFirst(html, /<\/head>/i, `${buildColorVariables(config)}\n</head>`);
   html = replaceFirst(html, /<h1 class="hero-title">[\s\S]*?<\/h1>/i, `<h1 class="hero-title">${escapeHtml(config.heroTitle)}</h1>`);
   html = replaceFirst(html, /<p class="hero-description">[\s\S]*?<\/p>/i, `<p class="hero-description">${escapeHtml(config.heroSubtitle)}</p>`);
   html = replaceFirst(html, /<div class="badge">[\s\S]*?<\/div>/i, `<div class="badge">${escapeHtml(config.heroBadge)}</div>`);
@@ -162,7 +404,7 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
 
   html = html.replace(
     /<span class="logo-text">[\s\S]*?<\/span>/gi,
-    `<img src="${escapeHtml(config.logoUrl)}" alt="Logo" style="height:40px;width:auto;object-fit:contain" />`,
+    `<img src="${escapeHtml(toAbsoluteUrl(sanitizeImageUrl(config.logoUrl, "/logo.png")))}" alt="Logo" style="height:40px;width:auto;object-fit:contain" />`,
   );
 
   html = replaceLoginHeaderButton(html, loginUrl, config.loginButtonLabel);
@@ -172,6 +414,29 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
   html = replaceAnchorByText(html, "I want my case reviewed", config.primaryCtaUrl, config.primaryCtaLabel);
   html = replaceAnchorByText(html, "Falar com especialista", config.secondaryCtaUrl, config.secondaryCtaLabel);
   html = replaceAnchorByText(html, "Talk to a specialist", config.secondaryCtaUrl, config.secondaryCtaLabel);
+
+  html = replaceByClassNth(html, "strong", "portal-help-title", 0, config.portalNextStepTitle);
+  html = replaceByClassNth(html, "span", "portal-help-desc", 0, config.portalNextStepDesc);
+  html = replaceByClassNth(html, "div", "portal-case-type", 0, config.portalCaseType);
+  html = replaceByClassNth(html, "div", "portal-case-title", 0, config.portalCaseTitle);
+  html = replaceByClassNth(html, "span", "portal-pill", 0, config.portalStatus);
+  html = replaceByClassNth(html, "strong", "portal-progress-value", 0, `${normalizePercent(config.portalProgress)}%`);
+  html = replaceByClassNth(html, "span", "portal-user-avatar", 0, config.portalClientInitials);
+  html = replaceByClassNth(html, "span", "portal-user-name", 0, config.portalClientName);
+  html = replaceByClassNth(html, "strong", "portal-task-title", 0, config.portalTask1Title);
+  html = replaceByClassNth(html, "span", "portal-task-desc", 0, config.portalTask1Desc);
+  html = replaceByClassNth(html, "strong", "portal-task-title", 1, config.portalTask2Title);
+  html = replaceByClassNth(html, "span", "portal-task-desc", 1, config.portalTask2Desc);
+  html = replaceByClassNth(html, "strong", "portal-task-title", 2, config.portalTask3Title);
+  html = replaceByClassNth(html, "span", "portal-task-desc", 2, config.portalTask3Desc);
+  html = replaceByClassNth(html, "span", "portal-doc-name", 0, config.portalDoc1Name);
+  html = replaceByClassNth(html, "span", "portal-doc-status", 0, config.portalDoc1Status);
+  html = replaceByClassNth(html, "span", "portal-doc-name", 1, config.portalDoc2Name);
+  html = replaceByClassNth(html, "span", "portal-doc-status", 1, config.portalDoc2Status);
+  html = replaceByClassNth(html, "span", "portal-doc-name", 2, config.portalDoc3Name);
+  html = replaceByClassNth(html, "span", "portal-doc-status", 2, config.portalDoc3Status);
+  html = html.replace(/(<span class="portal-progress-bar"><span style="width:)[^"]*("[^>]*><\/span><\/span>)/i, `$1${normalizePercent(config.portalProgress)}%$2`);
+
   html = replaceByClassNth(html, "h2", "section-title", 0, config.servicesTitle);
   html = replaceByClassNth(html, "p", "section-subtitle", 0, config.servicesSubtitle);
   html = replaceByClassNth(html, "div", "service-tag", 0, config.serviceB1B2Tag);
@@ -206,12 +471,15 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
   html = replaceByClassNth(html, "h2", "section-title", 2, config.testimonialsTitle);
   html = replaceByClassNth(html, "p", "section-subtitle", 2, config.testimonialsSubtitle);
   html = replaceByClassNth(html, "p", "testimonial-text", 0, config.testimonial1Text);
+  html = replaceImageByClassNth(html, "testimonial-photo", 0, config.testimonial1PhotoUrl, config.testimonial1Author);
   html = replaceByClassNth(html, "span", "author-name", 0, config.testimonial1Author);
   html = replaceByClassNth(html, "span", "author-role", 0, config.testimonial1Role);
   html = replaceByClassNth(html, "p", "testimonial-text", 1, config.testimonial2Text);
+  html = replaceImageByClassNth(html, "testimonial-photo", 1, config.testimonial2PhotoUrl, config.testimonial2Author);
   html = replaceByClassNth(html, "span", "author-name", 1, config.testimonial2Author);
   html = replaceByClassNth(html, "span", "author-role", 1, config.testimonial2Role);
   html = replaceByClassNth(html, "p", "testimonial-text", 2, config.testimonial3Text);
+  html = replaceImageByClassNth(html, "testimonial-photo", 2, config.testimonial3PhotoUrl, config.testimonial3Author);
   html = replaceByClassNth(html, "span", "author-name", 2, config.testimonial3Author);
   html = replaceByClassNth(html, "span", "author-role", 2, config.testimonial3Role);
 
@@ -226,25 +494,25 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
 
   html = replaceFirst(html, /<p class="footer-desc">[\s\S]*?<\/p>/i, `<p class="footer-desc">${escapeHtml(config.footerDescription)}</p>`);
   html = replaceFirst(html, /<div class="footer-links">[\s\S]*?<h4>[\s\S]*?<\/h4>/i, `<div class="footer-links">\n                    <h4>${escapeHtml(config.footerLinksTitle)}</h4>`);
-  html = replaceAnchorByText(html, "Serviços", "#", config.footerLink1Label);
-  html = replaceAnchorByText(html, "Services", "#", config.footerLink1Label);
-  html = replaceAnchorByText(html, "Sobre Nós", "#", config.footerLink2Label);
-  html = replaceAnchorByText(html, "About Us", "#", config.footerLink2Label);
-  html = replaceAnchorByText(html, "Depoimentos", "#", config.footerLink3Label);
-  html = replaceAnchorByText(html, "Testimonials", "#", config.footerLink3Label);
-  html = replaceAnchorByText(html, "FAQ", "#", config.footerLink4Label);
+  html = replaceAnchorByText(html, "Serviços", config.footerLink1Url, config.footerLink1Label);
+  html = replaceAnchorByText(html, "Services", config.footerLink1Url, config.footerLink1Label);
+  html = replaceAnchorByText(html, "Sobre Nós", config.footerLink2Url, config.footerLink2Label);
+  html = replaceAnchorByText(html, "About Us", config.footerLink2Url, config.footerLink2Label);
+  html = replaceAnchorByText(html, "Depoimentos", config.footerLink3Url, config.footerLink3Label);
+  html = replaceAnchorByText(html, "Testimonials", config.footerLink3Url, config.footerLink3Label);
+  html = replaceAnchorByText(html, "FAQ", config.footerLink4Url, config.footerLink4Label);
   html = replaceFirst(html, /<div class="footer-contact">[\s\S]*?<h4>[\s\S]*?<\/h4>/i, `<div class="footer-contact">\n                    <h4>${escapeHtml(config.footerContactTitle)}</h4>`);
   html = replaceFooterContactItem(html, 0, config.footerContactEmail);
   html = replaceFooterContactItem(html, 1, config.footerContactPhone);
   html = replaceFooterContactItem(html, 2, config.footerContactLocation);
   html = replaceFirst(html, /<div class="footer-bottom">[\s\S]*?<p>[\s\S]*?<\/p>/i, `<div class="footer-bottom">\n                <p>${escapeHtml(config.footerCopyright)}</p>`);
   if (config.footerSocialInstagramLabel) {
-    html = replaceAnchorByText(html, "Instagram", "#", config.footerSocialInstagramLabel);
+    html = replaceAnchorByText(html, "Instagram", config.footerSocialInstagramUrl, config.footerSocialInstagramLabel);
   } else {
     html = removeAnchorByText(html, "Instagram");
   }
   if (config.footerSocialLinkedinLabel) {
-    html = replaceAnchorByText(html, "LinkedIn", "#", config.footerSocialLinkedinLabel);
+    html = replaceAnchorByText(html, "LinkedIn", config.footerSocialLinkedinUrl, config.footerSocialLinkedinLabel);
   } else {
     html = removeAnchorByText(html, "LinkedIn");
   }
@@ -266,6 +534,14 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
       html = removeServiceCardByIndex(html, index);
     }
   }
+
+  html = reorderSections(html, config.sectionOrder);
+
+  if (!config.showServicesSection) html = removeBlockByClass(html, "section", "services");
+  if (!config.showHowItWorksSection) html = removeBlockByClass(html, "section", "how-it-works");
+  if (!config.showProofBandSection) html = removeBlockByClass(html, "section", "proof-band");
+  if (!config.showTestimonialsSection) html = removeBlockByClass(html, "section", "testimonials");
+  if (!config.showFaqSection) html = removeBlockByClass(html, "section", "faq");
 
   return html;
 }

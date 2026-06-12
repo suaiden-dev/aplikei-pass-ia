@@ -11,8 +11,42 @@ import { fetchOfficeByOwner } from "@features/offices/services/officeOps";
 import { Switch } from "@shared/components/atoms/switch";
 import { Input } from "@shared/components/atoms/input";
 import { Label } from "@shared/components/atoms/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@shared/components/atoms/tooltip";
 import { toast } from "sonner";
 import { useT } from "@app/app/i18n";
+
+function FieldInfo({ text }: { text: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label={text}
+          className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg-subtle hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        >
+          <RiInformationLine size={14} />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs text-xs leading-relaxed">
+        {text}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function FieldLabel({ label, info }: { label: string; info: string }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <Label className="text-xs">{label}</Label>
+      <FieldInfo text={info} />
+    </div>
+  );
+}
 
 function RuleCard({ icon, title, description, children }: {
   icon: React.ReactNode;
@@ -37,9 +71,10 @@ function RuleCard({ icon, title, description, children }: {
 }
 
 function NumericInput({
-  label, value, onChange, placeholder = "Sem limite", suffix, min = 0,
+  label, info, value, onChange, placeholder = "No limit", suffix, min = 0,
 }: {
   label: string;
+  info: string;
   value: number | null;
   onChange: (v: number | null) => void;
   placeholder?: string;
@@ -48,7 +83,7 @@ function NumericInput({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs">{label}</Label>
+      <FieldLabel label={label} info={info} />
       <div className="relative">
         <Input
           type="number"
@@ -65,7 +100,7 @@ function NumericInput({
         )}
       </div>
       {value === null && (
-        <p className="text-[10px] text-text-muted">Campo vazio = sem limite</p>
+        <p className="text-[10px] text-text-muted">Blank field = no limit</p>
       )}
     </div>
   );
@@ -126,7 +161,8 @@ export default function DiscountRulesPage() {
   }
 
   return (
-    <div className="space-y-6 p-6 pb-20 max-w-3xl mx-auto">
+    <TooltipProvider delayDuration={150}>
+      <div className="space-y-6 p-6 pb-20 max-w-3xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-black tracking-tight text-text">Discount Rules</h1>
@@ -162,7 +198,10 @@ export default function DiscountRulesPage() {
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between rounded-xl border border-border bg-bg-subtle px-4 py-3">
             <div>
-              <p className="text-sm font-semibold text-text">Percentage discount (%)</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm font-semibold text-text">Percentage discount (%)</p>
+                <FieldInfo text="Allow sellers to create coupons that reduce the order total by a percentage of the purchase amount." />
+              </div>
               <p className="text-xs text-text-muted">Ex: 10% discount</p>
             </div>
             <Switch
@@ -172,7 +211,10 @@ export default function DiscountRulesPage() {
           </div>
           <div className="flex items-center justify-between rounded-xl border border-border bg-bg-subtle px-4 py-3">
             <div>
-              <p className="text-sm font-semibold text-text">Fixed discount (US$)</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm font-semibold text-text">Fixed discount (US$)</p>
+                <FieldInfo text="Allow sellers to create coupons that subtract a fixed dollar amount from the order total." />
+              </div>
               <p className="text-xs text-text-muted">Ex: $50 discount</p>
             </div>
             <Switch
@@ -192,6 +234,7 @@ export default function DiscountRulesPage() {
         <div className="grid grid-cols-2 gap-4">
           <NumericInput
             label="Maximum discount (%)"
+            info="The highest percentage discount a seller can set on a percentage coupon. Leave blank to allow any percentage."
             value={rules.seller_max_pct}
             onChange={(v) => set("seller_max_pct", v)}
             placeholder="No limit"
@@ -200,6 +243,7 @@ export default function DiscountRulesPage() {
           />
           <NumericInput
             label="Maximum fixed discount"
+            info="The highest dollar amount a seller can set on a fixed discount coupon. Leave blank to allow any amount."
             value={rules.seller_max_fixed}
             onChange={(v) => set("seller_max_fixed", v)}
             placeholder="No limit"
@@ -209,6 +253,7 @@ export default function DiscountRulesPage() {
         </div>
         <NumericInput
           label="Minimum purchase to use coupon (US$)"
+          info="The minimum order total required before a customer can apply a seller coupon. Leave blank to allow coupons on any order."
           value={rules.seller_min_purchase_usd}
           onChange={(v) => set("seller_min_purchase_usd", v)}
           placeholder="No minimum"
@@ -226,6 +271,7 @@ export default function DiscountRulesPage() {
         <div className="grid grid-cols-2 gap-4">
           <NumericInput
             label="Max uses per coupon"
+            info="The maximum number of times each seller coupon can be redeemed across all customers. Leave blank for unlimited redemptions."
             value={rules.seller_max_uses}
             onChange={(v) => set("seller_max_uses", v)}
             placeholder="Unlimited"
@@ -233,6 +279,7 @@ export default function DiscountRulesPage() {
           />
           <NumericInput
             label="Max coupons per seller"
+            info="The maximum number of active coupons each seller can create for this office. Leave blank for unlimited coupons."
             value={rules.seller_max_coupons}
             onChange={(v) => set("seller_max_coupons", v)}
             placeholder="Unlimited"
@@ -257,5 +304,6 @@ export default function DiscountRulesPage() {
         </ul>
       </div>
     </div>
+    </TooltipProvider>
   );
 }

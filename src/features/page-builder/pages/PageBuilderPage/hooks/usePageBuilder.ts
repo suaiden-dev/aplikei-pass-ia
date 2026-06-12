@@ -37,8 +37,25 @@ function sanitizeLoginUrl(value: string) {
 
 export const defaultLandingPageConfig: LandingPageConfig = {
   pageTitle: "Aplikei",
+  seoDescription: "Premium legal advisory for B1/B2, F1, status extension, and change of status. Legal strategy from start to finish for your visa process.",
+  seoImageUrl: "",
   faviconUrl: "/logo.png",
   logoUrl: "https://dummyimage.com/180x52/0f172a/ffffff.png&text=SEU+LOGO",
+  lightPrimaryColor: "#2d63ff",
+  lightBackgroundColor: "#ffffff",
+  lightSurfaceColor: "#ffffff",
+  lightTextColor: "#0b1220",
+  lightMutedTextColor: "#516073",
+  darkPrimaryColor: "#6ea2ff",
+  darkBackgroundColor: "#080d1c",
+  darkSurfaceColor: "#101936",
+  darkTextColor: "#eef4ff",
+  darkMutedTextColor: "#a9b8d4",
+  cardRadius: "8",
+  cardShadowStyle: "soft",
+  buttonRadiusStyle: "pill",
+  primaryButtonColor: "#2d63ff",
+  secondaryButtonColor: "#ffffff",
   heroBadge: "PREMIUM VISA ADVISORY",
   lawyerName: "Carolina Mendes, Esq.",
   lawyerCtaText: "Immigration attorney focused on visas and approval strategy.",
@@ -57,6 +74,32 @@ export const defaultLandingPageConfig: LandingPageConfig = {
   loginButtonLabel: "Log in",
   primaryCtaLabel: "I want my case reviewed",
   secondaryCtaLabel: "Talk to a specialist",
+  portalClientName: "Marina Costa",
+  portalClientInitials: "MC",
+  portalCaseType: "Visto F-1 · estudante",
+  portalCaseTitle: "Preparacao DS-160 e entrevista",
+  portalStatus: "Em revisao",
+  portalProgress: "68",
+  portalNextStepTitle: "Proxima orientacao",
+  portalNextStepDesc: "Revise o checklist antes da entrevista consular.",
+  portalTask1Title: "Perfil analisado",
+  portalTask1Desc: "Estrategia definida pela equipe juridica.",
+  portalTask2Title: "Documentos recebidos",
+  portalTask2Desc: "Comprovantes organizados no dossie.",
+  portalTask3Title: "Revisao final",
+  portalTask3Desc: "Formulario e narrativa em validacao.",
+  portalDoc1Name: "I-20 atualizado",
+  portalDoc1Status: "Aprovado",
+  portalDoc2Name: "Extrato financeiro",
+  portalDoc2Status: "Recebido",
+  portalDoc3Name: "DS-160 draft",
+  portalDoc3Status: "Revisao",
+  showServicesSection: true,
+  showHowItWorksSection: true,
+  showProofBandSection: true,
+  showTestimonialsSection: true,
+  showFaqSection: true,
+  sectionOrder: ["services", "how-it-works", "proof-band", "testimonials", "faq"],
   servicesTitle: "Visa services focused on results",
   servicesSubtitle: "Legal solutions for every stage of your immigration journey, with document organization and tailored strategy.",
   serviceB1B2Tag: "B1/B2",
@@ -82,12 +125,15 @@ export const defaultLandingPageConfig: LandingPageConfig = {
   testimonialsTitle: "Trusted by clients",
   testimonialsSubtitle: "Success stories from clients who trusted our strategic guidance.",
   testimonial1Text: "\"Carolina's strategy was essential for my F1 visa approval after a previous denial. Highly recommended!\"",
+  testimonial1PhotoUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&q=80",
   testimonial1Author: "Ricardo Silva",
   testimonial1Role: "Student in Boston",
   testimonial2Text: "\"Impeccable professionalism. My status extension was handled with total confidence and clarity. Outstanding team.\"",
+  testimonial2PhotoUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=80",
   testimonial2Author: "Mariana Costa",
   testimonial2Role: "Tourism and Business",
   testimonial3Text: "\"Human support made all the difference. I felt confident at every step. Fast approval!\"",
+  testimonial3PhotoUrl: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=160&q=80",
   testimonial3Author: "Juliana Lins",
   testimonial3Role: "Change of Status",
   faqTitle: "Frequently Asked Questions",
@@ -101,16 +147,22 @@ export const defaultLandingPageConfig: LandingPageConfig = {
   footerDescription: "Strategic legal guidance for those seeking confidence and clarity in the U.S. visa process.",
   footerLinksTitle: "Useful Links",
   footerLink1Label: "Services",
+  footerLink1Url: "#",
   footerLink2Label: "About Us",
+  footerLink2Url: "#",
   footerLink3Label: "Testimonials",
+  footerLink3Url: "#",
   footerLink4Label: "FAQ",
+  footerLink4Url: "#",
   footerContactTitle: "Contact",
   footerContactEmail: "contato@seulogo.com.br",
   footerContactPhone: "+55 (11) 99999-9999",
   footerContactLocation: "Sao Paulo, SP - Brazil",
   footerCopyright: "Powered by Aplikei",
   footerSocialInstagramLabel: "Instagram",
+  footerSocialInstagramUrl: "#",
   footerSocialLinkedinLabel: "LinkedIn",
+  footerSocialLinkedinUrl: "#",
   footerSocialWhatsappLabel: "WhatsApp",
   officeSlug: "",
   officeId: "",
@@ -128,6 +180,7 @@ export function usePageBuilder() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
+  const [uploadingTestimonialPhoto, setUploadingTestimonialPhoto] = useState<1 | 2 | 3 | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -214,16 +267,34 @@ export function usePageBuilder() {
     }
   };
 
+  const uploadTestimonialPhoto = async (index: 1 | 2 | 3, file: File) => {
+    if (!user?.id) throw new Error("User not authenticated.");
+    setUploadingTestimonialPhoto(index);
+    try {
+      const publicUrl = await uploadPageBuilderAsset({ file, userId: user.id, folder: "landing-testimonials" });
+      const key = `testimonial${index}PhotoUrl` as keyof Pick<
+        LandingPageConfig,
+        "testimonial1PhotoUrl" | "testimonial2PhotoUrl" | "testimonial3PhotoUrl"
+      >;
+      setConfig((prev) => ({ ...prev, [key]: publicUrl }));
+      return publicUrl;
+    } finally {
+      setUploadingTestimonialPhoto(null);
+    }
+  };
+
   return {
     config,
     isPreviewOpen,
     isSaving,
     isUploadingLogo,
     isUploadingFavicon,
+    uploadingTestimonialPhoto,
     updateConfig,
     saveConfig,
     uploadLogo,
     uploadFavicon,
+    uploadTestimonialPhoto,
     openPreview,
     closePreview,
   };
