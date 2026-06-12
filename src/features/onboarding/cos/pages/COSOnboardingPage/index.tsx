@@ -1002,13 +1002,13 @@ export default function COSOnboardingPage() {
           </p>
         </div>
         <div className='md:hidden w-36'>
-          <OnboardingStepper slug={slug} stepIdx={stepIdx} totalSteps={totalSteps} />
+          <OnboardingStepper slug={slug} stepIdx={uscisResult === 'approved' ? 19 : stepIdx} totalSteps={totalSteps} />
         </div>
       </div>
 
       <div className="hidden md:block bg-card border-b border-border py-6 mb-8">
         <div className="max-w-6xl mx-auto px-8">
-          <OnboardingStepper slug={slug} stepIdx={stepIdx} totalSteps={totalSteps} />
+          <OnboardingStepper slug={slug} stepIdx={uscisResult === 'approved' ? 19 : stepIdx} totalSteps={totalSteps} />
         </div>
       </div>
 

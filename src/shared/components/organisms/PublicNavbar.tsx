@@ -126,6 +126,7 @@ export function PublicNavbar() {
   }, [isMenuOpen]);
 
   const navLinks = [
+    { to: "/landing", label: t.home },
     { to: "/quem-somos", label: t.howItWorks },
     { to: "/servicos", label: t.services },
     { to: "/contato", label: t.contact },

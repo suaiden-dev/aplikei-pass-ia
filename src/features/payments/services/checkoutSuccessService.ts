@@ -9,12 +9,13 @@ export async function getCurrentAuthUserId(): Promise<string | null> {
 export async function fetchOrderProcessId(orderId: string): Promise<string | null> {
   const { data, error } = await supabase
     .from("orders")
-    .select("proc_id")
+    .select("payment_metadata")
     .eq("id", orderId)
     .maybeSingle();
 
   if (error) throw Error(error.message);
-  return String((data as Record<string, unknown> | null)?.proc_id || "").trim() || null;
+  const metadata = (data as any)?.payment_metadata as Record<string, any> | null;
+  return String(metadata?.proc_id || metadata?.parent_process_id || "").trim() || null;
 }
 
 export async function findActiveMentorshipProcess(params: {
