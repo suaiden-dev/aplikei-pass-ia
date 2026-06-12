@@ -28,7 +28,8 @@
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
       "Bash(deno check *)",
       "Bash(chmod +x *)",
-      "Bash(awk -F: '{print $1}')"
+      "Bash(awk -F: '{print $1}')",
+      "Bash(npm run *)"
     ]
   }
 }

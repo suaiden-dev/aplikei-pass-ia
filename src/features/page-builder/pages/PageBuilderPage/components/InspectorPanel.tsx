@@ -688,8 +688,6 @@ export function InspectorPanel({
             </div>
           </div>
         </details>
-          </div>
-        </details>
 
         <details className="rounded-lg border border-border bg-background">
           <summary className="cursor-pointer px-3 py-3 text-xs font-bold uppercase tracking-wide text-text">
@@ -1435,7 +1433,6 @@ export function InspectorPanel({
             <Label htmlFor="footer-whatsapp">Social - WhatsApp label</Label>
             <Input id="footer-whatsapp" value={config.footerSocialWhatsappLabel || ""} onChange={(e) => onUpdateConfig("footerSocialWhatsappLabel", e.target.value)} />
           </div>
-        </div>
         <div className="space-y-2">
           <Label htmlFor="footer-links-title">Links section title</Label>
           <Input id="footer-links-title" value={config.footerLinksTitle} onChange={(e) => onUpdateConfig("footerLinksTitle", e.target.value)} />
@@ -1486,5 +1483,6 @@ export function InspectorPanel({
         </details>
       </div>
     </aside>
+    </TooltipProvider>
   );
 }

@@ -5,7 +5,6 @@ import { lookupBrazilCep, lookupUsZip } from "@features/onboarding/services/addr
 import { useT, useLocale } from "@app/app/i18n";
 import { masks } from "@shared/lib/form/masks";
 import { maskCPF } from "@shared/utils/cpf";
-import { masks } from "@shared/lib/form/masks";
 import { HelpCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/components/atoms/tooltip";
 
