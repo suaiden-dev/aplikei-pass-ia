@@ -13,7 +13,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem("aplikei-theme") as Theme | null;
     if (saved === "light" || saved === "dark") return saved;
-    return "dark";
+    return "light";
   });
 
   useEffect(() => {
