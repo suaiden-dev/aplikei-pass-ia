@@ -22,7 +22,7 @@ export interface PaymentSettings {
 export interface Withdrawal {
   id: string;
   amount: number;
-  status: "pending" | "completed" | "approved" | "processing" | "paid" | "cancelled";
+  status: "pending" | "completed" | "approved" | "processing" | "paid" | "cancelled" | "canceled" | "rejected";
   method: "stripe" | "zelle";
   created_at: string;
   completed_at: string | null;
