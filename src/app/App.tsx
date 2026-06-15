@@ -1,5 +1,5 @@
 import { Suspense, useEffect } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "@shared/components/organisms/ScrollToTop";
 import { AdminDashboardLayout } from "@app/app/layouts/AdminDashboardLayout";
 import { AuthLayout } from "@app/app/layouts/AuthLayout";
@@ -61,7 +61,6 @@ export default function App() {
   const masterRoutes = routesByLayout("master");
   const adminRoutes = routesByLayout("manager");
   const sellerRoutes = routesByLayout("seller");
-  const masterActiveRoutes = masterRoutes.filter((route) => route.path === "/master");
   const adminActiveRoutes = adminRoutes.filter((route) => route.path === "/admin" || route.path === "/admin/page-builder");
   const sellerActiveRoutes = sellerRoutes.filter((route) => route.path === "/seller");
   const adminSharedRoutes = protectedRoutes.filter((route) =>

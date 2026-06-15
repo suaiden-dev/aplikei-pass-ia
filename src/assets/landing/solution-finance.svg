@@ -1,0 +1,37 @@
+<svg width="960" height="560" viewBox="0 0 960 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="56" y1="20" x2="906" y2="542" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A1125"/>
+      <stop offset="1" stop-color="#13203B"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="560" rx="32" fill="url(#bg)"/>
+  <rect x="24" y="24" width="912" height="512" rx="28" fill="#0E152B" stroke="#26314E"/>
+  <rect x="40" y="40" width="260" height="22" rx="11" fill="#1B2745"/>
+  <rect x="720" y="40" width="176" height="22" rx="11" fill="#1B2745"/>
+  <rect x="48" y="88" width="520" height="260" rx="24" fill="#121B32" stroke="#293553"/>
+  <rect x="610" y="88" width="296" height="260" rx="24" fill="#121B32" stroke="#293553"/>
+  <rect x="48" y="370" width="858" height="118" rx="24" fill="#121B32" stroke="#293553"/>
+  <path d="M90 300C140 268 176 286 214 250C256 210 316 230 356 196C394 164 434 176 486 148C534 122 586 138 634 118" stroke="#24E0D4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M90 300L90 306M214 250L214 306M356 196L356 306M486 148L486 306M634 118L634 306" stroke="#2D63FF" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+  <circle cx="490" cy="148" r="9" fill="#24E0D4"/>
+  <circle cx="634" cy="118" r="9" fill="#24E0D4"/>
+  <circle cx="356" cy="196" r="9" fill="#24E0D4"/>
+  <circle cx="214" cy="250" r="9" fill="#24E0D4"/>
+  <rect x="650" y="124" width="150" height="150" rx="75" stroke="#24E0D4" stroke-width="14"/>
+  <rect x="706" y="124" width="38" height="150" rx="19" fill="#335BFF" opacity="0.9"/>
+  <text x="725" y="204" text-anchor="middle" fill="#F3F7FF" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">843</text>
+  <text x="725" y="224" text-anchor="middle" fill="#8FA0C0" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="500">total</text>
+  <rect x="72" y="396" width="760" height="16" rx="8" fill="#1A2542"/>
+  <rect x="72" y="424" width="628" height="16" rx="8" fill="#1A2542"/>
+  <rect x="72" y="452" width="702" height="16" rx="8" fill="#1A2542"/>
+  <rect x="72" y="480" width="542" height="16" rx="8" fill="#1A2542"/>
+  <rect x="72" y="396" width="428" height="16" rx="8" fill="#1DD28F"/>
+  <rect x="72" y="424" width="164" height="16" rx="8" fill="#1DD28F"/>
+  <rect x="72" y="452" width="114" height="16" rx="8" fill="#1DD28F"/>
+  <rect x="72" y="480" width="92" height="16" rx="8" fill="#1DD28F"/>
+  <rect x="72" y="396" width="232" height="16" rx="8" fill="#335BFF" opacity="0.9"/>
+  <rect x="72" y="424" width="164" height="16" rx="8" fill="#335BFF" opacity="0.82"/>
+  <text x="72" y="108" fill="#EEF4FF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Revenue Growth</text>
+  <text x="650" y="108" fill="#EEF4FF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Sales by Product</text>
+</svg>

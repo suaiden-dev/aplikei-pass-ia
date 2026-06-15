@@ -1,26 +1,20 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Package2, ShieldCheck, ArrowUpRight, CheckCircle2, Clock3, Layers3, Percent, PencilLine, RefreshCcw } from "lucide-react";
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Layers3,
+  HelpCircle,
+  Package2,
+  PencilLine,
+  RefreshCcw,
+  ShieldCheck,
+} from "lucide-react";
 import { Button } from "@shared/components/atoms/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@shared/components/atoms/dialog";
-import {
-  DashboardPageHeader,
-  DashboardSection,
-  DashboardToolbar,
-  InlineMetric,
-  KpiCard,
-  StatusBadge,
-  ToolbarPill,
-} from "@shared/components/organisms/DashboardUI";
-import { formatCurrency, formatDate } from "@shared/utils/format";
+import { Label } from "@shared/components/atoms/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/components/atoms/tooltip";
+import { formatCurrency } from "@shared/utils/format";
 import { cn } from "@shared/utils/cn";
 import { listSubscriptionPlans, updateSubscriptionPlan, type UpdateSubscriptionPlanPayload } from "@features/admin/services/subscriptionPlansService";
 import type { SubscriptionPlan } from "@features/admin/types";
@@ -42,6 +36,13 @@ type PlanDraft = {
   billing_model: string;
   rulesText: string;
 };
+
+type RulesValidationResult = {
+  parsed: Record<string, unknown> | null;
+  error: string | null;
+};
+
+type RulesScope = "office" | "billing" | "operations";
 
 function normalizePlanName(name: string) {
   const key = String(name || "").trim().toLowerCase();
@@ -83,6 +84,45 @@ function planToDraft(plan: SubscriptionPlan): PlanDraft {
   };
 }
 
+function validateRulesText(rulesText: string): RulesValidationResult {
+  const trimmed = rulesText.trim();
+  if (!trimmed) {
+    return { parsed: null, error: "Rules JSON is required." };
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch {
+    return { parsed: null, error: "Rules JSON has invalid syntax." };
+  }
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return { parsed: null, error: "Rules JSON must be an object." };
+  }
+
+  const record = parsed as Record<string, unknown>;
+  const scope = record.scope;
+  const categories = record.categories;
+
+  if (typeof scope !== "string" || scope.trim().length === 0) {
+    return { parsed: null, error: "Missing required field: scope (string)." };
+  }
+
+  if (!Array.isArray(categories) || categories.length === 0 || categories.some((item) => typeof item !== "string" || !String(item).trim())) {
+    return { parsed: null, error: "Missing required field: categories (non-empty string array)." };
+  }
+
+  return { parsed: record, error: null };
+}
+
+function normalizeCategories(value: string): string[] {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function toNumber(value: string, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -96,81 +136,55 @@ function toneForPlan(plan: SubscriptionPlan): "green" | "amber" | "slate" | "blu
   return "green";
 }
 
-function PlanCard({
-  plan,
-  onEdit,
+function StatusBadge({
+  label,
+  tone,
 }: {
-  plan: SubscriptionPlan;
-  onEdit: (plan: SubscriptionPlan) => void;
+  label: string;
+  tone: "green" | "amber" | "slate" | "blue" | "purple";
 }) {
-  const planRules = plan.rules && typeof plan.rules === "object" ? Object.entries(plan.rules).slice(0, 3) : [];
+  const tones = {
+    green: "border-success/20 bg-success/10 text-success",
+    amber: "border-amber-200 bg-amber-50 text-amber-700",
+    slate: "border-border bg-bg-subtle text-text-muted",
+    blue: "border-info/20 bg-info/10 text-info",
+    purple: "border-violet-200 bg-violet-50 text-violet-700",
+  } as const;
 
   return (
-    <div className="rounded-[1.5rem] border border-border bg-card p-5 shadow-[0_18px_48px_rgba(15,23,42,0.06)] transition-all hover:-translate-y-1 hover:border-primary/25">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <Package2 className="h-5 w-5" />
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge label={plan.is_active ? "active" : "inactive"} tone={plan.is_active ? "green" : "slate"} />
-          {plan.is_exclusive ? <StatusBadge label="exclusive" tone="amber" /> : null}
-        </div>
-      </div>
+    <span className={cn("shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em]", tones[tone])}>
+      {label}
+    </span>
+  );
+}
 
-      <div className="mt-5 space-y-2">
-        <h3 className="font-display text-2xl font-black tracking-[-0.03em] text-text">{normalizePlanName(plan.name)}</h3>
-        <p className="text-sm text-text-muted">{plan.description || "No description provided."}</p>
-      </div>
-
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <InlineMetric label="Price" value={formatPlanPrice(plan)} helper={`${plan.type} · v${plan.version ?? 1}`} />
-        <InlineMetric
-          label="Model"
-          value={String(plan.billing_model ?? "prepaid")}
-          helper={plan.effective_from ? `Since ${formatDate(plan.effective_from)}` : "No start date"}
-        />
-      </div>
-
-      <div className="mt-4 grid gap-2 text-sm text-text-muted">
-        <div className="flex items-center gap-2">
-          <Clock3 className="h-4 w-4 text-primary" />
-          <span>{plan.available_after_minutes} min availability</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Percent className="h-4 w-4 text-primary" />
-          <span>{plan.percentage_fee}% fee</span>
-        </div>
-        {plan.min_fee_per_transaction_usd ? (
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-primary" />
-            <span>Min per transaction {formatCurrency(plan.min_fee_per_transaction_usd)}</span>
-          </div>
-        ) : null}
-      </div>
-
-      {planRules.length > 0 ? (
-        <div className="mt-5 rounded-2xl border border-border bg-bg-subtle p-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">Rules snapshot</p>
-          <div className="mt-2 space-y-1 text-xs text-text-muted">
-            {planRules.map(([key, value]) => (
-              <div key={key} className="flex items-start justify-between gap-3">
-                <span className="font-semibold text-text">{key}</span>
-                <span className="max-w-[70%] truncate">{typeof value === "string" ? value : JSON.stringify(value)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <Button
-        variant="outline"
-        className="mt-5 h-11 w-full rounded-2xl border-border font-semibold hover:border-primary hover:text-primary"
-        onClick={() => onEdit(plan)}
-      >
-        <PencilLine className="h-4 w-4" />
-        Edit plan
-      </Button>
-    </div>
+function FieldLabel({
+  children,
+  tooltip,
+}: {
+  children: string;
+  tooltip: string;
+}) {
+  return (
+    <TooltipProvider delayDuration={180}>
+      <Label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-text-muted">
+        <span>{children}</span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex text-text-muted transition hover:text-primary focus:outline-none"
+              tabIndex={-1}
+            >
+              <HelpCircle className="h-3.5 w-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-[260px] border border-border bg-popover p-3 text-xs leading-5 text-popover-foreground shadow-lg">
+            {tooltip}
+          </TooltipContent>
+        </Tooltip>
+      </Label>
+    </TooltipProvider>
   );
 }
 
@@ -192,23 +206,42 @@ function PlanEditorDialog({
   const setField = <K extends keyof PlanDraft>(key: K, value: PlanDraft[K]) => {
     onDraftChange({ ...draft, [key]: value });
   };
+  const rulesValidation = useMemo(() => validateRulesText(draft.rulesText), [draft.rulesText]);
+  const rulesScope = (rulesValidation.parsed?.scope as RulesScope | undefined) ?? "";
+  const rulesCategories = Array.isArray(rulesValidation.parsed?.categories)
+    ? (rulesValidation.parsed?.categories as unknown[]).filter((item): item is string => typeof item === "string")
+    : [];
+  const isSaveDisabled = isSaving || !rulesValidation.parsed || Boolean(rulesValidation.error);
+  const updateRulesField = (nextScope: RulesScope, nextCategories: string[]) => {
+    onDraftChange({
+      ...draft,
+      rulesText: JSON.stringify({ scope: nextScope, categories: nextCategories }, null, 2),
+    });
+  };
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl border-border bg-card p-0">
-        <DialogHeader className="border-b border-border bg-bg-subtle/50 p-6">
-          <DialogTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight text-text">
-            <PencilLine className="h-5 w-5 text-primary" />
-            Edit master plan
-          </DialogTitle>
-          <DialogDescription>
-            Update the current plan and bump the version. Historical orders keep their own snapshot.
-          </DialogDescription>
-        </DialogHeader>
+    <div className="rounded-[1.75rem] border border-border bg-card shadow-sm">
+      <div className="border-b border-border bg-bg-subtle/60 px-6 py-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">Master editor</p>
+            <h3 className="mt-2 flex items-center gap-2 font-display text-2xl font-bold tracking-tight text-text">
+              <PencilLine className="h-5 w-5 text-primary" />
+              Edit master plan
+            </h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">
+              Update the current plan and bump the version. Historical orders keep their own snapshot.
+            </p>
+          </div>
+          <Button variant="outline" onClick={onClose} className="h-11 rounded-2xl px-5 font-semibold">
+            Close
+          </Button>
+        </div>
+      </div>
 
-        <div className="grid gap-5 p-6 lg:grid-cols-2">
+      <div className="grid gap-5 p-6 lg:grid-cols-2">
           <label className="space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Name</span>
+            <FieldLabel tooltip="The public plan name shown to the master. Example: 'Scalable Plan' or 'Gold Plan'.">Name</FieldLabel>
             <input
               value={draft.name}
               onChange={(e) => setField("name", e.target.value)}
@@ -217,7 +250,7 @@ function PlanEditorDialog({
           </label>
 
           <label className="space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Billing model</span>
+            <FieldLabel tooltip="How the plan is billed. Use prepaid for upfront payment, postpaid for end-of-cycle billing, or hybrid for both. Example: postpaid.">Billing model</FieldLabel>
             <select
               value={draft.billing_model}
               onChange={(e) => setField("billing_model", e.target.value)}
@@ -230,7 +263,7 @@ function PlanEditorDialog({
           </label>
 
           <label className="space-y-2 lg:col-span-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Description</span>
+            <FieldLabel tooltip="A short explanation of what this plan covers. Example: 'Pay only a percentage of each sale.'">Description</FieldLabel>
             <textarea
               rows={4}
               value={draft.description}
@@ -240,7 +273,7 @@ function PlanEditorDialog({
           </label>
 
           <label className="space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Plan type</span>
+            <FieldLabel tooltip="The pricing formula used by the plan. FIXED charges a flat fee, PERCENTAGE charges a percentage of revenue, HYBRID combines both. Example: PERCENTAGE.">Plan type</FieldLabel>
             <select
               value={draft.type}
               onChange={(e) => setField("type", e.target.value as SubscriptionPlan["type"])}
@@ -253,7 +286,7 @@ function PlanEditorDialog({
           </label>
 
           <label className="space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Version</span>
+            <FieldLabel tooltip="Read-only version preview. Saving will bump the version so older orders keep the previous snapshot. Example: v3 → v4.">Version</FieldLabel>
             <input
               value={`v${plan.version ?? 1} → v${(plan.version ?? 1) + 1}`}
               disabled
@@ -262,7 +295,7 @@ function PlanEditorDialog({
           </label>
 
           <label className="space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Fixed fee</span>
+            <FieldLabel tooltip="Flat amount charged by the plan. Example: 150.00 for a fixed monthly fee or the fixed part of a hybrid plan.">Fixed fee</FieldLabel>
             <input
               type="number"
               step="0.01"
@@ -274,7 +307,7 @@ function PlanEditorDialog({
           </label>
 
           <label className="space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Percentage fee</span>
+            <FieldLabel tooltip="Percentage charged on the transaction amount. Example: 10 means the office receives 10% of each sale.">Percentage fee</FieldLabel>
             <input
               type="number"
               step="0.01"
@@ -286,7 +319,7 @@ function PlanEditorDialog({
           </label>
 
           <label className="space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Available after (min)</span>
+            <FieldLabel tooltip="How long the amount stays unavailable before release. Example: 20160 minutes equals 14 days.">Available after (min)</FieldLabel>
             <input
               type="number"
               min={1}
@@ -297,7 +330,7 @@ function PlanEditorDialog({
           </label>
 
           <label className="space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Minimum fee / tx</span>
+            <FieldLabel tooltip="The minimum fee charged on a transaction when the percentage result is too low. Example: 30.00.">Minimum fee / tx</FieldLabel>
             <input
               type="number"
               step="0.01"
@@ -309,7 +342,7 @@ function PlanEditorDialog({
           </label>
 
           <label className="space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Min monthly fee</span>
+            <FieldLabel tooltip="Optional monthly floor for percentage-based plans. Example: 500.00 means the office never pays less than that in a cycle.">Min monthly fee</FieldLabel>
             <input
               type="number"
               step="0.01"
@@ -321,7 +354,7 @@ function PlanEditorDialog({
           </label>
 
           <label className="space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Max monthly fee</span>
+            <FieldLabel tooltip="Optional monthly cap for percentage-based plans. Example: 2500.00 limits the fee for the month.">Max monthly fee</FieldLabel>
             <input
               type="number"
               step="0.01"
@@ -332,54 +365,126 @@ function PlanEditorDialog({
             />
           </label>
 
-          <label className="space-y-2 lg:col-span-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Rules JSON</span>
-            <textarea
-              rows={6}
-              value={draft.rulesText}
-              onChange={(e) => setField("rulesText", e.target.value)}
-              className="w-full rounded-2xl border border-border bg-bg px-4 py-3 font-mono text-xs font-medium outline-none focus:border-primary"
-              placeholder='{"scope":"office","categories":["f1"]}'
-            />
-          </label>
+          <div className="space-y-4 lg:col-span-2">
+            <div className="grid gap-4 md:grid-cols-[220px_minmax(0,1fr)]">
+              <label className="space-y-2">
+                <FieldLabel tooltip="Choose the area this plan belongs to. Example: office for general office plans, billing for payment rules, operations for operational rules.">Scope</FieldLabel>
+                <select
+                  value={rulesScope}
+                  onChange={(e) => updateRulesField((e.target.value || "office") as RulesScope, rulesCategories)}
+                  className={cn(
+                    "h-12 w-full rounded-2xl border bg-bg px-4 text-sm font-medium outline-none focus:border-primary",
+                    rulesValidation.error ? "border-danger/40 focus:border-danger" : "border-border",
+                  )}
+                >
+                  <option value="">Select scope</option>
+                  <option value="office">Office</option>
+                  <option value="billing">Billing</option>
+                  <option value="operations">Operations</option>
+                </select>
+              </label>
 
-          <label className="flex items-center justify-between rounded-2xl border border-border bg-bg-subtle p-4 lg:col-span-2">
-            <div>
+              <label className="space-y-2">
+                <FieldLabel tooltip="List the categories this rule applies to, separated by commas. Example: f1, b1b2.">Categories</FieldLabel>
+                <input
+                  value={rulesCategories.join(", ")}
+                  onChange={(e) => updateRulesField((rulesScope || "office") as RulesScope, normalizeCategories(e.target.value))}
+                  placeholder="f1, b1b2"
+                  className={cn(
+                    "h-12 w-full rounded-2xl border bg-bg px-4 text-sm font-medium outline-none focus:border-primary",
+                    rulesValidation.error ? "border-danger/40 focus:border-danger" : "border-border",
+                  )}
+                />
+              </label>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-bg-subtle p-4">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">JSON preview</span>
+                <button
+                  type="button"
+                  onClick={() => updateRulesField((rulesScope || "office") as RulesScope, rulesCategories.length > 0 ? rulesCategories : ["f1"])}
+                  className="rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-text transition hover:border-primary hover:text-primary"
+                >
+                  Normalize preview
+                </button>
+              </div>
+              <pre className="mt-3 overflow-auto rounded-2xl bg-bg p-4 text-xs leading-5 text-text-muted">
+                {draft.rulesText || '{"scope":"office","categories":["f1"]}'}
+              </pre>
+            </div>
+
+            {rulesValidation.error ? (
+              <p className="text-xs font-medium text-danger">{rulesValidation.error}</p>
+            ) : (
+              <p className="text-xs text-text-muted">Required keys: scope (string) and categories (string[]).</p>
+            )}
+          </div>
+
+        <label className="flex items-center justify-between rounded-2xl border border-border bg-bg-subtle p-4 lg:col-span-2">
+          <div>
+            <div className="flex items-center gap-1.5">
               <p className="font-semibold text-text">Active</p>
-              <p className="text-sm text-text-muted">Keep this plan visible to the master and available for activation.</p>
+              <TooltipProvider delayDuration={180}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="inline-flex text-text-muted transition hover:text-primary focus:outline-none" tabIndex={-1}>
+                      <HelpCircle className="h-3.5 w-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[260px] border border-border bg-popover p-3 text-xs leading-5 text-popover-foreground shadow-lg">
+                    Toggle this on to make the plan available for new subscriptions. Example: turn it off before retiring a plan.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-            <input
-              type="checkbox"
-              checked={draft.is_active}
-              onChange={(e) => setField("is_active", e.target.checked)}
-              className="h-5 w-5 accent-primary"
-            />
-          </label>
+            <p className="text-sm text-text-muted">Keep this plan visible to the master and available for activation.</p>
+          </div>
+          <input
+            type="checkbox"
+            checked={draft.is_active}
+            onChange={(e) => setField("is_active", e.target.checked)}
+            className="h-5 w-5 accent-primary"
+          />
+        </label>
 
-          <label className="flex items-center justify-between rounded-2xl border border-border bg-bg-subtle p-4 lg:col-span-2">
-            <div>
+        <label className="flex items-center justify-between rounded-2xl border border-border bg-bg-subtle p-4 lg:col-span-2">
+          <div>
+            <div className="flex items-center gap-1.5">
               <p className="font-semibold text-text">Exclusive</p>
-              <p className="text-sm text-text-muted">Hide the plan unless a direct planId is shared.</p>
+              <TooltipProvider delayDuration={180}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="inline-flex text-text-muted transition hover:text-primary focus:outline-none" tabIndex={-1}>
+                      <HelpCircle className="h-3.5 w-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[260px] border border-border bg-popover p-3 text-xs leading-5 text-popover-foreground shadow-lg">
+                    Use this when the plan should only be assigned manually or via a direct plan link. Example: a private enterprise deal.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-            <input
-              type="checkbox"
-              checked={draft.is_exclusive}
-              onChange={(e) => setField("is_exclusive", e.target.checked)}
-              className="h-5 w-5 accent-primary"
-            />
-          </label>
-        </div>
+            <p className="text-sm text-text-muted">Hide the plan unless a direct planId is shared.</p>
+          </div>
+          <input
+            type="checkbox"
+            checked={draft.is_exclusive}
+            onChange={(e) => setField("is_exclusive", e.target.checked)}
+            className="h-5 w-5 accent-primary"
+          />
+        </label>
+      </div>
 
-        <DialogFooter className="border-t border-border bg-bg-subtle/30 p-6">
-          <Button variant="outline" onClick={onClose} className="h-11 rounded-2xl px-5 font-semibold">
-            Cancel
-          </Button>
-          <Button onClick={onSave} disabled={isSaving} className="h-11 rounded-2xl px-5 font-semibold">
-            {isSaving ? "Saving..." : "Save changes"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border bg-bg-subtle/30 px-6 py-5">
+        <Button variant="outline" onClick={onClose} className="h-11 rounded-2xl px-5 font-semibold">
+          Cancel
+        </Button>
+        <Button onClick={onSave} disabled={isSaveDisabled} className="h-11 rounded-2xl px-5 font-semibold">
+          {isSaving ? "Saving..." : "Save changes"}
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -434,19 +539,10 @@ export default function PlansPage() {
   const handleSave = async () => {
     if (!selectedPlan || !draft) return;
 
-    let rules: Record<string, unknown> = {};
-    const trimmedRules = draft.rulesText.trim();
-    if (trimmedRules) {
-      try {
-        const parsed = JSON.parse(trimmedRules) as Record<string, unknown>;
-        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-          throw new Error("Rules must be a JSON object.");
-        }
-        rules = parsed;
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Invalid rules JSON");
-        return;
-      }
+    const rulesValidation = validateRulesText(draft.rulesText);
+    if (!rulesValidation.parsed || rulesValidation.error) {
+      toast.error(rulesValidation.error || "Invalid rules JSON");
+      return;
     }
 
     await updateMutation.mutateAsync({
@@ -464,16 +560,16 @@ export default function PlansPage() {
         is_active: draft.is_active,
         is_exclusive: draft.is_exclusive,
         billing_model: draft.billing_model,
-        rules,
+        rules: rulesValidation.parsed,
       },
     });
   };
 
   if (isLoading) {
     return (
-      <div className="space-y-6 p-4 sm:p-8">
-        <div className="h-48 rounded-[1.75rem] border border-border bg-card animate-pulse" />
-        <div className="grid gap-4 md:grid-cols-4">
+      <div className="mx-auto max-w-[1500px] space-y-6 px-8 py-8">
+        <div className="h-36 rounded-[1.75rem] border border-border bg-card animate-pulse" />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[1, 2, 3, 4].map((i) => <div key={i} className="h-28 rounded-[1.5rem] border border-border bg-card animate-pulse" />)}
         </div>
       </div>
@@ -493,26 +589,28 @@ export default function PlansPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-8 p-4 sm:p-8">
-      <DashboardPageHeader
-        eyebrow="Master billing"
-        title="Plans"
-        description="Versioned subscription plans managed by master. Changes here affect future sales only; historical orders keep their own snapshot."
-        actions={(
-          <>
-            <Button variant="outline" className="h-11 rounded-2xl px-4 font-semibold" onClick={() => refetch()}>
-              <RefreshCcw className="h-4 w-4" />
-              Refresh
-            </Button>
-            <Button className="h-11 rounded-2xl px-4 font-semibold">
-              <ArrowUpRight className="h-4 w-4" />
-              New plan
-            </Button>
-          </>
-        )}
-      />
+    <div className="mx-auto max-w-[1500px] space-y-6 px-8 py-8 font-['Inter']">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="text-left">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">Master billing</p>
+          <h1 className="mt-2 text-[56px] leading-[1.02] font-semibold tracking-[-0.03em] text-slate-900">Plans</h1>
+          <p className="mt-2 max-w-3xl text-[14px] font-medium leading-6 text-slate-500">
+            Versioned subscription plans managed by master. Changes here affect future sales only; historical orders keep their own snapshot.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3 self-start">
+          <Button variant="outline" className="h-14 rounded-xl px-5 font-semibold" onClick={() => refetch()}>
+            <RefreshCcw className="h-4 w-4" />
+            Refresh
+          </Button>
+          <Button className="h-14 rounded-xl px-6 font-semibold">
+            <ArrowUpRight className="h-4 w-4" />
+            New plan
+          </Button>
+        </div>
+      </div>
 
-      <DashboardToolbar>
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3.5 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           {([
             ["all", "All"],
@@ -520,40 +618,54 @@ export default function PlansPage() {
             ["exclusive", "Exclusive"],
             ["postpaid", "Postpaid"],
           ] as const).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setFilter(value)}
-            >
-              <ToolbarPill label={label} active={filter === value} />
+            <button key={value} type="button" onClick={() => setFilter(value)}>
+              <span className={cn(
+                "inline-flex h-10 items-center rounded-full border px-4 text-xs font-black uppercase tracking-[0.18em] transition",
+                filter === value ? "border-primary bg-primary text-white shadow-lg shadow-primary/20" : "border-border bg-white text-slate-600 hover:border-primary/30",
+              )}>
+                {label}
+              </span>
             </button>
           ))}
         </div>
-        <div className="grid gap-3 sm:grid-cols-4">
-          <InlineMetric label="Current plans" value={String(plans.length)} helper="Catalog size" />
-          <InlineMetric label="Active" value={String(metrics.active)} helper="Available for subscription" />
-          <InlineMetric label="Exclusive" value={String(metrics.exclusive)} helper="Direct-link only" />
-          <InlineMetric label="Avg fee" value={`${metrics.avgFee.toFixed(1)}%`} helper="Percentage average" />
-        </div>
-      </DashboardToolbar>
-
-      <div className="grid gap-4 md:grid-cols-4">
-        <KpiCard label="Active plans" value={String(metrics.active)} delta="Ready for activation" icon={CheckCircle2} />
-        <KpiCard label="Exclusive plans" value={String(metrics.exclusive)} delta="Hidden by default" icon={ShieldCheck} />
-        <KpiCard label="Postpaid plans" value={String(metrics.postpaid)} delta="Billed after cycle" icon={Clock3} />
-        <KpiCard label="Plan versions" value={String(plans.reduce((sum, plan) => sum + (plan.version ?? 1), 0))} delta="Historical continuity" icon={Layers3} />
+        <p className="text-xs font-semibold uppercase tracking-widest text-text-muted">
+          {filteredPlans.length} plans visible
+        </p>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <DashboardSection title="Featured plans" description="Cards focused on what the master needs to compare quickly.">
-          <div className="grid gap-4 md:grid-cols-2">
-            {filteredPlans.slice(0, 4).map((plan) => (
-              <PlanCard key={plan.id} plan={plan} onEdit={beginEdit} />
-            ))}
-          </div>
-        </DashboardSection>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          { label: "Current plans", value: String(plans.length), helper: "Catalog size", icon: Package2 },
+          { label: "Active", value: String(metrics.active), helper: "Available for subscription", icon: CheckCircle2 },
+          { label: "Exclusive", value: String(metrics.exclusive), helper: "Direct-link only", icon: ShieldCheck },
+          { label: "Plan versions", value: String(plans.reduce((sum, plan) => sum + (plan.version ?? 1), 0)), helper: "Historical continuity", icon: Layers3 },
+        ].map((item) => {
+          const Icon = item.icon;
+          return (
+            <div key={item.label} className="rounded-[1.5rem] border border-border bg-card p-6 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-inner">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-3xl font-semibold tracking-tight text-text">{item.value}</p>
+                  <p className="mt-1 text-xs font-black uppercase tracking-[0.18em] text-text-muted">{item.label}</p>
+                </div>
+              </div>
+              <p className="mt-3 text-sm text-text-muted">{item.helper}</p>
+            </div>
+          );
+        })}
+      </div>
 
-        <DashboardSection title="Operational catalog" description="Compact list for editing and version control.">
+      <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+        <aside className="rounded-3xl border border-border bg-card p-4 shadow-sm xl:sticky xl:top-6 xl:self-start">
+          <div className="mb-4 space-y-2 text-left">
+            <p className="text-xs font-semibold uppercase tracking-widest text-text-muted">Plan catalog</p>
+            <p className="text-sm font-normal leading-6 text-text-muted">
+              Select a plan to edit its version, billing model and rules snapshot.
+            </p>
+          </div>
           <div className="space-y-3">
             {filteredPlans.map((plan) => (
               <button
@@ -561,43 +673,75 @@ export default function PlansPage() {
                 type="button"
                 onClick={() => beginEdit(plan)}
                 className={cn(
-                  "w-full rounded-2xl border p-4 text-left transition-all hover:border-primary/25",
-                  selectedPlan?.id === plan.id ? "border-primary/30 bg-primary/5" : "border-border bg-bg-subtle",
+                  "w-full rounded-2xl border p-4 text-left transition-all hover:border-primary/25 hover:shadow-md",
+                  selectedPlan?.id === plan.id ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" : "border-border bg-bg-subtle",
                 )}
               >
                 <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-semibold text-text">{normalizePlanName(plan.name)}</p>
-                    <p className="text-sm text-text-muted">
-                      v{plan.version ?? 1} · {plan.billing_model ?? "prepaid"} · {formatPlanPrice(plan)}
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-text">{normalizePlanName(plan.name)}</p>
+                    <p className="mt-1 truncate text-[10px] font-normal uppercase tracking-[0.16em] text-text-muted">
+                      v{plan.version ?? 1} · {plan.billing_model ?? "prepaid"}
                     </p>
                   </div>
-                  <StatusBadge label={plan.is_active ? "active" : "inactive"} tone={toneForPlan(plan)} />
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    <StatusBadge label={plan.is_active ? "active" : "inactive"} tone={toneForPlan(plan)} />
+                    {plan.is_exclusive ? <StatusBadge label="exclusive" tone="amber" /> : null}
+                  </div>
                 </div>
-                <div className="mt-4 grid grid-cols-3 gap-3">
-                  <InlineMetric label="Price" value={formatPlanPrice(plan)} />
-                  <InlineMetric label="Fee" value={`${plan.percentage_fee}%`} />
-                  <InlineMetric label="Delay" value={`${plan.available_after_minutes}m`} />
+                <div className="mt-4 flex items-center justify-between">
+                  <p className="text-2xl font-semibold tracking-tight text-primary">{formatPlanPrice(plan)}</p>
+                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">
+                    {plan.available_after_minutes}m
+                  </span>
                 </div>
               </button>
             ))}
           </div>
-        </DashboardSection>
+        </aside>
+
+        <div className="min-w-0 space-y-6">
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">Editing panel</p>
+                <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-text">
+                  {selectedPlan ? normalizePlanName(selectedPlan.name) : "Select a plan to edit"}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">
+                  {selectedPlan
+                    ? "Update pricing, billing model and rules. The version bump preserves historical sales snapshots."
+                    : "Pick a plan from the catalog to open the editor."}
+                </p>
+              </div>
+              {selectedPlan ? (
+                <StatusBadge label={selectedPlan.is_active ? "active" : "inactive"} tone={toneForPlan(selectedPlan)} />
+              ) : null}
+            </div>
+
+            {selectedPlan && draft ? (
+              <div className="mt-6">
+                <PlanEditorDialog
+                  plan={selectedPlan}
+                  draft={draft}
+                  onDraftChange={setDraft}
+                  onClose={() => {
+                    setSelectedPlan(null);
+                    setDraft(null);
+                  }}
+                  onSave={handleSave}
+                  isSaving={updateMutation.isPending}
+                />
+              </div>
+            ) : (
+              <div className="mt-6 rounded-3xl border border-dashed border-border bg-bg-subtle p-8 text-sm text-text-muted">
+                No plan selected.
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {selectedPlan && draft ? (
-        <PlanEditorDialog
-          plan={selectedPlan}
-          draft={draft}
-          onDraftChange={setDraft}
-          onClose={() => {
-            setSelectedPlan(null);
-            setDraft(null);
-          }}
-          onSave={handleSave}
-          isSaving={updateMutation.isPending}
-        />
-      ) : null}
     </div>
   );
 }

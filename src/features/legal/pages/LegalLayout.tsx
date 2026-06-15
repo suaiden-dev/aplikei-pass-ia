@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useLocale } from "@app/app/i18n";
 import { cn } from "@shared/utils/cn";
-import { ChevronRight, ShieldCheck, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShieldCheck, FileText } from "lucide-react";
 
 interface LegalLayoutProps {
   children: React.ReactNode;
@@ -14,6 +14,8 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({ children }) => {
 
   const searchParams = new URLSearchParams(location.search);
   const role = searchParams.get("role") ?? "customer";
+  const returnTo = searchParams.get("returnTo");
+  const safeReturnTo = returnTo && returnTo.startsWith("/") ? returnTo : "/";
 
   const menuItems = [
     {
@@ -89,11 +91,18 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({ children }) => {
           <main className="lg:w-3/4">
             <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
               {/* Internal Header */}
-              <div className="flex items-center justify-between px-8 py-4 border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
-                  <FileText className="w-4 h-4" />
-                  <span>{lang === "pt" ? "Documento Oficial" : lang === "es" ? "Documento Oficial" : "Official Document"}</span>
+              <div className="flex items-center justify-between gap-3 px-8 py-4 border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-400 min-w-0">
+                  <FileText className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{lang === "pt" ? "Documento Oficial" : lang === "es" ? "Documento Oficial" : "Official Document"}</span>
                 </div>
+                <Link
+                  to={safeReturnTo}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:border-primary/30 hover:text-primary dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  {lang === "pt" ? "Voltar" : lang === "es" ? "Volver" : "Back"}
+                </Link>
               </div>
 
               <div className="h-1 bg-gradient-to-r from-primary to-primary-600 opacity-50" />

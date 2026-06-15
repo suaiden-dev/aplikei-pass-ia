@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useFormik } from "formik";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,7 +16,6 @@ import {
     RiInformationLine,
     RiUploadCloud2Line,
     RiCloseLine,
-    RiImageLine,
     RiTimeLine,
     RiFlashlightFill,
     RiLockLine,
@@ -49,13 +48,38 @@ const FALLBACK_EXCHANGE_RATE = 5.7;
 
 type PaymentTab = "card" | "pix" | "zelle" | "parcelow";
 
+type OfficeLandingPageConfig = {
+    logoUrl?: string | null;
+};
+
+type OfficeCheckoutOffice = {
+    id: string;
+    name: string;
+    logo_url?: string | null;
+    landing_page_config?: OfficeLandingPageConfig | null;
+};
+
+type OfficeCheckoutService = {
+    id: string;
+    slug: string;
+    name: string;
+    description?: string | null;
+};
+
+type ZelleCheckoutConfig = {
+    name: string;
+    email?: string | null;
+    phone?: string | null;
+    instructions?: string | null;
+};
+
 interface PaymentMethod {
     id: PaymentTab;
     label: string;
     sublabel: string;
     icon: React.ReactNode;
     available: boolean;
-    config?: any;
+    config?: { instructions?: string | null } | null;
 }
 
 const PAYMENT_METHODS_BASE: PaymentMethod[] = [
@@ -204,6 +228,7 @@ const logInteraction = async (eventName: string, email: string, officeId: string
 export default function OfficeCheckoutPage() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useAuth();
     const postZelleRoute =
         user?.role === "master" || user?.role === "admin_lawyer" || user?.role === "manager"
@@ -215,14 +240,15 @@ export default function OfficeCheckoutPage() {
     const isUpgrade = searchParams.get("upgrade") === "true";
     const parentId = searchParams.get("id") || searchParams.get("parentId") || searchParams.get("processId");
     const sellerRef = searchParams.get("ref") ?? undefined;
+    const termsReturnTo = `${location.pathname}${location.search}`;
 
-    const [office, setOffice] = useState<any>(null);
-    const [dbService, setDbService] = useState<any>(null);
+    const [office, setOffice] = useState<OfficeCheckoutOffice | null>(null);
+    const [dbService, setDbService] = useState<OfficeCheckoutService | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [productUnavailable, setProductUnavailable] = useState(false);
     const [customPrice, setCustomPrice] = useState<{ price: number; dependentPrice: number } | null>(null);
     const [availableMethods, setAvailableMethods] = useState<PaymentMethod[]>([]);
-    const [zelleConfig, setZelleConfig] = useState<any>(ZELLE_RECIPIENT);
+    const [zelleConfig, setZelleConfig] = useState<ZelleCheckoutConfig>(ZELLE_RECIPIENT);
 
     const [activeMethod, setActiveMethod] = useState<PaymentTab>("card");
     const [dependents, setDependents] = useState(searchParams.get("upgrade") === "true" ? 1 : 0);
@@ -233,7 +259,6 @@ export default function OfficeCheckoutPage() {
     const [zelleProof, setZelleProof] = useState<File | null>(null);
     const [zelleProofPreview, setZelleProofPreview] = useState<string | null>(null);
     const [emailExists, setEmailExists] = useState(false);
-    const [checkingEmail, setCheckingEmail] = useState(false);
 
     const {
         input: couponInput,
@@ -473,11 +498,10 @@ export default function OfficeCheckoutPage() {
                         });
                         if (signUpRes.user) currentUserId = signUpRes.user.id;
                     } catch (signUpErr) {
-                        const error = signUpErr as Error;
-                        if (error.message?.includes("already registered")) {
-                            throw new Error(t.userData.errors.emailTaken);
+                        if (signUpErr instanceof Error && signUpErr.message?.includes("already registered")) {
+                            throw new Error(t.userData.errors.emailTaken, { cause: signUpErr });
                         }
-                        throw error;
+                        throw signUpErr;
                     }
                 }
 
@@ -570,7 +594,7 @@ export default function OfficeCheckoutPage() {
         if (dbService) {
             logInteraction("acesso_checkout", formik.values.email, office?.id || officeSlug, `${serviceSlug} | Acesso inicial ao office checkout`);
         }
-    }, [dbService, office, officeSlug, serviceSlug]);
+    }, [dbService, office, officeSlug, serviceSlug, formik.values.email]);
 
     useEffect(() => {
         const handleUnload = () => {
@@ -690,7 +714,7 @@ export default function OfficeCheckoutPage() {
 
                 <div className="text-center pt-4">
                     {office && (() => {
-                        const logoSrc = office.logo_url || (office.landing_page_config as any)?.logoUrl;
+                        const logoSrc = office.logo_url || office.landing_page_config?.logoUrl;
                         return (
                             <div className="flex flex-col items-center gap-2 mb-4">
                                 {logoSrc ? (
@@ -881,14 +905,11 @@ export default function OfficeCheckoutPage() {
                                                     logInteraction("erro_validacao_campo", e.target.value, office?.id || officeSlug, `${serviceSlug} | Erro e-mail: ${formik.errors.email}`);
                                                 }
                                                 if (!user && e.target.value.trim() && !formik.errors.email) {
-                                                    setCheckingEmail(true);
                                                     try {
                                                         const role = await authService.getLoginRoleByEmail(e.target.value.trim());
                                                         setEmailExists(!!role);
                                                     } catch {
                                                         // ignora erros de rede
-                                                    } finally {
-                                                        setCheckingEmail(false);
                                                     }
                                                 }
                                             }}
@@ -1156,7 +1177,7 @@ export default function OfficeCheckoutPage() {
                                                 <span className="text-xs text-text-muted leading-snug">
                                                     {t.userData.termsLabel || "Li e concordo com os"}{" "}
                                                     <a
-                                                        href="/legal/terms?role=customer"
+                                                        href={`/legal/terms?role=customer&returnTo=${encodeURIComponent(termsReturnTo)}`}
                                                         className="text-primary hover:underline font-bold"
                                                     >
                                                         {t.userData.termsLink || "Termos de Uso"}

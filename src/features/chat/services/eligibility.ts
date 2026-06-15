@@ -19,7 +19,7 @@ export function getAnalysisChatTitle(serviceSlug?: string): string {
   if (slug === "extensao-status" || title.includes("(eos)")) return "EOS Specialist";
   if (slug.includes("cos") || title.includes("cos")) return "COS Specialist";
 
-  let displayTitle = meta?.title || "Specialist";
+  const displayTitle = meta?.title || "Specialist";
   
   if (displayTitle === "Análise de Recusa" || displayTitle.toLowerCase().includes("recusa") || slug.includes("recusa") || slug.includes("negative")) {
     return "Refusal Analysis";

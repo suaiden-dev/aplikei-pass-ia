@@ -8,54 +8,54 @@ const common = {
   whoWeArePage: {
     hero: {
       tag: "Quem somos",
-      title: "Empoderando a Advocacia",
-      titleHighlight: "com a Aplikei",
-      description: "Desenvolvemos a tecnologia de ponta que permite a advogados e assessorias de vistos consulares automatizarem suas operações, reduzirem erros e escalarem seus escritórios com o poder da Aplikei.",
-      stats: "tempo de preparação reduzido para nossos escritórios parceiros."
+      title: "Aplikei é a camada operacional para escritórios de imigração",
+      titleHighlight: "que querem vender, operar e escalar.",
+      description: "Construímos uma plataforma para transformar serviços de imigração em produtos digitais, com checkout personalizado, processos organizados, equipe integrada, financeiro em um só lugar e IA aplicada à rotina do escritório.",
+      stats: "produtos, checkout, processos, equipe, financeiro e IA em uma só operação."
     },
     history: {
       title: "Nossa Missão",
-      description: "A Aplikei nasceu com o propósito claro de revolucionar a gestão de vistos consulares. Percebendo as barreiras operacionais, a desorganização de documentos e as longas horas gastas em tarefas repetitivas por advogados e assessorias, criamos a primeira plataforma inteligente da Aplikei dedicada ao direito consular.\n\nHoje, somos a solução tecnológica que conecta escritórios de elite à máxima eficiência. Acreditamos que a Aplikei deve atuar como copilota da advocacia, assegurando precisão técnica, segurança absoluta de dados e escalabilidade ilimitada."
+      description: "A Aplikei nasceu para resolver o que mais trava a operação de um escritório de imigração: canais espalhados, documentos desconectados, controle manual e excesso de tarefas repetitivas. A ideia é simples: dar ao escritório uma plataforma única para vender serviços, acompanhar processos e apoiar a equipe com inteligência operacional.\n\nAcreditamos que tecnologia útil é aquela que reduz retrabalho, aumenta clareza e permite que o advogado deixe de ser o centro de tudo para se tornar o responsável pela estratégia."
     },
     pillars: {
       title: "Nossos Pilares",
       items: [
         {
-          title: "Inovação Direcionada",
-          description: "Plataforma desenhada especificamente pela Aplikei para as necessidades de processos consulares."
+          title: "Produto digital",
+          description: "Serviços de imigração viram produtos com preço, descrição, documentos e fluxo próprios."
         },
         {
-          title: "Segurança de Elite",
-          description: "Criptografia de ponta a ponta e total conformidade com a LGPD e GDPR para proteção de dados jurídicos."
+          title: "Operação centralizada",
+          description: "Checkout, processos, financeiro e equipe em um só lugar para evitar retrabalho e perda de contexto."
         },
         {
-          title: "Eficiência Operacional",
-          description: "Redução de até 70% no tempo de preparação, otimizando o trabalho manual da sua equipe."
+          title: "IA aplicada",
+          description: "Automação pensada para apoiar tarefas repetitivas, identificar pendências e acelerar a rotina."
         },
         {
-          title: "Parceria de Crescimento",
-          description: "Fornecemos as ferramentas ideais (Page Builder, links de login e vendas) para seu escritório escalar."
+          title: "Escala com controle",
+          description: "Mais volume sem perder padrão, histórico e visibilidade sobre o que acontece em cada processo."
         }
       ]
     },
     leadership: {
-      title: "Nossos Fundadores",
-      subtitle: "Tecnologia e Direito Consular em perfeita harmonia",
+      title: "Nossa forma de construir",
+      subtitle: "Tecnologia orientada à operação real do escritório",
       members: [
         {
-          name: "CEO & Co-fundador",
-          description: "Especialista em tecnologia e arquitetura de sistemas voltados para a automatização jurídica com a Aplikei."
+          name: "Produto e engenharia",
+          description: "Estruturamos a plataforma para que o escritório consiga vender, acompanhar e concluir processos com menos atrito."
         },
         {
-          name: "Co-fundador & Advisor",
-          description: "Advogado de imigração com vasta trajetória no mercado consular americano, garantindo a conformidade e precisão jurídica da plataforma."
+          name: "Operação e suporte",
+          description: "Acompanhamos a implantação para traduzir a necessidade do escritório em fluxos claros e úteis."
         }
       ]
     },
     cta: {
-      title: "Leve sua operação para o futuro",
-      subtitle: "Agende uma demonstração e descubra como a Aplikei pode acelerar seu escritório.",
-      button: "Agendar Demonstração"
+      title: "Leve seu escritório para uma operação digital completa",
+      subtitle: "Conheça como a Aplikei conecta produto, checkout, processos, equipe, financeiro e IA em uma única plataforma.",
+      button: "Falar com especialista"
     },
     stats: {
       success: "10k+",
@@ -69,69 +69,69 @@ const common = {
 
   servicesPage: {
     hero: {
-      tag: "Nossas Soluções B2B",
-      title: "Tecnologia de Elite",
-      subtitle: "Transforme sua operação com ferramentas de automação, gestão de fluxos consulares e criação de páginas profissionais em minutos."
+      tag: "Soluções",
+      title: "Tudo o que seu escritório precisa para vender, operar e escalar",
+      subtitle: "Crie produtos digitais, personalize checkout, organize processos e use IA para reduzir trabalho manual na rotina."
     },
     sections: [
       {
-        title: "Gestão de Vistos Consulares",
-        description: "Centralize e padronize todos os processos de vistos (B1/B2, F1, etc.) em uma única plataforma robusta e intuitiva.",
+        title: "Produtos digitais",
+        description: "Transforme serviços de imigração em ofertas com preço, descrição, documentos necessários e fluxo próprio.",
         features: [
-          "Gestão de múltiplos clientes em um único painel.",
-          "Checklist dinâmico de documentos por categoria de visto.",
-          "Acompanhamento em tempo real do status de cada solicitação."
+          "Serviços como B1/B2, F1, RFE, COS e consultorias.",
+          "Preço e descrição por oferta.",
+          "Documentos necessários e etapas configuráveis."
         ]
       },
       {
-        title: "Page Builder para seu Escritório",
-        description: "Crie landing pages de alta conversão sem precisar de desenvolvedores. Personalize com sua marca e logo.",
+        title: "Checkout personalizado",
+        description: "Venda os seus serviços com links de pagamento com a identidade do escritório e mais clareza para o cliente.",
         features: [
-          "Modelos otimizados para conversão de novos leads.",
-          "Integração nativa com fluxos de pagamento e checkout.",
-          "Editor visual simples para customização total de cores."
+          "Checkout com a marca do escritório.",
+          "Fluxo de compra mais profissional.",
+          "Experiência coerente da oferta ao pagamento."
         ]
       },
       {
-        title: "Fluxo de Preenchimento e Aprovação",
-        description: "Controle total sobre a coleta de dados. Revise e aprove as informações dos clientes antes do envio oficial.",
+        title: "Gestão de processos",
+        description: "Acompanhe cada caso com etapas, responsáveis, documentos pendentes e histórico do que foi feito.",
         features: [
-          "Formulários inteligentes que reduzem erros de preenchimento.",
-          "Módulo de revisão técnica para sua equipe operacional.",
-          "Notificações automáticas de pendências documentais."
+          "Etapas claras por processo.",
+          "Equipe integrada por função.",
+          "Pendências e histórico centralizados."
         ]
       },
       {
-        title: "Inteligência de Dados e Suporte",
-        description: "Segurança total no tratamento de informações sensíveis e suporte especializado para sua equipe escalar.",
+        title: "IA aplicada à operação",
+        description: "Use inteligência artificial para reduzir tarefas repetitivas e manter a operação mais clara para a equipe.",
         features: [
-          "Criptografia de ponta a ponta no upload de arquivos.",
-          "Histórico detalhado de todas as interações e alterações.",
-          "Infraestrutura escalável para grandes volumes de processos."
+          "Organização de dados e pendências.",
+          "Apoio a respostas operacionais.",
+          "Menos retrabalho na rotina."
         ]
       }
     ],
     info: {
       leadership: {
-        title: "Foco em Performance",
-        description: "Nossa tecnologia foi desenhada para reduzir o trabalho manual em até 70%, permitindo que seu escritório foque no que realmente importa: a estratégia jurídica."
+        title: "Foco em clareza",
+        description: "A tecnologia foi desenhada para reduzir o excesso de tarefas manuais e deixar cada etapa mais previsível para a equipe."
       },
       rigor: {
-        title: "Segurança de Dados",
-        description: "Seguimos os mais altos padrões de proteção de dados, garantindo que as informações sensíveis de seus clientes estejam protegidas contra qualquer vulnerabilidade."
+        title: "Segurança de dados",
+        description: "Seguimos um padrão forte de proteção para que o escritório tenha confiança ao operar informações sensíveis."
       }
     },
     cta: {
-      title: "Leve seu escritório para o próximo nível",
-      description: "Agende uma demonstração personalizada e veja como a Aplikei pode escalar seu faturamento e eficiência.",
-      button: "Solicitar Demo B2B"
+      title: "Veja a Aplikei na prática",
+      description: "Conheça como a plataforma pode organizar sua oferta, sua operação e sua equipe em um único lugar.",
+      button: "Falar com especialista"
     }
   },
 
   contactPage: {
     hero: {
-      title: "Vamos conversar?",
-      subtitle: "Estamos prontos para tirar suas dúvidas e ajudar você no seu processo de visto."
+      title: "Fale com a Aplikei",
+      subtitle: "Conte como sua operação funciona hoje e mostramos onde a plataforma pode reduzir retrabalho, centralizar processos e apoiar sua equipe."
     }
 
   },

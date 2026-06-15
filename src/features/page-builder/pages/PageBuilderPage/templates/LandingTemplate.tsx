@@ -1389,8 +1389,8 @@ const landingTemplateHtml = String.raw`
 
         .footer-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1.4fr) minmax(180px, 0.8fr) minmax(240px, 1fr);
-            gap: 52px;
+            grid-template-columns: minmax(0, 1.4fr) minmax(180px, 0.8fr) minmax(240px, 1fr) minmax(180px, 0.9fr);
+            gap: 36px;
             margin-bottom: 44px;
         }
 
@@ -1414,7 +1414,9 @@ const landingTemplateHtml = String.raw`
         .footer h4 {
             margin-bottom: 16px;
             color: var(--footer-ink);
-            font-size: 16px;
+            font-size: 12px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
         }
 
         .footer ul {
@@ -1436,6 +1438,37 @@ const landingTemplateHtml = String.raw`
 
         .footer a:hover {
             color: var(--footer-ink);
+        }
+
+        .footer-social {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-social-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .footer-social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 104px;
+            padding: 11px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--footer-border);
+            background: rgba(255, 255, 255, 0.35);
+            color: var(--footer-muted);
+            transition: color .2s ease, border-color .2s ease, background .2s ease;
+        }
+
+        .footer-social-links a:hover {
+            color: var(--footer-ink);
+            border-color: rgba(45, 99, 255, 0.18);
+            background: rgba(255, 255, 255, 0.7);
         }
 
         .footer-bottom {
@@ -2017,6 +2050,11 @@ const landingTemplateHtml = String.raw`
                 <div class="footer-brand">
                     <span class="logo-text">SEU LOGO</span>
                     <p class="footer-desc">Strategic legal advisory for those seeking confidence and clarity in the U.S. visa process.</p>
+                    <div class="footer-social-links">
+                        <a href="#">Instagram</a>
+                        <a href="#">LinkedIn</a>
+                        <a href="#">WhatsApp</a>
+                    </div>
                 </div>
                 <div class="footer-links">
                     <h4>Useful Links</h4>
@@ -2035,13 +2073,21 @@ const landingTemplateHtml = String.raw`
                         <li>Sao Paulo, SP - Brazil</li>
                     </ul>
                 </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Terms of Use</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Refund Policy</a></li>
+                    </ul>
+                </div>
             </div>
             <div class="footer-bottom">
                 <p>Powered by Aplikei</p>
                 <div class="social-links">
-                    <a href="#">Instagram</a>
-                    <a href="#">LinkedIn</a>
-                    <a href="#">WhatsApp</a>
+                    <a href="#">Terms of Use</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Refund Policy</a>
                 </div>
             </div>
         </div>

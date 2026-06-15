@@ -7,122 +7,128 @@ const common = {
   whoWeArePage: {
     hero: {
       tag: "Quiénes somos",
-      title: "Empoderando a las Firmas",
-      titleHighlight: "con Aplikei",
-      description: "Desarrollamos la tecnología de punta que permite a abogados y asesorías de visas consulares automatizar sus operaciones, reducir errores y escalar sus oficinas con el poder de Aplikei.",
-      stats: "reducción del tiempo de preparación para nuestras firmas socias."
+      title: "Aplikei es la capa operativa para firmas de inmigración",
+      titleHighlight: "que quieren vender, operar y escalar.",
+      description: "La plataforma para que las firmas de inmigración vendan servicios de visa como productos digitales, con checkout personalizado, procesos organizados, equipo integrado, financiero en un solo lugar e IA aplicada para apoyar la operación.",
+      stats: "menos trabajo manual en la operación."
     },
     history: {
-      title: "Nuestra Misión",
-      description: "Aplikei nació con el propósito claro de revolucionar la gestión de visas consulares. Al percibir las barreras operativas, la desorganización de documentos y las largas horas dedicadas a tareas repetitivas por abogados y agencias, creamos la primera plataforma inteligente de Aplikei dedicada al derecho consular.\n\nHoy, somos la solución tecnológica que conecta oficinas de élite con la máxima eficiencia. Creemos que Aplikei debe actuar como copiloto de la abogacía, asegurando precisión técnica, seguridad absoluta de datos y escalabilidad ilimitada."
+      title: "Por qué existe Aplikei",
+      description: "Muchas firmas comienzan con una operación simple: WhatsApp, hojas de cálculo, links de pago y documentos enviados por canales distintos.\n\nAl inicio funciona. Pero cuando crece el volumen de clientes, la operación empieza a trabarse.\n\nLos mensajes se pierden. Los documentos quedan dispersos. Los pagos necesitan revisión manual. Los clientes preguntan por el estado todo el tiempo. El equipo no sabe exactamente qué está pendiente. Y el abogado termina siendo el centro de todo.\n\nEl problema no es usar WhatsApp o planillas.\n\nEl problema es depender de ellas para operar procesos complejos."
     },
     pillars: {
-      title: "Nuestros Pilares",
+      title: "Aplikei organiza su operación desde el primer clic hasta la conclusión del proceso.",
       items: [
         {
-          title: "Innovación Enfocada",
-          description: "Plataforma diseñada específicamente por Aplikei para las necesidades de procesos consulares."
+          title: "Productos digitales",
+          description: "Convierta servicios como B1/B2, F1, RFE, COS y consultorías en productos listos para vender."
         },
         {
-          title: "Seguridad de Élite",
-          description: "Cifrado de extremo a extremo y total conformidad con LGPD y GDPR para la protección de datos jurídicos."
+          title: "Operación centralizada",
+          description: "Mantenga documentos, etapas, responsables y pendientes organizados en un solo lugar."
         },
         {
-          title: "Eficiencia Operativa",
-          description: "Reducción de hasta un 70% en el tiempo de preparación, optimizando el trabajo manual de su equipo."
+          title: "IA aplicada",
+          description: "Use IA para reducir tareas repetitivas y apoyar los pasos operativos que importan."
         },
         {
-          title: "Alianza de Crecimiento",
-          description: "Proporcionamos las herramientas ideales (Page Builder, enlaces de inicio de sesión y ventas) para el crecimiento de su oficina."
+          title: "Escala con control",
+          description: "Venda, opere y supervise más casos con flujos más claros y más visibilidad."
         }
       ]
     },
     leadership: {
-      title: "Nuestros Fundadores",
-      subtitle: "Tecnología y Derecho Consular en perfecta armonía",
+      title: "Hecha para firmas que necesitan más control",
+      subtitle: "Productos, checkout, procesos, equipo y financiero en una sola plataforma",
       members: [
         {
-          name: "CEO & Co-fundador",
-          description: "Especialista en tecnología y arquitectura de sistemas orientados a la automatización jurídica con Aplikei."
+          name: "Diseño de producto",
+          description: "Catálogo de servicios, precios y flujos estructurados para la venta digital."
         },
         {
-          name: "Co-fundador & Asesor",
-          description: "Abogado de inmigración con amplia experiencia en el mercado estadounidense, garantizando el cumplimiento legal y la precisión de la plataforma."
+          name: "Coordinación operativa",
+          description: "Herramientas para que el equipo siga cada proceso con claridad y responsabilidad."
         }
       ]
     },
     stats: {
-      success: "10k+",
-      successLabel: "Procesos Facilitados",
-      approval: "-70%",
-      approvalLabel: "Tiempo de Preparación",
-      countries: "3 Idiomas",
-      countriesLabel: "Soporte de la Plataforma"
+      success: "Productos",
+      successLabel: "listos para vender",
+      approval: "Finanzas",
+      approvalLabel: "y checkout integrados",
+      countries: "IA",
+      countriesLabel: "apoyando la operación"
     },
     cta: {
-      title: "Lleve su operación al futuro",
-      subtitle: "Programe una demostración y descubra cómo Aplikei puede acelerar su firma.",
-      button: "Agendar Demostración"
+      title: "¿Listo para convertir su firma en una operación digital?",
+      subtitle: "Venda servicios con checkout personalizado, acompañe cada cliente en un flujo organizado y tenga más control sobre procesos, equipo, pagos y tareas operativas con apoyo de IA.",
+      button: "Hablar con un especialista"
     }
   },
   servicesPage: {
     hero: {
-      tag: "Nuestras Soluciones B2B",
-      title: "Tecnología de élite para su asesoría",
-      subtitle: "Transforme su operación con herramientas de automatización, gestión de flujos consulares y creación de páginas profesionales en minutos."
+      tag: "Servicios",
+      title: "Todo lo que su firma necesita para vender, operar y escalar",
+      subtitle: "Productos, checkout, procesos, equipo, financiero e IA integrados en una sola plataforma."
     },
     sections: [
       {
-        title: "Gestión de Visas Consulares",
-        description: "Centralice y estandarice todos los procesos de visas (B1/B2, F1, etc.) en una sola plataforma robusta e intuitiva.",
+        title: "Productos digitales",
+        description: "Cree servicios como B1/B2, F1, RFE, COS y consultorías con precio, descripción y flujos específicos.",
         features: [
-          "Gestión de múltiples clientes en un solo panel.",
-          "Checklist dinámico de documentos por categoría de visa.",
-          "Seguimiento en tiempo real del estado de cada solicitud."
+          "Defina alcance, precio y documentos requeridos por producto.",
+          "Mantenga un flujo claro para cada servicio vendido.",
+          "Siga el estado de cada cliente de principio a fin."
         ]
       },
       {
-        title: "Page Builder para su Oficina",
-        description: "Cree páginas de destino de alta conversión sin necesidad de desarrolladores. Personalice con su marca y logo.",
+        title: "Checkout personalizado",
+        description: "Genere links de pago con la identidad de su firma y venda servicios de forma más profesional.",
         features: [
-          "Modelos optimizados para la conversión de nuevos leads.",
-          "Integración nativa con flujos de pago y checkout.",
-          "Editor visual sencillo para la personalización total de colores."
+          "Ofrezca una experiencia de compra con su marca.",
+          "Conecte pago y configuración del servicio en un solo flujo.",
+          "Use la misma plataforma para ventas y entrega."
         ]
       },
       {
-        title: "Flujo de Llenado y Aprobación",
-        description: "Control total sobre la recolección de datos. Revise y apruebe la información de los clientes antes del envío oficial.",
+        title: "Gestión de procesos",
+        description: "Siga cada cliente por etapa, estado, pendientes, responsables e historial completo.",
         features: [
-          "Formularios inteligentes que reducen errores de llenado.",
-          "Módulo de revisión técnica para su equipo operativo.",
-          "Notificaciones automáticas para documentos pendientes."
+          "Centralice documentos y pasos por caso.",
+          "Haga visibles la responsabilidad y los pendientes para el equipo.",
+          "Reduzca el ida y vuelta que frena la operación."
         ]
       },
       {
-        title: "Inteligencia de Datos y Soporte",
-        description: "Seguridad total en el manejo de información sensible y soporte especializado para que su equipo escale.",
+        title: "IA aplicada",
+        description: "Use IA para apoyar tareas repetitivas, mantener la información organizada y ayudar a que la operación avance más rápido.",
         features: [
-          "Cifrado de extremo a extremo en la carga de archivos.",
-          "Historial detallado de todas las interacciones y cambios.",
-          "Infraestructura escalable para grandes volúmenes de procesos."
+          "Apoyo para dudas operativas y seguimiento de pasos.",
+          "Ayuda para organizar información y pendientes.",
+          "Menos trabajo manual para el equipo."
         ]
       }
     ],
     info: {
       leadership: {
-        title: "Enfoque en el Rendimiento",
-        description: "Nuestra tecnología fue diseñada para reducir el trabajo manual hasta en un 70%, permitiendo que su oficina se concentre en lo que realmente importa: la estrategia legal."
+        title: "Opere con más previsibilidad",
+        description: "Aplikei fue diseñada para reducir el trabajo manual, dar más claridad al equipo y ayudar a la firma a escalar con control."
       },
       rigor: {
-        title: "Seguridad de Datos",
-        description: "Seguimos los más altos estándares de protección de datos, garantizando que la información sensible de sus clientes esté protegida contra cualquier vulnerabilidad."
+        title: "Seguridad de datos",
+        description: "La información sensible queda protegida con control de acceso, historial y una estructura pensada para consistencia operativa."
       }
     },
     cta: {
-      title: "Lleve su oficina al siguiente nivel",
-      description: "Programe una demostración personalizada y vea cómo Aplikei puede escalar sus ingresos y eficiencia.",
-      button: "Solicitar Demo B2B"
+      title: "Vea Aplikei en la práctica",
+      description: "Programe una demo y vea cómo la plataforma puede organizar ventas, operación y finanzas en un solo lugar.",
+      button: "Hablar con un especialista"
+    }
+  },
+  contactPage: {
+    hero: {
+      title: "Hable con Aplikei",
+      subtitle: "Cuéntenos cómo trabaja su firma hoy y le mostraremos dónde la operación puede ser más digital y más controlada."
     }
   },
   chat: {

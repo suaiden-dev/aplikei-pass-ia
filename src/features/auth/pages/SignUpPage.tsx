@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useFormik } from "formik";
 import { toast } from "sonner";
 import { zodValidate } from "@shared/utils/zodValidate";
@@ -16,19 +16,28 @@ import { useLocale, useT } from "@app/app/i18n";
 import { authService } from "../lib/auth";
 import { getDashboardPathForRole, normalizeRole } from "../lib/roles";
 
+type SignupTooltips = {
+  fullNameTooltip?: string;
+  emailTooltip?: string;
+  passwordTooltip?: string;
+  phoneTooltip?: string;
+};
+
 export default function SignUp() {
   const t = useT("auth");
   const v = useT("validation");
   const { lang } = useLocale();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { signUp } = useAuthForm();
   const [emailExists, setEmailExists] = useState(false);
-  const [checkingEmail, setCheckingEmail] = useState(false);
+  const signupCopy = t.signup as typeof t.signup & SignupTooltips;
 
   const roleParam = searchParams.get("role");
   const officeIdParam = searchParams.get("officeId");
   const legalRole = normalizeRole(roleParam || "admin_lawyer") === "customer" ? "customer" : "lawyer";
+  const termsReturnTo = `${location.pathname}${location.search}`;
 
   const formik = useFormik({
     initialValues: {
@@ -94,7 +103,7 @@ export default function SignUp() {
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           error={formik.touched.fullName ? formik.errors.fullName : undefined}
-          tooltip={(t.signup as any).fullNameTooltip}
+          tooltip={signupCopy.fullNameTooltip}
         />
 
         <Field
@@ -112,26 +121,21 @@ export default function SignUp() {
             formik.handleBlur(e);
             const email = e.target.value.trim();
             if (!email || formik.errors.email) return;
-            setCheckingEmail(true);
             try {
               const role = await authService.getLoginRoleByEmail(email);
               setEmailExists(!!role);
             } catch {
               // ignora erros de rede
-            } finally {
-              setCheckingEmail(false);
             }
           }}
           error={
             formik.touched.email
               ? emailExists
                 ? t.signup.emailAlreadyInUse
-                : checkingEmail
-                  ? undefined
-                  : formik.errors.email
+                : formik.errors.email
               : undefined
           }
-          tooltip={(t.signup as any).emailTooltip}
+          tooltip={signupCopy.emailTooltip}
         />
 
         <Field
@@ -144,13 +148,13 @@ export default function SignUp() {
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           error={formik.touched.password ? formik.errors.password : undefined}
-          tooltip={(t.signup as any).passwordTooltip}
+          tooltip={signupCopy.passwordTooltip}
         />
 
         <div className="space-y-2">
           <div className="flex items-center gap-1.5">
             <label className="text-[13px] font-semibold tracking-[0.02em] text-text">{t.signup.phone}</label>
-            {(t.signup as any).phoneTooltip && (
+            {signupCopy.phoneTooltip && (
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -163,7 +167,7 @@ export default function SignUp() {
                     </button>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-[240px] text-xs bg-popover text-popover-foreground border border-border p-2 shadow-md z-50">
-                    {(t.signup as any).phoneTooltip}
+                    {signupCopy.phoneTooltip}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -206,7 +210,7 @@ export default function SignUp() {
           />
           <label htmlFor="terms" className="cursor-pointer text-xs leading-relaxed text-text-muted">
             {t.signup.acceptTerms}{" "}
-            <Link to={`/legal/terms?role=${legalRole}`} className="font-bold text-primary hover:underline">
+            <Link to={`/legal/terms?role=${legalRole}&returnTo=${encodeURIComponent(termsReturnTo)}`} className="font-bold text-primary hover:underline">
               {t.signup.termsLink}
             </Link>{" "}
             e{" "}

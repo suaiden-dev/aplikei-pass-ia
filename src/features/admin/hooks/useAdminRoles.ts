@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@shared/hooks/useAuth";
 import { supabase } from "@shared/lib/supabase";
@@ -26,7 +26,7 @@ async function loadUsersAndOffices(activeSearch: string): Promise<{
   const byOwner = Object.fromEntries(offices.filter((o) => o.owner_id).map((o) => [o.owner_id, o]));
 
   const userIds = rows.map((r) => r.id).filter((id) => !byOwner[id]);
-  let byAccount: Record<string, OfficeRow> = {};
+  const byAccount: Record<string, OfficeRow> = {};
   if (userIds.length > 0) {
     const { data: accountRows } = await supabase
       .from("user_accounts")
@@ -50,11 +50,11 @@ export function useAdminRoles() {
   const [search, setSearch] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [isSavingId, setIsSavingId] = useState<string | null>(null);
-  const [selectedByUserId, setSelectedByUserId] = useState<Record<string, ManagedRole>>({});
+  const [roleOverrides, setRoleOverrides] = useState<Record<string, ManagedRole>>({});
   const [officeModalUser, setOfficeModalUser] = useState<UserAccountRow | null>(null);
   const [pendingRole, setPendingRole] = useState<ManagedRole | null>(null);
   const [isSavingOffice, setIsSavingOffice] = useState(false);
-  const [officeByUserId, setOfficeByUserId] = useState<Record<string, OfficeRow>>({});
+  const [officeOverrides, setOfficeOverrides] = useState<Record<string, OfficeRow | null>>({});
 
   const roleOptions = useMemo<Array<{ label: string; value: ManagedRole }>>(() => {
     const all: Array<{ label: string; value: ManagedRole }> = [
@@ -78,20 +78,28 @@ export function useAdminRoles() {
     staleTime: 0,
   });
 
-  const users = data?.users ?? [];
-
-  useEffect(() => {
-    if (!data) return;
-    const nextSelected: Record<string, ManagedRole> = {};
-    for (const row of data.users) {
+  const users = useMemo(() => data?.users ?? [], [data?.users]);
+  const selectedByUserId = useMemo(() => {
+    const base: Record<string, ManagedRole> = {};
+    for (const row of users) {
       const normalized = normalizeRole(row.role) as ManagedRole;
-      if (roleOptions.some((opt) => opt.value === normalized)) nextSelected[row.id] = normalized;
+      if (roleOptions.some((opt) => opt.value === normalized)) base[row.id] = normalized;
     }
-    setSelectedByUserId(nextSelected);
-    setOfficeByUserId(data.officeByUserId);
-  }, [data, roleOptions]);
+    return { ...base, ...roleOverrides };
+  }, [users, roleOptions, roleOverrides]);
+  const officeByUserId = useMemo(() => {
+    const next: Record<string, OfficeRow> = { ...(data?.officeByUserId ?? {}) };
+    for (const [userId, office] of Object.entries(officeOverrides)) {
+      if (office) next[userId] = office;
+      else delete next[userId];
+    }
+    return next;
+  }, [data?.officeByUserId, officeOverrides]);
 
-  const invalidateUsers = () => queryClient.invalidateQueries({ queryKey: adminQueryKeys.adminRolesUsers(activeSearch) });
+  const invalidateUsers = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: adminQueryKeys.adminRolesUsers(activeSearch) }),
+    [activeSearch, queryClient],
+  );
 
   const handleSearchByEmail = useCallback(() => {
     const term = search.trim().toLowerCase();
@@ -102,7 +110,7 @@ export function useAdminRoles() {
     setIsSavingId(user.id);
     try {
       await updateUserRole(user.id, nextRole);
-      setSelectedByUserId((prev) => ({ ...prev, [user.id]: nextRole }));
+      setRoleOverrides((prev) => ({ ...prev, [user.id]: nextRole }));
       invalidateUsers();
       toast.success(t.messages.roleSuccess);
     } catch (err: unknown) {
@@ -110,7 +118,7 @@ export function useAdminRoles() {
     } finally {
       setIsSavingId(null);
     }
-  }, [t.messages.roleSuccess, t.messages.saveError, activeSearch]);
+  }, [invalidateUsers, t.messages.roleSuccess, t.messages.saveError]);
 
   const handleRoleChange = useCallback(async (user: UserAccountRow, nextRole: ManagedRole) => {
     if (currentUser?.role === "admin_lawyer" && nextRole === "admin_lawyer") {
@@ -139,7 +147,7 @@ export function useAdminRoles() {
           savedOffice = await assignOfficeOwner({ officeId: officeData.officeId, ownerId: officeModalUser.id, forceReplace: officeData.forceReplace });
         }
         await setUserOffice(officeModalUser.id, savedOffice.id);
-        setOfficeByUserId((prev) => ({ ...prev, [officeModalUser.id]: savedOffice }));
+        setOfficeOverrides((prev) => ({ ...prev, [officeModalUser.id]: savedOffice }));
         await commitRoleChange(officeModalUser, pendingRole);
       } else {
         if (officeData.mode !== "existing") return;
@@ -150,7 +158,7 @@ export function useAdminRoles() {
           .single();
         if (!officeRow) { toast.error(t.messages.officeNotFound); return; }
         await setUserOffice(officeModalUser.id, officeData.officeId);
-        setOfficeByUserId((prev) => ({ ...prev, [officeModalUser.id]: officeRow as OfficeRow }));
+        setOfficeOverrides((prev) => ({ ...prev, [officeModalUser.id]: officeRow as OfficeRow }));
         toast.success(t.messages.officeSuccess);
       }
       setOfficeModalUser(null);
@@ -177,7 +185,7 @@ export function useAdminRoles() {
       setIsSavingId(user.id);
       try {
         await unassignOfficeOwner(currentOffice.id, user.id);
-        setOfficeByUserId((prev) => { const next = { ...prev }; delete next[user.id]; return next; });
+        setOfficeOverrides((prev) => ({ ...prev, [user.id]: null }));
         toast.success(t.messages.unassignSuccess);
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : t.messages.unassignError);
@@ -203,7 +211,7 @@ export function useAdminRoles() {
     } finally {
       setIsSavingId(null);
     }
-  }, [currentUser?.id, t.messages, activeSearch]);
+  }, [currentUser?.id, invalidateUsers, t.messages]);
 
   const activeUsersCount = useMemo(() => users.filter((u) => u.is_active !== false).length, [users]);
 

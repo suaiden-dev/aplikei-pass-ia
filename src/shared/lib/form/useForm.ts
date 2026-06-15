@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import type {
   FieldValues,
   FieldErrors,
@@ -19,8 +19,8 @@ export function useForm<T extends FieldValues>(
   const [touched, setTouched] = useState<FieldTouched<T>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Keep initial values stable across renders
-  const initialRef = useRef(initialValues);
+  // Keep a stable snapshot of the initial values for dirty checks and reset.
+  const [initialSnapshot] = useState(() => ({ ...initialValues }));
 
   // ── Validate a single field ──────────────────────────────────────────────────
   const validateField = useCallback(
@@ -34,7 +34,7 @@ export function useForm<T extends FieldValues>(
       }
       return undefined;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     [validators],
   );
 
@@ -72,10 +72,7 @@ export function useForm<T extends FieldValues>(
   );
 
   // ── isDirty (derived) ────────────────────────────────────────────────────────
-  const isDirty = useMemo(
-    () => JSON.stringify(values) !== JSON.stringify(initialRef.current),
-    [values],
-  );
+  const isDirty = useMemo(() => JSON.stringify(values) !== JSON.stringify(initialSnapshot), [values, initialSnapshot]);
 
   // ── setValue ─────────────────────────────────────────────────────────────────
   const setValue = useCallback(
@@ -187,11 +184,11 @@ export function useForm<T extends FieldValues>(
 
   // ── reset ────────────────────────────────────────────────────────────────────
   const reset = useCallback(() => {
-    setValues({ ...initialRef.current });
+    setValues({ ...initialSnapshot });
     setErrors({});
     setTouched({});
     setIsSubmitting(false);
-  }, []);
+  }, [initialSnapshot]);
 
   return {
     values,

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useParams, Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, Navigate, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useFormik } from "formik";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
@@ -223,6 +223,7 @@ export default function CheckoutPage() {
   const { slug } = useParams<{ slug: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const postZelleRoute =
     user?.role === "master" || user?.role === "admin_lawyer" || user?.role === "manager"
@@ -249,8 +250,8 @@ export default function CheckoutPage() {
   const [resolvingOfficeSlug, setResolvingOfficeSlug] = useState<boolean>(!!officeSlugParam);
   const officeId = officeIdParam || officeIdFromSlug || officeIdFromProcess;
   const isRestartFlow = searchParams.get("restart") === "true";
+  const termsReturnTo = `${location.pathname}${location.search}`;
   const [emailExists, setEmailExists] = useState(false);
-  const [checkingEmail, setCheckingEmail] = useState(false);
 
 
   const service = getServiceBySlug(slug || "");
@@ -505,11 +506,10 @@ export default function CheckoutPage() {
               currentUserId = signUpRes.user.id;
             }
           } catch (signUpErr) {
-            const error = signUpErr as Error;
-            if (error.message?.includes("already registered")) {
-              throw new Error(t.userData.errors.emailTaken);
+            if (signUpErr instanceof Error && signUpErr.message?.includes("already registered")) {
+              throw new Error(t.userData.errors.emailTaken, { cause: signUpErr });
             }
-            throw error;
+            throw signUpErr;
           }
         }
 
@@ -604,7 +604,7 @@ export default function CheckoutPage() {
     if (service) {
       logInteraction("acesso_checkout", formik.values.email, officeId, `${service.slug} | Acesso inicial ao checkout`);
     }
-  }, [service, officeId]);
+  }, [service, officeId, formik.values.email]);
 
   useEffect(() => {
     const handleUnload = () => {
@@ -1151,14 +1151,11 @@ export default function CheckoutPage() {
                             logInteraction("erro_validacao_campo", e.target.value, officeId, `${service?.slug || slug} | Erro e-mail: ${formik.errors.email}`);
                           }
                           if (!user && e.target.value.trim() && !formik.errors.email) {
-                            setCheckingEmail(true);
                             try {
                               const role = await authService.getLoginRoleByEmail(e.target.value.trim());
                               setEmailExists(!!role);
                             } catch {
                               // ignora erros de rede
-                            } finally {
-                              setCheckingEmail(false);
                             }
                           }
                         }}
@@ -1464,7 +1461,7 @@ export default function CheckoutPage() {
                       <span className="text-xs text-text-muted leading-snug">
                         {t.userData.termsLabel || "Li e concordo com os"}{" "}
                         <a
-                          href="/legal/terms?role=customer"
+                          href={`/legal/terms?role=customer&returnTo=${encodeURIComponent(termsReturnTo)}`}
                           className="text-primary hover:underline font-bold"
                         >
                           {t.userData.termsLink || "Termos de Uso"}

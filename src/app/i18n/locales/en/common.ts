@@ -8,122 +8,128 @@ const common = {
   whoWeArePage: {
     hero: {
       tag: "Who we are",
-      title: "Empowering Law Firms",
-      titleHighlight: "with Aplikei",
-      description: "We develop cutting-edge technology that enables lawyers and consular visa consultancies to automate operations, reduce errors, and scale their offices with the power of Aplikei.",
-      stats: "preparation time reduction for our partner law firms."
+      title: "Aplikei is the operational layer for immigration firms",
+      titleHighlight: "that want to sell, operate and scale.",
+      description: "The platform for immigration firms to sell visa services as digital products, with personalized checkout, organized processes, integrated team, finance in one place and AI applied to support the operation.",
+      stats: "less manual work across the firm."
     },
     history: {
-      title: "Our Mission",
-      description: "Aplikei was born with a clear purpose: to revolutionize the management of consular visas. Recognizing the operational barriers, disorganized documents, and endless hours spent on repetitive tasks by lawyers and agencies, we built the first intelligent platform from Aplikei dedicated to consular law.\n\nToday, we are the tech solution connecting elite offices with maximum efficiency. We believe Aplikei should act as a copilot for legal professionals, ensuring technical precision, absolute data security, and unlimited scalability."
+      title: "Why Aplikei exists",
+      description: "Many firms start with a simple setup: WhatsApp, spreadsheets, payment links and documents moving through different channels.\n\nThat works at first. But as the volume grows, the operation starts to break.\n\nMessages get lost. Documents are scattered. Payments need to be checked manually. Clients ask for status all the time. The team does not know what is pending. And the lawyer becomes the center of everything.\n\nThe problem is not using WhatsApp or spreadsheets.\n\nThe problem is depending on them to run complex operations."
     },
     pillars: {
-      title: "Our Pillars",
+      title: "Aplikei organizes your operation from the first click to case completion.",
       items: [
         {
-          title: "Targeted Innovation",
-          description: "Platform specifically designed by Aplikei for the needs of consular processes."
+          title: "Digital products",
+          description: "Turn services like B1/B2, F1, RFE, COS and consultations into ready-to-sell products."
         },
         {
-          title: "Elite Security",
-          description: "End-to-end encryption and full compliance with LGPD and GDPR to protect legal data."
+          title: "Centralized operation",
+          description: "Keep documents, stages, owners and pending items organized in one place."
         },
         {
-          title: "Operational Efficiency",
-          description: "Up to 70% reduction in preparation time, optimizing your team's manual work."
+          title: "Applied AI",
+          description: "Use AI to reduce repetitive tasks and support the operational steps that matter."
         },
         {
-          title: "Growth Partnership",
-          description: "We provide the ideal tools (Page Builder, login links, and products) for your office to scale."
+          title: "Scale with control",
+          description: "Sell, operate and track more cases with clearer flows and more visibility."
         }
       ]
     },
     leadership: {
-      title: "Our Founders",
-      subtitle: "Technology and Consular Law in perfect harmony",
+      title: "Built for firms that need more control",
+      subtitle: "Products, checkout, processes, team and finance in one platform",
       members: [
         {
-          name: "CEO & Co-founder",
-          description: "Specialist in technology and system architectures focused on legal automation with Aplikei."
+          name: "Product design",
+          description: "Service catalogs, pricing and workflows structured for digital sale."
         },
         {
-          name: "Co-founder & Advisor",
-          description: "Immigration lawyer with extensive experience in the US consular market, ensuring legal compliance and accuracy."
+          name: "Operational coordination",
+          description: "Tools for the team to follow each process with clarity and accountability."
         }
       ]
     },
     stats: {
-      success: "10k+",
-      successLabel: "Processes Facilitated",
-      approval: "-70%",
-      approvalLabel: "Preparation Time",
-      countries: "3 Languages",
-      countriesLabel: "Platform Support"
+      success: "Products",
+      successLabel: "ready for sale",
+      approval: "Finance",
+      approvalLabel: "and checkout integrated",
+      countries: "AI",
+      countriesLabel: "supporting the operation"
     },
     cta: {
-      title: "Take your operation into the future",
-      subtitle: "Schedule a demo and discover how Aplikei can accelerate your firm.",
-      button: "Schedule a Demo"
+      title: "Ready to turn your firm into a digital operation?",
+      subtitle: "Sell services with personalized checkout, keep every client in an organized flow and have more control over processes, team, payments and operational tasks with AI support.",
+      button: "Talk to a specialist"
     }
   },
   servicesPage: {
     hero: {
-      tag: "Our B2B Solutions",
-      title: "Elite technology for your consultancy",
-      subtitle: "Transform your operation with automation tools, consular flow management, and professional page creation in minutes."
+      tag: "Services",
+      title: "Everything your firm needs to sell, operate and scale",
+      subtitle: "Products, checkout, processes, team, finance and AI integrated in one platform."
     },
     sections: [
       {
-        title: "Consular Visa Management",
-        description: "Centralize and standardize all visa processes (B1/B2, F1, etc.) in a single robust and intuitive platform.",
+        title: "Digital products",
+        description: "Create services like B1/B2, F1, RFE, COS and consultations with price, description and specific flows.",
         features: [
-          "Manage multiple clients in a single dashboard.",
-          "Dynamic document checklist by visa category.",
-          "Real-time tracking of each application status."
+          "Define scope, price and required documents by product.",
+          "Keep a clear flow for each service sold.",
+          "Track the status of each client from start to finish."
         ]
       },
       {
-        title: "Page Builder for your Office",
-        description: "Create high-converting landing pages without developers. Personalize with your brand and logo.",
+        title: "Personalized checkout",
+        description: "Generate payment links with your firm's identity and sell services more professionally.",
         features: [
-          "Optimized models for new lead conversion.",
-          "Native integration with checkout and payment flows.",
-          "Simple visual editor for full color customization."
+          "Offer a branded purchase experience.",
+          "Connect payment and service setup in one flow.",
+          "Use the same platform for sales and delivery."
         ]
       },
       {
-        title: "Filling and Approval Flow",
-        description: "Total control over data collection. Review and approve client information before official submission.",
+        title: "Process management",
+        description: "Follow each client by stage, status, pending items, owners and full history.",
         features: [
-          "Smart forms that reduce filling errors.",
-          "Technical review module for your operational team.",
-          "Automatic notifications for document pending items."
+          "Centralize documents and steps per case.",
+          "Make ownership and pending items visible to the team.",
+          "Reduce the back and forth that slows the operation."
         ]
       },
       {
-        title: "Data Intelligence and Support",
-        description: "Total security in handling sensitive information and specialized support for your team to scale.",
+        title: "Applied AI",
+        description: "Use AI to support repetitive tasks, keep information organized and help the operation move faster.",
         features: [
-          "End-to-end encryption in file uploads.",
-          "Detailed history of all interactions and changes.",
-          "Scalable infrastructure for large process volumes."
+          "Support for operational questions and step tracking.",
+          "Help organizing information and pending items.",
+          "Reduce manual work for the team."
         ]
       }
     ],
     info: {
       leadership: {
-        title: "Focus on Performance",
-        description: "Our technology was designed to reduce manual work by up to 70%, allowing your office to focus on what really matters: legal strategy."
+        title: "Operate with more predictability",
+        description: "Aplikei was designed to reduce manual work, give the team more clarity and help the firm scale with control."
       },
       rigor: {
-        title: "Data Security",
-        description: "We follow the highest data protection standards, ensuring that your clients' sensitive information is protected against any vulnerability."
+        title: "Data security",
+        description: "Sensitive information stays protected with access control, history and a structure built for operational consistency."
       }
     },
     cta: {
-      title: "Take your office to the next level",
-      description: "Schedule a personalized demo and see how Aplikei can scale your revenue and efficiency.",
-      button: "Request B2B Demo"
+      title: "See Aplikei in practice",
+      description: "Schedule a demo and see how the platform can organize sales, operations and finance in one place.",
+      button: "Talk to a specialist"
+    }
+  },
+  contactPage: {
+    hero: {
+      title: "Talk to Aplikei",
+      subtitle: "Tell us how your firm works today and we will show where the operation can become more digital and more controlled."
     }
   },
   chat: {
