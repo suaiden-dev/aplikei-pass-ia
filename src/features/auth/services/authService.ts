@@ -163,18 +163,19 @@ async function updateAccount(id: string, input: UserUpdateInput): Promise<UserAc
   return mapRow(data as UserAccountRow);
 }
 
-async function fetchOfficeLogo(officeId: string): Promise<OfficeLogo | null> {
+async function fetchOfficeLogo(officeSlugOrId: string): Promise<OfficeLogo | null> {
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(officeSlugOrId);
   const { data, error } = await supabase
     .from("offices")
     .select("name, logo_url, landing_page_config")
-    .eq("id", officeId)
+    .eq(isUuid ? "id" : "slug", officeSlugOrId)
     .maybeSingle();
 
   if (error || !data) return null;
 
   const config = data.landing_page_config as { logoUrl?: string | null } | null;
   const src = data.logo_url || config?.logoUrl || null;
-  return src ? { name: data.name, src } : null;
+  return { name: data.name, src };
 }
 
 // ── Auth subscription ─────────────────────────────────────────────────────────

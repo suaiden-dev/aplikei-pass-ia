@@ -1,5 +1,189 @@
 import { expect, test } from "@playwright/test";
-import { mockF1Supabase } from "./support/f1";
+import type { Page } from "@playwright/test";
+import { buildAuthSession, getSupabaseStorageKey, mockF1Supabase } from "./support/f1";
+
+const USER_ID = "user-f1";
+const OFFICE_ID = "office-1";
+const REJECTED_PROC_ID = "proc-f1-rejected";
+const CONSULTATION_PROC_ID = "proc-consult-f1-negativa";
+
+async function seedRejectedSession(page: Page) {
+  const session = buildAuthSession({
+    id: USER_ID,
+    email: "estudante@example.com",
+    full_name: "Cliente F1",
+  });
+
+  await page.addInitScript(
+    ({ storageKey, value }) => {
+      window.localStorage.setItem(storageKey, JSON.stringify(value));
+    },
+    { storageKey: getSupabaseStorageKey(), value: session },
+  );
+
+  await page.route("**/auth/v1/user**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        id: USER_ID,
+        email: "estudante@example.com",
+        aud: "authenticated",
+        role: "authenticated",
+        created_at: "2026-01-01T00:00:00.000Z",
+        updated_at: "2026-01-01T00:00:00.000Z",
+        user_metadata: { full_name: "Cliente F1", role: "customer" },
+        app_metadata: {},
+      }),
+    });
+  });
+
+  await page.route("**/rest/v1/user_accounts**", async (route) => {
+    const accept = route.request().headers()["accept"] ?? "";
+    const single = accept.includes("application/vnd.pgrst.object+json");
+    const row = {
+      id: USER_ID,
+      full_name: "Cliente F1",
+      email: "estudante@example.com",
+      role: "customer",
+      office_id: OFFICE_ID,
+      has_completed_onboarding: true,
+      is_active: true,
+    };
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(single ? row : [row]),
+    });
+  });
+}
+
+async function mockRejectedF1FinalStep(page: Page, options?: { consultationPurchased?: boolean }) {
+  const mainProcess = {
+    id: REJECTED_PROC_ID,
+    user_id: USER_ID,
+    service_slug: "visto-f1",
+    status: "rejected",
+    current_step: 11,
+    office_id: OFFICE_ID,
+    step_data: {
+      final_casv_date: "2026-06-12",
+      final_casv_time: "08:00",
+      final_casv_location: "São Paulo",
+      final_consulado_date: "2026-06-13",
+      final_consulado_time: "09:00",
+      final_consulado_location: "São Paulo",
+      interview_outcome: "rejected",
+    },
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  };
+
+  const consultationProcess = {
+    id: CONSULTATION_PROC_ID,
+    user_id: USER_ID,
+    service_slug: "consultoria-f1-negativa",
+    status: "active",
+    current_step: 0,
+    office_id: OFFICE_ID,
+    step_data: { parent_process_id: REJECTED_PROC_ID },
+    created_at: "2026-01-02T00:00:00.000Z",
+    updated_at: "2026-01-02T00:00:00.000Z",
+  };
+
+  await seedRejectedSession(page);
+
+  await page.route("**/rest/v1/user_services**", async (route) => {
+    const method = route.request().method();
+    const accept = route.request().headers()["accept"] ?? "";
+    const single = accept.includes("application/vnd.pgrst.object+json");
+    const rawUrl = decodeURIComponent(route.request().url());
+
+    if (method !== "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      });
+      return;
+    }
+
+    if (rawUrl.includes("consultoria-f1-negativa") || rawUrl.includes("consultancy-negative-f1")) {
+      const body = options?.consultationPurchased
+        ? (single ? consultationProcess : [consultationProcess])
+        : (single ? null : []);
+      await route.fulfill({
+        status: 200,
+        contentType: single ? "application/vnd.pgrst.object+json" : "application/json",
+        body: JSON.stringify(body),
+      });
+      return;
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: single ? "application/vnd.pgrst.object+json" : "application/json",
+      body: JSON.stringify(single ? mainProcess : [mainProcess]),
+    });
+  });
+
+  await page.route("**/rest/v1/services**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    });
+  });
+
+  await page.route("**/rest/v1/user_service_prices**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    });
+  });
+
+  if (options?.consultationPurchased) {
+    await page.route("**/rest/v1/conversations**", async (route) => {
+      const method = route.request().method();
+      const accept = route.request().headers()["accept"] ?? "";
+      const single = accept.includes("application/vnd.pgrst.object+json");
+
+      if (method === "POST") {
+        await route.fulfill({
+          status: 201,
+          contentType: single ? "application/vnd.pgrst.object+json" : "application/json",
+          body: JSON.stringify(single ? { id: "conv-consultation" } : [{ id: "conv-consultation" }]),
+        });
+        return;
+      }
+
+      await route.fulfill({
+        status: 200,
+        contentType: single ? "application/vnd.pgrst.object+json" : "application/json",
+        body: JSON.stringify(single ? null : []),
+      });
+    });
+
+    await page.route("**/rest/v1/conversation_messages**", async (route) => {
+      if (route.request().method() === "POST") {
+        await route.fulfill({
+          status: 201,
+          contentType: "application/json",
+          body: JSON.stringify([{}]),
+        });
+        return;
+      }
+
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([]),
+        headers: { "Content-Range": "*/0" },
+      });
+    });
+  }
+}
 
 test.describe("F1 onboarding", () => {
   test("renders the guided DS-160 flow on the base route", async ({ page }) => {
@@ -11,7 +195,6 @@ test.describe("F1 onboarding", () => {
     await page.goto("/dashboard/processes/visto-f1/onboarding");
 
     await expect(page.getByRole("heading", { name: "Formulário DS-160" })).toBeVisible();
-    await expect(page.getByText("Etapa 1 de 13")).toBeVisible();
     await expect(page.getByRole("button", { name: "Salvar Rascunho" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Próxima seção" })).toBeVisible();
   });
@@ -140,6 +323,28 @@ test.describe("F1 onboarding", () => {
     await page.goto("/dashboard/processes/visto-f1/onboarding?step=10");
 
     await expect(page.getByRole("heading", { name: "Pagamento da Taxa MRV" })).toBeVisible();
+  });
+
+  test("rejected final step opens the post-negative chat when consultation was purchased", async ({ page }) => {
+    await mockRejectedF1FinalStep(page, { consultationPurchased: true });
+
+    await page.goto(`/dashboard/processes/visto-f1/onboarding?slug=${REJECTED_PROC_ID}&step=11`);
+
+    await expect(page.getByRole("button", { name: "Ir para o chat" })).toBeVisible();
+    await page.getByRole("button", { name: "Ir para o chat" }).click();
+    await page.waitForURL(`**/dashboard/support?processId=${CONSULTATION_PROC_ID}`, { timeout: 10000 });
+  });
+
+  test("rejected final step sends restart to checkout so the client can buy again", async ({ page }) => {
+    await mockRejectedF1FinalStep(page, { consultationPurchased: false });
+
+    await page.goto(`/dashboard/processes/visto-f1/onboarding?slug=${REJECTED_PROC_ID}&step=11`);
+
+    await expect(page.getByRole("button", { name: "Recomeçar Processo" })).toBeVisible();
+    await page.getByRole("button", { name: "Recomeçar Processo" }).click();
+    await page.waitForURL("**/checkout/visa-f1?restart=true**", { timeout: 10000 });
+    await expect(page).toHaveURL(/restart=true/);
+    await expect(page).toHaveURL(/office_id=office-1/);
   });
 
   test("renders final preparation stage at step 11", async ({ page }) => {

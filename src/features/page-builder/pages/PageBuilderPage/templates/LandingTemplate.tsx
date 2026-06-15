@@ -313,6 +313,47 @@ const landingTemplateHtml = String.raw`
             gap: 24px;
         }
 
+        .menu-toggle {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--button-soft);
+            color: var(--ink);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            flex: 1 1 auto;
+            justify-content: flex-end;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .nav-link {
+            font-family: 'Manrope', 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 160ms ease;
+        }
+
+        .nav-link:hover {
+            color: var(--ink);
+        }
+
         .logo,
         .footer-logo {
             display: inline-flex;
@@ -1415,6 +1456,48 @@ const landingTemplateHtml = String.raw`
         }
 
         @media (max-width: 1080px) {
+            .menu-toggle {
+                display: inline-flex;
+                order: 2;
+            }
+
+            .header .container {
+                flex-wrap: wrap;
+            }
+
+            .nav-actions {
+                display: none;
+                order: 3;
+                flex-basis: 100%;
+                flex-direction: column;
+                align-items: stretch;
+                justify-content: flex-start;
+                gap: 16px;
+                margin-top: 16px;
+                padding-top: 16px;
+                border-top: 1px solid var(--header-border);
+            }
+
+            .nav-actions.is-open {
+                display: flex;
+            }
+
+            .nav {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+            }
+
+            .header-actions {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .header-actions .btn {
+                width: 100%;
+            }
+
             .hero .container {
                 grid-template-columns: 1fr;
             }
@@ -1605,14 +1688,24 @@ const landingTemplateHtml = String.raw`
             <div class="logo">
                 <span class="logo-text">SEU LOGO</span>
             </div>
-            <div class="header-actions">
-                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Alternar tema" aria-pressed="false">
-                    <span class="theme-toggle-icon" aria-hidden="true">☀</span>
-                    <span class="theme-toggle-icon" aria-hidden="true">☾</span>
-                </button>
+            <button class="menu-toggle" type="button" data-menu-toggle aria-label="Abrir menu" aria-expanded="false">
+                <span aria-hidden="true">☰</span>
+            </button>
+            <div class="nav-actions" data-nav-actions>
                 <nav class="nav">
-                    <a href="#" class="btn btn-outline btn-sm">Entrar</a>
+                    <a href="/" class="nav-link">Início</a>
+                    <a href="/quem-somos" class="nav-link">Quem Somos</a>
+                    <a href="/servicos" class="nav-link">Nossos Serviços</a>
+                    <a href="/contato" class="nav-link">Fale Conosco</a>
                 </nav>
+                <div class="header-actions">
+                    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Alternar tema" aria-pressed="false">
+                        <span class="theme-toggle-icon" aria-hidden="true">☀</span>
+                        <span class="theme-toggle-icon" aria-hidden="true">☾</span>
+                    </button>
+                    <a href="/track-my-visa" class="btn btn-outline btn-sm btn-track">Acompanhar Caso</a>
+                    <a href="#" class="btn btn-outline btn-sm">Entrar</a>
+                </div>
             </div>
         </div>
     </header>
@@ -1971,6 +2064,17 @@ const landingTemplateHtml = String.raw`
             setTheme(root.dataset.theme === 'dark' ? 'dark' : 'light');
             button.addEventListener('click', function () {
                 setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark');
+            });
+        })();
+
+        (function () {
+            var menuToggle = document.querySelector('[data-menu-toggle]');
+            var navActions = document.querySelector('[data-nav-actions]');
+            if (!menuToggle || !navActions) return;
+
+            menuToggle.addEventListener('click', function () {
+                var isOpen = navActions.classList.toggle('is-open');
+                menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
             });
         })();
     </script>

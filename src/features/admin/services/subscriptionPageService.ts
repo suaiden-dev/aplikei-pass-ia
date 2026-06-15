@@ -5,9 +5,16 @@ export interface DBPlan {
   name: string;
   description: string;
   type: "FIXED" | "PERCENTAGE" | "HYBRID";
+  version: number;
+  billing_model: "prepaid" | "postpaid" | "hybrid" | string;
   fixed_fee: number;
   percentage_fee: number;
   min_fee_per_transaction_usd?: number | null;
+  min_monthly_fee?: number | null;
+  max_monthly_fee?: number | null;
+  rules?: Record<string, unknown> | null;
+  effective_from?: string | null;
+  effective_to?: string | null;
   features: string[];
   is_active: boolean;
   is_exclusive: boolean;
@@ -18,6 +25,9 @@ export interface BillingHistoryItem {
   planName: string;
   amountLabel: string;
   signedAt: string | null;
+  effectiveTo: string | null;
+  planVersion: number;
+  billingModel: string;
 }
 
 export async function fetchOfficeName(officeId: string): Promise<string> {
@@ -34,7 +44,7 @@ export async function fetchOfficeName(officeId: string): Promise<string> {
 export async function fetchActiveSubscriptionPlans(): Promise<DBPlan[]> {
   const { data, error } = await supabase
     .from("subscription_plans")
-    .select("id, name, description, type, fixed_fee, percentage_fee, min_fee_per_transaction_usd, features, is_active, is_exclusive")
+    .select("id, name, description, type, version, billing_model, fixed_fee, percentage_fee, min_fee_per_transaction_usd, min_monthly_fee, max_monthly_fee, rules, effective_from, effective_to, features, is_active, is_exclusive")
     .eq("is_active", true)
     .limit(20);
 
@@ -46,13 +56,14 @@ interface SubscriptionHistoryRow {
   id: string;
   created_at: string;
   current_period_start: string | null;
-  subscription_plans: {
-    name: string | null;
-    type: string | null;
-    fixed_fee: number | null;
-    percentage_fee: number | null;
-    min_fee_per_transaction_usd: number | null;
-  } | null;
+  effective_to: string | null;
+  plan_version: number | null;
+  billing_model: string | null;
+  plan_name: string | null;
+  plan_type: string | null;
+  fixed_fee: number | null;
+  percentage_fee: number | null;
+  min_fee_per_transaction_usd: number | null;
 }
 
 export async function fetchBillingHistory(
@@ -60,8 +71,8 @@ export async function fetchBillingHistory(
   noPlanLabel: string,
 ): Promise<BillingHistoryItem[]> {
   const { data, error } = await supabase
-    .from("office_subscriptions")
-    .select("id, created_at, current_period_start, subscription_plans(name, type, fixed_fee, percentage_fee, min_fee_per_transaction_usd)")
+    .from("v_office_subscription_history")
+    .select("id, created_at, current_period_start, effective_to, plan_version, billing_model, plan_name, plan_type, fixed_fee, percentage_fee, min_fee_per_transaction_usd")
     .eq("office_id", officeId)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -69,18 +80,20 @@ export async function fetchBillingHistory(
   if (error) throw Error(error.message);
 
   return ((data ?? []) as unknown as SubscriptionHistoryRow[]).map((row) => {
-    const plan = row.subscription_plans;
-    const amountLabel = plan?.type === "PERCENTAGE"
-      ? `${plan?.percentage_fee ?? 0}%`
-      : plan?.type === "HYBRID"
-        ? `$ ${plan?.fixed_fee ?? 0} + ${plan?.percentage_fee ?? 0}%`
-        : `$ ${plan?.fixed_fee ?? 0}`;
+    const amountLabel = row.plan_type === "PERCENTAGE"
+      ? `${row.percentage_fee ?? 0}%`
+      : row.plan_type === "HYBRID"
+        ? `$ ${row.fixed_fee ?? 0} + ${row.percentage_fee ?? 0}%`
+        : `$ ${row.fixed_fee ?? 0}`;
 
     return {
       id: row.id,
-      planName: plan?.name || noPlanLabel,
+      planName: row.plan_name || noPlanLabel,
       amountLabel,
       signedAt: row.current_period_start || row.created_at || null,
+      effectiveTo: row.effective_to,
+      planVersion: row.plan_version ?? 1,
+      billingModel: row.billing_model ?? "prepaid",
     };
   });
 }
@@ -119,7 +132,12 @@ export function replaceAmount(text: string, value: number): string {
 export async function cancelOfficeSubscription(officeId: string): Promise<void> {
   const { error } = await supabase
     .from("office_subscriptions")
-    .update({ status: "canceled", updated_at: new Date().toISOString() })
+    .update({
+      status: "canceled",
+      canceled_at: new Date().toISOString(),
+      effective_to: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
     .eq("office_id", officeId)
     .filter("status", "in", '("active","trialing")');
 
@@ -128,7 +146,7 @@ export async function cancelOfficeSubscription(officeId: string): Promise<void> 
 
 export async function activateOfficeSubscription(params: {
   officeId: string;
-  planId: string;
+  plan: DBPlan;
 }): Promise<void> {
   const periodEnd = new Date();
   periodEnd.setDate(periodEnd.getDate() + 30);
@@ -137,10 +155,16 @@ export async function activateOfficeSubscription(params: {
     .from("office_subscriptions")
     .upsert({
       office_id: params.officeId,
-      plan_id: params.planId,
+      plan_id: params.plan.id,
+      plan_version: params.plan.version,
+      billing_model: params.plan.billing_model ?? "prepaid",
+      rules_snapshot: params.plan.rules ?? {},
       status: "active",
       current_period_start: new Date().toISOString(),
       current_period_end: periodEnd.toISOString(),
+      effective_from: new Date().toISOString(),
+      effective_to: periodEnd.toISOString(),
+      canceled_at: null,
       updated_at: new Date().toISOString(),
     }, { onConflict: "office_id" });
 

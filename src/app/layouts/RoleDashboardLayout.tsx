@@ -23,6 +23,7 @@ import {
   RiUploadLine,
 } from "react-icons/ri";
 import { Button } from "@shared/components/atoms/button";
+import { AppLogo } from "@shared/components/atoms/AppLogo";
 import {
   Dialog,
   DialogContent,
@@ -602,11 +603,7 @@ export function RoleDashboardLayout({
                   className="h-10 w-auto max-w-[120px] object-contain shrink-0"
                 />
               ) : (
-                <img
-                  src="/logo.png"
-                  alt="Aplikei"
-                  className="h-10 w-auto object-contain shrink-0"
-                />
+                <AppLogo className="h-10 w-auto object-contain shrink-0" />
               )}
               <div className={cn(collapsed && "lg:hidden")}>
                 <p className="text-sm font-bold text-text uppercase tracking-tight">

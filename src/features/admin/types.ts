@@ -32,9 +32,22 @@ export interface Withdrawal {
 export interface SubscriptionPlan {
   id: string;
   name: string;
+  description: string | null;
+  type: "FIXED" | "PERCENTAGE" | "HYBRID";
+  fixed_fee: number;
   percentage_fee: number;
   available_after_minutes: number;
+  min_fee_per_transaction_usd?: number | null;
+  min_monthly_fee?: number | null;
+  max_monthly_fee?: number | null;
+  version?: number;
+  billing_model?: string;
+  rules?: Record<string, unknown> | null;
+  effective_from?: string | null;
+  effective_to?: string | null;
+  features?: string[] | null;
   is_active: boolean;
+  is_exclusive?: boolean;
   category_minimums?: Record<string, number> | null;
 }
 

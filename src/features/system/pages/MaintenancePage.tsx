@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocale, useT } from "@app/app/i18n";
 import { useTheme } from "@shared/hooks/useTheme";
+import { AppLogo } from "@shared/components/atoms/AppLogo";
 import { cn } from "@shared/utils/cn";
 
 const languageFlags = {
@@ -68,7 +69,7 @@ export default function MaintenancePage() {
             className="w-full max-w-3xl text-center"
           >
             <div className="mx-auto mb-8 inline-flex items-center gap-3 rounded-full border border-border/70 bg-card/80 px-4 py-2 shadow-lg backdrop-blur-xl">
-              <img src="/logo.png" alt="Aplikei" className="h-10 w-auto object-contain" />
+              <AppLogo className="h-10 w-auto object-contain" />
               <span className="text-xs font-black uppercase tracking-[0.24em] text-text-muted">{t.badge}</span>
             </div>
 

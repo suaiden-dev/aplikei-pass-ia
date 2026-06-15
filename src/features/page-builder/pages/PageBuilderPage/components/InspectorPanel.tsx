@@ -1,4 +1,4 @@
-import { Check, Copy, HelpCircle, ImageUp } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, Copy, HelpCircle, ImageUp } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@shared/components/atoms/input";
 import { Label } from "@shared/components/atoms/label";

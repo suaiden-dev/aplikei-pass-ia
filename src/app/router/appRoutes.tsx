@@ -100,7 +100,7 @@ const FinanceAnalyticsPage = lazyPage(
   () => import("@features/admin/pages/FinanceAnalyticsPage/index"),
 );
 const PlansPage = lazyPage(
-  () => import("@features/admin/pages/PlansPage/index"),
+  () => import("@features/admin/pages/master/PlansPage"),
 );
 // const ZellePaymentsPage = lazyPage(
 //     () => import("@features/admin/pages/ZellePaymentsPage"),

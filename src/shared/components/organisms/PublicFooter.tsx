@@ -1,6 +1,7 @@
 import { FaInstagram, FaTwitter } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useT } from "@app/app/i18n";
+import { AppLogo } from "../atoms/AppLogo";
 
 export function PublicFooter() {
   const t = useT("footer");
@@ -11,7 +12,7 @@ export function PublicFooter() {
         <div className="grid grid-cols-1 gap-12 border-b border-border/70 pb-16 text-center text-sm lg:grid-cols-3 lg:text-left">
           <div>
             <Link to="/" className="mb-6 flex items-center justify-center gap-2.5 lg:justify-start">
-              <span className="text-xl font-black tracking-tight text-text">Aplikei</span>
+              <AppLogo className="h-10 w-auto object-contain" />
             </Link>
             <p className="mb-8 leading-relaxed text-text-muted">{t.description}</p>
             <div className="flex items-center justify-center gap-4 lg:justify-start">

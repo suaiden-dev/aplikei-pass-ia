@@ -53,6 +53,7 @@ export default function ProductsPage() {
     isInterviewModalOpen, setIsInterviewModalOpen,
     productInfoItem, setProductInfoItem,
   } = useProductsPage();
+  const getEffectiveActive = (id: string, fallback: boolean) => draft[id]?.is_active ?? fallback;
 
   if (isLoading) {
     return (
@@ -99,7 +100,7 @@ export default function ProductsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
         {[
           { label: "Main Visas", value: mainServices.length, icon: RiPriceTag3Line, bg: "bg-info/10", color: "text-info" },
-          { label: "Active", value: mainServices.filter((p) => p.is_active).length, icon: RiEyeLine, bg: "bg-success/10", color: "text-success" },
+          { label: "Active", value: mainServices.filter((p) => getEffectiveActive(p.id, p.is_active)).length, icon: RiEyeLine, bg: "bg-success/10", color: "text-success" },
           { label: "Avg. Ticket", value: `$${avgTicket.toFixed(0)}`, icon: RiMoneyDollarCircleLine, bg: "bg-primary/10", color: "text-primary" },
         ].map((s, i) => {
           const Icon = s.icon;
@@ -132,7 +133,7 @@ export default function ProductsPage() {
               <p className="text-sm font-normal text-text-muted">
                 Select the main visa flow to configure pricing, add-ons and finalization offers.
               </p>
-              {selectedMain?.is_active && (
+              {selectedMain && getEffectiveActive(selectedMain.id, selectedMain.is_active) && (
                 <button
                   onClick={() => {
                     const url = checkoutUrl(selectedMain.slug);
@@ -150,12 +151,18 @@ export default function ProductsPage() {
 
             <div className="grid grid-cols-1 gap-3">
               {mainServices.map((main) => (
-                <button
+                <div
                   key={main.id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setSelectedMainId(main.id)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter" && e.key !== " ") return;
+                    e.preventDefault();
+                    setSelectedMainId(main.id);
+                  }}
                   className={cn(
-                    "rounded-2xl border p-4 text-left transition-all",
+                    "rounded-2xl border p-4 text-left transition-all cursor-pointer",
                     selectedMainId === main.id
                       ? "border-primary bg-primary/10 shadow-lg shadow-primary/10"
                       : "border-border bg-bg-subtle hover:border-primary/30 hover:bg-primary/5",
@@ -166,15 +173,27 @@ export default function ProductsPage() {
                       <p className="truncate text-sm font-semibold text-text">{main.name}</p>
                       <p className="mt-1 truncate text-[10px] font-normal uppercase tracking-widest text-text-muted">{main.slug}</p>
                     </div>
-                    <span className={cn(
-                      "shrink-0 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase",
-                      main.is_active ? "border-success/20 bg-success/10 text-success" : "border-border bg-card text-text-muted",
-                    )}>
-                      {main.is_active ? "Active" : "Inactive"}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={cn(
+                        "shrink-0 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase",
+                        getEffectiveActive(main.id, main.is_active) ? "border-success/20 bg-success/10 text-success" : "border-border bg-card text-text-muted",
+                      )}>
+                        {getEffectiveActive(main.id, main.is_active) ? "Active" : "Inactive"}
+                      </span>
+                      <span
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        className="inline-flex"
+                      >
+                        <Switch
+                          checked={getEffectiveActive(main.id, main.is_active)}
+                          onCheckedChange={(checked) => updateDraft(main.id, { is_active: checked })}
+                        />
+                      </span>
+                    </div>
                   </div>
                   <p className="mt-4 text-2xl font-semibold text-primary">{formatUsd(main.price)}</p>
-                </button>
+                </div>
               ))}
             </div>
           </aside>

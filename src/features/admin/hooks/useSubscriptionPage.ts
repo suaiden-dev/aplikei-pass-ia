@@ -28,8 +28,8 @@ export function useSubscriptionPage() {
   const [planToContract, setPlanToContract] = useState<DBPlan | null>(null);
 
   const {
-    status, planName, planType, fixedFee, percentageFee, minFeePerTransactionUsd,
-    currentPeriodEnd, loading: subLoading, isActive, officeId,
+    status, subscriptionId, planId, planVersion, billingModel, planName, planType, fixedFee, percentageFee, minFeePerTransactionUsd,
+    effectiveFrom, effectiveTo, currentPeriodEnd, loading: subLoading, isActive, officeId,
   } = useSubscription();
 
   const { data: officeName = "" } = useQuery({
@@ -75,7 +75,7 @@ export function useSubscriptionPage() {
     mutationFn: () => {
       if (!officeId) throw new Error("Your user has no linked office. Link an office to activate subscription.");
       if (!planToContract) throw new Error("No plan selected.");
-      return activateOfficeSubscription({ officeId, planId: planToContract.id });
+      return activateOfficeSubscription({ officeId, plan: planToContract });
     },
     onSuccess: async () => {
       const plan = planToContract!;
@@ -101,6 +101,10 @@ export function useSubscriptionPage() {
 
   const currentPlan = {
     name: planName || t.subscription.noPlan,
+    subscriptionId,
+    planId,
+    planVersion,
+    billingModel,
     price: planType === "FIXED"
       ? `$ ${fixedFee}`
       : planType === "PERCENTAGE"
@@ -109,6 +113,8 @@ export function useSubscriptionPage() {
     period: planType === "PERCENTAGE" ? t.subscription.plans.percentage.period : t.subscription.plans.fixed.period,
     status,
     minFeePerTransactionUsd,
+    effectiveFrom,
+    effectiveTo,
     features: [
       t.subscription.features.unlimitedProcesses,
       t.subscription.features.membersLimit,
@@ -136,6 +142,8 @@ export function useSubscriptionPage() {
     planName,
     currentPeriodEnd,
     status,
+    effectiveFrom,
+    effectiveTo,
     normalizePlanName,
     handleCancelSubscription: () => cancelMutation.mutate(),
     handleSelectPlan: (plan: DBPlan) => setPlanToContract(plan),

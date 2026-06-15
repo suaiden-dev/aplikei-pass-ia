@@ -41,12 +41,15 @@ import { useCoupon } from "@features/payments/hooks/useCoupon";
 import {
   fetchCheckoutOfficeBrand,
   fetchCheckoutServiceBySlugs,
+  fetchOfficeBySlug,
   fetchOfficeIdByProcess,
   fetchOfficeServicePrice,
   fetchOfficeSubscriptionStatus,
   logCheckoutInteraction,
   logCheckoutInteractionEventually,
 } from "@features/payments/services/checkoutPageService";
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const ZELLE_EMAIL = ZELLE_RECIPIENT.email;
 const ZELLE_PHONE = ZELLE_RECIPIENT.phone;
@@ -228,7 +231,9 @@ export default function CheckoutPage() {
   const [officeStatus, setOfficeStatus] = useState<string>("active");
   const [checkingOffice, setCheckingOffice] = useState(false);
   const [officeLogo, setOfficeLogo] = useState<{ name: string; logoSrc: string | null } | null>(null);
-  const officeIdParam = searchParams.get("office_id") || searchParams.get("officeId") || searchParams.get("office");
+  const officeParam = searchParams.get("office_id") || searchParams.get("officeId") || searchParams.get("office");
+  const officeIdParam = officeParam && UUID_PATTERN.test(officeParam) ? officeParam : null;
+  const officeSlugParam = officeParam && !UUID_PATTERN.test(officeParam) ? officeParam : null;
   const sellerRef = searchParams.get("ref") || undefined;
 
   const isUpgrade = searchParams.get("upgrade") === "true";
@@ -237,10 +242,12 @@ export default function CheckoutPage() {
     searchParams.get("processId") ||
     searchParams.get("id") ||
     searchParams.get("parentId");
-  const shouldResolveOfficeFromProcess = !officeIdParam && !!parentId;
+  const shouldResolveOfficeFromProcess = !officeIdParam && !officeSlugParam && !!parentId;
   const [officeIdFromProcess, setOfficeIdFromProcess] = useState<string | null>(null);
+  const [officeIdFromSlug, setOfficeIdFromSlug] = useState<string | null>(null);
   const [resolvingOfficeId, setResolvingOfficeId] = useState<boolean>(shouldResolveOfficeFromProcess);
-  const officeId = officeIdParam || officeIdFromProcess;
+  const [resolvingOfficeSlug, setResolvingOfficeSlug] = useState<boolean>(!!officeSlugParam);
+  const officeId = officeIdParam || officeIdFromSlug || officeIdFromProcess;
   const isRestartFlow = searchParams.get("restart") === "true";
   const [emailExists, setEmailExists] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
@@ -311,6 +318,25 @@ export default function CheckoutPage() {
     }
     resolveOfficeFromProcess();
   }, [parentId, shouldResolveOfficeFromProcess]);
+
+  useEffect(() => {
+    async function resolveOfficeFromSlug() {
+      if (!officeSlugParam) {
+        setResolvingOfficeSlug(false);
+        return;
+      }
+      setResolvingOfficeSlug(true);
+      try {
+        const office = await fetchOfficeBySlug(officeSlugParam);
+        setOfficeIdFromSlug(office?.id ?? null);
+      } catch {
+        setOfficeIdFromSlug(null);
+      } finally {
+        setResolvingOfficeSlug(false);
+      }
+    }
+    resolveOfficeFromSlug();
+  }, [officeSlugParam]);
 
   useEffect(() => {
     async function checkOffice() {
@@ -619,7 +645,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (resolvingOfficeId) {
+  if (resolvingOfficeId || resolvingOfficeSlug) {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-card border border-border p-8 rounded-[32px] text-center shadow-xl">

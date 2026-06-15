@@ -128,6 +128,14 @@ function replaceLoginHeaderButton(html: string, href: string, label: string) {
   );
 }
 
+function replaceTrackCaseHeaderButton(html: string, href: string) {
+  const regex = /<a\s+href="[^"]*"\s+class="btn btn-outline btn-sm btn-track">([\s\S]*?)<\/a>/i;
+  return html.replace(
+    regex,
+    `<a href="${escapeHtml(sanitizeHref(href))}" class="btn btn-outline btn-sm btn-track">$1</a>`,
+  );
+}
+
 function serviceHref(config: LandingPageConfig, product: string) {
   return `/checkout?office=${encodeURIComponent(config.officeSlug)}&product=${encodeURIComponent(product)}`;
 }
@@ -213,19 +221,19 @@ function toAbsoluteUrl(value: string) {
   return value;
 }
 
-function normalizeLoginHref(value: string, officeId?: string) {
+function normalizeLoginHref(value: string, officeSlug?: string) {
   const legacyTrackPath = `/track-my-${"case"}`;
 
-  if (officeId) return `/track-my-visa?office_id=${encodeURIComponent(officeId)}`;
+  if (officeSlug) return `/track-my-visa?office=${encodeURIComponent(officeSlug)}`;
   if (!value) return "/track-my-visa";
 
   try {
     const base = typeof window !== "undefined" ? window.location.origin : "https://aplikei.local";
     const url = new URL(value, base);
-    const urlOfficeId = url.searchParams.get("office_id") || url.searchParams.get("officeId");
+    const urlOfficeSlug = url.searchParams.get("office") || url.searchParams.get("office_id") || url.searchParams.get("officeId");
 
-    if (urlOfficeId) {
-      return `/track-my-visa?office_id=${encodeURIComponent(urlOfficeId)}`;
+    if (urlOfficeSlug) {
+      return `/track-my-visa?office=${encodeURIComponent(urlOfficeSlug)}`;
     }
 
     if (url.pathname === "/acompanhar-meu-caso" || url.pathname === legacyTrackPath) {
@@ -241,6 +249,25 @@ function normalizeLoginHref(value: string, officeId?: string) {
       : url.toString();
   } catch {
     return "/track-my-visa";
+  }
+}
+
+function normalizeProfessionalLoginHref(value: string, officeSlug?: string) {
+  if (officeSlug) return `/login?office=${encodeURIComponent(officeSlug)}`;
+  if (!value) return "/login";
+
+  try {
+    const base = typeof window !== "undefined" ? window.location.origin : "https://aplikei.local";
+    const url = new URL(value, base);
+    const urlOfficeSlug = url.searchParams.get("office") || url.searchParams.get("office_id") || url.searchParams.get("officeId");
+
+    if (urlOfficeSlug) {
+      return `/login?office=${encodeURIComponent(urlOfficeSlug)}`;
+    }
+
+    return value.startsWith("/") ? `${url.pathname}${url.search}${url.hash}` : url.toString();
+  } catch {
+    return "/login";
   }
 }
 
@@ -369,7 +396,7 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
   let html = baseHtml;
 
   const faviconUrl = toAbsoluteUrl(sanitizeImageUrl(config.faviconUrl, "/logo.png"));
-  const loginUrl = normalizeLoginHref(config.loginUrl, config.officeId);
+  const loginUrl = normalizeProfessionalLoginHref(config.loginUrl, config.officeSlug);
 
   html = replaceFirst(html, /<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(config.pageTitle)}</title>`);
   html = replaceFirst(
@@ -406,6 +433,9 @@ export function applyTemplateConfig(baseHtml: string, config: LandingPageConfig)
     /<span class="logo-text">[\s\S]*?<\/span>/gi,
     `<img src="${escapeHtml(toAbsoluteUrl(sanitizeImageUrl(config.logoUrl, "/logo.png")))}" alt="Logo" style="height:40px;width:auto;object-fit:contain" />`,
   );
+
+  const trackCaseUrl = normalizeLoginHref("/track-my-visa", config.officeSlug);
+  html = replaceTrackCaseHeaderButton(html, trackCaseUrl);
 
   html = replaceLoginHeaderButton(html, loginUrl, config.loginButtonLabel);
   html = replaceAnchorByText(html, "Entrar", loginUrl, config.loginButtonLabel);

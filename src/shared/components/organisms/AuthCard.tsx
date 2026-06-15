@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { AppLogo } from "../atoms/AppLogo";
 import { cn } from "@shared/utils/cn";
 
 interface AuthCardProps {
@@ -11,6 +12,7 @@ interface AuthCardProps {
   logoHref?: string;
   logoAlt?: string;
   logoSrc?: string;
+  officeName?: string;
   welcome?: {
     show: boolean;
     title: string;
@@ -26,7 +28,8 @@ export function AuthCard({
   footer,
   logoHref = "/",
   logoAlt = "Aplikei",
-  logoSrc = "/logo.png",
+  logoSrc,
+  officeName,
   welcome,
   className,
 }: AuthCardProps) {
@@ -51,7 +54,11 @@ export function AuthCard({
               animate={{ scale: 1, rotate: 0, opacity: 1 }}
               transition={{ type: "spring", damping: 12 }}
             >
-              <img src={logoSrc} alt={logoAlt} className="mb-6 h-20 w-auto" />
+              {logoSrc ? (
+                <img src={logoSrc} alt={logoAlt} className="mb-6 h-20 w-auto" />
+              ) : (
+                <AppLogo className="mb-6 h-20 w-auto" alt={logoAlt} />
+              )}
             </motion.div>
             <motion.h2
               initial={{ y: 16, opacity: 0 }}
@@ -74,8 +81,15 @@ export function AuthCard({
 
         <div className="text-center">
           <Link to={logoHref} className="inline-block">
-            <img src={logoSrc} alt={logoAlt} className="h-12 w-auto transition-transform hover:scale-105" />
+            {logoSrc ? (
+              <img src={logoSrc} alt={logoAlt} className="h-12 w-auto transition-transform hover:scale-105" />
+            ) : (
+              <AppLogo className="h-12 w-auto transition-transform hover:scale-105" alt={logoAlt} />
+            )}
           </Link>
+          {officeName ? (
+            <p className="mt-3 text-xs font-bold uppercase tracking-[0.18em] text-primary">{officeName}</p>
+          ) : null}
           <h1 className="mt-10 font-display text-2xl font-bold leading-none tracking-[-0.04em] text-text">
             {title}
           </h1>

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { AppLogo } from "./AppLogo";
 
 type LogoLoaderProps = {
   officeId?: string | null;
@@ -20,7 +21,7 @@ export function LogoLoader(_props: LogoLoaderProps = {}) {
         }}
         className="relative"
       >
-        <img src="/logo.png" alt="Aplikei" className="h-32 w-auto object-contain brightness-110 drop-shadow-2xl" />
+        <AppLogo className="h-32 w-auto object-contain brightness-110 drop-shadow-2xl" />
       </motion.div>
     </div>
   );

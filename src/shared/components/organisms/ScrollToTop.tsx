@@ -9,22 +9,20 @@ export function ScrollToTop() {
 
   // Scroll to top on route change (including key change for same-route navigation)
   useEffect(() => {
-    setTimeout(() => {
-      // Standard window scroll
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
+    // Standard window scroll
+    window.scrollTo({
+      top: 0,
+      behavior: "auto",
+    });
 
-      // Dashboard container scroll
-      const containers = document.querySelectorAll(".overflow-y-auto");
-      containers.forEach((container) => {
-        container.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
+    // Dashboard container scroll
+    const containers = document.querySelectorAll(".overflow-y-auto");
+    containers.forEach((container) => {
+      container.scrollTo({
+        top: 0,
+        behavior: "auto",
       });
-    }, 100);
+    });
   }, [pathname, search, key]);
 
   // Handle scroll visibility for the button

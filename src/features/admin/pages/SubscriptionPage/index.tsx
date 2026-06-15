@@ -222,6 +222,13 @@ export default function SubscriptionPage() {
                 </div>
 
                 <div className="mt-6 flex items-center justify-between">
+                  <div className="text-left">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted">Plan details</p>
+                    <p className="text-xs font-medium text-text-muted">
+                      v{currentPlan.planVersion} · {currentPlan.billingModel}
+                      {currentPlan.effectiveFrom ? ` · from ${new Date(currentPlan.effectiveFrom).toLocaleDateString("pt-BR")}` : ""}
+                    </p>
+                  </div>
                   {normalizePlanName(currentPlan.name) !== "Scalable Plan" && currentPeriodEnd && (
                     <div className="flex items-center gap-3">
                       <RiCalendarCheckLine className="text-2xl text-primary" />
@@ -263,6 +270,10 @@ export default function SubscriptionPage() {
                         <p className="text-sm font-semibold text-text">{normalizePlanName(item.planName)}</p>
                         <p className="text-xs font-medium text-text-muted">
                           {t.subscription.paidOn.replace("{{date}}", item.signedAt ? new Date(item.signedAt).toLocaleString("pt-BR") : "-")}
+                        </p>
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+                          v{item.planVersion} · {item.billingModel}
+                          {item.effectiveTo ? ` · until ${new Date(item.effectiveTo).toLocaleDateString("pt-BR")}` : ""}
                         </p>
                       </div>
                     </div>

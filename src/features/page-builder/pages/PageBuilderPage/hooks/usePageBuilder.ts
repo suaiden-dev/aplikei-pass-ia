@@ -12,18 +12,20 @@ function toAbsoluteUrl(value: string) {
   return value;
 }
 
-function sanitizeLoginUrl(value: string) {
+function sanitizeLoginUrl(value: string, officeSlug?: string) {
   const absolute = toAbsoluteUrl(value);
   if (typeof window === "undefined" || !absolute) return absolute;
 
   try {
     const url = new URL(absolute);
-    const officeId = url.searchParams.get("office_id") || url.searchParams.get("officeId");
+    const resolvedOfficeSlug =
+      officeSlug || url.searchParams.get("office") || url.searchParams.get("office_id") || url.searchParams.get("officeId");
+    url.searchParams.delete("office_id");
     url.searchParams.delete("officeId");
 
-    if (officeId) {
+    if (resolvedOfficeSlug) {
       url.pathname = "/track-my-visa";
-      url.searchParams.set("office_id", officeId);
+      url.searchParams.set("office", resolvedOfficeSlug);
     } else if (url.pathname !== "/track-my-visa" && url.pathname !== "/login") {
       url.pathname = "/track-my-visa";
       url.search = "";
@@ -195,7 +197,7 @@ export function usePageBuilder() {
         const url = new URL(`${window.location.origin}/master`);
         url.searchParams.set("office", office.name);
         const loginUrl = new URL(`${window.location.origin}/track-my-visa`);
-        loginUrl.searchParams.set("office_id", office.id);
+        loginUrl.searchParams.set("office", office.slug);
 
         setConfig((prev) => ({
           ...prev,
@@ -203,7 +205,7 @@ export function usePageBuilder() {
             ? (office.landing_page_config as Partial<LandingPageConfig>)
             : {}),
           adminLawyerUrl: url.toString(),
-          loginUrl: sanitizeLoginUrl(String((office.landing_page_config as Partial<LandingPageConfig> | null)?.loginUrl ?? loginUrl.toString())),
+          loginUrl: sanitizeLoginUrl(String((office.landing_page_config as Partial<LandingPageConfig> | null)?.loginUrl ?? loginUrl.toString()), office.slug),
           officeSlug: office.slug,
           officeId: office.id,
         }));
@@ -220,13 +222,11 @@ export function usePageBuilder() {
   }, [user?.id]);
 
   const updateConfig = <K extends keyof LandingPageConfig>(key: K, value: LandingPageConfig[K]) => {
-    const normalizedValue = key === "loginUrl"
-      ? (sanitizeLoginUrl(String(value)) as LandingPageConfig[K])
-      : value;
-
     setConfig((prev) => ({
       ...prev,
-      [key]: normalizedValue,
+      [key]: key === "loginUrl"
+        ? (sanitizeLoginUrl(String(value), prev.officeSlug) as LandingPageConfig[K])
+        : value,
     }));
   };
 

@@ -30,12 +30,12 @@ export default function Login() {
   const [searchParams] = useSearchParams();
 
   const [isWelcoming, setIsWelcoming] = useState(false);
-  const [officeLogo, setOfficeLogo] = useState<{ name: string; src: string } | null>(null);
+  const [officeLogo, setOfficeLogo] = useState<{ name: string; src: string | null } | null>(null);
 
   useEffect(() => {
-    const officeId = searchParams.get("office_id");
-    if (!officeId) return;
-    authService.fetchOfficeLogo(officeId).then((logo) => {
+    const officeSlug = searchParams.get("office") || searchParams.get("office_id");
+    if (!officeSlug) return;
+    authService.fetchOfficeLogo(officeSlug).then((logo) => {
       if (logo) setOfficeLogo(logo);
     });
   }, [searchParams]);
@@ -148,35 +148,14 @@ export default function Login() {
       title={headerInfo.title}
       subtitle={headerInfo.subtitle}
       logoAlt={officeLogo?.name ?? "Aplikei"}
-      logoSrc={officeLogo?.src ?? "/logo.png"}
+      logoSrc={officeLogo?.src ?? undefined}
+      officeName={officeLogo?.name}
       welcome={{
         show: isWelcoming,
         title: t.login.welcomeMessage || "Bem-vindo de volta!",
         description: "Acessando sua conta com clareza",
       }}
     >
-      <div className="flex bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50 mb-6">
-        <Link
-          to={`/login${location.search}`}
-          className={`flex-1 py-2 text-center text-xs font-black uppercase tracking-wider rounded-lg transition-all ${
-            activeTab === "login"
-              ? "bg-white dark:bg-card text-primary shadow-sm"
-              : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-          }`}
-        >
-          {t.login.email === "Email" ? "Professional" : "Profissional"}
-        </Link>
-        <Link
-          to={`/track-my-visa${location.search}`}
-          className={`flex-1 py-2 text-center text-xs font-black uppercase tracking-wider rounded-lg transition-all ${
-            activeTab === "track"
-              ? "bg-white dark:bg-card text-primary shadow-sm"
-              : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-          }`}
-        >
-          {t.login.email === "Email" ? "Client" : "Cliente"}
-        </Link>
-      </div>
 
       <form className="space-y-5" onSubmit={formik.handleSubmit}>
         <Field

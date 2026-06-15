@@ -234,10 +234,10 @@ async function mockConversationsAndMessages(page: Page, convId: string) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify([]),
-      headers: { "Content-Range": "*/0" },
-    });
+    body: JSON.stringify([]),
+    headers: { "Content-Range": "*/0" },
   });
+});
 }
 
 // ─── Testes ──────────────────────────────────────────────────────────────────

@@ -44,5 +44,5 @@ export interface Office {
 
 export interface OfficeLogo {
   name: string;
-  src: string;
+  src: string | null;
 }

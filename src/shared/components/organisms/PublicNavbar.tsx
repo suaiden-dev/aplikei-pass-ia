@@ -12,6 +12,7 @@ import { cn } from "@shared/utils/cn";
 import { useLocale, useT, type Language } from "@app/app/i18n";
 import { useTheme } from "@shared/hooks/useTheme";
 import { Button } from "../atoms/button";
+import { AppLogo } from "../atoms/AppLogo";
 import Flag from "../atoms/flag";
 import { LANGUAGE_FLAG_CODE } from "../atoms/flags";
 
@@ -137,11 +138,7 @@ export function PublicNavbar() {
       <nav className="sticky top-0 z-[100] flex items-center justify-between border-b border-border/70 bg-bg/90 px-6 py-4 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur-xl xl:px-16">
         <div className="flex items-center gap-10">
           <Link to="/" className="relative z-[110] flex items-center gap-2.5">
-            <img
-              src="/logo.png"
-              alt="Aplikei"
-              className="h-12 w-auto object-contain drop-shadow-[0_8px_24px_rgba(15,23,42,0.12)]"
-            />
+            <AppLogo className="h-12 w-auto object-contain drop-shadow-[0_8px_24px_rgba(15,23,42,0.12)]" />
           </Link>
           <div className="hidden items-center gap-7 xl:flex">
             {navLinks.map(({ to, label }) => (

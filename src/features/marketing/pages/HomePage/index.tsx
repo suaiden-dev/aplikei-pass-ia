@@ -6,32 +6,12 @@ import { useTheme } from "@shared/hooks/useTheme";
 import { getDefaultRouteForRole } from "@app/app/router/authRedirect";
 import officeTeamImage from "@assets/images/group-business-executives-discussing-laptop-their-des.jpg";
 import heroHomeImage from "@assets/images/herohome.png";
-import gabrielaBastosLogo from "@assets/logos/gabriela-bastos-advocacia.jpg";
-import maisonCorvalisLogo from "@assets/logos/maison-corvalis.jpg";
-import matheusBuenoLogo from "@assets/logos/matheus-bueno-de-moraes-advocacia.jpg";
 import shabouryLogo from "@assets/logos/shaboury-cultural-heritage.jpg";
 import pillarCircleLogo from "@assets/logos/pillar-circle-mark.jpg";
-import russelPeixerLogo from "@assets/logos/russel-peixer-advocacia.jpg";
 import saverraLogo from "@assets/logos/saverra-real-estate.jpg";
-import schnitzerLawLogo from "@assets/logos/schnitzer-law-firm.jpg";
-import slMonogramLogo from "@assets/logos/sl-monogram-navy.jpg";
-import thayslaneSilvaLogo from "@assets/logos/thayslane-silva-advocacia.jpg";
 import "./landing.css";
 
 type Lang = "pt" | "en" | "es";
-
-const TRUSTED_LOGOS = [
-  { src: gabrielaBastosLogo, alt: "Gabriela Bastos Advocacia" },
-  { src: maisonCorvalisLogo, alt: "Maison Corvalis" },
-  { src: matheusBuenoLogo, alt: "Matheus Bueno de Moraes Advocacia" },
-  { src: pillarCircleLogo, alt: "Pillar Circle Mark" },
-  { src: russelPeixerLogo, alt: "Russel Peixer Advocacia" },
-  { src: saverraLogo, alt: "Saverra Real Estate" },
-  { src: schnitzerLawLogo, alt: "The Schnitzer Law Firm" },
-  { src: slMonogramLogo, alt: "SL Monogram" },
-  { src: shabouryLogo, alt: "Shaboury Cultural Heritage" },
-  { src: thayslaneSilvaLogo, alt: "Thayslane Silva Advocacia" },
-];
 
 const MOBILE_SCREEN_UI = {
   pt: {
@@ -158,221 +138,223 @@ function MobilePlatformShowcase({ lang }: { lang: Lang }) {
 const T = {
   pt: {
     nav: {
-      pain: "Dores", automation: "Automação", howItWorks: "Como funciona",
+      pain: "Problema", automation: "Solução", howItWorks: "Como funciona",
       pricing: "Planos", signIn: "Entrar", bookDemo: "Agendar demo",
     },
     hero: {
-      badge: "Plataforma de vistos consulares",
-      title: "A plataforma completa para gerir",
-      titleAccent: "vistos consulares",
-      lead: "Centralize casos, documentos e prazos. Reduza o tempo de preparação e a dor de cabeça do seu escritório — com automação exatamente onde importa: DS-160, B1/B2, F-1, troca e extensão de status.",
-      ctaPrimary: "Agendar demo", ctaSecondary: "Ver a plataforma",
-      stat1: { v: "−70%", l: "tempo de preparação" },
-      stat2: { v: "3×", l: "mais casos por equipe" },
-      stat3: { v: "+10 mil", l: "processos organizados" },
+      badge: "Operação digital para escritórios de imigração",
+      title: "Transforme seu escritório de imigração em uma",
+      titleAccent: "operação digital completa.",
+      lead: "A plataforma para escritórios de imigração venderem serviços de visto como produtos digitais, com checkout personalizado, processos organizados, equipe integrada, financeiro em um só lugar e IA aplicada para apoiar sua operação.",
+      ctaPrimary: "Começar agora", ctaSecondary: "Ver como funciona",
+      stat1: { v: "Checkout", l: "personalizado" },
+      stat2: { v: "Equipe", l: "integrada" },
+      stat3: { v: "IA", l: "na operação" },
       mockTitle: "Casos", mockSearch: "Buscar casos…", mockFilter: "Filtro",
       mockCols: ["Cliente", "Status", "Visto", "Progresso", "Início"],
-      floatLabel: "Tempo de preparação",
+      floatLabel: "Operação digital",
       statusLabels: { b: "Troca status", g: "Finalizado", "": "Em análise" },
     },
-    logos: { label: "Escritórios que já organizam vistos consulares na Aplikei" },
+    logos: { label: "Escritórios que já operam com a Aplikei" },
     pain: {
-      kicker: "Diagnóstico", title: "Dores que resolvemos",
-      lead: "Falta de direção, retrabalho documental e comunicação fragmentada atrasam decisões críticas. Nós centralizamos a estratégia e transformamos cada etapa em execução previsível.",
+      kicker: "Problema", title: "Seu escritório cresceu. Mas sua operação acompanhou?",
+      lead: "Muitos escritórios começam com WhatsApp, planilhas, links de pagamento e documentos enviados por vários canais. No começo funciona. Mas quando o volume cresce, a operação trava: mensagens se perdem, documentos ficam espalhados, pagamentos precisam ser conferidos manualmente e a equipe perde clareza sobre o que está pendente.",
       items: [
-        { title: "Processos espalhados", desc: "Fluxos quebrados entre e-mails, pastas locais e mensagens que criam caos operacional." },
-        { title: "Controle manual", desc: "Planilhas e anotações sujeitas a erro humano em etapas críticas." },
-        { title: "Tempo desperdiçado", desc: "Horas gastas em tarefas puramente burocráticas e repetitivas." },
-        { title: "Falta de padrão", desc: "Inconsistência na entrega que compromete a credibilidade do escritório." },
+        { title: "Mensagens se perdem", desc: "O atendimento vira um fluxo disperso entre canais e ninguém sabe exatamente o que já foi respondido." },
+        { title: "Documentos ficam espalhados", desc: "Arquivos chegam por vários lugares e a equipe perde tempo procurando o que deveria estar centralizado." },
+        { title: "Pagamentos exigem conferência manual", desc: "O financeiro fica preso em checagens repetitivas e o escritório depende de controles paralelos." },
+        { title: "A equipe vira refém do advogado", desc: "Quando não há um sistema claro, o advogado vira o centro de tudo e a operação deixa de escalar." },
       ],
-      barText: "Da incerteza ao plano de ação",
-      barSub: "Transformamos incerteza em etapas, responsáveis e prazos previsíveis.",
-      barBadge: "Menos retrabalho. Mais clareza.",
+      barText: "O problema não é usar WhatsApp ou planilhas.",
+      barSub: "O problema é depender deles para operar processos complexos.",
+      barBadge: "Menos improviso. Mais controle.",
     },
     operation: {
-      kicker: "A plataforma", title: "Sua operação em outro nível",
+      kicker: "Solução", title: "A Aplikei organiza sua operação do primeiro clique até a conclusão do processo.",
       items: [
-        { title: "Centralização", badge: null as string | null, desc: "Um só lugar para todos os casos, documentos e a comunicação com o cliente." },
-        { title: "Automação por IA", badge: "−70% tempo" as string | null, desc: "Modelos assistidos, treinados em vistos consulares, preenchem formulários complexos em segundos." },
-        { title: "Pacotes prontos", badge: null as string | null, desc: "Pacotes estruturados por tipo de visto, garantindo que nenhum item essencial seja esquecido." },
+        { title: "Produtos digitais", badge: null as string | null, desc: "Crie serviços como Visto B1/B2, Visto F1, RFE, COS e consultorias com preço, descrição, documentos necessários e etapas próprias." },
+        { title: "Checkout personalizado", badge: "Venda profissional" as string | null, desc: "Gere links de pagamento com a identidade do seu escritório e venda seus serviços de forma mais organizada." },
+        { title: "Gestão de processos", badge: null as string | null, desc: "Acompanhe cada cliente por etapas, status, documentos pendentes, responsáveis e histórico do processo." },
       ],
     },
     automation: {
-      kicker: "Inteligência aplicada",
-      title: "Sua gestão de vistos consulares",
-      titleAccent: "potencializada por IA",
+      kicker: "Aplikei IA",
+      title: "IA para reduzir trabalho manual e dar mais velocidade para sua equipe.",
+      titleAccent: "na prática",
       features: [
-        { title: "Formulários consulares mais simples", desc: "Apresentamos formulários consulares de forma mais clara e guiada para o cliente, com revisão da equipe administrativa antes do envio." },
-        { title: "Portal do cliente simplificado", desc: "Ofereça uma interface limpa para upload seguro de documentos e acompanhamento de status em tempo real." },
-        { title: "Cartas com apoio de IA", desc: "Use IA para redigir cartas com mais agilidade, mantendo revisão e aprovação final pela sua equipe." },
+        { title: "Organização de informações", desc: "A IA ajuda sua equipe a organizar dados do cliente, identificar pendências e manter o processo mais claro." },
+        { title: "Suporte operacional", desc: "Ela pode apoiar respostas operacionais, próximos passos e cobranças repetitivas sem tomar o lugar do advogado." },
+        { title: "Menos retrabalho", desc: "Mais velocidade, mais clareza e menos tarefas manuais para a operação ficar consistente." },
       ],
-      engineTitle: "Motor de automação consular",
-      engineSub: "Automação de formulários consulares ativa",
-      engineLive: "IA ativa · 99% precisão",
+      engineTitle: "IA aplicada à operação",
+      engineSub: "Assistência operacional ativa",
+      engineLive: "IA ativa · foco na rotina",
       rows: [
-        { k: "Fluxo principal", v: "Formulários consulares guiados" },
-        { k: "Vistos suportados", v: "B1/B2 · F-1 · troca e extensão" },
+        { k: "Fluxo principal", v: "Produtos, checkout e processos" },
+        { k: "Vistos suportados", v: "B1/B2 · F-1 · RFE · COS" },
         { k: "Tempo estimado", v: "24s (−55 min)" },
         { k: "Validação de campos", v: "Dupla validação ok" },
       ],
-      ctaFill: "Iniciar preenchimento", ctaReview: "Revisar respostas",
+      ctaFill: "Começar agora", ctaReview: "Ver como funciona",
     },
     howItWorks: {
-      kicker: "Comece em minutos", title: "Do cadastro à entrega",
-      lead: "Um fluxo direto, com etapas claras e sem ruído operacional.",
+      kicker: "Como funciona", title: "Em poucos passos, seu escritório começa a operar de forma digital.",
+      lead: "Uma implantação direta, com etapas claras e sem ruído operacional.",
       steps: [
-        { n: "01", title: "Crie sua conta", desc: "Cadastre-se na plataforma de forma rápida e segura em poucos cliques." },
-        { n: "02", title: "Configure o escritório", desc: "Configure seu escritório e equipe com poucos passos simples e automatizados." },
-        { n: "03", title: "Centralize os casos", desc: "Importe os casos atuais e organize os documentos em um só lugar." },
-        { n: "04", title: "Gerencie e entregue", desc: "Passe a gerir os processos de vistos dos seus clientes com qualidade consistente." },
+        { n: "01", title: "Cadastre seu escritório", desc: "Configure sua operação, identidade visual, equipe e informações principais." },
+        { n: "02", title: "Ative seus produtos", desc: "Crie serviços como B1/B2, F1, RFE, COS, consultorias e outros processos do seu escritório." },
+        { n: "03", title: "Configure preço e checkout", desc: "Defina valor, descrição, documentos necessários e gere um link de pagamento personalizado." },
+        { n: "04", title: "Gerencie com apoio da IA", desc: "Acompanhe pagamentos, documentos, etapas, responsáveis e repasses com a IA apoiando sua equipe." },
       ],
     },
     excellence: {
-      kicker: "Excelência garantida", title: "Excelência institucional em cada processo.",
+      kicker: "Experiência do cliente", title: "O cliente não deveria ficar perdido depois de contratar seu escritório.",
       cards: [
-        { title: "Ganho de produtividade", desc: "Atenda 3× mais clientes com a mesma equipe operacional." },
-        { title: "Redução de erros", desc: "Minimize RFEs com a dupla validação automatizada." },
+        { title: "Mais clareza", desc: "Cada cliente entra em um fluxo mais claro e organizado, sem depender de mensagens soltas." },
+        { title: "Mais profissionalismo", desc: "Sua equipe sabe o que acompanhar e a experiência fica melhor do início ao fim." },
       ],
-      mediaLabel: "[ foto do escritório / equipe usando a plataforma ]",
+      mediaLabel: "[ escritório / equipe usando a Aplikei ]",
     },
     metrics: [
-      { v: "−70%", l: "tempo de preparação" }, { v: "3×", l: "mais casos por equipe" },
-      { v: "+10 mil", l: "processos organizados" }, { v: "99%", l: "consistência na entrega" },
+      { v: "WhatsApp", l: "deixa de ser o centro" }, { v: "IA", l: "no suporte operacional" },
+      { v: "Financeiro", l: "em um só lugar" }, { v: "Equipe", l: "mais organizada" },
     ],
     testimonials: {
-      kicker: "O que dizem os parceiros", title: "Comprovado por escritórios que escalaram",
+      kicker: "Antes e depois", title: "Da operação improvisada ao processo digital",
       items: [
-        { quote: ["A implementação da Aplikei transformou drasticamente nossa entrega. ", "Reduzimos o tempo operacional em 60%", " na preparação de documentos de vistos consulares."], name: "Ricardo Mendes", role: "Sócio · Mendes Lex", initials: "RM" },
-        { quote: ["Enfim uma plataforma que entende a burocracia dos vistos consulares. ", "A automação de formulários é cirúrgica", " e extremamente confiável."], name: "Juliana Costa", role: "Líder de Operações · GlobalVisa", initials: "JC" },
+        { quote: ["Antes a equipe vivia de WhatsApp e planilhas. ", "Agora tudo está centralizado", " em uma operação que conseguimos controlar."], name: "Ricardo Mendes", role: "Sócio · Mendes Lex", initials: "RM" },
+        { quote: ["A IA reduziu muito do trabalho repetitivo. ", "Ganhamos organização e velocidade", " sem perder controle jurídico."], name: "Juliana Costa", role: "Operações · GlobalVisa", initials: "JC" },
       ],
     },
     pricing: {
-      kicker: "Planos", title: "Comece com o plano do seu tamanho",
+      kicker: "Para quem é", title: "A Aplikei foi criada para escritórios que vendem processos de imigração.",
       plans: [
-        { label: "Variável", price: "10%", period: "do faturamento", features: ["Modelo variável por receita", "Acesso à plataforma", "Operação consular centralizada"], cta: "Escolher", highlighted: false },
-        { label: "Até 10 casos", price: "US$ 2.000", period: "por mês", features: ["Até 10 casos ativos", "Portal do cliente", "Formulários consulares guiados"], cta: "Começar agora", highlighted: true },
-        { label: "Até 30 casos", price: "US$ 4.000", period: "por mês", features: ["Até 30 casos ativos", "Equipe multiusuário", "Fluxos e operação padronizada"], cta: "Falar com vendas", highlighted: false },
+        { label: "Advogados de imigração", price: "Operação", period: "com mais controle", features: ["Escritórios especializados em vistos", "Consultorias migratórias", "Operação comercial e financeira integrada"], cta: "Começar agora", highlighted: false },
+        { label: "Equipes em escala", price: "Equipe", period: "integrada", features: ["Vendedores, gestores e advogados", "Fluxos organizados por função", "Menos dependência de controles paralelos"], cta: "Começar agora", highlighted: true },
+        { label: "Escritórios digitais", price: "IA", period: "aplicada", features: ["Venda online de serviços", "Página própria de vendas", "Apoio da IA nas tarefas repetitivas"], cta: "Falar com especialista", highlighted: false },
       ],
     },
     faq: {
-      kicker: "FAQ", title: "Perguntas frequentes",
-      lead: "Respostas objetivas para reduzir o atrito antes da decisão.",
+      kicker: "Antes e depois", title: "Antes da Aplikei",
+      lead: "WhatsApp como central da operação. Planilhas para controlar processos. Documentos espalhados. Pagamento separado do atendimento. Cliente sem visibilidade. Equipe sem clareza. Advogado sobrecarregado.",
       items: [
-        { q: "A plataforma é segura para dados jurídicos sensíveis?", a: "Sim. Os dados são criptografados em trânsito e em repouso, com controle de acesso granular por usuário e registro completo de ações para auditoria." },
-        { q: "Como a automação ajuda no preenchimento do DS-160?", a: "O motor reaproveita os dados do cliente e aplica regras consulares para pré-preencher campos complexos, com dupla validação antes da submissão — você mantém o controle final." },
-        { q: "Como funciona o acesso para os meus clientes?", a: "Cada cliente recebe um portal simplificado para enviar documentos com segurança e acompanhar o status do caso em tempo real, sem expor a sua operação interna." },
-        { q: "É difícil migrar meus casos atuais?", a: "Não. O onboarding guia a importação dos casos e documentos existentes, e nosso time apoia a transição para você começar a produzir de imediato." },
+        { q: "Depois da Aplikei", a: "Produtos digitais configurados. Checkout personalizado. Processos com etapas claras. Documentos centralizados. Equipe organizada por função. Financeiro integrado. IA apoiando a operação. Cliente acompanhado do início ao fim." },
+        { q: "A IA substitui o advogado?", a: "Não. Ela reduz o excesso de tarefas manuais para que o escritório tenha mais tempo, mais controle e mais capacidade de atender bem." },
+        { q: "Quais serviços posso vender?", a: "Visto B1/B2, Visto F1, RFE, COS, consultorias e outros serviços de imigração que o seu escritório oferece." },
+        { q: "Isso funciona para escritórios em crescimento?", a: "Sim. A plataforma foi pensada para vender, operar e escalar com uma estrutura mais profissional e previsível." },
       ],
     },
-    cta: { title: "Pronto para escalar sua operação?", desc: "Junte-se aos escritórios que já organizam milhares de processos de vistos consulares com precisão e tecnologia moderna.", btn: "Agendar demo" },
+    cta: { title: "Pronto para transformar seu escritório de imigração em uma operação digital?", desc: "Venda seus serviços com checkout personalizado, acompanhe cada cliente em um fluxo organizado e tenha mais controle sobre processos, equipe, pagamentos, repasses e tarefas operacionais com apoio de IA.", btn: "Começar agora" },
     footer: {
-      tagline: "Simplificando a gestão de vistos consulares com tecnologia e automação.",
+      tagline: "Produtos, checkout, processos, equipe, financeiro e inteligência artificial integrados em uma única plataforma.",
       platform: "Plataforma", company: "Empresa", contact: "Contato",
-      links: { solve: "O que resolvemos", automation: "Automação", how: "Como funciona", pricing: "Planos", about: "Quem somos", security: "Segurança de dados", support: "Suporte" },
+      links: { solve: "Problema", automation: "Solução", how: "Como funciona", pricing: "Planos", about: "Quem somos", security: "Segurança de dados", support: "Falar com especialista" },
       legal: "© 2026 Aplikei Technologies. A Aplikei é uma plataforma de tecnologia, não um escritório de advocacia.",
       terms: "Termos de uso", privacy: "Privacidade",
     },
   },
   en: {
-    nav: { pain: "Pain points", automation: "Automation", howItWorks: "How it works", pricing: "Pricing", signIn: "Sign in", bookDemo: "Book a demo" },
+    nav: { pain: "Problem", automation: "Solution", howItWorks: "How it works", pricing: "Plans", signIn: "Sign in", bookDemo: "Book a demo" },
     hero: {
-      badge: "Consular visa platform", title: "The complete platform to manage", titleAccent: "consular visas",
-      lead: "Centralize cases, documents and deadlines. Cut preparation time and the headaches of your firm — with automation exactly where it matters: DS-160, B1/B2, F-1, status change and extension.",
-      ctaPrimary: "Book a demo", ctaSecondary: "See the platform",
-      stat1: { v: "−70%", l: "preparation time" }, stat2: { v: "3×", l: "more cases per team" }, stat3: { v: "+10k", l: "processes organized" },
+      badge: "Digital operations for immigration firms",
+      title: "Turn your immigration firm into a",
+      titleAccent: "complete digital operation.",
+      lead: "The platform for immigration firms to sell visa services as digital products, with personalized checkout, organized processes, integrated team, finance in one place, and AI applied to support your operation.",
+      ctaPrimary: "Get started now", ctaSecondary: "See how it works",
+      stat1: { v: "Checkout", l: "personalized" }, stat2: { v: "Team", l: "integrated" }, stat3: { v: "AI", l: "in operations" },
       mockTitle: "Cases", mockSearch: "Search cases…", mockFilter: "Filter",
       mockCols: ["Client", "Status", "Visa", "Progress", "Start"],
-      floatLabel: "Preparation time",
+      floatLabel: "Digital operation",
       statusLabels: { b: "Status change", g: "Done", "": "In review" },
     },
-    logos: { label: "Firms already organizing consular visas on Aplikei" },
+    logos: { label: "Firms already operating with Aplikei" },
     pain: {
-      kicker: "Diagnosis", title: "Pain points we solve",
-      lead: "Lack of direction, document rework and fragmented communication delay critical decisions. We centralize the strategy and turn every step into predictable execution.",
+      kicker: "Problem", title: "Your firm grew. Did your operation keep up?",
+      lead: "Many immigration firms start with WhatsApp, spreadsheets, payment links and documents sent through different channels. It works at first. But as volume grows, the operation breaks: messages get lost, documents are scattered, payments need manual checking, and the team loses clarity about what is pending.",
       items: [
-        { title: "Scattered processes", desc: "Fragmented workflows across emails, local folders and chat that create operational chaos." },
-        { title: "Manual control", desc: "Spreadsheets and notes prone to critical human error." },
-        { title: "Wasted time", desc: "Hours spent on purely bureaucratic, repetitive tasks." },
-        { title: "No standardization", desc: "Inconsistent delivery that can compromise your firm's credibility." },
+        { title: "Messages get lost", desc: "Support becomes a fragmented flow across channels and nobody knows exactly what has already been answered." },
+        { title: "Documents are scattered", desc: "Files arrive from multiple places and the team wastes time looking for what should already be centralized." },
+        { title: "Payments need manual checking", desc: "Finance gets stuck in repetitive verification and the firm depends on parallel controls." },
+        { title: "The team becomes dependent on the lawyer", desc: "Without a clear system, the lawyer becomes the center of everything and the operation stops scaling." },
       ],
-      barText: "From uncertainty to action plan",
-      barSub: "We turn uncertainty into clear steps, owners and deadlines.",
-      barBadge: "Less rework. More clarity.",
+      barText: "The problem is not using WhatsApp or spreadsheets.",
+      barSub: "The problem is depending on them to run complex processes.",
+      barBadge: "Less improvisation. More control.",
     },
     operation: {
-      kicker: "The platform", title: "Your operation on another level",
+      kicker: "Solution", title: "Aplikei organizes your operation from the first click to process completion.",
       items: [
-        { title: "Centralization", badge: null as string | null, desc: "One single place for all cases, documents and client communication." },
-        { title: "AI Automation", badge: "−70% time" as string | null, desc: "Assisted models trained on consular visas fill complex forms in seconds." },
-        { title: "Ready-to-go packages", badge: null as string | null, desc: "Structured packages per visa type, so no essential item is ever forgotten." },
+        { title: "Digital products", badge: null as string | null, desc: "Create services like B1/B2 Visa, F1 Visa, RFE, COS and consultations with price, description, required documents and their own flow." },
+        { title: "Personalized checkout", badge: "Professional selling" as string | null, desc: "Generate payment links with your firm's identity and sell services in a more organized way." },
+        { title: "Process management", badge: null as string | null, desc: "Track each client by stages, status, pending documents, responsible people and process history." },
       ],
     },
     automation: {
-      kicker: "Applied intelligence", title: "Your consular visa management", titleAccent: "powered by AI",
+      kicker: "Aplikei AI", title: "AI to reduce manual work and give your team more speed.", titleAccent: "in practice",
       features: [
-        { title: "Simpler consular forms", desc: "We present consular forms in a clearer, guided flow for the client, with review by the administrative team before submission." },
-        { title: "Simplified client portal", desc: "Offer applicants a clean interface for secure document upload and real-time status tracking." },
-        { title: "AI-assisted letters", desc: "Use AI to draft letters faster, while keeping final review and approval with your team." },
+        { title: "Information organization", desc: "AI helps your team organize client data, identify missing items and keep the process clearer." },
+        { title: "Operational support", desc: "It can help with operational replies, next steps and repetitive follow-ups without replacing the lawyer." },
+        { title: "Less rework", desc: "More speed, more clarity and fewer manual tasks so the operation stays consistent." },
       ],
-      engineTitle: "Consular automation engine", engineSub: "Consular form automation active", engineLive: "AI active · 99% precision",
+      engineTitle: "AI applied to operations", engineSub: "Operational assistance active", engineLive: "AI active · focused on routine",
       rows: [
-        { k: "Main flow", v: "Guided consular forms" }, { k: "Supported visas", v: "B1/B2 · F-1 · status change & ext." },
+        { k: "Main flow", v: "Products, checkout and processes" }, { k: "Supported visas", v: "B1/B2 · F-1 · RFE · COS" },
         { k: "Estimated time", v: "24s (−55 min)" }, { k: "Field validation", v: "Double check done" },
       ],
-      ctaFill: "Start filling", ctaReview: "Review answers",
+      ctaFill: "Get started now", ctaReview: "See how it works",
     },
     howItWorks: {
-      kicker: "Get started in minutes", title: "From sign-up to delivery",
-      lead: "A direct flow, with clear steps and no operational noise.",
+      kicker: "How it works", title: "In a few steps, your firm starts operating digitally.",
+      lead: "A direct rollout with clear steps and no operational noise.",
       steps: [
-        { n: "01", title: "Create your account", desc: "Sign up on the platform quickly and securely in a few clicks." },
-        { n: "02", title: "Configure the firm", desc: "Set up your firm and team with a few simple, automated steps." },
-        { n: "03", title: "Centralize cases", desc: "Import existing cases and organize documents in one place." },
-        { n: "04", title: "Manage & deliver", desc: "Start managing your clients' visa processes with consistent quality." },
+        { n: "01", title: "Register your firm", desc: "Set up your operation, brand identity, team and key information." },
+        { n: "02", title: "Activate your products", desc: "Create services like B1/B2, F1, RFE, COS, consultations and other processes your firm offers." },
+        { n: "03", title: "Configure price and checkout", desc: "Define value, description, required documents and generate a personalized payment link." },
+        { n: "04", title: "Manage with AI support", desc: "Track payments, documents, steps, owners and payouts while AI helps your team stay organized." },
       ],
     },
     excellence: {
-      kicker: "Guaranteed excellence", title: "Institutional excellence in every process.",
+      kicker: "Client experience", title: "Clients should not feel lost after hiring your firm.",
       cards: [
-        { title: "Productivity gain", desc: "Serve 3× more clients with the same operational team." },
-        { title: "Error reduction", desc: "Minimize RFEs with automated double validation." },
+        { title: "More clarity", desc: "Each client enters a clearer, organized flow without depending on scattered messages." },
+        { title: "More professionalism", desc: "Your team knows what to follow and the experience improves from start to finish." },
       ],
-      mediaLabel: "[ office / team photo using the platform ]",
+      mediaLabel: "[ office / team using Aplikei ]",
     },
     metrics: [
-      { v: "−70%", l: "preparation time" }, { v: "3×", l: "more cases per team" },
-      { v: "+10k", l: "processes organized" }, { v: "99%", l: "delivery consistency" },
+      { v: "WhatsApp", l: "stops being the center" }, { v: "AI", l: "supports operations" },
+      { v: "Finance", l: "in one place" }, { v: "Team", l: "more organized" },
     ],
     testimonials: {
-      kicker: "What partners say", title: "Proven by firms that scaled",
+      kicker: "Before and after", title: "From improvised operation to digital process",
       items: [
-        { quote: ["The rollout of Aplikei drastically transformed our delivery. ", "We cut operational time by 60%", " on consular visa document preparation."], name: "Ricardo Mendes", role: "Managing Partner · Mendes Lex", initials: "RM" },
-        { quote: ["Finally a platform that understands consular visa bureaucracy. ", "The form automation is surgical", " and extremely reliable."], name: "Juliana Costa", role: "Operations Lead · GlobalVisa", initials: "JC" },
+        { quote: ["Before, the team lived on WhatsApp and spreadsheets. ", "Now everything is centralized", " in an operation we can actually control."], name: "Ricardo Mendes", role: "Partner · Mendes Lex", initials: "RM" },
+        { quote: ["AI reduced a lot of repetitive work. ", "We gained organization and speed", " without losing legal control."], name: "Juliana Costa", role: "Operations · GlobalVisa", initials: "JC" },
       ],
     },
     pricing: {
-      kicker: "Pricing", title: "Start with the plan that fits you",
+      kicker: "Who it's for", title: "Aplikei was built for firms that sell immigration processes.",
       plans: [
-        { label: "Variable", price: "10%", period: "of revenue", features: ["Variable revenue-based model", "Platform access", "Centralized consular operation"], cta: "Choose", highlighted: false },
-        { label: "Up to 10 cases", price: "US$ 2,000", period: "per month", features: ["Up to 10 active cases", "Client portal", "Guided consular forms"], cta: "Get started", highlighted: true },
-        { label: "Up to 30 cases", price: "US$ 4,000", period: "per month", features: ["Up to 30 active cases", "Multi-user team", "Standardized workflows"], cta: "Talk to sales", highlighted: false },
+        { label: "Immigration lawyers", price: "Operation", period: "with more control", features: ["Firms specialized in visas", "Migration consultancies", "Integrated commercial and financial operation"], cta: "Get started now", highlighted: false },
+        { label: "Scaling teams", price: "Team", period: "integrated", features: ["Sales, managers and lawyers", "Flows organized by role", "Less dependence on parallel controls"], cta: "Get started now", highlighted: true },
+        { label: "Digital firms", price: "AI", period: "applied", features: ["Sell services online", "Own sales page", "AI support for repetitive tasks"], cta: "Talk to a specialist", highlighted: false },
       ],
     },
     faq: {
-      kicker: "FAQ", title: "Frequently asked questions",
-      lead: "Objective answers to reduce friction before you decide.",
+      kicker: "Before and after", title: "Before Aplikei",
+      lead: "WhatsApp as the operation hub. Spreadsheets to track processes. Documents spread out. Payments separate from support. Clients with no visibility. Team with no clarity. Lawyers overloaded.",
       items: [
-        { q: "Is the platform secure for sensitive legal data?", a: "Yes. Data is encrypted in transit and at rest, with granular access control per user and full action logs for audit." },
-        { q: "How does automation help fill the DS-160?", a: "The engine reuses client data and applies consular rules to pre-fill complex fields, with double validation before submission — you keep final control." },
-        { q: "How does access work for my clients?", a: "Each client gets a simplified portal to upload documents securely and follow their case status in real time, without exposing your internal operation." },
-        { q: "Is it hard to migrate my current cases?", a: "No. Onboarding guides the import of existing cases and documents, and our team supports the transition so you start producing right away." },
+        { q: "After Aplikei", a: "Digital products configured. Personalized checkout. Processes with clear stages. Centralized documents. Team organized by role. Finance integrated. AI supporting operations. Clients followed from start to finish." },
+        { q: "Does AI replace the lawyer?", a: "No. It reduces manual work so the firm has more time, more control, and more capacity to serve well." },
+        { q: "What can I sell?", a: "B1/B2 Visa, F1 Visa, RFE, COS, consultations and other immigration services your firm offers." },
+        { q: "Does this work for growing firms?", a: "Yes. The platform was designed to sell, operate and scale with a more professional and predictable structure." },
       ],
     },
-    cta: { title: "Ready to scale your operation?", desc: "Join the firms that already organize thousands of consular visa processes with precision and modern technology.", btn: "Book a demo" },
+    cta: { title: "Ready to turn your immigration firm into a digital operation?", desc: "Sell your services with personalized checkout, track each client in an organized flow and gain more control over processes, team, payments, payouts and operational tasks with AI support.", btn: "Get started now" },
     footer: {
-      tagline: "Simplifying consular visa management with technology and automation.",
+      tagline: "Products, checkout, processes, team, finance and artificial intelligence integrated in one platform.",
       platform: "Platform", company: "Company", contact: "Contact",
-      links: { solve: "What we solve", automation: "Automation", how: "How it works", pricing: "Pricing", about: "Who we are", security: "Data security", support: "Support" },
+      links: { solve: "Problem", automation: "Solution", how: "How it works", pricing: "Plans", about: "Who we are", security: "Data security", support: "Talk to a specialist" },
       legal: "© 2026 Aplikei Technologies. Aplikei is a technology platform, not a law firm.",
       terms: "Terms", privacy: "Privacy",
     },
@@ -382,7 +364,7 @@ const T = {
     hero: {
       badge: "Plataforma de visas consulares", title: "La plataforma completa para gestionar", titleAccent: "visas consulares",
       lead: "Centralice casos, documentos y plazos. Reduzca el tiempo de preparación y el dolor de cabeza de su firma — con automatización exactamente donde importa: DS-160, B1/B2, F-1, cambio y extensión de estatus.",
-      ctaPrimary: "Agendar demo", ctaSecondary: "Ver la plataforma",
+      ctaPrimary: "Comenzar ahora", ctaSecondary: "Ver la plataforma",
       stat1: { v: "−70%", l: "tiempo de preparación" }, stat2: { v: "3×", l: "más casos por equipo" }, stat3: { v: "+10 mil", l: "procesos organizados" },
       mockTitle: "Casos", mockSearch: "Buscar casos…", mockFilter: "Filtro",
       mockCols: ["Cliente", "Estado", "Visa", "Progreso", "Inicio"],
@@ -472,7 +454,7 @@ const T = {
         { q: "¿Es difícil migrar mis casos actuales?", a: "No. El onboarding guía la importación de casos y documentos existentes, y nuestro equipo apoya la transición para que empiece a producir de inmediato." },
       ],
     },
-    cta: { title: "¿Listo para escalar su operación?", desc: "Únase a las firmas que ya organizan miles de procesos de visas consulares con precisión y tecnología moderna.", btn: "Agendar demo" },
+    cta: { title: "¿Listo para escalar su operación?", desc: "Únase a las firmas que ya organizan miles de procesos de visas consulares con precisión y tecnología moderna.", btn: "Comenzar ahora" },
     footer: {
       tagline: "Simplificando la gestión de visas consulares con tecnología y automatización.",
       platform: "Plataforma", company: "Empresa", contact: "Contacto",
@@ -532,6 +514,103 @@ function HeroArtwork() {
       <div className="lp-hero-art-rays" />
       <div className="lp-hero-art-chip">USA Visa</div>
       <img src={heroHomeImage} alt="" className="lp-hero-art-image" />
+    </div>
+  );
+}
+
+function DashboardMockup() {
+  return (
+    <div className="lp-dash-mock" aria-hidden="true">
+      <div className="lp-dash-topbar">
+        <img src="/logo.png" alt="" className="lp-dash-logo" />
+        <div className="lp-dash-search">
+          <span>Buscar…</span>
+          <span className="lp-dash-kbd">⌘K</span>
+        </div>
+        <div className="lp-dash-user">
+          <span className="lp-dash-bell" />
+          <span className="lp-dash-avatar" />
+          <span className="lp-dash-user-info">
+            <strong>Maria Oliveira</strong>
+            <small>Administradora</small>
+          </span>
+        </div>
+      </div>
+      <div className="lp-dash-body">
+        <nav className="lp-dash-sidebar">
+          <span className="lp-dash-nav-group">Principal</span>
+          <span className="lp-dash-nav-item active">Dashboard</span>
+          <span className="lp-dash-nav-item">Produtos</span>
+          <span className="lp-dash-nav-item">Processos</span>
+          <span className="lp-dash-nav-item">Tarefas</span>
+          <span className="lp-dash-nav-group">Gestão</span>
+          <span className="lp-dash-nav-item">Equipe</span>
+          <span className="lp-dash-nav-item">Documentos</span>
+          <span className="lp-dash-nav-item">Clientes</span>
+          <span className="lp-dash-nav-item">Relatórios</span>
+          <span className="lp-dash-nav-group">Financeiro</span>
+          <span className="lp-dash-nav-item">Financeiro</span>
+          <span className="lp-dash-nav-item">Configurações</span>
+        </nav>
+        <div className="lp-dash-main">
+          <div className="lp-dash-head">
+            <h3>Dashboard</h3>
+            <span className="lp-dash-period">Este mês ⌄</span>
+          </div>
+          <div className="lp-dash-stats">
+            <div className="lp-dash-stat">
+              <span>Processos ativos</span>
+              <strong>128 <small className="up">+18%</small></strong>
+            </div>
+            <div className="lp-dash-stat">
+              <span>Receita</span>
+              <strong>R$ 236.540 <small className="up">+24%</small></strong>
+            </div>
+            <div className="lp-dash-stat">
+              <span>Novos clientes</span>
+              <strong>32 <small className="up">+14%</small></strong>
+            </div>
+            <div className="lp-dash-stat">
+              <span>Conversão</span>
+              <strong>42,6% <small className="up">+5,2%</small></strong>
+            </div>
+          </div>
+          <div className="lp-dash-grid">
+            <div className="lp-dash-card lp-dash-chart-card">
+              <h4>Receita</h4>
+              <svg className="lp-dash-line" viewBox="0 0 240 80" preserveAspectRatio="none">
+                <polyline points="0,60 30,55 60,58 90,40 120,46 150,28 180,32 210,16 240,20" fill="none" stroke="#2d63ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div className="lp-dash-card lp-dash-tasks-card">
+              <h4>Tarefas</h4>
+              <ul className="lp-dash-tasks">
+                <li><span className="dot" /> Revisar documentos <em className="hi">Alta</em></li>
+                <li><span className="dot" /> Enviar proposta <em className="md">Média</em></li>
+                <li><span className="dot" /> Acompanhar biometria <em className="hi">Alta</em></li>
+              </ul>
+            </div>
+          </div>
+          <div className="lp-dash-grid">
+            <div className="lp-dash-card lp-dash-donut-card">
+              <h4>Processos por status</h4>
+              <div className="lp-dash-donut" />
+              <ul className="lp-dash-legend">
+                <li><span className="sw blue" /> Em andamento</li>
+                <li><span className="sw cyan" /> Documentos</li>
+                <li><span className="sw violet" /> Em análise</li>
+              </ul>
+            </div>
+            <div className="lp-dash-card lp-dash-recent-card">
+              <h4>Processos recentes</h4>
+              <ul className="lp-dash-recent">
+                <li><strong>Visto EB-2 NIW</strong><span>Roberto Ferreira</span><em className="badge-blue">Em andamento</em></li>
+                <li><strong>Visto L-1A</strong><span>Tech Solutions Ltda.</span><em className="badge-amber">Em análise</em></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -597,7 +676,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="lp-hero-cta">
-              <a href="#lp-cta" className="lp-btn lp-btn-primary lp-btn-lg">{t.hero.ctaPrimary} <ArrowRight /></a>
+              <a href="#lp-cta" className="lp-btn lp-btn-light lp-btn-lg">{t.hero.ctaPrimary} <ArrowRight /></a>
               <a href="#lp-automation" className="lp-btn lp-btn-ghost lp-btn-lg">{t.hero.ctaSecondary}</a>
             </div>
             <div className="lp-hero-proof">
@@ -609,7 +688,7 @@ export default function HomePage() {
               </div>
               <div className="lp-hero-proof-copy">
                 <strong>4.9+ Ratings</strong>
-                <span>Trusted visa lawyers</span>
+                <span>Escritórios que já usam a Aplikei</span>
               </div>
             </div>
           </div>
@@ -851,9 +930,26 @@ export default function HomePage() {
       <section className="lp-section" id="lp-cta">
         <div className="lp-wrap">
           <div className="lp-cta-block lp-reveal">
-            <h2 className="lp-h2">{t.cta.title}</h2>
-            <p>{t.cta.desc}</p>
-            <Link to="/contato" className="lp-btn lp-btn-light lp-btn-lg">{t.cta.btn} <ArrowRight /></Link>
+            <div className="lp-cta-grid">
+              <div className="lp-cta-copy">
+                <img src="/logo-dark.png" alt="Aplikei" className="lp-cta-logo" />
+                <div className="lp-hero-proof-avatars" aria-hidden="true">
+                  <img src={shabouryLogo} alt="" className="av" />
+                  <img src={pillarCircleLogo} alt="" className="av" />
+                  <img src={saverraLogo} alt="" className="av" />
+                  <span className="plus">125+</span>
+                </div>
+                <h2 className="lp-h2">{t.cta.title}</h2>
+                <p className="lp-lead">{t.cta.desc}</p>
+                <Link to="/contato" className="lp-btn lp-btn-light lp-btn-lg">{t.cta.btn} <ArrowRight /></Link>
+              </div>
+              <div className="lp-cta-mock">
+                <div className="lp-cta-monitor">
+                  <DashboardMockup />
+                </div>
+                <div className="lp-cta-monitor-stand" />
+              </div>
+            </div>
           </div>
         </div>
       </section>

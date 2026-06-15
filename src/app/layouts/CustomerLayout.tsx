@@ -12,6 +12,7 @@ import { useTheme } from "@shared/hooks/useTheme";
 import { useLocale, useT, type Language } from "@app/app/i18n";
 import { useState, useMemo } from "react";
 import { getDashboardPathForRole } from "@features/auth/lib/roles";
+import { AppLogo } from "@shared/components/atoms/AppLogo";
 import { cn } from "@shared/utils/cn";
 import { NotificationProvider } from "@app/app/providers/NotificationProvider";
 import { NotificationToaster } from "@features/notifications/components/NotificationToaster";
@@ -90,7 +91,7 @@ export function CustomerLayout() {
           <div className="px-6 py-8">
             <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-                <img src="/logo.png" alt="Aplikei" className="h-10 w-auto object-contain" />
+                <AppLogo className="h-10 w-auto object-contain" />
                 <span className="text-sm font-black uppercase tracking-tight text-text">Aplikei</span>
               </div>
               

@@ -12,7 +12,7 @@ export function getSupabaseStorageKey() {
   return `sb-${getProjectRef()}-auth-token`;
 }
 
-export function buildAuthSession(overrides?: any) {
+export function buildAuthSession(overrides?: { id?: string; role?: "master" | "admin_lawyer" }) {
   const now = new Date();
   const userId = overrides?.id ?? "user-admin";
   const role = overrides?.role ?? "admin_lawyer";
@@ -59,18 +59,60 @@ export async function mockAdminSupabase(page: Page, options?: { role?: "master" 
   await page.route("**/rest/v1/v_office_current_subscription**", async (route) => {
     const accept = route.request().headers()["accept"] ?? "";
     const payload = {
+      subscription_id: "sub-1",
       office_id: "office-1",
       status: "active",
+      plan_id: "plan-1",
+      plan_version: 1,
+      billing_model: "prepaid",
       plan_name: "Premium",
       plan_type: "PERCENTAGE",
       fixed_fee: 0,
       percentage_fee: 20,
+      effective_from: new Date(Date.now() - 5 * 86400000).toISOString(),
+      effective_to: new Date(Date.now() + 25 * 86400000).toISOString(),
+      current_period_start: new Date(Date.now() - 5 * 86400000).toISOString(),
       current_period_end: new Date(Date.now() + 30 * 86400000).toISOString()
     };
     await route.fulfill({
       status: 200,
       contentType: accept.includes("application/vnd.pgrst.object+json") ? "application/vnd.pgrst.object+json" : "application/json",
       body: JSON.stringify(accept.includes("application/vnd.pgrst.object+json") ? payload : [payload]),
+    });
+  });
+
+  await page.route("**/rest/v1/v_office_subscription_history**", async (route) => {
+    const accept = route.request().headers()["accept"] ?? "";
+    const payload = [
+      {
+        id: "history-1",
+        office_subscription_id: "sub-1",
+        office_id: "office-1",
+        plan_id: "plan-1",
+        plan_version: 1,
+        status: "active",
+        billing_model: "prepaid",
+        effective_from: new Date(Date.now() - 5 * 86400000).toISOString(),
+        effective_to: null,
+        current_period_start: new Date(Date.now() - 5 * 86400000).toISOString(),
+        current_period_end: new Date(Date.now() + 30 * 86400000).toISOString(),
+        cancel_at_period_end: false,
+        rules_snapshot: {},
+        metadata: {},
+        created_at: new Date(Date.now() - 5 * 86400000).toISOString(),
+        plan_name: "Premium",
+        plan_type: "PERCENTAGE",
+        fixed_fee: 0,
+        percentage_fee: 20,
+        min_monthly_fee: null,
+        max_monthly_fee: null,
+        min_fee_per_transaction_usd: null,
+      },
+    ];
+    await route.fulfill({
+      status: 200,
+      contentType: accept.includes("application/vnd.pgrst.object+json") ? "application/vnd.pgrst.object+json" : "application/json",
+      body: JSON.stringify(accept.includes("application/vnd.pgrst.object+json") ? payload[0] : payload),
     });
   });
 
@@ -123,7 +165,6 @@ export async function mockAdminSupabase(page: Page, options?: { role?: "master" 
   });
 
   await page.route("**/rest/v1/orders**", async (route) => {
-    const isMaster = role === "master";
     await route.fulfill({
       status: 200,
       contentType: "application/json",

@@ -6,7 +6,7 @@ import { Navbar } from "@shared/components/organisms/PublicNavbar";
 export function AuthLayout() {
   const { user, isAuthenticated } = useAuth();
   const { pathname } = useLocation();
-  const hideNavbar = false;
+  const hideNavbar = pathname === "/track-my-visa";
 
   // Já autenticado → redireciona para o painel correto
   if (isAuthenticated && user) {
