@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest",
-    "test:e2e": "playwright test",
+    "test:e2e": "sh -c 'vite --host 127.0.0.1 --port 4173 >/tmp/aplikei-playwright-vite.log 2>&1 & VITE_PID=$!; trap \"kill $VITE_PID\" EXIT; PLAYWRIGHT_SKIP_WEB_SERVER=1 PLAYWRIGHT_BASE_URL=http://127.0.0.1:4173 playwright test'",
     "build": "vite build",
     "typecheck": "tsc -b",
     "lint": "eslint .",

@@ -1,4 +1,4 @@
-import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa";
+import { FaInstagram } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useT } from "@app/app/i18n";
 import { AppLogo } from "../atoms/AppLogo";
@@ -16,14 +16,14 @@ export function PublicFooter() {
             </Link>
             <p className="max-w-sm leading-relaxed text-text-muted">{t.description}</p>
             <div className="flex items-center gap-4">
-              <a href="#" className="text-text-muted transition-colors hover:text-text" aria-label="Instagram">
+              <a
+                href="https://www.instagram.com/aplikei.app?utm_source=qr"
+                target="_blank"
+                rel="noreferrer"
+                className="text-text-muted transition-colors hover:text-text"
+                aria-label="Instagram"
+              >
                 <FaInstagram size={18} />
-              </a>
-              <a href="#" className="text-text-muted transition-colors hover:text-text" aria-label="LinkedIn">
-                <FaLinkedinIn size={18} />
-              </a>
-              <a href="#" className="text-text-muted transition-colors hover:text-text" aria-label="WhatsApp">
-                <FaWhatsapp size={18} />
               </a>
             </div>
           </div>
