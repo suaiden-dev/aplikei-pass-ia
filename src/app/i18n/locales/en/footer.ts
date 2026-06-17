@@ -1,6 +1,6 @@
 const footer = {
   tagline: "Elite technology for law firms and consular visa consultancies.",
-  servicesHeader: "Services",
+  servicesHeader: "Solutions",
   platformHeader: "Platform",
   legalHeader: "Legal",
   howItWorks: "Who we are",
@@ -19,6 +19,7 @@ const footer = {
   dataIntelligence: "Data Intelligence",
   allRightsReserved: "All rights reserved.",
   services: "Services",
+  solutions: "Solutions",
   platform: "Platform",
 };
 export default footer;

@@ -58,15 +58,15 @@ export default function SignUp() {
       }
       try {
         const result = await signUp(values);
-        
+
         const normalizedRole = normalizeRole(values.role);
         if (normalizedRole === "seller" || normalizedRole === "manager") {
           const successMsg =
             lang === "pt"
               ? "Conta criada com sucesso!"
               : lang === "es"
-              ? "¡Cuenta creada con éxito!"
-              : "Account created successfully!";
+                ? "¡Cuenta creada con éxito!"
+                : "Account created successfully!";
           toast.success(successMsg);
         } else {
           toast.success(t.signup.success);
@@ -210,11 +210,11 @@ export default function SignUp() {
           />
           <label htmlFor="terms" className="cursor-pointer text-xs leading-relaxed text-text-muted">
             {t.signup.acceptTerms}{" "}
-            <Link to={`/legal/terms?role=${legalRole}&returnTo=${encodeURIComponent(termsReturnTo)}`} className="font-bold text-primary hover:underline">
+            <Link target="_blank" to={`/legal/terms?role=${legalRole}&returnTo=${encodeURIComponent(termsReturnTo)}`} className="font-bold text-primary hover:underline">
               {t.signup.termsLink}
             </Link>{" "}
             e{" "}
-            <Link to={`/legal/privacy?role=${legalRole}`} className="font-bold text-primary hover:underline">
+            <Link target="_blank" to={`/legal/privacy?role=${legalRole}`} className="font-bold text-primary hover:underline">
               {t.signup.privacyLink}
             </Link>.
           </label>

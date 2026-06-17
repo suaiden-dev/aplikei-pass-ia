@@ -36,6 +36,10 @@ describe("PublicFooter", () => {
       "href",
       "https://www.instagram.com/aplikei.app?utm_source=qr",
     );
+    expect(screen.getByRole("link", { name: "Services" })).toHaveAttribute(
+      "href",
+      "/solucoes/fluxo-b1b2",
+    );
     expect(screen.queryByRole("link", { name: "LinkedIn" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "WhatsApp" })).not.toBeInTheDocument();
   });

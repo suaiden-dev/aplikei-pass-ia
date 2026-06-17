@@ -1,7 +1,7 @@
 import React from "react";
 import { ShieldCheck, ArrowRight, Award } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "../atoms/button";
+import { PublicButton } from "../atoms/PublicButton";
 interface ServiceCTAProps {
   visaType: string;
   checkoutUrl: string;
@@ -47,12 +47,12 @@ export const ServiceCTA: React.FC<ServiceCTAProps> = ({ visaType, checkoutUrl, s
               </p>
 
               <div className="pt-4 flex flex-col items-center lg:items-start gap-3">
-                <Link to={checkoutUrl} className="block w-full sm:w-auto">
-                  <Button className="w-full sm:w-auto h-auto min-h-[4rem] px-4 sm:px-10 py-3 sm:py-0 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm sm:text-lg font-black shadow-xl shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 group text-center whitespace-normal leading-tight">
+                <PublicButton asChild tone="solid" size="lg" className="group w-full sm:w-auto h-auto min-h-[4rem] px-4 sm:px-10 py-3 sm:py-0 rounded-2xl text-sm sm:text-lg font-black text-center whitespace-normal leading-tight">
+                  <Link to={checkoutUrl}>
                     INICIAR MINHA SOLICITAÇÃO AGORA
                     <ArrowRight className="w-5 h-5 shrink-0 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
+                  </Link>
+                </PublicButton>
                 <div className="flex items-center gap-1.5 text-sm font-medium text-slate-400">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   <span>Processamento 100% Seguro e Homologado</span>

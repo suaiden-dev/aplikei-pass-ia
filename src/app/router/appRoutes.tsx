@@ -45,8 +45,11 @@ const MaintenancePage = lazyPage(
 const ServiceDetailPage = lazyPage(
   () => import("@features/marketing/pages/ServiceDetailPage"),
 );
-const ServicosPage = lazyPage(
-  () => import("@features/marketing/pages/ServicosPage"),
+const SolucoesPage = lazyPage(
+  () => import("@features/marketing/pages/SolucoesPage"),
+);
+const SolutionsRedirect = lazyPage(
+  () => import("./SolutionsRedirect"),
 );
 const QuemSomosPage = lazyPage(
   () => import("@features/marketing/pages/QuemSomosPage"),
@@ -246,9 +249,25 @@ export const appRoutes: AppRouteDefinition[] = [
     layout: "public",
   },
   {
+    path: "/solucoes",
+    title: "Soluções",
+    component: SolutionsRedirect,
+    authRequired: false,
+    accessLevels: [],
+    layout: "public",
+  },
+  {
+    path: "/solucoes/:slug",
+    title: "Solução",
+    component: SolucoesPage,
+    authRequired: false,
+    accessLevels: [],
+    layout: "public",
+  },
+  {
     path: "/servicos",
     title: "Services",
-    component: ServicosPage,
+    component: SolutionsRedirect,
     authRequired: false,
     accessLevels: [],
     layout: "public",

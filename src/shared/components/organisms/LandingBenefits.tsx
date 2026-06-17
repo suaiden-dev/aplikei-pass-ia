@@ -7,9 +7,9 @@ export function LandingBenefits() {
   if (!t.benefits) return null;
 
   return (
-    <section className="py-24 bg-bg px-8 lg:px-16">
-      <div className="mx-auto max-w-[1280px]">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+    <section className="public-section bg-bg">
+      <div className="public-container-wide">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
             <motion.h2 
               initial={{ opacity: 0, y: 20 }}

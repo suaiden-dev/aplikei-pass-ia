@@ -87,15 +87,15 @@ export function LandingProductShowcase() {
   const activeFeature = features.find(f => f.id === activeTab) || features[0];
 
   return (
-    <section className="bg-slate-950 px-8 py-24 lg:px-16 lg:py-32 text-white relative overflow-hidden">
+    <section className="public-section relative overflow-hidden bg-slate-950 text-white">
       {/* Background Glows */}
       <div className="absolute inset-0 opacity-40 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-primary/20 blur-[120px]" />
         <div className="absolute bottom-1/4 right-1/4 h-[30rem] w-[30rem] rounded-full bg-indigo-500/10 blur-[150px]" />
       </div>
 
-      <div className="relative mx-auto max-w-[1280px]">
-        <div className="text-center mb-20">
+      <div className="public-container-wide relative">
+        <div className="mb-16 text-center lg:mb-20">
           <Badge variant="default" className="mb-6 border-white/10 bg-white/5 text-white/90">
             Tecnologia de Elite para Vistos Consulares B2B
           </Badge>
@@ -110,7 +110,7 @@ export function LandingProductShowcase() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-12 items-center">
+        <div className="grid items-center gap-12 lg:grid-cols-12">
           {/* Interactive Feature Selectors */}
           <div className="lg:col-span-5 space-y-4">
             {features.map((f) => {

@@ -70,8 +70,8 @@ export default function ServiceDetailTemplate({
   return (
     <div className="bg-card text-text antialiased overflow-x-hidden">
       {/* Hero */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-20 py-12 lg:py-24">
-        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-12 lg:gap-20 items-center text-center lg:text-left">
+      <section className="public-section-tight">
+        <div className="public-container-wide flex flex-col items-center gap-12 text-center lg:grid lg:grid-cols-2 lg:items-center lg:gap-16 lg:text-left">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -140,8 +140,8 @@ export default function ServiceDetailTemplate({
       </section>
 
       {/* Overview */}
-      <section className="bg-bg-subtle py-24 px-6 lg:px-20 border-y border-border">
-        <div className="max-w-7xl mx-auto">
+      <section className="public-section bg-bg-subtle border-y border-border">
+        <div className="public-container-wide">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -187,70 +187,74 @@ export default function ServiceDetailTemplate({
       </section>
 
       {/* Included */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-20 py-24">
-        <div className="text-center mb-20 text-balance">
-          <h2 className="text-4xl lg:text-5xl font-black text-primary mb-6">{str("included", "O que está incluído")}</h2>
-          <div className="w-24 h-2 bg-primary mx-auto rounded-full"></div>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 text-left">
-          {service.included.slice(0, 4).map((item: string, i: number) => {
-            const parts = item.split(": ");
-            const Icon = includedIcons[i] ?? MdArticle;
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ y: -10 }}
-                className="p-6 sm:p-8 lg:p-10 bg-card rounded-[2rem] border border-border hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 flex flex-col items-start group"
-              >
-                <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-8 mx-auto lg:mx-0 group-hover:bg-primary group-hover:text-white transition-all">
-                  <Icon className="text-3xl" />
-                </div>
-                {parts.length > 1 ? (
-                  <>
-                    <h4 className="font-bold text-xl mb-4 text-text leading-tight">{parts[0]}</h4>
-                    <p className="text-sm text-text-muted leading-relaxed font-medium">{parts[1]}</p>
-                  </>
-                ) : (
-                  <h4 className="font-bold text-xl mb-4 text-text leading-tight">{item}</h4>
-                )}
-              </motion.div>
-            );
-          })}
+      <section className="public-section">
+        <div className="public-container-wide text-center">
+          <div className="mb-16 text-balance lg:mb-20">
+            <h2 className="text-4xl font-black text-primary mb-6 lg:text-5xl">{str("included", "O que está incluído")}</h2>
+            <div className="mx-auto h-2 w-24 rounded-full bg-primary"></div>
+          </div>
+          <div className="grid gap-8 text-left md:grid-cols-2 lg:grid-cols-4">
+            {service.included.slice(0, 4).map((item: string, i: number) => {
+              const parts = item.split(": ");
+              const Icon = includedIcons[i] ?? MdArticle;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ y: -10 }}
+                  className="group flex flex-col items-start rounded-[2rem] border border-border bg-card p-6 transition-all duration-300 hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/5 sm:p-8 lg:p-10"
+                >
+                  <div className="mb-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-all group-hover:bg-primary group-hover:text-white mx-auto lg:mx-0">
+                    <Icon className="text-3xl" />
+                  </div>
+                  {parts.length > 1 ? (
+                    <>
+                      <h4 className="mb-4 text-xl font-bold leading-tight text-text">{parts[0]}</h4>
+                      <p className="text-sm font-medium leading-relaxed text-text-muted">{parts[1]}</p>
+                    </>
+                  ) : (
+                    <h4 className="mb-4 text-xl font-bold leading-tight text-text">{item}</h4>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
       {/* Journey steps */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-20 py-32 text-left">
-        <div className="text-center mb-24">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-primary mb-6">
-            {str("steps", "Sua jornada em 6 passos simples")}
-          </h2>
-          <p className="text-text-muted text-lg lg:text-xl font-medium">Do cadastro ao pacote final, cuidamos de cada detalhe para você.</p>
-        </div>
-        <div className="relative space-y-14 max-w-4xl mx-auto">
-          <div className="absolute left-[24px] top-4 bottom-4 w-1.5 bg-border rounded-full"></div>
-          {arr("journeySteps").map((step, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="relative flex gap-10 group"
-            >
-              <div className="z-10 w-12 h-12 shrink-0 rounded-2xl bg-primary flex items-center justify-center text-white font-extrabold shadow-xl shadow-primary/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                {i + 1}
-              </div>
-              <div className="pt-1.5">
-                <h4 className="font-black text-2xl mb-2 text-text leading-tight">{step.title}</h4>
-                <p className="text-text-muted text-lg leading-relaxed italic font-medium">{step.desc}</p>
-              </div>
-            </motion.div>
-          ))}
+      <section className="public-section text-left">
+        <div className="public-container-wide">
+          <div className="mb-20 text-center lg:mb-24">
+            <h2 className="mb-6 text-3xl font-black text-primary sm:text-4xl lg:text-5xl">
+              {str("steps", "Sua jornada em 6 passos simples")}
+            </h2>
+            <p className="text-lg font-medium text-text-muted lg:text-xl">Do cadastro ao pacote final, cuidamos de cada detalhe para você.</p>
+          </div>
+          <div className="relative mx-auto max-w-4xl space-y-14">
+            <div className="absolute left-[24px] top-4 bottom-4 w-1.5 rounded-full bg-border"></div>
+            {arr("journeySteps").map((step, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="group relative flex gap-10"
+              >
+                <div className="z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary font-extrabold text-white shadow-xl shadow-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  {i + 1}
+                </div>
+                <div className="pt-1.5">
+                  <h4 className="mb-2 text-2xl font-black leading-tight text-text">{step.title}</h4>
+                  <p className="text-lg font-medium italic leading-relaxed text-text-muted">{step.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -258,8 +262,8 @@ export default function ServiceDetailTemplate({
       <ServiceCTA visaType={service.title} checkoutUrl={startPath} slug={service.slug} />
 
       {/* FAQ */}
-      <section className="bg-bg-subtle py-32 px-6 lg:px-20 text-left border-t border-border">
-        <div className="max-w-4xl mx-auto">
+      <section className="public-section bg-bg-subtle border-t border-border text-left">
+        <div className="public-container">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -298,7 +302,7 @@ export default function ServiceDetailTemplate({
       </section>
 
       {/* Mobile sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-card/80 backdrop-blur-md border-t border-border md:hidden z-50">
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/80 p-4 backdrop-blur-md md:hidden">
         <Link to={startPath}>
           <Button className="w-full bg-primary text-white font-bold py-6 rounded-xl shadow-lg shadow-primary/20 border-none">
             {str("getStarted", "Começar Agora")}

@@ -56,7 +56,7 @@ export function ScrollToTop() {
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.2 }}
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-[80] p-3 rounded-full bg-primary text-white shadow-lg lg:bottom-10 lg:right-10 hover:bg-primary-hover hover:-translate-y-1 transition-transform"
+          className="fixed bottom-6 right-6 z-[80] flex h-11 w-11 items-center justify-center rounded-full border border-transparent bg-primary text-white shadow-lg transition-transform hover:-translate-y-1 hover:bg-primary-hover lg:bottom-10 lg:right-10"
           aria-label="Scroll to top"
         >
           <RiArrowUpLine size={24} />

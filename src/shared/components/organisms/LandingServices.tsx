@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { FiChevronRight } from "react-icons/fi";
 import { Card } from "../atoms/card";
-import { Button } from "../atoms/button";
 import { SectionHeader } from "../molecules/SectionHeader";
+import { PublicButton } from "../atoms/PublicButton";
 
 interface Service {
   slug: string;
@@ -50,8 +50,8 @@ const services: Service[] = [
 
 export function LandingServices() {
   return (
-    <section className="bg-bg px-8 py-24 lg:px-16 lg:py-32">
-      <div className="mx-auto max-w-[1280px]">
+    <section className="public-section bg-bg">
+      <div className="public-container-wide">
         <SectionHeader
           eyebrow="Servicos"
           title="Nossos serviços"
@@ -82,11 +82,11 @@ export function LandingServices() {
                     <p className="text-xs font-bold uppercase tracking-[0.16em] text-text-muted line-through">{service.originalPrice}</p>
                     <p className="mt-1 text-2xl font-black tracking-[-0.03em] text-primary">{service.price}</p>
                   </div>
-                  <Button asChild size="icon" variant="outline" className="rounded-full">
+                  <PublicButton asChild tone="outline" size="icon">
                     <Link to={`/servicos/${service.slug}`} aria-label={service.title}>
                       <FiChevronRight />
                     </Link>
-                  </Button>
+                  </PublicButton>
                 </div>
               </div>
             </Card>

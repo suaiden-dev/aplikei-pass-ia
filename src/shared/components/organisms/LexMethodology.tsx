@@ -10,8 +10,8 @@ export function LexMethodology() {
   const steps = Array.isArray(t.steps) ? t.steps : [];
 
   return (
-    <section id="como-funciona" className="bg-bg-subtle px-8 py-24 lg:px-16 lg:py-32">
-      <div className="mx-auto max-w-[1280px]">
+    <section id="como-funciona" className="public-section bg-bg-subtle">
+      <div className="public-container-wide">
         <SectionHeader
           eyebrow="Metodologia"
           title={t.title || "Como funciona nosso processo"}

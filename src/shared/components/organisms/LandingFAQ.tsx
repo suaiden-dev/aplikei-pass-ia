@@ -11,9 +11,9 @@ export function LandingFAQ() {
   const faqItems = t.faq.items;
 
   return (
-    <section className="bg-surface-container-lowest px-8 py-24 lg:px-16 lg:py-32">
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-16 text-center flex flex-col items-center">
+    <section className="public-section bg-surface-container-lowest">
+      <div className="public-container">
+        <div className="mb-16 flex flex-col items-center text-center">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">FAQ</p>
           <h2 className="font-display text-3xl font-bold tracking-[-0.03em] text-text lg:text-5xl text-center">
             {t.faq.title}

@@ -189,11 +189,11 @@
 .lp-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-family: var(--lf-body);
   font-weight: 700;
   font-size: 15px;
-  padding: 12px 22px;
+  padding: 14px 24px;
   border-radius: var(--lr-pill);
   border: 1px solid transparent;
   cursor: pointer;
@@ -230,7 +230,11 @@
   border-color: var(--lline);
 }
 .lp-btn-light:hover { transform: translateY(-2px); box-shadow: var(--lshadow); }
-.lp-btn-lg { padding: 15px 28px; font-size: 16px; }
+.lp-btn-lg {
+  min-height: 56px;
+  padding: 0 28px;
+  font-size: 16px;
+}
 
 .lp-brand {
   display: flex;

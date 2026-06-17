@@ -3,23 +3,23 @@ import { Link } from "react-router-dom";
 import { FiArrowRight } from "react-icons/fi";
 import { MdVerified } from "react-icons/md";
 import { Badge } from "../atoms/badge";
-import { Button } from "../atoms/button";
 import { Card } from "../atoms/card";
 import { useT } from "@app/app/i18n";
 import dashboardPreview from "@app/assets/images/dashboard-preview.png";
+import { PublicButton } from "../atoms/PublicButton";
 
 export function LexHero() {
   const landing = useT("landing") as any;
   const t = landing?.lex || {};
   
   return (
-    <header className="relative overflow-hidden bg-bg px-8 py-16 lg:px-16 lg:py-24">
+    <header className="public-section-tight relative overflow-hidden bg-bg">
       <div className="absolute inset-0 opacity-80">
         <div className="absolute left-0 top-0 h-80 w-80 -translate-x-1/3 -translate-y-1/3 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-[28rem] w-[28rem] translate-x-1/3 translate-y-1/3 rounded-full bg-surface-tint/12 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto grid max-w-[1280px] items-center gap-16 lg:grid-cols-2 lg:gap-24">
+      <div className="public-container-wide relative grid items-center gap-16 lg:grid-cols-2 lg:gap-20">
         <div className="z-10 flex flex-col items-center text-center lg:items-start lg:text-left">
           <Badge variant="default" className="mb-8 border-primary/20 bg-primary/15 text-primary">
             <span className="mr-2 inline-flex h-2 w-2 animate-pulse rounded-full bg-primary" />
@@ -35,15 +35,15 @@ export function LexHero() {
             </p>
 
             <div className="mt-10 flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
-              <Button asChild size="lg" className="w-full sm:w-auto">
+              <PublicButton asChild size="lg" className="w-full sm:w-auto">
                 <Link to="/cadastro">
                   Começar agora
                   <FiArrowRight size={18} />
                 </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+              </PublicButton>
+              <PublicButton asChild tone="outline" size="lg" className="w-full sm:w-auto">
                 <a href="#contato">Falar com um especialista</a>
-              </Button>
+              </PublicButton>
             </div>
           </motion.div>
         </div>

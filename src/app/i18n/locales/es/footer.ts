@@ -1,6 +1,6 @@
 const footer = {
   tagline: "Tecnología de élite para bufetes de abogados y asesorías de visas consulares.",
-  servicesHeader: "Servicios",
+  servicesHeader: "Soluciones",
   platformHeader: "Plataforma",
   legalHeader: "Legal",
   howItWorks: "Quiénes somos",
@@ -19,6 +19,7 @@ const footer = {
   dataIntelligence: "Inteligencia de Datos",
   allRightsReserved: "Todos los derechos reservados.",
   services: "Servicios",
+  solutions: "Soluciones",
   platform: "Plataforma",
 };
 export default footer;

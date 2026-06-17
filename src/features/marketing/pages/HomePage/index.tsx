@@ -3,12 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useLocale } from "@app/app/i18n";
 import { useTheme } from "@shared/hooks/useTheme";
+import { useDemoBooking } from "@shared/components/organisms/DemoBookingModal";
 import { getDefaultRouteForRole } from "@app/app/router/authRedirect";
 import officeTeamImage from "@assets/images/group-business-executives-discussing-laptop-their-des.jpg";
 import heroHomeImage from "@assets/images/herohome.png";
-import shabouryLogo from "@assets/logos/shaboury-cultural-heritage.jpg";
-import pillarCircleLogo from "@assets/logos/pillar-circle-mark.jpg";
-import saverraLogo from "@assets/logos/saverra-real-estate.jpg";
+import wernerLogo from "@assets/logos/Logotipo-Werner-Advocacia.png";
+import marquesLogo from "@assets/logos/MARQUES-ADVOGADOS-.png";
+import msgLogo from "@assets/logos/cropped-logo-MSG-azul.png";
 import overviewVisual from "@assets/landing/solution-overview.svg";
 import financeVisual from "@assets/landing/solution-finance.svg";
 import productsVisual from "@assets/landing/solution-products.svg";
@@ -658,6 +659,7 @@ export default function HomePage() {
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const { lang } = useLocale();
   const { theme } = useTheme();
+  const { openDemoBooking } = useDemoBooking();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -692,13 +694,16 @@ export default function HomePage() {
             </div>
             <div className="lp-hero-cta">
               <Link to="/sign-up" className="lp-btn lp-btn-light lp-btn-lg">{t.hero.ctaPrimary} <ArrowRight /></Link>
+              <button type="button" onClick={openDemoBooking} className="lp-btn lp-btn-primary lp-btn-lg">
+                {t.nav.bookDemo}
+              </button>
               <a href="#lp-automation" className="lp-btn lp-btn-ghost lp-btn-lg">{t.hero.ctaSecondary}</a>
             </div>
             <div className="lp-hero-proof">
               <div className="lp-hero-proof-avatars" aria-hidden="true">
-                <img src={shabouryLogo} alt="" className="av" />
-                <img src={pillarCircleLogo} alt="" className="av" />
-                <img src={saverraLogo} alt="" className="av" />
+                <img src={wernerLogo} alt="" className="av" />
+                <img src={marquesLogo} alt="" className="av" />
+                <img src={msgLogo} alt="" className="av" />
                 <span className="plus">+</span>
               </div>
               <div className="lp-hero-proof-copy">
@@ -972,14 +977,19 @@ export default function HomePage() {
               <div className="lp-cta-copy">
                 <img src="/logo-dark.png" alt="Aplikei" className="lp-cta-logo" />
                 <div className="lp-hero-proof-avatars" aria-hidden="true">
-                  <img src={shabouryLogo} alt="" className="av" />
-                  <img src={pillarCircleLogo} alt="" className="av" />
-                  <img src={saverraLogo} alt="" className="av" />
+                  <img src={wernerLogo} alt="" className="av" />
+                  <img src={marquesLogo} alt="" className="av" />
+                  <img src={msgLogo} alt="" className="av" />
                   <span className="plus">125+</span>
                 </div>
                 <h2 className="lp-h2">{t.cta.title}</h2>
                 <p className="lp-lead">{t.cta.desc}</p>
-                <Link to="/sign-up" className="lp-btn lp-btn-light lp-btn-lg">{t.cta.btn} <ArrowRight /></Link>
+                <div className="flex flex-wrap gap-3">
+                  <button type="button" onClick={openDemoBooking} className="lp-btn lp-btn-primary lp-btn-lg">
+                    {t.nav.bookDemo}
+                  </button>
+                  <Link to="/sign-up" className="lp-btn lp-btn-light lp-btn-lg">{t.cta.btn} <ArrowRight /></Link>
+                </div>
               </div>
               <div className="lp-cta-mock">
                 <div className="lp-cta-monitor">

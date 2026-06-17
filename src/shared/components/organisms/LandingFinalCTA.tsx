@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useT } from "@app/app/i18n";
+import { PublicButton } from "../atoms/PublicButton";
 
 export function LandingFinalCTA() {
   const t = useT("landing");
@@ -8,8 +9,8 @@ export function LandingFinalCTA() {
   if (!t.finalCta) return null;
 
   return (
-    <section className="py-12">
-      <div className="max-w-5xl mx-auto px-6">
+    <section className="public-section-tight">
+      <div className="public-container">
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -30,12 +31,11 @@ export function LandingFinalCTA() {
               {t.finalCta.description}
             </p>
             <div className="pt-4">
-              <Link 
-                to="/contato"
-                className="inline-block px-12 py-6 bg-white text-primary-container rounded-xl font-label-md text-lg hover:bg-surface-container transition-all shadow-xl active:scale-95"
-              >
-                {t.finalCta.button}
-              </Link>
+              <PublicButton asChild tone="inverse" size="lg">
+                <Link to="/contato">
+                  {t.finalCta.button}
+                </Link>
+              </PublicButton>
             </div>
           </div>
         </motion.div>

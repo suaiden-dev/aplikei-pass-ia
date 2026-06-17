@@ -2,9 +2,11 @@ const nav = {
   home: "Início",
   howItWorks: "Quem somos",
   services: "Serviços",
+  solutions: "Soluções",
   contact: "Fale Conosco",
 
   login: "Entrar",
+  bookDemo: "Agendar demo",
   trackMyCase: "Acompanhar Caso",
   getStarted: "Começar",
   dashboard: "Painel",

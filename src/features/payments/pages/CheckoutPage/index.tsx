@@ -463,7 +463,7 @@ export default function CheckoutPage() {
     password: "",
     parcelowCpf: "",
     acceptedTerms: false,
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [user?.id]);
 
   const formik = useFormik({
@@ -1463,6 +1463,8 @@ export default function CheckoutPage() {
                         <a
                           href={`/legal/terms?role=customer&returnTo=${encodeURIComponent(termsReturnTo)}`}
                           className="text-primary hover:underline font-bold"
+                          target="_blank"
+                          rel="noreferrer"
                         >
                           {t.userData.termsLink || "Termos de Uso"}
                         </a>{" "}
@@ -1470,6 +1472,8 @@ export default function CheckoutPage() {
                         <a
                           href="/legal/privacy?role=customer"
                           className="text-primary hover:underline font-bold"
+                          target="_blank"
+                          rel="noreferrer"
                         >
                           {t.userData.privacyLink || "Política de Privacidade"}
                         </a>

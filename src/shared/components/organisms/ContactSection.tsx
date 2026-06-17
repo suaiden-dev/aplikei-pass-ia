@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
 import { useLocale, useT } from "@app/app/i18n";
 import { supabase } from "@shared/lib/supabase";
+import { PublicButton } from "@shared/components/atoms/PublicButton";
 import { toast } from "sonner";
 
 const formCopy = {
@@ -143,8 +144,8 @@ export function ContactSection() {
   };
 
   return (
-    <section id="contato" className="bg-bg-subtle px-6 py-20 sm:px-8 lg:px-16 lg:py-28">
-      <div className="mx-auto grid max-w-[1200px] items-start gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16">
+    <section id="contato" className="public-section bg-bg-subtle">
+      <div className="public-container grid items-start gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{copy.kicker}</p>
           <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-text lg:text-5xl">{legacyCta?.title ?? copy.title}</h2>
@@ -218,14 +219,17 @@ export function ContactSection() {
                 className={`${inputClass} min-h-40 resize-y`}
               />
             </label>
-            <button
+            <PublicButton
+              asChild={false}
               type="submit"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 font-bold text-on-primary shadow-lg shadow-primary/20 transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
+              tone="solid"
+              size="lg"
+              className="mt-1 w-full disabled:cursor-not-allowed disabled:opacity-70"
               disabled={isSending}
             >
               {isSending ? copy.sending : legacyCta?.button ?? copy.button}
               <ArrowRight className="h-4 w-4" />
-            </button>
+            </PublicButton>
           </form>
         </motion.div>
       </div>

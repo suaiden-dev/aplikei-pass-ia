@@ -97,6 +97,39 @@
 
   /* Gutter spacing */
   .gap-gutter { gap: 1.5rem; }
+
+  /* Public site layout rhythm */
+  .public-page {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .public-container {
+    width: min(100%, 1200px);
+    margin-inline: auto;
+    padding-inline: clamp(1.5rem, 4vw, 4rem);
+  }
+
+  .public-container-wide {
+    width: min(100%, 1280px);
+    margin-inline: auto;
+    padding-inline: clamp(1.5rem, 4vw, 4rem);
+  }
+
+  .public-section {
+    padding-block: clamp(4.5rem, 7vw, 7rem);
+  }
+
+  .public-section-tight {
+    padding-block: clamp(3.5rem, 5vw, 5.5rem);
+  }
+
+  .public-stack {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 2vw, 1.5rem);
+  }
 }
 
 :root {

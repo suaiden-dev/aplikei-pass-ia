@@ -1179,6 +1179,8 @@ export default function OfficeCheckoutPage() {
                                                     <a
                                                         href={`/legal/terms?role=customer&returnTo=${encodeURIComponent(termsReturnTo)}`}
                                                         className="text-primary hover:underline font-bold"
+                                                        target="_blank"
+                                                        rel="noreferrer"
                                                     >
                                                         {t.userData.termsLink || "Termos de Uso"}
                                                     </a>{" "}
@@ -1186,6 +1188,8 @@ export default function OfficeCheckoutPage() {
                                                     <a
                                                         href="/legal/privacy?role=customer"
                                                         className="text-primary hover:underline font-bold"
+                                                        target="_blank"
+                                                        rel="noreferrer"
                                                     >
                                                         {t.userData.privacyLink || "Política de Privacidade"}
                                                     </a>

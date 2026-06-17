@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, CalendarCheck2, Mail, MessageSquareText, ShieldCheck } from "lucide-react";
 import { ContactSection } from "@shared/components/organisms/ContactSection";
 import { useLocale, useT } from "@app/app/i18n";
+import { PublicButton } from "@shared/components/atoms/PublicButton";
 
 const contactCopy = {
   pt: {
@@ -66,10 +67,10 @@ export default function ContactPage() {
   const copy = contactCopy[lang as keyof typeof contactCopy] ?? contactCopy.pt;
 
   return (
-    <div className="bg-bg text-text">
-      <section className="relative overflow-hidden bg-bg-subtle px-6 py-16 sm:px-8 lg:px-16 lg:py-24">
+    <div className="public-page text-text">
+      <section className="public-section relative overflow-hidden bg-bg-subtle">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(45,99,255,0.18),transparent_34%),radial-gradient(circle_at_12%_0%,rgba(52,211,238,0.12),transparent_30%)]" />
-        <div className="relative mx-auto grid max-w-[1200px] items-center gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
+        <div className="public-container relative grid items-center gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -84,13 +85,17 @@ export default function ContactPage() {
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-text-muted">{copy.lead}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href="#contato" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-bold text-on-primary shadow-lg shadow-primary/20 transition hover:bg-primary-hover">
+              <PublicButton asChild tone="solid">
+                <a href="#contato">
                 {copy.primaryCta}
                 <ArrowRight className="h-4 w-4" />
               </a>
-              <a href="#canais" className="inline-flex items-center rounded-full border border-border bg-card px-6 py-3 font-bold text-text transition hover:border-primary/30">
+              </PublicButton>
+              <PublicButton asChild tone="outline">
+                <a href="#canais">
                 {copy.secondaryCta}
               </a>
+              </PublicButton>
             </div>
           </motion.div>
 
@@ -125,8 +130,8 @@ export default function ContactPage() {
 
       <ContactSection />
 
-      <section className="px-6 py-16 sm:px-8 lg:px-16">
-        <div className="mx-auto grid max-w-[1200px] gap-4 md:grid-cols-3">
+      <section className="public-section-tight">
+        <div className="public-container grid gap-4 md:grid-cols-3">
           {copy.strip.map((item) => (
             <div key={item.label} className="rounded-[20px] border border-border bg-card p-6 shadow-sm">
               <span className="block text-xs font-black uppercase tracking-[0.16em] text-text-muted">{item.label}</span>

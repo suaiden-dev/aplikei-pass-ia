@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useLocale, useT } from "@app/app/i18n";
 import officeTeamImage from "@assets/images/group-business-executives-discussing-laptop-their-des.jpg";
+import { PublicButton } from "@shared/components/atoms/PublicButton";
 
 type Pillar = {
   title: string;
@@ -84,10 +85,10 @@ export default function QuemSomosPage() {
   ];
 
   return (
-    <div className="bg-bg text-text">
-      <section className="relative overflow-hidden bg-bg-subtle px-6 py-16 sm:px-8 lg:px-16 lg:py-24">
+    <div className="public-page text-text">
+      <section className="public-section relative overflow-hidden bg-bg-subtle">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(45,99,255,0.18),transparent_34%),radial-gradient(circle_at_12%_0%,rgba(52,211,238,0.12),transparent_30%)]" />
-        <div className="relative mx-auto grid max-w-[1200px] items-center gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
+        <div className="public-container relative grid items-center gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -102,13 +103,17 @@ export default function QuemSomosPage() {
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-text-muted">{p?.hero?.description}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/contato" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-bold text-on-primary shadow-lg shadow-primary/20 transition hover:bg-primary-hover">
+              <PublicButton asChild tone="solid">
+                <Link to="/contato">
                 {copy.primaryCta}
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <a href="#pilares" className="inline-flex items-center rounded-full border border-border bg-card px-6 py-3 font-bold text-text transition hover:border-primary/30">
+              </PublicButton>
+              <PublicButton asChild tone="outline">
+                <a href="#pilares">
                 {copy.secondaryCta}
               </a>
+              </PublicButton>
             </div>
           </motion.div>
 
@@ -139,8 +144,8 @@ export default function QuemSomosPage() {
         </div>
       </section>
 
-      <section className="bg-bg-subtle px-6 py-14 sm:px-8 lg:px-16">
-        <div className="mx-auto max-w-[1200px]">
+      <section className="public-section-tight bg-bg-subtle">
+        <div className="public-container">
           <p className="mb-5 text-center text-xs font-black uppercase tracking-[0.16em] text-primary">{copy.metricsKicker}</p>
           <div className="grid gap-4 md:grid-cols-3">
             {stats.map((stat) => (
@@ -153,8 +158,8 @@ export default function QuemSomosPage() {
         </div>
       </section>
 
-      <section className="px-6 py-20 sm:px-8 lg:px-16 lg:py-28">
-        <div className="mx-auto grid max-w-[1200px] items-start gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
+      <section className="public-section">
+        <div className="public-container grid items-start gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{copy.missionKicker}</p>
             <h2 className="mt-4 font-display text-4xl font-bold tracking-tight lg:text-5xl">{p?.history?.title}</h2>
@@ -179,8 +184,8 @@ export default function QuemSomosPage() {
         </div>
       </section>
 
-      <section id="pilares" className="bg-bg-subtle px-6 py-20 sm:px-8 lg:px-16 lg:py-28">
-        <div className="mx-auto max-w-[1200px]">
+      <section id="pilares" className="public-section bg-bg-subtle">
+        <div className="public-container">
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{copy.pillarsKicker}</p>
             <h2 className="mt-4 font-display text-4xl font-bold tracking-tight lg:text-5xl">{p?.pillars?.title}</h2>
@@ -210,14 +215,16 @@ export default function QuemSomosPage() {
         </div>
       </section>
 
-      <section className="px-6 py-20 sm:px-8 lg:px-16 lg:py-28">
-        <div className="mx-auto max-w-[1200px] rounded-[26px] bg-primary bg-[radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.18),transparent_48%)] p-10 text-center text-on-primary shadow-2xl shadow-primary/25 lg:p-16">
+      <section className="public-section">
+        <div className="public-container rounded-[26px] bg-primary bg-[radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.18),transparent_48%)] p-10 text-center text-on-primary shadow-2xl shadow-primary/25 lg:p-16">
           <h2 className="font-display text-4xl font-bold tracking-tight lg:text-5xl">{p?.cta?.title}</h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-on-primary/80">{p?.cta?.subtitle}</p>
-          <Link to="/contato" className="mt-8 inline-flex items-center gap-2 rounded-full bg-card px-6 py-3 font-bold text-primary shadow-lg transition hover:-translate-y-0.5">
+          <PublicButton asChild tone="inverse" className="mt-8">
+            <Link to="/contato">
             {p?.cta?.button}
             <ArrowRight className="h-4 w-4" />
           </Link>
+          </PublicButton>
         </div>
       </section>
     </div>

@@ -9,8 +9,8 @@ export function LandingHowItWorks() {
   const steps = t.steps;
 
   return (
-    <section className="bg-bg px-8 py-24 lg:px-16 lg:py-32">
-      <div className="mx-auto max-w-[1280px]">
+    <section className="public-section bg-bg">
+      <div className="public-container-wide">
         <SectionHeader
           eyebrow={t.subtitle}
           title={t.title}

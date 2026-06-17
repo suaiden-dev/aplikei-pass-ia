@@ -1728,7 +1728,7 @@ const landingTemplateHtml = String.raw`
                 <nav class="nav">
                     <a href="/" class="nav-link">Início</a>
                     <a href="/quem-somos" class="nav-link">Quem Somos</a>
-                    <a href="/servicos" class="nav-link">Nossos Serviços</a>
+                    <a href="/solucoes/fluxo-b1b2" class="nav-link">Nossas Soluções</a>
                     <a href="/contato" class="nav-link">Fale Conosco</a>
                 </nav>
                 <div class="header-actions">

@@ -58,7 +58,7 @@ export default function MaintenancePage() {
       <div className="absolute left-[-10%] top-[-10%] h-[42%] w-[42%] rounded-full bg-primary/10 blur-[120px]" />
       <div className="absolute bottom-[-12%] right-[-8%] h-[42%] w-[42%] rounded-full bg-primary/8 blur-[120px]" />
 
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-16">
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-16 sm:px-8 lg:px-16">
         <AnimatePresence mode="wait">
           <motion.div
             key={lang}
@@ -66,7 +66,7 @@ export default function MaintenancePage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.35 }}
-            className="w-full max-w-3xl text-center"
+            className="public-container-wide w-full text-center"
           >
             <div className="mx-auto mb-8 inline-flex items-center gap-3 rounded-full border border-border/70 bg-card/80 px-4 py-2 shadow-lg backdrop-blur-xl">
               <AppLogo className="h-10 w-auto object-contain" />
@@ -92,7 +92,7 @@ export default function MaintenancePage() {
               </div>
             </div>
 
-            <div className="mt-12 grid gap-4 md:grid-cols-3">
+            <div className="mt-12 grid gap-4 md:grid-cols-3 lg:gap-6">
               {t.features.map((item, index) => (
                 <motion.div
                   key={`${lang}-${index}`}

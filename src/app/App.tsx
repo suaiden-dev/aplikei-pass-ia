@@ -4,6 +4,7 @@ import { ScrollToTop } from "@shared/components/organisms/ScrollToTop";
 import { AdminDashboardLayout } from "@app/app/layouts/AdminDashboardLayout";
 import { AuthLayout } from "@app/app/layouts/AuthLayout";
 import { CustomerLayout } from "@app/app/layouts/CustomerLayout";
+import { LightOnlyLayout } from "@app/app/layouts/LightOnlyLayout";
 import { MasterDashboardLayout } from "@app/app/layouts/MasterDashboardLayout";
 import { PublicLayout } from "@app/app/layouts/PublicLayout";
 import { SellerDashboardLayout } from "@app/app/layouts/SellerDashboardLayout";
@@ -95,14 +96,18 @@ export default function App() {
             ))}
           </Route>
 
-          {unprotectedStandaloneRoutes.map((route) => (
-            <Route key={route.path} path={route.path} element={<route.component />} />
-          ))}
-
-          <Route element={<ProtectedRoute />}>
-            {protectedStandaloneRoutes.map((route) => (
+          <Route element={<LightOnlyLayout />}>
+            {unprotectedStandaloneRoutes.map((route) => (
               <Route key={route.path} path={route.path} element={<route.component />} />
             ))}
+          </Route>
+
+          <Route element={<ProtectedRoute />}>
+            <Route element={<LightOnlyLayout />}>
+              {protectedStandaloneRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={<route.component />} />
+              ))}
+            </Route>
             <Route element={<CustomerLayout />}>
               {customerRoutes.map((route) => (
                 <Route key={route.path} path={route.path} element={<route.component />} />

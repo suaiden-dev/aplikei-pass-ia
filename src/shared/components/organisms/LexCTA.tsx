@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FiArrowRight } from "react-icons/fi";
-import { Button } from "../atoms/button";
 import { useT } from "@app/app/i18n";
+import { PublicButton } from "../atoms/PublicButton";
 
 export function LexCTA() {
   const landing = useT("landing");
@@ -23,12 +23,12 @@ export function LexCTA() {
             {t.description}
           </p>
           <div className="mt-10 flex justify-center">
-            <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90">
+            <PublicButton asChild tone="inverse" size="lg">
               <Link to="/contato">
                 {t.button}
                 <FiArrowRight />
               </Link>
-            </Button>
+            </PublicButton>
           </div>
         </motion.div>
       </div>

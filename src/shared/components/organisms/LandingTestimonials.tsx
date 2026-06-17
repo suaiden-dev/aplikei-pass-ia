@@ -14,13 +14,13 @@ export const TestimonialsSection = ({ avatars }: TestimonialsSectionProps) => {
   if (!testimonials) return null;
 
   return (
-    <section className="relative overflow-hidden bg-[#090e1d] px-8 py-24 lg:px-16 lg:py-32">
+    <section className="public-section relative overflow-hidden bg-[#090e1d]">
       <div className="absolute inset-0 opacity-90">
         <div className="absolute left-0 top-0 h-80 w-80 -translate-x-1/3 -translate-y-1/3 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-[28rem] w-[28rem] translate-x-1/3 translate-y-1/3 rounded-full bg-info/10 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl">
+      <div className="public-container-wide relative">
         <div className="mb-16 text-center">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">{t.testimonials.title}</p>
           <h2 className="font-display text-3xl font-bold tracking-[-0.03em] text-white lg:text-5xl">
@@ -31,7 +31,7 @@ export const TestimonialsSection = ({ avatars }: TestimonialsSectionProps) => {
           </p>
         </div>
 
-        <div className="grid gap-12 md:grid-cols-2 relative max-w-5xl mx-auto">
+        <div className="relative mx-auto grid max-w-5xl gap-8 md:grid-cols-2 lg:gap-12">
           {testimonials.map((item: { quote: string, author: string, role?: string, image?: string }, idx: number) => (
             <motion.div
               key={idx}
