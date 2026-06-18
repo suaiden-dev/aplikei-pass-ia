@@ -1,5 +1,5 @@
 import { Link, Navigate, useParams } from "react-router-dom";
-import { Activity, ArrowRight, Check, FolderCheck, LayoutGrid, Sparkles, X } from "lucide-react";
+import { ArrowRight, Check, Sparkles, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLocale } from "@app/app/i18n";
 import { PublicButton } from "@shared/components/atoms/PublicButton";
@@ -393,7 +393,6 @@ const ENHANCED_BLOCKS: Partial<
   ],
 };
 
-const CAPABILITY_ICONS = [LayoutGrid, Activity, FolderCheck] as const;
 
 const FIRM_LOGOS = [
   { name: "Werner Advocacia", src: wernerLogo },
@@ -719,11 +718,15 @@ export default function SolucoesPage() {
     return <Navigate to={`/solucoes/${defaultSolutionSlug}`} replace />;
   }
 
+  const FLUXO_SHARED_SLUGS = ["fluxo-f1", "fluxo-extensao-status", "fluxo-troca-status"] as const;
+
   const showcaseImages =
     current.slug === "fluxo-b1b2"
       ? B1B2_SHOWCASE_IMAGES
       : current.slug === "gerenciar-processos"
         ? GERENCIAR_PROCESSOS_IMAGES
+      : (FLUXO_SHARED_SLUGS as readonly string[]).includes(current.slug)
+        ? [current.image, b1b2AcompanhamentoImage, b1b2OrganizacaoImage]
       : [current.image, current.image, current.image];
 
   const showcaseBlocks = getShowcaseBlocks(current.slug, lang);
@@ -773,15 +776,12 @@ export default function SolucoesPage() {
               transition={{ duration: 0.6, delay: 0.05 }}
               className="relative"
             >
-              <div className="relative overflow-hidden rounded-[32px] border border-border/70 bg-card shadow-[0_30px_100px_rgba(15,23,42,0.12)]">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_65%_25%,rgba(45,99,255,0.18),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0))]" />
-                  <img
-                    src={current.image}
-                    alt={current.imageAlt[lang] ?? current.imageAlt.pt}
-                    className="relative aspect-[16/10] w-full object-cover"
-                  />
-                </div>
+              <div className="overflow-hidden rounded-[32px] border border-border/70 bg-card shadow-[0_30px_100px_rgba(15,23,42,0.12)]">
+                <img
+                  src={current.image}
+                  alt={current.imageAlt[lang] ?? current.imageAlt.pt}
+                  className="aspect-[16/10] w-full object-cover"
+                />
               </div>
             </motion.div>
           </div>
@@ -867,12 +867,11 @@ export default function SolucoesPage() {
             <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
               <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
                 <div className="relative order-last lg:order-first">
-                  <div className="relative overflow-hidden rounded-[32px] border border-border/70 bg-card shadow-[0_30px_100px_rgba(15,23,42,0.12)]">
-                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_35%_25%,rgba(45,99,255,0.16),transparent_30%)]" />
+                  <div className="overflow-hidden rounded-[32px] border border-border/70 bg-card shadow-[0_20px_60px_rgba(15,23,42,0.10)]">
                     <img
                       src={current.image}
                       alt={current.imageAlt[lang] ?? current.imageAlt.pt}
-                      className="relative aspect-[16/11] w-full object-cover"
+                      className="aspect-[16/11] w-full object-cover"
                     />
                   </div>
                 </div>
@@ -910,43 +909,42 @@ export default function SolucoesPage() {
             </div>
           </section>
 
-          <section className="public-section border-y border-border/60 bg-bg-subtle">
-            <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
-              <div className="mx-auto max-w-3xl text-center">
-                <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
-                  {ec.capabilitiesTag}
-                </span>
-                <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
-                  {ec.capabilitiesTitle}
-                </h2>
-                <p className="mt-4 text-lg leading-relaxed text-text-muted">
-                  {ec.capabilitiesLead}
-                </p>
+          {showcaseBlocks.map((block, index) => (
+            <section key={block.title} className="public-section">
+              <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
+                <div className={`flex flex-col gap-12 lg:items-center lg:gap-20 ${index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"}`}>
+                  <div className="flex-1">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
+                      {ec.capabilitiesTag}
+                    </span>
+                    <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
+                      {block.title}
+                    </h2>
+                    <p className="mt-4 text-lg leading-relaxed text-text-muted">
+                      {block.text}
+                    </p>
+                    <div className="mt-8">
+                      <PublicButton asChild tone="solid">
+                        <Link to="/cadastro">
+                          {copy.signup}
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </PublicButton>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="overflow-hidden rounded-[24px] border border-border/70 bg-card shadow-[0_20px_60px_rgba(15,23,42,0.10)]">
+                      <img
+                        src={showcaseImages[index] ?? current.image}
+                        alt={current.imageAlt[lang] ?? current.imageAlt.pt}
+                        className="h-auto w-full object-cover"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              <div className="mx-auto mt-14 grid max-w-[1120px] gap-6 md:grid-cols-3">
-                {showcaseBlocks.map((block, index) => {
-                  const Icon = CAPABILITY_ICONS[index % CAPABILITY_ICONS.length];
-                  return (
-                    <article
-                      key={block.title}
-                      className="flex flex-col rounded-3xl border border-border/70 bg-card p-8 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(15,23,42,0.10)]"
-                    >
-                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                        <Icon className="h-6 w-6" />
-                      </span>
-                      <h3 className="mt-6 font-display text-xl font-black tracking-tight text-text">
-                        {block.title}
-                      </h3>
-                      <p className="mt-3 text-base leading-relaxed text-text-muted">
-                        {block.text}
-                      </p>
-                    </article>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
+            </section>
+          ))}
 
           <section className="public-section">
             <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
@@ -988,74 +986,82 @@ export default function SolucoesPage() {
           </section>
         </>
       ) : (
-        <section className="public-section">
-          <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
-            <div className="mx-auto max-w-4xl text-center">
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
-                {copy.tag}
-              </span>
-              <h2 className="mt-6 font-display text-4xl font-black tracking-tight text-text sm:text-5xl lg:text-6xl">
-                {copy.sectionTitle}
-              </h2>
-              <p className="mt-4 text-lg leading-relaxed text-text-muted">
-                {copy.sectionLead}
-              </p>
-            </div>
-
-            <div className="mx-auto mt-14 grid max-w-[1120px] gap-8">
-              {showcaseBlocks.map((block, index) => (
-                <article
-                  key={block.title}
-                  className="overflow-hidden"
-                >
-                  <div className="grid gap-8 xl:grid-cols-[0.95fr_1.05fr] xl:items-stretch xl:gap-10">
-                    <div className="px-0 pt-0 xl:pr-4">
-                      <h3 className="mt-0 max-w-3xl font-display text-3xl font-black tracking-[-0.04em] text-text sm:text-4xl lg:text-5xl">
-                        {block.title}
-                      </h3>
-                      <p className="mt-4 max-w-3xl text-base leading-relaxed text-text-muted sm:text-lg">
-                        {block.text}
-                      </p>
+        <>
+          {showcaseBlocks.map((block, index) => (
+            <section key={block.title} className="public-section">
+              <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
+                <div className={`flex flex-col gap-12 lg:items-center lg:gap-20 ${index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"}`}>
+                  <div className="flex-1">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
+                      {copy.tag}
+                    </span>
+                    <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
+                      {block.title}
+                    </h2>
+                    <p className="mt-4 text-lg leading-relaxed text-text-muted">
+                      {block.text}
+                    </p>
+                    <div className="mt-8">
+                      <PublicButton asChild tone="solid">
+                        <Link to="/cadastro">
+                          {copy.signup}
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </PublicButton>
                     </div>
-
-                    <div className="relative w-full overflow-hidden md:max-w-[560px] md:justify-self-end xl:max-w-none">
+                  </div>
+                  <div className="flex-1">
+                    <div className="overflow-hidden rounded-[24px] border border-border/70 bg-card shadow-[0_20px_60px_rgba(15,23,42,0.10)]">
                       <img
                         src={showcaseImages[index] ?? current.image}
                         alt={current.imageAlt[lang] ?? current.imageAlt.pt}
-                        className="h-auto w-full object-cover object-center"
+                        className="h-auto w-full object-cover"
                       />
                     </div>
                   </div>
-                </article>
-              ))}
-            </div>
-
-            <div className="mx-auto mt-14 max-w-4xl text-center">
-              <h3 className="font-display text-3xl font-black tracking-tight text-text sm:text-4xl">
-                {lang === "en"
-                  ? "Create your account and start organizing the operation"
-                  : lang === "es"
-                    ? "Crea tu cuenta y empieza a organizar la operación"
-                    : "Crie sua conta e comece a organizar a operação"}
-              </h3>
-              <p className="mt-4 text-base leading-relaxed text-text-muted sm:text-lg">
-                {lang === "en"
-                  ? "Sign up to activate the solution and move your team into a clearer workflow."
-                  : lang === "es"
-                    ? "Regístrate para activar la solución y llevar a tu equipo a un flujo más claro."
-                    : "Cadastre-se para ativar a solução e levar seu time para um fluxo mais claro."}
-              </p>
-              <div className="mt-8 flex justify-center">
-                <PublicButton asChild tone="solid" size="lg">
-                  <Link to="/cadastro">
-                    {copy.signup}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </PublicButton>
+                </div>
+              </div>
+            </section>
+          ))}
+          <section className="public-section">
+            <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
+              <div className="relative overflow-hidden rounded-[36px] border border-border/70 bg-card px-8 py-16 text-center shadow-[0_30px_100px_rgba(15,23,42,0.12)] sm:px-16">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(45,99,255,0.14),transparent_45%)]" />
+                <div className="relative mx-auto max-w-3xl">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {copy.tag}
+                  </span>
+                  <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl">
+                    {lang === "en"
+                      ? "Create your account and start organizing the operation"
+                      : lang === "es"
+                        ? "Crea tu cuenta y empieza a organizar la operación"
+                        : "Crie sua conta e comece a organizar a operação"}
+                  </h2>
+                  <p className="mt-4 text-base leading-relaxed text-text-muted sm:text-lg">
+                    {lang === "en"
+                      ? "Sign up to activate the solution and move your team into a clearer workflow."
+                      : lang === "es"
+                        ? "Regístrate para activar la solución y llevar a tu equipo a un flujo más claro."
+                        : "Cadastre-se para ativar a solução e levar seu time para um fluxo mais claro."}
+                  </p>
+                  <div className="mt-8 flex flex-wrap justify-center gap-4">
+                    <PublicButton asChild tone="solid" size="lg">
+                      <Link to="/cadastro">
+                        {copy.signup}
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </PublicButton>
+                    <PublicButton asChild tone="outline" size="lg">
+                      <Link to="/contato">{copy.cta}</Link>
+                    </PublicButton>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </>
       )}
     </div>
   );
