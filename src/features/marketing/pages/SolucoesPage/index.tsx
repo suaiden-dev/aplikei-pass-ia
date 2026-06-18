@@ -1,8 +1,7 @@
 import { Link, Navigate, useParams } from "react-router-dom";
-import { ArrowRight, Check, ChevronRight, Sparkles } from "lucide-react";
+import { Activity, ArrowRight, Check, FolderCheck, LayoutGrid, Sparkles, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLocale } from "@app/app/i18n";
-import { cn } from "@shared/utils/cn";
 import { PublicButton } from "@shared/components/atoms/PublicButton";
 import wernerLogo from "@assets/logos/Logotipo-Werner-Advocacia.png";
 import logoHorizontal from "@assets/logos/logo-horizontal-CyOfyqfY.png";
@@ -11,11 +10,15 @@ import logotipoLogo from "@assets/logos/cropped-LOGOTIPO-Logotipo.webp";
 import msgLogo from "@assets/logos/cropped-logo-MSG-azul.png";
 import genericLogo from "@assets/logos/4085d7be-8277-487c-af1e-7190ed407c7f-e1729658650101.png";
 import mattosLogo from "@assets/logos/Logo-03-1024x818.png";
+import gerenciarProcessos1 from "@assets/solutions/gerenciar-processos-1.png";
+import gerenciarProcessos2 from "@assets/solutions/gerenciar-processos-2.png";
+import gerenciarProcessos3 from "@assets/solutions/gerenciar-processos-3.png";
+import b1b2ProcessoImage from "@assets/solutions/b1b2-processo-simplificado.png";
+import b1b2AcompanhamentoImage from "@assets/solutions/b1b2-acompanhamento-inteligente.png";
+import b1b2OrganizacaoImage from "@assets/solutions/b1b2-mais-organizacao.png";
 import {
   defaultSolutionSlug,
   getSolutionBySlug,
-  getSolutionsByGroup,
-  solutionMenuGroups,
 } from "@shared/data/solutions";
 
 const pageCopy = {
@@ -23,33 +26,374 @@ const pageCopy = {
     tag: "Soluções",
     title: "Uma solução por página, com foco total no que importa.",
     lead:
-      "Cada página aprofunda uma solução específica, com imagem dedicada, benefícios claros e navegação lateral para as outras ofertas.",
-    menuTitle: "Menu de soluções",
-    menuLead: "Escolha uma solução para abrir a página correspondente.",
+      "Cada página aprofunda uma solução específica, com blocos editoriais abaixo do hero, imagens dedicadas e benefícios claros.",
     cta: "Falar com especialista",
-    back: "Ver todas as soluções",
+    signup: "Criar conta",
+    sectionTitle: "Uma operação mais clara, em uma página com foco total.",
+    sectionLead:
+      "A solução concentra as informações essenciais em um fluxo limpo, com a imagem certa, leitura rápida e um próximo passo direto para cadastro.",
+    blocks: [
+      {
+        title: "Visão geral",
+        text: "Entenda a proposta da solução em poucos segundos, com o contexto que importa no topo e a leitura visual logo abaixo.",
+      },
+      {
+        title: "Como funciona",
+        text: "Veja a operação em um layout mais editorial, com explicação curta e imagem grande para dar clareza ao conteúdo.",
+      },
+      {
+        title: "Próximo passo",
+        text: "Depois de entender a solução, siga diretamente para o cadastro e mantenha o fluxo simples para o usuário.",
+      },
+    ],
   },
   en: {
     tag: "Solutions",
     title: "One solution per page, with full focus on what matters.",
     lead:
-      "Each page goes deeper into a specific solution, with a dedicated image, clear benefits and a right-side menu for the other offers.",
-    menuTitle: "Solutions menu",
-    menuLead: "Choose a solution to open its dedicated page.",
+      "Each page goes deeper into a specific solution, with editorial blocks below the hero, dedicated images and clear benefits.",
     cta: "Talk to an expert",
-    back: "View all solutions",
+    signup: "Create account",
+    sectionTitle: "A clearer operation, in a page with full focus.",
+    sectionLead:
+      "The solution brings the essential information into a clean flow, with the right image, quick reading and a direct next step to sign up.",
+    blocks: [
+      {
+        title: "Overview",
+        text: "Understand the solution at a glance, with the key context up top and the visual reading right below it.",
+      },
+      {
+        title: "How it works",
+        text: "See the operation in a more editorial layout, with short copy and a large image that gives the content room.",
+      },
+      {
+        title: "Next step",
+        text: "After understanding the solution, move straight to sign up and keep the flow simple for the user.",
+      },
+    ],
   },
   es: {
     tag: "Soluciones",
     title: "Una solución por página, con foco total en lo importante.",
     lead:
-      "Cada página profundiza en una solución específica, con una imagen dedicada, beneficios claros y un menú lateral para las demás ofertas.",
-    menuTitle: "Menú de soluciones",
-    menuLead: "Elija una solución para abrir su página dedicada.",
+      "Cada página profundiza en una solución específica, con bloques editoriales debajo del hero, imágenes dedicadas y beneficios claros.",
     cta: "Hablar con especialista",
-    back: "Ver todas las soluciones",
+    signup: "Crear cuenta",
+    sectionTitle: "Una operación más clara, en una página con foco total.",
+    sectionLead:
+      "La solución concentra la información esencial en un flujo limpio, con la imagen correcta, lectura rápida y un siguiente paso directo para registrarse.",
+    blocks: [
+      {
+        title: "Visión general",
+        text: "Entienda la propuesta de la solución en pocos segundos, con el contexto importante arriba y la lectura visual debajo.",
+      },
+      {
+        title: "Cómo funciona",
+        text: "Vea la operación en un layout más editorial, con texto breve e imagen grande para dar espacio al contenido.",
+      },
+      {
+        title: "Siguiente paso",
+        text: "Después de entender la solución, siga directamente al registro y mantenga el flujo simple para el usuario.",
+      },
+    ],
+  },
+  } as const;
+
+const enhancedCopy = {
+  pt: {
+    compareTag: "Por que mudar",
+    compareTitle: "Da operação dispersa para um fluxo com foco total.",
+    compareLead:
+      "Veja a diferença entre operar no improviso e operar com a Aplikei organizando cada etapa.",
+    beforeLabel: "Sem a Aplikei",
+    beforeItems: [
+      "Informações espalhadas em planilhas, e-mails e mensagens.",
+      "Retrabalho e perda de histórico a cada novo caso.",
+      "Falta de visão clara do que está em andamento.",
+    ],
+    afterLabel: "Com a Aplikei",
+    afterItems: [
+      "Tudo centralizado em uma única operação organizada.",
+      "Histórico, status e responsáveis sempre visíveis.",
+      "Fluxo padronizado que o time segue sem improviso.",
+    ],
+    showcaseTitle: "O que você organiza nesta solução",
+    capabilitiesTag: "Recursos",
+    capabilitiesTitle: "Tudo o que essa solução entrega",
+    capabilitiesLead:
+      "Recursos pensados para tirar a operação do improviso e dar clareza ao time.",
+  },
+  en: {
+    compareTag: "Why change",
+    compareTitle: "From a scattered operation to a flow with full focus.",
+    compareLead:
+      "See the difference between improvising and running everything with Aplikei organizing each step.",
+    beforeLabel: "Without Aplikei",
+    beforeItems: [
+      "Information scattered across spreadsheets, emails and messages.",
+      "Rework and lost history with every new case.",
+      "No clear view of what is in progress.",
+    ],
+    afterLabel: "With Aplikei",
+    afterItems: [
+      "Everything centralized in a single organized operation.",
+      "History, status and owners always visible.",
+      "A standardized flow the team follows without improvising.",
+    ],
+    showcaseTitle: "What you organize with this solution",
+    capabilitiesTag: "Features",
+    capabilitiesTitle: "Everything this solution delivers",
+    capabilitiesLead:
+      "Features designed to take the operation out of improvisation and give the team clarity.",
+  },
+  es: {
+    compareTag: "Por qué cambiar",
+    compareTitle: "De una operación dispersa a un flujo con foco total.",
+    compareLead:
+      "Vea la diferencia entre improvisar y operar con Aplikei organizando cada etapa.",
+    beforeLabel: "Sin Aplikei",
+    beforeItems: [
+      "Información dispersa en hojas de cálculo, correos y mensajes.",
+      "Retrabajo y pérdida de historial con cada nuevo caso.",
+      "Falta de una visión clara de lo que está en curso.",
+    ],
+    afterLabel: "Con Aplikei",
+    afterItems: [
+      "Todo centralizado en una única operación organizada.",
+      "Historial, estado y responsables siempre visibles.",
+      "Un flujo estandarizado que el equipo sigue sin improvisar.",
+    ],
+    showcaseTitle: "Lo que organizas con esta solución",
+    capabilitiesTag: "Recursos",
+    capabilitiesTitle: "Todo lo que esta solución entrega",
+    capabilitiesLead:
+      "Recursos pensados para sacar la operación de la improvisación y dar claridad al equipo.",
   },
 } as const;
+
+const block = (
+  title: [string, string, string],
+  text: [string, string, string],
+) => ({
+  pt: { title: title[0], text: text[0] },
+  en: { title: title[1], text: text[1] },
+  es: { title: title[2], text: text[2] },
+});
+
+const ENHANCED_BLOCKS: Partial<
+  Record<string, ReturnType<typeof block>[]>
+> = {
+  "gerenciar-servicos": [
+    block(
+      ["Catálogo de serviços centralizado", "Centralized service catalog", "Catálogo de servicios centralizado"],
+      [
+        "Reúna todos os serviços em um só lugar, com escopo, preço e disponibilidade claros para o time.",
+        "Bring every service into one place, with clear scope, price and availability for the team.",
+        "Reúna todos los servicios en un solo lugar, con alcance, precio y disponibilidad claros para el equipo.",
+      ],
+    ),
+    block(
+      ["Escopo padronizado", "Standardized scope", "Alcance estandarizado"],
+      [
+        "Defina o que entra em cada serviço para vender com consistência e evitar mal-entendidos.",
+        "Define what goes into each service to sell consistently and avoid misunderstandings.",
+        "Defina qué incluye cada servicio para vender con consistencia y evitar malentendidos.",
+      ],
+    ),
+    block(
+      ["Operação sem retrabalho", "Operation without rework", "Operación sin retrabajo"],
+      [
+        "Mantenha tudo organizado para que cada atendimento siga o mesmo padrão de qualidade.",
+        "Keep everything organized so each request follows the same quality standard.",
+        "Mantenga todo organizado para que cada atención siga el mismo estándar de calidad.",
+      ],
+    ),
+  ],
+  "gerenciar-time": [
+    block(
+      ["Responsáveis por área", "Owners by area", "Responsables por área"],
+      [
+        "Distribua o trabalho por papel e responsabilidade para todos saberem o que fazer.",
+        "Distribute work by role and responsibility so everyone knows what to do.",
+        "Distribuya el trabajo por rol y responsabilidad para que todos sepan qué hacer.",
+      ],
+    ),
+    block(
+      ["Fila de tarefas clara", "Clear task queue", "Cola de tareas clara"],
+      [
+        "Acompanhe prioridades e prazos em uma visão única, sem depender de cobranças manuais.",
+        "Track priorities and deadlines in a single view, without relying on manual follow-ups.",
+        "Siga prioridades y plazos en una vista única, sin depender de seguimientos manuales.",
+      ],
+    ),
+    block(
+      ["Visão de capacidade", "Capacity view", "Vista de capacidad"],
+      [
+        "Enxergue a carga do time para equilibrar a demanda e manter a execução previsível.",
+        "See the team's workload to balance demand and keep execution predictable.",
+        "Vea la carga del equipo para equilibrar la demanda y mantener la ejecución previsible.",
+      ],
+    ),
+  ],
+  "gerenciar-regras-de-desconto": [
+    block(
+      ["Limites por oferta", "Limits per offer", "Límites por oferta"],
+      [
+        "Defina até onde cada desconto pode ir e proteja a margem do escritório.",
+        "Set how far each discount can go and protect the firm's margin.",
+        "Defina hasta dónde puede llegar cada descuento y proteja el margen del despacho.",
+      ],
+    ),
+    block(
+      ["Exceções aprovadas", "Approved exceptions", "Excepciones aprobadas"],
+      [
+        "Permita exceções apenas com aprovação, mantendo o controle comercial.",
+        "Allow exceptions only with approval, keeping commercial control.",
+        "Permita excepciones solo con aprobación, manteniendo el control comercial.",
+      ],
+    ),
+    block(
+      ["Regras transparentes", "Transparent rules", "Reglas transparentes"],
+      [
+        "Deixe as condições claras para o time aplicar descontos sem improviso.",
+        "Make conditions clear so the team applies discounts without improvising.",
+        "Deje las condiciones claras para que el equipo aplique descuentos sin improvisar.",
+      ],
+    ),
+  ],
+  "gerir-fluxo-de-casos": [
+    block(
+      ["Casos de ponta a ponta", "End-to-end cases", "Casos de extremo a extremo"],
+      [
+        "Acompanhe múltiplos casos com contexto, status e histórico sempre visíveis.",
+        "Track multiple cases with context, status and history always visible.",
+        "Siga múltiples casos con contexto, estado e historial siempre visibles.",
+      ],
+    ),
+    block(
+      ["Status sempre visível", "Always-visible status", "Estado siempre visible"],
+      [
+        "Saiba em que fase cada caso está e o que precisa de atenção agora.",
+        "Know which stage each case is in and what needs attention now.",
+        "Sepa en qué fase está cada caso y qué necesita atención ahora.",
+      ],
+    ),
+    block(
+      ["Histórico consolidado", "Consolidated history", "Historial consolidado"],
+      [
+        "Mantenha decisões e documentos reunidos para retomar qualquer caso sem perda de contexto.",
+        "Keep decisions and documents together to resume any case without losing context.",
+        "Mantenga decisiones y documentos reunidos para retomar cualquier caso sin perder contexto.",
+      ],
+    ),
+  ],
+  "analise-das-financas": [
+    block(
+      ["Receita e caixa em tempo real", "Real-time revenue and cash", "Ingresos y caja en tiempo real"],
+      [
+        "Visualize entradas, saídas e previsibilidade em um só painel.",
+        "See inflows, outflows and predictability in a single dashboard.",
+        "Visualice entradas, salidas y previsibilidad en un solo panel.",
+      ],
+    ),
+    block(
+      ["Custos e margens claros", "Clear costs and margins", "Costos y márgenes claros"],
+      [
+        "Acompanhe onde o dinheiro entra e sai para proteger a rentabilidade.",
+        "Track where money comes in and goes out to protect profitability.",
+        "Siga dónde entra y sale el dinero para proteger la rentabilidad.",
+      ],
+    ),
+    block(
+      ["Decisões com contexto", "Decisions with context", "Decisiones con contexto"],
+      [
+        "Use indicadores de operação para decidir com mais clareza e menos achismo.",
+        "Use operational indicators to decide with more clarity and less guesswork.",
+        "Use indicadores de operación para decidir con más claridad y menos suposiciones.",
+      ],
+    ),
+  ],
+  "chat-para-servicos-personalizados": [
+    block(
+      ["Conversa no contexto do serviço", "Chat in the service context", "Conversación en el contexto del servicio"],
+      [
+        "Fale com o cliente sem perder o histórico e o contexto do atendimento.",
+        "Talk to the client without losing the history and context of the service.",
+        "Hable con el cliente sin perder el historial y el contexto de la atención.",
+      ],
+    ),
+    block(
+      ["Atendimento por serviço", "Service-based support", "Atención por servicio"],
+      [
+        "Organize as conversas por serviço para responder com mais agilidade.",
+        "Organize conversations by service to respond faster.",
+        "Organice las conversaciones por servicio para responder con más agilidad.",
+      ],
+    ),
+    block(
+      ["Histórico unificado", "Unified history", "Historial unificado"],
+      [
+        "Centralize mensagens e próximos passos em uma experiência única.",
+        "Centralize messages and next steps in a single experience.",
+        "Centralice mensajes y próximos pasos en una experiencia única.",
+      ],
+    ),
+  ],
+  "criar-cupons-customizados": [
+    block(
+      ["Cupom por campanha", "Coupon per campaign", "Cupón por campaña"],
+      [
+        "Crie descontos sob medida para cada oferta, promoção ou momento comercial.",
+        "Create tailored discounts for each offer, promotion or sales moment.",
+        "Cree descuentos a medida para cada oferta, promoción o momento comercial.",
+      ],
+    ),
+    block(
+      ["Regras de validade", "Validity rules", "Reglas de vigencia"],
+      [
+        "Defina período, condições e limites para cada cupom com segurança.",
+        "Set period, conditions and limits for each coupon safely.",
+        "Defina período, condiciones y límites para cada cupón con seguridad.",
+      ],
+    ),
+    block(
+      ["Controle de uso", "Usage control", "Control de uso"],
+      [
+        "Acompanhe quantas vezes cada cupom foi usado e mantenha o controle.",
+        "Track how many times each coupon was used and stay in control.",
+        "Siga cuántas veces se usó cada cupón y mantenga el control.",
+      ],
+    ),
+  ],
+  "plataforma-para-vendedores": [
+    block(
+      ["Oferta centralizada", "Centralized offers", "Oferta centralizada"],
+      [
+        "Reúna serviços e condições em uma base única para o time vender melhor.",
+        "Bring services and conditions into a single base so the team sells better.",
+        "Reúna servicios y condiciones en una base única para que el equipo venda mejor.",
+      ],
+    ),
+    block(
+      ["Visão comercial", "Commercial view", "Visión comercial"],
+      [
+        "Acompanhe o processo de venda com clareza do início ao fechamento.",
+        "Track the sales process clearly from start to close.",
+        "Siga el proceso de venta con claridad de principio a cierre.",
+      ],
+    ),
+    block(
+      ["Fluxo de venda claro", "Clear sales flow", "Flujo de venta claro"],
+      [
+        "Reduza a dispersão e dê ao vendedor um caminho simples para avançar.",
+        "Reduce dispersion and give sellers a simple path to move forward.",
+        "Reduzca la dispersión y dé al vendedor un camino simple para avanzar.",
+      ],
+    ),
+  ],
+};
+
+const CAPABILITY_ICONS = [LayoutGrid, Activity, FolderCheck] as const;
 
 const FIRM_LOGOS = [
   { name: "Werner Advocacia", src: wernerLogo },
@@ -61,589 +405,303 @@ const FIRM_LOGOS = [
   { name: "Mattos Advogados", src: mattosLogo },
 ] as const;
 
-type PreviewKind = "pipeline" | "finance" | "chat" | "catalog" | "team" | "discount" | "coupon" | "sales" | "history";
+const B1B2_SHOWCASE_IMAGES = [
+  b1b2ProcessoImage,
+  b1b2AcompanhamentoImage,
+  b1b2OrganizacaoImage,
+] as const;
 
-type PreviewMeta = {
-  kind: PreviewKind;
-  eyebrow: string;
-  title: string;
-  description: string;
-};
+const GERENCIAR_PROCESSOS_IMAGES = [
+  gerenciarProcessos1,
+  gerenciarProcessos2,
+  gerenciarProcessos3,
+] as const;
 
-function getPreviewKind(slug: string, index: number): PreviewKind {
-  switch (slug) {
-    case "analise-das-financas":
-      return ["finance", "finance", "history"][index] ?? "finance";
-    case "chat-para-servicos-personalizados":
-      return ["chat", "catalog", "history"][index] ?? "chat";
-    case "criar-cupons-customizados":
-      return ["coupon", "discount", "history"][index] ?? "coupon";
-    case "gerenciar-processos":
-    case "gerir-fluxo-de-casos":
-    case "fluxo-b1b2":
-    case "fluxo-f1":
-    case "fluxo-extensao-status":
-    case "fluxo-troca-status":
-      return ["pipeline", "history", "pipeline"][index] ?? "pipeline";
-    case "gerenciar-regras-de-desconto":
-      return ["discount", "discount", "history"][index] ?? "discount";
-    case "gerenciar-servicos":
-      return ["catalog", "catalog", "history"][index] ?? "catalog";
-    case "gerenciar-time":
-      return ["team", "team", "history"][index] ?? "team";
-    case "plataforma-para-vendedores":
-      return ["sales", "catalog", "history"][index] ?? "sales";
-    default:
-      return ["pipeline", "history", "catalog"][index] ?? "pipeline";
+function getShowcaseBlocks(slug: string, lang: "pt" | "en" | "es") {
+  const enhanced = ENHANCED_BLOCKS[slug];
+  if (enhanced) {
+    return enhanced.map((entry) => entry[lang]);
   }
-}
 
-function getPreviewMeta(slug: string, index: number, feature: string, lang: "pt" | "en" | "es"): PreviewMeta {
-  const kind = getPreviewKind(slug, index);
-  const titles: Record<PreviewKind, Record<"pt" | "en" | "es", string>> = {
-    pipeline: {
-      pt: "Fluxo operacional",
-      en: "Operational flow",
-      es: "Flujo operacional",
-    },
-    finance: {
-      pt: "Resumo financeiro",
-      en: "Financial snapshot",
-      es: "Resumen financiero",
-    },
-    chat: {
-      pt: "Atendimento contextual",
-      en: "Contextual chat",
-      es: "Chat contextual",
-    },
-    catalog: {
-      pt: "Catálogo organizado",
-      en: "Organized catalog",
-      es: "Catálogo organizado",
-    },
-    team: {
-      pt: "Visão de equipe",
-      en: "Team view",
-      es: "Vista de equipo",
-    },
-    discount: {
-      pt: "Regras e aprovação",
-      en: "Rules and approvals",
-      es: "Reglas y aprobaciones",
-    },
-    coupon: {
-      pt: "Cupom e campanha",
-      en: "Coupon and campaign",
-      es: "Cupón y campaña",
-    },
-    sales: {
-      pt: "Funil comercial",
-      en: "Sales funnel",
-      es: "Embudo comercial",
-    },
-    history: {
-      pt: "Linha do tempo",
-      en: "Timeline",
-      es: "Cronología",
-    },
-  };
+  if (slug === "fluxo-b1b2") {
+    return [
+      {
+        title:
+          lang === "en"
+            ? "Simplified process from start to finish"
+            : lang === "es"
+              ? "Proceso simplificado del inicio al fin"
+              : "Processo simplificado do início ao fim",
+        text:
+          lang === "en"
+            ? "Fill in your details, send documents and follow every stage in one place. Aplikei organizes the entire process so you get more clarity, practicality and security throughout your request."
+            : lang === "es"
+              ? "Complete sus datos, envíe documentos y siga cada etapa en un solo lugar. Aplikei organiza todo el proceso para que tenga más claridad, practicidad y seguridad durante su solicitud."
+              : "Preencha seus dados, envie documentos e acompanhe cada etapa em um único lugar. A Aplikei organiza todo o processo para que você tenha mais clareza, praticidade e segurança durante sua solicitação.",
+      },
+      {
+        title:
+          lang === "en"
+            ? "Smart tracking for your request"
+            : lang === "es"
+              ? "Seguimiento inteligente de su solicitud"
+              : "Acompanhamento inteligente da sua solicitação",
+        text:
+          lang === "en"
+            ? "Know exactly which stage you are in. Our platform centralizes information, documents and updates so you can follow your process without doubts or wasted time."
+            : lang === "es"
+              ? "Sepa exactamente en qué etapa está. Nuestra plataforma centraliza información, documentos y actualizaciones para que siga su proceso sin dudas ni pérdida de tiempo."
+              : "Saiba exatamente em que etapa você está. Nossa plataforma centraliza informações, documentos e atualizações para que você acompanhe seu processo sem dúvidas ou perda de tempo.",
+      },
+      {
+        title:
+          lang === "en"
+            ? "More organization, more confidence"
+            : lang === "es"
+              ? "Más organización, más confianza"
+              : "Mais organização, mais confiança",
+        text:
+          lang === "en"
+            ? "Get access to the guidance you need to prepare your documents and move forward with confidence. Aplikei helps you keep everything organized for a simpler, more efficient experience."
+            : lang === "es"
+              ? "Tenga acceso a las orientaciones necesarias para preparar su documentación y avanzar con tranquilidad. Aplikei le ayuda a mantener todo organizado para una experiencia más simple y eficiente."
+              : "Tenha acesso às orientações necessárias para preparar sua documentação e avançar com tranquilidade. A Aplikei ajuda você a manter tudo organizado para uma experiência mais simples e eficiente.",
+      },
+    ] as const;
+  }
 
-  const subtitles: Record<PreviewKind, Record<"pt" | "en" | "es", string>> = {
-    pipeline: {
-      pt: "Etapas, responsáveis e pendências em um só fluxo.",
-      en: "Stages, owners and pending items in one flow.",
-      es: "Etapas, responsables y pendientes en un solo flujo.",
-    },
-    finance: {
-      pt: "Receita, margem e transações em destaque.",
-      en: "Revenue, margin and transactions highlighted.",
-      es: "Ingresos, margen y transacciones destacados.",
-    },
-    chat: {
-      pt: "Conversa com contexto e histórico unificado.",
-      en: "Conversation with context and unified history.",
-      es: "Conversación con contexto e historial unificado.",
-    },
-    catalog: {
-      pt: "Itens, escopo e disponibilidade centralizados.",
-      en: "Items, scope and availability centralized.",
-      es: "Items, alcance y disponibilidad centralizados.",
-    },
-    team: {
-      pt: "Capacidade do time e fila de tarefas visíveis.",
-      en: "Team capacity and task queue visible.",
-      es: "Capacidad del equipo y cola de tareas visible.",
-    },
-    discount: {
-      pt: "Limites, exceções e aprovações claras.",
-      en: "Clear limits, exceptions and approvals.",
-      es: "Límites, excepciones y aprobaciones claras.",
-    },
-    coupon: {
-      pt: "Cupons, validade e uso com controle.",
-      en: "Coupons, validity and usage under control.",
-      es: "Cupones, vigencia y uso bajo control.",
-    },
-    sales: {
-      pt: "Ofertas, pipeline e conversão à vista.",
-      en: "Offers, pipeline and conversion in sight.",
-      es: "Ofertas, pipeline y conversión a la vista.",
-    },
-    history: {
-      pt: "Histórico consolidado para consulta rápida.",
-      en: "Consolidated history for quick review.",
-      es: "Historial consolidado para consulta rápida.",
-    },
-  };
+  if (slug === "gerenciar-processos") {
+    return [
+      {
+        title:
+          lang === "en"
+            ? "Simplify your case flow"
+            : lang === "es"
+              ? "Simplifique su flujo de casos"
+              : "Simplifique seu fluxo de casos",
+        text:
+          lang === "en"
+            ? "Track cases, stages and owners in one place to keep the operation organized from start to finish."
+            : lang === "es"
+              ? "Acompañe casos, etapas y responsables en un solo lugar para mantener la operación organizada de principio a fin."
+              : "Acompanhe casos, etapas e responsáveis em um só lugar para manter a operação organizada do início ao fim.",
+      },
+      {
+        title:
+          lang === "en"
+            ? "Intelligent operational tracking"
+            : lang === "es"
+              ? "Seguimiento operativo inteligente"
+              : "Acompanhamento operacional inteligente",
+        text:
+          lang === "en"
+            ? "See the progress of each case in real time and reduce friction with a clearer, more visual workflow."
+            : lang === "es"
+              ? "Visualice el avance de cada caso en tiempo real y reduzca fricciones con un flujo más claro y visual."
+              : "Visualize o andamento de cada caso em tempo real e reduza fricções com um fluxo mais claro e visual.",
+      },
+      {
+        title:
+          lang === "en"
+            ? "Documents and status under control"
+            : lang === "es"
+              ? "Documentos y estatus bajo control"
+              : "Documentos e status sob controle",
+        text:
+          lang === "en"
+            ? "Keep files, forms and updates centralized to avoid mistakes and move cases forward with confidence."
+            : lang === "es"
+              ? "Mantenga archivos, formularios y actualizaciones centralizados para evitar errores y avanzar con confianza."
+              : "Mantenha arquivos, formulários e atualizações centralizados para evitar erros e avançar com confiança.",
+      },
+    ] as const;
+  }
 
-  return {
-    kind,
-    eyebrow: titles[kind][lang],
-    title: feature,
-    description: subtitles[kind][lang],
-  };
-}
+  if (slug === "fluxo-f1") {
+    return [
+      {
+        title:
+          lang === "en"
+            ? "Guided process for students"
+            : lang === "es"
+              ? "Proceso guiado para estudiantes"
+              : "Processo guiado para estudantes",
+        text:
+          lang === "en"
+            ? "Fill out forms, send documents and follow every step of your request in one place. Aplikei simplifies the path to your student visa."
+            : lang === "es"
+              ? "Complete formularios, envíe documentos y acompañe cada etapa de su solicitud en un solo lugar. Aplikei simplifica el camino para su visa de estudiante."
+              : "Preencha formulários, envie documentos e acompanhe cada etapa da sua solicitação em um único lugar. A Aplikei simplifica o caminho para seu visto de estudante.",
+      },
+      {
+        title:
+          lang === "en"
+            ? "Complete application tracking"
+            : lang === "es"
+              ? "Seguimiento completo de la aplicación"
+              : "Acompanhamento completo da aplicação",
+        text:
+          lang === "en"
+            ? "See your process in real time, receive guidance and keep all documentation organized throughout your academic journey."
+            : lang === "es"
+              ? "Visualice el avance de su proceso en tiempo real, reciba orientaciones y mantenga toda la documentación organizada durante su jornada académica."
+              : "Visualize o andamento do seu processo em tempo real, receba orientações e mantenha toda a documentação organizada durante sua jornada acadêmica.",
+      },
+      {
+        title:
+          lang === "en"
+            ? "Preparation with more confidence"
+            : lang === "es"
+              ? "Preparación con más confianza"
+              : "Preparação com mais confiança",
+        text:
+          lang === "en"
+            ? "Organize your documents, track important requirements and move forward with more confidence in each step of your request."
+            : lang === "es"
+              ? "Organice sus documentos, acompañe requisitos importantes y avance con más seguridad en cada etapa de su solicitud."
+              : "Organize seus documentos, acompanhe requisitos importantes e avance com mais segurança em cada etapa da sua solicitação.",
+      },
+    ] as const;
+  }
 
-function FeaturePreview({
-  meta,
-  lang,
-}: {
-  meta: PreviewMeta;
-  lang: "pt" | "en" | "es";
-}) {
-  const scenedata = {
-    finance: {
-      stats: [
-        { label: "Revenue", value: "US$ 86k", tone: "primary" },
-        { label: "Margin", value: "38%", tone: "success" },
-        { label: "Transactions", value: "124", tone: "warning" },
-      ],
-      lines: [
-        { label: "January", value: 72 },
-        { label: "February", value: 54 },
-        { label: "March", value: 84 },
-        { label: "April", value: 63 },
-        { label: "May", value: 90 },
-      ],
-      table: [
-        { a: "Fee collected", b: "US$ 1,200", c: "Approved" },
-        { a: "Product sold", b: "US$ 350", c: "Pending" },
-        { a: "Refund rule", b: "US$ 0", c: "Locked" },
-      ],
+  if (slug === "fluxo-extensao-status") {
+    return [
+      {
+        title:
+          lang === "en"
+            ? "Request your extension with ease"
+            : lang === "es"
+              ? "Solicite su extensión con facilidad"
+              : "Solicite sua extensão com facilidade",
+        text:
+          lang === "en"
+            ? "Manage documents and requirements in one platform, making the extension process simpler and more organized."
+            : lang === "es"
+              ? "Gestione documentos y requisitos en una sola plataforma, haciendo el proceso de extensión más simple y organizado."
+              : "Gerencie documentos e requisitos em uma única plataforma, tornando o processo de extensão mais simples e organizado.",
+      },
+      {
+        title:
+          lang === "en"
+            ? "Track every step"
+            : lang === "es"
+              ? "Acompañe cada etapa"
+              : "Acompanhe cada etapa",
+        text:
+          lang === "en"
+            ? "Have full visibility into the progress of your request and know exactly which actions need to be taken."
+            : lang === "es"
+              ? "Tenga visibilidad completa del avance de su solicitud y sepa exactamente qué acciones deben realizarse."
+              : "Tenha visibilidade completa do andamento da sua solicitação e saiba exatamente quais ações precisam ser realizadas.",
+      },
+      {
+        title:
+          lang === "en"
+            ? "More organization, less worry"
+            : lang === "es"
+              ? "Más organización, menos preocupación"
+              : "Mais organização, menos preocupação",
+        text:
+          lang === "en"
+            ? "Keep all documentation accessible and up to date to handle your status extension with more confidence and efficiency."
+            : lang === "es"
+              ? "Mantenga toda la documentación accesible y actualizada para conducir su extensión de estatus con más confianza y eficiencia."
+              : "Mantenha toda a documentação acessível e atualizada para conduzir sua extensão de status com mais confiança e eficiência.",
+      },
+    ] as const;
+  }
+
+  if (slug === "fluxo-troca-status") {
+    return [
+      {
+        title:
+          lang === "en"
+            ? "Status change without complications"
+            : lang === "es"
+              ? "Cambio de estatus sin complicaciones"
+              : "Mudança de status sem complicação",
+        text:
+          lang === "en"
+            ? "Centralize information and documents in an intuitive platform to guide your status change process with more practicality."
+            : lang === "es"
+              ? "Centralice información y documentos en una plataforma intuitiva para conducir su proceso de cambio de estatus con más practicidad."
+              : "Centralize informações e documentos em uma plataforma intuitiva para conduzir seu processo de mudança de status com mais praticidade.",
+      },
+      {
+        title:
+          lang === "en"
+            ? "Full control of your request"
+            : lang === "es"
+              ? "Control total de su solicitud"
+              : "Controle total da sua solicitação",
+        text:
+          lang === "en"
+            ? "Follow each phase of the process, view pending items and access the information you need to keep moving forward."
+            : lang === "es"
+              ? "Acompañe cada fase del proceso, visualice pendientes y tenga acceso rápido a la información necesaria para seguir avanzando."
+              : "Acompanhe cada fase do processo, visualize pendências e tenha acesso rápido às informações necessárias para seguir avançando.",
+      },
+      {
+        title:
+          lang === "en"
+            ? "Everything organized in one place"
+            : lang === "es"
+              ? "Todo organizado en un solo lugar"
+              : "Tudo organizado em um só lugar",
+        text:
+          lang === "en"
+            ? "Keep documents, forms and updates together to reduce errors and ensure more peace of mind during the status transition."
+            : lang === "es"
+              ? "Mantenga documentos, formularios y actualizaciones reunidos para reducir errores y garantizar más tranquilidad durante la transición de estatus."
+              : "Mantenha documentos, formulários e atualizações reunidos para reduzir erros e garantir mais tranquilidade durante a transição de status.",
+      },
+    ] as const;
+  }
+
+  return [
+    {
+      title:
+        lang === "en"
+          ? "Overview"
+          : lang === "es"
+            ? "Visión general"
+            : "Visão geral",
+      text:
+        lang === "en"
+          ? "Understand the proposal in a few seconds, with the context that matters up top and the visual reading right below."
+          : lang === "es"
+            ? "Entienda la propuesta en pocos segundos, con el contexto que importa en la parte superior y la lectura visual justo debajo."
+            : "Entenda a proposta da solução em poucos segundos, com o contexto que importa no topo e a leitura visual logo abaixo.",
     },
-    chat: {
-      messages: [
-        { side: "client", text: "I need to finish my service without losing the context." },
-        { side: "agent", text: "Your steps, files and next action are already grouped." },
-        { side: "client", text: "Can I see what is missing?" },
-      ],
+    {
+      title:
+        lang === "en"
+          ? "How it works"
+          : lang === "es"
+            ? "Cómo funciona"
+            : "Como funciona",
+      text:
+        lang === "en"
+          ? "See the operation in a more editorial layout, with short copy and a large image that gives the content room."
+          : lang === "es"
+            ? "Vea la operación en un layout más editorial, con texto breve e imagen grande para dar espacio al contenido."
+            : "Veja a operação em um layout mais editorial, com explicação curta e imagem grande para dar clareza ao conteúdo.",
     },
-    catalog: {
-      rows: [
-        { title: "Service A", subtitle: "Main offer", status: "Active" },
-        { title: "Service B", subtitle: "Add-on", status: "Draft" },
-        { title: "Service C", subtitle: "Legacy", status: "Archived" },
-      ],
+    {
+      title:
+        lang === "en"
+          ? "Next step"
+          : lang === "es"
+            ? "Siguiente paso"
+            : "Próximo passo",
+      text:
+        lang === "en"
+          ? "After understanding the solution, move straight to sign up and keep the flow simple for the user."
+          : lang === "es"
+            ? "Después de entender la solución, siga directamente al registro y mantenga el flujo simple para el usuario."
+            : "Depois de entender a solução, siga diretamente para o cadastro e mantenha o fluxo simples para o usuário.",
     },
-    team: {
-      members: [
-        { name: "Ana", role: "Intake", pct: 82 },
-        { name: "Bruno", role: "Review", pct: 64 },
-        { name: "Clara", role: "Ops", pct: 48 },
-      ],
-    },
-    discount: {
-      rules: [
-        { label: "Limit per offer", value: "20%" },
-        { label: "Approval", value: "Manager" },
-        { label: "Exceptions", value: "Logged" },
-      ],
-    },
-    coupon: {
-      code: "SAVE20",
-      detail: "20% off · 30 days · 1 use",
-    },
-    sales: {
-      kpis: [
-        { label: "Leads", value: "48" },
-        { label: "Deals", value: "12" },
-        { label: "Close", value: "31%" },
-      ],
-      steps: ["Offer list", "Pipeline", "Sales flow"],
-    },
-    pipeline: {
-      cases: [
-        { id: "CASE-901", customer: "Ana Silva", visaType: "B1/B2", currentStep: "Validação documental", status: "Em andamento", progress: 42 },
-        { id: "CASE-902", customer: "Carlos Costa", visaType: "F-1", currentStep: "Recebimento do I-20", status: "Pendente", progress: 28 },
-        { id: "CASE-903", customer: "Mariana Lima", visaType: "Troca Status", currentStep: "Validação de status", status: "Em andamento", progress: 64 },
-      ],
-    },
-    history: {
-      rows: [
-        { label: "Created", value: "Today" },
-        { label: "Updated", value: "2h ago" },
-        { label: "Review", value: "Pending" },
-      ],
-    },
-  } as const;
-
-  const shellTitle = {
-    pt: "Painel da solução",
-    en: "Solution dashboard",
-    es: "Panel de la solución",
-  }[lang];
-
-  return (
-    <div className="overflow-hidden rounded-[30px] border border-border/70 bg-card shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-      <div className="flex items-center justify-between border-b border-border/60 bg-bg-subtle px-4 py-3">
-        <div className="flex items-center gap-3">
-          <div className="flex gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-red-400/80" />
-            <span className="h-3 w-3 rounded-full bg-amber-400/80" />
-            <span className="h-3 w-3 rounded-full bg-emerald-400/80" />
-          </div>
-          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-text-muted">{shellTitle}</span>
-        </div>
-        <div className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-primary">
-          {meta.eyebrow}
-        </div>
-      </div>
-
-      <div className="grid gap-0 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="border-b border-border/60 bg-bg-subtle/70 p-4 lg:border-b-0 lg:border-r">
-          <div className="space-y-4">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">Workspace</p>
-              <p className="mt-1 text-sm font-bold text-text">Aplikei</p>
-            </div>
-            <nav className="grid gap-2">
-              {["Dashboard", "Cases", "Finance", "Team", "Settings"].map((item, index) => (
-                <div
-                  key={item}
-                  className={cn(
-                    "rounded-2xl px-3 py-2 text-sm font-semibold",
-                    index === 1 ? "bg-primary/10 text-primary" : "text-text-muted",
-                  )}
-                >
-                  {item}
-                </div>
-              ))}
-            </nav>
-          </div>
-        </aside>
-
-        <div className="p-4 sm:p-5 lg:p-6">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">{meta.description}</p>
-              <h4 className="mt-1 font-display text-2xl font-bold tracking-tight text-text">{meta.title}</h4>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-bg-subtle px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Live</span>
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-primary">Preview</span>
-            </div>
-          </div>
-
-          <div className="mt-5 rounded-[28px] border border-border/60 bg-bg-subtle p-4 sm:p-5">
-            {meta.kind === "finance" && (
-              <div className="grid gap-4">
-                <div className="grid grid-cols-3 gap-3">
-                  {scenedata.finance.stats.map((item) => (
-                    <div key={item.label} className="rounded-2xl border border-border/60 bg-card p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">{item.label}</p>
-                      <p className="mt-2 text-2xl font-black text-text">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="rounded-2xl border border-border/60 bg-card p-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-bold text-text">Revenue trend</p>
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">6 months</p>
-                  </div>
-                  <div className="mt-4 flex h-44 items-end gap-3">
-                    {scenedata.finance.lines.map((item) => (
-                      <div key={item.label} className="flex-1">
-                        <div className="flex h-36 items-end rounded-2xl bg-bg-subtle p-2">
-                          <div className="w-full rounded-xl bg-primary/80" style={{ height: `${item.value}%` }} />
-                        </div>
-                        <p className="mt-2 text-center text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
-                          {item.label}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
-                  {scenedata.finance.table.map((row) => (
-                    <div key={row.a} className="grid grid-cols-[1.3fr_0.8fr_0.7fr] gap-3 border-t border-border/60 px-4 py-3 first:border-t-0">
-                      <div>
-                        <p className="text-sm font-bold text-text">{row.a}</p>
-                        <p className="text-[11px] text-text-muted">{meta.description}</p>
-                      </div>
-                      <p className="text-sm font-black text-text">{row.b}</p>
-                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">{row.c}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {meta.kind === "chat" && (
-              <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
-                <div className="space-y-3">
-                  {scenedata.chat.messages.map((message, index) => (
-                    <div
-                      key={index}
-                      className={cn(
-                        "max-w-[85%] rounded-[24px] p-4",
-                        message.side === "client" ? "bg-card border border-border/60" : "ml-auto bg-primary/10 border border-primary/20",
-                      )}
-                    >
-                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
-                        {message.side === "client" ? "Client" : "Agent"}
-                      </p>
-                      <p className="mt-2 text-sm leading-relaxed text-text">{message.text}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="rounded-[24px] border border-border/60 bg-card p-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Context</p>
-                  <div className="mt-3 space-y-2">
-                    {["Service details", "Required docs", "Next steps"].map((item) => (
-                      <div key={item} className="rounded-2xl border border-border/60 bg-bg-subtle px-3 py-2 text-sm font-semibold text-text-muted">
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {meta.kind === "catalog" && (
-              <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
-                {scenedata.catalog.rows.map((row) => (
-                  <div key={row.title} className="grid grid-cols-[1.2fr_1fr_auto] items-center gap-3 border-t border-border/60 px-4 py-3 first:border-t-0">
-                    <div>
-                      <p className="text-sm font-bold text-text">{row.title}</p>
-                      <p className="text-[11px] text-text-muted">{row.subtitle}</p>
-                    </div>
-                    <div className="h-2 rounded-full bg-bg-subtle">
-                      <div className="h-full w-[72%] rounded-full bg-primary" />
-                    </div>
-                    <span className="rounded-full bg-bg-subtle px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
-                      {row.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {meta.kind === "team" && (
-              <div className="grid gap-3">
-                {scenedata.team.members.map((member) => (
-                  <div key={member.name} className="rounded-[22px] border border-border/60 bg-card p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-bold text-text">{member.name}</p>
-                        <p className="text-[11px] text-text-muted">{member.role}</p>
-                      </div>
-                      <span className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">{member.pct}%</span>
-                    </div>
-                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-bg-subtle">
-                      <div className="h-full rounded-full bg-primary" style={{ width: `${member.pct}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {meta.kind === "discount" && (
-              <div className="grid gap-3 lg:grid-cols-[1fr_240px]">
-                <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
-                  {scenedata.discount.rules.map((rule) => (
-                    <div key={rule.label} className="flex items-center justify-between border-t border-border/60 px-4 py-3 first:border-t-0">
-                      <span className="text-sm font-bold text-text">{rule.label}</span>
-                      <span className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">{rule.value}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Approval flow</p>
-                  <div className="mt-3 space-y-3">
-                    {["Seller", "Manager", "Audit"].map((item, index) => (
-                      <div key={item} className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-card text-[10px] font-black text-text">{index + 1}</div>
-                        <p className="text-sm font-semibold text-text-muted">{item}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {meta.kind === "coupon" && (
-              <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
-                <div className="rounded-[24px] border border-primary/20 bg-primary/10 p-5">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Coupon</p>
-                  <p className="mt-2 font-display text-3xl font-black tracking-tight text-text">SAVE20</p>
-                  <p className="mt-1 text-sm text-text-muted">{scenedata.coupon.detail}</p>
-                  <div className="mt-4 rounded-2xl border border-border/60 bg-card p-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Usage</p>
-                    <div className="mt-2 flex items-end gap-2">
-                      {[64, 42, 78, 58, 90].map((bar, index) => (
-                        <div key={index} className="flex-1 rounded-t-xl bg-primary/20" style={{ height: `${bar}%` }}>
-                          <div className="h-full rounded-t-xl bg-primary/80" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {["Campaign", "Validity", "Limit", "Approved by"].map((item, index) => (
-                    <div key={item} className="flex items-center justify-between rounded-2xl border border-border/60 bg-card px-4 py-3">
-                      <span className="text-sm font-bold text-text">{item}</span>
-                      <span className="text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground">{index === 0 ? "Launch" : index === 1 ? "30 days" : index === 2 ? "1 use" : "Manager"}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {meta.kind === "sales" && (
-              <div className="grid gap-4">
-                <div className="grid grid-cols-3 gap-3">
-                  {scenedata.sales.kpis.map((item) => (
-                    <div key={item.label} className="rounded-2xl border border-border/60 bg-card p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">{item.label}</p>
-                      <p className="mt-2 text-2xl font-black text-text">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="grid gap-3 lg:grid-cols-3">
-                  {scenedata.sales.steps.map((item, index) => (
-                    <div key={item} className="rounded-2xl border border-border/60 bg-card p-4">
-                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">0{index + 1}</p>
-                      <p className="mt-2 text-sm font-bold text-text">{item}</p>
-                      <div className="mt-3 h-2 rounded-full bg-bg-subtle">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${70 - index * 15}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="rounded-2xl border border-border/60 bg-card p-4">
-                  <p className="text-sm font-bold text-text">Sales pipeline</p>
-                  <div className="mt-4 grid grid-cols-3 gap-3">
-                    {["Leads", "Opportunities", "Closed"].map((col, index) => (
-                      <div key={col} className="rounded-2xl border border-border/60 bg-bg-subtle p-3">
-                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">{col}</p>
-                        <div className="mt-3 space-y-2">
-                          {["One", "Two"].slice(0, 2 - (index === 2 ? 1 : 0)).map((_, i) => (
-                            <div key={i} className="rounded-xl border border-border/60 bg-card px-3 py-2 text-xs text-text-muted">
-                              Deal {i + 1}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {meta.kind === "pipeline" && (
-              <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-                <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
-                  <div className="border-b border-border/60 px-4 py-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Seus Casos Ativos</p>
-                  </div>
-                  <div className="divide-y divide-border/60">
-                    {scenedata.pipeline.cases.map((item) => (
-                      <div key={item.id} className="grid gap-3 px-4 py-4 sm:grid-cols-[1fr_auto] sm:items-center">
-                        <div className="space-y-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-sm font-bold text-text">{item.customer}</p>
-                            <span className="rounded-full bg-bg-subtle px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
-                              {item.visaType}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-text-muted">{item.currentStep}</p>
-                          <div className="mt-3 h-2 rounded-full bg-bg-subtle">
-                            <div className="h-full rounded-full bg-primary" style={{ width: `${item.progress}%` }} />
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end">
-                          <span className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">{item.status}</span>
-                          <span className="text-2xl font-black text-text">{item.progress}%</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-border/60 bg-card p-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Progresso geral</p>
-                  <div className="mt-4 space-y-3">
-                    {[
-                      { label: "Checklist de documentos", value: 78 },
-                      { label: "Revisão interna", value: 56 },
-                      { label: "Próximos passos", value: 34 },
-                    ].map((item) => (
-                      <div key={item.label} className="rounded-2xl border border-border/60 bg-bg-subtle p-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-sm font-bold text-text">{item.label}</span>
-                          <span className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">{item.value}%</span>
-                        </div>
-                        <div className="mt-2 h-2 overflow-hidden rounded-full bg-card">
-                          <div className="h-full rounded-full bg-primary" style={{ width: `${item.value}%` }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 rounded-2xl border border-primary/20 bg-primary/10 p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Next step</p>
-                    <p className="mt-2 text-sm font-bold text-text">
-                      {lang === "en"
-                        ? "Open the current step and continue the guided flow."
-                        : "Abra a etapa atual e continue o fluxo guiado."}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {meta.kind === "history" && (
-              <div className="grid gap-3 lg:grid-cols-[1fr_280px]">
-                <div className="space-y-3">
-                  {scenedata.history.rows.map((row) => (
-                    <div key={row.label} className="flex items-center justify-between rounded-2xl border border-border/60 bg-card px-4 py-3">
-                      <span className="text-sm font-bold text-text">{row.label}</span>
-                      <span className="text-[11px] font-black uppercase tracking-[0.18em] text-text-muted">{row.value}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="rounded-2xl border border-border/60 bg-card p-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Timeline</p>
-                  <div className="mt-4 space-y-4">
-                    {["Created", "Reviewed", "Ready"].map((item, index) => (
-                      <div key={item} className="flex items-start gap-3">
-                        <div className={cn("mt-1 h-3 w-3 rounded-full", index === 2 ? "bg-emerald-500" : "bg-primary")} />
-                        <div>
-                          <p className="text-sm font-bold text-text">{item}</p>
-                          <p className="text-[11px] text-text-muted">
-                            {index === 0 ? "Today" : index === 1 ? "2 hours ago" : "In progress"}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  ] as const;
 }
 
 export default function SolucoesPage() {
@@ -661,6 +719,17 @@ export default function SolucoesPage() {
     return <Navigate to={`/solucoes/${defaultSolutionSlug}`} replace />;
   }
 
+  const showcaseImages =
+    current.slug === "fluxo-b1b2"
+      ? B1B2_SHOWCASE_IMAGES
+      : current.slug === "gerenciar-processos"
+        ? GERENCIAR_PROCESSOS_IMAGES
+      : [current.image, current.image, current.image];
+
+  const showcaseBlocks = getShowcaseBlocks(current.slug, lang);
+
+  const isEnhanced = current.group === "operacao" || current.group === "produtos";
+  const ec = enhancedCopy[lang as keyof typeof enhancedCopy] ?? enhancedCopy.pt;
   const featureList = current.features[lang] ?? current.features.pt;
 
   return (
@@ -695,12 +764,6 @@ export default function SolucoesPage() {
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </PublicButton>
-                <PublicButton asChild tone="outline">
-                  <Link to={`/solucoes/${defaultSolutionSlug}`}>
-                    {copy.back}
-                    <ChevronRight className="h-4 w-4" />
-                  </Link>
-                </PublicButton>
               </div>
             </motion.div>
 
@@ -711,16 +774,6 @@ export default function SolucoesPage() {
               className="relative"
             >
               <div className="relative overflow-hidden rounded-[32px] border border-border/70 bg-card shadow-[0_30px_100px_rgba(15,23,42,0.12)]">
-                <div className="border-b border-border/60 bg-bg-subtle px-5 py-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-primary">
-                      {copy.tag}
-                    </span>
-                    <span className="text-xs font-semibold text-text-muted">
-                      {current.slug}
-                    </span>
-                  </div>
-                </div>
                 <div className="relative">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_65%_25%,rgba(45,99,255,0.18),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0))]" />
                   <img
@@ -758,125 +811,252 @@ export default function SolucoesPage() {
         </div>
       </section>
 
-      <section className="public-section">
-        <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
-          <div className="mx-auto max-w-4xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
-              <Sparkles className="h-3.5 w-3.5" />
-              {copy.tag}
-            </span>
-            <h2 className="mt-6 font-display text-4xl font-black tracking-tight text-text sm:text-5xl">
-              {lang === "en"
-                ? "More detail, organized in one page"
-                : lang === "es"
-                  ? "Mais detalhes, organizados em uma página"
-                  : "Mais detalhes, organizados em uma página"}
-            </h2>
-            <p className="mt-4 text-lg leading-relaxed text-text-muted">
-              {lang === "en"
-                ? "The second section now carries the explanatory depth, while the hero stays clean and focused."
-                : lang === "es"
-                  ? "A segunda seção carrega a profundidade explicativa, enquanto o hero permanece limpo e focado."
-                  : "A segunda seção carrega a profundidade explicativa, enquanto o hero permanece limpo e focado."}
-            </p>
-          </div>
-
-          <div className="mt-14 grid gap-14 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-            <div className="grid gap-8">
-              <article className="rounded-[28px] border border-border bg-card p-8 shadow-sm sm:p-10">
-                <div className="flex flex-wrap items-center gap-4">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-primary">
-                    {current.slug}
-                  </span>
-                  <span className="text-sm font-semibold text-text-muted">
-                    {current.summary[lang] ?? current.summary.pt}
-                  </span>
-                </div>
-                <h3 className="mt-6 font-display text-3xl font-bold tracking-tight lg:text-4xl">
-                  {current.title[lang]}
-                </h3>
-                <p className="mt-5 max-w-4xl text-lg leading-relaxed text-text-muted">
-                  {current.detail[lang] ?? current.detail.pt}
+      {isEnhanced ? (
+        <>
+          <section className="public-section border-y border-border/60 bg-bg-subtle">
+            <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
+              <div className="mx-auto max-w-3xl text-center">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
+                  {ec.compareTag}
+                </span>
+                <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
+                  {ec.compareTitle}
+                </h2>
+                <p className="mt-4 text-lg leading-relaxed text-text-muted">
+                  {ec.compareLead}
                 </p>
-              </article>
-
-              <div className="grid gap-10">
-                {featureList.slice(0, 3).map((feature, index) => (
-                  <FeaturePreview
-                    key={feature}
-                    lang={lang as "pt" | "en" | "es"}
-                    meta={getPreviewMeta(current.slug, index, feature, lang as "pt" | "en" | "es")}
-                  />
-                ))}
               </div>
 
-              <article className="rounded-[28px] border border-border bg-card p-8 shadow-sm sm:p-10">
-                <h3 className="font-display text-2xl font-bold tracking-tight">
-                  {lang === "en" ? "What this solution delivers" : lang === "es" ? "O que esta solução entrega" : "O que esta solução entrega"}
-                </h3>
-                <ul className="mt-7 grid gap-4">
-                  {featureList.map((feature) => (
-                    <li key={feature} className="grid grid-cols-[auto_1fr] gap-4 rounded-[18px] border border-border bg-card p-5 text-sm leading-relaxed">
-                      <Check className="mt-0.5 h-5 w-5 text-success" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </article>
+              <div className="mx-auto mt-12 grid max-w-[1040px] gap-6 md:grid-cols-2">
+                <div className="rounded-3xl border border-border/70 bg-card p-8 shadow-sm">
+                  <p className="text-sm font-black uppercase tracking-[0.18em] text-text-muted">
+                    {ec.beforeLabel}
+                  </p>
+                  <ul className="mt-6 space-y-4">
+                    {ec.beforeItems.map((item) => (
+                      <li key={item} className="flex items-start gap-3 text-base text-text-muted">
+                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
+                          <X className="h-3.5 w-3.5" />
+                        </span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="rounded-3xl border border-primary/30 bg-primary/5 p-8 shadow-[0_20px_60px_rgba(45,99,255,0.12)]">
+                  <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">
+                    {ec.afterLabel}
+                  </p>
+                  <ul className="mt-6 space-y-4">
+                    {ec.afterItems.map((item) => (
+                      <li key={item} className="flex items-start gap-3 text-base font-semibold text-text">
+                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+                          <Check className="h-3.5 w-3.5" />
+                        </span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="public-section">
+            <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
+              <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+                <div className="relative order-last lg:order-first">
+                  <div className="relative overflow-hidden rounded-[32px] border border-border/70 bg-card shadow-[0_30px_100px_rgba(15,23,42,0.12)]">
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_35%_25%,rgba(45,99,255,0.16),transparent_30%)]" />
+                    <img
+                      src={current.image}
+                      alt={current.imageAlt[lang] ?? current.imageAlt.pt}
+                      className="relative aspect-[16/11] w-full object-cover"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
+                    {copy.tag}
+                  </span>
+                  <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
+                    {ec.showcaseTitle}
+                  </h2>
+                  <p className="mt-4 text-lg leading-relaxed text-text-muted">
+                    {current.detail[lang] ?? current.detail.pt}
+                  </p>
+                  <ul className="mt-8 space-y-4">
+                    {featureList.map((feat) => (
+                      <li key={feat} className="flex items-start gap-3 text-base font-semibold text-text">
+                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+                          <Check className="h-3.5 w-3.5" />
+                        </span>
+                        {feat}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-10">
+                    <PublicButton asChild tone="solid">
+                      <Link to="/cadastro">
+                        {copy.signup}
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </PublicButton>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="public-section border-y border-border/60 bg-bg-subtle">
+            <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
+              <div className="mx-auto max-w-3xl text-center">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
+                  {ec.capabilitiesTag}
+                </span>
+                <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
+                  {ec.capabilitiesTitle}
+                </h2>
+                <p className="mt-4 text-lg leading-relaxed text-text-muted">
+                  {ec.capabilitiesLead}
+                </p>
+              </div>
+
+              <div className="mx-auto mt-14 grid max-w-[1120px] gap-6 md:grid-cols-3">
+                {showcaseBlocks.map((block, index) => {
+                  const Icon = CAPABILITY_ICONS[index % CAPABILITY_ICONS.length];
+                  return (
+                    <article
+                      key={block.title}
+                      className="flex flex-col rounded-3xl border border-border/70 bg-card p-8 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(15,23,42,0.10)]"
+                    >
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <Icon className="h-6 w-6" />
+                      </span>
+                      <h3 className="mt-6 font-display text-xl font-black tracking-tight text-text">
+                        {block.title}
+                      </h3>
+                      <p className="mt-3 text-base leading-relaxed text-text-muted">
+                        {block.text}
+                      </p>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+
+          <section className="public-section">
+            <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
+              <div className="relative overflow-hidden rounded-[36px] border border-border/70 bg-card px-8 py-16 text-center shadow-[0_30px_100px_rgba(15,23,42,0.12)] sm:px-16">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(45,99,255,0.14),transparent_45%)]" />
+                <div className="relative mx-auto max-w-3xl">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {copy.tag}
+                  </span>
+                  <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl">
+                    {lang === "en"
+                      ? "Create your account and start organizing the operation"
+                      : lang === "es"
+                        ? "Crea tu cuenta y empieza a organizar la operación"
+                        : "Crie sua conta e comece a organizar a operação"}
+                  </h2>
+                  <p className="mt-4 text-base leading-relaxed text-text-muted sm:text-lg">
+                    {lang === "en"
+                      ? "Sign up to activate the solution and move your team into a clearer workflow."
+                      : lang === "es"
+                        ? "Regístrate para activar la solución y llevar a tu equipo a un flujo más claro."
+                        : "Cadastre-se para ativar a solução e levar seu time para um fluxo mais claro."}
+                  </p>
+                  <div className="mt-8 flex flex-wrap justify-center gap-4">
+                    <PublicButton asChild tone="solid" size="lg">
+                      <Link to="/cadastro">
+                        {copy.signup}
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </PublicButton>
+                    <PublicButton asChild tone="outline" size="lg">
+                      <Link to="/contato">{copy.cta}</Link>
+                    </PublicButton>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </>
+      ) : (
+        <section className="public-section">
+          <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
+            <div className="mx-auto max-w-4xl text-center">
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
+                {copy.tag}
+              </span>
+              <h2 className="mt-6 font-display text-4xl font-black tracking-tight text-text sm:text-5xl lg:text-6xl">
+                {copy.sectionTitle}
+              </h2>
+              <p className="mt-4 text-lg leading-relaxed text-text-muted">
+                {copy.sectionLead}
+              </p>
             </div>
 
-            <aside className="lg:sticky lg:top-28">
-              <div className="rounded-[28px] border border-border bg-card p-6 shadow-sm">
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-text-muted">
-                  {copy.menuTitle}
-                </p>
-                <p className="mt-3 text-sm leading-relaxed text-text-muted">{copy.menuLead}</p>
-                <nav className="mt-6 grid gap-3" aria-label={copy.menuTitle}>
-                  {solutionMenuGroups.map((group) => (
-                    <div key={group.key} className="space-y-2">
-                      <p className="px-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
-                        {group.label[lang] ?? group.label.pt}
+            <div className="mx-auto mt-14 grid max-w-[1120px] gap-8">
+              {showcaseBlocks.map((block, index) => (
+                <article
+                  key={block.title}
+                  className="overflow-hidden"
+                >
+                  <div className="grid gap-8 xl:grid-cols-[0.95fr_1.05fr] xl:items-stretch xl:gap-10">
+                    <div className="px-0 pt-0 xl:pr-4">
+                      <h3 className="mt-0 max-w-3xl font-display text-3xl font-black tracking-[-0.04em] text-text sm:text-4xl lg:text-5xl">
+                        {block.title}
+                      </h3>
+                      <p className="mt-4 max-w-3xl text-base leading-relaxed text-text-muted sm:text-lg">
+                        {block.text}
                       </p>
-                      <div className="grid gap-2">
-                        {getSolutionsByGroup(group.key).map((solution) => {
-                          const isActive = solution.slug === current.slug;
-                          return (
-                            <Link
-                              key={solution.slug}
-                              to={`/solucoes/${solution.slug}`}
-                              aria-current={isActive ? "page" : undefined}
-                              className={cn(
-                                "group flex items-start gap-4 rounded-2xl border px-5 py-4 text-left transition-all",
-                                isActive
-                                  ? "border-primary/20 bg-primary/10 shadow-sm"
-                                  : "border-transparent hover:border-border hover:bg-bg-subtle",
-                              )}
-                            >
-                              <span className="min-w-0">
-                                <span
-                                  className={cn(
-                                    "block text-sm font-bold tracking-tight transition-colors",
-                                    isActive ? "text-text" : "text-text-muted group-hover:text-text",
-                                  )}
-                                >
-                                  {solution.title[lang]}
-                                </span>
-                                <span className="mt-1 block text-xs leading-relaxed text-text-muted">
-                                  {solution.summary[lang]}
-                                </span>
-                              </span>
-                            </Link>
-                          );
-                        })}
-                      </div>
                     </div>
-                  ))}
-                </nav>
+
+                    <div className="relative w-full overflow-hidden md:max-w-[560px] md:justify-self-end xl:max-w-none">
+                      <img
+                        src={showcaseImages[index] ?? current.image}
+                        alt={current.imageAlt[lang] ?? current.imageAlt.pt}
+                        className="h-auto w-full object-cover object-center"
+                      />
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="mx-auto mt-14 max-w-4xl text-center">
+              <h3 className="font-display text-3xl font-black tracking-tight text-text sm:text-4xl">
+                {lang === "en"
+                  ? "Create your account and start organizing the operation"
+                  : lang === "es"
+                    ? "Crea tu cuenta y empieza a organizar la operación"
+                    : "Crie sua conta e comece a organizar a operação"}
+              </h3>
+              <p className="mt-4 text-base leading-relaxed text-text-muted sm:text-lg">
+                {lang === "en"
+                  ? "Sign up to activate the solution and move your team into a clearer workflow."
+                  : lang === "es"
+                    ? "Regístrate para activar la solución y llevar a tu equipo a un flujo más claro."
+                    : "Cadastre-se para ativar a solução e levar seu time para um fluxo mais claro."}
+              </p>
+              <div className="mt-8 flex justify-center">
+                <PublicButton asChild tone="solid" size="lg">
+                  <Link to="/cadastro">
+                    {copy.signup}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </PublicButton>
               </div>
-            </aside>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

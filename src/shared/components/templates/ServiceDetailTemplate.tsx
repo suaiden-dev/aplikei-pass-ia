@@ -1,7 +1,7 @@
 import { Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@shared/components/atoms/accordion";
-import { Button } from "@shared/components/atoms/button";
+import { PublicButton } from "@shared/components/atoms/PublicButton";
 import { ServiceCTA } from "@shared/components/organisms/ServiceCTA";
 import type { IconType } from "react-icons";
 import {
@@ -104,13 +104,12 @@ export default function ServiceDetailTemplate({
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <Link 
-                to="/cadastro" 
-                className="w-full sm:px-10 py-5 bg-primary text-white rounded-xl text-lg font-black hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
-              >
-                {str("scheduleDemo", "Agendar Demonstração")}
-                <FiArrowRight size={22} />
-              </Link>
+              <PublicButton asChild tone="solid" size="lg" className="w-full sm:w-auto">
+                <Link to="/cadastro">
+                  {str("scheduleDemo", "Agendar Demonstração")}
+                  <FiArrowRight size={22} />
+                </Link>
+              </PublicButton>
             </div>
           </motion.div>
 
@@ -304,9 +303,9 @@ export default function ServiceDetailTemplate({
       {/* Mobile sticky CTA */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/80 p-4 backdrop-blur-md md:hidden">
         <Link to={startPath}>
-          <Button className="w-full bg-primary text-white font-bold py-6 rounded-xl shadow-lg shadow-primary/20 border-none">
+          <PublicButton tone="solid" size="lg" className="w-full">
             {str("getStarted", "Começar Agora")}
-          </Button>
+          </PublicButton>
         </Link>
       </div>
     </div>

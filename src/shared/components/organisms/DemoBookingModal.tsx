@@ -12,16 +12,10 @@ import { CalendarDays, BriefcaseBusiness, LayoutDashboard, ShieldCheck, Sparkles
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@shared/components/atoms/dialog";
 import { Button } from "@shared/components/atoms/button";
 import { Input } from "@shared/components/atoms/input";
-import { Textarea } from "@shared/components/atoms/textarea";
 import { useLocale } from "@app/app/i18n";
 import { supabase } from "@shared/lib/supabase";
 import { cn } from "@shared/utils/cn";
 import { toast } from "sonner";
-import wernerLogo from "@assets/logos/Logotipo-Werner-Advocacia.png";
-import marquesLogo from "@assets/logos/MARQUES-ADVOGADOS-.png";
-import msgLogo from "@assets/logos/cropped-logo-MSG-azul.png";
-import legalLogo from "@assets/logos/logo-horizontal-CyOfyqfY.png";
-
 type DemoBookingContextValue = {
   openDemoBooking: () => void;
   closeDemoBooking: () => void;
@@ -36,37 +30,26 @@ const formCopy = {
       "Veja a plataforma ao vivo com dashboard, processos, financeiro e equipe em um fluxo guiado. Preencha os dados e retornamos com a demonstração.",
     badge: "Demo guiada",
     formTitle: "Solicite a demonstração",
-    formSubtitle: "Conte rapidamente quem é você e o que quer ver no encontro.",
+    formSubtitle: "Conte rapidamente quem é você e o que sua operação precisa.",
     fields: {
       workEmail: "Email corporativo",
-      firstName: "Nome",
-      lastName: "Sobrenome",
+      fullName: "Nome completo",
       phone: "Telefone",
       company: "Escritório / Empresa",
       employees: "Número de colaboradores",
       source: "Como nos conheceu?",
-      subject: "Assunto",
-      message: "O que deseja ver na demo?",
       workEmailPlaceholder: "seu@escritorio.com",
-      firstNamePlaceholder: "Seu nome",
-      lastNamePlaceholder: "Seu sobrenome",
+      fullNamePlaceholder: "Seu nome completo",
       phonePlaceholder: "(11) 99999-9999",
       companyPlaceholder: "Nome do escritório",
       employeesPlaceholder: "Selecione",
       sourcePlaceholder: "Selecione",
-      subjectPlaceholder: "Agendar demonstração",
-      messagePlaceholder: "Conte o volume da operação, as dores atuais e o que gostaria de ver.",
     },
     submit: "Quero agendar a demo",
     sending: "Enviando...",
     success: "Recebemos seu pedido de demo.",
     error: "Não foi possível enviar agora.",
     required: "Preencha os campos obrigatórios.",
-    stats: [
-      { label: "Tempo de resposta", value: "1 dia útil" },
-      { label: "Formato", value: "Demonstração guiada" },
-      { label: "Foco", value: "Operação digital" },
-    ],
   },
   en: {
     title: "Book a demo",
@@ -74,37 +57,26 @@ const formCopy = {
       "See the platform live with dashboard, processes, finance and team in a guided flow. Fill in your details and we will return with the demo.",
     badge: "Guided demo",
     formTitle: "Request the demo",
-    formSubtitle: "Tell us who you are and what you want to see in the meeting.",
+    formSubtitle: "Tell us who you are and what your operation needs.",
     fields: {
       workEmail: "Work email",
-      firstName: "First name",
-      lastName: "Last name",
+      fullName: "Full name",
       phone: "Phone",
       company: "Firm / Company",
       employees: "Number of employees",
       source: "How did you hear about us?",
-      subject: "Subject",
-      message: "What would you like to see in the demo?",
       workEmailPlaceholder: "you@firm.com",
-      firstNamePlaceholder: "Your first name",
-      lastNamePlaceholder: "Your last name",
+      fullNamePlaceholder: "Your full name",
       phonePlaceholder: "+1 (555) 000-0000",
       companyPlaceholder: "Firm name",
       employeesPlaceholder: "Select",
       sourcePlaceholder: "Select",
-      subjectPlaceholder: "Schedule a demo",
-      messagePlaceholder: "Tell us about your operation, bottlenecks and what you want to see.",
     },
     submit: "Book the demo",
     sending: "Sending...",
     success: "We received your demo request.",
     error: "We could not send it right now.",
     required: "Fill in the required fields.",
-    stats: [
-      { label: "Response time", value: "1 business day" },
-      { label: "Format", value: "Guided demo" },
-      { label: "Focus", value: "Digital operation" },
-    ],
   },
   es: {
     title: "Agendar demo",
@@ -112,49 +84,31 @@ const formCopy = {
       "Vea la plataforma en vivo con dashboard, procesos, finanzas y equipo en un flujo guiado. Complete sus datos y le responderemos con la demo.",
     badge: "Demo guiada",
     formTitle: "Solicite la demo",
-    formSubtitle: "Cuéntenos quién es y qué quiere ver en la reunión.",
+    formSubtitle: "Cuéntenos quién es y qué necesita su operación.",
     fields: {
       workEmail: "Email corporativo",
-      firstName: "Nombre",
-      lastName: "Apellido",
+      fullName: "Nombre completo",
       phone: "Teléfono",
       company: "Firma / Empresa",
       employees: "Número de colaboradores",
       source: "¿Cómo nos conoció?",
-      subject: "Asunto",
-      message: "¿Qué desea ver en la demo?",
       workEmailPlaceholder: "usted@firma.com",
-      firstNamePlaceholder: "Su nombre",
-      lastNamePlaceholder: "Su apellido",
+      fullNamePlaceholder: "Su nombre completo",
       phonePlaceholder: "+1 (555) 000-0000",
       companyPlaceholder: "Nombre de la firma",
       employeesPlaceholder: "Seleccione",
       sourcePlaceholder: "Seleccione",
-      subjectPlaceholder: "Agendar demo",
-      messagePlaceholder: "Cuéntenos sobre su operación, cuellos de botella y qué quiere ver.",
     },
     submit: "Quiero agendar la demo",
     sending: "Enviando...",
     success: "Recibimos su solicitud de demo.",
     error: "No fue posible enviar ahora.",
     required: "Complete los campos obligatorios.",
-    stats: [
-      { label: "Tiempo de respuesta", value: "1 día hábil" },
-      { label: "Formato", value: "Demo guiada" },
-      { label: "Foco", value: "Operación digital" },
-    ],
   },
 } as const;
 
 const companySizes = ["1-5", "6-15", "16-30", "31-50", "50+"] as const;
 const discoverySources = ["Google", "Indicação", "Instagram", "Evento", "Outros"] as const;
-
-const trustLogos = [
-  { src: wernerLogo, alt: "Werner Advocacia" },
-  { src: marquesLogo, alt: "Marques Advogados" },
-  { src: msgLogo, alt: "MSG Advocacia" },
-  { src: legalLogo, alt: "Aplikei Legal" },
-] as const;
 
 function DemoFormBackdrop() {
   return (
@@ -298,29 +252,23 @@ function DemoBookingModal({ open, onOpenChange }: { open: boolean; onOpenChange:
   const { lang } = useLocale();
   const copy = formCopy[lang as keyof typeof formCopy] ?? formCopy.pt;
   const [workEmail, setWorkEmail] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [company, setCompany] = useState("");
   const [employees, setEmployees] = useState("");
   const [source, setSource] = useState("");
-  const [subject, setSubject] = useState(copy.fields.subjectPlaceholder);
-  const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     if (!open) {
       setWorkEmail("");
-      setFirstName("");
-      setLastName("");
+      setFullName("");
       setPhone("");
       setCompany("");
       setEmployees("");
       setSource("");
-      setSubject(copy.fields.subjectPlaceholder);
-      setMessage("");
     }
-  }, [copy.fields.subjectPlaceholder, open]);
+  }, [open]);
 
   useEffect(() => {
     const original = document.body.style.overflow;
@@ -334,14 +282,11 @@ function DemoBookingModal({ open, onOpenChange }: { open: boolean; onOpenChange:
     event.preventDefault();
     if (
       !workEmail.trim() ||
-      !firstName.trim() ||
-      !lastName.trim() ||
+      !fullName.trim() ||
       !phone.trim() ||
       !company.trim() ||
       !employees.trim() ||
-      !source.trim() ||
-      !subject.trim() ||
-      !message.trim()
+      !source.trim()
     ) {
       toast.error(copy.required);
       return;
@@ -351,16 +296,14 @@ function DemoBookingModal({ open, onOpenChange }: { open: boolean; onOpenChange:
     try {
       const { error } = await supabase.functions.invoke("contact-form", {
         body: {
-          name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+          name: fullName.trim(),
           email: workEmail.trim(),
-          subject: subject.trim(),
+          subject: copy.title,
           message: [
             `Telefone: ${phone.trim()}`,
             `Empresa: ${company.trim()}`,
             `Colaboradores: ${employees.trim()}`,
             `Origem: ${source.trim()}`,
-            "",
-            message.trim(),
           ].join("\n"),
         },
       });
@@ -388,101 +331,99 @@ function DemoBookingModal({ open, onOpenChange }: { open: boolean; onOpenChange:
           </div>
           <div className="absolute inset-0 bg-white/7 backdrop-blur-[10px]" />
           <div className="relative z-10 w-full max-w-[min(980px,calc(100vw-1.5rem))] px-0 py-0 sm:px-2 sm:py-2 lg:px-3 lg:py-3">
-            <div className="flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden rounded-[30px] border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,249,255,0.98))] shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
-              <div className="flex-1 overflow-y-auto overscroll-contain">
-                <section className="relative z-10 bg-white/92 p-3 backdrop-blur-xl sm:p-5 lg:p-6">
-                  <div className="rounded-[26px] border border-border/70 bg-card/90 p-3 shadow-[0_20px_44px_rgba(15,23,42,0.08)] sm:p-5 lg:p-6">
-                    <DialogHeader className="sr-only">
-                      <DialogTitle>{copy.title}</DialogTitle>
-                      <DialogDescription>{copy.description}</DialogDescription>
-                    </DialogHeader>
+          <div className="flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden rounded-[30px] border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(247,249,255,0.99))] shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
+            <div className="flex-1 overflow-y-auto overscroll-contain">
+              <section className="relative z-10 bg-white/92 p-3 backdrop-blur-xl sm:p-5 lg:p-6">
+                <div className="rounded-[26px] border border-border/70 bg-card/90 p-3 shadow-[0_20px_44px_rgba(15,23,42,0.08)] sm:p-5 lg:p-6">
+                  <DialogHeader className="sr-only">
+                    <DialogTitle>{copy.title}</DialogTitle>
+                    <DialogDescription>{copy.description}</DialogDescription>
+                  </DialogHeader>
 
+                  <div className="grid gap-4 lg:grid-cols-[1fr_0.92fr] lg:items-start">
                     <form className="grid gap-3 sm:gap-4" onSubmit={handleSubmit}>
-                      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-                        <label className="grid gap-2">
-                          <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.firstName}</span>
-                          <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={copy.fields.firstNamePlaceholder} />
-                        </label>
-                        <label className="grid gap-2">
-                          <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.lastName}</span>
-                          <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={copy.fields.lastNamePlaceholder} />
-                        </label>
-                      </div>
+                      <label className="grid gap-2">
+                        <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.fullName}</span>
+                        <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={copy.fields.fullNamePlaceholder} />
+                      </label>
 
                       <label className="grid gap-2">
                         <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.workEmail}</span>
                         <Input type="email" value={workEmail} onChange={(e) => setWorkEmail(e.target.value)} placeholder={copy.fields.workEmailPlaceholder} />
                       </label>
 
-                      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-                        <label className="grid gap-2">
-                          <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.phone}</span>
-                          <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={copy.fields.phonePlaceholder} />
-                        </label>
-                        <label className="grid gap-2">
-                          <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.company}</span>
-                          <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder={copy.fields.companyPlaceholder} />
-                        </label>
-                      </div>
-
-                      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-                        <label className="grid gap-2">
-                          <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.employees}</span>
-                          <select
-                            value={employees}
-                            onChange={(e) => setEmployees(e.target.value)}
-                          className="flex h-10 w-full rounded-lg border border-border bg-surface-container-low px-3.5 text-sm text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-200 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
-                          >
-                            <option value="" disabled>
-                              {copy.fields.employeesPlaceholder}
-                            </option>
-                            {companySizes.map((size) => (
-                              <option key={size} value={size}>
-                                {size}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label className="grid gap-2">
-                          <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.source}</span>
-                          <select
-                            value={source}
-                            onChange={(e) => setSource(e.target.value)}
-                            className="flex h-10 w-full rounded-lg border border-border bg-surface-container-low px-3.5 text-sm text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-200 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
-                          >
-                            <option value="" disabled>
-                              {copy.fields.sourcePlaceholder}
-                            </option>
-                            {discoverySources.map((item) => (
-                              <option key={item} value={item}>
-                                {item}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                      </div>
-
                       <label className="grid gap-2">
-                        <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.subject}</span>
-                        <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder={copy.fields.subjectPlaceholder} />
+                        <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.phone}</span>
+                        <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={copy.fields.phonePlaceholder} />
                       </label>
 
                       <label className="grid gap-2">
-                        <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.message}</span>
-                        <Textarea
-                          value={message}
-                          onChange={(e) => setMessage(e.target.value)}
-                          placeholder={copy.fields.messagePlaceholder}
-                          className="min-h-[96px] rounded-2xl"
-                        />
+                        <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.company}</span>
+                        <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder={copy.fields.companyPlaceholder} />
+                      </label>
+
+                      <label className="grid gap-2">
+                        <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.employees}</span>
+                        <select
+                          value={employees}
+                          onChange={(e) => setEmployees(e.target.value)}
+                          className="flex h-10 w-full rounded-lg border border-border bg-surface-container-low px-3.5 text-sm text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-200 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
+                        >
+                          <option value="" disabled>
+                            {copy.fields.employeesPlaceholder}
+                          </option>
+                          {companySizes.map((size) => (
+                            <option key={size} value={size}>
+                              {size}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label className="grid gap-2">
+                        <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.source}</span>
+                        <select
+                          value={source}
+                          onChange={(e) => setSource(e.target.value)}
+                          className="flex h-10 w-full rounded-lg border border-border bg-surface-container-low px-3.5 text-sm text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-200 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
+                        >
+                          <option value="" disabled>
+                            {copy.fields.sourcePlaceholder}
+                          </option>
+                          {discoverySources.map((item) => (
+                            <option key={item} value={item}>
+                              {item}
+                            </option>
+                          ))}
+                        </select>
                       </label>
 
                       <Button type="submit" size="lg" className="mt-1 w-full rounded-full py-3.5 text-sm sm:text-base" disabled={isSending}>
                         {isSending ? copy.sending : copy.submit}
-                        <Sparkles className="h-4 w-4" />
                       </Button>
                     </form>
+
+                    <div className="flex h-full flex-col justify-center gap-4 p-0 sm:p-1 lg:pl-2">
+                      <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-primary">
+                        <CalendarDays className="h-3.5 w-3.5" />
+                        {copy.badge}
+                      </span>
+
+                      <div className="space-y-2.5">
+                        <h2 className="max-w-md font-display text-3xl font-black tracking-[-0.04em] text-text sm:text-4xl">
+                          {copy.formTitle}
+                        </h2>
+                        <p className="max-w-md text-sm leading-relaxed text-text-muted sm:text-base">
+                          {copy.formSubtitle}
+                        </p>
+                        <p className="max-w-md text-sm leading-relaxed text-text-muted">
+                          {copy.description}
+                        </p>
+                      </div>
+
+                    </div>
                   </div>
+                </div>
                 </section>
               </div>
             </div>

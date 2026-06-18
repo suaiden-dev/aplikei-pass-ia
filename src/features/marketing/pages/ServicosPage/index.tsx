@@ -37,23 +37,22 @@ const localCopy = {
     secondaryCta: "Ver como funciona",
     proof: [
       { value: "1", label: "plataforma para toda a operação" },
-      { value: "Produtos", label: "checkout e processos" },
+      { value: "Soluções", label: "checkout e processos" },
       { value: "IA", label: "apoio à equipe" },
     ],
     panel: {
       title: "Operação digital",
-      subtitle: "Produtos, equipe e financeiro",
-      live: "Live",
+      subtitle: "Soluções, equipe e financeiro",
       aiTitle: "IA aplicada à operação",
       aiSubtitle: "menos tarefas manuais",
       securityTitle: "Dados protegidos",
       securitySubtitle: "acesso e histórico",
     },
-    rows: ["Produtos configurados", "Processo em andamento", "Documentos pendentes"],
+    rows: ["Soluções configuradas", "Processo em andamento", "Documentos pendentes"],
     solutions: {
       kicker: "Soluções",
       title: "Tudo o que seu escritório precisa para vender, operar e escalar.",
-      lead: "Crie produtos digitais, checkout personalizado, processos claros, equipe integrada e financeiro em um só lugar.",
+      lead: "Crie soluções digitais, checkout personalizado, processos claros, equipe integrada e financeiro em um só lugar.",
       menuTitle: "Conteúdos",
       menuLead: "Escolha uma solução para ver os detalhes e como ela aparece na operação.",
     },
@@ -74,23 +73,22 @@ const localCopy = {
     secondaryCta: "See how it works",
     proof: [
       { value: "1", label: "platform for the whole operation" },
-      { value: "Products", label: "checkout and processes" },
+      { value: "Solutions", label: "checkout and processes" },
       { value: "AI", label: "team support" },
     ],
     panel: {
       title: "Digital operation",
-      subtitle: "Products, team and finance",
-      live: "Live",
+      subtitle: "Solutions, team and finance",
       aiTitle: "Applied AI",
       aiSubtitle: "less manual work",
       securityTitle: "Protected data",
       securitySubtitle: "access and history",
     },
-    rows: ["Configured products", "Process in progress", "Pending documents"],
+    rows: ["Configured solutions", "Process in progress", "Pending documents"],
     solutions: {
       kicker: "Solutions",
       title: "Everything your firm needs to sell, operate and scale.",
-      lead: "Create digital products, personalized checkout, clear processes, integrated team and finance in one place.",
+      lead: "Create digital solutions, personalized checkout, clear processes, integrated team and finance in one place.",
       menuTitle: "Contents",
       menuLead: "Choose a solution to see the details and how it shows up in the operation.",
     },
@@ -111,23 +109,22 @@ const localCopy = {
     secondaryCta: "Ver cómo funciona",
     proof: [
       { value: "1", label: "plataforma para toda la operación" },
-      { value: "Productos", label: "checkout y procesos" },
+      { value: "Soluciones", label: "checkout y procesos" },
       { value: "IA", label: "apoyo al equipo" },
     ],
     panel: {
       title: "Operación digital",
-      subtitle: "Productos, equipo y financiero",
-      live: "Live",
+      subtitle: "Soluciones, equipo y financiero",
       aiTitle: "IA aplicada a la operación",
       aiSubtitle: "menos tareas manuales",
       securityTitle: "Datos protegidos",
       securitySubtitle: "acceso e historial",
     },
-    rows: ["Productos configurados", "Proceso en curso", "Documentos pendientes"],
+    rows: ["Soluciones configuradas", "Proceso en curso", "Documentos pendientes"],
     solutions: {
       kicker: "Soluciones",
       title: "Todo lo que su firma necesita para vender, operar y escalar.",
-      lead: "Cree productos digitales, checkout personalizado, procesos claros, equipo integrado y financiero en un solo lugar.",
+      lead: "Cree soluciones digitales, checkout personalizado, procesos claros, equipo integrado y financiero en un solo lugar.",
       menuTitle: "Contenido",
       menuLead: "Elige una solución para ver los detalles y cómo aparece en la operación.",
     },
@@ -261,7 +258,6 @@ export default function ServicosPage() {
                   <strong className="block font-display text-lg tracking-tight">{copy.panel.title}</strong>
                   <small className="text-xs text-text-muted">{copy.panel.subtitle}</small>
                 </div>
-                <span className="ml-auto rounded-full bg-success/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-success">{copy.panel.live}</span>
               </div>
               <div className="mt-6 flex h-36 items-end gap-3 px-1">
                 {["48%", "72%", "58%", "86%", "66%"].map((height) => (

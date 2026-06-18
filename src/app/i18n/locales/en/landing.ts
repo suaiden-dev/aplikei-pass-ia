@@ -158,10 +158,17 @@ const landing = {
     hero: {
       title: "We handle your entire consular visa process with security, strategy, and efficiency.",
       subtitle: "Ensuring your international goals are achieved with professional rigor.",
-      badge: "Processes audited and reviewed by licensed attorneys."
+      badge: "Processes audited and reviewed by licensed attorneys.",
+      cta: "Get started now",
+      ctaSecondary: "Talk to a specialist",
+      imageAlt: "Aplikei dashboard preview",
+      statsLabel: "Approval rate",
+      statsValue: "98.2%"
     },
     methodology: {
+      eyebrow: "Methodology",
       title: "Rigorous methodology divided into 4 strategic stages.",
+      description: "A strategic flow designed to maximize your chances of success.",
       steps: [
         {
           title: "Case Analysis",
@@ -182,7 +189,9 @@ const landing = {
       ]
     },
     services: {
+      eyebrow: "Specialties",
       title: "Modular solutions for each type of consular visa (B1/B2, F-1, change and extension of status).",
+      description: "Modular legal solutions adapted to each immigration profile.",
       items: [
         {
           title: "Work Visas",

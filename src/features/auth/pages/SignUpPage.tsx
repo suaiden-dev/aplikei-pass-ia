@@ -166,7 +166,7 @@ export default function SignUp() {
                       <HelpCircle size={14} className="inline-block" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-[240px] text-xs bg-popover text-popover-foreground border border-border p-2 shadow-md z-50">
+                  <TooltipContent className="max-w-60 text-xs bg-popover text-popover-foreground border border-border p-2 shadow-md z-50">
                     {signupCopy.phoneTooltip}
                   </TooltipContent>
                 </Tooltip>

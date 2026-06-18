@@ -81,7 +81,8 @@
       "Bash(identify logo.png logo-dark.png favicon.png)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)",
       "Bash(node *)",
-      "Bash(git config *)"
+      "Bash(git config *)",
+      "WebFetch(domain:clickup.com)"
     ]
   }
 }

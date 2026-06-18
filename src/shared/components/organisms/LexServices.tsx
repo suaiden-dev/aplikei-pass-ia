@@ -13,9 +13,9 @@ export function LexServices() {
     <section id="servicos" className="public-section bg-bg">
       <div className="public-container-wide">
         <SectionHeader
-          eyebrow="Especialidades"
-          title={t.title || "Nossas Especialidades"}
-          description="Soluções jurídicas modulares adaptadas para cada perfil imigratório."
+          eyebrow={t.eyebrow}
+          title={t.title}
+          description={t.description}
           className="mb-16"
         />
 

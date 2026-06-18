@@ -158,10 +158,17 @@ const landing = {
     hero: {
       title: "Cuidamos de todo o seu processo de visto com segurança, estratégia e eficiência.",
       subtitle: "Garantindo que seus objetivos internacionais sejam alcançados com rigor profissional.",
-      badge: "Processos auditados e revisados por advogados licenciados."
+      badge: "Processos auditados e revisados por advogados licenciados.",
+      cta: "Começar agora",
+      ctaSecondary: "Falar com um especialista",
+      imageAlt: "Prévia do dashboard da Aplikei",
+      statsLabel: "Taxa de aprovação",
+      statsValue: "98.2%"
     },
     methodology: {
+      eyebrow: "Metodologia",
       title: "Metodologia rigorosa dividida em 4 etapas estratégicas.",
+      description: "Um fluxo estratégico desenhado para maximizar suas chances de sucesso.",
       steps: [
         {
           title: "Análise do caso",
@@ -182,7 +189,9 @@ const landing = {
       ]
     },
     services: {
+      eyebrow: "Especialidades",
       title: "Soluções modulares para cada tipo de visto consular (B1/B2, F-1, troca e extensão de status).",
+      description: "Soluções jurídicas modulares adaptadas para cada perfil imigratório.",
       items: [
         {
           title: "Vistos de trabalho",

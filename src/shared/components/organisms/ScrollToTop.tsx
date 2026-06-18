@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { RiArrowUpLine } from "react-icons/ri";
+import { PublicButton } from "../atoms/PublicButton";
 
 export function ScrollToTop() {
   const { pathname, search, key } = useLocation();
@@ -50,17 +51,22 @@ export function ScrollToTop() {
   return (
     <AnimatePresence>
       {isVisible && (
-        <motion.button
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.2 }}
-          onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-[80] flex h-11 w-11 items-center justify-center rounded-full border border-transparent bg-primary text-white shadow-lg transition-transform hover:-translate-y-1 hover:bg-primary-hover lg:bottom-10 lg:right-10"
-          aria-label="Scroll to top"
+          className="fixed bottom-6 right-6 z-[80] lg:bottom-10 lg:right-10"
         >
-          <RiArrowUpLine size={24} />
-        </motion.button>
+          <PublicButton
+            onClick={scrollToTop}
+            size="icon"
+            aria-label="Scroll to top"
+            className="shadow-lg"
+          >
+            <RiArrowUpLine size={24} />
+          </PublicButton>
+        </motion.div>
       )}
     </AnimatePresence>
   );

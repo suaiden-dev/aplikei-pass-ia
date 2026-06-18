@@ -23,26 +23,26 @@ export function LexHero() {
         <div className="z-10 flex flex-col items-center text-center lg:items-start lg:text-left">
           <Badge variant="default" className="mb-8 border-primary/20 bg-primary/15 text-primary">
             <span className="mr-2 inline-flex h-2 w-2 animate-pulse rounded-full bg-primary" />
-            {t.hero?.badge || "Inteligência Artificial aplicada ao Direito Imigratório"}
+            {t.hero?.badge}
           </Badge>
 
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
             <h1 className="max-w-3xl font-display text-5xl font-bold leading-[1.1] tracking-[-0.05em] text-text lg:text-7xl">
-              {t.hero?.title || "Cuidamos de todo o seu processo de visto com segurança e estratégia."}
+              {t.hero?.title}
             </h1>
             <p className="mt-8 max-w-2xl text-lg leading-relaxed text-text-muted lg:text-xl">
-              {t.hero?.subtitle || "A plataforma que simplifica sua jornada internacional com rigor profissional e tecnologia de ponta."}
+              {t.hero?.subtitle}
             </p>
 
             <div className="mt-10 flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
               <PublicButton asChild size="lg" className="w-full sm:w-auto">
                 <Link to="/cadastro">
-                  Começar agora
+                  {t.hero?.cta}
                   <FiArrowRight size={18} />
                 </Link>
               </PublicButton>
               <PublicButton asChild tone="outline" size="lg" className="w-full sm:w-auto">
-                <a href="#contato">Falar com um especialista</a>
+                <a href="#contato">{t.hero?.ctaSecondary}</a>
               </PublicButton>
             </div>
           </motion.div>
@@ -57,7 +57,7 @@ export function LexHero() {
           <div className="absolute -inset-4 rounded-[3rem] bg-primary/10 blur-2xl" />
           <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl border border-outline-variant bg-white">
             <img
-              alt="Aplikei Dashboard Preview"
+              alt={t.hero?.imageAlt}
               className="w-full h-auto"
               src={dashboardPreview}
             />
@@ -75,9 +75,9 @@ export function LexHero() {
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                  Taxa de aprovação
+                  {t.hero?.statsLabel}
                 </p>
-                <p className="text-2xl font-black tracking-[-0.03em] text-primary">98.2%</p>
+                <p className="text-2xl font-black tracking-[-0.03em] text-primary">{t.hero?.statsValue}</p>
               </div>
             </Card>
           </motion.div>

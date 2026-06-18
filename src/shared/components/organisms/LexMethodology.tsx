@@ -13,9 +13,9 @@ export function LexMethodology() {
     <section id="como-funciona" className="public-section bg-bg-subtle">
       <div className="public-container-wide">
         <SectionHeader
-          eyebrow="Metodologia"
-          title={t.title || "Como funciona nosso processo"}
-          description="Um fluxo estratégico desenhado para maximizar suas chances de sucesso."
+          eyebrow={t.eyebrow}
+          title={t.title}
+          description={t.description}
           className="mb-16"
         />
 

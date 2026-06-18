@@ -47,16 +47,15 @@ export const solutionMenuGroups: Array<{
   {
     key: "fluxos",
     label: {
-      pt: "Fluxos",
-      en: "Flows",
-      es: "Flujos",
+      pt: "Vistos",
+      en: "Visas",
+      es: "Visados",
     },
     slugs: [
       "fluxo-b1b2",
       "fluxo-f1",
       "fluxo-extensao-status",
       "fluxo-troca-status",
-      "gerir-fluxo-de-casos",
     ],
   },
   {
@@ -71,6 +70,7 @@ export const solutionMenuGroups: Array<{
       "gerenciar-servicos",
       "gerenciar-time",
       "gerenciar-regras-de-desconto",
+      "gerir-fluxo-de-casos",
     ],
   },
   {
@@ -95,7 +95,7 @@ export const solutions: SolutionCard[] = [
   {
     slug: "fluxo-b1b2",
     group: "fluxos",
-    title: text("Fluxo B1/B2", "B1/B2 Flow", "Flujo B1/B2"),
+    title: text("Visto B1/B2", "B1/B2 Visa", "Visa B1/B2"),
     summary: text(
       "Organize o visto B1/B2 com etapas, documentos e aprovações.",
       "Organize the B1/B2 visa with stages, documents and approvals.",
@@ -111,13 +111,13 @@ export const solutions: SolutionCard[] = [
       en: ["B1/B2 stages", "Document checklist", "Centralized approvals"],
       es: ["Etapas del B1/B2", "Lista documental", "Aprobaciones centralizadas"],
     },
-    image: sellerImage,
-    imageAlt: text("Fluxo B1/B2", "B1/B2 flow", "Flujo B1/B2"),
+    image: casesImage,
+    imageAlt: text("Visto B1/B2", "B1/B2 visa", "Visa B1/B2"),
   },
   {
     slug: "fluxo-f1",
     group: "fluxos",
-    title: text("Fluxo F1", "F1 Flow", "Flujo F1"),
+    title: text("Visto F1", "F1 Visa", "Visa F1"),
     summary: text(
       "Acompanhe o processo F1 com uma jornada clara por etapa.",
       "Track the F1 process with a clear step-by-step journey.",
@@ -133,13 +133,13 @@ export const solutions: SolutionCard[] = [
       en: ["Student stages", "Documents and reviews", "Case history"],
       es: ["Etapas del estudiante", "Documentos y revisiones", "Historial del caso"],
     },
-    image: sellerImage,
-    imageAlt: text("Fluxo F1", "F1 flow", "Flujo F1"),
+    image: servicesImage,
+    imageAlt: text("Visto F1", "F1 visa", "Visa F1"),
   },
   {
     slug: "fluxo-extensao-status",
     group: "fluxos",
-    title: text("Fluxo de Extensão de Status", "Status Extension Flow", "Flujo de Extensión de Estatus"),
+    title: text("Extensão de Status", "Status Extension", "Extensión de Estatus"),
     summary: text(
       "Padronize a extensão de status com um fluxo guiado.",
       "Standardize the status extension with a guided flow.",
@@ -155,13 +155,13 @@ export const solutions: SolutionCard[] = [
       en: ["Extension milestones", "Trackable pending items", "Team flow"],
       es: ["Hitos de la extensión", "Pendientes rastreables", "Flujo para el equipo"],
     },
-    image: casesImage,
-    imageAlt: text("Fluxo de extensão de status", "Status extension flow", "Flujo de extensión de estatus"),
+    image: processesImage,
+    imageAlt: text("Extensão de status", "Status extension", "Extensión de estatus"),
   },
   {
     slug: "fluxo-troca-status",
     group: "fluxos",
-    title: text("Fluxo de Troca de Status", "Status Change Flow", "Flujo de Cambio de Estatus"),
+    title: text("Troca de Status", "Status Change", "Cambio de Estatus"),
     summary: text(
       "Trilhe a troca de status com aprovações e pontos de controle.",
       "Track the status change with approvals and control points.",
@@ -177,8 +177,8 @@ export const solutions: SolutionCard[] = [
       en: ["Change control", "Approvals", "Review points"],
       es: ["Control de cambio", "Aprobaciones", "Puntos de revisión"],
     },
-    image: casesImage,
-    imageAlt: text("Fluxo de troca de status", "Status change flow", "Flujo de cambio de estatus"),
+    image: discountsImage,
+    imageAlt: text("Troca de status", "Status change", "Cambio de estatus"),
   },
   {
     slug: "analise-das-financas",
@@ -340,8 +340,8 @@ export const solutions: SolutionCard[] = [
   },
   {
     slug: "gerir-fluxo-de-casos",
-    group: "fluxos",
-    title: text("Gerir Fluxo de Casos", "Manage Case Flow", "Gestionar Flujo de Casos"),
+    group: "operacao",
+    title: text("Gestão de Casos", "Case Management", "Gestión de Casos"),
     summary: text(
       "Acompanhe múltiplos casos com visão de ponta a ponta.",
       "Track multiple cases with an end-to-end view.",
@@ -358,7 +358,7 @@ export const solutions: SolutionCard[] = [
       es: ["Lista de casos", "Estado visible", "Historial consolidado"],
     },
     image: casesImage,
-    imageAlt: text("Gerir fluxo de casos", "Manage case flow", "Gestionar flujo de casos"),
+    imageAlt: text("Gestão de casos", "Case management", "Gestión de casos"),
   },
   {
     slug: "plataforma-para-vendedores",

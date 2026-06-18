@@ -158,10 +158,17 @@ const landing = {
     hero: {
       title: "Cuidamos de todo su proceso de visa consular con seguridad, estrategia y eficiencia.",
       subtitle: "Garantizando que sus objetivos internacionales se alcancen con rigor profesional.",
-      badge: "Procesos auditados y revisados por abogados licenciados."
+      badge: "Procesos auditados y revisados por abogados licenciados.",
+      cta: "Comenzar ahora",
+      ctaSecondary: "Hablar con un especialista",
+      imageAlt: "Vista previa del panel de Aplikei",
+      statsLabel: "Tasa de aprobación",
+      statsValue: "98.2%"
     },
     methodology: {
+      eyebrow: "Metodología",
       title: "Metodología rigurosa dividida en 4 etapas estratégicas.",
+      description: "Un flujo estratégico diseñado para maximizar sus posibilidades de éxito.",
       steps: [
         {
           title: "Análisis del caso",
@@ -182,7 +189,9 @@ const landing = {
       ]
     },
     services: {
+      eyebrow: "Especialidades",
       title: "Soluciones modulares para cada tipo de visa consular (B1/B2, F-1, cambio y extensión de estatus).",
+      description: "Soluciones jurídicas modulares adaptadas a cada perfil migratorio.",
       items: [
         {
           title: "Visas de trabajo",

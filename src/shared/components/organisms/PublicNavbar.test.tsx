@@ -45,7 +45,7 @@ describe("PublicNavbar", () => {
 
     await user.click(screen.getByRole("button", { name: "Soluções" }));
 
-    expect(screen.getByText("Fluxos")).toBeInTheDocument();
+    expect(screen.getByText("Vistos")).toBeInTheDocument();
     expect(screen.getByText("Operação")).toBeInTheDocument();
     expect(screen.getAllByText("Soluções").length).toBeGreaterThan(1);
     expect(screen.getByRole("link", { name: "Ver todas as soluções" })).toHaveAttribute(

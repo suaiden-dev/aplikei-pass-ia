@@ -14,7 +14,6 @@ interface LandingHeroProps {
 
 export function LandingHero({ heroImage, avatars }: LandingHeroProps) {
   const t = useT("landing");
-  const tCommon = useT("common");
 
   return (
     <header className="public-section-tight relative overflow-hidden bg-bg">
@@ -58,7 +57,7 @@ export function LandingHero({ heroImage, avatars }: LandingHeroProps) {
           <div className="absolute -inset-4 rounded-[3rem] bg-primary/10 blur-2xl" />
           <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-[#0d1527]/90 p-1.5 ring-1 ring-white/10 shadow-primary/10">
             <img
-              alt={t.hero?.imageAlt}
+              alt={t.hero?.title ?? ""}
               className="w-full h-auto rounded-2xl"
               src={heroImage}
             />
@@ -76,10 +75,10 @@ export function LandingHero({ heroImage, avatars }: LandingHeroProps) {
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                  {t.hero?.statsLabel || "Tempo de preparação"}
+                  {t.hero?.statsLabel}
                 </p>
                 <p className="text-2xl font-black tracking-[-0.03em] text-primary">
-                  {t.hero?.statsValue || "-70%"}
+                  {t.hero?.statsValue}
                 </p>
               </div>
             </Card>

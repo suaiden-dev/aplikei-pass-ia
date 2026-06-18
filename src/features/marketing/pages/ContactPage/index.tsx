@@ -8,12 +8,12 @@ const contactCopy = {
   pt: {
     badge: "Fale com a Aplikei",
     accent: "sobre sua operação",
-    lead: "Conte como seu escritório vende hoje e onde a operação trava. Mostramos como centralizar produtos, checkout, processos, equipe, financeiro e IA em um só lugar.",
+    lead: "Conte como seu escritório vende hoje e onde a operação trava. Mostramos como centralizar soluções, checkout, processos, equipe, financeiro e IA em um só lugar.",
     primaryCta: "Falar com especialista",
     secondaryCta: "Ver como funciona",
     cards: [
       { title: "Diagnóstico consultivo", text: "Entendemos volume, equipe e gargalos antes de propor um caminho." },
-      { title: "Demonstração guiada", text: "Mostramos produtos, checkout, processos e apoio de IA na prática." },
+      { title: "Demonstração guiada", text: "Mostramos soluções, checkout, processos e apoio de IA na prática." },
       { title: "Dados protegidos", text: "O contato inicial segue o mesmo padrão de privacidade da plataforma." },
     ],
     strip: [
@@ -25,12 +25,12 @@ const contactCopy = {
   en: {
     badge: "Talk to Aplikei",
     accent: "about your operation",
-    lead: "Tell us how your firm sells today and where the operation gets stuck. We show how to centralize products, checkout, processes, team, finance and AI in one place.",
+    lead: "Tell us how your firm sells today and where the operation gets stuck. We show how to centralize solutions, checkout, processes, team, finance and AI in one place.",
     primaryCta: "Talk to a specialist",
     secondaryCta: "See how it works",
     cards: [
       { title: "Consultative diagnosis", text: "We understand volume, team and bottlenecks before proposing a path." },
-      { title: "Guided demo", text: "We show products, checkout, processes and AI support in practice." },
+      { title: "Guided demo", text: "We show solutions, checkout, processes and AI support in practice." },
       { title: "Protected data", text: "The first contact follows the same privacy standard as the platform." },
     ],
     strip: [
@@ -42,12 +42,12 @@ const contactCopy = {
   es: {
     badge: "Hable con Aplikei",
     accent: "sobre su operación",
-    lead: "Cuéntenos cómo vende su firma hoy y dónde se atasca la operación. Mostramos cómo centralizar productos, checkout, procesos, equipo, financiero e IA en un solo lugar.",
+    lead: "Cuéntenos cómo vende su firma hoy y dónde se atasca la operación. Mostramos cómo centralizar soluciones, checkout, procesos, equipo, financiero e IA en un solo lugar.",
     primaryCta: "Hablar con un especialista",
     secondaryCta: "Ver cómo funciona",
     cards: [
       { title: "Diagnóstico consultivo", text: "Entendemos volumen, equipo y cuellos de botella antes de proponer un camino." },
-      { title: "Demo guiada", text: "Mostramos productos, checkout, procesos y apoyo de IA en la práctica." },
+      { title: "Demo guiada", text: "Mostramos soluciones, checkout, procesos y apoyo de IA en la práctica." },
       { title: "Datos protegidos", text: "El primer contacto sigue el mismo estándar de privacidad de la plataforma." },
     ],
     strip: [
@@ -129,17 +129,6 @@ export default function ContactPage() {
       </section>
 
       <ContactSection />
-
-      <section className="public-section-tight">
-        <div className="public-container grid gap-4 md:grid-cols-3">
-          {copy.strip.map((item) => (
-            <div key={item.label} className="rounded-[20px] border border-border bg-card p-6 shadow-sm">
-              <span className="block text-xs font-black uppercase tracking-[0.16em] text-text-muted">{item.label}</span>
-              <strong className="mt-2 block font-display text-2xl tracking-tight text-text lg:text-3xl">{item.value}</strong>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

@@ -28,16 +28,15 @@ const LANGS: { code: Language; label: string }[] = [
 const SOLUTIONS_COLUMNS = [
   {
     title: {
-      pt: "Fluxos",
-      en: "Flows",
-      es: "Flujos",
+      pt: "Vistos",
+      en: "Visas",
+      es: "Visados",
     },
     items: [
-      { label: { pt: "Fluxo B1/B2", en: "B1/B2 Flow", es: "Flujo B1/B2" }, href: "/solucoes/fluxo-b1b2" },
-      { label: { pt: "Fluxo F1", en: "F1 Flow", es: "Flujo F1" }, href: "/solucoes/fluxo-f1" },
+      { label: { pt: "Visto B1/B2", en: "B1/B2 Visa", es: "Visa B1/B2" }, href: "/solucoes/fluxo-b1b2" },
+      { label: { pt: "Visto F1", en: "F1 Visa", es: "Visa F1" }, href: "/solucoes/fluxo-f1" },
       { label: { pt: "Extensão de Status", en: "Status Extension", es: "Extensión de Estatus" }, href: "/solucoes/fluxo-extensao-status" },
       { label: { pt: "Troca de Status", en: "Status Change", es: "Cambio de Estatus" }, href: "/solucoes/fluxo-troca-status" },
-      { label: { pt: "Fluxo de Casos", en: "Case Flow", es: "Flujo de Casos" }, href: "/solucoes/gerir-fluxo-de-casos" },
     ],
   },
   {
@@ -51,6 +50,7 @@ const SOLUTIONS_COLUMNS = [
       { label: { pt: "Gerenciar Serviços", en: "Manage Services", es: "Gestionar Servicios" }, href: "/solucoes/gerenciar-servicos" },
       { label: { pt: "Gerenciar Time", en: "Manage Team", es: "Gestionar Equipo" }, href: "/solucoes/gerenciar-time" },
       { label: { pt: "Regras de Desconto", en: "Discount Rules", es: "Reglas de Descuento" }, href: "/solucoes/gerenciar-regras-de-desconto" },
+      { label: { pt: "Gestão de Casos", en: "Case Management", es: "Gestión de Casos" }, href: "/solucoes/gerir-fluxo-de-casos" },
     ],
   },
   {
@@ -71,14 +71,14 @@ const SOLUTIONS_COLUMNS = [
 const SOLUTIONS_FEATURED = [
   {
     title: {
-      pt: "Fluxo B1/B2",
-      en: "B1/B2 Flow",
-      es: "Flujo B1/B2",
+      pt: "Visto B1/B2",
+      en: "B1/B2 Visa",
+      es: "Visa B1/B2",
     },
     description: {
-      pt: "Uma página de solução para vender e operar o fluxo.",
-      en: "A solution page to sell and run the flow.",
-      es: "Una página de solución para vender y operar el flujo.",
+      pt: "Uma página de solução para vender e operar o visto.",
+      en: "A solution page to sell and run the visa workflow.",
+      es: "Una página de solución para vender y operar la visa.",
     },
     href: "/solucoes/fluxo-b1b2",
     icon: BriefcaseBusiness,
@@ -129,7 +129,7 @@ function LangDropdown({ size = "sm" }: { size?: "sm" | "lg" }) {
       <button
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex items-center gap-1.5 rounded-full border border-border/70 bg-card/80 px-2.5 py-1.5 backdrop-blur-sm transition-all",
+          "flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-2.5 py-1.5 transition-all",
           "hover:border-primary/40 hover:bg-card",
           open && "border-primary/40 ring-2 ring-primary/10",
         )}
@@ -156,7 +156,7 @@ function LangDropdown({ size = "sm" }: { size?: "sm" | "lg" }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 z-[200] min-w-[140px] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_16px_48px_rgba(15,23,42,0.16)] backdrop-blur-xl"
+            className="absolute right-0 top-full mt-2 z-[200] min-w-[140px] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_16px_48px_rgba(15,23,42,0.16)]"
           >
             {LANGS.map((l) => (
               <button
@@ -275,7 +275,7 @@ export function PublicNavbar() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 12, scale: 0.98 }}
                           transition={{ duration: 0.18, ease: "easeOut" }}
-                          className="fixed left-1/2 top-[76px] z-[220] w-[min(1120px,calc(100vw-3rem))] -translate-x-1/2 overflow-hidden rounded-[28px] border border-border/70 bg-card/95 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.18)] backdrop-blur-xl"
+                          className="fixed left-1/2 top-[76px] z-[220] w-[min(1120px,calc(100vw-3rem))] -translate-x-1/2 overflow-hidden rounded-[28px] border border-border/70 bg-card p-6 shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
                         >
                           <div className="grid gap-6 lg:grid-cols-[0.95fr_0.95fr_0.95fr_1.1fr]">
                             {SOLUTIONS_COLUMNS.map((column) => (
@@ -313,11 +313,11 @@ export function PublicNavbar() {
                                       to={card.href}
                                       onClick={closeSolutionsMenu}
                                       className={cn(
-                                        "group flex items-start gap-4 rounded-[24px] border border-border/70 p-4 transition-all hover:-translate-y-0.5 hover:shadow-lg",
+                                        "group flex items-start gap-4 rounded-[24px] border border-border/70 bg-card p-4 transition-all hover:-translate-y-0.5 hover:shadow-lg",
                                         `bg-gradient-to-br ${card.accent}`,
                                       )}
                                     >
-                                      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-card text-primary shadow-sm">
+                                      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-bg-subtle text-primary shadow-sm">
                                         <Icon className="h-5 w-5" />
                                       </span>
                                       <span className="min-w-0">
@@ -413,7 +413,7 @@ export function PublicNavbar() {
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-90 flex flex-col overflow-y-auto bg-bg px-6 pb-6 pt-24"
           >
-            <div className="mx-auto mb-8 w-full max-w-md rounded-[28px] border border-border/70 bg-card/80 p-5 text-left shadow-lg">
+            <div className="mx-auto mb-8 w-full max-w-md rounded-[28px] border border-border/70 bg-card p-5 text-left shadow-lg">
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-text-muted">
                 {solutionsLabel}
               </p>
