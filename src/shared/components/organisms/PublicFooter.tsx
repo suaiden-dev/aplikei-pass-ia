@@ -16,7 +16,7 @@ export function PublicFooter() {
     <footer className="border-t border-border/70 bg-bg">
       <div className="public-container public-section-tight">
         <div className="grid grid-cols-1 gap-10 border-b border-border/70 pb-12 text-sm lg:grid-cols-4 lg:gap-12">
-          <div className="space-y-6">
+          <div className="flex flex-col items-center gap-6 text-center lg:items-start lg:text-left">
             <Link to="/" className="inline-flex items-center gap-2.5">
               <AppLogo className="h-10 w-auto object-contain" />
             </Link>
@@ -34,7 +34,7 @@ export function PublicFooter() {
             </div>
           </div>
 
-          <div>
+          <div className="text-center lg:text-left">
             <h4 className="mb-7 text-xs font-bold uppercase tracking-widest text-text">{t.servicesHeader}</h4>
             <ul className="space-y-4 text-text-muted">
               <li><Link to="/quem-somos" className="transition-colors hover:text-text">{t.howItWorks}</Link></li>
@@ -43,7 +43,7 @@ export function PublicFooter() {
             </ul>
           </div>
 
-          <div>
+          <div className="text-center lg:text-left">
             <h4 className="mb-7 text-xs font-bold uppercase tracking-widest text-text">{t.legalHeader}</h4>
             <ul className="space-y-4 text-text-muted">
               <li><a href="/termos" onClick={openTermsInNewTab} className="transition-colors hover:text-text">{t.terms}</a></li>
@@ -52,7 +52,7 @@ export function PublicFooter() {
             </ul>
           </div>
 
-          <div>
+          <div className="text-center lg:text-left">
             <h4 className="mb-7 text-xs font-bold uppercase tracking-widest text-text">{t.contact}</h4>
             <ul className="space-y-4 text-text-muted">
               <li><a href="mailto:contato@aplikei.com.br" className="transition-colors hover:text-text">contato@aplikei.com.br</a></li>
@@ -62,9 +62,9 @@ export function PublicFooter() {
           </div>
         </div>
 
-        <div className="flex flex-col items-start justify-between gap-4 pt-6 text-xs text-text-muted sm:flex-row sm:items-center">
-          <p>{t.description}</p>
-          <div className="flex flex-wrap items-center gap-4 sm:justify-end sm:gap-6">
+        <div className="flex flex-col items-center justify-between gap-4 pt-6 text-xs text-text-muted sm:flex-row sm:items-center">
+          <p className="text-center sm:text-left">{t.description}</p>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end sm:gap-6">
             <a href="/termos" onClick={openTermsInNewTab} className="transition-colors hover:text-text">{t.terms}</a>
             <Link to="/privacidade" className="transition-colors hover:text-text">{t.privacy}</Link>
             <Link to="/reembolso" className="transition-colors hover:text-text">{t.refund}</Link>

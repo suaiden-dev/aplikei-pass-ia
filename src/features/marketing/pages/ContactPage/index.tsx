@@ -80,11 +80,11 @@ export default function ContactPage() {
               <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_0_4px_rgba(45,99,255,0.22)]" />
               {copy.badge}
             </span>
-            <h1 className="font-display text-5xl font-bold leading-[1.04] tracking-tight text-text lg:text-7xl">
+            <h1 className="font-display text-4xl font-bold leading-[1.04] tracking-tight text-text sm:text-5xl lg:text-7xl">
               {p?.hero?.title ?? "Vamos conversar?"} <span className="text-primary">{copy.accent}</span>
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-text-muted">{copy.lead}</p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <PublicButton asChild tone="solid">
                 <a href="#contato">
                 {copy.primaryCta}
@@ -103,7 +103,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.75, delay: 0.1 }}
-            className="relative grid min-h-[500px] content-center gap-4"
+            className="relative grid content-center gap-4 sm:min-h-[500px]"
             aria-hidden="true"
           >
             <div className="absolute aspect-square w-[min(88%,540px)] rounded-full border border-primary/10 bg-[radial-gradient(circle_at_50%_50%,rgba(45,99,255,0.18)_0_34%,rgba(52,211,238,0.08)_35%,transparent_66%)] max-sm:w-[min(92vw,360px)]" />

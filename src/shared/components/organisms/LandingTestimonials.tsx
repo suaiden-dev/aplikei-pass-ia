@@ -39,7 +39,7 @@ export const TestimonialsSection = ({ avatars }: TestimonialsSectionProps) => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className="relative z-10 flex flex-col justify-between rounded-[2.5rem] border border-white/10 bg-white/5 p-10 text-center shadow-xl shadow-black/25 transition-transform duration-300 hover:-translate-y-2 items-center lg:text-left lg:items-stretch backdrop-blur-sm"
+              className="relative z-10 flex flex-col justify-between rounded-[2rem] border border-white/10 bg-white/5 p-6 text-center shadow-xl shadow-black/25 transition-transform duration-300 hover:-translate-y-2 items-center lg:rounded-[2.5rem] lg:p-10 lg:text-left lg:items-stretch backdrop-blur-sm"
             >
               <div className="flex flex-col items-center lg:items-start">
                 <div className="flex items-center justify-center lg:justify-start gap-1 mb-6">

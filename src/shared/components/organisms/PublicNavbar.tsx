@@ -197,13 +197,17 @@ export function PublicNavbar() {
   const location = useLocation();
   const [mobileMenuOpenPath, setMobileMenuOpenPath] = useState<string | null>(null);
   const [solutionsOpen, setSolutionsOpen] = useState(false);
+  const [mobileSolutionsOpen, setMobileSolutionsOpen] = useState(false);
   const solutionsMenuRef = useRef<HTMLDivElement>(null);
   const isMobileMenuOpen = mobileMenuOpenPath === location.pathname;
   const isSolutionsRoute =
     location.pathname.startsWith("/solucoes") || location.pathname.startsWith("/servicos");
   const solutionsLabel = t.solutions ?? t.services;
 
-  const closeMobileMenu = () => setMobileMenuOpenPath(null);
+  const closeMobileMenu = () => {
+    setMobileMenuOpenPath(null);
+    setMobileSolutionsOpen(false);
+  };
   const toggleMobileMenu = () =>
     setMobileMenuOpenPath((cur) => (cur === location.pathname ? null : location.pathname));
   const closeSolutionsMenu = () => setSolutionsOpen(false);
@@ -284,18 +288,26 @@ export function PublicNavbar() {
                                   {column.title[lang] ?? column.title.pt}
                                 </p>
                                 <ul className="space-y-3">
-                                  {column.items.map((item) => (
+                                  {column.items.map((item) => {
+                                    const isCurrentPage = location.pathname === item.href;
+                                    return (
                                     <li key={`${column.title.pt}-${typeof item.label === "string" ? item.label : item.label.pt}`}>
                                       <Link
                                         to={item.href}
                                         onClick={closeSolutionsMenu}
-                                        className="group flex items-center justify-between gap-3 rounded-2xl px-3 py-2 text-sm font-semibold text-text transition-colors hover:bg-bg-subtle"
+                                        className={cn(
+                                          "group flex items-center justify-between gap-3 rounded-2xl px-3 py-2 text-sm font-semibold transition-colors",
+                                          isCurrentPage
+                                            ? "bg-primary/8 text-primary"
+                                            : "text-text hover:bg-bg-subtle",
+                                        )}
                                       >
                                         <span>{typeof item.label === "string" ? item.label : item.label[lang] ?? item.label.pt}</span>
-                                        <RiArrowRightSLine className="text-text-muted transition-transform group-hover:translate-x-0.5" />
+                                        <RiArrowRightSLine className={cn("transition-transform group-hover:translate-x-0.5", isCurrentPage ? "text-primary" : "text-text-muted")} />
                                       </Link>
                                     </li>
-                                  ))}
+                                    );
+                                  })}
                                 </ul>
                               </div>
                             ))}
@@ -407,87 +419,114 @@ export function PublicNavbar() {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-90 flex flex-col overflow-y-auto bg-bg px-6 pb-6 pt-24"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ duration: 0.28, ease: [0.32, 0, 0.67, 0] }}
+            className="fixed inset-0 z-90 flex flex-col bg-bg pt-[73px]"
           >
-            <div className="mx-auto mb-8 w-full max-w-md rounded-[28px] border border-border/70 bg-card p-5 text-left shadow-lg">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-text-muted">
-                {solutionsLabel}
-              </p>
-              <div className="mt-4 grid gap-2">
-                {[
-                  { label: "Fluxo B1/B2", href: "/solucoes/fluxo-b1b2" },
-                  { label: "Processos", href: "/solucoes/gerenciar-processos" },
-                  { label: "Finanças", href: "/solucoes/analise-das-financas" },
-                ].map((item) => (
-                  <Link
-                    key={item.label}
-                    to={item.href}
-                    onClick={closeMobileMenu}
-                    className="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold text-text transition-colors hover:bg-bg-subtle"
-                  >
-                    <span>{item.label}</span>
-                    <RiArrowRightSLine className="text-text-muted" />
-                  </Link>
-                ))}
-              </div>
-              <Link
-                to="/solucoes/fluxo-b1b2"
-                onClick={closeMobileMenu}
-                className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-primary-hover"
-              >
-                Ver todas as soluções
-                <RiArrowRightSLine />
-              </Link>
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              <nav className="space-y-0.5">
+                {navLinks.map((item) => {
+                  if (item.kind === "solutions") {
+                    return (
+                      <div key="solutions-accordion">
+                        <button
+                          onClick={() => setMobileSolutionsOpen((v) => !v)}
+                          className={cn(
+                            "flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left font-display text-lg font-black uppercase tracking-[0.04em] transition-colors",
+                            mobileSolutionsOpen ? "bg-primary/8 text-primary" : "text-text hover:bg-bg-subtle",
+                          )}
+                        >
+                          {item.label}
+                          <RiArrowDownSLine
+                            size={20}
+                            className={cn("shrink-0 transition-transform duration-200", mobileSolutionsOpen && "rotate-180")}
+                          />
+                        </button>
+                        <AnimatePresence>
+                          {mobileSolutionsOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.22 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="ml-4 mt-1 border-l-2 border-primary/20 pl-4 pb-3">
+                                {SOLUTIONS_COLUMNS.map((col) => (
+                                  <div key={col.title.pt} className="mt-4 first:mt-2">
+                                    <p className="mb-1.5 px-3 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted/60">
+                                      {col.title[lang as keyof typeof col.title]}
+                                    </p>
+                                    <div className="space-y-0.5">
+                                      {col.items.map((sol) => {
+                                        const isCurrentPage = location.pathname === sol.href;
+                                        return (
+                                        <Link
+                                          key={sol.href}
+                                          to={sol.href}
+                                          onClick={closeMobileMenu}
+                                          className={cn(
+                                            "block rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
+                                            isCurrentPage
+                                              ? "bg-primary/8 text-primary"
+                                              : "text-text hover:bg-bg-subtle hover:text-primary",
+                                          )}
+                                        >
+                                          {sol.label[lang as keyof typeof sol.label]}
+                                        </Link>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ))}
+                                <Link
+                                  to="/solucoes/fluxo-b1b2"
+                                  onClick={closeMobileMenu}
+                                  className="mt-4 inline-flex items-center gap-1.5 px-3 text-sm font-bold text-primary"
+                                >
+                                  {lang === "en" ? "See all solutions" : lang === "es" ? "Ver todas las soluciones" : "Ver todas as soluções"}
+                                  <RiArrowRightSLine size={16} />
+                                </Link>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  }
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      onClick={closeMobileMenu}
+                      className={({ isActive }) =>
+                        cn(
+                          "block rounded-2xl px-4 py-3.5 font-display text-lg font-black uppercase tracking-[0.04em] transition-colors",
+                          isActive ? "bg-primary/8 text-primary" : "text-text hover:bg-bg-subtle",
+                        )
+                      }
+                    >
+                      {item.label}
+                    </NavLink>
+                  );
+                })}
+              </nav>
             </div>
 
-            <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-              {navLinks.map((item) => (
-                item.kind === "solutions" ? (
-                  <Link
-                    key="solutions-mobile"
-                    className="font-display py-2 text-2xl font-black uppercase tracking-[0.04em] transition-colors text-primary"
-                    to="/solucoes/fluxo-b1b2"
-                    onClick={closeMobileMenu}
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={closeMobileMenu}
-                  className={({ isActive }) =>
-                    cn(
-                      "font-display py-2 text-2xl font-black uppercase tracking-[0.04em] transition-colors",
-                      isActive
-                        ? "text-primary"
-                        : "text-text-muted hover:text-text",
-                    )
-                  }
-                >
-                  {item.label}
-                </NavLink>
-                )
-              ))}
-            </div>
-            <div className="mt-8 flex flex-col items-center gap-5">
-              {/* Language Dropdown (mobile) */}
-              <LangDropdown size="lg" />
+            <div className="border-t border-border/60 px-5 py-5 space-y-3">
+              <div className="flex items-center">
+                <LangDropdown size="lg" />
+              </div>
               <PublicButton onClick={handleDemoBooking} size="lg" className="w-full">
                 {t.bookDemo}
               </PublicButton>
               <PublicButton asChild tone="outline" className="w-full">
                 <Link to="/track-my-visa" onClick={closeMobileMenu}>{t.trackMyCase}</Link>
               </PublicButton>
-
               <PublicButton asChild tone="ghost" className="w-full">
-                <Link to="/login" onClick={closeMobileMenu}>
-                  {t.login}
-                </Link>
+                <Link to="/login" onClick={closeMobileMenu}>{t.login}</Link>
               </PublicButton>
             </div>
           </motion.div>

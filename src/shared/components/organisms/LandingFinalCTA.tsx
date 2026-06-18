@@ -16,7 +16,7 @@ export function LandingFinalCTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="bg-primary-container rounded-3xl p-12 text-center text-white shadow-2xl relative overflow-hidden"
+          className="bg-primary-container rounded-3xl p-6 text-center text-white shadow-2xl relative overflow-hidden sm:p-10 lg:p-12"
         >
           {/* Subtle AI decorative element */}
           <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">

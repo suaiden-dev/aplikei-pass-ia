@@ -207,7 +207,7 @@ export function LandingProductShowcase() {
                   </div>
 
                   {/* Actions / Buttons Footer */}
-                  <div className="flex items-center gap-3 border-t border-white/5 pt-5 mt-6">
+                  <div className="flex flex-wrap items-center gap-3 border-t border-white/5 pt-5 mt-6">
                     {activeFeature.mockup.actions.map((act, idx) => (
                       <button
                         key={idx}

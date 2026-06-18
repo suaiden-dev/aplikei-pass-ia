@@ -98,11 +98,11 @@ export default function QuemSomosPage() {
               <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_0_4px_rgba(45,99,255,0.22)]" />
               {p?.hero?.tag}
             </span>
-            <h1 className="font-display text-5xl font-bold leading-[1.04] tracking-tight text-text lg:text-7xl">
+            <h1 className="font-display text-4xl font-bold leading-[1.04] tracking-tight text-text sm:text-5xl lg:text-7xl">
               {p?.hero?.title} <span className="text-primary">{copy.accent}</span>
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-text-muted">{p?.hero?.description}</p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <PublicButton asChild tone="solid">
                 <Link to="/contato">
                 {copy.primaryCta}
@@ -121,7 +121,7 @@ export default function QuemSomosPage() {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.75, delay: 0.1 }}
-            className="relative grid min-h-[520px] place-items-center max-sm:min-h-auto max-sm:pb-20"
+            className="relative grid place-items-center pb-16 sm:min-h-[520px] sm:pb-0"
           >
             <div className="absolute aspect-square w-[min(88%,560px)] rounded-full bg-[radial-gradient(circle_at_46%_40%,rgba(45,99,255,0.2)_0_34%,rgba(52,211,238,0.08)_35%,transparent_66%)]" />
             <div className="relative z-10 aspect-[4/4.6] w-full max-w-[520px] overflow-hidden rounded-[26px] border border-border bg-card shadow-2xl">
@@ -216,7 +216,7 @@ export default function QuemSomosPage() {
       </section>
 
       <section className="public-section">
-        <div className="public-container rounded-[26px] bg-primary bg-[radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.18),transparent_48%)] p-10 text-center text-on-primary shadow-2xl shadow-primary/25 lg:p-16">
+        <div className="public-container rounded-[26px] bg-primary bg-[radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.18),transparent_48%)] p-6 text-center text-on-primary shadow-2xl shadow-primary/25 sm:p-10 lg:p-16">
           <h2 className="font-display text-4xl font-bold tracking-tight lg:text-5xl">{p?.cta?.title}</h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-on-primary/80">{p?.cta?.subtitle}</p>
           <PublicButton asChild tone="inverse" className="mt-8">

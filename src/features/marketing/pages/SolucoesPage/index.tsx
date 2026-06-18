@@ -13,6 +13,29 @@ import mattosLogo from "@assets/logos/Logo-03-1024x818.png";
 import gerenciarProcessos1 from "@assets/solutions/gerenciar-processos-1.png";
 import gerenciarProcessos2 from "@assets/solutions/gerenciar-processos-2.png";
 import gerenciarProcessos3 from "@assets/solutions/gerenciar-processos-3.png";
+import gerenciarServicos1 from "@assets/solutions/gerenciar-servicos-1.png";
+import gerenciarServicos2 from "@assets/solutions/gerenciar-servicos-2.png";
+import gerenciarServicos3 from "@assets/solutions/gerenciar-servicos-3.png";
+import gerenciarTime1 from "@assets/solutions/gerenciar-time-1.png";
+import gerenciarTime2 from "@assets/solutions/gerenciar-time-2.png";
+import gerenciarTime3 from "@assets/solutions/gerenciar-time-3.png";
+import gerenciarRegras1 from "@assets/solutions/gerenciar-regras-1.png";
+import gerenciarRegras2 from "@assets/solutions/gerenciar-regras-2.png";
+import gerenciarRegras3 from "@assets/solutions/gerenciar-regras-3.png";
+import gerirFluxo1 from "@assets/solutions/gerir-fluxo-1.png";
+import gerirFluxo2 from "@assets/solutions/gerir-fluxo-2.png";
+import gerirFluxo3 from "@assets/solutions/gerir-fluxo-3.png";
+import analiseFinancas1 from "@assets/solutions/analise-financas-1.png";
+import analiseFinancas2 from "@assets/solutions/analise-financas-2.png";
+import analiseFinancas3 from "@assets/solutions/analise-financas-3.png";
+import chatServicos1 from "@assets/solutions/chat-servicos-1.png";
+import chatServicos2 from "@assets/solutions/chat-servicos-2.png";
+import chatServicos3 from "@assets/solutions/chat-servicos-3.png";
+import criarCupons1 from "@assets/solutions/criar-cupons-1.png";
+import criarCupons2 from "@assets/solutions/criar-cupons-2.png";
+import criarCupons3 from "@assets/solutions/criar-cupons-3.png";
+import plataformaVendedores1 from "@assets/solutions/plataforma-vendedores-1.png";
+import plataformaVendedores2 from "@assets/solutions/plataforma-vendedores-2.png";
 import b1b2ProcessoImage from "@assets/solutions/b1b2-processo-simplificado.png";
 import b1b2AcompanhamentoImage from "@assets/solutions/b1b2-acompanhamento-inteligente.png";
 import b1b2OrganizacaoImage from "@assets/solutions/b1b2-mais-organizacao.png";
@@ -416,6 +439,54 @@ const GERENCIAR_PROCESSOS_IMAGES = [
   gerenciarProcessos3,
 ] as const;
 
+const GERENCIAR_SERVICOS_IMAGES = [
+  gerenciarServicos1,
+  gerenciarServicos2,
+  gerenciarServicos3,
+] as const;
+
+const GERENCIAR_TIME_IMAGES = [
+  gerenciarTime1,
+  gerenciarTime2,
+  gerenciarTime3,
+] as const;
+
+const GERENCIAR_REGRAS_IMAGES = [
+  gerenciarRegras1,
+  gerenciarRegras2,
+  gerenciarRegras3,
+] as const;
+
+const GERIR_FLUXO_IMAGES = [
+  gerirFluxo1,
+  gerirFluxo2,
+  gerirFluxo3,
+] as const;
+
+const PLATAFORMA_VENDEDORES_IMAGES = [
+  plataformaVendedores1,
+  plataformaVendedores2,
+  plataformaVendedores2,
+] as const;
+
+const CRIAR_CUPONS_IMAGES = [
+  criarCupons1,
+  criarCupons2,
+  criarCupons3,
+] as const;
+
+const CHAT_SERVICOS_IMAGES = [
+  chatServicos1,
+  chatServicos2,
+  chatServicos3,
+] as const;
+
+const ANALISE_FINANCAS_IMAGES = [
+  analiseFinancas1,
+  analiseFinancas2,
+  analiseFinancas3,
+] as const;
+
 function getShowcaseBlocks(slug: string, lang: "pt" | "en" | "es") {
   const enhanced = ENHANCED_BLOCKS[slug];
   if (enhanced) {
@@ -725,6 +796,22 @@ export default function SolucoesPage() {
       ? B1B2_SHOWCASE_IMAGES
       : current.slug === "gerenciar-processos"
         ? GERENCIAR_PROCESSOS_IMAGES
+      : current.slug === "gerenciar-servicos"
+        ? GERENCIAR_SERVICOS_IMAGES
+      : current.slug === "gerenciar-time"
+        ? GERENCIAR_TIME_IMAGES
+      : current.slug === "gerenciar-regras-de-desconto"
+        ? GERENCIAR_REGRAS_IMAGES
+      : current.slug === "gerir-fluxo-de-casos"
+        ? GERIR_FLUXO_IMAGES
+      : current.slug === "analise-das-financas"
+        ? ANALISE_FINANCAS_IMAGES
+      : current.slug === "chat-para-servicos-personalizados"
+        ? CHAT_SERVICOS_IMAGES
+      : current.slug === "criar-cupons-customizados"
+        ? CRIAR_CUPONS_IMAGES
+      : current.slug === "plataforma-para-vendedores"
+        ? PLATAFORMA_VENDEDORES_IMAGES
       : (FLUXO_SHARED_SLUGS as readonly string[]).includes(current.slug)
         ? [current.image, b1b2AcompanhamentoImage, b1b2OrganizacaoImage]
       : [current.image, current.image, current.image];
@@ -750,7 +837,7 @@ export default function SolucoesPage() {
               <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-card/90 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary shadow-sm">
                 {copy.tag}
               </span>
-              <h1 className="mt-6 max-w-[13ch] font-display text-5xl font-black leading-[0.95] tracking-[-0.05em] text-text sm:text-6xl lg:text-[5.75rem]">
+              <h1 className="mt-6 max-w-full font-display text-4xl font-black leading-[0.95] tracking-[-0.05em] text-text sm:max-w-[13ch] sm:text-5xl lg:text-[5.75rem]">
                 {current.title[lang]}
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-relaxed text-text-muted sm:text-xl">

@@ -30,7 +30,7 @@ export function LandingHero({ heroImage, avatars }: LandingHeroProps) {
           </Badge>
 
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-            <h1 className="max-w-3xl font-display text-5xl font-bold leading-[1.05] tracking-[-0.05em] text-text lg:text-7xl">
+            <h1 className="max-w-3xl font-display text-4xl font-bold leading-[1.05] tracking-[-0.05em] text-text sm:text-5xl lg:text-7xl">
               {t.hero?.title} <span className="text-primary">{t.hero?.titleHighlight}</span>
             </h1>
             <p className="mt-8 max-w-2xl text-lg leading-relaxed text-text-muted lg:text-xl">
@@ -67,7 +67,7 @@ export function LandingHero({ heroImage, avatars }: LandingHeroProps) {
             initial={{ x: -16, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.9, duration: 0.45 }}
-            className="absolute bottom-8 left-0 z-20 -translate-x-6"
+            className="absolute bottom-8 left-0 z-20 sm:-translate-x-6"
           >
             <Card className="flex items-center gap-4 rounded-[1.5rem] border-border/70 bg-card p-5 shadow-2xl">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-success">
