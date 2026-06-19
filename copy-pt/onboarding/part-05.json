@@ -1,0 +1,84 @@
+{
+  "group": "onboarding",
+  "part": 5,
+  "totalParts": 9,
+  "files": [
+    {
+      "path": "src/features/onboarding/cos/pages/COSOnboardingPage/components/HomologationAutofillButton.tsx",
+      "strings": [
+        "Texto de homologacao preenchido automaticamente para testes do fluxo.",
+        "Completar Homologación",
+        "Preencher Homologação"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/cos/pages/COSOnboardingPage/CoverLetterStep.tsx",
+      "strings": [
+        "@features/onboarding/cos/lib/cover-letter",
+        "@features/process/services/processOps",
+        "onboarding",
+        "Aguardando Análise do Especialista",
+        "As suas respostas para a elaboração da carta de suporte já foram enviadas. O gerente do seu caso está analisando as informações para gerar o documento final."
+      ]
+    },
+    {
+      "path": "src/features/onboarding/cos/pages/COSOnboardingPage/FinalFormsStep.tsx",
+      "strings": [
+        "@features/process/services/processOps",
+        "@features/onboarding/cos/lib/final-forms",
+        "onboarding",
+        "Salvar rascunho",
+        "Enviar Formulários"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/cos/pages/COSOnboardingPage/FinalPackageStep.tsx",
+      "strings": [
+        "@features/process/services/processOps",
+        "@features/onboarding/cos/lib/package",
+        "onboarding",
+        "Código de rastreamento salvo!",
+        "Erro ao salvar código.",
+        "Formulário I-539 — Aplicante Principal",
+        "Formulário I-539A — Dependentes",
+        "Taxa SEVIS I-901",
+        "Passaporte e Visto — Aplicante Principal",
+        "Passaporte e Visto — Dependentes",
+        "Certidão de Casamento",
+        "Certidão de Nascimento",
+        "Comprovante de Residência do Brasil",
+        "Data Limite de Envio",
+        "1 semana antes da data de permanência autorizada do I-94",
+        "Faça o download do seu pacote e realize as assinaturas conforme instruções abaixo.",
+        "Montar o Processo",
+        "Organize nesta ordem exata antes de enviar",
+        "Gere o PDF único clicando em Download acima — todos os documentos já estarão nesta ordem.",
+        "Assinaturas Necessárias",
+        "Use caneta preta — assinaturas à mão",
+        "Assine no campo destinado ao titular do cartão.",
+        "Cover Letter (Carta de Apresentação)",
+        "Assine no campo do aplicante principal ao final da carta.",
+        "📄 Pág 5, Parte 5, Item 4 — Assine com seu nome completo.",
+        "📄 Pág 3, Parte 4, Item 4",
+        "⬇ Menores de 14 anos → assinado pelo aplicante principal",
+        "⬇ Maiores de 14 anos → o próprio dependente assina",
+        "Cartão de Crédito no G1450",
+        "📄 Preencher os dados do cartão de crédito no Formulário G1450",
+        "➡️Preencher CCV, Data de Expiração e Número do Cartão.",
+        "📄 Pág 1 — Sempre assinado pelo aplicante principal.",
+        "Endereço de Envio (USCIS)",
+        "Destinatário",
+        "Sugestão: enviar via FedEx com entrega em 24h (express delivery) com número de rastreamento.",
+        "Código de Rastreamento",
+        "Cole aqui o código (ex: 1Z999AA10123456784)",
+        "Salvo automaticamente ao clicar fora do campo.",
+        "Resultado já informado",
+        "✅ Aprovado",
+        "Aguarde as próximas instruções da nossa equipe.",
+        "Erro ao salvar resultado.",
+        "Erro ao iniciar fluxo de Motion",
+        "Erro ao iniciar fluxo de RFE"
+      ]
+    }
+  ]
+}

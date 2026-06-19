@@ -1,0 +1,19 @@
+{
+  "group": "admin-pages",
+  "part": 4,
+  "totalParts": 4,
+  "files": [
+    {
+      "path": "src/features/admin/pages/RevenuePage/index.tsx",
+      "strings": [
+        "Zelle do advogado",
+        "Não configurado",
+        "Aprovado por",
+        "Próxima",
+        "Confirmar pagamento",
+        "Você está prestes a abrir o link de pagamento. Deseja continuar?",
+        "Confirmar e abrir"
+      ]
+    }
+  ]
+}

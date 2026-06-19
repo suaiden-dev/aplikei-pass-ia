@@ -1,0 +1,48 @@
+{
+  "group": "onboarding",
+  "part": 1,
+  "totalParts": 9,
+  "files": [
+    {
+      "path": "src/features/onboarding/b1b2/hooks/useB1B2Onboarding.ts",
+      "strings": [
+        "visto-b1-b2-reaplicacao",
+        "visto-b1-b2"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/b1b2/pages/B1B2OnboardingPage/components/B1B2StepContent.tsx",
+      "strings": [
+        "@features/onboarding/shared/components/DS160FormShell",
+        "@features/onboarding/shared/constants/ds160Sections",
+        "@features/onboarding/shared/components/OnboardingNoticeStep",
+        "@features/onboarding/b1b2/types",
+        "@features/onboarding/b1b2/schemas/ds160.schema",
+        "Nossa equipe está configurando seu acesso no sistema consular. Isso costuma ser rápido.",
+        "Próxima seção",
+        "Voltar ao Painel",
+        "Enviado com sucesso!",
+        "Processando..."
+      ]
+    },
+    {
+      "path": "src/features/onboarding/b1b2/pages/B1B2OnboardingPage/index.tsx",
+      "strings": [
+        "@features/onboarding/b1b2/hooks/useB1B2Onboarding",
+        "@features/onboarding/b1b2/types",
+        "@features/onboarding/b1b2/schemas/ds160.schema",
+        "@shared/components/molecules/OnboardingStepper",
+        "visto-b1-b2-reaplicacao"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/b1b2/pages/B1B2OnboardingPage/steps/B1B2CASVSchedulingStep.tsx",
+      "strings": [
+        "@features/process/services/processOps",
+        "Rio de Janeiro",
+        "São Paulo",
+        "Preferência Enviada"
+      ]
+    }
+  ]
+}

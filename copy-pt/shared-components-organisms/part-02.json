@@ -1,0 +1,99 @@
+{
+  "group": "shared-components-organisms",
+  "part": 2,
+  "totalParts": 4,
+  "files": [
+    {
+      "path": "src/shared/components/organisms/DemoBookingModal.tsx",
+      "strings": [
+        "Agendar demo",
+        "Veja como a Aplikei reduz retrabalho, organiza a operação e libera seu time para vender mais. Preencha os dados e retornamos com a demonstração.",
+        "Solicite a demonstração",
+        "Conte rapidamente o tamanho do seu escritório e onde quer ganhar escala.",
+        "Escritório / Empresa",
+        "Número de colaboradores",
+        "Seu nome completo",
+        "Nome do escritório",
+        "Quero ver a Aplikei",
+        "Recebemos seu pedido de demo.",
+        "Não foi possível enviar agora.",
+        "Preencha os campos obrigatórios.",
+        "See the platform live with dashboard, processes, finance and team in a guided flow. Fill in your details and we will return with the demo.",
+        "Vea la plataforma en vivo con dashboard, procesos, finanzas y equipo en un flujo guiado. Complete sus datos y le responderemos con la demo.",
+        "Cuéntenos quién es y qué necesita su operación.",
+        "Teléfono",
+        "¿Cómo nos conoció?",
+        "Nombre de la firma",
+        "Quiero agendar la demo",
+        "Recibimos su solicitud de demo.",
+        "No fue posible enviar ahora.",
+        "Indicação",
+        "Aplikei Dashboard",
+        "Dashboard",
+        "Clientes",
+        "Processos",
+        "Financeiro",
+        "Mensagens",
+        "Operação ativa",
+        "Casos ativos",
+        "Equipe",
+        "Revisão técnica",
+        "Documentos",
+        "Extensão de status",
+        "Concluído",
+        "Etapa do processo",
+        "Mensagens recentes",
+        "Cliente pediu atualização do F1",
+        "Documento pendente enviado",
+        "Pagamento confirmado"
+      ]
+    },
+    {
+      "path": "src/shared/components/organisms/FinanceAnalyticsLawyerChart.tsx",
+      "strings": [
+        "visto-b1-b2",
+        "visto-b1-b2-reaplicacao",
+        "visto-f1",
+        "visto-f1-reaplicacao",
+        "mentoria-negativa-consular",
+        "Consular Refusal Analysis",
+        "visto b1/b2",
+        "visto f-1",
+        "extensao de status",
+        "troca de status",
+        "analise de recusa",
+        "negativa consular"
+      ]
+    },
+    {
+      "path": "src/shared/components/organisms/OnboardingModal.tsx",
+      "strings": [
+        "admin_lawyer_onboarding_step_v1",
+        "admin_lawyer_onboarding_minimized_v1",
+        "Operations onboarding",
+        "Finish onboarding",
+        "Expand onboarding",
+        "Minimize onboarding"
+      ]
+    },
+    {
+      "path": "src/shared/components/organisms/PhotoUploadOverlay.tsx",
+      "strings": [
+        "dashboard",
+        "Identificação com Passaporte",
+        "Segure o passaporte aberto ao lado do seu rosto",
+        "Fechar e voltar",
+        "Dados Legíveis",
+        "Sem Óculos",
+        "Rosto e ID Visíveis",
+        "Boa Iluminação",
+        "Carregar Foto",
+        "Formatos suportados: JPG, PNG. Máximo 5MB.",
+        "Confirmar e Prosseguir",
+        "A foto deve ter no máximo 5MB.",
+        "Foto enviada com sucesso!",
+        "Erro ao enviar foto: {error}"
+      ]
+    }
+  ]
+}

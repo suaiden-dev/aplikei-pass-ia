@@ -1,4 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
+import { cleanup } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
@@ -11,7 +12,7 @@ vi.mock("@app/app/i18n", () => ({
 }));
 
 describe("SolucoesPage", () => {
-  it("renders only one solution page and updates the active menu item on navigation", async () => {
+  it("renders solution pages by slug", async () => {
     const user = userEvent.setup();
 
     render(
@@ -22,16 +23,27 @@ describe("SolucoesPage", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("heading", { level: 1, name: /Fluxo B1\/B2/ })).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "Menu de soluções" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Fluxo B1\/B2/, current: "page" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Visto B1/B2" })).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Falar com especialista" })[0]).toHaveAttribute(
+      "href",
+      "/contato",
+    );
+    expect(screen.getAllByRole("link", { name: "Quero entender melhor" })[0]).toHaveAttribute(
+      "href",
+      "/cadastro",
+    );
 
-    await user.click(screen.getByRole("link", { name: /Gerenciar Processos/ }));
+    cleanup();
 
-    expect(screen.getByRole("heading", { level: 1, name: /Gerenciar Processos/ })).toBeInTheDocument();
-    expect(within(screen.getByRole("navigation", { name: "Menu de soluções" })).getByRole("link", {
-      name: /Gerenciar Processos/,
-      current: "page",
-    })).toBeInTheDocument();
+    render(
+      <MemoryRouter initialEntries={["/solucoes/gerenciar-processos"]}>
+        <Routes>
+          <Route path="/solucoes/:slug" element={<SolucoesPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("heading", { level: 1, name: "Gerenciar Processos" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Simplifique seu fluxo de casos" })).toBeInTheDocument();
   });
 });

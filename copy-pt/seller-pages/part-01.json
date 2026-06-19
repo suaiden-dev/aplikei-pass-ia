@@ -1,0 +1,14 @@
+{
+  "group": "seller-pages",
+  "part": 1,
+  "totalParts": 1,
+  "files": [
+    {
+      "path": "src/features/seller/pages/EarningsPage/index.tsx",
+      "strings": [
+        "@shared/utils/checkoutToken",
+        "Cliente"
+      ]
+    }
+  ]
+}

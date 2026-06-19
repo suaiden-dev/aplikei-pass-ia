@@ -1,0 +1,105 @@
+{
+  "group": "onboarding",
+  "part": 3,
+  "totalParts": 9,
+  "files": [
+    {
+      "path": "src/features/onboarding/b1b2/pages/B1B2OnboardingPage/steps/DS160SingleFormStep.tsx",
+      "strings": [
+        "@features/onboarding/b1b2/schemas/ds160.schema",
+        "@features/onboarding/services/addressLookupService",
+        "porquê",
+        "profissão",
+        "mídia",
+        "avó",
+        "mãe",
+        "relação",
+        "identificação",
+        "expiração",
+        "emissão",
+        "habilitação",
+        "petição",
+        "sua",
+        "seu",
+        "Local onde você fará a entrevista presencial no Consulado Americano.",
+        "Rio de Janeiro",
+        "São Paulo",
+        "Ex: João",
+        "Ex: João da Silva",
+        "Insira seu CPF (Apenas se brasileiro)",
+        "Nome completo do seu parente nos EUA.",
+        "Ex: Pedro da Silva",
+        "Grau de Parentesco",
+        "Qual a relação de parentesco com esta pessoa.",
+        "Irmão/Irmã",
+        "Status Imigratório nos EUA",
+        "O status legal de permanência dele(a) nos EUA.",
+        "Cidadão Americano",
+        "Não Imigrante (Visto de Turismo/Trabalho)",
+        "Estudante / Intercâmbio (F/J)"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/b1b2/schemas/ds160.schema.ts",
+      "strings": [
+        "Selecione uma opção",
+        "Selecione o local da entrevista",
+        "Sobrenome é obrigatório",
+        "Nome é obrigatório",
+        "Nome da avó materna é obrigatório",
+        "Nome completo é obrigatório (conforme passaporte)",
+        "Estado civil é obrigatório",
+        "Data de nascimento é obrigatória",
+        "Cidade de nascimento é obrigatória",
+        "Estado de nascimento é obrigatório",
+        "País de nascimento é obrigatório",
+        "CPF inválido",
+        "Número do passaporte é obrigatório",
+        "Data de emissão é obrigatória",
+        "Data de vencimento é obrigatória",
+        "Finalidade da viagem é obrigatória",
+        "Local de hospedagem nos EUA é obrigatório",
+        "Rua da hospedagem é obrigatória",
+        "Cidade da hospedagem é obrigatória",
+        "Estado da hospedagem é obrigatório",
+        "Rua é obrigatória",
+        "CEP é obrigatório",
+        "Cidade é obrigatória",
+        "Estado é obrigatório",
+        "País é obrigatório",
+        "Telefone principal é obrigatório",
+        "E-mail é obrigatório",
+        "E-mail inválido",
+        "Área de atuação é obrigatória",
+        "Empresa/Escola é obrigatória",
+        "Informe os idiomas que fala",
+        "Informe o número do passaporte perdido",
+        "Data de chegada obrigatória",
+        "Cidade de chegada obrigatória",
+        "Data estimada obrigatória",
+        "Nome do pagador é obrigatório",
+        "Relação é obrigatória",
+        "Informe os detalhes das visitas",
+        "Informe a data do último visto",
+        "Explique o motivo da recusa",
+        "Explique a petição",
+        "Informe o nome do empregador anterior",
+        "Informe a instituição de ensino",
+        "Detalhe a exceção de segurança"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/cos/lib/final-forms.ts",
+      "strings": [
+        "Erro de RLS ao fazer upload para bucket aplikei-profiles",
+        "Erro na geração final_forms"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/cos/lib/i539.ts",
+      "strings": [
+        "PDF I-539 base não encontrado."
+      ]
+    }
+  ]
+}

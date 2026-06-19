@@ -1,6 +1,6 @@
 const services = {
-  sectionTitle: "Nossos serviços",
-  sectionSubtitle: "Escolha o guia ideal para o seu processo de visto.",
+  sectionTitle: "Soluções para escritórios",
+  sectionSubtitle: "Escolha o fluxo ideal para vender mais, reduzir retrabalho e operar com controle.",
   viewDetails: "Ver detalhes",
   serviceDetail: {
     overview: "Visão Geral",
@@ -10,19 +10,19 @@ const services = {
     requirements: "O que você vai precisar",
     steps: "Sua jornada em 6 passos simples",
     faq: "Perguntas Frequentes",
-    disclaimer: "Aviso: A Aplikei não é um escritório de advocacia, não oferece aconselhamento jurídico, não garante aprovação e não representa o cliente perante consulados ou USCIS. O suporte humano é apenas operacional.",
+    disclaimer: "A Aplikei organiza a operação do escritório e não substitui a atuação jurídica do advogado. O foco é dar controle, previsibilidade e escala ao processo comercial e operacional.",
     legalDisclaimer: "Aviso Legal",
-    concludeProcess: "Conclua processo atual",
-    scheduleDemo: "Agendar Demonstração",
-    b2bSolution: "Solução para Escritórios",
-    b2bDesc: "Padronize a coleta de dados e aumente a produtividade do seu time.",
+    concludeProcess: "Concluir jornada atual",
+    scheduleDemo: "Agendar demonstração",
+    b2bSolution: "Solução para escritórios",
+    b2bDesc: "Padronize o atendimento, reduza retrabalho e dê mais produtividade ao time.",
     journeySteps: [
-      { title: "Cadastro e Configuração", desc: "Crie sua conta e selecione o guia ideal para seu objetivo." },
-      { title: "Preenchimento dos Dados", desc: "Forneça suas informações em nosso ambiente amigável e intuitivo." },
-      { title: "Análise dos Especialistas", desc: "Nossa equipe revisa seus dados para garantir que tudo esteja perfeito." },
-      { title: "Organização de Documentos", desc: "Use nossa IA para validar e organizar seus documentos conforme o checklist." },
-      { title: "Preparação Estratégica", desc: "Receba orientações claras sobre o que esperar na sua entrevista ou envio." },
-      { title: "Pacote Final Pronto", desc: "Baixe seu kit completo, organizado e pronto para imprimir e submeter." }
+      { title: "Cadastro e contexto", desc: "Crie sua conta e identifique a operação que precisa de mais controle." },
+      { title: "Mapeamento da rotina", desc: "Entenda como seu escritório vende, atende e acompanha cada etapa." },
+      { title: "Organização dos dados", desc: "Estruture informações, documentos e responsáveis em um fluxo único." },
+      { title: "Padronização do processo", desc: "Use a Aplikei para reduzir falhas e manter o time alinhado." },
+      { title: "Acompanhamento do time", desc: "Monitore tarefas, pendências e status com mais visibilidade." },
+      { title: "Operação escalável", desc: "Feche a jornada com um escritório pronto para crescer com previsibilidade." }
     ]
   }
 };

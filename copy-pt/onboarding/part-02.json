@@ -1,0 +1,77 @@
+{
+  "group": "onboarding",
+  "part": 2,
+  "totalParts": 9,
+  "files": [
+    {
+      "path": "src/features/onboarding/b1b2/pages/B1B2OnboardingPage/steps/B1B2FinalPreparationStep.tsx",
+      "strings": [
+        "@features/onboarding/hooks/useInterviewTrainingController",
+        "@features/onboarding/services/finalPreparationService",
+        "mentoria-negativa-consular",
+        "Olá, comprei o pacote Specialist Mentoring e quero iniciar meu atendimento com o manager.",
+        "Olá, comprei a consultoria pós-negativa e quero iniciar meu atendimento com o manager.",
+        "Falar com especialista",
+        "Qual o objetivo da sua viagem?",
+        "Seja específico. Mencione cidades e locais que pretende visitar.",
+        "Onde você vai se hospedar?",
+        "Tenha o endereço do hotel ou da casa de amigos/parentes em mãos.",
+        "Quem vai pagar pela sua viagem?",
+        "Se for você, demonstre estabilidade. Se for um sponsor, explique a relação.",
+        "Converse direto com o manager para iniciar sua mentoria",
+        "Ir para o chat"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/b1b2/pages/B1B2OnboardingPage/steps/B1B2MRVPaymentStep.tsx",
+      "strings": [
+        "@features/process/services/processOps",
+        "@features/onboarding/services/onboardingProcessDataService",
+        "@features/onboarding/services/onboardingStorageService"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/b1b2/pages/B1B2OnboardingPage/steps/B1B2UserConfirmEmailStep.tsx",
+      "strings": [
+        "@features/process/services/processOps",
+        "E-mail Confirmado",
+        "A confirmação de e-mail foi validada e seu processo avançou.",
+        "Voltar para Dashboard",
+        "Aguardando Confirmação",
+        "Você já confirmou a criação da conta. Nossa equipe está validando a confirmação do e-mail para prosseguir com o seu processo."
+      ]
+    },
+    {
+      "path": "src/features/onboarding/b1b2/pages/B1B2OnboardingPage/steps/B1B2UserReviewSignStep.tsx",
+      "strings": [
+        "@features/onboarding/services/onboardingStorageService",
+        "@features/process/services/processOps",
+        "Revise suas informações",
+        "Documento enviado!",
+        "Envie os dois documentos para continuar.",
+        "Documentos enviados com sucesso!",
+        "Os documentos foram validados pela equipe. Você já pode avançar para a próxima etapa.",
+        "Voltar para Dashboard",
+        "Aguardando Revisão",
+        "Seus documentos foram enviados com sucesso e estão sendo analisados pela nossa equipe.",
+        "Correção Solicitada",
+        "Por favor, reenvie os documentos corrigidos abaixo.",
+        "Assinatura da DS-160",
+        "Use as credenciais abaixo para acessar e assinar sua DS-160 no portal CEAC.",
+        "Mãe / Segurança",
+        "Ano de Nascimento",
+        "Credenciais em preparação",
+        "Nossa equipe está configurando seu acesso ao portal CEAC. Você será notificado assim que estiver disponível.",
+        "Acessar site do Consulado (CEAC)",
+        "Próximo",
+        "Agora, envie seus comprovantes",
+        "Após assinar a DS-160 no CEAC, faça o upload dos dois comprovantes abaixo.",
+        "Documentos marcados para correção estão destacados em vermelho.",
+        "Envie o arquivo final da sua aplicação.",
+        "Comprovante de Envio",
+        "Envie a Confirmação de Submissão do CEAC.",
+        "Finalizar Documentação"
+      ]
+    }
+  ]
+}

@@ -997,45 +997,93 @@
 }
 
 /* ── AI Automation section ────────────────────────────────────────── */
+@keyframes lp-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(22, 185, 129, 0.22); }
+  50% { box-shadow: 0 0 0 8px rgba(22, 185, 129, 0.06); }
+}
+@keyframes lp-bar-a {
+  0%, 100% { transform: scaleY(0.45); } 50% { transform: scaleY(1); }
+}
+@keyframes lp-bar-b {
+  0%, 100% { transform: scaleY(0.85); } 50% { transform: scaleY(0.3); }
+}
+@keyframes lp-bar-c {
+  0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(0.9); }
+}
+@keyframes lp-bar-d {
+  0%, 100% { transform: scaleY(0.75); } 50% { transform: scaleY(0.4); }
+}
+@keyframes lp-bar-e {
+  0%, 100% { transform: scaleY(0.55); } 50% { transform: scaleY(0.85); }
+}
+
 .lp-ai-grid {
   display: grid;
   grid-template-columns: 1fr 1.05fr;
   gap: clamp(24px, 4vw, 50px);
-  align-items: center;
+  align-items: start;
 }
 .lp-ai-feats { display: flex; flex-direction: column; gap: 10px; }
 .lp-ai-feat {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 14px;
-  padding: 16px;
+  padding: 18px 18px 18px 18px;
   border-radius: var(--lr-lg);
   border: 1px solid transparent;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
-.lp-ai-feat.hot { border-color: var(--ldark-line-2); background: rgba(255, 255, 255, 0.04); }
-.lp-ai-feat .lp-icon-box { margin: 0; width: 42px; height: 42px; }
+.lp-ai-feat-n {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--lon-dark-3);
+  margin-bottom: 5px;
+}
+.lp-ai-feat.hot {
+  border-color: rgba(45, 99, 255, 0.3);
+  background: rgba(45, 99, 255, 0.07);
+  border-left: 2px solid rgba(45, 99, 255, 0.65);
+}
+.lp-ai-feat:not(.hot):hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--ldark-line-2);
+}
+.lp-ai-feat .lp-icon-box { margin: 0; width: 42px; height: 42px; flex-shrink: 0; }
 .lp-ai-feat h3 { font-size: 18px; margin-bottom: 4px; }
-.lp-ai-feat p { color: var(--lon-dark-2); font-size: 16px; }
+.lp-ai-feat p { color: var(--lon-dark-2); font-size: 15px; line-height: 1.6; }
 .landing-page:not(.lp-dark) .lp-ai-feat {
   background: rgba(255, 255, 255, 0.58);
-  border-color: rgba(45, 99, 255, 0.08);
+  border-color: rgba(45, 99, 255, 0.07);
 }
 .landing-page:not(.lp-dark) .lp-ai-feat.hot {
   background: #fff;
-  border-color: rgba(45, 99, 255, 0.2);
+  border-color: rgba(45, 99, 255, 0.22);
+  border-left-color: rgba(45, 99, 255, 0.6);
   box-shadow: var(--lshadow);
 }
+.landing-page:not(.lp-dark) .lp-ai-feat:not(.hot):hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(45, 99, 255, 0.14);
+}
 .landing-page:not(.lp-dark) .lp-ai-feat p { color: var(--link-2); }
+.landing-page:not(.lp-dark) .lp-ai-feat-n { color: var(--link-3); }
 
 .lp-engine {
-  background: linear-gradient(180deg, #0c1430, #0a0f24);
+  background: linear-gradient(160deg, #0e1635 0%, #080d1f 100%);
   border: 1px solid var(--ldark-line-2);
   border-radius: var(--lr-xl);
-  padding: 24px;
-  box-shadow: var(--lshadow-lg);
+  padding: 0;
+  overflow: hidden;
+  box-shadow: var(--lshadow-lg), 0 0 0 1px rgba(45, 99, 255, 0.06);
 }
+.lp-engine-grad-bar {
+  height: 3px;
+  background: var(--lgrad);
+}
+.lp-engine-inner { padding: 24px; }
 .landing-page:not(.lp-dark) .lp-engine {
-  background: linear-gradient(180deg, #ffffff, #f4f8ff);
+  background: linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
   border-color: rgba(45, 99, 255, 0.14);
   box-shadow: 0 20px 50px rgba(21, 34, 62, 0.12);
 }
@@ -1066,6 +1114,7 @@
   border-radius: 50%;
   background: #16b981;
   box-shadow: 0 0 0 4px rgba(22, 185, 129, 0.2);
+  animation: lp-dot-pulse 2.4s ease-in-out infinite;
 }
 .lp-engine-rows { display: flex; flex-direction: column; }
 .lp-engine-row {
@@ -1073,7 +1122,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 0;
+  padding: 13px 0;
   border-bottom: 1px solid var(--ldark-line);
   font-size: 14px;
 }
@@ -1084,7 +1133,109 @@
 .landing-page:not(.lp-dark) .lp-engine-row .k { color: var(--link-2); }
 .landing-page:not(.lp-dark) .lp-engine-row .v { color: var(--link); }
 .lp-engine-row .ok { color: #5ee2b0; }
+.lp-ai-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 24px;
+  margin-top: 18px;
+  margin-bottom: 4px;
+}
+.lp-ai-bars span {
+  display: block;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--lgrad);
+  transform-origin: bottom;
+}
+.lp-ai-bars span:nth-child(1) { height: 16px; animation: lp-bar-a 1.4s ease-in-out infinite; }
+.lp-ai-bars span:nth-child(2) { height: 22px; animation: lp-bar-b 1.1s ease-in-out infinite; }
+.lp-ai-bars span:nth-child(3) { height: 10px; animation: lp-bar-c 1.6s ease-in-out infinite; }
+.lp-ai-bars span:nth-child(4) { height: 18px; animation: lp-bar-d 1.2s ease-in-out infinite 0.3s; }
+.lp-ai-bars span:nth-child(5) { height: 14px; animation: lp-bar-e 1.5s ease-in-out infinite 0.1s; }
+.lp-ai-bars-label {
+  font-size: 11px;
+  color: var(--lon-dark-3);
+  margin-left: 8px;
+  align-self: center;
+  margin-bottom: 4px;
+}
+.landing-page:not(.lp-dark) .lp-ai-bars-label { color: var(--link-3); }
 .lp-engine-cta { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+
+/* ── AI case panel (inside engine card) ──────────────────────────── */
+.lp-ai-panel-client {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--ldark-line);
+  margin-bottom: 14px;
+}
+.lp-ai-panel-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(45, 99, 255, 0.18);
+  color: #7ea3ff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.lp-ai-panel-client-info strong { display: block; font-size: 14px; color: #fff; }
+.lp-ai-panel-client-info span { font-size: 12px; color: var(--lon-dark-3); }
+.landing-page:not(.lp-dark) .lp-ai-panel-client { border-bottom-color: var(--lline); }
+.landing-page:not(.lp-dark) .lp-ai-panel-avatar { background: rgba(45, 99, 255, 0.1); color: #2d63ff; }
+.landing-page:not(.lp-dark) .lp-ai-panel-client-info strong { color: var(--link); }
+.landing-page:not(.lp-dark) .lp-ai-panel-client-info span { color: var(--link-3); }
+
+.lp-ai-tasks { display: flex; flex-direction: column; }
+.lp-ai-task {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--ldark-line);
+}
+.lp-ai-task:last-child { border-bottom: 0; }
+.lp-ai-task-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.lp-ai-task.done .lp-ai-task-icon { background: rgba(22, 185, 129, 0.15); color: #5ee2b0; }
+.lp-ai-task.pending .lp-ai-task-icon { background: rgba(45, 99, 255, 0.15); color: #7ea3ff; }
+.lp-ai-task strong { font-size: 14px; display: block; margin-bottom: 2px; color: #fff; }
+.lp-ai-task small { font-size: 12px; color: var(--lon-dark-3); }
+.landing-page:not(.lp-dark) .lp-ai-task { border-bottom-color: var(--lline); }
+.landing-page:not(.lp-dark) .lp-ai-task.done .lp-ai-task-icon { background: rgba(22, 185, 129, 0.12); color: #059669; }
+.landing-page:not(.lp-dark) .lp-ai-task.pending .lp-ai-task-icon { background: rgba(45, 99, 255, 0.1); color: #2d63ff; }
+.landing-page:not(.lp-dark) .lp-ai-task strong { color: var(--link); }
+.landing-page:not(.lp-dark) .lp-ai-task small { color: var(--link-3); }
+
+.lp-ai-panel-saved {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ldark-line);
+  font-size: 13px;
+  font-weight: 600;
+  color: #5ee2b0;
+}
+.lp-ai-panel-saved::before { content: '⏱'; }
+.landing-page:not(.lp-dark) .lp-ai-panel-saved { border-top-color: var(--lline); color: #059669; }
 
 /* ── Steps (How it works) ─────────────────────────────────────────── */
 .lp-steps {

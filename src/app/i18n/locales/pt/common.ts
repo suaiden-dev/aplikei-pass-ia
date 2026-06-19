@@ -1,5 +1,5 @@
 const common = {
-  siteTitle: "Aplikei - Vistos EUA",
+  siteTitle: "Aplikei - Plataforma para escritórios",
   yes: "Sim", no: "Não", select: "Selecionar...", tip: "Dica:", doNotKnow: "Não Sei",
   doesNotApply: "Não se Aplica", save: "Salvar", cancel: "Cancelar", confirm: "Confirmar",
   view: "Ver", remove: "Remover", na: "N/A", cardPayment: "Cartão",
@@ -7,22 +7,22 @@ const common = {
   successRate: "Taxa de Sucesso",
   whoWeArePage: {
     hero: {
-      tag: "Quem somos",
-      title: "Aplikei é a camada operacional para escritórios de imigração",
-      titleHighlight: "que querem vender, operar e escalar.",
-      description: "Construímos uma plataforma para transformar serviços de imigração em produtos digitais, com checkout personalizado, processos organizados, equipe integrada, financeiro em um só lugar e IA aplicada à rotina do escritório.",
-      stats: "produtos, checkout, processos, equipe, financeiro e IA em uma só operação."
+      tag: "Sobre a Aplikei",
+      title: "Aplikei é a plataforma para advogados e escritórios",
+      titleHighlight: "que querem vender mais com controle.",
+      description: "Construímos uma plataforma para centralizar oferta, checkout, processos, equipe e financeiro em um só lugar. O resultado é menos retrabalho, mais previsibilidade e uma operação pronta para escalar sem o advogado virar gargalo.",
+      stats: "venda, operação e financeiro em uma só plataforma."
     },
     history: {
       title: "Nossa Missão",
-      description: "A Aplikei nasceu para resolver o que mais trava a operação de um escritório de imigração: canais espalhados, documentos desconectados, controle manual e excesso de tarefas repetitivas. A ideia é simples: dar ao escritório uma plataforma única para vender serviços, acompanhar processos e apoiar a equipe com inteligência operacional.\n\nAcreditamos que tecnologia útil é aquela que reduz retrabalho, aumenta clareza e permite que o advogado deixe de ser o centro de tudo para se tornar o responsável pela estratégia."
+      description: "A Aplikei nasceu para resolver o que mais trava a operação de um escritório: canais espalhados, documentos desconectados, controle manual e excesso de tarefas repetitivas. A ideia é simples: dar ao escritório uma plataforma única para vender mais, acompanhar processos com clareza e apoiar a equipe com inteligência operacional.\n\nAcreditamos que tecnologia útil reduz retrabalho, aumenta previsibilidade e libera o advogado para focar em estratégia e vendas."
     },
     pillars: {
       title: "Nossos Pilares",
       items: [
         {
           title: "Produto digital",
-          description: "Serviços de imigração viram produtos com preço, descrição, documentos e fluxo próprios."
+          description: "Serviços jurídicos viram ofertas com preço, escopo, documentos e fluxo próprios."
         },
         {
           title: "Operação centralizada",
@@ -40,7 +40,7 @@ const common = {
     },
     leadership: {
       title: "Nossa forma de construir",
-      subtitle: "Tecnologia orientada à operação real do escritório",
+      subtitle: "Tecnologia orientada à operação real e à venda com previsibilidade",
       members: [
         {
           name: "Produto e engenharia",
@@ -53,30 +53,30 @@ const common = {
       ]
     },
     cta: {
-      title: "Leve seu escritório para uma operação digital completa",
-      subtitle: "Conheça como a Aplikei conecta produto, checkout, processos, equipe, financeiro e IA em uma única plataforma.",
+      title: "Leve seu escritório para uma operação comercial completa",
+      subtitle: "Conheça como a Aplikei conecta venda, checkout, processos, equipe, financeiro e IA em uma única plataforma.",
       button: "Falar com especialista"
     },
     stats: {
       success: "10k+",
-      successLabel: "Processos Facilitados",
+      successLabel: "Processos atendidos",
       approval: "-70%",
-      approvalLabel: "Tempo de Preparação",
-      countries: "3 Idiomas",
-      countriesLabel: "Suporte da Plataforma"
+      approvalLabel: "Tempo de preparação",
+      countries: "3 idiomas",
+      countriesLabel: "Suporte da plataforma"
     }
   },
 
   servicesPage: {
     hero: {
       tag: "Soluções",
-      title: "Tudo o que seu escritório precisa para vender, operar e escalar",
-      subtitle: "Crie produtos digitais, personalize checkout, organize processos e use IA para reduzir trabalho manual na rotina."
+      title: "Tudo o que seu escritório precisa para vender mais, operar com controle e escalar",
+      subtitle: "Crie ofertas, personalize checkout, organize processos e use IA para reduzir trabalho manual na rotina."
     },
     sections: [
       {
-        title: "Produtos digitais",
-        description: "Transforme serviços de imigração em ofertas com preço, descrição, documentos necessários e fluxo próprio.",
+        title: "Ofertas digitais",
+        description: "Transforme serviços jurídicos em ofertas com preço, escopo, documentos necessários e fluxo próprio.",
         features: [
           "Serviços como B1/B2, F1, RFE, COS e consultorias.",
           "Preço e descrição por oferta.",
@@ -85,7 +85,7 @@ const common = {
       },
       {
         title: "Checkout personalizado",
-        description: "Venda os seus serviços com links de pagamento com a identidade do escritório e mais clareza para o cliente.",
+        description: "Venda seus serviços com links de pagamento com a identidade do escritório e mais clareza para o cliente.",
         features: [
           "Checkout com a marca do escritório.",
           "Fluxo de compra mais profissional.",
@@ -103,7 +103,7 @@ const common = {
       },
       {
         title: "IA aplicada à operação",
-        description: "Use inteligência artificial para reduzir tarefas repetitivas e manter a operação mais clara para a equipe.",
+        description: "Use inteligência artificial para reduzir tarefas repetitivas e manter a operação mais clara para o time.",
         features: [
           "Organização de dados e pendências.",
           "Apoio a respostas operacionais.",
@@ -113,8 +113,8 @@ const common = {
     ],
     info: {
       leadership: {
-        title: "Foco em clareza",
-        description: "A tecnologia foi desenhada para reduzir o excesso de tarefas manuais e deixar cada etapa mais previsível para a equipe."
+        title: "Foco em escala",
+        description: "A tecnologia foi desenhada para reduzir o excesso de tarefas manuais e deixar cada etapa mais previsível para o escritório."
       },
       rigor: {
         title: "Segurança de dados",

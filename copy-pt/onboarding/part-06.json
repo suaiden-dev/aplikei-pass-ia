@@ -1,0 +1,111 @@
+{
+  "group": "onboarding",
+  "part": 6,
+  "totalParts": 9,
+  "files": [
+    {
+      "path": "src/features/onboarding/cos/pages/COSOnboardingPage/I20UploadStep.tsx",
+      "strings": [
+        "@features/onboarding/services/onboardingStorageService",
+        "@features/process/services/processOps",
+        "@features/onboarding/cos/lib/cos-notifications",
+        "onboarding"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/cos/pages/COSOnboardingPage/I539FormStep.tsx",
+      "strings": [
+        "@features/onboarding/cos/schemas/i539.schema",
+        "@features/onboarding/services/addressLookupService",
+        "@features/onboarding/cos/lib/i539",
+        "@features/onboarding/cos/lib/cos-notifications",
+        "@features/process/services/processOps",
+        "onboarding",
+        "Se você já solicitou a remoção de algum impedimento de entrada nos EUA / If you have ever requested a waiver of inadmissibility.",
+        "Se você já foi deportado ou removido dos EUA / If you have ever been deportado ou removido dos EUA.",
+        "Se existe uma petição de imigrante sendo protocolada agora / If an immigrant petition is currently being filed.",
+        "Clique em Salvar Rascunho ou Enviar Formulário.",
+        "Salvar Rascunho",
+        "Enviar Formulário"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/cos/pages/COSOnboardingPage/index.tsx",
+      "strings": [
+        "@features/process/services/processOps",
+        "@shared/components/molecules/OnboardingStepper",
+        "@features/onboarding/services/cosOnboardingService",
+        "@features/onboarding/services/onboardingStorageService",
+        "onboarding",
+        "visto-b1-b2",
+        "Resultado informado como aprovado.",
+        "[COSOnboardingPage] failed to save motion result:",
+        "Não foi possível salvar o resultado da Motion.",
+        "[COSOnboardingPage] load error:",
+        "Acompanhe o resultado final do seu Motion.",
+        "Visto negado. Iniciando fluxo de Motion.",
+        "Erro ao salvar resultado.",
+        "Falha ao iniciar novo ciclo de RFE.",
+        "Sincronizando Traduções",
+        "Extensão 1.000U$/mes = U$ 6.000",
+        "Sessão expirada. Por favor, recarregue a página e tente novamente.",
+        "Sessão expirada. Faça login novamente antes de enviar os documentos.",
+        "Fluxo de Motion Ativo",
+        "Fluxo de RFE Ativo",
+        "Este caso é complementar ao seu processo principal.",
+        "Identificador do Subprocesso:"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/cos/pages/COSOnboardingPage/MotionWorkflow.tsx",
+      "strings": [
+        "@features/process/services/processOps",
+        "@features/onboarding/cos/lib/cos-notifications",
+        "@features/onboarding/services/cosOnboardingService",
+        "@features/onboarding/services/onboardingStorageService",
+        "checkout",
+        "onboarding",
+        "checkout_slug",
+        "Cliente",
+        "Revisao completa da negativa recebida.",
+        "Acesso ao fluxo guiado com suporte da equipe.",
+        "Contrate o servico de Motion para reverter a negativa.",
+        "Como funciona",
+        "Taxas de processamento podem variar",
+        "Envie a carta de negativa e descreva o que o USCIS alegou para que nossa equipe analise o caso.",
+        "Motivo da Negativa",
+        "Descreva aqui o que voce recebeu na carta de negativa...",
+        "Carta de Negativa",
+        "Carta de Negativa (USCIS)",
+        "Documento recebido pelo correio ou online",
+        "Documentos de apoio (opcional)",
+        "Documentos de apoio",
+        "Evidencias extras que reforcem seu caso",
+        "Enviar para Analise",
+        "Olá! Quero falar com o especialista sobre a proposta da minha Motion.",
+        "Resultado informado como aprovado.",
+        "Nao foi possivel salvar o resultado.",
+        "Pagamento já confirmado.",
+        "Aguardando proposta do time.",
+        "Ir para o chat",
+        "Motion marcada como APROVADO.",
+        "Aprovado",
+        "O acesso ao especialista ja foi liberado e um chat foi aberto para conduzir sua Motion.",
+        "Seu acesso ao especialista foi liberado. Entre no chat para conduzir sua Motion com nossa equipe.",
+        "Olá! Quero falar com o especialista sobre o resultado da minha Motion.",
+        "Baixar Pacote de Motion",
+        "Fale com o especialista pelo chat",
+        "Ir para o Specialist",
+        "Como foi o resultado da Motion?",
+        "Rejeitado",
+        "Seu Motion foi aprovado.",
+        "Seu Motion foi rejeitado.",
+        "Selecione uma opcao abaixo para nos informar como foi a Motion.",
+        "Processo Encerrado",
+        "Motion aprovada. Processo finalizado com sucesso!",
+        "Motion encerrada como reprovada. Processo finalizado.",
+        "Ir para o Dashboard"
+      ]
+    }
+  ]
+}

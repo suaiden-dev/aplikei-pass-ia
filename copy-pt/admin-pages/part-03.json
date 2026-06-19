@@ -1,0 +1,103 @@
+{
+  "group": "admin-pages",
+  "part": 3,
+  "totalParts": 4,
+  "files": [
+    {
+      "path": "src/features/admin/pages/OverviewPageImplementation.tsx",
+      "strings": [
+        "@shared/components/organisms/DashboardUI",
+        "Receita do mês",
+        "Clientes ativos",
+        "Conversão comercial",
+        "Cases em operação",
+        "9 críticos",
+        "Visto B1/B2 Premium",
+        "Cartão",
+        "Troca de Status",
+        "Extensão de Status",
+        "Visto B1/B2",
+        "Mentoria Consular",
+        "Preciso revisar os documentos hoje.",
+        "Pode me mandar o link do produto?",
+        "Meu case está em que etapa?",
+        "Quero aplicar um cupom no checkout.",
+        "Master aprovou nova campanha de coupons para F-1.",
+        "Time de cases sinalizou 3 processos exigindo revisao imediata.",
+        "Comercial bateu 118% da meta semanal em payments.",
+        "Operacao liberou novo pacote premium de products.",
+        "Visão geral da operação",
+        "Acompanhe a saúde comercial, financeira e operacional da Aplikei em uma área centralizada para a role master.",
+        "% do faturamento pago",
+        "Sinais rápidos para tomada de decisao master.",
+        "Últimos payments",
+        "Movimentações mais recentes do caixa mockado.",
+        "Cases críticos",
+        "Fila priorizada para atuação imediata."
+      ]
+    },
+    {
+      "path": "src/features/admin/pages/PaymentMethodsSettingsPage.tsx",
+      "strings": [
+        "@shared/components/organisms/DashboardUI"
+      ]
+    },
+    {
+      "path": "src/features/admin/pages/ProcessDetailPage/index.tsx",
+      "strings": [
+        "@features/process/services/processOps",
+        "@features/onboarding/cos/lib/package",
+        "Guia/Boleto do USCIS enviado com sucesso!",
+        "Guia de Pagamento (Boleto/Formulário)",
+        "login, senha e envie o boleto",
+        "texto e o valor da proposta",
+        "Confirmar",
+        "Cliente",
+        "Nenhum dado de formulário preenchido até o momento.",
+        "Aguardando Cliente",
+        "Esperando o cliente mandar ou corrigir os arquivos solicitados.",
+        "Revisão da Taxa do USCIS",
+        "Verifique o comprovante de pagamento da Taxa do USCIS enviado pelo cliente.",
+        "Comprovante de Taxa do USCIS",
+        "Aprovar Taxa do USCIS",
+        "Solicitar Correção",
+        "Correções Necessárias",
+        "Brasília",
+        "Rio de Janeiro",
+        "São Paulo",
+        "Taxa do USCIS (Guia/Boleto)",
+        "Preparação de Boleto",
+        "Pago pelo cliente",
+        "Motivo enviado pelo cliente",
+        "Cliente ainda não enviou o motivo.",
+        "Carta de negativa",
+        "Não enviado.",
+        "Documentos de apoio",
+        "Histórico de envios",
+        "Sem descrição",
+        "Documento de apoio",
+        "Histórico de propostas",
+        "Motion reprovado pelo cliente",
+        "Motion aprovado pelo cliente",
+        "Motion - Proposal paga pelo cliente",
+        "Aguardando pagamento da Motion - Proposal",
+        "Descrição enviada pelo cliente",
+        "Cliente ainda não enviou a descrição.",
+        "RFE reprovado pelo cliente",
+        "RFE aprovado pelo cliente",
+        "RFE - Proposta paga pelo cliente",
+        "Aguardando pagamento da RFE - Proposta",
+        "Aprovado",
+        "Detalhes do Cliente",
+        "Informações de contato e venda",
+        "Clique para visualizar"
+      ]
+    },
+    {
+      "path": "src/features/admin/pages/ProductsPage/index.tsx",
+      "strings": [
+        "Login URL:"
+      ]
+    }
+  ]
+}

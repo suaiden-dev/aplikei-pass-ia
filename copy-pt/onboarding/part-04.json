@@ -1,0 +1,49 @@
+{
+  "group": "onboarding",
+  "part": 4,
+  "totalParts": 9,
+  "files": [
+    {
+      "path": "src/features/onboarding/cos/lib/i539a.ts",
+      "strings": [
+        "PDF I-539A base não encontrado."
+      ]
+    },
+    {
+      "path": "src/features/onboarding/cos/pages/COSOnboardingPage/components/COSApplicationStep.tsx",
+      "strings": [
+        "Seleccione la clase de visa con la que fue admitido actualmente en los Estados Unidos.",
+        "Seleccione la clase de visa a la que desea cambiar o extender su estatus.",
+        "Ingrese la fecha de vencimiento de su estadía autorizada que figura en su documento oficial I-94.",
+        "Seleccione la relación familiar del dependiente con usted.",
+        "Ingrese la fecha de nacimiento del dependiente.",
+        "Ingrese la fecha de vencimiento de la estadía autorizada del dependiente según su I-94.",
+        "Ingrese la fecha de matrimonio.",
+        "Selecione a classe de visto sob a qual você foi admitido atualmente nos Estados Unidos.",
+        "Selecione a classe de visto para a qual você deseja alterar ou estender o seu status.",
+        "Insira a data limite de permanência autorizada que consta no seu documento oficial I-94.",
+        "Insira o nome completo do dependente exatamente como consta no passaporte.",
+        "Selecione o grau de parentesco do membro da família com você.",
+        "Insira a data de nascimento do dependente.",
+        "Insira a data limite de permanência autorizada do dependente que consta no I-94.",
+        "Insira a data do casamento."
+      ]
+    },
+    {
+      "path": "src/features/onboarding/cos/pages/COSOnboardingPage/components/COSProcessingFallbackStep.tsx",
+      "strings": [
+        "onboarding",
+        "Análise em Andamento",
+        "Nossa equipe está processando sua solicitação.",
+        "Status do Processo",
+        "Aguardando revisão interna de nossa equipe."
+      ]
+    },
+    {
+      "path": "src/features/onboarding/cos/pages/COSOnboardingPage/components/COSStepContent.tsx",
+      "strings": [
+        "@features/onboarding/f1/pages/F1OnboardingPage/steps/F1I20UploadStep"
+      ]
+    }
+  ]
+}

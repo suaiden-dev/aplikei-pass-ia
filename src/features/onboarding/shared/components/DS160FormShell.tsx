@@ -73,7 +73,7 @@ export function DS160FormShell({
       behavior: "smooth",
     });
 
-    const containers = document.querySelectorAll(".overflow-y-auto");
+    const containers = document.querySelectorAll('[data-scroll-reset="true"]');
     containers.forEach((container) => {
       container.scrollTo({
         top: 0,

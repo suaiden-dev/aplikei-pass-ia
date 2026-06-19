@@ -1,0 +1,19 @@
+{
+  "group": "offices-pages",
+  "part": 1,
+  "totalParts": 1,
+  "files": [
+    {
+      "path": "src/features/offices/pages/OfficeDetailsPage/index.tsx",
+      "strings": [
+        "crescimento (variável)"
+      ]
+    },
+    {
+      "path": "src/features/offices/pages/OfficesPage/index.tsx",
+      "strings": [
+        "crescimento (variável)"
+      ]
+    }
+  ]
+}

@@ -38,6 +38,7 @@ import { maskCPF, validateCPF } from "@shared/utils/cpf";
 import { useT } from "@app/app/i18n";
 import { calculateDiscount } from "@features/payments/lib/coupon";
 import { useCoupon } from "@features/payments/hooks/useCoupon";
+import type { CheckoutServiceRow } from "@features/payments/services/checkoutPageService";
 import {
     fetchPublicOfficeCheckoutData,
     logCheckoutInteraction,
@@ -59,12 +60,7 @@ type OfficeCheckoutOffice = {
     landing_page_config?: OfficeLandingPageConfig | null;
 };
 
-type OfficeCheckoutService = {
-    id: string;
-    slug: string;
-    name: string;
-    description?: string | null;
-};
+type OfficeCheckoutService = CheckoutServiceRow;
 
 type ZelleCheckoutConfig = {
     name: string;

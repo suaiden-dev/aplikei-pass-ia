@@ -1,0 +1,23 @@
+{
+  "group": "shared-components-templates",
+  "part": 1,
+  "totalParts": 1,
+  "files": [
+    {
+      "path": "src/shared/components/templates/ServiceDetailTemplate.tsx",
+      "strings": [
+        "Solução para Escritórios",
+        "Padronize a coleta de dados e aumente a produtividade do seu time.",
+        "Agendar Demonstração",
+        "Taxa de Sucesso",
+        "Visão Geral",
+        "Para quem é",
+        "Para quem não é",
+        "O que está incluído",
+        "Sua jornada em 6 passos simples",
+        "Do cadastro ao pacote final, cuidamos de cada detalhe para você.",
+        "Começar Agora"
+      ]
+    }
+  ]
+}

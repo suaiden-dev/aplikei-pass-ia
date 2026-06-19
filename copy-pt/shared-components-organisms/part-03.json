@@ -1,0 +1,70 @@
+{
+  "group": "shared-components-organisms",
+  "part": 3,
+  "totalParts": 4,
+  "files": [
+    {
+      "path": "src/shared/components/organisms/PublicFooter.tsx",
+      "strings": [
+        "contato@aplikei.com.br"
+      ]
+    },
+    {
+      "path": "src/shared/components/organisms/PublicNavbar.tsx",
+      "strings": [
+        "Português",
+        "Vistos",
+        "Visto B1/B2",
+        "Visto F1",
+        "Extensão de Status",
+        "Extensión de Estatus",
+        "Troca de Status",
+        "Cambio de Estatus",
+        "Operação",
+        "Operación",
+        "Gerenciar Processos",
+        "Gerenciar Serviços",
+        "Regras de Desconto",
+        "Reglas de Descuento",
+        "Gestão de Casos",
+        "Gestión de Casos",
+        "Soluções",
+        "Análise das Finanças",
+        "Análisis de Finanzas",
+        "Chat para Serviços",
+        "Chat para Servicios",
+        "Plataforma para Vendedores",
+        "Uma página de solução para vender e operar o visto.",
+        "Una página de solución para vender y operar la visa.",
+        "Leitura clara do negócio com dados operacionais.",
+        "Selecionar idioma",
+        "Ver todas as soluções"
+      ]
+    },
+    {
+      "path": "src/shared/components/organisms/ServiceCard.tsx",
+      "strings": [
+        "visto-b1-b2",
+        "visto-b1-b2-reaplicacao",
+        "B1/B2 REAPLICAÇÃO",
+        "visto-f1",
+        "EXTENSÃO STATUS"
+      ]
+    },
+    {
+      "path": "src/shared/components/organisms/ServiceCTA.tsx",
+      "strings": [
+        "visto-b1-b2",
+        "visto-b1-b2-reaplicacao",
+        "visto-f1",
+        "analise-consular",
+        "mentoria-processo",
+        "Especialistas em Imigração",
+        "Evite erros comuns e garanta sua aprovação hoje.",
+        "Nossa equipe de especialistas está pronta para processar seu",
+        "com agilidade e segurança. Não deixe sua aplicação para a última hora.",
+        "INICIAR MINHA SOLICITAÇÃO AGORA"
+      ]
+    }
+  ]
+}

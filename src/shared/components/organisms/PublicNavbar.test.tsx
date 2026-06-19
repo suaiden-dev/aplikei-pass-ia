@@ -52,13 +52,13 @@ describe("PublicNavbar", () => {
       "href",
       "/solucoes/fluxo-b1b2",
     );
-    expect(screen.getAllByRole("link", { name: "Fluxo B1/B2" })[0]).toHaveAttribute(
+    expect(screen.getAllByRole("link", { name: "Visto B1/B2" })[0]).toHaveAttribute(
       "href",
       "/solucoes/fluxo-b1b2",
     );
 
     await user.click(screen.getByRole("button", { name: "Agendar demo" }));
     expect(screen.getByRole("dialog", { name: "Agendar demo" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Nome")).toBeInTheDocument();
+    expect(screen.getByLabelText("Nome completo")).toBeInTheDocument();
   });
 });

@@ -1,0 +1,58 @@
+{
+  "group": "shared-components-organisms",
+  "part": 1,
+  "totalParts": 4,
+  "files": [
+    {
+      "path": "src/shared/components/organisms/ActiveProcessCard.tsx",
+      "strings": [
+        "visto-b1-b2",
+        "visto-b1-b2-reaplicacao",
+        "B1/B2 REAPLICAÇÃO",
+        "visto-f1",
+        "EXTENSÃO STATUS"
+      ]
+    },
+    {
+      "path": "src/shared/components/organisms/ContactSection.tsx",
+      "strings": [
+        "Fale com a Aplikei",
+        "Conte como seu escritório vende hoje e onde quer ganhar escala. Nossa equipe mostra o próximo passo para reduzir tempo e ganhar controle.",
+        "Mensagem",
+        "Seu nome",
+        "Descreva sua operação, seu volume de atendimento ou sua dúvida",
+        "Enviar mensagem",
+        "Mensagem enviada com sucesso.",
+        "Não foi possível enviar sua mensagem agora.",
+        "contato@aplikei.com.br",
+        "Localização",
+        "São Paulo, SP - Brasil",
+        "Envíe un mensaje con el contexto de su operación. Nuestro equipo responderá con el mejor próximo paso.",
+        "¿Cómo podemos ayudar?",
+        "Describa su operación o duda",
+        "Enviar mensaje",
+        "Mensaje enviado con éxito.",
+        "No fue posible enviar su mensaje ahora.",
+        "Teléfono",
+        "Ubicación",
+        "contato"
+      ]
+    },
+    {
+      "path": "src/shared/components/organisms/DashboardNavbar.tsx",
+      "strings": [
+        "Falha ao carregar imagem para recorte.",
+        "Falha ao criar canvas para edição da foto.",
+        "dashboard",
+        "Dashboard",
+        "Pré-visualização"
+      ]
+    },
+    {
+      "path": "src/shared/components/organisms/DashboardView.tsx",
+      "strings": [
+        "@features/process/hooks/useDashboard"
+      ]
+    }
+  ]
+}

@@ -1,41 +1,41 @@
 const landing = {
   hero: {
-    badge: "Próxima Geração de Vistos Com IA",
-    title: "A plataforma completa para gerenciar seus",
-    titleHighlight: "processos de vistos consulares",
-    subtitle: "Automatize tarefas, organize documentos e escale seu escritório com a eficiência da Inteligência Artificial dedicada à gestão de vistos consulares (B1/B2, F-1, troca e extensão de status).",
+    badge: "Plataforma para escritórios de advocacia",
+    title: "A plataforma completa para",
+    titleHighlight: "vender mais com controle",
+    subtitle: "Organize atendimento, operação e financeiro em um só lugar para reduzir retrabalho, ganhar previsibilidade e escalar o escritório com foco total no comercial.",
     cta: "Agendar demonstração",
-    statsLabel: "Tempo de preparação",
+    statsLabel: "Tempo economizado",
     statsValue: "-70%",
     ctaSecondary: "Falar com especialista",
-    trustedBy: "Trusted by leaders",
+    trustedBy: "Confiado por escritórios",
   },
   problem: {
     title: "Dores que resolvemos",
-    subtitle: "Entendemos as complexidades operacionais que impedem o crescimento de escritórios de vistos consulares.",
+    subtitle: "Entendemos os gargalos operacionais que impedem o escritório de vender mais e crescer com controle.",
     items: [
       {
         icon: "account_tree",
-        title: "Processos desorganizados",
-        description: "Fluxos de trabalho fragmentados entre e-mails, pastas locais e mensagens instantâneas que geram caos operacional."
+        title: "Operação fragmentada",
+        description: "Fluxos espalhados entre planilhas, e-mails e mensagens que travam o crescimento."
       },
       {
         icon: "error",
         title: "Controle manual",
-        description: "Planilhas e anotações suscetíveis a erros humanos críticos."
+        description: "Planilhas e anotações suscetíveis a falhas, retrabalho e perda de histórico."
       },
       {
         icon: "timer_off",
         title: "Tempo perdido",
-        description: "Horas gastas em tarefas puramente burocráticas."
+        description: "Horas consumidas em tarefas operacionais que deveriam estar automatizadas."
       },
       {
         icon: "assignment_late",
         title: "Falta de padronização",
-        description: "Inconsistência na entrega final que pode comprometer a credibilidade do seu escritório perante as autoridades e clientes."
+        description: "Cada atendimento segue um padrão diferente e o escritório perde escala."
       }
     ],
-    simulationLabel: "Simulação de inconsistência documental"
+    simulationLabel: "Simulação de operação sem padronização"
   },
   solution: {
     title: "Sua operação em outro nível",
@@ -43,76 +43,76 @@ const landing = {
       {
         icon: "hub",
         title: "Centralização",
-        description: "Um único lugar para gerenciar todos os casos, documentos e comunicações com o cliente."
+        description: "Um único lugar para gerenciar casos, documentos, tarefas e comunicação."
       },
       {
         icon: "auto_fix_high",
         title: "Automação com IA",
         badge: "-70% TEMPO",
-        description: "Utilize modelos neurais treinados em vistos consulares para preencher formulários complexos em segundos."
+        description: "Use automações para reduzir trabalho repetitivo e acelerar a operação do escritório."
       },
       {
         icon: "verified_user",
-        title: "Prontos para envio (Ready-to-go)",
-        description: "Pacotes estruturados para diversos tipos de vistos, garantindo que nenhum item essencial seja esquecido."
+        title: "Prontos para escala",
+        description: "Estruture fluxos e pacotes operacionais para crescer sem perder controle."
       }
     ]
   },
   howItWorks: {
     title: "Como Funciona",
-    subtitle: "Comece em minutos",
+    subtitle: "Comece em minutos e organize o escritório para vender com mais previsibilidade.",
     steps: [
       {
         title: "Crie uma conta",
-        desc: "Cadastre-se na plataforma de forma rápida e segura em poucos cliques."
+        desc: "Cadastre-se e tenha acesso à estrutura inicial da plataforma."
       },
       {
         title: "Ative seu plano",
-        desc: "Escolha e ative o plano ideal com os recursos que seu escritório necessita."
+        desc: "Escolha os recursos que fazem sentido para a rotina do seu escritório."
       },
       {
         title: "Configure sua empresa",
-        desc: "Complete a configuração da sua empresa com 7 passos simples e automatizados."
+        desc: "Padronize as etapas e organize o fluxo comercial e operacional."
       },
       {
         title: "Venda e gerencie",
-        desc: "Comece imediatamente a vender e gerenciar com maestria os processos de vistos dos seus clientes."
+        desc: "Comece a vender mais com controle, clareza e escala."
       }
     ]
   },
   benefits: {
-    title: "Excelência institucional garantida em cada processo.",
+    title: "Escala com controle em cada processo.",
     items: [
       {
         icon: "trending_up",
         title: "Ganho de produtividade",
-        description: "Atenda 3x mais clientes com o mesmo time operacional."
+        description: "Atenda mais clientes com o mesmo time e menos esforço operacional."
       },
       {
         icon: "security",
         title: "Redução de erros",
-        description: "Minimização de RFEs através de validação dupla automatizada."
+        description: "Diminua falhas, retrabalho e perda de informação ao longo do fluxo."
       },
       {
         icon: "dynamic_feed",
         title: "Escalabilidade",
-        description: "Expanda seu volume de casos sem perder o controle de qualidade."
+        description: "Expanda o volume de operação sem perder visibilidade e padrão."
       },
       {
         icon: "workspace_premium",
         title: "Padronização",
-        description: "Garanta que todos os processos sigam o mais alto rigor jurídico."
+        description: "Garanta que cada etapa siga o mesmo processo com mais consistência."
       }
     ],
     stats: {
       number: "10k+",
-      label: "Processos facilitados com sucesso"
+      label: "Processos organizados com sucesso"
     }
   },
   testimonials: {
-    title: "O que dizem os especialistas",
-    heading: "Excelência comprovada por parceiros",
-    subtitle: "Escritórios de advocacia e assessorias de vistos consulares que escalaram suas operações com a nossa tecnologia.",
+    title: "O que dizem os clientes",
+    heading: "Resultados percebidos na rotina do escritório",
+    subtitle: "Escritórios que passaram a vender com mais controle, visibilidade e escala.",
     items: [
       {
         quote: "A implementação da Aplikei transformou drasticamente nossa entrega. <span class='text-primary-container font-semibold'>Reduzimos em 60% o tempo operacional</span> de preparação documental para vistos consulares.",
@@ -129,121 +129,121 @@ const landing = {
     ]
   },
   finalCta: {
-    title: "Pronto para escalar sua operação?",
-    description: "Junte-se aos escritórios que já automatizaram mais de 10.000 processos com precisão jurídica e tecnologia de ponta.",
+    title: "Pronto para escalar seu escritório?",
+    description: "Centralize a operação, reduza retrabalho e dê ao time mais tempo para focar em vendas e relacionamento.",
     button: "Agendar demonstração"
   },
   faq: {
     title: "Perguntas Frequentes",
     items: [
       {
-        q: "A plataforma é segura para dados jurídicos?",
-        a: "Sim, utilizamos criptografia de ponta a ponta e estamos em conformidade com as principais normas de proteção de dados (LGPD/GDPR)."
+        q: "A plataforma ajuda na rotina comercial e operacional?",
+        a: "Sim. A Aplikei centraliza dados, tarefas e fluxos para reduzir dispersão e dar mais controle ao escritório."
       },
       {
-        q: "Como a IA ajuda na criação de cartas para a USCIS e nos treinamentos consulares?",
-        a: "Nossa Inteligência Artificial auxilia na redação de cartas robustas e personalizadas para a USCIS, além de conduzir simulações de treinamentos consulares dinâmicos para preparar seus clientes para as entrevistas de visto."
+        q: "Preciso mudar todo meu processo para usar a plataforma?",
+        a: "Não. A Aplikei se adapta à operação do escritório e ajuda a organizar o que já existe com mais padrão."
       },
       {
-        q: "Como funciona a venda e o acesso para os meus clientes?",
-        a: "Oferecemos links exclusivos de login e páginas de produtos para que seus clientes possam realizar a compra diretamente e acessar a plataforma com facilidade."
+        q: "A plataforma ajuda a vender mais?",
+        a: "Ajuda porque deixa o processo mais claro, reduz atrito e libera o time para focar em conversão e relacionamento."
       },
       {
-        q: "Existe tradução para o cliente?",
-        a: "Sim, a plataforma possui suporte completo e está disponível em português, inglês e espanhol, permitindo que seu cliente utilize o sistema no idioma de sua preferência."
+        q: "O escritório ganha mais controle?",
+        a: "Sim. O objetivo é dar visibilidade de etapa, responsável e próximo passo para cada operação."
       }
     ]
   },
   lex: {
     hero: {
-      title: "Cuidamos de todo o seu processo de visto com segurança, estratégia e eficiência.",
-      subtitle: "Garantindo que seus objetivos internacionais sejam alcançados com rigor profissional.",
-      badge: "Processos auditados e revisados por advogados licenciados.",
+      title: "Organize sua operação para vender com mais controle e previsibilidade.",
+      subtitle: "Transforme rotina dispersa em um fluxo claro para o escritório crescer com escala.",
+      badge: "Operação comercial e jurídica em um só lugar.",
       cta: "Começar agora",
       ctaSecondary: "Falar com um especialista",
       imageAlt: "Prévia do dashboard da Aplikei",
-      statsLabel: "Taxa de aprovação",
-      statsValue: "98.2%"
+      statsLabel: "Tempo economizado",
+      statsValue: "-70%"
     },
     methodology: {
       eyebrow: "Metodologia",
-      title: "Metodologia rigorosa dividida em 4 etapas estratégicas.",
-      description: "Um fluxo estratégico desenhado para maximizar suas chances de sucesso.",
+      title: "Metodologia prática dividida em 4 etapas.",
+      description: "Um fluxo pensado para organizar a operação e apoiar o crescimento do escritório.",
       steps: [
         {
-          title: "Análise do caso",
-          description: "Avaliação detalhada do seu perfil e viabilidade jurídica para o destino escolhido."
+          title: "Mapeamento da operação",
+          description: "Entenda como o escritório vende, atende e acompanha cada etapa hoje."
         },
         {
           title: "Planejamento estratégico",
-          description: "Definição da melhor rota de visto consular visando o menor tempo e maior taxa de aprovação."
+          description: "Defina onde ajustar processo, rotina e responsabilidades para ganhar escala."
         },
         {
-          title: "Preparação da documentação",
-          description: "Organização minuciosa e tradução juramentada de todos os registros necessários."
+          title: "Organização da documentação",
+          description: "Estruture documentos e informações sem dispersão para reduzir retrabalho."
         },
         {
           title: "Acompanhamento",
-          description: "Monitoramento constante junto aos órgãos competentes até a decisão final."
+          description: "Monitore status, responsáveis e próximos passos até a operação ficar previsível."
         }
       ]
     },
     services: {
       eyebrow: "Especialidades",
-      title: "Soluções modulares para cada tipo de visto consular (B1/B2, F-1, troca e extensão de status).",
-      description: "Soluções jurídicas modulares adaptadas para cada perfil imigratório.",
+      title: "Soluções modulares para cada área da operação do escritório.",
+      description: "Fluxos adaptados para reduzir retrabalho e dar mais controle ao time.",
       items: [
         {
-          title: "Vistos de trabalho",
-          description: "Assessoria estratégica para profissionais qualificados que desejam trabalhar e construir carreira internacional com segurança.",
+          title: "Processos comerciais",
+          description: "Estruture ofertas, etapas e acompanhamento para vender com mais consistência.",
           features: [
-            "EB-2 National Interest Waiver",
-            "L-1 Intracompany Transferees",
-            "H-1B Specialty Occupations",
-            "O-1 Extraordinary Ability"
+            "Oferta centralizada",
+            "Acompanhamento de leads",
+            "Proposta comercial padronizada",
+            "Fechamento com mais previsibilidade"
           ]
         },
         {
-          title: "Vistos de Turista",
-          description: "Planejamento completo para sua viagem, evitando recusas e garantindo tranquilidade na aprovação do visto."
+          title: "Atendimento ao cliente",
+          description: "Centralize interações e reduza a dispersão entre canais e mensagens."
         },
         {
-          title: "Vistos de estudante",
-          description: "Suporte para estudar no exterior com orientação desde a escolha da instituição até a aprovação do visto.",
+          title: "Operação do time",
+          description: "Acompanhe tarefas, responsáveis e prioridades sem perder o contexto."
         },
         {
-          title: "Extensão de Visto",
-          description: "Acompanhamento especializado para renovar seu status ou avançar rumo à residência permanente e cidadania."
+          title: "Controle financeiro",
+          description: "Tenha leitura mais clara de receita, margem e previsibilidade."
         },
         {
-          title: "Mudança de status",
-          description: "Regularização de permanência e mudança de categoria de visto dentro do território."
+          title: "Escala da operação",
+          description: "Crie processos que sustentem crescimento sem perder padrão."
         }
       ]
     },
     footer: {
-      description: "Consultoria jurídica internacional especializada em processos de alta complexidade.",
-      tagline: "Nossa equipe está pronta para atendê-lo em múltiplos fusos horários, garantindo suporte global."
+      description: "Tecnologia para escritórios que querem operar com mais controle e crescer com previsibilidade.",
+      tagline: "Centralize venda, operação e financeiro para o time focar no que gera receita."
     },
     testimonials: {
-      title: "Resultados que transformam trajetórias internacionais.",
+      title: "Resultados que transformam a rotina do escritório.",
       items: [
         {
-          quote: "A equipe da Aplikei foi fundamental para a aprovação do meu EB-2 NIW. Profissionalismo e precisão técnica impecáveis.",
+          quote: "A Aplikei tirou nossa operação do caos e deu visão real do que estava travando as vendas.",
           author: "Carlos Silveira",
-          role: "Engenheiro de Software"
+          role: "Sócio de escritório"
         },
         {
-          quote: "Segurança do início ao fim. O suporte jurídico no ajuste de status me deu a tranquilidade necessária em um momento crítico.",
+          quote: "Passamos a responder mais rápido, perder menos histórico e vender com mais confiança.",
           author: "Mariana Costa",
-          role: "Empreendedora"
+          role: "Gestora comercial"
         }
       ]
     },
     cta: {
-      title: "Pronto para iniciar sua jornada global?",
-      description: "Agende uma consultoria estratégica e descubra a melhor rota para o seu sucesso internacional.",
-      button: "Solicitar Análise de Perfil"
+      title: "Pronto para organizar o escritório e vender com mais controle?",
+      description: "Agende uma demonstração e veja como a Aplikei reduz retrabalho, dá visibilidade ao time e libera energia para crescimento comercial.",
+      button: "Agendar demonstração"
     }
   }
 };

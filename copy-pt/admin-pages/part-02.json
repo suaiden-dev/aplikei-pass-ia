@@ -1,0 +1,40 @@
+{
+  "group": "admin-pages",
+  "part": 2,
+  "totalParts": 4,
+  "files": [
+    {
+      "path": "src/features/admin/pages/InteractionLogsPage/index.tsx",
+      "strings": [
+        "Checkout Flow"
+      ]
+    },
+    {
+      "path": "src/features/admin/pages/LegalTermsPage/RichEditor.tsx",
+      "strings": [
+        "Título 1",
+        "Título 2",
+        "Título 3",
+        "Itálico",
+        "Lista com marcadores",
+        "Alinhar à esquerda",
+        "Alinhar à direita",
+        "Limpar formatação",
+        "Cor do texto"
+      ]
+    },
+    {
+      "path": "src/features/admin/pages/master/CustomersPage.tsx",
+      "strings": [
+        "@shared/components/organisms/DashboardUI",
+        "Onboarding in progress"
+      ]
+    },
+    {
+      "path": "src/features/admin/pages/master/PlansPage.tsx",
+      "strings": [
+        "crescimento (variável)"
+      ]
+    }
+  ]
+}

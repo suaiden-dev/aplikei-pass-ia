@@ -4,7 +4,7 @@ import { Input } from "@shared/components/atoms/input";
 import { Label } from "@shared/components/atoms/label";
 import { Textarea } from "@shared/components/atoms/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/components/atoms/tooltip";
-import type { LandingPageConfig } from "../types";
+import type { LandingPageConfig, LandingSectionKey } from "../types";
 
 interface InspectorPanelProps {
   config: LandingPageConfig;

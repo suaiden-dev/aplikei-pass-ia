@@ -105,7 +105,7 @@ export function CustomerLayout() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 px-4 space-y-1 overflow-y-auto" data-scroll-reset="true">
             {navItems.map(({ label, icon: Icon, to }) => (
               <NavLink
                 key={to}
@@ -192,7 +192,7 @@ export function CustomerLayout() {
         {/* Main area */}
         <main className="flex-1 overflow-hidden flex flex-col h-full bg-bg">
           <DashboardNavbar onMenuClick={openSidebar} role="client" />
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" data-scroll-reset="true">
           <motion.div
             key={pathname}
             initial={{ opacity: 0, x: 20 }}

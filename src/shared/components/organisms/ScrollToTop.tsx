@@ -7,6 +7,7 @@ import { PublicButton } from "../atoms/PublicButton";
 export function ScrollToTop() {
   const { pathname, search, key } = useLocation();
   const [isVisible, setIsVisible] = useState(false);
+  const scrollResetSelector = '[data-scroll-reset="true"]';
 
   // Scroll to top on route change (including key change for same-route navigation)
   useEffect(() => {
@@ -17,7 +18,7 @@ export function ScrollToTop() {
     });
 
     // Dashboard container scroll
-    const containers = document.querySelectorAll(".overflow-y-auto");
+    const containers = document.querySelectorAll(scrollResetSelector);
     containers.forEach((container) => {
       container.scrollTo({
         top: 0,

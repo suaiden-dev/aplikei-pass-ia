@@ -1,22 +1,22 @@
 const howItWorks = {
   title: "Como Funciona",
-  subtitle: "Um fluxo direto, com etapas claras e sem ruído operacional.",
+  subtitle: "Um fluxo simples para organizar a operação do escritório e liberar o time para vender mais.",
   steps: [
     {
-      title: "Crie uma conta",
-      desc: "Cadastre-se na plataforma de forma rápida e segura em poucos cliques."
+      title: "Crie sua conta",
+      desc: "Cadastre o escritório e comece com uma base pronta para organizar a operação."
     },
     {
-      title: "Ative seu plano",
-      desc: "Escolha e ative o plano ideal com os recursos que seu escritório necessita."
+      title: "Defina sua operação",
+      desc: "Escolha os fluxos e áreas que precisam de mais controle, visibilidade e previsibilidade."
     },
     {
-      title: "Configure sua empresa",
-      desc: "Complete a configuração da sua empresa com 7 passos simples e automatizados."
+      title: "Estruture o processo",
+      desc: "Padronize etapas, responsáveis e documentos para reduzir retrabalho e ruído interno."
     },
     {
-      title: "Venda e gerencie",
-      desc: "Comece imediatamente a vender e gerenciar com maestria os processos de vistos dos seus clientes."
+      title: "Escale com controle",
+      desc: "Acompanhe o time, dê mais clareza ao cliente e foque no crescimento comercial."
     }
   ]
 };

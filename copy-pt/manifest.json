@@ -1,0 +1,143 @@
+{
+  "generatedAt": "2026-06-18T23:20:29.606Z",
+  "scope": "Portuguese site copy extracted from source files",
+  "notes": [
+    "Each group is stored in its own folder.",
+    "Large groups are split into multiple small chunk files to make GPT review easier.",
+    "Use the manifest to find the right file quickly."
+  ],
+  "groups": [
+    {
+      "name": "admin-pages",
+      "count": 13,
+      "folder": "admin-pages",
+      "parts": [
+        "part-01.json",
+        "part-02.json",
+        "part-03.json",
+        "part-04.json"
+      ]
+    },
+    {
+      "name": "app",
+      "count": 7,
+      "folder": "app",
+      "parts": [
+        "part-01.json",
+        "part-02.json"
+      ]
+    },
+    {
+      "name": "app-i18n-pt",
+      "count": 17,
+      "folder": "app-i18n-pt",
+      "parts": [
+        "part-01.json",
+        "part-02.json",
+        "part-03.json",
+        "part-04.json",
+        "part-05.json"
+      ]
+    },
+    {
+      "name": "customer-pages",
+      "count": 2,
+      "folder": "customer-pages",
+      "parts": [
+        "part-01.json"
+      ]
+    },
+    {
+      "name": "legal-pages",
+      "count": 5,
+      "folder": "legal-pages",
+      "parts": [
+        "part-01.json",
+        "part-02.json"
+      ]
+    },
+    {
+      "name": "marketing-home",
+      "count": 2,
+      "folder": "marketing-home",
+      "parts": [
+        "part-01.json"
+      ]
+    },
+    {
+      "name": "marketing-solucoes",
+      "count": 1,
+      "folder": "marketing-solucoes",
+      "parts": [
+        "part-01.json"
+      ]
+    },
+    {
+      "name": "offices-pages",
+      "count": 2,
+      "folder": "offices-pages",
+      "parts": [
+        "part-01.json"
+      ]
+    },
+    {
+      "name": "onboarding",
+      "count": 36,
+      "folder": "onboarding",
+      "parts": [
+        "part-01.json",
+        "part-02.json",
+        "part-03.json",
+        "part-04.json",
+        "part-05.json",
+        "part-06.json",
+        "part-07.json",
+        "part-08.json",
+        "part-09.json"
+      ]
+    },
+    {
+      "name": "process-pages",
+      "count": 2,
+      "folder": "process-pages",
+      "parts": [
+        "part-01.json"
+      ]
+    },
+    {
+      "name": "seller-pages",
+      "count": 1,
+      "folder": "seller-pages",
+      "parts": [
+        "part-01.json"
+      ]
+    },
+    {
+      "name": "shared-components-organisms",
+      "count": 13,
+      "folder": "shared-components-organisms",
+      "parts": [
+        "part-01.json",
+        "part-02.json",
+        "part-03.json",
+        "part-04.json"
+      ]
+    },
+    {
+      "name": "shared-components-templates",
+      "count": 1,
+      "folder": "shared-components-templates",
+      "parts": [
+        "part-01.json"
+      ]
+    },
+    {
+      "name": "shared-data",
+      "count": 4,
+      "folder": "shared-data",
+      "parts": [
+        "part-01.json"
+      ]
+    }
+  ]
+}

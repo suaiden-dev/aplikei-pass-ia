@@ -1,0 +1,59 @@
+{
+  "group": "app",
+  "part": 1,
+  "totalParts": 2,
+  "files": [
+    {
+      "path": "src/app/layouts/CustomerLayout.tsx",
+      "strings": [
+        "@shared/components/organisms/DashboardNavbar",
+        "dashboard",
+        "Sair"
+      ]
+    },
+    {
+      "path": "src/app/layouts/RoleDashboardLayout.tsx",
+      "strings": [
+        "@shared/components/organisms/OnboardingModal",
+        "Falha ao carregar imagem para recorte.",
+        "Falha ao criar canvas para edição da foto.",
+        "Complete company setup and activate your subscription before finishing onboarding.",
+        "admin_lawyer_onboarding_step_v1",
+        "Failed to complete onboarding:"
+      ]
+    },
+    {
+      "path": "src/app/router/appRoutes.tsx",
+      "strings": [
+        "@features/auth/pages/LoginPage",
+        "@features/payments/pages/CheckoutPage",
+        "@features/payments/pages/CheckoutSuccessPage",
+        "@features/payments/pages/OfficeCheckoutPage",
+        "@features/customer/pages/DashboardPage",
+        "@features/onboarding/cos/pages/COSOnboardingPage",
+        "@features/onboarding/b1b2/pages/B1B2OnboardingPage",
+        "@features/onboarding/f1/pages/F1OnboardingPage",
+        "Soluções",
+        "Solução",
+        "Serviço",
+        "Quem Somos",
+        "Contato",
+        "Login",
+        "Checkout",
+        "Office Checkout",
+        "Checkout Success",
+        "Dashboard",
+        "Onboarding B1/B2",
+        "Onboarding F1",
+        "Onboarding COS",
+        "Onboarding"
+      ]
+    },
+    {
+      "path": "src/app/router/authGuard.ts",
+      "strings": [
+        "redirect-login"
+      ]
+    }
+  ]
+}

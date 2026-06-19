@@ -1,0 +1,13 @@
+{
+  "group": "shared-components-organisms",
+  "part": 4,
+  "totalParts": 4,
+  "files": [
+    {
+      "path": "src/shared/components/organisms/StepTimeline.tsx",
+      "strings": [
+        "Etapas do processo"
+      ]
+    }
+  ]
+}

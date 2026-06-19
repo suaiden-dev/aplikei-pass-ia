@@ -1,0 +1,14 @@
+{
+  "group": "legal-pages",
+  "part": 2,
+  "totalParts": 2,
+  "files": [
+    {
+      "path": "src/features/legal/pages/Terms/index.tsx",
+      "strings": [
+        "Termos de Uso",
+        "Leia com atenção os termos aplicáveis ao uso da plataforma."
+      ]
+    }
+  ]
+}

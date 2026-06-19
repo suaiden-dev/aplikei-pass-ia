@@ -1,0 +1,36 @@
+{
+  "group": "process-pages",
+  "part": 1,
+  "totalParts": 1,
+  "files": [
+    {
+      "path": "src/features/process/pages/MyProcessesPage/index.tsx",
+      "strings": [
+        "visto-b1-b2",
+        "visto-b1-b2-reaplicacao",
+        "B1/B2 REAPLICAÇÃO",
+        "visto-f1",
+        "EXTENSÃO STATUS",
+        "dashboard"
+      ]
+    },
+    {
+      "path": "src/features/process/pages/ProcessDetailPage/index.tsx",
+      "strings": [
+        "@features/process/services/processOps",
+        "visto-b1-b2",
+        "visto-b1-b2-reaplicacao",
+        "B1/B2 REAPLICAÇÃO",
+        "visto-f1",
+        "visto-f1-reaplicacao",
+        "F-1 REAPLICAÇÃO",
+        "EXTENSÃO STATUS",
+        "visto-",
+        "Em análise",
+        "Sua etapa foi enviada e está em análise pela equipe responsável.",
+        "Aprovado",
+        "Sua ação"
+      ]
+    }
+  ]
+}

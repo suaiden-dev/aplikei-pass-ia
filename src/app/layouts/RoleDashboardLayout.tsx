@@ -632,7 +632,7 @@ export function RoleDashboardLayout({
           </div>
 
           {/* Nav — grows to fill space */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto" data-scroll-reset="true">
             <SidebarNav
               navItems={navItems}
               location={routeLocation}

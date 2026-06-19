@@ -1,0 +1,25 @@
+{
+  "group": "app",
+  "part": 2,
+  "totalParts": 2,
+  "files": [
+    {
+      "path": "src/app/router/ProtectedRoute.tsx",
+      "strings": [
+        "redirect-login"
+      ]
+    },
+    {
+      "path": "src/app/router/RoleRoute.tsx",
+      "strings": [
+        "redirect-login"
+      ]
+    },
+    {
+      "path": "src/app/router/sidebarRoutes.ts",
+      "strings": [
+        "@app/app/layouts/RoleDashboardLayout"
+      ]
+    }
+  ]
+}

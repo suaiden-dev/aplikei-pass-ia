@@ -1,0 +1,71 @@
+{
+  "group": "onboarding",
+  "part": 8,
+  "totalParts": 9,
+  "files": [
+    {
+      "path": "src/features/onboarding/f1/hooks/useF1Onboarding.ts",
+      "strings": [
+        "visto-f1-reaplicacao",
+        "visto-f1",
+        "Serviço não encontrado",
+        "Erro ao carregar serviço",
+        "DS-160 enviada com sucesso!",
+        "Erro ao salvar",
+        "Erro ao salvar rascunho"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/f1/pages/F1OnboardingPage/components/F1StepContent.tsx",
+      "strings": [
+        "@features/onboarding/b1b2/pages/B1B2OnboardingPage/steps/DS160SingleFormStep",
+        "@features/onboarding/b1b2/pages/B1B2OnboardingPage/steps/B1B2UserReviewSignStep",
+        "@features/onboarding/b1b2/pages/B1B2OnboardingPage/steps/B1B2CASVSchedulingStep",
+        "@features/onboarding/b1b2/pages/B1B2OnboardingPage/steps/B1B2UserConfirmEmailStep",
+        "@features/onboarding/b1b2/pages/B1B2OnboardingPage/steps/B1B2MRVPaymentStep",
+        "@features/onboarding/shared/components/DS160FormShell",
+        "@features/onboarding/shared/constants/ds160Sections",
+        "@features/onboarding/shared/components/OnboardingNoticeStep",
+        "@features/onboarding/b1b2/schemas/ds160.schema",
+        "Próxima seção",
+        "Voltar ao Painel"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/f1/pages/F1OnboardingPage/index.tsx",
+      "strings": [
+        "@features/onboarding/f1/hooks/useF1Onboarding",
+        "@features/onboarding/b1b2/schemas/ds160.schema",
+        "@features/onboarding/cos/pages/COSOnboardingPage/components/HomologationAutofillButton",
+        "@shared/components/molecules/OnboardingStepper",
+        "visto-f1-reaplicacao"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/f1/pages/F1OnboardingPage/steps/F1FinalPreparationStep.tsx",
+      "strings": [
+        "@features/onboarding/services/interviewTrainingService",
+        "@features/onboarding/services/finalPreparationService",
+        "Plano de Estudo Personalizado",
+        "Material de Apoio PDF",
+        "Análise de Perfil Acadêmico",
+        "Feedback em Vídeo Detalhado",
+        "Suporte p/ Dúvidas SEVIS",
+        "Estratégia VIP p/ Vínculos",
+        "Suporte Direto WhatsApp",
+        "Simulado em Inglês + Português",
+        "Olá, comprei o pacote Specialist Mentoring e quero iniciar meu atendimento com o manager.",
+        "Olá, comprei a consultoria pós-negativa e quero iniciar meu atendimento com o manager.",
+        "Falar com especialista",
+        "Ir para o chat",
+        "Qual o objetivo acadêmico do seu curso?",
+        "Explique curso, instituição e conexão com seu plano de carreira.",
+        "Como você vai custear seus estudos e estadia?",
+        "Detalhe fonte financeira, documentos e estabilidade econômica.",
+        "Quais vínculos você mantém com seu país de origem?",
+        "Mostre laços familiares, profissionais e plano de retorno.",
+        "Converse direto com o manager para iniciar sua mentoria"
+      ]
+    }
+  ]
+}

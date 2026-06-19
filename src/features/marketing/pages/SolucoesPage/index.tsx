@@ -47,26 +47,26 @@ import {
 const pageCopy = {
   pt: {
     tag: "Soluções",
-    title: "Uma solução por página, com foco total no que importa.",
+    title: "Uma página para cada dor do escritório, com foco no que gera venda e escala.",
     lead:
-      "Cada página aprofunda uma solução específica, com blocos editoriais abaixo do hero, imagens dedicadas e benefícios claros.",
+      "Cada solução mostra como a Aplikei ajuda o escritório a reduzir retrabalho, ganhar controle e vender com mais previsibilidade.",
     cta: "Falar com especialista",
-    signup: "Criar conta",
-    sectionTitle: "Uma operação mais clara, em uma página com foco total.",
+    signup: "Quero entender melhor",
+    sectionTitle: "Menos improviso, mais processo comercial.",
     sectionLead:
-      "A solução concentra as informações essenciais em um fluxo limpo, com a imagem certa, leitura rápida e um próximo passo direto para cadastro.",
+      "A página organiza as informações para mostrar o problema, a solução e o ganho operacional em uma leitura simples e comercial.",
     blocks: [
       {
-        title: "Visão geral",
-        text: "Entenda a proposta da solução em poucos segundos, com o contexto que importa no topo e a leitura visual logo abaixo.",
+        title: "Problema que resolve",
+        text: "Mostre em poucos segundos qual dor do escritório esta solução elimina.",
       },
       {
-        title: "Como funciona",
-        text: "Veja a operação em um layout mais editorial, com explicação curta e imagem grande para dar clareza ao conteúdo.",
+        title: "Como a Aplikei organiza",
+        text: "Explique de forma simples como o fluxo fica mais controlado, rápido e previsível.",
       },
       {
-        title: "Próximo passo",
-        text: "Depois de entender a solução, siga diretamente para o cadastro e mantenha o fluxo simples para o usuário.",
+        title: "Ganho para o escritório",
+        text: "Feche a leitura com o impacto prático: menos tempo perdido, mais escala e mais foco em vendas.",
       },
     ],
   },
@@ -125,9 +125,9 @@ const pageCopy = {
 const enhancedCopy = {
   pt: {
     compareTag: "Por que mudar",
-    compareTitle: "Da operação dispersa para um fluxo com foco total.",
+    compareTitle: "Da operação improvisada para um escritório com controle e escala.",
     compareLead:
-      "Veja a diferença entre operar no improviso e operar com a Aplikei organizando cada etapa.",
+      "Veja a diferença entre gastar energia com tarefas soltas e ter um fluxo que sustenta crescimento comercial.",
     beforeLabel: "Sem a Aplikei",
     beforeItems: [
       "Informações espalhadas em planilhas, e-mails e mensagens.",
@@ -140,11 +140,11 @@ const enhancedCopy = {
       "Histórico, status e responsáveis sempre visíveis.",
       "Fluxo padronizado que o time segue sem improviso.",
     ],
-    showcaseTitle: "O que você organiza nesta solução",
+    showcaseTitle: "O que o escritório ganha com essa solução",
     capabilitiesTag: "Recursos",
-    capabilitiesTitle: "Tudo o que essa solução entrega",
+    capabilitiesTitle: "Recursos pensados para vender com mais controle",
     capabilitiesLead:
-      "Recursos pensados para tirar a operação do improviso e dar clareza ao time.",
+      "Cada bloco traduz o impacto prático da solução na rotina do escritório.",
   },
   en: {
     compareTag: "Why change",

@@ -7,76 +7,20 @@ import { useDemoBooking } from "@shared/components/organisms/DemoBookingModal";
 import { getDefaultRouteForRole } from "@app/app/router/authRedirect";
 import officeTeamImage from "@assets/images/group-business-executives-discussing-laptop-their-des.jpg";
 import heroHomeImage from "@assets/images/herohome.png";
-import wernerLogo from "@assets/logos/Logotipo-Werner-Advocacia.png";
-import logoHorizontal from "@assets/logos/logo-horizontal-CyOfyqfY.png";
-import marquesLogo from "@assets/logos/MARQUES-ADVOGADOS-.png";
-import logotipoLogo from "@assets/logos/cropped-LOGOTIPO-Logotipo.webp";
-import msgLogo from "@assets/logos/cropped-logo-MSG-azul.png";
-import genericLogo from "@assets/logos/4085d7be-8277-487c-af1e-7190ed407c7f-e1729658650101.png";
-import mattosLogo from "@assets/logos/Logo-03-1024x818.png";
-import overviewVisual from "@assets/landing/solution-overview.svg";
-import financeVisual from "@assets/landing/solution-finance.svg";
-import productsVisual from "@assets/landing/solution-products.svg";
-import caseVisual from "@assets/landing/solution-case.svg";
 import { PublicButton } from "@shared/components/atoms/PublicButton";
 import { PublicFooter } from "@shared/components/organisms/PublicFooter";
+import {
+  AUTO_ICONS,
+  EXC_ICONS,
+  FIRM_LOGOS,
+  MOBILE_SCREEN_UI,
+  PAIN_ICONS,
+  T,
+  type HomePageLang,
+} from "./homePageContent";
 import "./landing.css";
 
-type Lang = "pt" | "en" | "es";
-
-const FIRM_LOGOS = [
-  { name: "Werner Advocacia", src: wernerLogo },
-  { name: "Logo Horizontal", src: logoHorizontal },
-  { name: "Marques Advogados", src: marquesLogo },
-  { name: "Logotipo", src: logotipoLogo },
-  { name: "MSG Advocacia", src: msgLogo },
-  { name: "Advocacia", src: genericLogo },
-  { name: "Mattos Advogados", src: mattosLogo },
-] as const;
-
-const MOBILE_SCREEN_UI = {
-  pt: {
-    nav: "MEUS CASOS",
-    title: "VISTO F-1",
-    subtitle: "ESTUDANTE/ACADÊMICO",
-    office: "ALMEIDA & PARTNERS",
-    step: "PREENCHIMENTO DS-160",
-    cta: "INICIAR ETAPA 1",
-    panel: "PAINEL",
-    active: "ATIVO",
-    progress: "0%",
-    nextStep1: "RECEBER I-20",
-    nextStep2: "AGENDAR ENTREVISTA",
-  },
-  en: {
-    nav: "MY CASES",
-    title: "F-1 VISA",
-    subtitle: "STUDENT/ACADEMIC",
-    office: "ALMEIDA & PARTNERS",
-    step: "DS-160 FORM",
-    cta: "START STEP 1",
-    panel: "DASHBOARD",
-    active: "ACTIVE",
-    progress: "0%",
-    nextStep1: "RECEIVE I-20",
-    nextStep2: "SCHEDULE INTERVIEW",
-  },
-  es: {
-    nav: "MIS CASOS",
-    title: "VISA F-1",
-    subtitle: "ESTUDIANTE/ACADÉMICO",
-    office: "ALMEIDA & PARTNERS",
-    step: "FORMULARIO DS-160",
-    cta: "INICIAR ETAPA 1",
-    panel: "PANEL",
-    active: "ACTIVO",
-    progress: "0%",
-    nextStep1: "RECIBIR I-20",
-    nextStep2: "AGENDAR ENTREVISTA",
-  },
-} as const;
-
-function MobilePlatformShowcase({ lang }: { lang: Lang }) {
+function MobilePlatformShowcase({ lang }: { lang: HomePageLang }) {
   const ui = MOBILE_SCREEN_UI[lang];
 
   return (
@@ -155,6 +99,7 @@ function MobilePlatformShowcase({ lang }: { lang: Lang }) {
   );
 }
 
+/*
 // ── Inline translations ────────────────────────────────────────────
 const T = {
   pt: {
@@ -507,6 +452,7 @@ const T = {
   },
 } as const;
 
+*/
 // ── SVG icons ──────────────────────────────────────────────────────
 const ArrowRight = () => (
   <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -651,23 +597,6 @@ function DashboardMockup() {
   );
 }
 
-// ── Section icon sets ──────────────────────────────────────────────
-const PAIN_ICONS = [
-  <svg key={0} viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="2" /><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="2" /><path d="M14 7h4M16 5v4M5 14v5M3 16h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>,
-  <svg key={1} viewBox="0 0 24 24" fill="none"><path d="M12 8v4l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" /></svg>,
-  <svg key={2} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" strokeWidth="2" /><path d="M12 9v4M9 2h6M12 5V2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>,
-  <svg key={3} viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4v5c0 4.5-3.2 7.7-8 9-4.8-1.3-8-4.5-8-9V7l8-4z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-];
-const AUTO_ICONS = [
-  <svg key={0} viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" strokeWidth="2" /><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>,
-  <svg key={1} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="2" /><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>,
-  <svg key={2} viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4v5c0 4.5-3.2 7.7-8 9-4.8-1.3-8-4.5-8-9V7l8-4z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-];
-const EXC_ICONS = [
-  <svg key={0} viewBox="0 0 24 24" fill="none"><path d="M4 19V9M10 19V5M16 19v-8M22 19H2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>,
-  <svg key={1} viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4v5c0 4.5-3.2 7.7-8 9-4.8-1.3-8-4.5-8-9V7l8-4z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-];
-
 // ── Main component ─────────────────────────────────────────────────
 export default function HomePage() {
   const navigate = useNavigate();
@@ -678,7 +607,7 @@ export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const t = (T as unknown as Record<Lang, typeof T.pt>)[lang as Lang] ?? T.pt;
+  const t = T[lang] ?? T.pt;
   const isDark = theme === "dark";
 
   // Redirect authenticated users once auth resolves — don't block rendering
@@ -763,7 +692,7 @@ export default function HomePage() {
             </div>
 
             <div className="lp-pain-device lp-reveal">
-              <MobilePlatformShowcase lang={lang as Lang} />
+              <MobilePlatformShowcase lang={lang as HomePageLang} />
             </div>
 
           </div>
@@ -822,39 +751,51 @@ export default function HomePage() {
         <div className="lp-wrap" style={{ position: "relative", zIndex: 1 }}>
           <div className="lp-sec-head lp-reveal" style={{ marginBottom: 42 }}>
             <p className="lp-kicker" style={{ justifyContent: "center" }}>{t.automation.kicker}</p>
-            <h2 className="lp-h2">{t.automation.title} <span className="lp-grad-text">{t.automation.titleAccent}</span></h2>
+            <h2 className="lp-h2">{t.automation.title}</h2>
           </div>
           <div className="lp-ai-grid">
             <div className="lp-ai-feats lp-reveal">
               {t.automation.features.map((f, i) => (
                 <div key={i} className={`lp-ai-feat${i === 0 ? " hot" : ""}`}>
                   <div className={`lp-icon-box${i === 0 ? " solid" : ""}`}>{AUTO_ICONS[i]}</div>
-                  <div><h3>{f.title}</h3><p>{f.desc}</p></div>
+                  <div>
+                    <div className="lp-ai-feat-n">0{i + 1}</div>
+                    <h3>{f.title}</h3>
+                    <p>{f.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>
             <div className="lp-engine lp-reveal">
-              <div className="lp-engine-top">
-                <div><h3>{t.automation.engineTitle}</h3><p>{t.automation.engineSub}</p></div>
-                <span className="lp-engine-live"><span className="d" />{t.automation.engineLive}</span>
-              </div>
-              <div className="lp-engine-rows">
-                {t.automation.rows.map((row, i) => (
-                  <div key={i} className="lp-engine-row">
-                    <span className="k">{row.k}</span>
-                    <span className="v">
-                      {i === 2 ? <><span className="ok">24s</span> <span className="lp-muted" style={{ fontWeight: 400 }}>(−55 min)</span></> : i === 3 ? <span className="ok">{row.v}</span> : row.v}
-                    </span>
+              <div className="lp-engine-grad-bar" />
+              <div className="lp-engine-inner">
+                <div className="lp-ai-panel-client">
+                  <div className="lp-ai-panel-avatar">CS</div>
+                  <div className="lp-ai-panel-client-info">
+                    <strong>{t.automation.aiPanel.clientName}</strong>
+                    <span>{t.automation.aiPanel.clientVisa} · {t.automation.aiPanel.clientStatus}</span>
                   </div>
-                ))}
-              </div>
-              <div className="lp-engine-cta">
-                <PublicButton asChild tone="solid">
-                  <Link to="/sign-up">{t.automation.ctaFill}</Link>
-                </PublicButton>
-                <PublicButton asChild tone="outline">
-                  <a href="#lp-cta">{t.automation.ctaReview}</a>
-                </PublicButton>
+                </div>
+                <div className="lp-ai-tasks">
+                  {t.automation.aiPanel.tasks.map((task, i) => (
+                    <div key={i} className={`lp-ai-task ${task.done ? "done" : "pending"}`}>
+                      <div className="lp-ai-task-icon">{task.done ? "✓" : "→"}</div>
+                      <div>
+                        <strong>{task.title}</strong>
+                        <small>{task.sub}</small>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="lp-ai-panel-saved">{t.automation.aiPanel.saved}</div>
+                <div className="lp-engine-cta">
+                  <PublicButton asChild tone="solid">
+                    <Link to="/sign-up">{t.automation.ctaFill}</Link>
+                  </PublicButton>
+                  <PublicButton asChild tone="outline">
+                    <a href="#lp-cta">{t.automation.ctaReview}</a>
+                  </PublicButton>
+                </div>
               </div>
             </div>
           </div>

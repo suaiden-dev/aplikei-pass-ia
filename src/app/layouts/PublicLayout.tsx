@@ -9,7 +9,7 @@ export function PublicLayout() {
   const { pathname } = useLocation();
   useForceLightTheme();
   const isDevelopmentRoot = pathname === "/" && !siteConfig.isProd;
-  const hideFooter = pathname === "/" || pathname === "/landing";
+  const hideFooter = pathname === "/landing";
   const hideNavbar = isDevelopmentRoot;
 
   return (

@@ -97,12 +97,12 @@ export const solutions: SolutionCard[] = [
     group: "fluxos",
     title: text("Visto B1/B2", "B1/B2 Visa", "Visa B1/B2"),
     summary: text(
-      "Organize o visto B1/B2 com etapas, documentos e aprovações.",
+      "Padronize o fluxo B1/B2 com etapas, documentos e aprovações em um só lugar.",
       "Organize the B1/B2 visa with stages, documents and approvals.",
       "Organice la visa B1/B2 con etapas, documentos y aprobaciones.",
     ),
     detail: text(
-      "Template para vender e operar o fluxo B1/B2 com clareza para o cliente e visão de ponta a ponta para o time.",
+      "Transforme o atendimento do B1/B2 em uma operação previsível, com histórico, responsáveis e próximos passos claros para o time.",
       "Template to sell and run the B1/B2 flow with clarity for the client and end-to-end visibility for the team.",
       "Plantilla para vender y operar el flujo B1/B2 con claridad para el cliente y visión de extremo a extremo para el equipo.",
     ),
@@ -185,12 +185,12 @@ export const solutions: SolutionCard[] = [
     group: "produtos",
     title: text("Análise das Finanças", "Finance Analysis", "Análisis de Finanzas"),
     summary: text(
-      "Visualize caixa, receita e previsibilidade em um só lugar.",
+      "Enxergue receita, caixa e previsibilidade para tomar decisão com segurança.",
       "See cash flow, revenue and predictability in one place.",
       "Visualice caja, ingresos y previsibilidad en un solo lugar.",
     ),
     detail: text(
-      "Use a página de análise para dar contexto financeiro ao escritório e apoiar decisões com mais clareza.",
+      "Acompanhe o financeiro do escritório com leitura rápida de entrada, saída, margem e evolução para vender e crescer com mais controle.",
       "Use the analysis page to bring financial context to the firm and support decisions with more clarity.",
       "Use la página de análisis para dar contexto financiero al despacho y apoyar decisiones con más claridad.",
     ),
@@ -255,12 +255,12 @@ export const solutions: SolutionCard[] = [
     group: "operacao",
     title: text("Gerenciar Processos", "Manage Processes", "Gestionar Procesos"),
     summary: text(
-      "Veja cada caso com etapas, responsáveis e pendências.",
+      "Acompanhe cada caso com etapas, responsáveis e pendências visíveis.",
       "See each case with stages, owners and pending items.",
       "Vea cada caso con etapas, responsables y pendientes.",
     ),
     detail: text(
-      "Um template para acompanhar o andamento operacional sem perder histórico, prioridade ou contexto.",
+      "Centralize o andamento operacional sem perder histórico, prioridade ou contexto do escritório.",
       "A template to track operational progress without losing history, priority or context.",
       "Una plantilla para seguir el avance operacional sin perder historial, prioridad o contexto.",
     ),
@@ -277,7 +277,7 @@ export const solutions: SolutionCard[] = [
     group: "operacao",
     title: text("Gerenciar Regras de Desconto", "Manage Discount Rules", "Gestionar Reglas de Descuento"),
     summary: text(
-      "Padronize regras de desconto sem perder controle comercial.",
+      "Defina regras de desconto sem perder margem nem controle comercial.",
       "Standardize discount rules without losing commercial control.",
       "Estandarice reglas de descuento sin perder control comercial.",
     ),
@@ -299,12 +299,12 @@ export const solutions: SolutionCard[] = [
     group: "operacao",
     title: text("Gerenciar Serviços", "Manage Services", "Gestionar Servicios"),
     summary: text(
-      "Organize serviços em um catálogo fácil de operar.",
+      "Organize serviços em um catálogo pronto para vender e operar.",
       "Organize services in an easy-to-run catalog.",
       "Organice servicios en un catálogo fácil de operar.",
     ),
     detail: text(
-      "Centralize o catálogo de serviços, escopo e disponibilidade para simplificar a rotina do escritório.",
+      "Centralize catálogo, escopo e disponibilidade para que o time venda com mais consistência e menos retrabalho.",
       "Centralize the service catalog, scope and availability to simplify the firm's daily routine.",
       "Centralice el catálogo de servicios, alcance y disponibilidad para simplificar la rutina del despacho.",
     ),
@@ -321,12 +321,12 @@ export const solutions: SolutionCard[] = [
     group: "operacao",
     title: text("Gerenciar Time", "Manage Team", "Gestionar Equipo"),
     summary: text(
-      "Distribua tarefas e acompanhe a equipe com clareza.",
+      "Distribua tarefas e acompanhe o time com clareza de responsabilidade.",
       "Distribute tasks and follow the team clearly.",
       "Distribuya tareas y siga al equipo con claridad.",
     ),
     detail: text(
-      "Organize o trabalho do time por papel, prioridade e responsabilidade para manter a execução previsível.",
+      "Organize o trabalho por papel, prioridade e responsabilidade para manter a execução previsível.",
       "Organize the team's work by role, priority and responsibility to keep execution predictable.",
       "Organice el trabajo del equipo por rol, prioridad y responsabilidad para mantener la ejecución previsible.",
     ),
@@ -343,12 +343,12 @@ export const solutions: SolutionCard[] = [
     group: "operacao",
     title: text("Gestão de Casos", "Case Management", "Gestión de Casos"),
     summary: text(
-      "Acompanhe múltiplos casos com visão de ponta a ponta.",
+      "Acompanhe múltiplos casos com visão completa da operação.",
       "Track multiple cases with an end-to-end view.",
       "Siga múltiples casos con visión de extremo a extremo.",
     ),
     detail: text(
-      "Uma página para operar casos recorrentes com contexto, status e histórico sempre visíveis.",
+      "Uma base para operar casos recorrentes com contexto, status e histórico sempre visíveis.",
       "A page to run recurring cases with context, status and history always visible.",
       "Una página para operar casos recurrentes con contexto, estado e historial siempre visibles.",
     ),
@@ -365,12 +365,12 @@ export const solutions: SolutionCard[] = [
     group: "produtos",
     title: text("Plataforma para Vendedores", "Platform for Sellers", "Plataforma para Vendedores"),
     summary: text(
-      "Dê ao time uma plataforma para vender com mais organização.",
+      "Dê ao time uma plataforma para vender com mais controle e previsibilidade.",
       "Give the team a platform to sell with more organization.",
       "Dé al equipo una plataforma para vender con más organización.",
     ),
     detail: text(
-      "Uma base para vender serviços, controlar oferta e reduzir a dispersão do processo comercial.",
+      "Uma base para vender serviços, controlar oferta e reduzir a dispersão do processo comercial do escritório.",
       "A base for selling services, controlling offers and reducing commercial process spread.",
       "Una base para vender servicios, controlar ofertas y reducir la dispersión del proceso comercial.",
     ),

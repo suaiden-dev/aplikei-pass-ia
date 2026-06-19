@@ -10,7 +10,7 @@ const formCopy = {
   pt: {
     kicker: "Canais",
     title: "Fale com a Aplikei",
-    description: "Envie uma mensagem com o contexto da sua operação. Nossa equipe retorna com o melhor próximo passo.",
+    description: "Conte como funciona seu escritório e onde você quer ganhar tempo, controle e previsibilidade. Vamos indicar o próximo passo mais adequado.",
     fields: {
       name: "Nome",
       email: "Email",
@@ -18,8 +18,8 @@ const formCopy = {
       message: "Mensagem",
       namePlaceholder: "Seu nome",
       emailPlaceholder: "seu@email.com",
-      subjectPlaceholder: "Como podemos ajudar?",
-      messagePlaceholder: "Descreva sua operação ou dúvida",
+      subjectPlaceholder: "Qual é o principal desafio?",
+      messagePlaceholder: "Explique sua operação, volume e objetivo comercial",
     },
     button: "Enviar mensagem",
     sending: "Enviando...",

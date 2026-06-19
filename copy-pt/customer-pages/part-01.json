@@ -1,0 +1,33 @@
+{
+  "group": "customer-pages",
+  "part": 1,
+  "totalParts": 1,
+  "files": [
+    {
+      "path": "src/features/customer/pages/DashboardPage/index.tsx",
+      "strings": [
+        "@features/process/hooks/useDashboard",
+        "@shared/components/organisms/DashboardView",
+        "dashboard"
+      ]
+    },
+    {
+      "path": "src/features/customer/pages/ProfileSettingsPage/index.tsx",
+      "strings": [
+        "Telefone inválido",
+        "Email inválido",
+        "Perfil atualizado! Verifique o novo e-mail para confirmar a alteração.",
+        "Perfil atualizado com sucesso!",
+        "A imagem deve ter no máximo 2MB.",
+        "Foto de perfil atualizada!",
+        "Gerencie suas informações pessoais e configurações de perfil.",
+        "Foto de Perfil",
+        "Seu nome completo",
+        "Requer confirmação no novo e-mail",
+        "Salvar Alterações",
+        "Dica de Segurança",
+        "Ao alterar seu e-mail, seu login será atualizado automaticamente. Você precisará confirmar a mudança através de um link enviado para o novo endereço."
+      ]
+    }
+  ]
+}

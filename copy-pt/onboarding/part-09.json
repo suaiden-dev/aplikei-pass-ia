@@ -1,0 +1,43 @@
+{
+  "group": "onboarding",
+  "part": 9,
+  "totalParts": 9,
+  "files": [
+    {
+      "path": "src/features/onboarding/f1/pages/F1OnboardingPage/steps/F1I20UploadStep.tsx",
+      "strings": [
+        "@features/onboarding/services/onboardingStorageService",
+        "@features/process/services/processOps",
+        "O seu I-20 foi validado pela equipe. Você já pode avançar para a próxima etapa.",
+        "Voltar para Dashboard",
+        "Aguardando Revisão",
+        "O seu I-20 foi enviado com sucesso e está sendo analisado pela nossa equipe."
+      ]
+    },
+    {
+      "path": "src/features/onboarding/hooks/useInterviewTrainingController.ts",
+      "strings": [
+        "@features/onboarding/services/interviewTrainingService"
+      ]
+    },
+    {
+      "path": "src/features/onboarding/services/interviewTrainingService.ts",
+      "strings": [
+        "Webhook do treino de entrevista com IA não configurado.",
+        "Falha ao conectar com o treino de entrevista.",
+        "Resposta inválida do treino de entrevista."
+      ]
+    },
+    {
+      "path": "src/features/onboarding/shared/components/DS160FormShell.tsx",
+      "strings": [
+        "@features/onboarding/b1b2/schemas/ds160.schema",
+        "Seção",
+        "Preencha esta etapa e avance para a próxima seção da DS-160.",
+        "Progresso do formulário",
+        "Role para cima para localizar os erros destacados em vermelho.",
+        "Próxima seção"
+      ]
+    }
+  ]
+}

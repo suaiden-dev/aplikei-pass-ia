@@ -1,0 +1,43 @@
+{
+  "group": "legal-pages",
+  "part": 1,
+  "totalParts": 2,
+  "files": [
+    {
+      "path": "src/features/legal/pages/ContractTerms/index.tsx",
+      "strings": [
+        "Este contrato estabelece as diretrizes para a prestação de serviços da Aplikei. Ao utilizar nossa plataforma, você concorda com todos os termos descritos abaixo.",
+        "Este contrato establece las directrices para la prestación de servicios de Aplikei. Al usar nuestra plataforma, aceptas todos los términos descritos a continuación."
+      ]
+    },
+    {
+      "path": "src/features/legal/pages/Disclaimers/index.tsx",
+      "strings": [
+        "A utilização da nossa plataforma implica na aceitação plena e irrevogável de todos os termos e avisos aqui listados. Recomendamos que, em caso de dúvidas sobre a sua elegibilidade imigratória, você consulte um advogado devidamente licenciado nos Estados Unidos.",
+        "El uso de nuestra plataforma implica la aceptación plena e irrevocable de todos los términos y avisos listados aquí. Recomendamos que, en caso de dudas sobre su elegibilidad migratoria, consulte a un abogado debidamente licenciado en los Estados Unidos."
+      ]
+    },
+    {
+      "path": "src/features/legal/pages/LegalLayout.tsx",
+      "strings": [
+        "Termos de Serviço",
+        "Términos de Servicio",
+        "Política de Privacidade",
+        "Política de Privacidad",
+        "Documento Oficial",
+        "Voltar",
+        "Soluções",
+        "Login",
+        "Documentos"
+      ]
+    },
+    {
+      "path": "src/features/legal/pages/Privacy/index.tsx",
+      "strings": [
+        "Política de Privacidade",
+        "Veja como coletamos, usamos e protegemos suas informações.",
+        "Nenhuma política publicada no momento."
+      ]
+    }
+  ]
+}

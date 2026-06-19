@@ -1,0 +1,31 @@
+{
+  "group": "admin-pages",
+  "part": 1,
+  "totalParts": 4,
+  "files": [
+    {
+      "path": "src/features/admin/pages/billings/PaymentSettingsPage/index.tsx",
+      "strings": [
+        "@shared/components/organisms/DashboardUI"
+      ]
+    },
+    {
+      "path": "src/features/admin/pages/billings/WithdrawalsPage/index.tsx",
+      "strings": [
+        "@shared/components/organisms/DashboardUI"
+      ]
+    },
+    {
+      "path": "src/features/admin/pages/CompanyProfilePage/index.tsx",
+      "strings": [
+        "@shared/components/organisms/DashboardUI"
+      ]
+    },
+    {
+      "path": "src/features/admin/pages/DiscountRulesPage/index.tsx",
+      "strings": [
+        "You do not have a registered office yet. Configure an office first."
+      ]
+    }
+  ]
+}
